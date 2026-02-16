@@ -1,0 +1,254 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kidschores"
+version = "0.5.0"
+description = "KidsChores Home Assistant Integration - Gamified chore tracking for kids"
+readme = "README.md"
+authors = [{ name = "KidsChores Contributors" }]
+license = { text = "MIT" }
+requires-python = ">=3.13"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["slow: marks tests as slow (deselect with '-m \"not slow\"')"]
+
+[tool.ruff]
+required-version = ">=0.13.0"
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+  "A001",   # Variable {name} is shadowing a Python builtin
+  "ASYNC",  # flake8-async
+  "B002",   # Python does not support the unary prefix increment
+  "B005",   # Using .strip() with multi-character strings is misleading
+  "B007",   # Loop control variable {name} not used within loop body
+  "B009",   # Do not call getattr with a constant attribute value
+  "B014",   # Exception handler with duplicate exception
+  "B015",   # Pointless comparison
+  "B017",   # pytest.raises(BaseException) should be considered evil
+  "B018",   # Found useless attribute access
+  "B023",   # Function definition does not bind loop variable {name}
+  "B024",   # Abstract base class with no abstract methods
+  "B026",   # Star-arg unpacking after a keyword argument is strongly discouraged
+  "B032",   # Possible unintentional type annotation (using :)
+  "B035",   # Dictionary comprehension uses static key
+  "B904",   # Use raise from to specify exception cause
+  "B905",   # zip() without an explicit strict= parameter
+  "BLE",    # flake8-blind-except
+  "C4",     # flake8-comprehensions
+  "COM818", # Trailing comma on bare tuple prohibited
+  "DTZ003", # Use datetime.now(tz=) instead of datetime.utcnow()
+  "DTZ004", # Use datetime.fromtimestamp(ts, tz=) instead of datetime.utcfromtimestamp(ts)
+  "E",      # pycodestyle errors
+  "F",      # pyflakes/autoflake
+  "F541",   # f-string without any placeholders
+  "FLY",    # flynt
+  "FURB",   # refurb
+  "G",      # flake8-logging-format
+  "I",      # isort
+  "INP",    # flake8-no-pep420
+  "ISC",    # flake8-implicit-str-concat
+  "ICN001", # import conventions
+  "LOG",    # flake8-logging
+  "N804",   # First argument of a class method should be named cls
+  "N805",   # First argument of a method should be named self
+  "N815",   # Variable {name} in class scope should not be mixedCase
+  "PERF",   # Perflint
+  "PGH",    # pygrep-hooks
+  "PIE",    # flake8-pie
+  "PL",     # pylint
+  "PT",     # flake8-pytest-style
+  "PTH",    # flake8-pathlib (but ignored per-file below)
+  "PYI",    # flake8-pyi
+  "RET",    # flake8-return
+  "RSE",    # flake8-raise
+  "RUF005", # Consider iterable unpacking instead of concatenation
+  "RUF006", # Store a reference to the return value of asyncio.create_task
+  "RUF010", # Use explicit conversion flag
+  "RUF013", # PEP 484 prohibits implicit Optional
+  "RUF017", # Avoid quadratic list summation
+  "RUF018", # Avoid assignment expressions in assert statements
+  "RUF019", # Unnecessary key check before dictionary access
+  "RUF022", # Sort __all__
+  "RUF100", # Unused `noqa` directive
+  "S102",   # Use of exec detected
+  "S103",   # bad-file-permissions
+  "S108",   # hardcoded-temp-file
+  "S307",   # suspicious-eval-usage
+  "S602",   # subprocess-popen-with-shell-equals-true
+  "S608",   # hardcoded-sql-expression
+  "SIM",    # flake8-simplify
+  "SLF",    # flake8-self
+  "SLOT",   # flake8-slots
+  "T100",   # Trace found: {name} used
+  "T20",    # flake8-print
+  "TC",     # flake8-type-checking
+  "TID",    # Tidy imports
+  "TRY",    # tryceratops
+  "UP",     # pyupgrade
+  "W",      # pycodestyle warnings
+]
+
+ignore = [
+  # Intentionally disabled for readability/practicality
+  "D202", # No blank lines allowed after function docstring
+  "D203", # 1 blank line required before class docstring
+  "D213", # Multi-line docstring summary should start at the second line
+  "E501", # line too long (we use 100 in formatter)
+
+  # Too strict for our use case
+  "PLR0911", # Too many return statements
+  "PLR0912", # Too many branches
+  "PLR0913", # Too many arguments to function call
+  "PLR0915", # Too many statements
+  "PLR2004", # Magic value used in comparison
+  "PLW2901", # Outer variable overwritten by inner target
+  "PT011",   # pytest.raises too broad
+  "PT018",   # Assertion should be broken down
+  "RUF001",  # String contains ambiguous unicode character
+  "RUF002",  # Docstring contains ambiguous unicode character
+  "RUF003",  # Comment contains ambiguous unicode character
+  "SIM102",  # Use a single if statement instead of nested if
+  "SIM103",  # Return the condition directly
+  "SIM108",  # Use ternary operator instead of if-else-block
+  "SIM115",  # Use context handler for opening files
+  "TRY003",  # Avoid specifying long messages outside the exception class
+  "TRY400",  # Use `logging.exception` instead of `logging.error`
+
+  # May conflict with the formatter
+  "W191",
+  "E111",
+  "E114",
+  "E117",
+  "D206",
+  "D300",
+  "Q",
+  "COM812",
+  "COM819",
+  "ISC001",
+]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+combine-as-imports = true
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+# Engines subdirectory uses relative imports for parent package (mypy requirement)
+"custom_components/kidschores/engines/**" = ["TID252"]
+
+# Helpers subdirectory uses relative imports for parent package (sub-package pattern)
+"custom_components/kidschores/helpers/**" = ["TID252"]
+
+# Managers subdirectory uses relative imports for parent package (consistency)
+"custom_components/kidschores/managers/**" = ["TID252"]
+
+# Calendar platform uses relative imports (HA component pattern)
+"custom_components/kidschores/calendar.py" = ["TID252"]
+
+# Tests have different requirements
+"tests/**" = [
+  "PLR0912",  # Too many branches
+  "PLR0913",  # Too many arguments
+  "PLR0915",  # Too many statements
+  "PLR2004",  # Magic value in comparison
+  "S101",     # Use of assert detected
+  "SLF001",   # Private member accessed (coordinator._data, _persist, etc. - expected in tests)
+  "PT017",    # Found assertion on exception message
+  "PT015",    # Assertion always fails
+  "PT012",    # pytest.raises() block should contain a single statement
+  "F841",     # Local variable assigned but never used (test data setup)
+  "T201",     # print found (intentional for test output/debugging)
+  "PTH",      # flake8-pathlib (temporary, per Home Assistant)
+  "PLC0415",  # Import-outside-top-level (intentional lazy imports in test fixtures)
+  "PLC2401",  # Non-ASCII variable names (test data like zoë_id)
+  "TRY301",   # Raise within try (common test patterns)
+  "TRY300",   # Try-except-else (test fallback patterns)
+  "BLE001",   # Blind except (test error handling)
+  "B007",     # Unused loop control variable (test data generation)
+  "SIM117",   # Multiple with-statements (test setup patterns)
+  "ASYNC230", # Blocking open in async (legacy test patterns)
+  "PERF401",  # Manual list comprehension (test clarity)
+  "TRY203",   # Useless try-except (intentional test patterns)
+  "PLR1704",  # Redefined argument (intentional in test setup)
+]
+
+# Test helper modules - re-export patterns
+"tests/helpers/constants.py" = [
+  "F401", # Unused import (intentional re-exports for test reference)
+  "I001", # Unsorted imports (organized by logical sections, not alphabetically)
+]
+
+# Utility scripts - development/debugging tools
+"utils/**" = [
+  "B007",     # Unused loop control variable (intentional iteration)
+  "PERF401",  # Manual list comprehension (intentional for clarity)
+  "SIM117",   # Multiple with-statements (intentional structure)
+  "PTH123",   # Builtin open (intentional use in utils)
+  "F821",     # Undefined name (config/dynamic variables in utils)
+  "PLR1704",  # Redefined argument (intentional in utility functions)
+  "BLE001",   # Blind except (utils for error reporting)
+  "PLC0415",  # Import-outside-top-level (lazy imports in utils)
+  "SLF001",   # Private member access (accessing coordinator internals)
+  "ASYNC230", # Blocking open in async (utils are development tools)
+]
+
+# Custom components directory
+"custom_components/**" = [
+  "PTH",     # flake8-pathlib (temporary, per Home Assistant)
+  "PLC0415", # Import-outside-top-level (intentional lazy imports for specific functions)
+  "SLF001",  # Private member access (necessary for storage manager and data manipulation)
+  "TRY301",  # Raise within try (common pattern for error handling)
+  "TRY300",  # Try-except-else (fallback patterns)
+  "BLE001",  # Blind except (sometimes necessary for broad error handling)
+  "TRY203",  # Useless try-except (some patterns are intentional for clarity)
+  "PLR1704", # Redefined argument from local (intentional in some setups)
+  "PERF102", # Incorrect dict iterator (keys/values both used in conditions)
+  "PERF401", # Manual list comprehension (intentional for clarity)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.13"
+show_error_codes = true
+follow_imports = "normal"
+local_partial_types = true
+strict_equality = true
+warn_incomplete_stub = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+enable_error_code = "ignore-without-code"
+disable_error_code = "annotation-unchecked"
+check_untyped_defs = true
+# Enabled for Silver quality scale compliance
+strict_optional = true
+warn_return_any = false
+
+# Suppress all mypy errors from Home Assistant core modules (symlinked in dev)
+[[tool.mypy.overrides]]
+module = "homeassistant.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pyright]
+typeCheckingMode = "basic"
+exclude = [".venv", ".git", "__pycache__", "tests"]

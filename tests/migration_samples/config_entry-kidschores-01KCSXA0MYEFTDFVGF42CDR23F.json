@@ -1,0 +1,1472 @@
+{
+  "home_assistant": {
+    "installation_type": "Unsupported Third Party Container",
+    "version": "2026.1.0.dev0",
+    "dev": true,
+    "hassio": false,
+    "virtualenv": true,
+    "python_version": "3.13.11",
+    "docker": true,
+    "arch": "x86_64",
+    "timezone": "America/New_York",
+    "os_name": "Linux",
+    "os_version": "6.14.0-36-generic",
+    "run_as_root": false
+  },
+  "custom_components": {
+    "kidschores": {
+      "documentation": "https://github.com/ad-ha/kidschores-ha",
+      "version": "0.4.0b2",
+      "requirements": []
+    },
+    "pyscript": {
+      "documentation": "https://github.com/custom-components/pyscript",
+      "version": "1.6.1",
+      "requirements": [
+        "croniter==2.0.2",
+        "watchdog==2.3.1"
+      ]
+    },
+    "hacs": {
+      "documentation": "https://hacs.xyz/docs/use/",
+      "version": "2.0.5",
+      "requirements": [
+        "aiogithubapi>=22.10.1"
+      ]
+    }
+  },
+  "integration_manifest": {
+    "domain": "kidschores",
+    "name": "KidsChores",
+    "codeowners": [
+      "ad-ha"
+    ],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/ad-ha/kidschores-ha",
+    "iot_class": "local_polling",
+    "issue_tracker": "https://github.com/ad-ha/kidschores-ha/issues",
+    "requirements": [],
+    "version": "0.4.0b2",
+    "is_built_in": false,
+    "overwrites_built_in": false
+  },
+  "setup_times": {},
+  "data": {
+    "kids": {
+      "5e85ea08-c332-407b-914d-1d016131a8ea": {
+        "name": "Zo\u00eb",
+        "points": 63.0,
+        "badges_earned": {},
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 1,
+        "completed_chores_monthly": 2,
+        "completed_chores_total": 2,
+        "ha_user_id": "",
+        "internal_id": "5e85ea08-c332-407b-914d-1d016131a8ea",
+        "points_multiplier": 1,
+        "reward_claims": {
+          "4673e876-f160-4a8c-a40c-9e4e42fec223": 1
+        },
+        "reward_approvals": {},
+        "chore_claims": {},
+        "chore_approvals": {
+          "34fad1d7-ca78-4730-a1c7-62480188efaf": 2
+        },
+        "penalty_applies": {},
+        "bonus_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0,
+        "points_earned_weekly": 51.0,
+        "points_earned_monthly": 63.0,
+        "max_points_ever": 63.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {},
+        "overdue_chores": [
+          "69df8815-f0d3-471b-b05e-64b47f183b19",
+          "34fad1d7-ca78-4730-a1c7-62480188efaf"
+        ],
+        "overdue_notifications": {
+          "69df8815-f0d3-471b-b05e-64b47f183b19": "2025-12-18T23:04:21.307867+00:00",
+          "34fad1d7-ca78-4730-a1c7-62480188efaf": "2025-12-18T23:04:21.307867+00:00"
+        },
+        "chore_stats": {
+          "approved_today": 0,
+          "approved_week": 1,
+          "approved_month": 2,
+          "approved_year": 2,
+          "approved_all_time": 2,
+          "claimed_today": 0,
+          "claimed_week": 7,
+          "claimed_month": 10,
+          "claimed_year": 0,
+          "claimed_all_time": 2,
+          "overdue_today": 2,
+          "overdue_week": 3,
+          "overdue_month": 3,
+          "overdue_year": 3,
+          "overdue_count_all_time": 3,
+          "disapproved_today": 0,
+          "disapproved_week": 4,
+          "disapproved_month": 6,
+          "disapproved_year": 6,
+          "disapproved_all_time": 6,
+          "longest_streak_week": 2,
+          "longest_streak_month": 2,
+          "longest_streak_year": 2,
+          "longest_streak_all_time": 2,
+          "most_completed_chore_all_time": "W\u00e5ter the pl\u00e4nts",
+          "most_completed_chore_week": "W\u00e5ter the pl\u00e4nts",
+          "most_completed_chore_month": "W\u00e5ter the pl\u00e4nts",
+          "most_completed_chore_year": "W\u00e5ter the pl\u00e4nts",
+          "total_points_from_chores_today": 0.0,
+          "total_points_from_chores_week": 10.0,
+          "total_points_from_chores_month": 20.0,
+          "total_points_from_chores_year": 20.0,
+          "total_points_from_chores_all_time": 20.0,
+          "avg_per_day_week": 0.14,
+          "avg_per_day_month": 0.06,
+          "current_due_today": 0,
+          "current_overdue": 2,
+          "current_claimed": 0,
+          "current_approved": 0
+        },
+        "point_stats": {
+          "points_earned_today": 0,
+          "points_earned_week": 51.0,
+          "points_earned_month": 63.0,
+          "points_earned_year": 126.0,
+          "points_earned_all_time": 63.0,
+          "points_by_source_today": {},
+          "points_by_source_week": {
+            "manual": 41.0,
+            "chores": 10.0
+          },
+          "points_by_source_month": {
+            "chores": 20.0,
+            "manual": 43.0
+          },
+          "points_by_source_year": {
+            "chores": 20.0,
+            "manual": 43.0,
+            "other": 63.0
+          },
+          "points_by_source_all_time": {
+            "other": 63.0
+          },
+          "points_spent_today": 0,
+          "points_spent_week": 0,
+          "points_spent_month": 0,
+          "points_spent_year": 0,
+          "points_spent_all_time": 0.0,
+          "points_net_today": 0.0,
+          "points_net_week": 51.0,
+          "points_net_month": 63.0,
+          "points_net_year": 63.0,
+          "points_net_all_time": 63.0,
+          "highest_balance": 63.0,
+          "avg_points_per_day_week": 7.29,
+          "avg_points_per_day_month": 2.03
+        },
+        "chore_data": {
+          "34fad1d7-ca78-4730-a1c7-62480188efaf": {
+            "name": "W\u00e5ter the pl\u00e4nts",
+            "state": "overdue",
+            "last_claimed": "2025-12-16T01:38:05.024899+00:00",
+            "last_approved": "2025-12-16T01:46:22.196673+00:00",
+            "last_disapproved": "2025-12-15T21:31:01.978917+00:00",
+            "last_overdue": "2025-12-18T23:39:16.524483+00:00",
+            "last_longest_streak_all_time": "2025-12-15",
+            "periods": {
+              "daily": {
+                "2025-12-14": {
+                  "approved": 1,
+                  "points": 10.0,
+                  "claimed": 1,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 1
+                },
+                "2025-12-15": {
+                  "approved": 1,
+                  "points": 10.0,
+                  "claimed": 2,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 2
+                },
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 1,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W50": {
+                  "approved": 1,
+                  "points": 10.0,
+                  "claimed": 1,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 1
+                },
+                "2025-W51": {
+                  "approved": 1,
+                  "points": 10.0,
+                  "claimed": 2,
+                  "overdue": 1,
+                  "disapproved": 1,
+                  "longest_streak": 2
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 2,
+                  "points": 20.0,
+                  "claimed": 3,
+                  "overdue": 1,
+                  "disapproved": 1,
+                  "longest_streak": 2
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 2,
+                  "points": 20.0,
+                  "claimed": 0,
+                  "overdue": 1,
+                  "disapproved": 1,
+                  "longest_streak": 2
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 2,
+                  "points": 20.0,
+                  "claimed": 0,
+                  "overdue": 1,
+                  "disapproved": 1,
+                  "longest_streak": 2
+                }
+              }
+            },
+            "badge_refs": [
+              "339e83cf-8a97-42c5-8bb0-ada9848b8122"
+            ],
+            "due_date": "2025-12-16T22:55:00+00:00"
+          },
+          "ba9b26c5-a2d1-4212-b486-2138b2e1547f": {
+            "name": "St\u00e4r sweep",
+            "state": "pending",
+            "last_claimed": "2025-12-16T01:34:59.546440+00:00",
+            "last_approved": null,
+            "last_disapproved": "2025-12-16T01:35:01.498719+00:00",
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-14": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 1,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-12-15": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 2,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W50": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 1,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 2,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 3,
+                  "overdue": 0,
+                  "disapproved": 2,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 2,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 2,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          },
+          "69df8815-f0d3-471b-b05e-64b47f183b19": {
+            "name": "Feed the c\u00e5ts",
+            "state": "overdue",
+            "last_claimed": "2025-12-16T19:32:04.530335+00:00",
+            "last_approved": null,
+            "last_disapproved": "2025-12-16T19:57:17.354893+00:00",
+            "last_overdue": "2025-12-18T23:39:16.524278+00:00",
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-14": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 1,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-12-15": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 2,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-12-16": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 1,
+                  "overdue": 1,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 1,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W50": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 1,
+                  "overdue": 0,
+                  "disapproved": 1,
+                  "longest_streak": 0
+                },
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 3,
+                  "overdue": 2,
+                  "disapproved": 2,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 4,
+                  "overdue": 2,
+                  "disapproved": 3,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 2,
+                  "disapproved": 3,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 2,
+                  "disapproved": 3,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": [
+              "339e83cf-8a97-42c5-8bb0-ada9848b8122"
+            ],
+            "due_date": "2025-12-16T20:24:00+00:00"
+          }
+        },
+        "point_data": {
+          "periods": {
+            "daily": {
+              "2025-12-14": {
+                "points_total": 12.0,
+                "by_source": {
+                  "chores": 10.0,
+                  "manual": 2.0
+                }
+              },
+              "2025-12-15": {
+                "points_total": 51.0,
+                "by_source": {
+                  "manual": 41.0,
+                  "chores": 10.0
+                }
+              }
+            },
+            "weekly": {
+              "2025-W50": {
+                "points_total": 12.0,
+                "by_source": {
+                  "chores": 10.0,
+                  "manual": 2.0
+                }
+              },
+              "2025-W51": {
+                "points_total": 51.0,
+                "by_source": {
+                  "manual": 41.0,
+                  "chores": 10.0
+                }
+              }
+            },
+            "monthly": {
+              "2025-12": {
+                "points_total": 63.0,
+                "by_source": {
+                  "chores": 20.0,
+                  "manual": 43.0
+                }
+              }
+            },
+            "yearly": {
+              "2025": {
+                "points_total": 63.0,
+                "by_source": {
+                  "chores": 20.0,
+                  "manual": 43.0,
+                  "other": 63.0
+                }
+              }
+            }
+          }
+        },
+        "badge_progress": {
+          "339e83cf-8a97-42c5-8bb0-ada9848b8122": {
+            "name": "Good Day",
+            "badge_type": "daily",
+            "status": "in_progress",
+            "target_type": "chore_count",
+            "threshold_value": 2.0,
+            "points_cycle_count": 0.0,
+            "chores_cycle_count": 0,
+            "days_cycle_count": 0,
+            "chores_completed": {
+              "34fad1d7-ca78-4730-a1c7-62480188efaf": 1
+            },
+            "days_completed": {},
+            "tracked_chores": [
+              "34fad1d7-ca78-4730-a1c7-62480188efaf",
+              "69df8815-f0d3-471b-b05e-64b47f183b19"
+            ],
+            "assigned_to": [
+              "5e85ea08-c332-407b-914d-1d016131a8ea"
+            ],
+            "recurring_frequency": "daily",
+            "start_date": null,
+            "end_date": "2025-12-15",
+            "cycle_count": 0,
+            "penalty_applied": false,
+            "chores_today": 1,
+            "last_update_day": "2025-12-15",
+            "overall_progress": 0.5,
+            "criteria_met": false
+          }
+        },
+        "cumulative_badge_progress": {
+          "cycle_points": 53.0
+        },
+        "today_chore_approvals": {}
+      },
+      "cd764ae3-24d9-493a-87ef-9fce1112b6fb": {
+        "name": "Max!",
+        "points": 0,
+        "badges_earned": {},
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 0,
+        "completed_chores_monthly": 0,
+        "completed_chores_total": 0,
+        "ha_user_id": "",
+        "internal_id": "cd764ae3-24d9-493a-87ef-9fce1112b6fb",
+        "points_multiplier": 1,
+        "reward_claims": {},
+        "reward_approvals": {},
+        "chore_claims": {},
+        "chore_approvals": {},
+        "penalty_applies": {},
+        "bonus_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0,
+        "points_earned_weekly": 0,
+        "points_earned_monthly": 0,
+        "max_points_ever": 0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {},
+        "overdue_chores": [],
+        "overdue_notifications": {},
+        "chore_stats": {
+          "approved_today": 0,
+          "approved_week": 0,
+          "approved_month": 0,
+          "approved_year": 0,
+          "approved_all_time": 0,
+          "claimed_today": 0,
+          "claimed_week": 0,
+          "claimed_month": 0,
+          "claimed_year": 0,
+          "claimed_all_time": 0,
+          "overdue_today": 0,
+          "overdue_week": 0,
+          "overdue_month": 0,
+          "overdue_year": 0,
+          "overdue_count_all_time": 0,
+          "disapproved_today": 0,
+          "disapproved_week": 0,
+          "disapproved_month": 0,
+          "disapproved_year": 0,
+          "disapproved_all_time": 0,
+          "longest_streak_week": 0,
+          "longest_streak_month": 0,
+          "longest_streak_year": 0,
+          "longest_streak_all_time": 0,
+          "most_completed_chore_all_time": "Pick up L\u00ebgo!",
+          "most_completed_chore_week": "Pick up L\u00ebgo!",
+          "most_completed_chore_month": "Pick up L\u00ebgo!",
+          "most_completed_chore_year": "Pick up L\u00ebgo!",
+          "total_points_from_chores_today": 0.0,
+          "total_points_from_chores_week": 0.0,
+          "total_points_from_chores_month": 0.0,
+          "total_points_from_chores_year": 0.0,
+          "total_points_from_chores_all_time": 0.0,
+          "avg_per_day_week": 0.0,
+          "avg_per_day_month": 0.0,
+          "current_due_today": 0,
+          "current_overdue": 0,
+          "current_claimed": 0,
+          "current_approved": 0
+        },
+        "point_stats": {
+          "points_earned_today": 0,
+          "points_earned_week": 0,
+          "points_earned_month": 0,
+          "points_earned_year": 0,
+          "points_earned_all_time": 0.0,
+          "points_by_source_today": {},
+          "points_by_source_week": {},
+          "points_by_source_month": {},
+          "points_by_source_year": {},
+          "points_by_source_all_time": {},
+          "points_spent_today": 0,
+          "points_spent_week": 0,
+          "points_spent_month": 0,
+          "points_spent_year": 0,
+          "points_spent_all_time": 0.0,
+          "points_net_today": 0.0,
+          "points_net_week": 0.0,
+          "points_net_month": 0.0,
+          "points_net_year": 0.0,
+          "points_net_all_time": 0.0,
+          "highest_balance": 0.0,
+          "avg_points_per_day_week": 0.0,
+          "avg_points_per_day_month": 0.0
+        },
+        "today_chore_approvals": {},
+        "badge_progress": {},
+        "cumulative_badge_progress": {},
+        "point_data": {
+          "periods": {}
+        },
+        "chore_data": {
+          "52b95d18-605c-424b-881a-60687e546e87": {
+            "name": "Pick up L\u00ebgo!",
+            "state": "pending",
+            "last_claimed": null,
+            "last_approved": null,
+            "last_disapproved": null,
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          },
+          "9c241600-aa6d-45c1-94e1-7f672c9e381e": {
+            "name": "Charge R\u00f8bot",
+            "state": "pending",
+            "last_claimed": null,
+            "last_approved": null,
+            "last_disapproved": null,
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          },
+          "ba9b26c5-a2d1-4212-b486-2138b2e1547f": {
+            "name": "St\u00e4r sweep",
+            "state": "pending",
+            "last_claimed": null,
+            "last_approved": null,
+            "last_disapproved": null,
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          }
+        }
+      },
+      "ece7b504-57eb-491e-ab8b-549f96babe05": {
+        "name": "Lila",
+        "points": 0,
+        "badges_earned": {},
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 0,
+        "completed_chores_monthly": 0,
+        "completed_chores_total": 0,
+        "ha_user_id": "",
+        "internal_id": "ece7b504-57eb-491e-ab8b-549f96babe05",
+        "points_multiplier": 1,
+        "reward_claims": {},
+        "reward_approvals": {},
+        "chore_claims": {},
+        "chore_approvals": {},
+        "penalty_applies": {},
+        "bonus_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0,
+        "points_earned_weekly": 0,
+        "points_earned_monthly": 0,
+        "max_points_ever": 0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {},
+        "overdue_chores": [],
+        "overdue_notifications": {},
+        "chore_stats": {
+          "approved_today": 0,
+          "approved_week": 0,
+          "approved_month": 0,
+          "approved_year": 0,
+          "approved_all_time": 0,
+          "claimed_today": 0,
+          "claimed_week": 0,
+          "claimed_month": 0,
+          "claimed_year": 0,
+          "claimed_all_time": 0,
+          "overdue_today": 0,
+          "overdue_week": 0,
+          "overdue_month": 0,
+          "overdue_year": 0,
+          "overdue_count_all_time": 0,
+          "disapproved_today": 0,
+          "disapproved_week": 0,
+          "disapproved_month": 0,
+          "disapproved_year": 0,
+          "disapproved_all_time": 0,
+          "longest_streak_week": 0,
+          "longest_streak_month": 0,
+          "longest_streak_year": 0,
+          "longest_streak_all_time": 0,
+          "most_completed_chore_all_time": "Paint the r\u00e3inbow",
+          "most_completed_chore_week": "Paint the r\u00e3inbow",
+          "most_completed_chore_month": "Paint the r\u00e3inbow",
+          "most_completed_chore_year": "Paint the r\u00e3inbow",
+          "total_points_from_chores_today": 0.0,
+          "total_points_from_chores_week": 0.0,
+          "total_points_from_chores_month": 0.0,
+          "total_points_from_chores_year": 0.0,
+          "total_points_from_chores_all_time": 0.0,
+          "avg_per_day_week": 0.0,
+          "avg_per_day_month": 0.0,
+          "current_due_today": 0,
+          "current_overdue": 0,
+          "current_claimed": 0,
+          "current_approved": 0
+        },
+        "point_stats": {
+          "points_earned_today": 0,
+          "points_earned_week": 0,
+          "points_earned_month": 0,
+          "points_earned_year": 0,
+          "points_earned_all_time": 0.0,
+          "points_by_source_today": {},
+          "points_by_source_week": {},
+          "points_by_source_month": {},
+          "points_by_source_year": {},
+          "points_by_source_all_time": {},
+          "points_spent_today": 0,
+          "points_spent_week": 0,
+          "points_spent_month": 0,
+          "points_spent_year": 0,
+          "points_spent_all_time": 0.0,
+          "points_net_today": 0.0,
+          "points_net_week": 0.0,
+          "points_net_month": 0.0,
+          "points_net_year": 0.0,
+          "points_net_all_time": 0.0,
+          "highest_balance": 0.0,
+          "avg_points_per_day_week": 0.0,
+          "avg_points_per_day_month": 0.0
+        },
+        "today_chore_approvals": {},
+        "badge_progress": {},
+        "cumulative_badge_progress": {},
+        "point_data": {
+          "periods": {}
+        },
+        "chore_data": {
+          "8aa6f1de-1940-4f0b-af5b-84f3a3e10fbb": {
+            "name": "Paint the r\u00e3inbow",
+            "state": "pending",
+            "last_claimed": null,
+            "last_approved": null,
+            "last_disapproved": null,
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          },
+          "ad03a004-a3e7-4844-a146-54aefe33d6dc": {
+            "name": "Sweep the p@tio",
+            "state": "pending",
+            "last_claimed": null,
+            "last_approved": null,
+            "last_disapproved": null,
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          },
+          "ba9b26c5-a2d1-4212-b486-2138b2e1547f": {
+            "name": "St\u00e4r sweep",
+            "state": "pending",
+            "last_claimed": null,
+            "last_approved": null,
+            "last_disapproved": null,
+            "last_overdue": null,
+            "last_longest_streak_all_time": null,
+            "periods": {
+              "daily": {
+                "2025-12-18": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "weekly": {
+                "2025-W51": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "monthly": {
+                "2025-12": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "yearly": {
+                "2025": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              },
+              "all_time": {
+                "all_time": {
+                  "approved": 0,
+                  "points": 0.0,
+                  "claimed": 0,
+                  "overdue": 0,
+                  "disapproved": 0,
+                  "longest_streak": 0
+                }
+              }
+            },
+            "badge_refs": []
+          }
+        }
+      }
+    },
+    "chores": {
+      "69df8815-f0d3-471b-b05e-64b47f183b19": {
+        "name": "Feed the c\u00e5ts",
+        "state": "overdue",
+        "default_points": 10.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:cat",
+        "shared_chore": false,
+        "assigned_kids": [
+          "5e85ea08-c332-407b-914d-1d016131a8ea"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": "2025-12-16T20:24:00+00:00",
+        "last_completed": null,
+        "last_claimed": "2025-12-16T19:32:04.533757+00:00",
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "69df8815-f0d3-471b-b05e-64b47f183b19"
+      },
+      "34fad1d7-ca78-4730-a1c7-62480188efaf": {
+        "name": "W\u00e5ter the pl\u00e4nts",
+        "state": "overdue",
+        "default_points": 10.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:watering-can",
+        "shared_chore": false,
+        "assigned_kids": [
+          "5e85ea08-c332-407b-914d-1d016131a8ea"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": "2025-12-16T22:55:00+00:00",
+        "last_completed": "2025-12-16T01:46:22.201170+00:00",
+        "last_claimed": "2025-12-16T01:38:05.035864+00:00",
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "34fad1d7-ca78-4730-a1c7-62480188efaf"
+      },
+      "52b95d18-605c-424b-881a-60687e546e87": {
+        "name": "Pick up L\u00ebgo!",
+        "state": "pending",
+        "default_points": 15.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:lego",
+        "shared_chore": false,
+        "assigned_kids": [
+          "cd764ae3-24d9-493a-87ef-9fce1112b6fb"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": null,
+        "last_completed": null,
+        "last_claimed": null,
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "52b95d18-605c-424b-881a-60687e546e87"
+      },
+      "9c241600-aa6d-45c1-94e1-7f672c9e381e": {
+        "name": "Charge R\u00f8bot",
+        "state": "pending",
+        "default_points": 10.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:robot",
+        "shared_chore": false,
+        "assigned_kids": [
+          "cd764ae3-24d9-493a-87ef-9fce1112b6fb"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": null,
+        "last_completed": null,
+        "last_claimed": null,
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "9c241600-aa6d-45c1-94e1-7f672c9e381e"
+      },
+      "8aa6f1de-1940-4f0b-af5b-84f3a3e10fbb": {
+        "name": "Paint the r\u00e3inbow",
+        "state": "pending",
+        "default_points": 15.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:palette",
+        "shared_chore": false,
+        "assigned_kids": [
+          "ece7b504-57eb-491e-ab8b-549f96babe05"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": null,
+        "last_completed": null,
+        "last_claimed": null,
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "8aa6f1de-1940-4f0b-af5b-84f3a3e10fbb"
+      },
+      "ad03a004-a3e7-4844-a146-54aefe33d6dc": {
+        "name": "Sweep the p@tio",
+        "state": "pending",
+        "default_points": 10.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:broom",
+        "shared_chore": false,
+        "assigned_kids": [
+          "ece7b504-57eb-491e-ab8b-549f96babe05"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": null,
+        "last_completed": null,
+        "last_claimed": null,
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "ad03a004-a3e7-4844-a146-54aefe33d6dc"
+      },
+      "ba9b26c5-a2d1-4212-b486-2138b2e1547f": {
+        "name": "St\u00e4r sweep",
+        "state": "pending",
+        "default_points": 20.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "chore_labels": [],
+        "icon": "mdi:star",
+        "shared_chore": false,
+        "assigned_kids": [
+          "5e85ea08-c332-407b-914d-1d016131a8ea",
+          "cd764ae3-24d9-493a-87ef-9fce1112b6fb",
+          "ece7b504-57eb-491e-ab8b-549f96babe05"
+        ],
+        "recurring_frequency": "none",
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "due_date": null,
+        "last_completed": null,
+        "last_claimed": "2025-12-16T01:34:59.551266+00:00",
+        "applicable_days": [],
+        "notify_on_claim": true,
+        "notify_on_approval": true,
+        "notify_on_disapproval": true,
+        "internal_id": "ba9b26c5-a2d1-4212-b486-2138b2e1547f"
+      }
+    },
+    "badges": {
+      "339e83cf-8a97-42c5-8bb0-ada9848b8122": {
+        "name": "Good Day",
+        "description": "",
+        "badge_labels": [],
+        "icon": "mdi:home-clock-outline",
+        "internal_id": "339e83cf-8a97-42c5-8bb0-ada9848b8122",
+        "target": {
+          "target_type": "chore_count",
+          "threshold_value": 2.0,
+          "maintenance_rules": 0
+        },
+        "tracked_chores": {
+          "selected_chores": [
+            "34fad1d7-ca78-4730-a1c7-62480188efaf",
+            "69df8815-f0d3-471b-b05e-64b47f183b19"
+          ]
+        },
+        "assigned_to": [
+          "5e85ea08-c332-407b-914d-1d016131a8ea"
+        ],
+        "awards": {
+          "award_points": 10.0,
+          "points_multiplier": null,
+          "award_items": [
+            "points"
+          ],
+          "award_reward": ""
+        },
+        "reset_schedule": {
+          "recurring_frequency": "daily",
+          "start_date": null,
+          "end_date": null,
+          "grace_period_days": 0,
+          "custom_interval": null,
+          "custom_interval_unit": null
+        },
+        "badge_type": "daily"
+      }
+    },
+    "rewards": {
+      "2bc3c547-9570-40ef-82c9-09890978da68": {
+        "name": "Ice Cr\u00e9am!",
+        "cost": 60.0,
+        "description": "",
+        "reward_labels": [],
+        "icon": "mdi:ice-cream",
+        "internal_id": "2bc3c547-9570-40ef-82c9-09890978da68"
+      },
+      "fdb5dc60-5143-4b74-bf97-13885f9ad135": {
+        "name": "Movie N\u00efght",
+        "cost": 120.0,
+        "description": "",
+        "reward_labels": [],
+        "icon": "mdi:movie",
+        "internal_id": "fdb5dc60-5143-4b74-bf97-13885f9ad135"
+      },
+      "4673e876-f160-4a8c-a40c-9e4e42fec223": {
+        "name": "Extra Pl\u00e5ytime",
+        "cost": 40.0,
+        "description": "",
+        "reward_labels": [],
+        "icon": "mdi:gamepad-variant",
+        "internal_id": "4673e876-f160-4a8c-a40c-9e4e42fec223"
+      },
+      "4f1f096c-373c-4ed9-b874-d66b602d3591": {
+        "name": "St\u00e4r Adventure Pack",
+        "cost": 200.0,
+        "description": "",
+        "reward_labels": [],
+        "icon": "mdi:bag-personal",
+        "internal_id": "4f1f096c-373c-4ed9-b874-d66b602d3591"
+      },
+      "36612afe-e777-4b84-8bc5-e979bbfc338b": {
+        "name": "G\u00e5rden Picnic",
+        "cost": 300.0,
+        "description": "",
+        "reward_labels": [],
+        "icon": "mdi:food",
+        "internal_id": "36612afe-e777-4b84-8bc5-e979bbfc338b"
+      }
+    },
+    "parents": {
+      "d7996da9-edb9-4c2f-8c29-56323567bbfa": {
+        "name": "M\u00f4m Astrid St\u00e2rbl\u00fcm",
+        "ha_user_id": "",
+        "associated_kids": [],
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "internal_id": "d7996da9-edb9-4c2f-8c29-56323567bbfa"
+      },
+      "21957d79-992a-464a-b9a6-92e4362c4840": {
+        "name": "Dad Leo",
+        "ha_user_id": "",
+        "associated_kids": [],
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "internal_id": "21957d79-992a-464a-b9a6-92e4362c4840"
+      }
+    },
+    "penalties": {
+      "e742151c-d16e-43c9-b79a-6bf605475539": {
+        "name": "F\u00f8rget Ch\u00f6re",
+        "points": -5.0,
+        "description": "Missed a daily chore",
+        "penalty_labels": [],
+        "icon": "mdi:alert",
+        "internal_id": "e742151c-d16e-43c9-b79a-6bf605475539"
+      },
+      "6f62794c-0f2c-4bfe-b46c-1268e3adcfe4": {
+        "name": "Mess\u00ff R\u00f8om",
+        "points": -10.0,
+        "description": "Room not cleaned as requested",
+        "penalty_labels": [],
+        "icon": "mdi:home-alert",
+        "internal_id": "6f62794c-0f2c-4bfe-b46c-1268e3adcfe4"
+      },
+      "ffd50d88-622b-49dd-92f0-f4275bfd10bf": {
+        "name": "L\u00e5te f\u00f6r Dinner",
+        "points": -3.0,
+        "description": "Didn't come to dinner on time",
+        "penalty_labels": [],
+        "icon": "mdi:clock-alert",
+        "internal_id": "ffd50d88-622b-49dd-92f0-f4275bfd10bf"
+      }
+    },
+    "bonuses": {
+      "6dac6d73-3106-453b-b137-ab1968a3ea4f": {
+        "name": "St\u00e4r Spr\u00efnkle Bonus",
+        "points": 15.0,
+        "description": "Extra points for helping a sibling",
+        "bonus_labels": [],
+        "icon": "mdi:sparkles",
+        "internal_id": "6dac6d73-3106-453b-b137-ab1968a3ea4f"
+      },
+      "e0c91c2f-7c99-4c94-a969-c3e165c754a8": {
+        "name": "M\u00e5gic M\u00efnute Bonus",
+        "points": 10.0,
+        "description": "Quick tidy-up before dinner",
+        "bonus_labels": [],
+        "icon": "mdi:timer",
+        "internal_id": "e0c91c2f-7c99-4c94-a969-c3e165c754a8"
+      }
+    },
+    "achievements": {},
+    "challenges": {},
+    "pending_reward_approvals": [],
+    "pending_chore_approvals": [],
+    "meta": {
+      "schema_version": 42,
+      "last_migration_date": "2025-12-18T23:04:21.306708+00:00",
+      "migrations_applied": [
+        "datetime_utc",
+        "chore_data_structure",
+        "kid_data_structure",
+        "badge_restructure",
+        "cumulative_badge_progress",
+        "badges_earned_dict",
+        "point_stats",
+        "chore_data_and_streaks"
+      ]
+    }
+  },
+  "issues": []
+}

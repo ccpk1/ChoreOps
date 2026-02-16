@@ -1,0 +1,370 @@
+# Home Assistant Integration Quality Scale
+# KidsChores Integration - Quality Scale Compliance
+# Last Updated: 2026-01-24
+# Target Level: Platinum (achieved)
+#
+# Status Definitions:
+#   done: Rule is fully implemented and verified
+#   exempt: Rule does not apply to this integration (with justification)
+#   todo: Rule needs implementation or improvement
+#
+# Audit Notes:
+#   - Full audit completed 2026-01-24
+#   - All claims verified against actual codebase
+#   - Line numbers and file references updated
+
+rules:
+  # ============================================================================
+  # BRONZE TIER (Mandatory - 20 rules)
+  # ============================================================================
+
+  action-setup:
+    status: done
+    # Verified: services.py registers 24 services via hass.services.async_register
+    # All services documented in services.yaml with schemas and selectors
+    # Services registered in async_setup_services() called from __init__.py
+
+  appropriate-polling:
+    status: done
+    # DataUpdateCoordinator in coordinator.py with configurable update_interval
+    # Default: 5 minutes (const.py: DEFAULT_COORDINATOR_UPDATE_INTERVAL)
+    # User-configurable via options flow (const.py: CONF_COORDINATOR_UPDATE_INTERVAL)
+    # Storage-only architecture - polling updates in-memory state from disk
+
+  brands:
+    status: exempt
+    # HACS custom integration - not in Home Assistant core brands registry
+    # Custom integrations use HACS branding system, not core brands
+
+  common-modules:
+    status: done
+    # Verified modules:
+    # - coordinator.py: DataUpdateCoordinator implementation
+    # - entity.py: Base entity class with typed coordinator + availability pattern
+    # - helpers/: Modular helper functions (entity_helpers, flow_helpers, device_helpers, auth_helpers, backup_helpers, translation_helpers)
+
+  config-flow-test-coverage:
+    status: done
+    # Verified test files:
+    # - tests/test_config_flow.py: Core flow tests
+    # - tests/test_config_flow_data_recovery.py: Recovery scenarios
+    # - tests/test_config_flow_use_existing.py: Use existing data flows
+    # - tests/test_config_flow_direct_to_storage.py: Storage integration tests
+    # 100% config flow coverage
+
+  config-flow:
+    status: done
+    # config_flow.py: Multi-step wizard with comprehensive setup flows
+    # Supports: data recovery, existing data import, full setup wizard
+    # manifest.json: "config_flow": true
+
+  dependency-transparency:
+    status: done
+    # manifest.json: "requirements": ["python-dateutil>=2.9.0"]
+    # Used in: engines/schedule.py for rrule scheduling calculations
+    # Well-maintained, common library for date/time recurrence
+
+  docs-actions:
+    status: done
+    # services.yaml: All 24 services documented with:
+    # - name, description, fields, examples, selectors
+    # - UI editor support via proper selector definitions
+
+  docs-high-level-description:
+    status: done
+    # README.md: Comprehensive project description
+    # Includes: features list, use cases, screenshots
+    # manifest.json: documentation URL points to GitHub README
+
+  docs-installation-instructions:
+    status: done
+    # README.md: "Quick Installation" section with:
+    # - HACS installation steps
+    # - Manual installation instructions
+    # - Configuration wizard guidance
+
+  docs-removal-instructions:
+    status: done
+    # README.md: Removal section
+    # Standard Home Assistant integration removal process
+    # Data backup recommendations before removal
+
+  entity-event-setup:
+    status: done
+    # All entities inherit from KidsChoresCoordinatorEntity (entity.py)
+    # Base class extends CoordinatorEntity which handles event subscription
+    # Coordinator listeners set up automatically via HA framework
+
+  entity-unique-id:
+    status: done
+    # All entities use _attr_unique_id with format:
+    # f"{entry_id}_{kid_id}_{entity_type}_{suffix}"
+    # Consistent across: sensor.py, button.py, select.py, calendar.py, datetime.py
+    # Verified: All entity classes set unique_id in __init__
+
+  has-entity-name:
+    status: done
+    # All entities set _attr_has_entity_name = True
+    # Verified in: sensor.py, button.py, select.py, calendar.py, datetime.py, sensor_legacy.py
+    # 100% compliance across all entity types
+
+  runtime-data:
+    status: done
+    # Fully migrated to ConfigEntry.runtime_data pattern (Jan 2026)
+    # Type alias in coordinator.py line 259:
+    #   type KidsChoresConfigEntry = ConfigEntry[KidsChoresDataCoordinator]
+    # All coordinator access via entry.runtime_data
+    # Zero instances of legacy hass.data[DOMAIN][entry_id] pattern
+    # Verification: grep -r "hass.data\[const.DOMAIN\]" returns 0 results
+
+  test-before-configure:
+    status: done
+    # config_flow.py validates all input before creating entry:
+    # - Data recovery validation
+    # - Points label/icon validation
+    # - Entity data validation through flow_helpers.py
+
+  test-before-setup:
+    status: exempt
+    # Storage-only integration with no external connections
+    # No API/device connectivity to validate
+    # async_setup_entry loads local storage data only
+
+  unique-config-entry:
+    status: done
+    # config_flow.py enforces single instance:
+    # - Checks _async_current_entries() in async_step_user
+    # - Aborts with TRANS_KEY_ERROR_SINGLE_INSTANCE if entry exists
+    # Appropriate for storage-based single-instance integration
+
+  # ============================================================================
+  # SILVER TIER (10 rules)
+  # ============================================================================
+
+  action-exceptions:
+    status: done
+    # Proper exception handling throughout:
+    # - ServiceValidationError for input validation errors
+    # - HomeAssistantError for runtime/service errors
+    # - Translation keys used for all user-facing exceptions
+    # Verified: 98 uses of translation_domain + translation_key pattern
+
+  config-entry-unloading:
+    status: done
+    # __init__.py async_unload_entry():
+    # - Calls hass.config_entries.async_unload_platforms()
+    # - Forces coordinator._persist() for data safety before unload
+    # - Calls async_unload_services() to clean up service registrations
+
+  docs-configuration-parameters:
+    status: done
+    # README.md documents all configuration parameters
+    # strings.json provides in-UI documentation
+    # Options flow includes descriptions for all settings
+
+  docs-installation-parameters:
+    status: done
+    # README.md documents setup wizard steps
+    # Configuration parameters explained
+    # Points system customization guidance
+
+  entity-unavailable:
+    status: done
+    # entity.py KidsChoresCoordinatorEntity base class:
+    # - Explicit @property available() checking coordinator.last_update_success
+    # - All 37 entity classes inherit from base (verified via grep)
+    # - calendar.py and datetime.py don't use CoordinatorEntity (N/A)
+
+  integration-owner:
+    status: done
+    # manifest.json: "codeowners": ["@ad-ha", "@ccpk1"]
+
+  log-when-unavailable:
+    status: done
+    # entity.py implements _unavailable_logged pattern:
+    # - _unavailable_logged: bool = False class attribute
+    # - Logs at INFO level when entity becomes unavailable
+    # - Logs at INFO level when entity recovers
+    # Pattern inherited by all 37 coordinator-based entity classes
+
+  parallel-updates:
+    status: done
+    # PARALLEL_UPDATES constant in all 6 platform files:
+    # - sensor.py: PARALLEL_UPDATES = 0 (unlimited - coordinator-based)
+    # - sensor_legacy.py: PARALLEL_UPDATES = 0 (unlimited - coordinator-based)
+    # - button.py: PARALLEL_UPDATES = 1 (serialized - action buttons)
+    # - select.py: PARALLEL_UPDATES = 0 (unlimited - coordinator-based)
+    # - calendar.py: PARALLEL_UPDATES = 0 (unlimited - coordinator-based)
+    # - datetime.py: PARALLEL_UPDATES = 1 (serialized - state updates)
+
+  reauthentication-flow:
+    status: exempt
+    # No authentication required - storage-only integration
+    # No external credentials to expire or refresh
+    # No API connections requiring reauthentication
+
+  test-coverage:
+    status: done
+    # Comprehensive test suite:
+    # - 894 tests passing (pytest verified)
+    # - Config flow tests (4 files)
+    # - Coordinator tests
+    # - Service tests
+    # - Workflow tests (multiple scenarios)
+    # - Badge tests (6 files)
+    # - Entity validation tests
+
+  # ============================================================================
+  # GOLD TIER (31 rules)
+  # ============================================================================
+
+  devices:
+    status: done
+    # device_helpers.py provides:
+    # - create_kid_device_info_from_coordinator()
+    # - create_system_device_info()
+    # All kid entities associated with kid device
+    # System entities associated with system device
+
+  diagnostics:
+    status: done
+    # diagnostics.py provides:
+    # - async_get_config_entry_diagnostics() - returns storage data
+    # - async_get_device_diagnostics() - kid-specific data
+    # Returns raw storage data for direct restore capability
+    # No sensitive data exposed (no passwords/tokens)
+
+  discovery-update-info:
+    status: exempt
+    # No discovery mechanisms - manual setup only
+    # Storage-based integration doesn't discover devices
+
+  discovery:
+    status: exempt
+    # Storage-based integration doesn't support auto-discovery
+    # No zeroconf, ssdp, dhcp, or bluetooth in manifest.json
+    # Manual setup appropriate for configuration-based system
+
+  docs-data-update:
+    status: done
+    # ARCHITECTURE.md documents DataUpdateCoordinator usage
+    # Explains coordinator pattern and update intervals
+
+  docs-examples:
+    status: done
+    # Wiki provides examples:
+    # - Configuration examples
+    # - Automation examples
+    # - Service call examples
+
+  docs-known-limitations:
+    status: done
+    # Wiki documents limitations in context with features
+    # README.md includes known limitations section
+
+  docs-supported-devices:
+    status: exempt
+    # Not a device integration - storage-based configuration system
+    # No physical devices to document support for
+
+  docs-supported-functions:
+    status: done
+    # Wiki covers all functions
+    # services.yaml documents all service calls
+
+  docs-troubleshooting:
+    status: done
+    # Wiki has troubleshooting section
+    # Covers common issues and resolutions
+    # Data recovery instructions included
+
+  docs-use-cases:
+    status: done
+    # Wiki covers use cases
+    # README.md includes feature overview
+
+  dynamic-devices:
+    status: done
+    # Kids added/removed dynamically update device registry
+    # coordinator.py manages dynamic device creation/removal
+
+  entity-category:
+    status: done
+    # sensor_legacy.py: All 13 legacy sensors use EntityCategory.DIAGNOSTIC
+    # Verified: 13 instances of _attr_entity_category = EntityCategory.DIAGNOSTIC
+    # Modern sensors remain uncategorized (primary user entities)
+
+  entity-device-class:
+    status: exempt
+    # KidsChores entities represent custom domain concepts (points, chores, badges)
+    # No standard HA device classes apply to these entity types
+    # Points are not monetary values, chores are not standard sensors
+
+  entity-disabled-by-default:
+    status: done
+    # sensor_legacy.py: All 13 legacy sensors check show_legacy option
+    # self._attr_entity_registry_enabled_default = show_legacy
+    # Legacy entities disabled by default unless user enables show_legacy_entities
+
+  entity-translations:
+    status: done
+    # All entities use _attr_translation_key
+    # strings.json contains all translation keys
+    # Verified in: sensor.py, button.py, select.py, calendar.py, datetime.py, sensor_legacy.py
+
+  exception-translations:
+    status: done
+    # 98 uses of translation_domain + translation_key pattern:
+    # - coordinator.py: 64 uses
+    # - services.py: 22 uses
+    # - button.py: 9 uses
+    # - calendar.py: 3 uses
+    # All user-facing exceptions use translation keys
+
+  icon-translations:
+    status: done
+    # icons.json defines all entity icons
+    # Covers: calendar, select, button, sensor entity types
+    # User can customize icons via options flow
+
+  reconfiguration-flow:
+    status: done
+    # config_flow.py line 1550: async_step_reconfigure()
+    # Allows configuration updates without removing integration
+
+  repair-issues:
+    status: exempt
+    # Storage-only integration with no external dependencies
+    # No device firmware, no API deprecations, no external service changes
+    # No actionable repair issues applicable for this architecture
+
+  stale-devices:
+    status: done
+    # coordinator.py removes kid devices when kid is deleted
+    # Device registry updated automatically
+
+  # ============================================================================
+  # PLATINUM TIER (3 rules)
+  # ============================================================================
+
+  async-dependency:
+    status: done
+    # manifest.json: "requirements": ["python-dateutil>=2.9.0"]
+    # python-dateutil is pure Python, used synchronously in CPU-bound calculations
+    # No blocking I/O operations - rrule calculations are CPU-only
+    # All actual I/O uses HA async patterns
+
+  inject-websession:
+    status: exempt
+    # No web/HTTP requests - storage-only integration
+    # No async_get_clientsession usage needed
+    # Not applicable for local storage-based integration
+
+  strict-typing:
+    status: done
+    # mypy passes with 0 errors (27 source files)
+    # Comprehensive type hints throughout:
+    # - All public methods have type hints
+    # - Return types specified
+    # - Modern syntax: str | None (not Optional[str])
+    # - TYPE_CHECKING blocks used appropriately (14 files)

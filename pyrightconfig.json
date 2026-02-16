@@ -1,0 +1,18 @@
+{
+  "include": ["custom_components", "tests"],
+  "extraPaths": [".", "./custom_components", "./tests", "../core"],
+  "exclude": [
+    ".venv",
+    "**/.venv/**",
+    "**/venv/**",
+    "**/.tox/**",
+    "**/node_modules",
+    "**/__pycache__",
+    ".git",
+    "utils/**"
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingModuleSource": "none",
+  "pythonVersion": "3.13",
+  "typeCheckingMode": "off"
+}

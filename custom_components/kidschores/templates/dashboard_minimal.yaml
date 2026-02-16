@@ -1,0 +1,548 @@
+<#-- ============================================= --#>
+<#-- KidsChores Dashboard Template - MINIMAL  --#>
+<#-- Template Schema Version: 1                  --#>
+<#-- Integration: v0.5.0-beta3 (Schema 43)      --#>
+<#-- ============================================= --#>
+<#--                                             --#>
+<#-- Minimal dashboard: Welcome + Chores only  --#>
+<#-- Based on kc_dashboard_all.yaml v0.5.0b3    --#>
+<#--                                             --#>
+<#-- Injection variables (Python << >>):         --#>
+<#--   << kid.name >> - Child's display name     --#>
+<#--   << kid.slug >> - URL-safe slug            --#>
+<#--                                             --#>
+<#-- All HA Jinja2 {{ }} syntax preserved       --#>
+<#-- ============================================= --#>
+
+- max_columns: 4
+  title: << kid.name >> Chores
+  path: << kid.slug >>
+  sections:
+    - type: grid
+      column_span: 4
+      cards:
+        - square: false
+          type: grid
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ============================================= --#}
+
+                  {#-- ============ Version KCD_v0.5.0b3 ============= --#}
+
+                  {#-- ============================================= --#}
+
+                  {#-- Requires KidsChores Integration 0.5.0  --#}
+
+                  {#-- Language translation now managed by the integration --#}
+
+                  {#-- Select language by going to integration options and editing the kid --#}
+
+
+                  {#-- ===== WELCOME CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set total_sensor = core_sensors.get('chores_eid') -%}
+                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points = states(points_sensor) | int(default=0) -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set weekly_completed = state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0) -%}
+                    {%- set todays_completed = state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0) -%}
+                    {%- set highest_badge = states(highest_badge_entity) or 'None' -%}
+                    {%- set highest_badge_icon = state_attr(highest_badge_entity, 'icon') or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(default=1) -%}
+
+                    {#-- 4. Build Display --#}
+                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
+                      {%- if points_multiplier > 1 -%}
+                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ " (x" ~ points_multiplier|string ~ ")  \n" -%}
+                      {%- else -%}
+                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ "  \n" -%}
+                      {%- endif -%}
+                    {%- else -%}
+                      {%- set badge_display = "" -%}
+                    {%- endif -%}
+
+                    {%- set content =
+                      "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "! \n"
+                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n"
+                      "**📅 " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** &nbsp;&nbsp;" ~ weekly_completed ~ "  \n"
+                      "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** &nbsp;&nbsp;" ~ todays_completed ~ "  \n\n"
+                    -%}
+
+                    {#-- 5. Render --#}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': content
+                      }
+                    }},
+
+                  {%- endif -%}
+        - type: grid
+          square: false
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== CHORES CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+                  {%- set pref_column_count = 4 -%}
+
+                  {%- set pref_use_overdue_grouping = true -%}
+
+                  {%- set pref_use_today_grouping = true -%}
+
+                  {%- set pref_include_daily_recurring_in_today = true -%}
+
+                  {%- set pref_use_this_week_grouping = true -%}
+
+                  {%- set pref_include_weekly_recurring_in_this_week = true -%}
+
+                  {%- set pref_exclude_approved = false -%}
+
+                  {%- set pref_use_label_grouping = false -%}
+
+                  {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
+
+                  {%- set pref_label_display_order = [] -%}  {#-- Example: ['Kitchen', 'Bedroom', 'Outdoor'] --#}
+
+                  {%- set pref_sort_within_groups = 'default' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc' --#}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_column_count = pref_column_count | int(default=2) -%}
+                  {%- set pref_use_overdue_grouping = (pref_use_overdue_grouping | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_use_today_grouping = (pref_use_today_grouping | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_include_daily_recurring_in_today = (pref_include_daily_recurring_in_today | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_use_this_week_grouping = (pref_use_this_week_grouping | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_include_weekly_recurring_in_this_week = (pref_include_weekly_recurring_in_this_week | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_exclude_approved = (pref_exclude_approved | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {%- set ns = namespace(
+                    overdue_buttons=[],
+                    am_buttons=[],
+                    today_buttons=[],
+                    this_week_buttons=[],
+                    other_buttons=[],
+                    label_button_groups=[],
+                    label_order=[],
+                    group_cards=[]
+                  ) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
+                    {%- set chores_by_label_raw = state_attr(dashboard_helper, 'chores_by_label') | default({}, true) -%}
+
+                    {#-- 4. Build Display --#}
+                    {%- for chore in chore_list -%}
+                      {%- set chore_sensor_id = chore.eid if chore is mapping else chore -%}
+                      {%- set chore_status = chore.status if chore is mapping else states(chore_sensor_id) -%}
+                      {%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
+                      {%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
+                      {%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
+
+                      {#-- Step 1: Skip if chore labels match exclude list --#}
+                      {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
+
+                        {#-- Step 2: Skip approved chores if preference set --#}
+                        {%- if chore_status == 'approved' and pref_exclude_approved -%}
+                          {#-- Skip this chore --#}
+
+                        {#-- Step 3: Handle overdue chores (highest priority) --#}
+                        {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
+                          {%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 4: Skip chores with labels when label grouping is enabled (they're processed separately) --#}
+                        {%- elif pref_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
+                          {#-- Labels take priority; processed in label grouping section below --#}
+
+                        {#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
+                        {#-- If a chore is in 'today' group without specific date, it's daily recurring --#}
+                        {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- If a chore is in 'this_week' group without specific date, it's weekly recurring --#}
+                        {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 6: Categorize by primary_group (time-based) --#}
+                        {%- elif chore_primary_group == 'today' and pref_use_today_grouping and chore_is_today_am == true -%}
+                          {%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'today' and pref_use_today_grouping and chore_is_today_am != true -%}
+                          {%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'today' and not pref_use_today_grouping -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'this_week' and pref_use_this_week_grouping -%}
+                          {%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'this_week' and not pref_use_this_week_grouping -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 7: Default fallback --#}
+                        {%- else -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+                        {%- endif -%}
+
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {#-- Build Label Groups from chores_by_label --#}
+                    {%- if pref_use_label_grouping -%}
+                      {#-- Determine label order: use pref_label_display_order if provided, else all labels alphabetically --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set ns.label_order = pref_label_display_order -%}
+                      {%- else -%}
+                        {%- set ns.label_order = chores_by_label_raw.keys() | list | sort -%}
+                      {%- endif -%}
+
+                      {#-- Build label button groups in order --#}
+                      {%- for label in ns.label_order -%}
+                        {%- if label not in pref_exclude_label_list and label in chores_by_label_raw -%}
+                          {%- set label_eids = chores_by_label_raw[label] | default([], true) -%}
+                          {%- set ns.temp_label_buttons = [] -%}
+                          {%- for eid in label_eids -%}
+                            {%- if eid not in (ns.overdue_buttons | list) -%}
+                              {%- set ns.temp_label_buttons = ns.temp_label_buttons + [eid] -%}
+                            {%- endif -%}
+                          {%- endfor -%}
+                          {%- if ns.temp_label_buttons | length > 0 -%}
+                            {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+
+                      {#-- Add any remaining labels not in pref_label_display_order (alphabetically sorted) --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set remaining_labels = chores_by_label_raw.keys() | list | sort | reject('in', pref_label_display_order) | list -%}
+                        {%- for label in remaining_labels -%}
+                          {%- if label not in pref_exclude_label_list -%}
+                            {%- set label_eids = chores_by_label_raw[label] | default([], true) -%}
+                            {%- set ns.temp_label_buttons = [] -%}
+                            {%- for eid in label_eids -%}
+                              {%- if eid not in (ns.overdue_buttons | list) -%}
+                                {%- set ns.temp_label_buttons = ns.temp_label_buttons + [eid] -%}
+                              {%- endif -%}
+                            {%- endfor -%}
+                            {%- if ns.temp_label_buttons | length > 0 -%}
+                              {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                      {%- endif -%}
+                    {%- endif -%}
+
+                    {#-- Build the button groups --#}
+                    {%- set button_groups = [
+                        {'name': "!!!!!!!!!!! " ~ ui.get('overdue', 'err-overdue') ~ " !!!!!!!!!!!", 'buttons': ns.overdue_buttons, 'icon': 'mdi:alert-octagon'},
+                        {'name': ui.get('due_this_morning', 'err-due_this_morning'), 'buttons': ns.am_buttons, 'icon': 'mdi:alarm'},
+                        {'name': ui.get('due_today', 'err-due_today'), 'buttons': ns.today_buttons, 'icon': 'mdi:calendar-today'},
+                        {'name': ui.get('due_this_week', 'err-due_this_week'), 'buttons': ns.this_week_buttons, 'icon': 'mdi:calendar-week'}
+                    ] -%}
+
+                    {#-- Insert label-based groups --#}
+                    {%- set button_groups = button_groups + ns.label_button_groups -%}
+
+                    {#-- Continue with bonus group --#}
+                    {%- set button_groups = button_groups + [
+                        {'name': ui.get('upcoming_bonus', 'err-upcoming_bonus'), 'buttons': ns.other_buttons, 'icon': 'mdi:calendar-clock'}
+                    ] -%}
+
+                    {#-- Sort chores within each group based on preference --#}
+                    {%- if pref_sort_within_groups != 'default' -%}
+                      {%- set ns.sorted_groups = [] -%}
+                      {%- for group in button_groups -%}
+                        {%- if group.buttons | length > 0 -%}
+                          {%- if pref_sort_within_groups in ['name_asc', 'name_desc'] -%}
+                            {#-- Build list of (name, eid) tuples for sorting --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set chore_name = state_attr(eid, 'chore_name') | default('zzz', true) | lower -%}
+                              {%- set ns.temp_list = ns.temp_list + [[chore_name, eid]] -%}
+                            {%- endfor -%}
+                            {#-- Sort the list --#}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- if pref_sort_within_groups == 'name_desc' -%}
+                              {%- set sorted_list = sorted_list | reverse | list -%}
+                            {%- endif -%}
+                            {#-- Extract just the entity IDs --#}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- elif pref_sort_within_groups in ['date_asc', 'date_desc'] -%}
+                            {#-- Build list of (due_date_timestamp, eid) tuples for sorting --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set due_date_str = state_attr(eid, 'due_date') | string -%}
+                              {%- if due_date_str not in ['None', 'unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_str) | default(9999999999, true) -%}
+                              {%- else -%}
+                                {%- set due_timestamp = 9999999999 -%}
+                              {%- endif -%}
+                              {%- set ns.temp_list = ns.temp_list + [[due_timestamp, eid]] -%}
+                            {%- endfor -%}
+                            {#-- Sort the list --#}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- if pref_sort_within_groups == 'date_desc' -%}
+                              {%- set sorted_list = sorted_list | reverse | list -%}
+                            {%- endif -%}
+                            {#-- Extract just the entity IDs --#}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- else -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                          {%- endif -%}
+                        {%- else -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set button_groups = ns.sorted_groups -%}
+                    {%- endif -%}
+
+                    {#-- 5. Render --#}
+                    {{
+                      {
+                        'type': 'heading',
+                        'icon': 'mdi:broom',
+                        'heading': ui.get('chores', 'err-chores'),
+                        'heading_style': 'title',
+                      }
+                    }},
+
+                    {#-- Loop through the button groups and create all claim buttons --#}
+                    {%- for group in button_groups -%}
+                    {%- set ns.group_cards = [] -%}
+                    {%- if group.buttons | length > 0 -%}
+                      {%- set heading_card =
+                        {
+                          'type': 'heading',
+                          'icon': group.icon,
+                          'heading': group.name,
+                          'heading_style': 'title',
+                        }
+                      -%}
+                      {{- heading_card -}},
+
+                      {%- for chore_sensor_id in group.buttons -%}
+                        {%- set claim_button_eid = state_attr(chore_sensor_id, 'claim_button_eid') | default('', true) -%}
+                        {%- set disapprove_button_eid = state_attr(chore_sensor_id, 'disapprove_button_eid') | default('', true) -%}
+                        {%- set chore_name = state_attr(chore_sensor_id, 'chore_name') | default('Unknown') -%}
+                        {%- set shared_chore = state_attr(chore_sensor_id, 'completion_criteria') != 'independent' -%}
+                        {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
+                        {%- set button_state = states(claim_button_eid) if claim_button_eid else 'unknown' -%}
+                        {%- set due_date_str = state_attr(chore_sensor_id, 'due_date') | string -%}
+                        {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str not in ['None', 'unknown', 'unavailable'] else None -%}
+                        {%- set recurring = state_attr(chore_sensor_id, 'recurring_frequency') -%}
+                        {%- set today = now().astimezone(now().tzinfo).date() -%}
+                        {%- set due_date_short =
+                            ui.get('daily', 'err-daily') if recurring == 'daily' and not due_date else
+                            ui.get('weekly', 'err-weekly') if recurring == 'weekly' and not due_date else
+                            ui.get('no_due_date', 'err-no_due_date') if not due_date else
+                            (due_date.strftime('%-I:%M %p') if due_date.date() == today else as_timestamp(due_date) | timestamp_custom('%a %b %-d', true))
+                        -%}
+
+                        {%- set approval_reset_type = state_attr(chore_sensor_id, 'approval_reset_type') -%}
+                        {%- set multi_approve = approval_reset_type and '_multi' in approval_reset_type -%}
+                        {%- set chore_state = states(chore_sensor_id) -%}
+                        {%- set state_map = {
+                            'pending': ui.get('pending', 'err-pending'),
+                            'due': ui.get('due', 'err-due'),
+                            'claimed': ui.get('claimed', 'err-claimed'),
+                            'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
+                            'approved': ui.get('approved', 'err-approved'),
+                            'approved_in_part': ui.get('approved_in_part', 'err-approved_in_part'),
+                            'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                            'overdue': ui.get('overdue', 'err-overdue'),
+                            'independent': ui.get('independent', 'err-independent'),
+                            'shared_all': ui.get('shared_all', 'err-shared_all'),
+                            'shared_first': ui.get('shared_first', 'err-shared_first')
+                        } -%}
+                        {%- set chore_state_display = (state_map[chore_state] if chore_state in state_map else chore_state) ~ ' (M)' if multi_approve == true else (state_map[chore_state] if chore_state in state_map else chore_state) -%}
+                        {%- set points = state_attr(chore_sensor_id, 'default_points') | string -%}
+                        {%- set global_chore_state = state_attr(chore_sensor_id, 'global_state') -%}
+                        {%- set streak = state_attr(chore_sensor_id, 'chore_current_streak') | string -%}
+                        {%- set secondary = points_label ~ ': ' + points + '\n' + ui.get('streak', 'err-streak') + ': ' + streak + '\n \n' + ui.get('status', 'err-status') + ': ' + chore_state_display + '\n' + ui.get('due', 'err-due') + ': ' + due_date_short -%}
+                        {%- set icon_color = (
+                              'blue' if chore_state == 'approved' and multi_approve == true else
+                              'green' if chore_state == 'approved' else
+                              'yellow' if chore_state == 'partial' else
+                              'orange' if chore_state == 'claimed' else
+                              'red' if chore_state == 'overdue' else
+                              'purple' if '_in_part' in global_chore_state else
+                              'grey' if chore_state == 'completed_by_other' else
+                              'grey'
+                            ) -%}
+                        {%- set badge_color = (
+                              'blue' if chore_state == 'approved' and multi_approve == true else
+                              'green' if chore_state == 'approved' else
+                              'green' if chore_state == 'partial' else
+                              'green' if chore_state == 'claimed' else
+                              'red' if chore_state == 'overdue' else
+                              'purple' if '_in_part' in global_chore_state else
+                              'blue' if chore_state == 'completed_by_other' else
+                              'grey'
+                            ) -%}
+                        {%- set badge_icon = (
+                              'mdi:check-bold' if chore_state == 'approved' else
+                              'mdi:check-bold' if chore_state == 'partial' else
+                              'mdi:check-bold' if chore_state == 'claimed' else
+                              'mdi:exclamation-thick' if chore_state == 'overdue' else
+                              'mdi:account-group' if '_in_part' in global_chore_state else
+                              'mdi:lock' if chore_state == 'completed_by_other' else
+                              ''
+                            ) -%}
+                        {#-- Select button entity based on chore state: disapprove for claimed, claim for others --#}
+                        {%- set active_button_eid = disapprove_button_eid if chore_state == 'claimed' else claim_button_eid -%}
+                        {#-- Add chore card to the group_cards list --#}
+                        {%- set chore_icon = state_attr(chore_sensor_id, 'icon') | default('mdi:broom', true) -%}
+                        {%- set ns.group_cards = ns.group_cards + [{
+                            'type': 'custom:mushroom-template-card',
+                            'entity': chore_sensor_id,
+                            'primary': primary,
+                            'multiline_secondary': 'false',
+                            'secondary': secondary,
+                            'layout': 'horizontal',
+                            'icon': chore_icon,
+                            'icon_color': icon_color,
+                            'badge_color': badge_color,
+                            'badge_icon': badge_icon,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'button.press',
+                              'target': {
+                                'entity_id': active_button_eid
+                              }
+                            },
+                            'hold_action': {
+                              'action': 'more-info'
+                            }
+                        }] -%}
+                      {%- endfor -%}
+                      {#-- Display the grid card for this group --#}
+                        {{
+                          {
+                            'type': 'grid',
+                            'columns': pref_column_count,
+                            'square': false,
+                            'cards': ns.group_cards
+                          }
+                        }},
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}

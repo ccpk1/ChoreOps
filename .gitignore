@@ -1,0 +1,62 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+coverage.xml
+*.cover
+.hypothesis/
+performance_results.json
+
+# Type checking & Linting
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# IDE & Editors (keeping .vscode/ tracked for shared settings)
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Development workspace files (personal configs)
+*.code-workspace
+*-dev-*.sh
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Logs
+*.log
+*.log.*
+
+# OS files
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Temporary files
+*.tmp
+*.temp
+.cache/

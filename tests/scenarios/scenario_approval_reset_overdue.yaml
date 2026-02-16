@@ -1,0 +1,87 @@
+# Test scenario for AT_MIDNIGHT_ONCE + AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET interaction
+#
+# This scenario tests the behavior where:
+# - approval_reset_type: at_midnight_once (required for then_reset)
+# - overdue_handling_type: at_due_date_clear_at_approval_reset
+#
+# AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET only works with AT_MIDNIGHT_* reset types because
+# the reset time must be AFTER the due date to allow the overdue window.
+#
+# See: tests/test_approval_reset_overdue_interaction.py
+
+system:
+  points_label: "Stars"
+  points_icon: "mdi:star"
+  update_interval: 5
+
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    points: 100
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Max!"
+    ha_user: "kid2"
+    points: 100
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+
+chores:
+  # Main test chore with AT_MIDNIGHT_ONCE + AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET
+  # Shows overdue from due date until midnight, then resets to pending
+  - name: "AtDueDateOnce Reset Chore"
+    assigned_to: ["Zoë"]
+    points: 10.0
+    icon: "mdi:broom"
+    recurring_frequency: "daily"
+    completion_criteria: "independent"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date_clear_at_approval_reset"
+    pending_claim_action: "clear_pending"
+    auto_approve: false
+
+  # Comparison chore with default settings (AT_MIDNIGHT_ONCE + AT_DUE_DATE)
+  - name: "Default Settings Chore"
+    assigned_to: ["Zoë"]
+    points: 5.0
+    icon: "mdi:home"
+    recurring_frequency: "daily"
+    completion_criteria: "independent"
+    # Using defaults: at_midnight_once, at_due_date
+    auto_approve: false
+
+  # SHARED variant for comparison
+  - name: "Shared AtDueDateOnce Chore"
+    assigned_to: ["Zoë"]
+    points: 15.0
+    icon: "mdi:account-group"
+    recurring_frequency: "daily"
+    completion_criteria: "shared_all"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date_clear_at_approval_reset"
+    pending_claim_action: "clear_pending"
+    auto_approve: false
+
+  # Multi-kid INDEPENDENT chore for per-kid reset isolation testing
+  - name: "Multi Kid Reset Test"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:account-multiple"
+    recurring_frequency: "daily"
+    completion_criteria: "independent"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date_clear_at_approval_reset"
+    pending_claim_action: "clear_pending"
+    auto_approve: false
+
+rewards: []
+bonuses: []
+penalties: []
+achievements: []
+challenges: []
+badges: []

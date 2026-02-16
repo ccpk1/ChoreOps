@@ -1,0 +1,415 @@
+# Test Scenario: FULL (Modern Config-Flow Format)
+# =============================================================================
+# This YAML file is designed for modern tests that use the config flow.
+# Keys match the setup_integration() helper function parameters.
+#
+# Contents:
+#   - 2 parents: Môm Astrid Stârblüm, Dad Leo
+#   - 3 kids: Zoë, Max!, Lila
+#   - 19 chores covering all completion criteria and frequencies
+#
+# Use case: Comprehensive coverage of all chore types and combinations
+# =============================================================================
+
+# System settings (maps to POINTS step)
+system:
+  points_label: "Star Points"
+  points_icon: "mdi:star"
+
+# Kids (maps to KID_COUNT + KIDS steps)
+# Keys map to _configure_kid_step() parameters:
+#   - name (required): Display name
+#   - ha_user (required): Key in mock_hass_users fixture ("kid1", "kid2", "kid3")
+#   - dashboard_language: Language code (default: "en")
+#   - mobile_notify_service: str (default: "")
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Max!"
+    ha_user: "kid2"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Lila"
+    ha_user: "kid3"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Parents (maps to PARENT_COUNT + PARENTS steps)
+# Keys map to _configure_parent_step() parameters:
+#   - name (required): Display name
+#   - ha_user (required): Key in mock_hass_users fixture ("parent1", "parent2")
+#   - kids: List of kid names to associate (default: all kids)
+#   - mobile_notify_service: str (default: "")
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+    kids: ["Zoë", "Max!", "Lila"] # All kids
+    mobile_notify_service: ""
+
+  - name: "Dad Leo"
+    ha_user: "parent2"
+    kids: ["Zoë", "Max!", "Lila"] # All kids
+    mobile_notify_service: ""
+
+# Chores (maps to CHORE_COUNT + CHORES steps)
+# Keys map to _configure_chore_step() parameters:
+#   - name (required): Display name
+#   - assigned_to (required): List of kid names
+#   - points: Points value (default: 10.0)
+#   - description: Chore description (default: "")
+#   - icon: MDI icon (default: "mdi:check")
+#   - completion_criteria: "independent"/"shared_all"/"shared_first" (default: "independent")
+#   - recurring_frequency: "daily"/"weekly"/"monthly"/"custom"/"none" (default: "daily")
+#   - auto_approve: bool (default: false)
+#   - show_on_calendar: bool (default: true)
+#   - labels: List of labels (default: [])
+#   - applicable_days: List of day codes (default: all days for daily)
+#   - notifications: List of notification events (default: [])
+#   - due_date: ISO date string (optional)
+#   - custom_interval: int (optional, for custom frequency)
+#   - custom_interval_unit: str (optional, for custom frequency)
+#   - approval_reset_type: str (default: "automatic")
+#   - approval_reset_pending_claim_action: str (default: from const)
+#   - overdue_handling_type: str (default: "none")
+chores:
+  # ==========================================================================
+  # INDEPENDENT CHORES (Single Kid)
+  # ==========================================================================
+
+  # Test: Basic daily independent chore
+  - name: "Feed the cåts"
+    assigned_to: ["Zoë"]
+    points: 10.0
+    icon: "mdi:cat"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: Daily independent with auto-approve
+  - name: "Wåter the plänts"
+    assigned_to: ["Zoë"]
+    points: 10.0
+    icon: "mdi:watering-can"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: true
+
+  # Test: Weekly independent chore
+  - name: "Pick up Lëgo!"
+    assigned_to: ["Max!"]
+    points: 15.0
+    icon: "mdi:lego"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  # Test: Daily independent with custom recurring
+  - name: "Charge Røbot"
+    assigned_to: ["Max!"]
+    points: 10.0
+    icon: "mdi:robot"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  # Test: Weekly independent chore
+  - name: "Paint the rãinbow"
+    assigned_to: ["Lila"]
+    points: 15.0
+    icon: "mdi:palette"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  # Test: Daily independent chore
+  - name: "Sweep the p@tio"
+    assigned_to: ["Lila"]
+    points: 10.0
+    icon: "mdi:broom"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  # ==========================================================================
+  # INDEPENDENT CHORES (Multi Kid)
+  # ==========================================================================
+
+  # Test: Multi-kid independent (each completes separately)
+  - name: "Stär sweep"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 20.0
+    icon: "mdi:star"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  # Test: Two-kid independent with higher points
+  - name: "Ørgänize Bookshelf"
+    assigned_to: ["Zoë", "Lila"]
+    points: 18.0
+    icon: "mdi:bookshelf"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  # Test: Monthly independent (less frequent)
+  - name: "Deep Clean Tøy Chest"
+    assigned_to: ["Max!"]
+    points: 30.0
+    icon: "mdi:treasure-chest"
+    completion_criteria: "independent"
+    recurring_frequency: "monthly"
+
+  # ==========================================================================
+  # SHARED_ALL CHORES
+  # ==========================================================================
+
+  # Test: Daily shared_all (all kids must claim/approve)
+  - name: "Family Dinner Prep"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 15.0
+    icon: "mdi:food"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+
+  # Test: Weekly shared_all with chore-level due date
+  - name: "Weekend Yärd Work"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 25.0
+    icon: "mdi:tree"
+    completion_criteria: "shared_all"
+    recurring_frequency: "weekly"
+
+  # Test: Two-kid shared_all
+  - name: "Sibling Rööm Cleanup"
+    assigned_to: ["Max!", "Lila"]
+    points: 20.0
+    icon: "mdi:broom-clean"
+    completion_criteria: "shared_all"
+    recurring_frequency: "weekly"
+
+  # ==========================================================================
+  # SHARED_FIRST CHORES
+  # ==========================================================================
+
+  # Test: Weekly shared_first (first approval completes)
+  - name: "Garage Cleanup"
+    assigned_to: ["Zoë", "Max!"]
+    points: 25.0
+    icon: "mdi:garage"
+    completion_criteria: "shared_first"
+    recurring_frequency: "weekly"
+
+  # Test: Daily shared_first
+  - name: "Täke Öut Trash"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 12.0
+    icon: "mdi:delete"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+
+  # Test: Two-kid shared_first with higher points
+  - name: "Wåsh Family Car"
+    assigned_to: ["Zoë", "Lila"]
+    points: 30.0
+    icon: "mdi:car-wash"
+    completion_criteria: "shared_first"
+    recurring_frequency: "weekly"
+
+  # Test: Three-kid shared_first for isolated 3-kid test
+  - name: "Måil Pickup Race"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 8.0
+    icon: "mdi:mailbox"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+
+  # ==========================================================================
+  # CUSTOM FREQUENCY CHORES
+  # ==========================================================================
+
+  # Test: Custom interval (every 3 days)
+  - name: "Refill Bird Fëeder"
+    assigned_to: ["Zoë"]
+    points: 8.0
+    icon: "mdi:bird"
+    completion_criteria: "independent"
+    recurring_frequency: "custom"
+    custom_interval: 3
+    custom_interval_unit: "days"
+
+  # Test: Custom interval shared_first (every 5 days)
+  - name: "Clëan Pool Fïlter"
+    assigned_to: ["Max!", "Lila"]
+    points: 22.0
+    icon: "mdi:pool"
+    completion_criteria: "shared_first"
+    recurring_frequency: "custom"
+    custom_interval: 5
+    custom_interval_unit: "days"
+
+# Badges (maps to BADGE_COUNT + BADGES steps)
+# Keys map to _configure_badge_step() parameters (via FlowTestHelper.build_badge_form_data):
+#   - name (required): Display name
+#   - type: "cumulative"/"daily"/"periodic"/"special" (default: "cumulative")
+#   - assigned_to: List of kid names (required)
+#   - award_points: Points awarded when badge earned (default: 0)
+#   - target_type: "chore_count"/"points_earned" (for cumulative, default: "chore_count")
+#   - threshold_value: Numeric target (required for cumulative)
+#   - icon: MDI icon (default: "mdi:medal")
+#   - start_date: ISO date string (optional)
+#   - end_date: ISO date string (optional)
+badges:
+  # Test: Cumulative badge - total all-time points only
+  - name: "Chore Stär Champion"
+    type: "cumulative"
+    assigned_to: ["Zoë"]
+    award_points: 50
+    target_type: "points"
+    threshold_value: 100
+    icon: "mdi:medal-outline"
+
+  # Test: Cumulative badge - total all-time points (multi-kid)
+  - name: "Team Player Badge"
+    type: "cumulative"
+    assigned_to: ["Max!", "Lila"]
+    award_points: 30
+    target_type: "points"
+    threshold_value: 500
+    icon: "mdi:account-group"
+
+# Rewards (maps to REWARD_COUNT + REWARDS steps)
+# Keys map to _configure_reward_step() parameters (via FlowTestHelper.build_reward_form_data):
+#   - name (required): Display name
+#   - cost: Points cost (required)
+#   - icon: MDI icon (default: "mdi:gift")
+#   - description: Reward description (default: "")
+rewards:
+  # Test: Standard reward
+  - name: "Extra Screen Time"
+    cost: 50
+    icon: "mdi:television"
+    description: "30 minutes extra screen time"
+
+  # Test: Premium reward
+  - name: "Pick Next Movie"
+    cost: 100
+    icon: "mdi:movie-open"
+    description: "Choose the family movie night selection"
+
+  # Test: High-value reward
+  - name: "Special Outing"
+    cost: 200
+    icon: "mdi:car-side"
+    description: "Go to your favorite place with parent"
+
+# Penalties (maps to PENALTY_COUNT + PENALTIES steps)
+# Keys map to _configure_penalty_step() parameters (via FlowTestHelper.build_penalty_form_data):
+#   - name (required): Display name
+#   - points: Points deducted (stored as negative, required)
+#   - icon: MDI icon (default: "mdi:alert")
+#   - description: Penalty description (default: "")
+penalties:
+  # Test: Minor penalty
+  - name: "Missed Chore"
+    points: 10
+    icon: "mdi:calendar-remove"
+    description: "Forgot to complete assigned chore"
+
+  # Test: Moderate penalty
+  - name: "Sibling Fight"
+    points: 15
+    icon: "mdi:account-alert"
+    description: "Argument with sibling requiring parent intervention"
+
+# Bonuses (maps to BONUS_COUNT + BONUSES steps)
+# Keys map to _configure_bonus_step() parameters (via FlowTestHelper.build_bonus_form_data):
+#   - name (required): Display name
+#   - points: Points awarded (required)
+#   - icon: MDI icon (default: "mdi:star-plus")
+#   - description: Bonus description (default: "")
+bonuses:
+  # Test: Standard bonus
+  - name: "Extra Effort"
+    points: 20
+    icon: "mdi:star-box"
+    description: "Going above and beyond on chores"
+
+  # Test: Teamwork bonus
+  - name: "Helping Sibling"
+    points: 15
+    icon: "mdi:hand-heart"
+    description: "Helped sibling without being asked"
+
+# Achievements (maps to ACHIEVEMENT_COUNT + ACHIEVEMENTS steps)
+# Keys map to _configure_achievement_step() parameters (via FlowTestHelper.build_achievement_form_data):
+#   - name (required): Display name
+#   - type: Achievement type (required) - valid: "chore_streak", "chore_total", "daily_minimum"
+#   - assigned_to: List of kid names (required)
+#   - target_value: Numeric target (required)
+#   - reward_points: Points awarded (default: 0)
+#   - icon: MDI icon (default: "mdi:trophy")
+#   - description: Achievement description (default: "")
+achievements:
+  # Test: Total achievement (assigned to multiple kids)
+  - name: "Early Bird"
+    type: "chore_total"
+    assigned_to: ["Zoë", "Max!"]
+    target_value: 7
+    reward_points: 25
+    icon: "mdi:alarm"
+    description: "Complete 7 total chores"
+
+  # Test: Total achievement
+  - name: "Chore Champion"
+    type: "chore_total"
+    assigned_to: ["Lila"]
+    target_value: 50
+    reward_points: 30
+    icon: "mdi:trophy"
+    description: "Complete 50 total chores"
+
+# Challenges (maps to CHALLENGE_COUNT + CHALLENGES steps)
+# Keys map to _configure_challenge_step() parameters (via FlowTestHelper.build_challenge_form_data):
+#   - name (required): Display name
+#   - type: Challenge type (required) - valid: "daily_minimum", "total_within_window"
+#   - assigned_to: List of kid names (required)
+#   - target_value: Numeric target (required)
+#   - reward_points: Points awarded (default: 0)
+#   - start_date: ISO date string (required for total_within_window)
+#   - end_date: ISO date string (required for total_within_window)
+#   - icon: MDI icon (default: "mdi:trophy-variant")
+#   - description: Challenge description (default: "")
+challenges:
+  # Test: Daily minimum challenge
+  - name: "Weekend Warrior"
+    type: "daily_minimum"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    target_value: 3
+    reward_points: 50
+    start_date: "2024-06-01T00:00:00+00:00"
+    end_date: "2024-12-31T23:59:59+00:00"
+    icon: "mdi:calendar-star"
+    description: "Complete at least 3 chores every day"
+
+  # Test: Total within window challenge
+  - name: "Summer Sprint"
+    type: "total_within_window"
+    assigned_to: ["Max!", "Lila"]
+    target_value: 20
+    reward_points: 75
+    start_date: "2024-07-01T00:00:00+00:00"
+    end_date: "2024-08-31T23:59:59+00:00"
+    icon: "mdi:run-fast"
+    description: "Complete 20 chores before end of summer"
+# =============================================================================
+# ENTITY COVERAGE SUMMARY
+# =============================================================================
+# KIDS (3): Zoë, Max!, Lila
+# PARENTS (2): Môm Astrid Stârblüm, Dad Leo
+# CHORES (19): All completion criteria + frequencies covered
+# BADGES (2): Cumulative with chore_count + points_earned targets
+# REWARDS (3): Standard, premium, and high-value rewards
+# PENALTIES (2): Minor and moderate point deductions
+# BONUSES (2): Standard effort + teamwork bonuses
+# ACHIEVEMENTS (2): Early bird + consistency achievements
+# CHALLENGES (2): Weekend warrior + summer sprint challenges
+#

@@ -1,0 +1,138 @@
+{
+  "_comment_kid_section": "══════════════════════════════════════════════════════════════════════════",
+  "_comment_kid_desc": "OZNÁMENIA PRE DETÍ: Gamifikovaný, v druhej osobe, povzbudzujúci tón s emotikonmi. BEZ predpony „KidsChores:“.",
+  "_comment_kid_footer": "══════════════════════════════════════════════════════════════════════════",
+  "chore_approved_kid": {
+    "title": "🎉 Domáca úloha schválená!",
+    "message": "{chore_name} approved! You earned {points} points"
+  },
+  "chore_disapproved_kid": {
+    "title": "↩️ Vrátená práca",
+    "message": "{chore_name} si vyžaduje viac práce."
+  },
+  "chore_overdue_kid": {
+    "title": "⏰ Domáca práca po termíne",
+    "message": "{chore_name} je oneskorený! Dokončite ho teraz a získajte {points} bodov"
+  },
+  "chore_missed_kid": {
+    "title": "😔 Platnosť úlohy vypršala",
+    "message": "{chore_name} platnosť vypršala bez dokončenia."
+  },
+  "chore_due_reminder_kid": {
+    "title": "⏰ Pripomienka domácich prác",
+    "message": "{chore_name} je splatné o {minutes} minút! Hodnota {points} bodov"
+  },
+  "chore_due_window_kid": {
+    "title": "🎯 Domáca úloha teraz na splatenie",
+    "message": "Termín {chore_name} je teraz! Dokončite do {hours} hodiny a získajte {points} bodov"
+  },
+  "reward_approved_kid": {
+    "title": "🎉 Odmena schválená!",
+    "message": "{reward_name} schválené!"
+  },
+  "reward_disapproved_kid": {
+    "title": "💭 Žiadosť o odmenu vrátená",
+    "message": "{reward_name} tentoraz nebol schválený."
+  },
+  "badge_earned_kid": {
+    "title": "🥇 Odznak získaný!",
+    "message": "Získali ste odznak {badge_name} !"
+  },
+  "achievement_earned_kid": {
+    "title": "🏆 Získaný úspech!",
+    "message": "Získali ste {achievement_name}! Len tak ďalej!"
+  },
+  "challenge_completed_kid": {
+    "title": "🏁 Výzva splnená!",
+    "message": "Dokončili ste {challenge_name}! Pokračujte v skvelej práci"
+  },
+  "penalty_applied_kid": {
+    "title": "⚠️ Uplatnená pokuta",
+    "message": "{penalty_name}: Odpočítané {points} body. Vráťme sa na správnu cestu!"
+  },
+  "bonus_applied_kid": {
+    "title": "⭐ Bonus bol uplatnený!",
+    "message": "{bonus_name}: Získali ste {points} bonusových bodov! Skvelá práca"
+  },
+  "multiplier_changed_kid": {
+    "title": "⚖️ Aktualizovaný multiplikátor",
+    "message": "Váš násobiteľ bodov sa zmenil z {old_multiplier}x na {new_multiplier}x"
+  },
+  "_comment_parent_section": "══════════════════════════════════════════════════════════════════════════",
+  "_comment_parent_desc": "OZNÁMENIA PRE RODIČOV: Informatívne, v tretej osobe, akčné. Formát: '{kid_name}: Akcia'. BEZ predpony 'KidsChores:'.",
+  "_comment_parent_footer": "══════════════════════════════════════════════════════════════════════════",
+  "chore_claimed_parent": {
+    "title": "✋ {kid_name}: Domáca práca nárokovaná",
+    "message": "{kid_name} si nárokuje {chore_name} a teraz na tom pracuje"
+  },
+  "chore_reminder_parent": {
+    "title": "⏰ {kid_name}: Vyžaduje sa schválenie",
+    "message": "Pripomienka: {chore_name} nárokovaný používateľom {kid_name} čaká na vašu recenziu"
+  },
+  "chore_overdue_parent": {
+    "title": "⚠️ {kid_name}: Domáca úloha oneskorená",
+    "message": "Úloha používateľa {kid_name} {chore_name} je oneskorená (termín: {due_date})"
+  },
+  "pending_chores_parent": {
+    "title": "📋 {kid_name}: {count} Čaká sa",
+    "message": "{count} domácich úloh čakajúcich na kontrolu. Najnovšie: {latest_chore} (+{points} bodov)"
+  },
+  "reward_claimed_parent": {
+    "title": "🎁 {kid_name}: Žiadosť o odmenu",
+    "message": "{kid_name} požadoval {reward_name} za {points} bodov"
+  },
+  "reward_reminder_parent": {
+    "title": "⏰ {kid_name}: Odmena čaká na vyplatenie",
+    "message": "Pripomienka: {reward_name} požadovaná používateľom {kid_name} čaká na vaše schválenie"
+  },
+  "badge_earned_parent": {
+    "title": "🥇 {kid_name}: Odznak získaný",
+    "message": "{kid_name} získal odznak {badge_name} !"
+  },
+  "achievement_earned_parent": {
+    "title": "🏆 {kid_name}: Úspech",
+    "message": "{kid_name} zarobené {achievement_name}"
+  },
+  "challenge_completed_parent": {
+    "title": "🏁 {kid_name}: Výzva splnená",
+    "message": "{kid_name} dokončené {challenge_name}"
+  },
+  "multiplier_changed_parent": {
+    "title": "⚖️ {kid_name}: Multiplikátor bol aktualizovaný",
+    "message": "Násobiteľ bodov hráča {kid_name}sa zmenil z {old_multiplier}x na {new_multiplier}x"
+  },
+  "_comment_system_section": "══════════════════════════════════════════════════════════════════════════",
+  "_comment_system_desc": "SYSTÉMOVÉ/ADMINISTRÁTORSKÉ OZNÁMENIA: Operácie správy údajov",
+  "_comment_system_footer": "══════════════════════════════════════════════════════════════════════════",
+  "data_reset": {
+    "title": "🔄 Detské práce: Obnovenie údajov",
+    "message": "Systémové údaje boli resetované"
+  },
+  "data_reset_global": {
+    "title": "🔄 Detské práce: Úplný reset",
+    "message": "Všetky systémové údaje boli obnovené na predvolené hodnoty"
+  },
+  "data_reset_kid": {
+    "title": "🔄 Detské práce: Obnovenie detských úloh",
+    "message": "Obnovenie údajov pre {kid_name}"
+  },
+  "data_reset_item_type": {
+    "title": "🔄 Detské práce: {item_type} Obnoviť",
+    "message": "Všetky údaje {item_type} boli resetované"
+  },
+  "data_reset_item": {
+    "title": "🔄 Detské práce: Obnovenie položky",
+    "message": "{item_type} '{item_name}' bolo resetované"
+  },
+  "_comment_actions_section": "══════════════════════════════════════════════════════════════════════════",
+  "_comment_actions_desc": "TLAČIDLÁ AKCIÍ OZNÁMENÍ: Jemnejší a povzbudivejší jazyk",
+  "_comment_actions_footer": "══════════════════════════════════════════════════════════════════════════",
+  "actions": {
+    "approve": "✅ Schváliť",
+    "claim": "✋ Zvládol som to!",
+    "complete": "✅ Dokončené",
+    "disapprove": "↩️ Neschváliť",
+    "remind_30": "⏰ Pripomenúť o 30 minút",
+    "skip": "⏭️ Preskočiť"
+  }
+}

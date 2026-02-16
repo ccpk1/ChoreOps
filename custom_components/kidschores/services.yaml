@@ -1,0 +1,1058 @@
+# File: services.yaml
+#
+# Custom services documentation for the KidsChores integration.
+# These services allow direct actions through scripts or automations.
+# Includes UI editor support with selectors for text inputs and numbers.
+
+claim_chore:
+  name: "Claim Chore"
+  description: "A kid claims a chore, marking it as 'claimed' for parental approval."
+  fields:
+    kid_name:
+      name: "Kid Name"
+      description: "The name of the kid claiming the chore."
+      example: "Alice"
+      required: true
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "The name of the chore to claim."
+      example: "Wash Dishes"
+      required: true
+      selector:
+        text:
+
+approve_chore:
+  name: "Approve Chore"
+  description: "Parent approves a chore, awarding points (full or partial)."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent approving the chore."
+      example: "Mom"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The name of the kid who performed the chore."
+      example: "Alice"
+      required: true
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "The name of the chore being approved."
+      example: "Wash Dishes"
+      required: true
+      selector:
+        text:
+    points_awarded:
+      name: "Points Awarded"
+      description: "Points to award (optional; defaults to the chore's points)."
+      example: 3
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 1000
+          mode: box
+
+disapprove_chore:
+  name: "Disapprove Chore"
+  description: "Parent disapproves a chore for a kid, reverting its status."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent disapproving the chore."
+      example: "Mom"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The name of the kid whose chore is being disapproved."
+      example: "Bob"
+      required: true
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "The name of the chore being disapproved."
+      example: "Clean Room"
+      required: true
+      selector:
+        text:
+
+redeem_reward:
+  name: "Redeem Reward"
+  description: "A kid redeems a reward, marking it as 'pending' for parental approval."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent authorizing the reward redemption."
+      example: "Mom"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The kid redeeming the reward."
+      example: "Alice"
+      required: true
+      selector:
+        text:
+    reward_name:
+      name: "Reward Name"
+      description: "The name of the reward to redeem."
+      example: "Extra Screen Time"
+      required: true
+      selector:
+        text:
+
+approve_reward:
+  name: "Approve Reward"
+  description: "Parent approves a reward claimed by a kid, deducting points. Supports optional cost override for context-aware pricing (e.g., weekend discounts, birthday free grants)."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent approving the reward."
+      example: "Mom"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The kid who is redeeming the reward."
+      example: "Alice"
+      required: true
+      selector:
+        text:
+    reward_name:
+      name: "Reward Name"
+      description: "The name of the reward being approved."
+      example: "Extra Screen Time"
+      required: true
+      selector:
+        text:
+    cost_override:
+      name: "Cost Override"
+      description: "Optional cost override. If omitted, uses the reward's configured cost. Set to 0 for a free grant (like birthday gifts). Useful for context-aware pricing via automations."
+      example: 10
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 10000
+          mode: box
+
+disapprove_reward:
+  name: "Disapprove Reward"
+  description: "Parent disapproves a reward redemption for a kid."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent disapproving the reward."
+      example: "Dad"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The kid whose reward redemption is being disapproved."
+      example: "Bob"
+      required: true
+      selector:
+        text:
+    reward_name:
+      name: "Reward Name"
+      description: "The name of the reward being disapproved."
+      example: "Extra Screen Time"
+      required: true
+      selector:
+        text:
+
+apply_penalty:
+  name: "Apply Penalty"
+  description: "A parent applies a penalty, deducting points from a kid."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent applying the penalty."
+      example: "Dad"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The kid receiving the penalty."
+      example: "Bob"
+      required: true
+      selector:
+        text:
+    penalty_name:
+      name: "Penalty Name"
+      description: "The name of the penalty to apply."
+      example: "Yelling"
+      required: true
+      selector:
+        text:
+
+apply_bonus:
+  name: "Apply Bonus"
+  description: "A parent applies a bonus to award extra points."
+  fields:
+    parent_name:
+      name: "Parent Name"
+      description: "The parent applying the bonus."
+      example: "Dad"
+      required: true
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "The kid receiving the bonus."
+      example: "Bob"
+      required: true
+      selector:
+        text:
+    bonus_name:
+      name: "Bonus Name"
+      description: "The name of the bonus to apply."
+      example: "Extra Helpful"
+      required: true
+      selector:
+        text:
+
+generate_activity_report:
+  name: "Generate Activity Report"
+  description: >
+    Build a 7-day activity report from kid ledger data. This service is
+    response-first and returns markdown, with optional HTML conversion for
+    email-oriented workflows, when called with return_response: true.
+  fields:
+    kid_name:
+      name: "Kid Name"
+      description: "Optional filter. If omitted, includes all kids in one aggregate report."
+      required: false
+      example: "Alice"
+      selector:
+        text:
+    report_language:
+      name: "Report Language"
+      description: "Optional language code for report text (for example en, es, de). If omitted, uses selected kid language when kid_name is provided, otherwise English."
+      required: false
+      example: "en"
+      selector:
+        text:
+    report_title:
+      name: "Report Title"
+      description: "Optional markdown title override for the generated report."
+      required: false
+      example: "Weekly Family Chore Summary"
+      selector:
+        text:
+    notify_service:
+      name: "Notify Service"
+      description: >
+        Optional notify target (for example notify.family). When provided, the
+        generated report message is sent to that service and delivery status
+        is reported in the response payload.
+      required: false
+      example: "notify.family"
+      selector:
+        text:
+    output_format:
+      name: "Output Format"
+      description: "Return markdown only, html only, or both markdown and html in the response payload."
+      required: false
+      default: "markdown"
+      example: "both"
+      selector:
+        select:
+          options:
+            - "markdown"
+            - "html"
+            - "both"
+
+# NOTE: reset_all_chores renamed to reset_chores_to_pending_state in v0.6.0
+
+reset_chores_to_pending_state:
+  name: "Reset Chores To Pending State"
+  description: "Manually reset all chores to pending state, removing claims and approvals."
+  fields: {}
+
+reset_transactional_data:
+  name: "Reset Transactional Data"
+  description: >
+    Reset runtime/transactional data while preserving configuration (kids, chores, rewards, etc.).
+    An automatic backup is created before reset as kidschores_data_<timestamp>_reset in the .storage directory.
+    Use scope to target specific kids or domains.
+    IMPORTANT: Requires confirm_destructive: true as a safety mechanism.
+  fields:
+    confirm_destructive:
+      name: "Confirm Destructive"
+      description: "Must be set to true to confirm you want to proceed with the reset. This is a safety mechanism."
+      required: true
+      example: true
+      selector:
+        boolean:
+    scope:
+      name: "Scope"
+      description: "Reset scope: 'global' resets all data, 'kid' resets data for a specific kid only."
+      required: false
+      default: "global"
+      example: "global"
+      selector:
+        select:
+          options:
+            - "global"
+            - "kid"
+    kid_name:
+      name: "Kid Name"
+      description: "Required if scope is 'kid'. The name of the kid whose data should be reset."
+      required: false
+      example: "Alice"
+      selector:
+        text:
+    item_type:
+      name: "Item Type"
+      description: "Optional filter to reset only a specific domain (e.g., just points or just chores)."
+      required: false
+      example: "chores"
+      selector:
+        select:
+          options:
+            - "points"
+            - "chores"
+            - "rewards"
+            - "badges"
+            - "achievements"
+            - "challenges"
+            - "penalties"
+            - "bonuses"
+    item_name:
+      name: "Item Name"
+      description: "Optional filter to reset a specific item within the item_type domain."
+      required: false
+      example: "Wash Dishes"
+      selector:
+        text:
+
+reset_overdue_chores:
+  name: "Reset Overdue Chores"
+  description: >
+    Reset overdue chore(s) back to the Pending state and reschedule them based on
+    their recurring frequency and previous due date. You may optionally provide a
+    chore_id (or chore_name) to reset a specific chore and optionally a kid_name
+    to reset the chore only for that kid.
+  fields:
+    chore_id:
+      name: "Chore ID"
+      description: "The internal ID of the chore to reset (optional if chore_name is provided)."
+      example: "abc123"
+      required: false
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "The name of the chore to reset (optional if chore_id is provided)."
+      example: "Wash Dishes"
+      required: false
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "If provided, reset the chore only for this kid."
+      example: "Alice"
+      required: false
+      selector:
+        text:
+
+set_chore_due_date:
+  name: "Set Chore Due Date"
+  description: >
+    Set (or clear) the due date for a chore. Provide the chore name and, if desired,
+    a new due date. If no due date is provided the existing due date will be cleared.
+    The service will reject due dates set in the past. For independent chores, optionally
+    provide a kid_name to set the due date only for that kid.
+  fields:
+    chore_name:
+      name: "Chore Name"
+      description: "The name of the chore to update."
+      example: "Wash Dishes"
+      required: true
+      selector:
+        text:
+    due_date:
+      name: "Due Date"
+      description: >
+        The new due date for the chore. Use the date/time selector to choose a valid
+        date and time (in your local timezone). Leave empty to clear the due date.
+      example: "2025-03-01T23:59:00Z"
+      required: false
+      selector:
+        datetime: {}
+    kid_name:
+      name: "Kid Name"
+      description: >
+        For shared chores, specify the kid to set the due date for.
+        If omitted, sets the due date for all assigned kids.
+      example: "Alice"
+      required: false
+      selector:
+        text:
+    kid_id:
+      name: "Kid ID"
+      description: >
+        The internal ID of the kid. Advanced users only - use kid_name instead.
+      example: "abc123-def456"
+      required: false
+      advanced: true
+      selector:
+        text:
+
+skip_chore_due_date:
+  name: "Skip Chore Due Date"
+  description: >
+    Skip the current due date of a recurring chore. This service immediately
+    reschedules the chore's due date based on its recurring frequency and resets
+    its state to pending. Any pending claims or approvals will be removed.
+    For independent chores, optionally provide a kid_name to skip only for that kid.
+  fields:
+    chore_id:
+      name: "Chore ID"
+      description: >
+        The internal ID of the chore to update. Optional if you provide a chore name.
+      example: "abc123"
+      required: false
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: >
+        The name of the chore to update. Optional if you provide a chore ID.
+      example: "Weekly Laundry"
+      required: false
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: >
+        For shared chores, specify the kid to skip the due date for.
+        If omitted, skips the due date for all assigned kids.
+      example: "Alice"
+      required: false
+      selector:
+        text:
+    kid_id:
+      name: "Kid ID"
+      description: >
+        The internal ID of the kid. Advanced users only - use kid_name instead.
+      example: "abc123-def456"
+      required: false
+      advanced: true
+      selector:
+        text:
+    mark_as_missed:
+      name: "Mark as Missed"
+      description: >
+        When true, records this skip as a missed chore in the kid's statistics.
+        Useful for tracking intentional skips separately from automated overdue resets.
+      required: false
+      default: false
+      selector:
+        boolean:
+
+remove_awarded_badges:
+  name: "Remove Awarded Badges"
+  description: >
+    Remove all awarded badges for all kids. Optionally, provide badge_name to reset a
+    specific badge across all kids. Use kid_name to reset all badges for a specific kid.
+    Combine both to reset a specific badge for a specific kid.
+  fields:
+    kid_name:
+      name: "Kid Name"
+      description: "The kid awarded badges will be removed from."
+      example: "Bob"
+      required: false
+      selector:
+        text:
+    badge_name:
+      name: "Badge Name"
+      description: "The name of the badge to remove."
+      example: "Chore Master"
+      required: false
+      selector:
+        text:
+
+manage_shadow_link:
+  name: "Manage Parent Shadow Kid Link"
+  description: "Link or unlink an existing kid profile to/from a parent. Requires kid and parent to have matching names. Unlinking preserves all data and renames kid with '_unlinked' suffix."
+  fields:
+    name:
+      name: "Name"
+      description: "Name that matches BOTH the parent and kid (case-insensitive)"
+      required: true
+      example: "Sarah"
+      selector:
+        text:
+    action:
+      name: "Action"
+      description: "Link connects kid to parent as shadow. Unlink disconnects and renames kid."
+      required: true
+      example: "link"
+      selector:
+        select:
+          options:
+            - label: "Link (connect kid to parent)"
+              value: "link"
+            - label: "Unlink (disconnect and rename)"
+              value: "unlink"
+
+create_reward:
+  name: "Create Reward"
+  description: "Create a new reward that kids can redeem using their points. Returns the reward_id of the created reward."
+  fields:
+    name:
+      name: "Reward Name"
+      description: "The name of the reward to create."
+      example: "Extra Screen Time"
+      required: true
+      selector:
+        text:
+    cost:
+      name: "Cost"
+      description: "The number of points required to redeem this reward."
+      example: 50
+      required: true
+      selector:
+        number:
+          min: 0
+          mode: box
+    description:
+      name: "Description"
+      description: "Optional description of the reward."
+      example: "30 minutes of extra screen time"
+      required: false
+      selector:
+        text:
+          multiline: true
+    icon:
+      name: "Icon"
+      description: "Material Design icon for the reward."
+      example: "mdi:television"
+      required: false
+      selector:
+        icon:
+    labels:
+      name: "Labels"
+      description: "Optional labels to categorize the reward."
+      example: "['fun', 'weekend']"
+      required: false
+      selector:
+        text:
+          multiple: true
+
+update_reward:
+  name: "Update Reward"
+  description: "Update an existing reward's properties. Provide either id OR name to identify the reward. Only provided fields will be updated. Returns the reward_id of the updated reward."
+  fields:
+    id:
+      name: "Reward ID"
+      description: "The internal ID of the reward to update (alternative to name)."
+      example: "abc-123-def-456"
+      required: false
+      selector:
+        text:
+    name:
+      name: "Reward Name (Identifier)"
+      description: "The name of the reward to update (alternative to id). More user-friendly than id."
+      example: "Extra Screen Time"
+      required: false
+      selector:
+        text:
+    cost:
+      name: "Cost"
+      description: "The new number of points required to redeem this reward."
+      example: 75
+      required: false
+      selector:
+        number:
+          min: 0
+          mode: box
+    description:
+      name: "Description"
+      description: "The new description for the reward."
+      example: "45 minutes of extra screen time"
+      required: false
+      selector:
+        text:
+          multiline: true
+    icon:
+      name: "Icon"
+      description: "The new Material Design icon for the reward."
+      example: "mdi:gamepad-variant"
+      required: false
+      selector:
+        icon:
+    labels:
+      name: "Labels"
+      description: "The new labels to categorize the reward."
+      example: "['fun', 'gaming']"
+      required: false
+      selector:
+        text:
+          multiple: true
+
+delete_reward:
+  name: Delete Reward
+  description: Delete a reward by ID or name
+  fields:
+    id:
+      name: Reward ID
+      description: Internal ID of the reward to delete (use either id OR name)
+      example: "abc123-def456-789..."
+      selector:
+        text:
+    name:
+      name: Name
+      description: Name of the reward to delete
+      example: "Extra Screen Time"
+      selector:
+        text:
+
+# ============================================================================
+# CHORE CRUD SERVICES
+# ============================================================================
+
+create_chore:
+  name: "Create Chore"
+  description: "Create a new chore. Returns the chore_id of the created chore."
+  fields:
+    name:
+      name: "Chore Name"
+      description: "The name of the chore to create."
+      example: "Clean Room"
+      required: true
+      selector:
+        text:
+    assigned_kids:
+      name: "Assigned Kids"
+      description: "List of kid names to assign to this chore."
+      example: "['Emma', 'Jack']"
+      required: true
+      selector:
+        text:
+          multiple: true
+    points:
+      name: "Points"
+      description: "Points awarded when the chore is completed."
+      example: 10
+      required: false
+      selector:
+        number:
+          min: 0
+          mode: box
+    description:
+      name: "Description"
+      description: "Optional description of the chore."
+      example: "Make bed, put toys away, vacuum floor"
+      required: false
+      selector:
+        text:
+          multiline: true
+    icon:
+      name: "Icon"
+      description: "Material Design icon for the chore."
+      example: "mdi:broom"
+      required: false
+      selector:
+        icon:
+    labels:
+      name: "Labels"
+      description: "Optional labels to categorize the chore."
+      example: "['daily', 'bedroom']"
+      required: false
+      selector:
+        text:
+          multiple: true
+    frequency:
+      name: "Frequency"
+      description: "How often the chore recurs: none, daily, daily_multi, weekly, biweekly, monthly, quarterly, yearly, custom, custom_from_complete, or period-end (week_end, month_end, quarter_end, year_end)."
+      example: "daily"
+      required: false
+      selector:
+        select:
+          options:
+            - "none"
+            - "daily"
+            - "daily_multi"
+            - "weekly"
+            - "biweekly"
+            - "monthly"
+            - "quarterly"
+            - "yearly"
+            - "custom"
+            - "custom_from_complete"
+            - "week_end"
+            - "month_end"
+            - "quarter_end"
+            - "year_end"
+    applicable_days:
+      name: "Applicable Days"
+      description: "Days of the week when the chore is applicable."
+      example: "['mon', 'wed', 'fri']"
+      required: false
+      selector:
+        select:
+          multiple: true
+          options:
+            - "mon"
+            - "tue"
+            - "wed"
+            - "thu"
+            - "fri"
+            - "sat"
+            - "sun"
+    completion_criteria:
+      name: "Completion Criteria"
+      description: "How the chore is completed when multiple kids are assigned: independent (each kid completes separately), shared_first (first kid to complete earns points), or shared_all (all kids must complete)."
+      example: "independent"
+      required: false
+      selector:
+        select:
+          options:
+            - "independent"
+            - "shared_first"
+            - "shared_all"
+    approval_reset_type:
+      name: "Approval Reset Type"
+      description: "When the chore resets for re-completion."
+      example: "at_midnight_once"
+      required: false
+      selector:
+        select:
+          options:
+            - "at_midnight_once"
+            - "at_midnight_multi"
+            - "at_due_date_once"
+            - "at_due_date_multi"
+            - "upon_completion"
+    pending_claims:
+      name: "Pending Claims Action"
+      description: "What to do with pending claims when the approval reset occurs."
+      example: "clear_pending"
+      required: false
+      selector:
+        select:
+          options:
+            - "hold_pending"
+            - "clear_pending"
+            - "auto_approve_pending"
+    overdue_handling:
+      name: "Overdue Handling"
+      description: "How to handle overdue status."
+      example: "at_due_date"
+      required: false
+      selector:
+        select:
+          options:
+            - "at_due_date"
+            - "never_overdue"
+            - "at_due_date_clear_at_approval_reset"
+            - "at_due_date_clear_immediate_on_late"
+    chore_claim_lock_until_window:
+      name: "Lock Claim Until Window Opens"
+      description: "If enabled, kids cannot claim this chore before the due window begins."
+      example: false
+      required: false
+      selector:
+        boolean:
+    auto_approve:
+      name: "Auto Approve"
+      description: "Automatically approve the chore when claimed."
+      example: false
+      required: false
+      selector:
+        boolean:
+    due_date:
+      name: "Due Date"
+      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assigned kids."
+      example: "2026-01-15T17:00:00"
+      required: false
+      selector:
+        datetime:
+    due_window_offset:
+      name: "Due Window Offset"
+      description: "Duration before due date when chore enters 'due' state. Format: '30m', '1h', '1d 6h', etc. Use '0' to disable."
+      example: "30m"
+      required: false
+      selector:
+        text:
+    due_reminder_offset:
+      name: "Due Reminder Offset"
+      description: "Duration before due date to send reminder notification. Format: '30m', '1h', '1d 6h', etc. Use '0' to disable."
+      example: "30m"
+      required: false
+      selector:
+        text:
+
+update_chore:
+  name: "Update Chore"
+  description: "Update an existing chore's properties. Provide either id OR name to identify the chore. Only provided fields will be updated. Returns the chore_id of the updated chore."
+  fields:
+    id:
+      name: "Chore ID"
+      description: "The internal ID of the chore to update (alternative to name)."
+      example: "abc-123-def-456"
+      required: false
+      selector:
+        text:
+    name:
+      name: "Chore Name (Identifier)"
+      description: "The name of the chore to update (alternative to id). Also used to rename the chore if id is provided."
+      example: "Clean Room"
+      required: false
+      selector:
+        text:
+    assigned_kids:
+      name: "Assigned Kids"
+      description: "New list of kid names to assign to this chore."
+      example: "['Emma', 'Jack', 'Sophia']"
+      required: false
+      selector:
+        text:
+          multiple: true
+    points:
+      name: "Points"
+      description: "New points value."
+      example: 15
+      required: false
+      selector:
+        number:
+          min: 0
+          mode: box
+    description:
+      name: "Description"
+      description: "New description."
+      example: "Make bed, put toys away, vacuum floor, dust surfaces"
+      required: false
+      selector:
+        text:
+          multiline: true
+    icon:
+      name: "Icon"
+      description: "New Material Design icon."
+      example: "mdi:vacuum"
+      required: false
+      selector:
+        icon:
+    labels:
+      name: "Labels"
+      description: "New labels."
+      example: "['daily', 'bedroom', 'cleaning']"
+      required: false
+      selector:
+        text:
+          multiple: true
+    frequency:
+      name: "Frequency"
+      description: "New frequency: none, daily, daily_multi, weekly, biweekly, monthly, quarterly, yearly, custom, custom_from_complete, or period-end (week_end, month_end, quarter_end, year_end)."
+      example: "weekly"
+      required: false
+      selector:
+        select:
+          options:
+            - "none"
+            - "daily"
+            - "daily_multi"
+            - "weekly"
+            - "biweekly"
+            - "monthly"
+            - "quarterly"
+            - "yearly"
+            - "custom"
+            - "custom_from_complete"
+            - "week_end"
+            - "month_end"
+            - "quarter_end"
+            - "year_end"
+    applicable_days:
+      name: "Applicable Days"
+      description: "New applicable days."
+      example: "['sat', 'sun']"
+      required: false
+      selector:
+        select:
+          multiple: true
+          options:
+            - "mon"
+            - "tue"
+            - "wed"
+            - "thu"
+            - "fri"
+            - "sat"
+            - "sun"
+    approval_reset_type:
+      name: "Approval Reset Type"
+      description: "New approval reset type."
+      example: "at_midnight_multi"
+      required: false
+      selector:
+        select:
+          options:
+            - "at_midnight_once"
+            - "at_midnight_multi"
+            - "at_due_date_once"
+            - "at_due_date_multi"
+            - "upon_completion"
+    pending_claims:
+      name: "Pending Claims Action"
+      description: "New pending claims action."
+      example: "auto_approve_pending"
+      required: false
+      selector:
+        select:
+          options:
+            - "hold_pending"
+            - "clear_pending"
+            - "auto_approve_pending"
+    overdue_handling:
+      name: "Overdue Handling"
+      description: "New overdue handling."
+      example: "never_overdue"
+      required: false
+      selector:
+        select:
+          options:
+            - "at_due_date"
+            - "never_overdue"
+            - "at_due_date_clear_at_approval_reset"
+            - "at_due_date_clear_immediate_on_late"
+    chore_claim_lock_until_window:
+      name: "Lock Claim Until Window Opens"
+      description: "If enabled, kids cannot claim this chore before the due window begins."
+      example: true
+      required: false
+      selector:
+        boolean:
+    auto_approve:
+      name: "Auto Approve"
+      description: "New auto approve setting."
+      example: true
+      required: false
+      selector:
+        boolean:
+    due_date:
+      name: "Due Date"
+      description: "New due date. For INDEPENDENT chores, updates the due date for all assigned kids."
+      example: "2026-01-20T17:00:00"
+      required: false
+      selector:
+        datetime:
+    due_window_offset:
+      name: "Due Window Offset"
+      description: "New due window offset. Duration before due date when chore enters 'due' state. Format: '30m', '1h', '1d 6h', etc. Use '0' to disable."
+      example: "30m"
+      required: false
+      selector:
+        text:
+    due_reminder_offset:
+      name: "Due Reminder Offset"
+      description: "New due reminder offset. Duration before due date to send reminder notification. Format: '30m', '1h', '1d 6h', etc. Use '0' to disable."
+      example: "30m"
+      required: false
+      selector:
+        text:
+
+delete_chore:
+  name: "Delete Chore"
+  description: "Delete a chore by ID or name. Cleans up all references in achievements, challenges, and kids."
+  fields:
+    id:
+      name: "Chore ID"
+      description: "Internal ID of the chore to delete (use either id OR name)."
+      example: "abc123-def456-789..."
+      required: false
+      selector:
+        text:
+    name:
+      name: "Chore Name"
+      description: "Name of the chore to delete."
+      example: "Clean Room"
+      required: false
+      selector:
+        text:
+
+set_rotation_turn:
+  name: "Set Rotation Turn"
+  description: "Manually assign the current turn to a specific kid in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  fields:
+    chore_id:
+      name: "Chore ID"
+      description: "Internal ID of the rotation chore. Optional if chore_name is provided."
+      example: "abc123-def456-789..."
+      required: false
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "Name of the rotation chore. Optional if chore_id is provided."
+      example: "Clean Bedroom"
+      required: false
+      selector:
+        text:
+    kid_id:
+      name: "Kid ID"
+      description: "Internal ID of the kid to assign the turn to. Must be assigned to this chore. Optional if kid_name is provided."
+      example: "xyz789-abc123-456..."
+      required: false
+      selector:
+        text:
+    kid_name:
+      name: "Kid Name"
+      description: "Name of the kid to assign the turn to. Must be assigned to this chore. Optional if kid_id is provided."
+      example: "Alice"
+      required: false
+      selector:
+        text:
+
+reset_rotation:
+  name: "Reset Rotation"
+  description: "Reset rotation turn to the first assigned kid. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  fields:
+    chore_id:
+      name: "Chore ID"
+      description: "Internal ID of the rotation chore to reset. Optional if chore_name is provided."
+      example: "abc123-def456-789..."
+      required: false
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "Name of the rotation chore to reset. Optional if chore_id is provided."
+      example: "Clean Bedroom"
+      required: false
+      selector:
+        text:
+
+open_rotation_cycle:
+  name: "Open Rotation Cycle"
+  description: "Enable rotation cycle override for one cycle, allowing any assigned kid to claim regardless of turn. Override clears after next approval. Use either ID or name for identification."
+  fields:
+    chore_id:
+      name: "Chore ID"
+      description: "Internal ID of the rotation chore to open. Optional if chore_name is provided."
+      example: "abc123-def456-789..."
+      required: false
+      selector:
+        text:
+    chore_name:
+      name: "Chore Name"
+      description: "Name of the rotation chore to open. Optional if chore_id is provided."
+      example: "Clean Bedroom"
+      required: false
+      selector:
+        text:

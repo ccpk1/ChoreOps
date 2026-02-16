@@ -1,0 +1,14 @@
+{
+  "domain": "kidschores",
+  "name": "KidsChores",
+  "codeowners": ["@ad-ha", "@ccpk1"],
+  "config_flow": true,
+  "dependencies": ["lovelace"],
+  "documentation": "https://github.com/ad-ha/kidschores-ha",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/ad-ha/kidschores-ha/issues",
+  "quality_scale": "platinum",
+  "requirements": ["python-dateutil>=2.9.0"],
+  "version": "0.5.0b4"
+}

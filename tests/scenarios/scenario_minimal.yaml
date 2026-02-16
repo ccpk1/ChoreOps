@@ -1,0 +1,87 @@
+# Test Scenario: MINIMAL (Modern Config-Flow Format)
+# =============================================================================
+# Quick setup for simple tests. 1 kid, 1 parent, 5 varied chores.
+#
+# Contents:
+#   - 1 parent: Môm Astrid Stârblüm (Stårblüm family standard)
+#   - 1 kid: Zoë (Stårblüm family standard)
+#   - 5 chores: mix of frequencies and one auto-approve
+#
+# Use case: Fast smoke tests, single-kid workflows, basic validation
+# =============================================================================
+
+# System settings
+system:
+  points_label: "Points"
+  points_icon: "mdi:star-outline"
+
+# Kids (1 kid)
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Parents (1 parent)
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+    kids: ["Zoë"]
+    mobile_notify_service: ""
+
+# Chores (5 chores - varied types)
+chores:
+  # Test: Basic daily chore (most common)
+  - name: "Make bed"
+    assigned_to: ["Zoë"]
+    points: 5.0
+    icon: "mdi:bed"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: Weekly chore (different frequency)
+  - name: "Clean room"
+    assigned_to: ["Zoë"]
+    points: 15.0
+    icon: "mdi:broom"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # Test: Auto-approve chore (instant completion)
+  - name: "Brush teeth"
+    assigned_to: ["Zoë"]
+    points: 3.0
+    icon: "mdi:toothbrush"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: true
+
+  # Test: Higher point value (reward scaling)
+  - name: "Do homework"
+    assigned_to: ["Zoë"]
+    points: 20.0
+    icon: "mdi:pencil"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: Monthly chore (less frequent)
+  - name: "Organize closet"
+    assigned_to: ["Zoë"]
+    points: 25.0
+    icon: "mdi:wardrobe"
+    completion_criteria: "independent"
+    recurring_frequency: "monthly"
+    auto_approve: false
+# =============================================================================
+# CHORE SUMMARY
+# =============================================================================
+# All INDEPENDENT (single kid)
+# - Daily (3): Make bed (5pts), Brush teeth (3pts, auto-approve), Do homework (20pts)
+# - Weekly (1): Clean room (15pts)
+# - Monthly (1): Organize closet (25pts)
+#
+# Point range: 3-25 points
+# Auto-approve: 1 chore (Brush teeth)

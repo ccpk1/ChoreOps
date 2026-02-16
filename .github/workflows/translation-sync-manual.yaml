@@ -1,0 +1,83 @@
+name: Translation Sync
+
+# This workflow syncs translations with Crowdin for automated translation.
+# Source file mappings are defined in crowdin.yml (root directory).
+# Crowdin configuration:
+#   - Source: custom_components/kidschores/translations/en.json
+#   - Source: custom_components/kidschores/translations_custom/en_dashboard.json
+#   - Source: custom_components/kidschores/translations_custom/en_notifications.json
+#
+# The workflow runs automatically when English source files are modified,
+# or can be triggered manually from the Actions tab (main branch only).
+
+on:
+  push:
+    branches:
+      - main
+      - release/v0.5.0-beta4
+    paths:
+      - "custom_components/kidschores/translations/en.json"
+      - "custom_components/kidschores/translations_custom/en_*.json"
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to sync translations for"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  synchronize-with-crowdin:
+    name: Sync and Translate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch || github.ref_name }}
+
+      # STEP 1: Upload Sources
+      - name: Upload Sources
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: true
+          upload_translations: false
+          download_translations: false
+          create_pull_request: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      # STEP 2: Trigger Google Translate (MT) via Crowdin CLI
+      # This auto translate service has a cost associated with it, so it may be stopped or disabled in the future.
+      - name: Trigger Google Translate
+        run: |
+          npm install -g @crowdin/cli
+          crowdin pre-translate \
+            --method mt \
+            --engine-id 646964 \
+            --translate-untranslated-only
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      # STEP 3: Download & Create PR
+      - name: Download Translations
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: false
+          upload_translations: false
+          download_translations: true
+          create_pull_request: true
+          pull_request_title: "chore(l10n): sync translations from Crowdin"
+          commit_message: "chore(l10n): sync translations from Crowdin"
+          pull_request_base_branch_name: ${{ inputs.branch || github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

@@ -1,0 +1,262 @@
+# Test Scenario: ENHANCED FREQUENCIES (CFE-2026-001)
+# =============================================================================
+# This scenario covers all three enhanced frequency features:
+#   - F1: FREQUENCY_CUSTOM_FROM_COMPLETE (reschedule from completion date)
+#   - F2: FREQUENCY_DAILY_MULTI (multiple times per day)
+#   - F3: CUSTOM + hours unit (hourly intervals)
+#
+# Contents:
+#   - 2 parents: Môm Astrid Stârblüm, Dad Leo Stårblüm (standard Stårblüm family)
+#   - 2 kids: Zoë, Max! (tests multi-kid scenarios)
+#   - 9 chores: Feature-specific test chores
+#
+# Use case:
+#   - Phase 5: Enhanced frequency feature tests
+#   - Validation of completion-based rescheduling
+#   - Daily multi-time slot advancement
+#   - Hourly interval calculations
+#
+# Chore naming convention: [Feature]-[Description]
+# =============================================================================
+
+# System settings
+system:
+  points_label: "Points"
+  points_icon: "mdi:star-outline"
+
+# Kids (2 kids for multi-kid testing)
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Max!"
+    ha_user: "kid2"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Parents (2 parents)
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+    kids: ["Zoë", "Max!"]
+    mobile_notify_service: ""
+
+  - name: "Dad Leo Stårblüm"
+    ha_user: "parent2"
+    kids: ["Zoë", "Max!"]
+    mobile_notify_service: ""
+
+# =============================================================================
+# CHORES: Enhanced Frequency Features
+# =============================================================================
+
+chores:
+  # ---------------------------------------------------------------------------
+  # FEATURE 1: CUSTOM_FROM_COMPLETE (3 chores)
+  # Reschedules from completion date instead of due date
+  # ---------------------------------------------------------------------------
+
+  # EF-01: Custom From Complete - SHARED - UPON_COMPLETION
+  - name: "Custom From Complete SHARED"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:calendar-clock"
+    completion_criteria: "shared_all"
+    recurring_frequency: "custom_from_complete"
+    custom_interval: 10
+    custom_interval_unit: "days"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+1d17:00"
+
+  # EF-02: Custom From Complete - INDEPENDENT - AT_DUE_DATE_ONCE
+  - name: "Custom From Complete INDEPENDENT"
+    assigned_to: ["Zoë", "Max!"]
+    points: 15.0
+    icon: "mdi:calendar-account"
+    completion_criteria: "independent"
+    recurring_frequency: "custom_from_complete"
+    custom_interval: 7
+    custom_interval_unit: "days"
+    auto_approve: false
+    approval_reset_type: "at_due_date_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+3d17:00"
+
+  # EF-03: Custom From Complete - Single kid test
+  - name: "Custom From Complete Single"
+    assigned_to: ["Zoë"]
+    points: 8.0
+    icon: "mdi:calendar-check"
+    completion_criteria: "independent"
+    recurring_frequency: "custom_from_complete"
+    custom_interval: 5
+    custom_interval_unit: "days"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+2d10:00"
+
+  # ---------------------------------------------------------------------------
+  # FEATURE 2: DAILY_MULTI (3 chores)
+  # Multiple times per day (morning, evening, etc.)
+  # ---------------------------------------------------------------------------
+
+  # EF-04: Daily Multi - Morning & Evening (2 times)
+  - name: "Daily Multi Morning Evening"
+    assigned_to: ["Zoë", "Max!"]
+    points: 5.0
+    icon: "mdi:clock-time-eight"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: "07:00|18:00"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+0d07:00"
+
+  # EF-05: Daily Multi - Three times per day
+  - name: "Daily Multi Three Times"
+    assigned_to: ["Zoë", "Max!"]
+    points: 3.0
+    icon: "mdi:clock-time-three"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: "08:00|12:00|17:00"
+    auto_approve: false
+    approval_reset_type: "at_due_date_multi"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+0d08:00"
+
+  # EF-06: Daily Multi - Single kid INDEPENDENT (allowed case)
+  - name: "Daily Multi Single Kid"
+    assigned_to: ["Zoë"]
+    points: 4.0
+    icon: "mdi:clock-time-two"
+    completion_criteria: "independent"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: "09:00|21:00"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+0d09:00"
+
+  # ---------------------------------------------------------------------------
+  # FEATURE 3: CUSTOM + HOURS UNIT (2 chores)
+  # Hourly interval support for CUSTOM frequency
+  # ---------------------------------------------------------------------------
+
+  # EF-07: Custom Hours - 4 hour interval
+  - name: "Custom Hours 4h"
+    assigned_to: ["Zoë", "Max!"]
+    points: 2.0
+    icon: "mdi:timer-sand"
+    completion_criteria: "shared_all"
+    recurring_frequency: "custom"
+    custom_interval: 4
+    custom_interval_unit: "hours"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+0d10:00"
+
+  # EF-08: Custom Hours - 8 hour interval (crosses midnight test)
+  - name: "Custom Hours 8h Cross Midnight"
+    assigned_to: ["Zoë"]
+    points: 3.0
+    icon: "mdi:timer-outline"
+    completion_criteria: "independent"
+    recurring_frequency: "custom"
+    custom_interval: 8
+    custom_interval_unit: "hours"
+    auto_approve: false
+    approval_reset_type: "at_due_date_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+0d22:00"
+
+  # ---------------------------------------------------------------------------
+  # REGRESSION: Existing frequencies (1 chore each)
+  # Ensure new features don't break existing behavior
+  # ---------------------------------------------------------------------------
+
+  # EF-09: Regression - Standard DAILY
+  - name: "Existing Daily Regression"
+    assigned_to: ["Zoë", "Max!"]
+    points: 5.0
+    icon: "mdi:calendar-today"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+1d17:00"
+
+  # ---------------------------------------------------------------------------
+  # SHARED_FIRST VARIANTS (Added for due date service tests)
+  # Tests set_chore_due_date / skip_chore_due_date with SHARED_FIRST
+  # ---------------------------------------------------------------------------
+
+  # EF-10: SHARED_FIRST + DAILY_MULTI
+  - name: "Shared First Daily Multi"
+    assigned_to: ["Zoë", "Max!"]
+    points: 6.0
+    icon: "mdi:clock-check"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: "08:00|17:00"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+0d08:00"
+
+  # EF-11: SHARED_FIRST + CUSTOM_FROM_COMPLETE
+  - name: "Shared First Custom From Complete"
+    assigned_to: ["Zoë", "Max!"]
+    points: 12.0
+    icon: "mdi:calendar-arrow-right"
+    completion_criteria: "shared_first"
+    recurring_frequency: "custom_from_complete"
+    custom_interval: 5
+    custom_interval_unit: "days"
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+2d15:00"
+# =============================================================================
+# CHORE SUMMARY BY FEATURE
+# =============================================================================
+#
+# F1: CUSTOM_FROM_COMPLETE (4 chores)
+#   - EF-01: "Custom From Complete SHARED" - shared, upon_completion, 10 days
+#   - EF-02: "Custom From Complete INDEPENDENT" - independent, at_due_date_once, 7 days
+#   - EF-03: "Custom From Complete Single" - single kid, upon_completion, 5 days
+#   - EF-11: "Shared First Custom From Complete" - shared_first, upon_completion, 5 days
+#
+# F2: DAILY_MULTI (4 chores)
+#   - EF-04: "Daily Multi Morning Evening" - 2 times (07:00|18:00), upon_completion
+#   - EF-05: "Daily Multi Three Times" - 3 times (08:00|12:00|17:00), at_due_date_multi
+#   - EF-06: "Daily Multi Single Kid" - single kid, 2 times (09:00|21:00)
+#   - EF-10: "Shared First Daily Multi" - shared_first, 2 times (08:00|17:00)
+#
+# F3: CUSTOM HOURS (2 chores)
+#   - EF-07: "Custom Hours 4h" - 4 hours, shared, upon_completion
+#   - EF-08: "Custom Hours 8h Cross Midnight" - 8 hours, independent (midnight test)
+#
+# REGRESSION (1 chore)
+#   - EF-09: "Existing Daily Regression" - standard daily frequency
+#
+# Total: 11 chores

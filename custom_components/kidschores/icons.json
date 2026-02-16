@@ -1,0 +1,170 @@
+{
+  "entity": {
+    "calendar": {
+      "kid_schedule_calendar": {
+        "default": "mdi:calendar"
+      }
+    },
+    "select": {
+      "system_chores_select": {
+        "default": "mdi:format-list-checkbox"
+      },
+      "system_rewards_select": {
+        "default": "mdi:gift-outline"
+      },
+      "system_penalties_select": {
+        "default": "mdi:alert-outline"
+      },
+      "system_bonuses_select": {
+        "default": "mdi:playlist-star"
+      },
+      "kid_dashboard_helper_chores_select": {
+        "default": "mdi:clipboard-list"
+      }
+    },
+    "button": {
+      "kid_chore_claim_button": {
+        "default": "mdi:hand-back-right"
+      },
+      "parent_chore_approve_button": {
+        "default": "mdi:check-circle"
+      },
+      "parent_chore_disapprove_button": {
+        "default": "mdi:close-circle"
+      },
+      "kid_reward_redeem_button": {
+        "default": "mdi:hand-coin-outline"
+      },
+      "parent_reward_approve_button": {
+        "default": "mdi:check-decagram"
+      },
+      "parent_reward_disapprove_button": {
+        "default": "mdi:alert-decagram"
+      },
+      "parent_bonus_apply_button": {
+        "default": "mdi:star-circle"
+      },
+      "parent_penalty_apply_button": {
+        "default": "mdi:alert-circle"
+      }
+    },
+    "sensor": {
+      "kid_chore_status_sensor": {
+        "default": "mdi:checkbox-blank-circle-outline",
+        "state": {
+          "approved": "mdi:checkbox-marked-circle",
+          "approved_in_part": "mdi:account-multiple-check",
+          "claimed": "mdi:account-check",
+          "claimed_in_part": "mdi:account-multiple-check-outline",
+          "completed_by_other": "mdi:account-lock-outline",
+          "independent": "mdi:checkbox-multiple-blank-circle-outline",
+          "overdue": "mdi:clock-alert-outline",
+          "pending": "mdi:circle-outline",
+          "due": "mdi:clock",
+          "unknown": "mdi:help-circle-outline"
+        }
+      },
+      "kid_chores_sensor": {
+        "default": "mdi:clipboard-text-clock-outline"
+      },
+      "system_chore_shared_state_sensor": {
+        "default": "mdi:checkbox-blank-circle-outline",
+        "state": {
+          "approved": "mdi:checkbox-marked-circle",
+          "approved_in_part": "mdi:account-multiple-check",
+          "claimed": "mdi:account-check",
+          "claimed_in_part": "mdi:account-multiple-check-outline",
+          "completed_by_other": "mdi:account-lock-outline",
+          "independent": "mdi:checkbox-multiple-blank-circle-outline",
+          "overdue": "mdi:clock-alert-outline",
+          "pending": "mdi:circle-outline",
+          "due": "mdi:clock",
+          "unknown": "mdi:help-circle-outline"
+        }
+      },
+      "kid_badges_sensor": {
+        "default": "mdi:shield-star"
+      },
+      "kid_badge_progress_sensor": {
+        "default": "mdi:shield-star-outline"
+      },
+      "system_chore_approvals_sensor": {
+        "default": "mdi:clipboard-text-clock-outline"
+      },
+      "system_chore_approvals_daily_sensor": {
+        "default": "mdi:clipboard-check-outline"
+      },
+      "system_chore_approvals_weekly_sensor": {
+        "default": "mdi:clipboard-check-multiple-outline"
+      },
+      "system_chore_approvals_monthly_sensor": {
+        "default": "mdi:clipboard-list-outline"
+      },
+      "system_chores_pending_approval_sensor": {
+        "default": "mdi:checkbox-blank-badge-outline"
+      },
+      "system_rewards_pending_approval_sensor": {
+        "default": "mdi:gift-open-outline"
+      },
+      "kid_chore_streak_sensor": {
+        "default": "mdi:blur-linear"
+      },
+      "kid_points_sensor": {
+        "default": "mdi:star-outline",
+        "range": {
+          "0": "mdi:star-outline",
+          "50": "mdi:star-half-full",
+          "100": "mdi:star"
+        }
+      },
+      "kid_points_earned_daily_sensor": {
+        "default": "mdi:star-circle"
+      },
+      "kid_points_earned_weekly_sensor": {
+        "default": "mdi:star-circle-outline"
+      },
+      "kid_points_earned_monthly_sensor": {
+        "default": "mdi:star-box"
+      },
+      "kid_points_max_ever_sensor": {
+        "default": "mdi:star-shooting"
+      },
+      "kid_reward_status_sensor": {
+        "default": "mdi:gift-outline",
+        "state": {
+          "locked": "mdi:gift-off-outline",
+          "available": "mdi:gift",
+          "requested": "mdi:timer-sand",
+          "approved": "mdi:star-circle-outline"
+        }
+      },
+      "kid_bonus_applied_sensor": {
+        "default": "mdi:playlist-star"
+      },
+      "kid_penalty_applied_sensor": {
+        "default": "mdi:alert-outline"
+      },
+      "kid_achievement_progress_sensor": {
+        "default": "mdi:trophy-variant"
+      },
+      "kid_challenge_progress_sensor": {
+        "default": "mdi:flag-checkered"
+      },
+      "system_achievement_sensor": {
+        "default": "mdi:trophy-variant-outline"
+      },
+      "system_challenge_sensor": {
+        "default": "mdi:flag-checkered"
+      },
+      "system_badge_sensor": {
+        "default": "mdi:shield-star-outline"
+      },
+      "system_dashboard_translation_sensor": {
+        "default": "mdi:translate"
+      },
+      "kid_dashboard_helper_sensor": {
+        "default": "mdi:view-dashboard-outline"
+      }
+    }
+  }
+}

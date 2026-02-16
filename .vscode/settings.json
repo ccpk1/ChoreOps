@@ -1,0 +1,71 @@
+{
+  "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+
+  // Ruff configuration (replaces pylint)
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "always",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+
+  // Ruff extension settings (native language server, not ruff-lsp)
+  "ruff.enable": true,
+  "ruff.organizeImports": true,
+  "ruff.fixAll": true,
+  "ruff.lint.enable": true,
+
+  // Disable pylint in IDE (we're using ruff + mypy now)
+  // Ruff handles linting/formatting, MyPy handles type checking
+  // Pylint is disabled but available for CI/CD validation
+  "python.linting.enabled": false,
+  "python.linting.pylintEnabled": false,
+  "python.linting.pylintArgs": ["--rcfile=.pylintrc"],
+
+  // Python language server settings
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.exclude": [
+    "**/.venv/**",
+    "**/venv/**",
+    "**/.tox/**",
+    "**/__pycache__/**",
+    "**/.mypy_cache/**",
+    "**/.ruff_cache/**"
+  ],
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}",
+    "${workspaceFolder}/custom_components",
+    "${workspaceFolder}/tests",
+    "/workspaces/core"
+  ],
+
+  // Test configuration
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests", "-v"],
+
+  // File associations
+  "files.associations": {
+    "*.yaml": "home-assistant"
+  },
+
+  // Exclude from file watcher
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.pytest_cache/**": true,
+    "**/__pycache__/**": true,
+    "**/.ruff_cache/**": true,
+    "**/.mypy_cache/**": true
+  },
+
+  // Editor settings
+  "editor.rulers": [100],
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true
+}

@@ -1,0 +1,21 @@
+[MASTER]
+# Disable pylint for IDE; CI/CD uses quick_lint.sh (ruff + mypy)
+disable-msg-cat=all
+
+[MESSAGES CONTROL]
+# Disable all checks - Ruff and MyPy handle linting
+disable=all
+
+# KidsChores Architecture Notes (v0.5.0+):
+# - W0212:protected-access - Intentional: Managers access coordinator._data and _persist()
+# - W0613:unused-argument - Signal handlers require payload parameter (signal signature)
+# - W0718:broad-exception-caught - Allowed in background tasks per HA guidelines
+# - W0612:unused-variable - Some unused vars are OK in specific contexts
+# - C0302:too-many-lines - chore_manager.py is complex but necessary for orchestration
+#
+# Rather than suppress individually, we disable pylint entirely in IDE since:
+# 1. Ruff is primary linter (configured in quick_lint.sh)
+# 2. MyPy is primary type checker (integrated in quick_lint.sh)
+# 3. Pylint is only used for additional validation in CI/CD
+#
+# To enable pylint checks again, remove this file or update this list.

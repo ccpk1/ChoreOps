@@ -1,0 +1,1485 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "kidschores_data",
+  "data": {
+    "kids": {
+      "cec5825f-b2d6-4387-8abd-f999b4827c90": {
+        "name": "Payton",
+        "points": 632.0,
+        "badges": [
+          "Bronze"
+        ],
+        "claimed_chores": [
+          "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25",
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875"
+        ],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 10,
+        "completed_chores_monthly": 85,
+        "completed_chores_total": 197,
+        "ha_user_id": "8b9b778553eb45019c0f3e0834349332",
+        "internal_id": "cec5825f-b2d6-4387-8abd-f999b4827c90",
+        "points_multiplier": 1.2,
+        "reward_claims": {
+          "1efc185d-1132-41ca-9957-caedf9ee6ecd": 17
+        },
+        "reward_approvals": {
+          "1efc185d-1132-41ca-9957-caedf9ee6ecd": 10
+        },
+        "chore_claims": {
+          "ac122869-5d58-4d19-9d37-b3065b050463": 5,
+          "e5c3b45b-e063-41f6-81fe-d11b24da41d5": 13,
+          "67eacd5b-ed84-4b4f-8061-6f26254369c1": 7,
+          "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": 2,
+          "299913fd-2e39-4550-801e-d8516ec81ede": 10,
+          "f2b30a1d-7678-4af0-a9b0-a83283e63e87": 7,
+          "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": 1,
+          "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25": 14,
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": 14,
+          "b54547f1-21bb-46a8-b056-3e3679a60726": 3,
+          "747cf738-9011-44e4-afaf-774a795b1db3": 4,
+          "f0258b5a-db9c-485b-aff6-eab9c52c4384": 1
+        },
+        "chore_approvals": {
+          "f2b30a1d-7678-4af0-a9b0-a83283e63e87": 12,
+          "299913fd-2e39-4550-801e-d8516ec81ede": 14,
+          "e5c3b45b-e063-41f6-81fe-d11b24da41d5": 42,
+          "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": 3,
+          "ac122869-5d58-4d19-9d37-b3065b050463": 11,
+          "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": 2,
+          "67eacd5b-ed84-4b4f-8061-6f26254369c1": 3,
+          "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25": 48,
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": 43,
+          "747cf738-9011-44e4-afaf-774a795b1db3": 12,
+          "2fb9a182-3f33-4069-97d3-f8c4f0a5203c": 1,
+          "b54547f1-21bb-46a8-b056-3e3679a60726": 3,
+          "f0258b5a-db9c-485b-aff6-eab9c52c4384": 2,
+          "423d4c15-8792-41a3-939d-28d69004c9ca": 1
+        },
+        "penalty_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0.0,
+        "points_earned_weekly": 60.0,
+        "points_earned_monthly": -454.0,
+        "max_points_ever": 1290.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {
+          "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25": {
+            "current_streak": 1,
+            "max_streak": 11,
+            "last_date": "2025-04-22"
+          },
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": {
+            "current_streak": 1,
+            "max_streak": 5,
+            "last_date": "2025-04-22"
+          },
+          "e5c3b45b-e063-41f6-81fe-d11b24da41d5": {
+            "current_streak": 1,
+            "max_streak": 3,
+            "last_date": "2025-04-22"
+          },
+          "299913fd-2e39-4550-801e-d8516ec81ede": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-21"
+          },
+          "f2b30a1d-7678-4af0-a9b0-a83283e63e87": {
+            "current_streak": 1,
+            "max_streak": 3,
+            "last_date": "2025-04-21"
+          },
+          "ac122869-5d58-4d19-9d37-b3065b050463": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-21"
+          },
+          "747cf738-9011-44e4-afaf-774a795b1db3": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-21"
+          },
+          "2fb9a182-3f33-4069-97d3-f8c4f0a5203c": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-03-07"
+          },
+          "67eacd5b-ed84-4b4f-8061-6f26254369c1": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-18"
+          },
+          "b54547f1-21bb-46a8-b056-3e3679a60726": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-17"
+          },
+          "f0258b5a-db9c-485b-aff6-eab9c52c4384": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-10"
+          },
+          "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-10"
+          },
+          "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-06"
+          },
+          "423d4c15-8792-41a3-939d-28d69004c9ca": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-10"
+          }
+        },
+        "overall_chore_streak": 1,
+        "last_chore_date": "2025-04-22",
+        "bonus_applies": {},
+        "overdue_chores": [
+          "b54547f1-21bb-46a8-b056-3e3679a60726"
+        ],
+        "overdue_notifications": {
+          "b54547f1-21bb-46a8-b056-3e3679a60726": "2025-04-23T11:57:16.855704+00:00"
+        },
+        "today_chore_approvals": {}
+      },
+      "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499": {
+        "name": "Kaden",
+        "points": 1717.0,
+        "badges": [
+          "Bronze"
+        ],
+        "claimed_chores": [
+          "b54547f1-21bb-46a8-b056-3e3679a60726",
+          "1e455b81-a702-42d3-9ef7-deb27aba3de7",
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875"
+        ],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 5,
+        "completed_chores_monthly": 81,
+        "completed_chores_total": 207,
+        "ha_user_id": "31641253a69e4543853109110be37e9b",
+        "internal_id": "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+        "points_multiplier": 1.2,
+        "reward_claims": {
+          "48ec989c-fec0-4b80-ae97-a1477d823d31": 3,
+          "722a96a3-bca8-4cc0-b34d-56800b6fddf9": 4
+        },
+        "reward_approvals": {
+          "722a96a3-bca8-4cc0-b34d-56800b6fddf9": 1
+        },
+        "chore_claims": {
+          "747cf738-9011-44e4-afaf-774a795b1db3": 3,
+          "cab378cc-7244-4140-afa9-944770784994": 15,
+          "1e455b81-a702-42d3-9ef7-deb27aba3de7": 14,
+          "67eacd5b-ed84-4b4f-8061-6f26254369c1": 5,
+          "ac122869-5d58-4d19-9d37-b3065b050463": 3,
+          "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": 2,
+          "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": 2,
+          "f0258b5a-db9c-485b-aff6-eab9c52c4384": 1,
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": 10,
+          "b54547f1-21bb-46a8-b056-3e3679a60726": 4,
+          "f2b30a1d-7678-4af0-a9b0-a83283e63e87": 5
+        },
+        "chore_approvals": {
+          "747cf738-9011-44e4-afaf-774a795b1db3": 15,
+          "cab378cc-7244-4140-afa9-944770784994": 49,
+          "1e455b81-a702-42d3-9ef7-deb27aba3de7": 43,
+          "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": 2,
+          "ac122869-5d58-4d19-9d37-b3065b050463": 12,
+          "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": 3,
+          "f0258b5a-db9c-485b-aff6-eab9c52c4384": 1,
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": 30,
+          "b54547f1-21bb-46a8-b056-3e3679a60726": 24,
+          "f2b30a1d-7678-4af0-a9b0-a83283e63e87": 6,
+          "67eacd5b-ed84-4b4f-8061-6f26254369c1": 10,
+          "2fb9a182-3f33-4069-97d3-f8c4f0a5203c": 5,
+          "f827eb08-56b9-4d53-8943-65f6cdbf932c": 2,
+          "299913fd-2e39-4550-801e-d8516ec81ede": 5
+        },
+        "penalty_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0.0,
+        "points_earned_weekly": 36.0,
+        "points_earned_monthly": 564.0,
+        "max_points_ever": 1717.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {
+          "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-21"
+          },
+          "cab378cc-7244-4140-afa9-944770784994": {
+            "current_streak": 1,
+            "max_streak": 5,
+            "last_date": "2025-04-22"
+          },
+          "1e455b81-a702-42d3-9ef7-deb27aba3de7": {
+            "current_streak": 1,
+            "max_streak": 9,
+            "last_date": "2025-04-21"
+          },
+          "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-03-09"
+          },
+          "f2b30a1d-7678-4af0-a9b0-a83283e63e87": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-03-22"
+          },
+          "b54547f1-21bb-46a8-b056-3e3679a60726": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-21"
+          },
+          "67eacd5b-ed84-4b4f-8061-6f26254369c1": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-09"
+          },
+          "ac122869-5d58-4d19-9d37-b3065b050463": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-16"
+          },
+          "747cf738-9011-44e4-afaf-774a795b1db3": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-16"
+          },
+          "2fb9a182-3f33-4069-97d3-f8c4f0a5203c": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-04-10"
+          },
+          "f827eb08-56b9-4d53-8943-65f6cdbf932c": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-03-11"
+          },
+          "299913fd-2e39-4550-801e-d8516ec81ede": {
+            "current_streak": 1,
+            "max_streak": 2,
+            "last_date": "2025-04-03"
+          },
+          "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-03-16"
+          }
+        },
+        "overall_chore_streak": 1,
+        "last_chore_date": "2025-04-22",
+        "bonus_applies": {
+          "be9fce3a-4821-465e-9ce4-046d4188c09d": 1
+        },
+        "overdue_chores": [],
+        "overdue_notifications": {},
+        "today_chore_approvals": {}
+      },
+      "ee82931b-2de7-4117-b754-c6237cb3cdd8": {
+        "name": "Dummy",
+        "points": 5.0,
+        "badges": [],
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 0,
+        "completed_chores_monthly": 0,
+        "completed_chores_total": 1,
+        "ha_user_id": "",
+        "internal_id": "ee82931b-2de7-4117-b754-c6237cb3cdd8",
+        "points_multiplier": 1.0,
+        "reward_claims": {},
+        "reward_approvals": {},
+        "chore_claims": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": 4
+        },
+        "chore_approvals": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": 1
+        },
+        "penalty_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0.0,
+        "points_earned_weekly": 0.0,
+        "points_earned_monthly": 0.0,
+        "max_points_ever": 5.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {},
+        "overall_chore_streak": 0,
+        "last_chore_date": null,
+        "bonus_applies": {},
+        "overdue_chores": [
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b"
+        ],
+        "overdue_notifications": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": "2025-04-23T11:57:16.855752+00:00"
+        },
+        "today_chore_approvals": {}
+      },
+      "433a3aef-3034-44b0-bdb9-236f9f25597f": {
+        "name": "Chad",
+        "points": 23.0,
+        "badges": [],
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 0,
+        "completed_chores_monthly": 0,
+        "completed_chores_total": 6,
+        "ha_user_id": "4193475a913c4816bea18d27a629898d",
+        "internal_id": "433a3aef-3034-44b0-bdb9-236f9f25597f",
+        "points_multiplier": 1.0,
+        "reward_claims": {},
+        "reward_approvals": {},
+        "chore_claims": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": 8,
+          "66e01c1d-7bed-4dfb-9103-548c19822002": 5,
+          "64ac6332-3242-4731-8857-c76de1614d21": 1
+        },
+        "chore_approvals": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": 2,
+          "66e01c1d-7bed-4dfb-9103-548c19822002": 3,
+          "64ac6332-3242-4731-8857-c76de1614d21": 1
+        },
+        "penalty_applies": {
+          "d400bd5f-5ff0-4b5e-a734-029b41bec371": 1,
+          "51981f7a-135f-49e4-bc55-4775f097b1c9": 1
+        },
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0.0,
+        "points_earned_weekly": -7.0,
+        "points_earned_monthly": -7.0,
+        "max_points_ever": 30.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {
+          "64ac6332-3242-4731-8857-c76de1614d21": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-02-21"
+          },
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-02-22"
+          }
+        },
+        "overall_chore_streak": 2,
+        "last_chore_date": "2025-02-22",
+        "bonus_applies": {},
+        "overdue_chores": [
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b"
+        ],
+        "overdue_notifications": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": "2025-04-23T11:57:16.855830+00:00"
+        },
+        "today_chore_approvals": {}
+      },
+      "d4663dff-a2a8-4c47-a925-9728aaedaa37": {
+        "name": "Jiří Šimon",
+        "points": 616.0,
+        "badges": [
+          "Test B@dge (Gold)!!",
+          "Bronze",
+          "Silver"
+        ],
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 0,
+        "completed_chores_monthly": 0,
+        "completed_chores_total": 110,
+        "ha_user_id": "",
+        "internal_id": "d4663dff-a2a8-4c47-a925-9728aaedaa37",
+        "points_multiplier": 1.4,
+        "reward_claims": {
+          "9bc02761-5182-459f-8a62-05792580714a": 18,
+          "a8647673-ee80-44f7-9f29-9d422b6828ab": 12,
+          "48ec989c-fec0-4b80-ae97-a1477d823d31": 7,
+          "1efc185d-1132-41ca-9957-caedf9ee6ecd": 1
+        },
+        "reward_approvals": {
+          "a8647673-ee80-44f7-9f29-9d422b6828ab": 3,
+          "9bc02761-5182-459f-8a62-05792580714a": 5
+        },
+        "chore_claims": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": 25,
+          "66e01c1d-7bed-4dfb-9103-548c19822002": 34,
+          "9a0efeb0-baad-4a0b-bed0-27693e3cc910": 7,
+          "8f799c2b-c25e-4f30-8321-db0f3fbb0786": 1
+        },
+        "chore_approvals": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": 25,
+          "66e01c1d-7bed-4dfb-9103-548c19822002": 33,
+          "9a0efeb0-baad-4a0b-bed0-27693e3cc910": 1,
+          "8f799c2b-c25e-4f30-8321-db0f3fbb0786": 1
+        },
+        "penalty_applies": {
+          "51981f7a-135f-49e4-bc55-4775f097b1c9": 2,
+          "d400bd5f-5ff0-4b5e-a734-029b41bec371": 2
+        },
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0.0,
+        "points_earned_weekly": 0.0,
+        "points_earned_monthly": 0.0,
+        "max_points_ever": 950.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-02-22"
+          },
+          "66e01c1d-7bed-4dfb-9103-548c19822002": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-02-24"
+          },
+          "9a0efeb0-baad-4a0b-bed0-27693e3cc910": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-02-27"
+          },
+          "8f799c2b-c25e-4f30-8321-db0f3fbb0786": {
+            "current_streak": 1,
+            "max_streak": 1,
+            "last_date": "2025-03-06"
+          }
+        },
+        "overall_chore_streak": 1,
+        "last_chore_date": "2025-03-06",
+        "bonus_applies": {},
+        "overdue_chores": [
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b",
+          "9a0efeb0-baad-4a0b-bed0-27693e3cc910",
+          "8f799c2b-c25e-4f30-8321-db0f3fbb0786"
+        ],
+        "overdue_notifications": {
+          "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": "2025-04-23T11:57:16.855791+00:00",
+          "9a0efeb0-baad-4a0b-bed0-27693e3cc910": "2025-04-23T11:57:16.855922+00:00",
+          "8f799c2b-c25e-4f30-8321-db0f3fbb0786": "2025-04-23T11:57:16.855951+00:00"
+        },
+        "today_chore_approvals": {}
+      },
+      "689e503e-a372-41e3-b6c3-73e5185e33bd": {
+        "name": "Clara",
+        "points": 10.0,
+        "badges": [],
+        "claimed_chores": [],
+        "approved_chores": [],
+        "completed_chores_today": 0,
+        "completed_chores_weekly": 0,
+        "completed_chores_monthly": 0,
+        "completed_chores_total": 2,
+        "ha_user_id": "",
+        "internal_id": "689e503e-a372-41e3-b6c3-73e5185e33bd",
+        "points_multiplier": 1.0,
+        "reward_claims": {},
+        "reward_approvals": {},
+        "chore_claims": {
+          "359ab76a-5489-45f8-b84d-d92a41607ee8": 2,
+          "3a7dc730-7f8b-487b-8e32-da8ddd68ad6c": 1
+        },
+        "chore_approvals": {
+          "359ab76a-5489-45f8-b84d-d92a41607ee8": 2
+        },
+        "penalty_applies": {},
+        "pending_rewards": [],
+        "redeemed_rewards": [],
+        "points_earned_today": 0.0,
+        "points_earned_weekly": 0.0,
+        "points_earned_monthly": 0.0,
+        "max_points_ever": 10.0,
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "chore_streaks": {
+          "359ab76a-5489-45f8-b84d-d92a41607ee8": {
+            "current_streak": 2,
+            "max_streak": 2,
+            "last_date": "2025-02-26"
+          }
+        },
+        "overall_chore_streak": 2,
+        "last_chore_date": "2025-02-26",
+        "bonus_applies": {},
+        "overdue_chores": [
+          "3a7dc730-7f8b-487b-8e32-da8ddd68ad6c"
+        ],
+        "overdue_notifications": {
+          "3a7dc730-7f8b-487b-8e32-da8ddd68ad6c": "2025-04-23T11:57:16.855880+00:00"
+        },
+        "today_chore_approvals": {}
+      }
+    },
+    "chores": {
+      "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25": {
+        "name": "Feed Cat AM",
+        "state": "claimed",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:cat",
+        "shared_chore": false,
+        "assigned_kids": [
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-04-23T12:30:00+00:00",
+        "last_completed": "2025-04-22T14:19:48.641931+00:00",
+        "last_claimed": "2025-04-23T11:57:15.711663+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25",
+        "last_overdue_notification": "2025-03-06T12:45:00.412658+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "cab378cc-7244-4140-afa9-944770784994": {
+        "name": "Feed Cat PM",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:cat",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-04-23T23:30:00+00:00",
+        "last_completed": "2025-04-23T03:45:00.451272+00:00",
+        "last_claimed": "2025-04-23T01:02:29.521480+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "cab378cc-7244-4140-afa9-944770784994",
+        "last_overdue_notification": "2025-03-06T00:48:23.402733+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "1e455b81-a702-42d3-9ef7-deb27aba3de7": {
+        "name": "Clean Litter AM",
+        "state": "claimed",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:shovel",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-04-23T12:30:00+00:00",
+        "last_completed": "2025-04-22T03:45:00.706172+00:00",
+        "last_claimed": "2025-04-23T11:47:16.939550+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "1e455b81-a702-42d3-9ef7-deb27aba3de7",
+        "last_overdue_notification": "2025-03-04T13:41:55.531496+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "e5c3b45b-e063-41f6-81fe-d11b24da41d5": {
+        "name": "Clean Litter PM",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:tray-remove",
+        "shared_chore": false,
+        "assigned_kids": [
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-04-23T23:30:00+00:00",
+        "last_completed": "2025-04-23T03:45:00.519132+00:00",
+        "last_claimed": "2025-04-23T01:15:23.291770+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "e5c3b45b-e063-41f6-81fe-d11b24da41d5",
+        "last_overdue_notification": "2025-03-06T00:43:23.403171+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875": {
+        "name": "Brush Teeth AM",
+        "state": "claimed",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:toothbrush-paste",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-04-23T12:30:00+00:00",
+        "last_completed": "2025-04-22T14:19:49.777346+00:00",
+        "last_claimed": "2025-04-23T11:57:16.839623+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875",
+        "last_overdue_notification": "2025-03-06T12:45:00.412658+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "f2b30a1d-7678-4af0-a9b0-a83283e63e87": {
+        "name": "Brush Teeth PM",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:toothbrush-paste",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": null,
+        "last_completed": "2025-04-22T03:45:00.795751+00:00",
+        "last_claimed": "2025-04-22T02:03:03.976056+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "f2b30a1d-7678-4af0-a9b0-a83283e63e87",
+        "last_overdue_notification": "2025-03-06T00:33:23.402868+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "0e34edfa-4c67-4edb-b2dc-81aecbaba55a": {
+        "name": "Sort Dirty Laundry",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:washing-machine-alert",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "weekly",
+        "due_date": null,
+        "last_completed": "2025-04-07T03:45:00.582894+00:00",
+        "last_claimed": "2025-04-07T02:03:08.883754+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "0e34edfa-4c67-4edb-b2dc-81aecbaba55a",
+        "last_overdue_notification": "2025-02-18T02:22:30.583170+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "423d4c15-8792-41a3-939d-28d69004c9ca": {
+        "name": "Put Laundry Away",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:hanger",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "weekly",
+        "due_date": null,
+        "last_completed": "2025-04-11T01:29:30.714804+00:00",
+        "last_claimed": "2025-04-11T01:24:04.490709+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "423d4c15-8792-41a3-939d-28d69004c9ca",
+        "last_overdue_notification": "2025-03-03T01:02:06.906535+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "67eacd5b-ed84-4b4f-8061-6f26254369c1": {
+        "name": "Do The Dishes",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "Load or Empty Dishwasher",
+        "icon": "mdi:silverware-clean",
+        "shared_chore": true,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": null,
+        "last_completed": "2025-04-19T03:45:00.414603+00:00",
+        "last_claimed": "2025-04-19T00:39:05.818106+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "67eacd5b-ed84-4b4f-8061-6f26254369c1",
+        "last_overdue_notification": "2025-03-06T04:02:32.402600+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "299913fd-2e39-4550-801e-d8516ec81ede": {
+        "name": "Physical Activity",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "At least 30 minutes of physical activity",
+        "icon": "mdi:run",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": null,
+        "last_completed": "2025-04-22T03:45:00.417142+00:00",
+        "last_claimed": "2025-04-22T02:03:05.706243+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "299913fd-2e39-4550-801e-d8516ec81ede",
+        "last_overdue_notification": "2025-03-06T04:02:32.402600+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "ac122869-5d58-4d19-9d37-b3065b050463": {
+        "name": "Complete Homework",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "This includes things like iReady",
+        "icon": "mdi:account-school",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": null,
+        "last_completed": "2025-04-22T03:45:00.475633+00:00",
+        "last_claimed": "2025-04-22T02:03:06.841161+00:00",
+        "applicable_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "sun"
+        ],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "ac122869-5d58-4d19-9d37-b3065b050463",
+        "last_overdue_notification": "2025-03-06T01:33:23.403308+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "e50d528f-c0ac-4a03-85c6-15afc46d8aaa": {
+        "name": "Make it Sparkle",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 20.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "Ad-hoc House cleanup for guests or the cleaners",
+        "icon": "mdi:vacuum",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "none",
+        "due_date": null,
+        "last_completed": "2025-04-11T01:29:31.779063+00:00",
+        "last_claimed": "2025-04-11T01:24:10.177318+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "e50d528f-c0ac-4a03-85c6-15afc46d8aaa",
+        "last_overdue_notification": "2025-02-20T05:00:00.422410+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "f0258b5a-db9c-485b-aff6-eab9c52c4384": {
+        "name": "Tidy Room",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 10.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "Clean up Room",
+        "icon": "mdi:bookshelf",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "weekly",
+        "due_date": null,
+        "last_completed": "2025-04-11T01:29:32.721950+00:00",
+        "last_claimed": "2025-04-11T01:24:12.634416+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "f0258b5a-db9c-485b-aff6-eab9c52c4384",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "747cf738-9011-44e4-afaf-774a795b1db3": {
+        "name": "Shower",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:shower",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "custom",
+        "due_date": "2025-04-24T00:00:00+00:00",
+        "last_completed": "2025-04-22T03:45:00.653486+00:00",
+        "last_claimed": "2025-04-22T02:03:00.546290+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "747cf738-9011-44e4-afaf-774a795b1db3",
+        "last_overdue_notification": "2025-03-04T05:00:00.420095+00:00",
+        "chore_labels": [],
+        "custom_interval": 2.0,
+        "custom_interval_unit": "days"
+      },
+      "f827eb08-56b9-4d53-8943-65f6cdbf932c": {
+        "name": "Eye Drops",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:eye-arrow-left-outline",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": null,
+        "last_completed": "2025-03-12T03:45:00.486081+00:00",
+        "last_claimed": "2025-03-12T02:13:13.444893+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "f827eb08-56b9-4d53-8943-65f6cdbf932c",
+        "last_overdue_notification": "2025-03-06T02:10:51.402567+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "dffde5cf-98a0-4626-a15d-76483001c196": {
+        "name": "Take out Trash",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "Trash and Recycling",
+        "icon": "mdi:trash-can-outline",
+        "shared_chore": true,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "none",
+        "due_date": null,
+        "last_completed": null,
+        "last_claimed": null,
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "dffde5cf-98a0-4626-a15d-76483001c196",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "2fb9a182-3f33-4069-97d3-f8c4f0a5203c": {
+        "name": "Trash to Street",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:truck-minus-outline",
+        "shared_chore": true,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "weekly",
+        "due_date": "2025-04-25T01:00:00+00:00",
+        "last_completed": "2025-04-11T03:45:00.527498+00:00",
+        "last_claimed": "2025-04-11T02:15:42.679483+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "2fb9a182-3f33-4069-97d3-f8c4f0a5203c",
+        "last_overdue_notification": "2025-02-28T01:01:17.829196+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "b54547f1-21bb-46a8-b056-3e3679a60726": {
+        "name": "Pack Lunch",
+        "state": "independent",
+        "assigned_to": null,
+        "default_points": 10.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:food-apple",
+        "shared_chore": false,
+        "assigned_kids": [
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-04-23T01:00:00+00:00",
+        "last_completed": "2025-04-22T03:45:00.886032+00:00",
+        "last_claimed": "2025-04-23T11:47:15.660526+00:00",
+        "applicable_days": [
+          "mon",
+          "sun",
+          "tue",
+          "wed",
+          "thu"
+        ],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "b54547f1-21bb-46a8-b056-3e3679a60726",
+        "last_overdue_notification": "2025-03-06T02:00:51.403067+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b": {
+        "name": "Vynést koš",
+        "state": "overdue",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "Test Czech Chore",
+        "icon": "mdi:alpha-x",
+        "shared_chore": false,
+        "assigned_kids": [
+          "ee82931b-2de7-4117-b754-c6237cb3cdd8",
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37",
+          "433a3aef-3034-44b0-bdb9-236f9f25597f"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-03-02T04:00:00+00:00",
+        "last_completed": "2025-02-23T03:58:56.448437+00:00",
+        "last_claimed": "2025-02-24T14:37:46.612440+00:00",
+        "applicable_days": [
+          "tue",
+          "fri"
+        ],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "0e22c0a9-9fcf-4cb4-bd12-b20e2e1a6e0b",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "66e01c1d-7bed-4dfb-9103-548c19822002": {
+        "name": "Test Multi Approve",
+        "state": "pending",
+        "assigned_to": null,
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": true,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:dice-multiple",
+        "shared_chore": false,
+        "assigned_kids": [
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37",
+          "433a3aef-3034-44b0-bdb9-236f9f25597f"
+        ],
+        "recurring_frequency": "none",
+        "due_date": null,
+        "last_completed": "2025-02-24T19:32:31.264626+00:00",
+        "last_claimed": "2025-02-26T16:54:37.049617+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "66e01c1d-7bed-4dfb-9103-548c19822002",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "64ac6332-3242-4731-8857-c76de1614d21": {
+        "name": "Clean up the yard",
+        "state": "pending",
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "Make sure all the sticks and toys are picked up.",
+        "icon": "mdi:rake",
+        "shared_chore": true,
+        "assigned_kids": [
+          "433a3aef-3034-44b0-bdb9-236f9f25597f"
+        ],
+        "recurring_frequency": "none",
+        "due_date": null,
+        "last_completed": "2025-02-22T04:45:00.455281+00:00",
+        "last_claimed": "2025-02-21T21:52:22.393787+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "64ac6332-3242-4731-8857-c76de1614d21",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "359ab76a-5489-45f8-b84d-d92a41607ee8": {
+        "name": "Tisch decken",
+        "state": "pending",
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:silverware-fork-knife",
+        "shared_chore": false,
+        "assigned_kids": [
+          "689e503e-a372-41e3-b6c3-73e5185e33bd"
+        ],
+        "recurring_frequency": "none",
+        "due_date": null,
+        "last_completed": "2025-02-27T04:45:00.225066+00:00",
+        "last_claimed": "2025-02-26T17:20:15.849953+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "359ab76a-5489-45f8-b84d-d92a41607ee8",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "3a7dc730-7f8b-487b-8e32-da8ddd68ad6c": {
+        "name": "Müll",
+        "state": "overdue",
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": true,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:trash-can-outline",
+        "shared_chore": true,
+        "assigned_kids": [
+          "689e503e-a372-41e3-b6c3-73e5185e33bd"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-02-28T02:00:00+00:00",
+        "last_completed": null,
+        "last_claimed": "2025-03-03T02:38:46.775540+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "3a7dc730-7f8b-487b-8e32-da8ddd68ad6c",
+        "last_overdue_notification": "2025-03-06T02:20:51.402698+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "9a0efeb0-baad-4a0b-bed0-27693e3cc910": {
+        "name": "zz Time Test",
+        "state": "overdue",
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:test-tube",
+        "shared_chore": false,
+        "assigned_kids": [
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37"
+        ],
+        "recurring_frequency": "daily",
+        "due_date": "2025-03-01T04:30:00+00:00",
+        "last_completed": "2025-02-28T04:45:00.231989+00:00",
+        "last_claimed": "2025-03-03T01:17:33.545982+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "9a0efeb0-baad-4a0b-bed0-27693e3cc910",
+        "last_overdue_notification": "2025-03-06T04:42:32.402929+00:00",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      },
+      "8f799c2b-c25e-4f30-8321-db0f3fbb0786": {
+        "name": "Garbage Night",
+        "state": "overdue",
+        "default_points": 5.0,
+        "allow_multiple_claims_per_day": false,
+        "partial_allowed": false,
+        "description": "",
+        "icon": "mdi:trash-can",
+        "shared_chore": false,
+        "assigned_kids": [
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37"
+        ],
+        "recurring_frequency": "none",
+        "due_date": "2025-03-06T19:00:00+00:00",
+        "last_completed": "2025-03-07T04:45:00.429582+00:00",
+        "last_claimed": "2025-03-07T03:19:29.379824+00:00",
+        "applicable_days": [],
+        "notify_on_claim": false,
+        "notify_on_approval": false,
+        "notify_on_disapproval": false,
+        "internal_id": "8f799c2b-c25e-4f30-8321-db0f3fbb0786",
+        "chore_labels": [],
+        "custom_interval": null,
+        "custom_interval_unit": null
+      }
+    },
+    "badges": {
+      "2ad673de-d456-49a6-96d5-f8832a1590ef": {
+        "name": "Bronze",
+        "threshold_type": "points",
+        "threshold_value": 500.0,
+        "chore_count_type": "daily",
+        "earned_by": [
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37",
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90"
+        ],
+        "points_multiplier": 1.2,
+        "icon": "mdi:medal-outline",
+        "description": "A great start to building good habits!",
+        "internal_id": "2ad673de-d456-49a6-96d5-f8832a1590ef",
+        "badge_labels": []
+      },
+      "016aacf9-8c25-48cb-b987-9a24a85249b7": {
+        "name": "Silver",
+        "threshold_type": "points",
+        "threshold_value": 2500.0,
+        "chore_count_type": "daily",
+        "earned_by": [],
+        "points_multiplier": 1.4,
+        "icon": "mdi:star-circle",
+        "description": "You're getting the hang of responsibility!",
+        "internal_id": "016aacf9-8c25-48cb-b987-9a24a85249b7",
+        "badge_labels": []
+      },
+      "8ad4cb35-6a87-43c0-820a-b43014cf0d5b": {
+        "name": "Gold",
+        "threshold_type": "points",
+        "threshold_value": 5000.0,
+        "chore_count_type": "daily",
+        "earned_by": [],
+        "points_multiplier": 1.5,
+        "icon": "mdi:trophy-award",
+        "description": "A true master of household tasks!",
+        "internal_id": "8ad4cb35-6a87-43c0-820a-b43014cf0d5b",
+        "badge_labels": []
+      }
+    },
+    "rewards": {
+      "9bc02761-5182-459f-8a62-05792580714a": {
+        "name": "1 Dollar",
+        "cost": 20.0,
+        "description": "",
+        "icon": "mdi:cash",
+        "internal_id": "9bc02761-5182-459f-8a62-05792580714a",
+        "reward_labels": []
+      },
+      "1efc185d-1132-41ca-9957-caedf9ee6ecd": {
+        "name": "5 Dollars",
+        "cost": 100.0,
+        "description": "",
+        "icon": "mdi:cash-multiple",
+        "internal_id": "1efc185d-1132-41ca-9957-caedf9ee6ecd",
+        "reward_labels": []
+      },
+      "48ec989c-fec0-4b80-ae97-a1477d823d31": {
+        "name": "Game On! – 30 Min",
+        "cost": 50.0,
+        "description": "",
+        "icon": "mdi:gamepad-variant-outline",
+        "internal_id": "48ec989c-fec0-4b80-ae97-a1477d823d31",
+        "reward_labels": []
+      },
+      "722a96a3-bca8-4cc0-b34d-56800b6fddf9": {
+        "name": "Skip a Chore",
+        "cost": 100.0,
+        "description": "Option to skip a low value chore",
+        "icon": "mdi:skip-next-circle-outline",
+        "internal_id": "722a96a3-bca8-4cc0-b34d-56800b6fddf9",
+        "reward_labels": []
+      }
+    },
+    "parents": {
+      "98e12f50-40d4-4013-a231-41c052d3b67f": {
+        "name": "Chad",
+        "ha_user_id": "4193475a913c4816bea18d27a629898d",
+        "associated_kids": [
+          "433a3aef-3034-44b0-bdb9-236f9f25597f",
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90",
+          "ee82931b-2de7-4117-b754-c6237cb3cdd8",
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37"
+        ],
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "internal_id": "98e12f50-40d4-4013-a231-41c052d3b67f"
+      },
+      "54fee7ed-bf58-4fce-a38f-c38a7c0249a0": {
+        "name": "Caren",
+        "ha_user_id": "46fc2d4a8d434e2282dd40c32266ba12",
+        "associated_kids": [
+          "433a3aef-3034-44b0-bdb9-236f9f25597f",
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+          "cec5825f-b2d6-4387-8abd-f999b4827c90",
+          "ee82931b-2de7-4117-b754-c6237cb3cdd8",
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37"
+        ],
+        "enable_notifications": false,
+        "mobile_notify_service": "",
+        "use_persistent_notifications": false,
+        "internal_id": "54fee7ed-bf58-4fce-a38f-c38a7c0249a0"
+      }
+    },
+    "penalties": {
+      "d400bd5f-5ff0-4b5e-a734-029b41bec371": {
+        "name": "Cursing",
+        "points": -2.0,
+        "description": "",
+        "icon": "mdi:account-voice",
+        "internal_id": "d400bd5f-5ff0-4b5e-a734-029b41bec371",
+        "penalty_labels": []
+      },
+      "51981f7a-135f-49e4-bc55-4775f097b1c9": {
+        "name": "Fighting",
+        "points": -5.0,
+        "description": "",
+        "icon": "mdi:fencing",
+        "internal_id": "51981f7a-135f-49e4-bc55-4775f097b1c9",
+        "penalty_labels": []
+      }
+    },
+    "pending_chore_approvals": [
+      {
+        "kid_id": "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+        "chore_id": "b54547f1-21bb-46a8-b056-3e3679a60726",
+        "timestamp": "2025-04-23T11:47:15.660534+00:00"
+      },
+      {
+        "kid_id": "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+        "chore_id": "1e455b81-a702-42d3-9ef7-deb27aba3de7",
+        "timestamp": "2025-04-23T11:47:16.939556+00:00"
+      },
+      {
+        "kid_id": "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499",
+        "chore_id": "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875",
+        "timestamp": "2025-04-23T11:47:17.656402+00:00"
+      },
+      {
+        "kid_id": "cec5825f-b2d6-4387-8abd-f999b4827c90",
+        "chore_id": "5c2050fe-0378-4f5b-aa0f-5feaa7eaef25",
+        "timestamp": "2025-04-23T11:57:15.711671+00:00"
+      },
+      {
+        "kid_id": "cec5825f-b2d6-4387-8abd-f999b4827c90",
+        "chore_id": "b8a9c342-8ac8-4f7b-b099-c1ff9e3b3875",
+        "timestamp": "2025-04-23T11:57:16.839630+00:00"
+      }
+    ],
+    "pending_reward_approvals": [],
+    "achievements": {
+      "cdf66ea0-575a-4fca-a455-03cec639a369": {
+        "name": "Test Achieve",
+        "description": "This is a test",
+        "icon": "mdi:air-conditioner",
+        "assigned_kids": [
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37"
+        ],
+        "type": "chore_streak",
+        "selected_chore_id": "",
+        "criteria": "Greater than 6",
+        "target_value": 6.0,
+        "reward_points": 100.0,
+        "progress": {
+          "cec5825f-b2d6-4387-8abd-f999b4827c90": {
+            "current_streak": 6,
+            "last_date": "2025-03-02",
+            "awarded": true,
+            "current_value": 6.0
+          },
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499": {
+            "current_streak": 6,
+            "last_date": "2025-03-02",
+            "awarded": true,
+            "current_value": 6.0
+          },
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37": {
+            "current_streak": 1,
+            "last_date": "2025-03-06",
+            "awarded": false
+          },
+          "689e503e-a372-41e3-b6c3-73e5185e33bd": {
+            "current_streak": 2,
+            "last_date": "2025-02-26",
+            "awarded": false
+          },
+          "433a3aef-3034-44b0-bdb9-236f9f25597f": {
+            "current_streak": 1,
+            "last_date": "2025-04-21",
+            "awarded": false
+          }
+        },
+        "internal_id": "cdf66ea0-575a-4fca-a455-03cec639a369",
+        "achievement_labels": []
+      }
+    },
+    "challenges": {
+      "01468c28-e9d7-4642-987d-f718b43c4dee": {
+        "name": "Test Challeng",
+        "description": "This is a challenge",
+        "icon": "mdi:air-filter",
+        "assigned_kids": [
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37"
+        ],
+        "type": "daily_minimum",
+        "selected_chore_id": "",
+        "criteria": "More than 5",
+        "target_value": 5.0,
+        "reward_points": 100.0,
+        "start_date": "2025-02-25T05:00:00+00:00",
+        "end_date": "2025-02-28T05:00:00+00:00",
+        "progress": {
+          "cec5825f-b2d6-4387-8abd-f999b4827c90": {
+            "daily_counts": {},
+            "awarded": false
+          },
+          "c7a24dc8-74ce-4a6d-ab8d-1752b5a97499": {
+            "daily_counts": {},
+            "awarded": false
+          },
+          "d4663dff-a2a8-4c47-a925-9728aaedaa37": {
+            "daily_counts": {
+              "2025-02-27": 1
+            },
+            "awarded": false
+          },
+          "689e503e-a372-41e3-b6c3-73e5185e33bd": {
+            "daily_counts": {},
+            "awarded": false
+          }
+        },
+        "internal_id": "01468c28-e9d7-4642-987d-f718b43c4dee",
+        "challenge_labels": []
+      }
+    },
+    "bonuses": {
+      "be9fce3a-4821-465e-9ce4-046d4188c09d": {
+        "name": "Big Helper",
+        "points": 15.0,
+        "description": "",
+        "bonus_labels": [],
+        "icon": "mdi:handshake",
+        "internal_id": "be9fce3a-4821-465e-9ce4-046d4188c09d"
+      }
+    }
+  }
+}

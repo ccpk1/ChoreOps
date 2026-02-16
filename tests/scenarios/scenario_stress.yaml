@@ -1,0 +1,399 @@
+system:
+  points_label: Stress Points
+  points_icon: mdi:star-circle
+kids:
+  - name: Elias Thor
+    ha_user: kid1
+    dashboard_language: en
+  - name: Kejsarin Vol
+    ha_user: kid2
+    dashboard_language: en
+  - name: Marcos Cor
+    ha_user: kid3
+    dashboard_language: en
+  - name: Sophie And
+    ha_user: kid4
+    dashboard_language: en
+  - name: Yasin Mul
+    ha_user: kid5
+    dashboard_language: en
+  - name: Carlotta Sor
+    ha_user: kid6
+    dashboard_language: en
+  - name: Nicolas Pon
+    ha_user: kid7
+    dashboard_language: en
+  - name: Alexis Vor
+    ha_user: kid8
+    dashboard_language: en
+  - name: Emilien Bea
+    ha_user: kid9
+    dashboard_language: en
+  - name: Anastasia Pet
+    ha_user: kid10
+    dashboard_language: en
+  - name: Jurgen Hof
+    ha_user: kid11
+    dashboard_language: en
+  - name: Isabel Gar
+    ha_user: kid12
+    dashboard_language: en
+  - name: Bjorn Eri
+    ha_user: kid13
+    dashboard_language: en
+  - name: Francoise Du
+    ha_user: kid14
+    dashboard_language: en
+  - name: Viktoria Sm
+    ha_user: kid15
+    dashboard_language: en
+  - name: Liam Chen
+    ha_user: kid16
+    dashboard_language: en
+  - name: Maya Patel
+    ha_user: kid17
+    dashboard_language: en
+  - name: Oscar Berg
+    ha_user: kid18
+    dashboard_language: en
+  - name: Zara Khan
+    ha_user: kid19
+    dashboard_language: en
+parents:
+  - name: Mom Astrid
+    ha_user: parent1
+    kids:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+  - name: Dad Leo
+    ha_user: parent2
+    kids:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+  - name: Tante Ingrid
+    ha_user: parent3
+    kids:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+  - name: Uncle Pierre
+    ha_user: parent4
+    kids:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+  - name: Aunt Marie
+    ha_user: parent5
+    kids:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+chores:
+  - name: Chore Task 1
+    assigned_to:
+      - Elias Thor
+    points: 5.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 2
+    assigned_to:
+      - Kejsarin Vol
+    points: 10.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 3
+    assigned_to:
+      - Marcos Cor
+    points: 15.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 4
+    assigned_to:
+      - Sophie And
+    points: 20.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 5
+    assigned_to:
+      - Yasin Mul
+    points: 25.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 6
+    assigned_to:
+      - Carlotta Sor
+    points: 5.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 7
+    assigned_to:
+      - Nicolas Pon
+    points: 10.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 8
+    assigned_to:
+      - Alexis Vor
+    points: 15.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 9
+    assigned_to:
+      - Emilien Bea
+    points: 20.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 10
+    assigned_to:
+      - Anastasia Pet
+    points: 25.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 11
+    assigned_to:
+      - Jurgen Hof
+      - Isabel Gar
+    points: 5.0
+    icon: mdi:broom
+    completion_criteria: shared_all
+    recurring_frequency: daily
+  - name: Chore Task 12
+    assigned_to:
+      - Isabel Gar
+      - Bjorn Eri
+    points: 10.0
+    icon: mdi:broom
+    completion_criteria: shared_all
+    recurring_frequency: daily
+  - name: Chore Task 13
+    assigned_to:
+      - Bjorn Eri
+      - Francoise Du
+    points: 15.0
+    icon: mdi:broom
+    completion_criteria: shared_all
+    recurring_frequency: daily
+  - name: Chore Task 14
+    assigned_to:
+      - Francoise Du
+      - Viktoria Sm
+    points: 20.0
+    icon: mdi:broom
+    completion_criteria: shared_all
+    recurring_frequency: daily
+  - name: Chore Task 15
+    assigned_to:
+      - Viktoria Sm
+      - Elias Thor
+    points: 25.0
+    icon: mdi:broom
+    completion_criteria: shared_all
+    recurring_frequency: daily
+  - name: Chore Task 16
+    assigned_to:
+      - Liam Chen
+    points: 5.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 17
+    assigned_to:
+      - Maya Patel
+    points: 10.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 18
+    assigned_to:
+      - Oscar Berg
+    points: 15.0
+    icon: mdi:broom
+    completion_criteria: independent
+    recurring_frequency: daily
+  - name: Chore Task 19
+    assigned_to:
+      - Zara Khan
+      - Liam Chen
+    points: 20.0
+    icon: mdi:broom
+    completion_criteria: shared_all
+    recurring_frequency: daily
+badges:
+  - name: Star Badge 1
+    type: cumulative
+    assigned_to:
+      - Elias Thor
+    award_points: 50
+    target_threshold_value: 100
+    icon: mdi:medal
+  - name: Star Badge 2
+    type: cumulative
+    assigned_to:
+      - Kejsarin Vol
+    award_points: 50
+    target_threshold_value: 200
+    icon: mdi:medal
+  - name: Star Badge 3
+    type: cumulative
+    assigned_to:
+      - Marcos Cor
+    award_points: 50
+    target_threshold_value: 300
+    icon: mdi:medal
+  - name: Star Badge 4
+    type: cumulative
+    assigned_to:
+      - Sophie And
+    award_points: 50
+    target_threshold_value: 400
+    icon: mdi:medal
+  - name: Star Badge 5
+    type: cumulative
+    assigned_to:
+      - Yasin Mul
+    award_points: 50
+    target_threshold_value: 500
+    icon: mdi:medal
+rewards:
+  - name: Stress Reward
+    cost: 100
+    icon: mdi:gift
+    assigned_to:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+  - name: Premium Reward
+    cost: 250
+    icon: mdi:trophy
+    assigned_to:
+      - Elias Thor
+      - Kejsarin Vol
+      - Marcos Cor
+      - Sophie And
+      - Yasin Mul
+      - Carlotta Sor
+      - Nicolas Pon
+      - Alexis Vor
+      - Emilien Bea
+      - Anastasia Pet
+      - Jurgen Hof
+      - Isabel Gar
+      - Bjorn Eri
+      - Francoise Du
+      - Viktoria Sm
+      - Liam Chen
+      - Maya Patel
+      - Oscar Berg
+      - Zara Khan
+penalties: []
+bonuses: []
+achievements: []
+challenges: []

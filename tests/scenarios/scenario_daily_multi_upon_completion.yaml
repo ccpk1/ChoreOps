@@ -1,0 +1,94 @@
+# Test Scenario: Daily Multi Upon Completion Reset
+# =============================================================================
+# Purpose: Test approval_reset_type=upon_completion for daily_multi chores
+#
+# Key Test Cases:
+# 1. Reset triggers ONLY when ALL kids complete their instances
+# 2. Partial completions do NOT trigger reset
+# 3. Reset happens immediately upon last approval
+# =============================================================================
+
+# System settings
+system:
+  points_label: "Points"
+  points_icon: "mdi:star"
+
+# Kids (3 kids for multi-instance testing)
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Max!"
+    ha_user: "kid2"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Lila"
+    ha_user: "kid3"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Parents (1 parent can approve all)
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+    kids: ["Zoë", "Max!", "Lila"]
+    mobile_notify_service: ""
+
+chores:
+  # ============================================================================
+  # DAILY_MULTI CHORES WITH UPON_COMPLETION RESET
+  # ============================================================================
+
+  - name: "Feed Pets Morning and Night"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 5.0
+    icon: "mdi:food-drumstick"
+    completion_criteria: "independent"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: 2
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+
+  - name: "Study Session 3x Daily"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:book-open-variant"
+    completion_criteria: "independent"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: 3
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "hold_pending"
+
+  - name: "Water Plants 2x Daily Auto Approve"
+    assigned_to: ["Lila"]
+    points: 3.0
+    icon: "mdi:watering-can"
+    completion_criteria: "independent"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: 2
+    auto_approve: true
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+
+  # ============================================================================
+  # CONTROL CHORES (for comparison/baseline tests)
+  # ============================================================================
+
+  - name: "Regular Daily Chore"
+    assigned_to: ["Zoë"]
+    points: 8.0
+    icon: "mdi:checkbox-marked"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"

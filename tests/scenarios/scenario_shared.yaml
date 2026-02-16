@@ -1,0 +1,353 @@
+# Test Scenario: SHARED (Modern Config-Flow Format)
+# =============================================================================
+# Focused on shared chore testing. 3 kids, 1 parent, all shared chores.
+#
+# Contents:
+#   - 1 parent: Mom
+#   - 3 kids: Zoë, Max, Lila
+#   - 8 chores: mix of shared_all and shared_first
+#
+# Use case: Testing shared chore completion logic, multi-kid coordination
+# =============================================================================
+
+# System settings
+system:
+  points_label: "Points"
+  points_icon: "mdi:star"
+
+# Kids (3 kids for shared chore testing)
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Max!"
+    ha_user: "kid2"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Lila"
+    ha_user: "kid3"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Parents (1 parent can approve all)
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+    kids: ["Zoë", "Max!", "Lila"]
+    mobile_notify_service: ""
+
+# Chores (8 shared chores)
+chores:
+  # ==========================================================================
+  # SHARED_ALL CHORES (all kids must complete)
+  # ==========================================================================
+
+  # Test: 3-kid shared_all daily
+  - name: "Family dinner cleanup"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 10.0
+    icon: "mdi:silverware-fork-knife"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: 2-kid shared_all daily (subset)
+  - name: "Walk the dog"
+    assigned_to: ["Zoë", "Max!"]
+    points: 8.0
+    icon: "mdi:dog"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: 3-kid shared_all weekly
+  - name: "Weekend yard work"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 20.0
+    icon: "mdi:tree"
+    completion_criteria: "shared_all"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # Test: 2-kid shared_all weekly (different pair)
+  - name: "Clean bathroom"
+    assigned_to: ["Max!", "Lila"]
+    points: 15.0
+    icon: "mdi:shower"
+    completion_criteria: "shared_all"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # ==========================================================================
+  # SHARED_FIRST CHORES (first to complete wins)
+  # ==========================================================================
+
+  # Test: 3-kid shared_first daily (race condition)
+  - name: "Take out trash"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 5.0
+    icon: "mdi:delete"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: 2-kid shared_first daily
+  - name: "Get the mail"
+    assigned_to: ["Zoë", "Lila"]
+    points: 3.0
+    icon: "mdi:mailbox"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: 3-kid shared_first weekly
+  - name: "Wash the car"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 25.0
+    icon: "mdi:car-wash"
+    completion_criteria: "shared_first"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # Test: 2-kid shared_first weekly (different pair)
+  - name: "Organize garage"
+    assigned_to: ["Zoë", "Max!"]
+    points: 30.0
+    icon: "mdi:garage"
+    completion_criteria: "shared_first"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # ==========================================================================
+  # SHARED_ALL WITH AUTO-APPROVE AND PENDING CLAIM ACTIONS
+  # ==========================================================================
+
+  # Test: shared_all with auto_approve=true
+  - name: "Shared All Auto Approve"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 12.0
+    icon: "mdi:check-all"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: true
+    due_date: "+1d17:00"
+
+  # Test: shared_all with pending_claim_action=hold_pending
+  - name: "Shared All Pending Hold"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:hand-back-left"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "hold_pending"
+    due_date: "+1d17:00"
+
+  # Test: shared_all with pending_claim_action=clear_pending
+  - name: "Shared All Pending Clear"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:eraser"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+1d17:00"
+
+  # Test: shared_all with pending_claim_action=auto_approve_pending
+  - name: "Shared All Pending Auto Approve"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:check-decagram"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "auto_approve_pending"
+    due_date: "+1d17:00"
+
+  # ==========================================================================
+  # SHARED_FIRST WITH AUTO-APPROVE AND PENDING CLAIM ACTIONS
+  # ==========================================================================
+
+  # Test: shared_first with auto_approve=true
+  - name: "Shared First Auto Approve"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 15.0
+    icon: "mdi:flash-auto"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: true
+    due_date: "+1d17:00"
+
+  # Test: shared_first with pending_claim_action=hold_pending
+  - name: "Shared First Pending Hold"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:hand-back-left-outline"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "hold_pending"
+    due_date: "+1d17:00"
+
+  # Test: shared_first with pending_claim_action=clear_pending
+  - name: "Shared First Pending Clear"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:eraser-variant"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "+1d17:00"
+
+  # Test: shared_first with pending_claim_action=auto_approve_pending
+  - name: "Shared First Pending Auto Approve"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:check-decagram-outline"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "auto_approve_pending"
+    due_date: "+1d17:00"
+
+  # ==========================================================================
+  # ROTATION_SIMPLE CHORES (3+ chores for Builder 2 rotation testing)
+  # ==========================================================================
+
+  # Test: 3-kid rotation_simple daily
+  - name: "Dishes Rotation"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 15.0
+    icon: "mdi:silverware-fork-knife"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: 2-kid rotation_simple weekly
+  - name: "Vacuum Living Room"
+    assigned_to: ["Zoë", "Max!"]
+    points: 12.0
+    icon: "mdi:vacuum"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # Test: 3-kid rotation_simple with auto_approve
+  - name: "Feed Pet Fish"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 5.0
+    icon: "mdi:fish"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+    auto_approve: true
+
+  # Test: 2-kid rotation_simple (different pair)
+  - name: "Water Plants"
+    assigned_to: ["Max!", "Lila"]
+    points: 8.0
+    icon: "mdi:watering-can"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # ==========================================================================
+  # ROTATION_SMART CHORES (3+ chores for Builder 2 rotation testing)
+  # ==========================================================================
+
+  # Test: 3-kid rotation_smart daily (fairness-weighted)
+  - name: "Laundry Rotation"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 20.0
+    icon: "mdi:washing-machine"
+    completion_criteria: "rotation_smart"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Test: 2-kid rotation_smart weekly
+  - name: "Clean Bathroom Mirror"
+    assigned_to: ["Zoë", "Lila"]
+    points: 10.0
+    icon: "mdi:mirror"
+    completion_criteria: "rotation_smart"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # Test: 3-kid rotation_smart with overdue handling
+  - name: "Organize Bookshelf"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 18.0
+    icon: "mdi:bookshelf"
+    completion_criteria: "rotation_smart"
+    recurring_frequency: "weekly"
+    auto_approve: false
+    due_date: "+7d14:00"
+
+  # Test: 2-kid rotation_smart (different pair)
+  - name: "Clean Computer Desk"
+    assigned_to: ["Max!", "Lila"]
+    points: 12.0
+    icon: "mdi:desk"
+    completion_criteria: "rotation_smart"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+# =============================================================================
+# CHORE COVERAGE MATRIX
+# =============================================================================
+# SHARED_ALL (4 chores):
+#   - Daily, 3 kids: Family dinner cleanup (10pts)
+#   - Daily, 2 kids: Walk the dog (8pts) - Zoë, Max
+#   - Weekly, 3 kids: Weekend yard work (20pts)
+#   - Weekly, 2 kids: Clean bathroom (15pts) - Max, Lila
+#
+# SHARED_FIRST (4 chores):
+#   - Daily, 3 kids: Take out trash (5pts)
+#   - Daily, 2 kids: Get the mail (3pts) - Zoë, Lila
+#   - Weekly, 3 kids: Wash the car (25pts)
+#   - Weekly, 2 kids: Organize garage (30pts) - Zoë, Max
+#
+# SHARED_ALL AUTO-APPROVE & PENDING CLAIM (4 chores):
+#   - Auto Approve, 3 kids: Shared All Auto Approve (12pts)
+#   - Pending Hold, 2 kids: Shared All Pending Hold (10pts) - Zoë, Max
+#   - Pending Clear, 2 kids: Shared All Pending Clear (10pts) - Zoë, Max
+#   - Pending Auto Approve, 2 kids: Shared All Pending Auto Approve (10pts) - Zoë, Max
+#
+# SHARED_FIRST AUTO-APPROVE & PENDING CLAIM (4 chores):
+#   - Auto Approve, 3 kids: Shared First Auto Approve (15pts)
+#   - Pending Hold, 2 kids: Shared First Pending Hold (10pts) - Zoë, Max
+#   - Pending Clear, 2 kids: Shared First Pending Clear (10pts) - Zoë, Max
+#   - Pending Auto Approve, 2 kids: Shared First Pending Auto Approve (10pts) - Zoë, Max
+#
+# ROTATION_SIMPLE (4 chores):
+#   - Daily, 3 kids: Dishes Rotation (15pts)
+#   - Weekly, 2 kids: Vacuum Living Room (12pts) - Zoë, Max
+#   - Daily Auto-Approve, 3 kids: Feed Pet Fish (5pts)
+#   - Daily, 2 kids: Water Plants (8pts) - Max, Lila
+#
+# ROTATION_SMART (4 chores):
+#   - Daily, 3 kids: Laundry Rotation (20pts)
+#   - Weekly, 2 kids: Clean Bathroom Mirror (10pts) - Zoë, Lila
+#   - Weekly with Due Date, 3 kids: Organize Bookshelf (18pts)
+#   - Daily, 2 kids: Clean Computer Desk (12pts) - Max, Lila
+#
+# Kid Assignment Coverage (Updated with Rotation Chores):
+#   - Zoë: 13 chores (7 shared + 6 rotation)
+#   - Max: 13 chores (7 shared + 6 rotation)
+#   - Lila: 12 chores (6 shared + 6 rotation)

@@ -1,0 +1,86 @@
+# ============================================================================
+# SCENARIO: Daily Multi Upon Completion Reset (SHARED_ALL Completion)
+# ============================================================================
+#
+# Tests daily_multi chores with upon_completion reset where ALL kids must
+# complete before the chore resets (shared_all completion criteria).
+#
+# Kids: Zoë, Max!, Lila, Parent: Môm
+# ============================================================================
+
+system:
+  schema_version: 43
+
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+
+  - name: "Max!"
+    ha_user: "kid2"
+
+  - name: "Lila"
+    ha_user: "kid3"
+
+parents:
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent1"
+    kids:
+      - "Zoë"
+      - "Max!"
+      - "Lila"
+
+chores:
+  # ============================================================================
+  # DAILY_MULTI CHORES WITH UPON_COMPLETION RESET (SHARED_ALL)
+  # ============================================================================
+
+  - name: "Feed Pets Morning and Night Shared"
+    assigned_to: ["Zoë", "Max!", "Lila"]
+    points: 5.0
+    icon: "mdi:food-drumstick"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: 2
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+
+  - name: "Study Session 3x Daily Shared"
+    assigned_to: ["Zoë", "Max!"]
+    points: 10.0
+    icon: "mdi:book-open-variant"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: 3
+    auto_approve: false
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "hold_pending"
+
+  - name: "Water Plants 2x Daily Auto Approve Shared"
+    assigned_to: ["Lila"]
+    points: 3.0
+    icon: "mdi:watering-can"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily_multi"
+    daily_multi_times: 2
+    auto_approve: true
+    approval_reset_type: "upon_completion"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+
+  # ============================================================================
+  # CONTROL CHORES (for comparison/baseline tests)
+  # ============================================================================
+
+  - name: "Regular Daily Chore Shared"
+    assigned_to: ["Zoë"]
+    points: 8.0
+    icon: "mdi:checkbox-marked"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+    auto_approve: false
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"

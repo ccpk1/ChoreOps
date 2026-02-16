@@ -1,0 +1,1814 @@
+<#-- ============================================= --#>
+<#-- KidsChores Dashboard Template - FULL     --#>
+<#-- Template Schema Version: 1                  --#>
+<#-- Integration: v0.5.0-beta3 (Schema 43)      --#>
+<#-- ============================================= --#>
+<#--                                             --#>
+<#-- Full dashboard: ALL features & cards      --#>
+<#-- Based on kc_dashboard_all.yaml v0.5.0b3    --#>
+<#--                                             --#>
+<#-- Injection variables (Python << >>):         --#>
+<#--   << kid.name >> - Child's display name     --#>
+<#--   << kid.slug >> - URL-safe slug            --#>
+<#--                                             --#>
+<#-- All HA Jinja2 {{ }} syntax preserved       --#>
+<#-- ============================================= --#>
+
+- max_columns: 4
+  title: << kid.name >> Chores
+  path: << kid.slug >>
+  sections:
+    - type: grid
+      cards:
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ============================================= --#}
+
+                  {#-- ============ Version KCD_v0.5.0b3 ============= --#}
+
+                  {#-- ============================================= --#}
+
+                  {#-- Requires KidsChores Integration 0.5.0  --#}
+
+                  {#-- Language translation now managed by the integration --#}
+
+                  {#-- Select language by going to integration options and editing the kid --#}
+
+
+                  {#-- ===== WELCOME CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set total_sensor = core_sensors.get('chores_eid') -%}
+                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points = states(points_sensor) | int(default=0) -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set weekly_completed = state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0) -%}
+                    {%- set todays_completed = state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0) -%}
+                    {%- set highest_badge = states(highest_badge_entity) or 'None' -%}
+                    {%- set highest_badge_icon = state_attr(highest_badge_entity, 'icon') or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(default=1) -%}
+
+                    {#-- 4. Build Display --#}
+                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
+                      {%- if points_multiplier > 1 -%}
+                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ " (x" ~ points_multiplier|string ~ ")  \n" -%}
+                      {%- else -%}
+                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ "  \n" -%}
+                      {%- endif -%}
+                    {%- else -%}
+                      {%- set badge_display = "" -%}
+                    {%- endif -%}
+
+                    {%- set content =
+                      "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "! \n"
+                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n"
+                      "**📅 " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** &nbsp;&nbsp;" ~ weekly_completed ~ "  \n"
+                      "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** &nbsp;&nbsp;" ~ todays_completed ~ "  \n\n"
+                    -%}
+
+                    {#-- 5. Render --#}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': content
+                      }
+                    }},
+
+                  {%- endif -%}
+        - type: grid
+          square: false
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== CHORES CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+                  {%- set pref_column_count = 2 -%}
+
+                  {%- set pref_use_overdue_grouping = true -%}
+
+                  {%- set pref_use_today_grouping = true -%}
+
+                  {%- set pref_include_daily_recurring_in_today = true -%}
+
+                  {%- set pref_use_this_week_grouping = true -%}
+
+                  {%- set pref_include_weekly_recurring_in_this_week = true -%}
+
+                  {%- set pref_exclude_approved = false -%}
+
+                  {%- set pref_use_label_grouping = false -%}
+
+                  {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
+
+                  {%- set pref_label_display_order = [] -%}  {#-- Example: ['Kitchen', 'Bedroom', 'Outdoor'] --#}
+
+                  {%- set pref_sort_within_groups = 'default' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc' --#}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_column_count = pref_column_count | int(default=2) -%}
+                  {%- set pref_use_overdue_grouping = (pref_use_overdue_grouping | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_use_today_grouping = (pref_use_today_grouping | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_include_daily_recurring_in_today = (pref_include_daily_recurring_in_today | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_use_this_week_grouping = (pref_use_this_week_grouping | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_include_weekly_recurring_in_this_week = (pref_include_weekly_recurring_in_this_week | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_exclude_approved = (pref_exclude_approved | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {%- set ns = namespace(
+                    overdue_buttons=[],
+                    am_buttons=[],
+                    today_buttons=[],
+                    this_week_buttons=[],
+                    other_buttons=[],
+                    label_button_groups=[],
+                    label_order=[],
+                    group_cards=[]
+                  ) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
+                    {%- set chores_by_label_raw = state_attr(dashboard_helper, 'chores_by_label') | default({}, true) -%}
+
+                    {#-- 4. Build Display --#}
+                    {%- for chore in chore_list -%}
+                      {%- set chore_sensor_id = chore.eid if chore is mapping else chore -%}
+                      {%- set chore_status = chore.status if chore is mapping else states(chore_sensor_id) -%}
+                      {%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
+                      {%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
+                      {%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
+
+                      {#-- Step 1: Skip if chore labels match exclude list --#}
+                      {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
+
+                        {#-- Step 2: Skip approved chores if preference set --#}
+                        {%- if chore_status == 'approved' and pref_exclude_approved -%}
+                          {#-- Skip this chore --#}
+
+                        {#-- Step 3: Handle overdue chores (highest priority) --#}
+                        {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
+                          {%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 4: Skip chores with labels when label grouping is enabled (they're processed separately) --#}
+                        {%- elif pref_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
+                          {#-- Labels take priority; processed in label grouping section below --#}
+
+                        {#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
+                        {#-- If a chore is in 'today' group without specific date, it's daily recurring --#}
+                        {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- If a chore is in 'this_week' group without specific date, it's weekly recurring --#}
+                        {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 6: Categorize by primary_group (time-based) --#}
+                        {%- elif chore_primary_group == 'today' and pref_use_today_grouping and chore_is_today_am == true -%}
+                          {%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'today' and pref_use_today_grouping and chore_is_today_am != true -%}
+                          {%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'today' and not pref_use_today_grouping -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'this_week' and pref_use_this_week_grouping -%}
+                          {%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'this_week' and not pref_use_this_week_grouping -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 7: Default fallback --#}
+                        {%- else -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+                        {%- endif -%}
+
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {#-- Build Label Groups from chores_by_label --#}
+                    {%- if pref_use_label_grouping -%}
+                      {#-- Determine label order: use pref_label_display_order if provided, else all labels alphabetically --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set ns.label_order = pref_label_display_order -%}
+                      {%- else -%}
+                        {%- set ns.label_order = chores_by_label_raw.keys() | list | sort -%}
+                      {%- endif -%}
+
+                      {#-- Build label button groups in order --#}
+                      {%- for label in ns.label_order -%}
+                        {%- if label not in pref_exclude_label_list and label in chores_by_label_raw -%}
+                          {%- set label_eids = chores_by_label_raw[label] | default([], true) -%}
+                          {%- set ns.temp_label_buttons = [] -%}
+                          {%- for eid in label_eids -%}
+                            {%- if eid not in (ns.overdue_buttons | list) -%}
+                              {%- set ns.temp_label_buttons = ns.temp_label_buttons + [eid] -%}
+                            {%- endif -%}
+                          {%- endfor -%}
+                          {%- if ns.temp_label_buttons | length > 0 -%}
+                            {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+
+                      {#-- Add any remaining labels not in pref_label_display_order (alphabetically sorted) --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set remaining_labels = chores_by_label_raw.keys() | list | sort | reject('in', pref_label_display_order) | list -%}
+                        {%- for label in remaining_labels -%}
+                          {%- if label not in pref_exclude_label_list -%}
+                            {%- set label_eids = chores_by_label_raw[label] | default([], true) -%}
+                            {%- set ns.temp_label_buttons = [] -%}
+                            {%- for eid in label_eids -%}
+                              {%- if eid not in (ns.overdue_buttons | list) -%}
+                                {%- set ns.temp_label_buttons = ns.temp_label_buttons + [eid] -%}
+                              {%- endif -%}
+                            {%- endfor -%}
+                            {%- if ns.temp_label_buttons | length > 0 -%}
+                              {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                      {%- endif -%}
+                    {%- endif -%}
+
+                    {#-- Build the button groups --#}
+                    {%- set button_groups = [
+                        {'name': "!!!!!!!!!!! " ~ ui.get('overdue', 'err-overdue') ~ " !!!!!!!!!!!", 'buttons': ns.overdue_buttons, 'icon': 'mdi:alert-octagon'},
+                        {'name': ui.get('due_this_morning', 'err-due_this_morning'), 'buttons': ns.am_buttons, 'icon': 'mdi:alarm'},
+                        {'name': ui.get('due_today', 'err-due_today'), 'buttons': ns.today_buttons, 'icon': 'mdi:calendar-today'},
+                        {'name': ui.get('due_this_week', 'err-due_this_week'), 'buttons': ns.this_week_buttons, 'icon': 'mdi:calendar-week'}
+                    ] -%}
+
+                    {#-- Insert label-based groups --#}
+                    {%- set button_groups = button_groups + ns.label_button_groups -%}
+
+                    {#-- Continue with bonus group --#}
+                    {%- set button_groups = button_groups + [
+                        {'name': ui.get('upcoming_bonus', 'err-upcoming_bonus'), 'buttons': ns.other_buttons, 'icon': 'mdi:calendar-clock'}
+                    ] -%}
+
+                    {#-- Sort chores within each group based on preference --#}
+                    {%- if pref_sort_within_groups != 'default' -%}
+                      {%- set ns.sorted_groups = [] -%}
+                      {%- for group in button_groups -%}
+                        {%- if group.buttons | length > 0 -%}
+                          {%- if pref_sort_within_groups in ['name_asc', 'name_desc'] -%}
+                            {#-- Build list of (name, eid) tuples for sorting --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set chore_name = state_attr(eid, 'chore_name') | default('zzz', true) | lower -%}
+                              {%- set ns.temp_list = ns.temp_list + [[chore_name, eid]] -%}
+                            {%- endfor -%}
+                            {#-- Sort the list --#}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- if pref_sort_within_groups == 'name_desc' -%}
+                              {%- set sorted_list = sorted_list | reverse | list -%}
+                            {%- endif -%}
+                            {#-- Extract just the entity IDs --#}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- elif pref_sort_within_groups in ['date_asc', 'date_desc'] -%}
+                            {#-- Build list of (due_date_timestamp, eid) tuples for sorting --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set due_date_str = state_attr(eid, 'due_date') | string -%}
+                              {%- if due_date_str not in ['None', 'unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_str) | default(9999999999, true) -%}
+                              {%- else -%}
+                                {%- set due_timestamp = 9999999999 -%}
+                              {%- endif -%}
+                              {%- set ns.temp_list = ns.temp_list + [[due_timestamp, eid]] -%}
+                            {%- endfor -%}
+                            {#-- Sort the list --#}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- if pref_sort_within_groups == 'date_desc' -%}
+                              {%- set sorted_list = sorted_list | reverse | list -%}
+                            {%- endif -%}
+                            {#-- Extract just the entity IDs --#}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- else -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                          {%- endif -%}
+                        {%- else -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set button_groups = ns.sorted_groups -%}
+                    {%- endif -%}
+
+                    {#-- 5. Render --#}
+                    {{
+                      {
+                        'type': 'heading',
+                        'icon': 'mdi:broom',
+                        'heading': ui.get('chores', 'err-chores'),
+                        'heading_style': 'title',
+                      }
+                    }},
+
+                    {#-- Loop through the button groups and create all claim buttons --#}
+                    {%- for group in button_groups -%}
+                    {%- set ns.group_cards = [] -%}
+                    {%- if group.buttons | length > 0 -%}
+                      {%- set heading_card =
+                        {
+                          'type': 'heading',
+                          'icon': group.icon,
+                          'heading': group.name,
+                          'heading_style': 'title',
+                        }
+                      -%}
+                      {{- heading_card -}},
+
+                      {%- for chore_sensor_id in group.buttons -%}
+                        {%- set claim_button_eid = state_attr(chore_sensor_id, 'claim_button_eid') | default('', true) -%}
+                        {%- set disapprove_button_eid = state_attr(chore_sensor_id, 'disapprove_button_eid') | default('', true) -%}
+                        {%- set chore_name = state_attr(chore_sensor_id, 'chore_name') | default('Unknown') -%}
+                        {%- set shared_chore = state_attr(chore_sensor_id, 'completion_criteria') != 'independent' -%}
+                        {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
+                        {%- set button_state = states(claim_button_eid) if claim_button_eid else 'unknown' -%}
+                        {%- set due_date_str = state_attr(chore_sensor_id, 'due_date') | string -%}
+                        {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str not in ['None', 'unknown', 'unavailable'] else None -%}
+                        {%- set recurring = state_attr(chore_sensor_id, 'recurring_frequency') -%}
+                        {%- set today = now().astimezone(now().tzinfo).date() -%}
+                        {%- set due_date_short =
+                            ui.get('daily', 'err-daily') if recurring == 'daily' and not due_date else
+                            ui.get('weekly', 'err-weekly') if recurring == 'weekly' and not due_date else
+                            ui.get('no_due_date', 'err-no_due_date') if not due_date else
+                            (due_date.strftime('%-I:%M %p') if due_date.date() == today else as_timestamp(due_date) | timestamp_custom('%a %b %-d', true))
+                        -%}
+
+                        {%- set approval_reset_type = state_attr(chore_sensor_id, 'approval_reset_type') -%}
+                        {%- set multi_approve = approval_reset_type and '_multi' in approval_reset_type -%}
+                        {%- set chore_state = states(chore_sensor_id) -%}
+                        {%- set state_map = {
+                            'pending': ui.get('pending', 'err-pending'),
+                            'due': ui.get('due', 'err-due'),
+                            'claimed': ui.get('claimed', 'err-claimed'),
+                            'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
+                            'approved': ui.get('approved', 'err-approved'),
+                            'approved_in_part': ui.get('approved_in_part', 'err-approved_in_part'),
+                            'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                            'overdue': ui.get('overdue', 'err-overdue'),
+                            'independent': ui.get('independent', 'err-independent'),
+                            'shared_all': ui.get('shared_all', 'err-shared_all'),
+                            'shared_first': ui.get('shared_first', 'err-shared_first')
+                        } -%}
+                        {%- set chore_state_display = (state_map[chore_state] if chore_state in state_map else chore_state) ~ ' (M)' if multi_approve == true else (state_map[chore_state] if chore_state in state_map else chore_state) -%}
+                        {%- set points = state_attr(chore_sensor_id, 'default_points') | string -%}
+                        {%- set global_chore_state = state_attr(chore_sensor_id, 'global_state') -%}
+                        {%- set streak = state_attr(chore_sensor_id, 'chore_current_streak') | string -%}
+                        {%- set secondary = points_label ~ ': ' + points + '\n' + ui.get('streak', 'err-streak') + ': ' + streak + '\n \n' + ui.get('status', 'err-status') + ': ' + chore_state_display + '\n' + ui.get('due', 'err-due') + ': ' + due_date_short -%}
+                        {%- set icon_color = (
+                              'blue' if chore_state == 'approved' and multi_approve == true else
+                              'green' if chore_state == 'approved' else
+                              'yellow' if chore_state == 'partial' else
+                              'orange' if chore_state == 'claimed' else
+                              'red' if chore_state == 'overdue' else
+                              'purple' if '_in_part' in global_chore_state else
+                              'grey' if chore_state == 'completed_by_other' else
+                              'grey'
+                            ) -%}
+                        {%- set badge_color = (
+                              'blue' if chore_state == 'approved' and multi_approve == true else
+                              'green' if chore_state == 'approved' else
+                              'green' if chore_state == 'partial' else
+                              'green' if chore_state == 'claimed' else
+                              'red' if chore_state == 'overdue' else
+                              'purple' if '_in_part' in global_chore_state else
+                              'blue' if chore_state == 'completed_by_other' else
+                              'grey'
+                            ) -%}
+                        {%- set badge_icon = (
+                              'mdi:check-bold' if chore_state == 'approved' else
+                              'mdi:check-bold' if chore_state == 'partial' else
+                              'mdi:check-bold' if chore_state == 'claimed' else
+                              'mdi:exclamation-thick' if chore_state == 'overdue' else
+                              'mdi:account-group' if '_in_part' in global_chore_state else
+                              'mdi:lock' if chore_state == 'completed_by_other' else
+                              ''
+                            ) -%}
+                        {#-- Select button entity based on chore state: disapprove for claimed, claim for others --#}
+                        {%- set active_button_eid = disapprove_button_eid if chore_state == 'claimed' else claim_button_eid -%}
+                        {#-- Add chore card to the group_cards list --#}
+                        {%- set chore_icon = state_attr(chore_sensor_id, 'icon') | default('mdi:broom', true) -%}
+                        {%- set ns.group_cards = ns.group_cards + [{
+                            'type': 'custom:mushroom-template-card',
+                            'entity': chore_sensor_id,
+                            'primary': primary,
+                            'multiline_secondary': 'false',
+                            'secondary': secondary,
+                            'layout': 'horizontal',
+                            'icon': chore_icon,
+                            'icon_color': icon_color,
+                            'badge_color': badge_color,
+                            'badge_icon': badge_icon,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'button.press',
+                              'target': {
+                                'entity_id': active_button_eid
+                              }
+                            },
+                            'hold_action': {
+                              'action': 'more-info'
+                            }
+                        }] -%}
+                      {%- endfor -%}
+                      {#-- Display the grid card for this group --#}
+                        {{
+                          {
+                            'type': 'grid',
+                            'columns': pref_column_count,
+                            'square': false,
+                            'cards': ns.group_cards
+                          }
+                        }},
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== REWARDS CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+                  {%- set pref_column_count = 1 -%}
+
+                  {%- set pref_use_label_grouping = false -%}
+
+                  {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] - Works with or without label grouping enabled --#}
+
+                  {%- set pref_label_display_order = [] -%}  {#-- Example: ['Toys', 'Snacks', 'Activities'] - Only applies when label grouping is enabled --#}
+
+                  {%- set pref_sort_rewards = 'default' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'cost_asc', 'cost_desc' --#}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_column_count = pref_column_count | int(default=1) -%}
+                  {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {%- set ns = namespace(
+                    all_labels=[],
+                    label_order=[],
+                    label_groups=[],
+                    temp_label_rewards=[],
+                    sorted_groups=[],
+                    temp_list=[],
+                    filtered_rewards=[],
+                    group_cards=[]
+                  ) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed '" ~ name ~ "'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set reward_list = state_attr(dashboard_helper, 'rewards') | default([], true) -%}
+                    {%- set current_points = states(points_sensor) | int(default=0) -%}
+
+                    {#-- Apply label exclusion filter (works regardless of grouping setting) --#}
+                    {%- if pref_exclude_label_list | length > 0 -%}
+                      {%- for reward in reward_list -%}
+                        {%- set reward_labels = reward.labels | default([], true) if reward is mapping else [] -%}
+                        {%- set has_excluded = reward_labels | select('in', pref_exclude_label_list) | list | length > 0 -%}
+                        {%- if not has_excluded -%}
+                          {%- set ns.filtered_rewards = ns.filtered_rewards + [reward] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set reward_list = ns.filtered_rewards -%}
+                    {%- endif -%}
+
+                    {#-- 4. Build Display Groups --#}
+                    {%- if pref_use_label_grouping and reward_list | length > 0 -%}
+                      {#-- Determine all unique labels from rewards (only when grouping enabled) --#}
+                      {%- for reward in reward_list -%}
+                        {%- set reward_labels = reward.labels | default([], true) if reward is mapping else [] -%}
+                        {%- if reward_labels | length == 0 -%}
+                          {%- set ns.all_labels = ns.all_labels + ['-No Label-'] -%}
+                        {%- else -%}
+                          {%- set ns.all_labels = ns.all_labels + reward_labels -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set ns.all_labels = ns.all_labels | unique | list | sort -%}
+
+                      {#-- Determine label order --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {#-- Start with custom order --#}
+                        {%- set ns.label_order = pref_label_display_order -%}
+                        {#-- Add remaining labels (excluding -No Label-) --#}
+                        {%- set remaining = ns.all_labels | reject('in', pref_label_display_order) | reject('eq', '-No Label-') | list -%}
+                        {%- set ns.label_order = ns.label_order + remaining -%}
+                        {#-- Add -No Label- at the end ONLY if not already in custom order --#}
+                        {%- if '-No Label-' in ns.all_labels and '-No Label-' not in pref_label_display_order -%}
+                          {%- set ns.label_order = ns.label_order + ['-No Label-'] -%}
+                        {%- endif -%}
+                      {%- else -%}
+                        {#-- Alphabetical order, but with -No Label- last --#}
+                        {%- set ns.label_order = ns.all_labels | reject('eq', '-No Label-') | list -%}
+                        {%- if '-No Label-' in ns.all_labels -%}
+                          {%- set ns.label_order = ns.label_order + ['-No Label-'] -%}
+                        {%- endif -%}
+                      {%- endif -%}
+
+                      {%- set ns.label_order = ns.label_order | reject('in', pref_exclude_label_list) | list -%}
+
+                      {#-- Build label groups --#}
+                      {%- for label in ns.label_order -%}
+                        {%- set ns.temp_label_rewards = [] -%}
+                        {%- for reward in reward_list -%}
+                          {%- set reward_labels = reward.labels | default([], true) if reward is mapping else [] -%}
+                          {%- set reward_label_check = reward_labels if reward_labels | length > 0 else ['-No Label-'] -%}
+                          {%- if label in reward_label_check -%}
+                            {%- set ns.temp_label_rewards = ns.temp_label_rewards + [reward] -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                        {%- if ns.temp_label_rewards | length > 0 -%}
+                          {%- set ns.label_groups = ns.label_groups + [{'name': label, 'rewards': ns.temp_label_rewards, 'icon': 'mdi:gift'}] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {#-- If no groups (grouping disabled or no labels), create single group --#}
+                    {%- if ns.label_groups | length == 0 and reward_list | length > 0 -%}
+                      {%- set ns.label_groups = [{'name': ui.get('rewards', 'err-rewards'), 'rewards': reward_list, 'icon': 'mdi:gift'}] -%}
+                    {%- endif -%}
+
+                    {#-- Apply sorting to each group --#}
+                    {%- if pref_sort_rewards != 'default' -%}
+                      {%- set ns.sorted_groups = [] -%}
+                      {%- for group in ns.label_groups -%}
+                        {%- if pref_sort_rewards in ['name_asc', 'name_desc'] -%}
+                          {#-- Sort by reward name --#}
+                          {%- set ns.temp_list = [] -%}
+                          {%- for reward in group.rewards -%}
+                            {%- set reward_name = (reward.name | default('zzz') | lower) if reward is mapping else 'zzz' -%}
+                            {%- set ns.temp_list = ns.temp_list + [[reward_name, reward]] -%}
+                          {%- endfor -%}
+                          {%- set sorted_list = ns.temp_list | sort -%}
+                          {%- if pref_sort_rewards == 'name_desc' -%}
+                            {%- set sorted_list = sorted_list | reverse | list -%}
+                          {%- endif -%}
+                          {%- set sorted_rewards = sorted_list | map('last') | list -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'rewards': sorted_rewards, 'icon': group.icon}] -%}
+                        {%- elif pref_sort_rewards in ['cost_asc', 'cost_desc'] -%}
+                          {#-- Sort by reward cost --#}
+                          {%- set ns.temp_list = [] -%}
+                          {%- for reward in group.rewards -%}
+                            {%- set reward_cost = (reward.cost | int(default=999999)) if reward is mapping else 999999 -%}
+                            {%- set ns.temp_list = ns.temp_list + [[reward_cost, reward]] -%}
+                          {%- endfor -%}
+                          {%- set sorted_list = ns.temp_list | sort -%}
+                          {%- if pref_sort_rewards == 'cost_desc' -%}
+                            {%- set sorted_list = sorted_list | reverse | list -%}
+                          {%- endif -%}
+                          {%- set sorted_rewards = sorted_list | map('last') | list -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'rewards': sorted_rewards, 'icon': group.icon}] -%}
+                        {%- else -%}
+                          {#-- Unknown sort option, keep original group --#}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set ns.label_groups = ns.sorted_groups -%}
+                    {%- endif -%}
+
+                    {#-- 5. Render --#}
+                    {%- if ns.label_groups | length == 0 -%}
+                      {{
+                        {
+                          'type': 'heading',
+                          'icon': 'mdi:gift-outline',
+                          'heading': ui.get('rewards', 'err-rewards'),
+                          'heading_style': 'title',
+                        }
+                      }},{{
+                        {
+                          'type': 'markdown',
+                          'content': ui.get('no_rewards', 'err-no_rewards')
+                        }
+                      }},
+                    {%- else -%}
+                      {%- for group in ns.label_groups -%}
+                        {%- set ns.group_cards = [] -%}
+
+                        {%- for reward in group.rewards -%}
+                          {%- set reward_name = reward.name if reward is mapping else 'Unknown' -%}
+                          {%- set reward_cost = (reward.cost | int(default=0)) if reward is mapping else 0 -%}
+                          {%- set reward_claims = (reward.claims | int(default=0)) if reward is mapping else 0 -%}
+                          {%- set reward_approvals = (reward.approvals | int(default=0)) if reward is mapping else 0 -%}
+                          {%- set reward_sensor_eid = reward.eid if reward is mapping else '' -%}
+                          {%- set reward_icon = state_attr(reward_sensor_eid, 'icon') | default('mdi:gift', true) -%}
+                          {%- set claim_button_eid = state_attr(reward_sensor_eid, 'claim_button_eid') | default('', true) -%}
+                          {%- set disapprove_button_eid = state_attr(reward_sensor_eid, 'disapprove_button_eid') | default('', true) -%}
+
+                          {%- set reward_state = states(reward_sensor_eid) -%}
+                          {%- set state_map = {
+                              'locked': ui.get('locked', 'err-locked'),
+                              'available': ui.get('available', 'err-available'),
+                              'requested': ui.get('requested', 'err-requested'),
+                              'approved': ui.get('approved', 'err-approved')
+                          } -%}
+                          {%- set reward_state_display = state_map.get(reward_state, reward_state) -%}
+
+                          {%- set icon_color = (
+                              'green' if reward_state == 'available' else
+                              'orange' if reward_state == 'requested' else
+                              'blue' if reward_state == 'approved' else
+                              'grey'
+                          ) -%}
+
+                          {%- set badge_color = (
+                              'green' if reward_state == 'approved' else
+                              'orange' if reward_state == 'requested' else
+                              'grey' if reward_state == 'locked' else
+                              ''
+                          ) -%}
+
+                          {%- set badge_icon = (
+                              'mdi:check-bold' if reward_state == 'approved' else
+                              'mdi:clock' if reward_state == 'requested' else
+                              'mdi:lock' if reward_state == 'locked' else
+                              ''
+                          ) -%}
+
+                          {#-- Select button entity based on reward state: disapprove for requested, claim for others --#}
+                          {%- set active_button_eid = disapprove_button_eid if reward_state == 'requested' else claim_button_eid -%}
+
+                          {%- set ns.group_cards = ns.group_cards + [{
+                            'type': 'custom:mushroom-template-card',
+                            'entity': reward_sensor_eid,
+                            'primary': reward_name ~ " ( " ~ reward_state_display ~ " )",
+                            'secondary': "💰 " ~ ui.get('cost', 'err-cost') ~ ": " ~ reward_cost|string ~ " | 👍 " ~ reward_approvals|string ~ " | 📥 " ~ reward_claims|string,
+                            'icon': reward_icon,
+                            'icon_color': icon_color,
+                            'badge_color': badge_color,
+                            'badge_icon': badge_icon,
+                            'tap_action': { 'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': active_button_eid } },
+                            'hold_action': { 'action': 'more-info' }
+                          }] -%}
+                        {%- endfor -%}
+
+                        {{
+                          {
+                            'type': 'heading',
+                            'icon': group.icon,
+                            'heading': group.name,
+                            'heading_style': 'title',
+                          }
+                        }},{{
+                          {
+                            'type': 'grid',
+                            'columns': pref_column_count,
+                            'square': false,
+                            'cards': ns.group_cards if ns.group_cards | length > 0 else [{'type': 'markdown', 'content': ui.get('no_rewards', 'err-no_rewards')}]
+                          }
+                        }},
+                      {%- endfor -%}
+                    {%- endif -%}
+                  {%- endif -%}
+    - type: grid
+      cards:
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== SHOWCASE CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+                  {%- set pref_show_penalties = true -%}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_show_penalties = (pref_show_penalties | default('true') | string | lower) == 'true' -%}
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {%- set ns = namespace(
+                    badge_list="\n ",
+                    reward_progress=[],
+                    total_bonus_points=0,
+                    bonuses=[],
+                    total_penalty_points=0,
+                    penalties=[],
+                    achievements=[],
+                    challenges=[],
+                    earned_badges_display='',
+                    content=''
+                  ) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set all_time_sensor = core_sensors.get('chores_eid') -%}
+                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set helper_attrs = states[dashboard_helper].attributes -%}
+                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points = states(points_sensor) | int(default=0) -%}
+                    {%- set points_earned_all_time = state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0) -%}
+                    {%- set all_time_completed = state_attr(all_time_sensor, 'chore_stat_approved_all_time') | int(default=0) -%}
+                    {%- set highest_badge = states(highest_badge_entity) or 'None' -%}
+                    {%- set highest_badge_icon = state_attr(highest_badge_entity, 'icon') or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(1) -%}
+                    {%- set all_badges = state_attr(highest_badge_entity, 'all_earned_badges') | default([], true) -%}
+                    {%- set reward_list = helper_attrs.rewards | default([], true) -%}
+                    {%- set badge_list = helper_attrs.badges | default([], true) -%}
+                    {%- set bonus_list = helper_attrs.bonuses | default([], true) -%}
+                    {%- set penalty_list = helper_attrs.penalties | default([], true) -%}
+                    {%- set achievement_list = helper_attrs.achievements | default([], true) -%}
+                    {%- set challenge_list = helper_attrs.challenges | default([], true) -%}
+                    {#-- 4. Build Display --#}
+                    {%- set badge_display_line = ui.get('none', 'err-none') if highest_badge in ['None', 'unknown', 'Unknown', 'unavailable'] else "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge -%}
+
+                    {%- for badge in badge_list -%}
+                      {%- set badge_entity = badge.eid if badge is mapping else badge -%}
+                      {#-- Skip badges with null eid (newly created, not yet assigned entity ID) --#}
+                      {%- if not badge_entity or badge_entity == 'null' or badge_entity == None -%}
+                        {%- continue -%}
+                      {%- endif -%}
+                      {%- set badge_name = badge.name if badge is mapping else state_attr(badge_entity, 'name') | default('Unknown Badge') -%}
+                      {%- set badge_status = (badge.status | default('')) if badge is mapping else state_attr(badge_entity, 'status') | default('') -%}
+                      {%- set badge_icon = state_attr(badge_entity, 'icon') | default('mdi:medal-outline') -%}
+                      {%- if badge_status in ['in_progress', 'active_cycle'] -%}
+                        {%- set ns.badge_list = ns.badge_list + "- <ha-icon icon='" ~ badge_icon ~ "'></ha-icon> " ~ badge_name ~ "  \n" -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {%- for reward in reward_list -%}
+                      {%- set reward_name = (reward.name | default('Unknown Reward')) if reward is mapping else 'Unknown Reward' -%}
+                      {%- set claim_count = (reward.claims | int(default=0)) if reward is mapping else 0 -%}
+                      {%- set approval_count = (reward.approvals | int(default=0)) if reward is mapping else 0 -%}
+                      {%- if claim_count > 0 or approval_count > 0 -%}
+                        {%- set ns.reward_progress = ns.reward_progress + [
+                          "- 🎁 **" ~ reward_name ~ ":** &nbsp;&nbsp; " ~ ui.get('claims', 'err-claims') ~ ": &nbsp;"
+                          ~ claim_count ~ "&nbsp; |&nbsp; " ~ ui.get('approvals', 'err-approvals') ~ ": &nbsp;" ~ approval_count
+                        ] -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {%- for bonus in bonus_list -%}
+                      {%- set bonus_button_eid = bonus.eid if bonus is mapping else none -%}
+                      {%- set bonus_name = (bonus.name | default('Unknown Bonus')) if bonus is mapping else 'Unknown Bonus' -%}
+                      {%- set bonus_icon = state_attr(bonus_button_eid, 'icon') | default('mdi:gift') -%}
+                      {%- set bonus_points = (bonus.points | float(default=0)) if bonus is mapping else 0 -%}
+                      {%- set bonus_count = (bonus.applied | int(default=0)) if bonus is mapping else 0 -%}
+                      {%- if bonus_count > 0 -%}
+                        {%- set ns.total_bonus_points = ns.total_bonus_points + (bonus_points * bonus_count) -%}
+                        {%- set ns.bonuses = ns.bonuses + [
+                          "- <ha-icon icon='" ~ bonus_icon ~ "'></ha-icon> **" ~ bonus_name ~ ":** " ~ ui.get('applied', 'err-applied') ~ " "
+                          ~ bonus_count ~ " (💰 " ~ (bonus_points * bonus_count) ~ " " ~ points_label ~ ")"
+                        ] -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {%- for penalty in penalty_list -%}
+                      {%- set penalty_button_eid = penalty.eid if penalty is mapping else none -%}
+                      {%- set penalty_name = (penalty.name | default('Unknown Penalty')) if penalty is mapping else 'Unknown Penalty' -%}
+                      {%- set penalty_icon = state_attr(penalty_button_eid, 'icon') | default('mdi:alert-octagon') -%}
+                      {%- set penalty_points = (penalty.points | float(default=0)) if penalty is mapping else 0 -%}
+                      {%- set penalty_count = (penalty.applied | int(default=0)) if penalty is mapping else 0 -%}
+                      {%- if penalty_count > 0 -%}
+                        {%- set ns.total_penalty_points = ns.total_penalty_points + (penalty_points * penalty_count) -%}
+                        {%- set ns.penalties = ns.penalties + [
+                          "- <ha-icon icon='" ~ penalty_icon ~ "'></ha-icon> **" ~ penalty_name ~ ":** " ~ ui.get('applied', 'err-applied') ~ " "
+                          ~ penalty_count ~ " (💥 " ~ (penalty_points * penalty_count) ~ " " ~ points_label ~ ")"
+                        ] -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {#-- Collect Achievements with Progress and Rewards --#}
+                    {%- for achievement in achievement_list -%}
+                      {%- set achievement_sensor = achievement.eid if achievement is mapping else achievement -%}
+                      {%- set name = (achievement.name | default('Unknown Achievement')) if achievement is mapping else state_attr(achievement_sensor, 'achievement_name') | default('Unknown Achievement') -%}
+                      {%- set icon = state_attr(achievement_sensor, 'icon') or 'mdi:trophy-award' -%}
+                      {%- set progress = states(achievement_sensor) | float(default=0) -%}
+                      {%- set award_status = state_attr(achievement_sensor, 'awarded') -%}
+
+                      {#-- Get Overall Sensor for Reward Points --#}
+                      {%- set overall_sensor = achievement_sensor | regex_replace('^sensor\\.kc_.*?_achievement_status_', 'sensor.kc_achievement_status_') -%}
+
+                      {%- set reward_points = state_attr(overall_sensor, 'reward_points') | int(default=0) -%}
+
+                      {%- set status = ui.get('completed', 'err-completed') if award_status == 'true' else '⌛ ' ~ progress|round(0) ~ '%' -%}
+                      {%- set ns.achievements = ns.achievements + ["- " ~ "<ha-icon icon='" ~ icon ~ "'></ha-icon>&nbsp;" ~ name ~ " (" ~ status ~ ", 💎 " ~ reward_points ~ ")"] -%}
+                    {%- endfor -%}
+
+                    {#-- Collect Challenges with Progress and Rewards --#}
+                    {%- for challenge in challenge_list -%}
+                      {%- set challenge_sensor = challenge.eid if challenge is mapping else challenge -%}
+                      {%- set name = (challenge.name | default('Unknown Challenge')) if challenge is mapping else state_attr(challenge_sensor, 'challenge_name') | default('Unknown Challenge') -%}
+                      {%- set icon = state_attr(challenge_sensor, 'icon') or 'mdi:flag-checkered' -%}
+                      {%- set progress = states(challenge_sensor) | float(default=0) -%}
+                      {%- set award_status = state_attr(challenge_sensor, 'awarded') -%}
+
+                      {#-- Get Overall Sensor for Reward Points --#}
+                      {%- set overall_sensor = challenge_sensor | regex_replace('^sensor\\.kc_.*?_achievement_status_', 'sensor.kc_achievement_status_') -%}
+                      {%- set reward_points = state_attr(overall_sensor, 'reward_points') | int(default=0) -%}
+
+                      {%- set status = "✔️ " ~ ui.get('completed', 'err-completed') if award_status == 'true' else '⌛ ' ~ progress|round(0) ~ '%' -%}
+                      {%- set ns.challenges = ns.challenges + ["- " ~ "<ha-icon icon='" ~ icon ~ "'></ha-icon>&nbsp;" ~ name ~ " (" ~ status ~ ", 💎 " ~ reward_points ~ ")"] -%}
+                    {%- endfor -%}
+
+                    {#-- Create Content Variable --#}
+
+                    {#-- Format earned badges as bullet list with icons --#}
+                    {%- set earned_badges = badge_list | selectattr('earned', 'equalto', true) | list -%}
+                    {%- if earned_badges | length > 0 -%}
+                      {%- for badge in earned_badges -%}
+                        {%- set badge_icon = state_attr(badge.eid, 'icon') | default('mdi:medal-outline') -%}
+                        {%- set badge_earned_count = badge.earned_count | int(default=1) -%}
+                        {%- set ns.earned_badges_display = ns.earned_badges_display ~ '\n- <ha-icon icon=\'' ~ badge_icon ~ '\'></ha-icon> ' ~ badge.name ~ ' (x' ~ badge_earned_count ~ ')' -%}
+                      {%- endfor -%}
+                    {%- else -%}
+                      {%- set ns.earned_badges_display = '&nbsp;' ~ ui.get('none', 'err-none') -%}
+                    {%- endif -%}
+
+                    {%- set ns.content =
+                      "## 🏅 " ~ name ~ "’s " ~ ui.get('showcase', 'err-showcase') ~ "  \n"
+                      "<ha-icon icon=" ~ points_icon ~ "></ha-icon>" ~ "&nbsp;&nbsp;**" ~ points_label ~ ":** &nbsp;&nbsp;" ~ points ~ " "
+                      "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;**" ~ ui.get('earned_all_time', 'err-earned_all_time') ~ ":** &nbsp;&nbsp;" ~ points_earned_all_time ~ " \n\n"
+                      "<ha-icon icon=" ~ 'mdi:broom' ~ "></ha-icon>" ~ "&nbsp;&nbsp;**" ~ ui.get('total_completed', 'err-total_completed') ~ ":** &nbsp;&nbsp;" ~ all_time_completed ~ " \n\n"
+                      "**🥇 " ~ ui.get('highest_badge_earned', 'err-highest_badge_earned') ~ ":** &nbsp;&nbsp;" ~ badge_display_line ~ "  \n"
+                      "**💎 " ~ points_label ~ " " ~ ui.get('multiplier', 'err-multiplier') ~ ":** &nbsp;&nbsp;x" ~ points_multiplier ~ "  \n\n"
+                      "**🥇 " ~ ui.get('all_earned_badges', 'err-all_earned_badges') ~ ":**  " ~ ns.earned_badges_display ~ "  \n"
+                      "#### 🎁 " ~ ui.get('rewards', 'err-rewards') ~ ": &nbsp;&nbsp;" ~
+                      ("\n" ~ ('\n'.join(ns.reward_progress)) if ns.reward_progress | length > 0 else ui.get('none', 'err-none')) ~ "  \n\n"
+                      "#### ⭐ " ~ ui.get('bonuses_applied', 'err-bonuses_applied') ~ ": &nbsp;&nbsp;" ~
+                      ("\n" ~ ('\n'.join(ns.bonuses)) ~ "  \n"
+                      "**💰 " ~ ui.get('total_bonus', 'err-total_bonus') ~ " " ~ points_label ~ ":** &nbsp;&nbsp;" ~ ns.total_bonus_points ~ "  \n"
+                      if ns.bonuses | length > 0 else ui.get('none', 'err-none')) ~ " \n"
+                      -%}
+
+                      {%- if pref_show_penalties -%}
+                        {%- set ns.content = ns.content ~
+                          "#### ⚠️ " ~ ui.get('penalties_applied', 'err-penalties_applied') ~ ": &nbsp;&nbsp;" ~
+                          ("\n" ~ ('\n'.join(ns.penalties))  ~ "  \n"
+                          "**💥 " ~ ui.get('total_penalty', 'err-total_penalty') ~ " " ~ points_label ~ ":** &nbsp;&nbsp;" ~ ns.total_penalty_points ~ "  \n"
+                          if ns.penalties | length > 0 else ui.get('none', 'err-none')) ~ " \n"
+                          -%}
+                      {%- endif -%}
+
+
+                      {%- set ns.content = ns.content ~
+                      "#### 🏆 " ~ ui.get('achievements', 'err-achievements') ~ ": &nbsp;&nbsp; " ~
+                      ('\n' ~ ('\n'.join(ns.achievements)) if ns.achievements | length > 0 else "&nbsp;" ~ ui.get('none', 'err-none')) ~ "  \n"
+                      "#### 🏁 " ~ ui.get('challenges', 'err-challenges') ~ ": &nbsp;&nbsp; " ~
+                      ('\n' ~ ('\n'.join(ns.challenges)) if ns.challenges | length > 0 else "&nbsp;" ~ ui.get('none', 'err-none')) ~ "  \n"
+                    -%}
+
+                    {%- if not skip_render -%}
+                      {{
+                        {
+                          'type': 'markdown',
+                          'content': ns.content
+                        }
+                      }},
+                    {%- endif -%}
+                  {%- endif -%}
+        - type: custom:auto-entities
+          card:
+            square: false
+            type: grid
+            columns: 1
+          card_param: cards
+          filter:
+            template: >-
+              {#-- ===== CUMULATIVE BADGE CARD ===== --#}
+
+
+              {#-- 1. User Configuration --#}
+
+              {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+
+              {#-- 2. Initialize Variables --#}
+
+              {%- set dashboard_helper = integration_entities('kidschores')
+                  | select('search', '^sensor\\.')
+                  | list
+                  | expand
+                  | selectattr('attributes.purpose', 'defined')
+                  | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                  | selectattr('attributes.kid_name', 'eq', name)
+                  | map(attribute='entity_id')
+                  | first
+                  | default("err-dashboard_helper_missing", true) -%}
+
+              {%- set ns = namespace(
+                badges=[],
+                points=0,
+                points_label='',
+                highest_badge_sensor='',
+                m_status='',
+                m_cycle_pts=0,
+                m_end_date='',
+                m_grace_end='',
+                m_remaining=0,
+                m_required=0,
+                m_last_awarded='',
+                m_award_count=0,
+                points_to_next=0,
+                current_badge_eid='',
+                highest_earned_badge_eid='',
+                next_higher_badge_eid='',
+                next_lower_badge_eid='',
+                has_earned_any=false
+              ) -%}
+
+              {#-- Validation: Check if name is configured --#}
+              {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                {{
+                  {
+                    'type': 'markdown',
+                    'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                  }
+                }},
+                {%- set skip_render = true -%}
+              {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                {{
+                  {
+                    'type': 'markdown',
+                    'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                  }
+                }},
+                {%- set skip_render = true -%}
+              {%- else -%}
+                {%- set skip_render = false -%}
+              {%- endif -%}
+
+              {%- if not skip_render -%}
+
+                {#-- 3. Collect Data --#}
+                {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                {%- set points_sensor = core_sensors.get('points_eid') -%}
+                {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                {%- set ns.points = states(points_sensor) | int(default=0) -%}
+                {%- set ns.points_earned_all_time = state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0) -%}
+                {%- set ns.points_label = state_attr(points_sensor, 'unit_of_measurement') | default('Pts', true) -%}
+                {%- set ns.highest_badge_sensor = core_sensors.get('badges_eid') -%}
+                {%- set hb_state = states(ns.highest_badge_sensor) -%}
+
+                {#-- Extract Live Maintenance Details (attributes accessible even if state is unknown) --#}
+                {%- if ns.highest_badge_sensor -%}
+                  {%- set hb_attrs = states[ns.highest_badge_sensor].attributes | default({}, true) -%}
+                  {%- set ns.points_to_next = hb_attrs.get('points_to_next_badge', 0) | int(default=0) -%}
+                  {%- set ns.m_status = hb_attrs.get('badge_status', 'active') | default('active') -%}
+                  {%- set ns.m_cycle_pts = hb_attrs.get('cycle_points', 0) | int(default=0) -%}
+                  {%- set ns.m_end_date = hb_attrs.get('maintenance_end_date') -%}
+                  {%- set ns.m_grace_end = hb_attrs.get('maintenance_grace_end_date') -%}
+                  {%- set ns.m_required = hb_attrs.get('maintenance_points_required', 0) | int(default=0) -%}
+                  {%- set ns.m_remaining = hb_attrs.get('maintenance_points_remaining', 0) | int(default=0) -%}
+                  {%- set ns.m_last_awarded = hb_attrs.get('last_awarded_date') -%}
+                  {%- set ns.m_award_count = hb_attrs.get('award_count', 0) | int(default=0) -%}
+                  {#-- Get entity IDs directly from sensor --#}
+                  {%- set ns.current_badge_eid = hb_attrs.get('current_badge_eid') -%}
+                  {%- set ns.highest_earned_badge_eid = hb_attrs.get('highest_earned_badge_eid') -%}
+                  {%- set ns.next_higher_badge_eid = hb_attrs.get('next_higher_badge_eid') -%}
+                  {%- set ns.next_lower_badge_eid = hb_attrs.get('next_lower_badge_eid') -%}
+                  {%- set ns.has_earned_any = ns.current_badge_eid is not none and ns.current_badge_eid not in ['', 'None', 'unknown', 'unavailable'] -%}
+
+                  {#-- During demotion, keep highest earned badge as middle card --#}
+                  {%- set middle_badge_eid = ns.current_badge_eid -%}
+                  {%- if ns.m_status == 'demoted' and ns.highest_earned_badge_eid and ns.highest_earned_badge_eid not in ['', 'None', 'unknown', 'unavailable'] -%}
+                    {%- set middle_badge_eid = ns.highest_earned_badge_eid -%}
+                  {%- endif -%}
+
+                  {#-- Avoid duplicate lower card when middle already points to lower badge --#}
+                  {%- if ns.next_lower_badge_eid == middle_badge_eid -%}
+                    {%- set ns.next_lower_badge_eid = none -%}
+                  {%- endif -%}
+
+                  {#-- Build ordered badge list: [next_higher (future), current (earned), next_lower (past)] --#}
+                  {%- set badge_entries = [
+                    {'eid': ns.next_higher_badge_eid, 'role': 'next_higher', 'earned': false},
+                    {'eid': middle_badge_eid, 'role': 'current', 'earned': true},
+                    {'eid': ns.next_lower_badge_eid, 'role': 'next_lower', 'earned': true}
+                  ] -%}
+
+                  {#-- 4. Build Display - extract badge info for each valid entity ID --#}
+                  {%- for entry in badge_entries -%}
+                  {%- set badge_eid = entry.eid -%}
+                  {%- if badge_eid and badge_eid not in ['', 'None', 'unknown', 'unavailable'] and states(badge_eid) not in ['unknown', 'unavailable'] -%}
+                    {%- set target_data = state_attr(badge_eid, 'target') -%}
+                    {%- set threshold_val = 0 -%}
+                    {%- set maintenance_points = 0 -%}
+                    {%- if target_data is mapping -%}
+                      {%- set threshold_val = target_data.threshold_value | float(default=0) -%}
+                      {%- set maintenance_points = target_data.maintenance_rules | int(default=0) -%}
+                    {%- else -%}
+                      {%- set threshold_val = state_attr(badge_eid, 'threshold_value') | float(default=0) -%}
+                    {%- endif -%}
+
+                    {%- set awards_data = state_attr(badge_eid, 'awards') -%}
+                    {%- set award_items_list = [] -%}
+                    {%- if awards_data is iterable and awards_data is not string and awards_data is not none -%}
+                      {%- set award_items_list = awards_data -%}
+                    {%- endif -%}
+
+                    {%- set raw_earned = state_attr(badge_eid, 'kids_earned') -%}
+                    {%- set earned_list = [] -%}
+                    {%- if raw_earned is string -%}
+                      {%- set earned_list = [raw_earned] -%}
+                    {%- elif raw_earned is iterable and raw_earned is not string and raw_earned is not none -%}
+                      {%- set earned_list = raw_earned -%}
+                    {%- endif -%}
+
+                    {%- set badge_info = {
+                      'entity_id': badge_eid,
+                      'name': (state_attr(badge_eid, 'badge_name') or state_attr(badge_eid, 'friendly_name') or '') | regex_replace('^Badge - ', ''),
+                      'icon': state_attr(badge_eid, 'icon') | default('mdi:medal-outline'),
+                      'description': state_attr(badge_eid, 'description') | default(''),
+                      'type': ui.get('cumulative', 'err-cumulative'),
+                      'threshold': threshold_val,
+                      'award_items': award_items_list,
+                      'kids_earned': earned_list,
+                      'maintenance': maintenance_points,
+                      'role': entry.role,
+                      'earned': entry.earned
+                    } -%}
+                    {%- set ns.badges = ns.badges + [badge_info] -%}
+                  {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+
+                {#-- 5. Render --#}
+                {%- if ns.badges | length == 0 -%}
+                  {{
+                    {
+                      'type': 'markdown',
+                      'content': "### 🏅 " ~ ui.get('no_badges_found', 'err-no_badges_found') ~ "  \n" ~ ui.get('cumulative_badge_setup_prompt', 'err-cumulative_badge_setup_prompt')
+                    }
+                  }},
+                {%- else -%}
+                  {%- for badge in ns.badges -%}
+                  {#-- Use pre-computed earned status and role from badge_entries --#}
+                  {%- set earned = badge.earned -%}
+                  {%- set is_highest_earned = (badge.role == 'current') -%}
+                  {%- set is_target_card = (badge.role == 'next_higher') -%}
+
+                  {#-- HEADER --#}
+                  {%- set content = "## <ha-icon icon=" ~ badge.icon ~ "></ha-icon> " ~ badge.name ~ " \n" -%}
+
+                  {%- if badge.description -%}
+                    {%- set content = content ~ "_" ~ badge.description ~ "_  \n" -%}
+                  {%- else -%}
+                    {%- set content = content ~ "_" ~ badge.type ~ " " ~ ui.get('badge', 'err-badge') ~ "_  \n" -%}
+                  {%- endif -%}
+
+                  {#-- STATUS --#}
+                  {%- if earned -%}
+                      {%- set content = content ~ "🏅 **" ~ ui.get('status', 'err-status') ~ ":** ✅ " ~ ui.get('earned', 'err-earned') ~ "  \n" -%}
+                  {%- else -%}
+                      {%- set content = content ~ "🏅 **" ~ ui.get('status', 'err-status') ~ ":** 🔒 " ~ ui.get('future_goal', 'err-future_goal') ~ "  \n" -%}
+                  {%- endif -%}
+
+                  {#-- AWARD COUNT & LAST AWARDED (Only for Highest Earned Badge) --#}
+                  {%- if is_highest_earned -%}
+                      {%- if ns.m_award_count > 0 or ns.m_last_awarded -%}
+                          {%- if ns.m_last_awarded -%}
+                              {%- set content = content ~ "⭐ **" ~ ui.get('last_earned', 'err-last_earned') ~ ":** " ~ ns.m_last_awarded ~ "  \n" -%}
+                          {%- endif -%}
+                          {%- if ns.m_award_count > 0 -%}
+                              {%- set content = content ~ "🎖️ **" ~ ui.get('earned_count', 'err-earned_count') ~ ":** " ~ ns.m_award_count ~ "  \n" -%}
+                          {%- endif -%}
+                      {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- THRESHOLD --#}
+                  {%- set content = content ~ "\n---\n" -%}
+                  {%- set content = content ~ "🎯 **" ~ ui.get('threshold', 'err-threshold') ~ ":** " ~ badge.threshold|int ~ " " ~ ns.points_label ~ "  \n" -%}
+
+                  {#-- AWARDS SECTION --#}
+                  {%- if badge.award_items | length > 0 -%}
+                      {%- set content = content ~ "💎 **" ~ ui.get('awards', 'err-awards') ~ ":** " ~ badge.award_items | join(', ') ~ "  \n" -%}
+                  {%- endif -%}
+
+                  {#-- MIDDLE: LIVE MAINTENANCE (Only for Highest Earned Badge) --#}
+                  {%- if is_highest_earned -%}
+                      {%- if ns.m_required > 0 or badge.maintenance > 0 -%}
+                          {%- set content = content ~ "\n---\n" -%}
+                          {%- set content = content ~ "#### 🔄 **" ~ ui.get('maintenance', 'err-maintenance') ~ ":** " -%}
+
+                          {#- Status Line -#}
+                          {%- if ns.m_status == 'active' -%}
+                              {%- set content = content ~ " 🟢 " ~ ui.get('active', 'err-active') ~ " \n" -%}
+                          {%- elif ns.m_status == 'demoted'-%}
+                              {%- set content = content ~ "⚠️ " ~ ui.get('demoted', 'err-demoted') ~ "  \n" -%}
+                          {%- else -%}
+                              {%- set content = content ~ "⚠️ " ~ ns.m_status|title ~ "  \n" -%}
+                          {%- endif -%}
+
+                          {#- Progress Line -#}
+                          {%- set req_pts = ns.m_required if ns.m_required > 0 else badge.maintenance -%}
+                          {%- set content = content ~ "- ⏳ **" ~ ui.get('in_progress', 'err-in_progress') ~ ":** " ~ ns.m_cycle_pts ~ " / " ~ req_pts ~ " " ~ ns.points_label ~ "  \n" -%}
+
+                          {%- if ns.m_remaining > 0 -%}
+                              {%- set content = content ~ "- 🔥 **" ~ ui.get('need', 'err-need') ~ ":** " ~ ns.m_remaining ~ " " ~ ns.points_label ~ "  \n" -%}
+                          {%- else -%}
+                              {%- set content = content ~ "- 🎉 " ~ ui.get('requirement_met', 'err-requirement_met') ~ " \n" -%}
+                          {%- endif -%}
+
+                          {#- Dates -#}
+                          {%- if ns.m_end_date -%}
+                              {%- set content = content ~ "- 📅 **" ~ ui.get('due', 'err-due') ~ ":** " ~ ns.m_end_date ~ "  \n" -%}
+                          {%- endif -%}
+                          {%- if ns.m_grace_end -%}
+                              {%- set content = content ~ "- 🚑 **" ~ ui.get('grace_period', 'err-grace_period') ~ ":** " ~ ns.m_grace_end ~ "  \n" -%}
+                          {%- endif -%}
+                      {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- FOOTER: POINTS TO NEXT + EARNED BY --#}
+                  {%- set footer_elements = [] -%}
+
+                  {#-- 1. Add "Points to Next" on the Target Card (Lowest Unearned) --#}
+                  {%- if is_target_card -%}
+                      {%- set pts_val = 0 -%}
+
+                      {#- SCENARIO A: User has earned badges. Use Sensor Data. -#}
+                      {%- if ns.has_earned_any -%}
+                          {%- set pts_val = ns.points_to_next -%}
+
+                      {#- SCENARIO B: User has NO earned badges. Use all-time earned from sensor. -#}
+                        {%- else -%}
+                          {%- set pts_val = ((badge.threshold - ns.points_earned_all_time) | float(default=0) | round(0, 'ceil')) | int -%}
+                          {%- if pts_val < 0 -%} {%- set pts_val = 0 -%} {%- endif -%}
+                      {%- endif -%}
+
+                      {%- if pts_val > 0 -%}
+                          {%- set footer_elements = footer_elements + ["🚀 **" ~ ui.get('to_unlock', 'err-to_unlock') ~ ":** " ~ pts_val ~ " " ~ ns.points_label] -%}
+                      {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- 2. Add "Earned By" if applicable (Any card) --#}
+                  {%- if badge.kids_earned | length > 0 -%}
+                      {%- set footer_elements = footer_elements + ["👥 **" ~ ui.get('earned_by', 'err-earned_by') ~ ":** " ~ badge.kids_earned | join(', ')] -%}
+                  {%- endif -%}
+
+                  {#-- Render Footer if elements exist --#}
+                  {%- if footer_elements | length > 0 -%}
+                      {%- set content = content ~ "\n---\n" ~ footer_elements | join("  \n") -%}
+                  {%- endif -%}
+
+                  {{
+                    {
+                      'type': 'markdown',
+                      'content': content
+                    }
+                  }},
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- endif -%}
+        - type: custom:auto-entities
+          card:
+            square: false
+            type: grid
+            columns: 1
+          card_param: cards
+          filter:
+            template: >-
+              {#-- ===== PERIODIC BADGE CARD ===== --#}
+
+
+              {#-- 1. User Configuration --#}
+
+              {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+
+              {#-- 2. Initialize Variables --#}
+
+              {%- set dashboard_helper = integration_entities('kidschores')
+                  | select('search', '^sensor\\.')
+                  | list
+                  | expand
+                  | selectattr('attributes.purpose', 'defined')
+                  | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                  | selectattr('attributes.kid_name', 'eq', name)
+                  | map(attribute='entity_id')
+                  | first
+                  | default("err-dashboard_helper_missing", true) -%}
+
+              {%- set ns = namespace(
+                badges=[]
+              ) -%}
+
+              {#-- Validation: Check if name is configured --#}
+              {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                {{
+                  {
+                    'type': 'markdown',
+                    'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                  }
+                }},
+                {%- set skip_render = true -%}
+              {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                {{
+                  {
+                    'type': 'markdown',
+                    'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                  }
+                }},
+                {%- set skip_render = true -%}
+              {%- else -%}
+                {%- set skip_render = false -%}
+              {%- endif -%}
+
+              {%- if not skip_render -%}
+
+                {#-- 3. Collect Data --#}
+                {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                {%- set points_sensor = core_sensors.get('points_eid') -%}
+                {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                {%- set points = states(points_sensor) | int(default=0) -%}
+                {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') | default('Pts', true) -%}
+
+                {%- set badge_list = state_attr(dashboard_helper, 'badges') | default([], true) -%}
+                {%- for badge in badge_list -%}
+                  {%- set badge_sensor_id = badge.eid if badge is mapping else badge -%}
+                  {#-- Skip badges with null eid (newly created, not yet assigned entity ID) --#}
+                  {%- if not badge_sensor_id or badge_sensor_id == 'null' or badge_sensor_id == None -%}
+                    {%- continue -%}
+                  {%- endif -%}
+                  {#-- Skip cumulative badges (only show periodic/achievement badges) --#}
+                  {%- if badge.badge_type == 'cumulative' -%}
+                    {%- continue -%}
+                  {%- endif -%}
+                  {%- set badge_attrs = states[badge_sensor_id].attributes | default({}, true) -%}
+
+                  {%- set badge_info = {
+                    'entity_id': badge_sensor_id,
+                    'name': badge_attrs.get('badge_name', 'Unknown Badge') | default('Unknown Badge'),
+                    'icon': badge_attrs.get('icon', 'mdi:medal-outline') | default('mdi:medal-outline'),
+                    'description': badge_attrs.get('description', '') | default(''),
+                    'type': badge_attrs.get('badge_type', 'unknown') | default('unknown'),
+                    'status': badge_attrs.get('status', 'in_progress') | default('in_progress'),
+                    'progress': states(badge_sensor_id) | float(default=0),
+                    'start_date': badge_attrs.get('start_date'),
+                    'end_date': badge_attrs.get('end_date'),
+                    'award_count': badge_attrs.get('award_count', 0) | int(default=0),
+                    'last_awarded': badge_attrs.get('last_awarded_date')
+                  } -%}
+                  {%- set ns.badges = ns.badges + [badge_info] -%}
+                {%- endfor -%}
+
+                {#-- 4. Build Display --#}
+                {%- set sorted_badges = ns.badges | sort(attribute='name') -%}
+
+                {#-- 5. Render --#}
+                {%- if sorted_badges | length == 0 -%}
+                  {{
+                    {
+                      'type': 'markdown',
+                      'content': "### 🏅 " ~ ui.get('no_periodic_badges_found', 'err-no_periodic_badges_found') ~ "  \n" ~ ui.get('periodic_badge_setup_prompt', 'err-periodic_badge_setup_prompt')
+                    }
+                  }},
+                {%- else -%}
+                  {%- for badge in sorted_badges -%}
+
+                    {#-- HEADER --#}
+                    {%- set content = "## <ha-icon icon=" ~ badge.icon ~ "></ha-icon> " ~ badge.name ~ " \n" -%}
+
+                    {%- if badge.description -%}
+                      {%- set content = content ~ "_" ~ badge.description ~ "_  \n" -%}
+                    {%- endif -%}
+
+                    {#-- STATUS LINE --#}
+                    {%- if badge.status == 'earned' -%}
+                      {%- set content = content ~ "🏅 **" ~ ui.get('status', 'err-status') ~ ":** ✅ " ~ ui.get('earned', 'err-earned') ~ "  \n" -%}
+                    {%- elif badge.status == 'in_progress' -%}
+                      {%- set content = content ~ "🏅 **" ~ ui.get('status', 'err-status') ~ ":** ⏳ " ~ ui.get('in_progress', 'err-in_progress') ~ "  \n" -%}
+                    {%- else -%}
+                      {%- set content = content ~ "🏅 **" ~ ui.get('status', 'err-status') ~ ":** 🔒 " ~ ui.get('locked', 'err-locked') ~ "  \n" -%}
+                    {%- endif -%}
+
+                    {#-- PROGRESS LINE --#}
+                    {%- set content = content ~ "📊 **" ~ ui.get('progress', 'err-progress') ~ ":** " ~ badge.progress|round(1) ~ "%  \n" -%}
+
+                    {#-- START DATE --#}
+                    {%- if badge.start_date -%}
+                      {%- set content = content ~ "📅 **" ~ ui.get('start_date', 'err-start_date') ~ ":** " ~ badge.start_date ~ "  \n" -%}
+                    {%- endif -%}
+
+                    {#-- END DATE --#}
+                    {%- if badge.end_date -%}
+                      {%- set content = content ~ "📅 **" ~ ui.get('end_date', 'err-end_date') ~ ":** " ~ badge.end_date ~ "  \n" -%}
+                    {%- endif -%}
+
+                    {#-- AWARD COUNT --#}
+                    {%- if badge.award_count > 0 -%}
+                      {%- set content = content ~ "🎖️ **" ~ ui.get('award_count', 'err-award_count') ~ ":** " ~ badge.award_count ~ "  \n" -%}
+                    {%- endif -%}
+
+                    {#-- LAST AWARDED DATE --#}
+                    {%- if badge.last_awarded -%}
+                      {%- set content = content ~ "⭐ **" ~ ui.get('last_awarded', 'err-last_awarded') ~ ":** " ~ badge.last_awarded ~ "  \n" -%}
+                    {%- endif -%}
+
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': content
+                      }
+                    }},
+                  {%- endfor -%}
+                {%- endif -%}
+              {%- endif -%}
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== ACHIEVEMENTS CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {%- set ns = namespace(
+                    STREAK_GOAL='Streak Goal',
+                    TOTAL_CHORES='Total Chores',
+                    DAILY_MINIMUM='Daily Minimum'
+                  ) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+
+                    {%- set achievements = state_attr(dashboard_helper, 'achievements') | default([], true) -%}
+
+                    {#-- 4. Build Display --#}
+                    {#-- (No pre-processing needed) --#}
+
+                    {#-- 5. Render --#}
+                    {%- if achievements | length == 0 -%}
+                      {{
+                        {
+                          'type': 'markdown',
+                          'content': "### 🏆 " ~ ui.get('no_achievements_found', 'err-no_achievements_found') ~ "  \n" ~ ui.get('start_achievement_prompt', 'err-start_achievement')
+                        }
+                      }},
+                    {%- else -%}
+                      {%- for achievement in achievements -%}
+                        {%- set achievement_sensor_id = achievement.eid if achievement is mapping else achievement -%}
+                        {%- set achievement_name = state_attr(achievement_sensor_id, 'achievement_name') | default('Unknown') -%}
+                        {%- set achievement_icon = state_attr(achievement_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
+                        {%- set achievement_overall_sensor = achievement_sensor_id | regex_replace('^sensor\.kc_[a-zA-Z0-9_]+_achievement_status_', 'sensor.kc_achievement_status_') -%}
+                        {%- set target_value = state_attr(achievement_sensor_id, 'target_value') | int(default=0) -%}
+                        {%- set raw_progress = state_attr(achievement_sensor_id, 'raw_progress') | float(default=0) -%}
+                        {%- set awarded = state_attr(achievement_sensor_id, 'awarded') | default(false) -%}
+                        {%- set reward_points = state_attr(achievement_overall_sensor, 'reward_points') | int(default=0) -%}
+                        {%- set achievement_type = state_attr(achievement_overall_sensor, 'type') | default('total_within_window') -%}
+                        {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
+                        {%- set associated_chore = state_attr(achievement_sensor_id, 'associated_chore') | default('') -%}
+                        {%- set description = state_attr(achievement_sensor_id, 'description') | default('') -%}
+                        {%- set criteria = state_attr(achievement_sensor_id, 'criteria') | default('') -%}
+                        {%- set assigned_kids = state_attr(achievement_sensor_id, 'assigned_kids') | default([], true) -%}
+
+                        {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
+                        {%- set goal_type_label =
+                          target_value ~ ' (' ~ ns.STREAK_GOAL ~ ')' if achievement_type == 'chore_streak'
+                          else target_value ~ ' (' ~ ns.DAILY_MINIMUM ~ ')' if achievement_type == 'daily_minimum'
+                          else target_value ~ ' (' ~ ns.TOTAL_CHORES ~ ')' -%}
+                        {%- set kids_display = assigned_kids | join(', ') if assigned_kids | count > 0 else '' -%}
+
+                        {%- set content = "## <ha-icon icon=" ~ achievement_icon ~ "></ha-icon> " ~ ui.get('achievement', 'err-achievement') ~ ": " ~ achievement_name ~ "  \n" -%}
+                        {%- set content = content ~ "### 🏅 " ~ ui.get('award_status', 'err-award_status') ~ ": &nbsp;&nbsp;" ~ awarded_text ~ "  \n" -%}
+
+                        {%- if description -%}
+                          {%- set content = content ~ "#### 📖 &nbsp;&nbsp;" ~ description ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {%- if criteria -%}
+                          {%- set content = content ~ "**📌 " ~ ui.get('criteria', 'err-criteria') ~ ":** &nbsp;&nbsp;" ~ criteria ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {%- set content = content ~ "**🎯 " ~ ui.get('goal', 'err-goal') ~ ":** &nbsp;&nbsp;" ~ goal_type_label ~ "  \n" -%}
+
+                        {%- if reward_points > 0 -%}
+                          {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ reward_points|string ~ " " ~ points_label ~ " \n" -%}
+                        {%- endif -%}
+
+                        {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ raw_progress|int|string ~ "/" ~ target_value|string ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
+
+                        {%- if kids_display -%}
+                          {%- set content = content ~ "**👥 " ~ ui.get('assigned_to', 'err-assigned_to') ~ ":** &nbsp;&nbsp;" ~ kids_display ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {%- if associated_chore -%}
+                          {%- set content = content ~ "**🛠 " ~ ui.get('related_chore', 'err-related_chore') ~ ":** &nbsp;&nbsp;" ~ associated_chore ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {{
+                          {
+                            'type': 'markdown',
+                            'content': content
+                          }
+                        }},
+                      {%- endfor -%}
+                    {%- endif -%}
+                  {%- endif -%}
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== CHALLENGES CARD ===== --#}
+
+
+                  {#-- 1. User Configuration --#}
+
+                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+
+
+                  {#-- 2. Initialize Variables --#}
+
+                  {%- set dashboard_helper = integration_entities('kidschores')
+                      | select('search', '^sensor\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
+                      | selectattr('attributes.kid_name', 'eq', name)
+                      | map(attribute='entity_id')
+                      | first
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set challenges = state_attr(dashboard_helper, 'challenges') | default([], true) -%}
+
+                    {#-- 4. Build Display --#}
+                    {#-- (No pre-processing needed) --#}
+
+                    {#-- 5. Render --#}
+                    {%- if challenges | length == 0 -%}
+                      {{
+                        {
+                          'type': 'markdown',
+                          'content': "### 🏁 " ~ ui.get('no_challenges_found', 'err-no_challenges_found') ~ "  \n" ~ ui.get('start_challenge_prompt', 'err-start_challenge_prompt')
+                        }
+                      }},
+                    {%- else -%}
+                      {%- for challenge in challenges -%}
+                        {%- set challenge_sensor_id = challenge.eid if challenge is mapping else challenge -%}
+                        {%- set challenge_name = state_attr(challenge_sensor_id, 'challenge_name') | default('Unknown') -%}
+                        {%- set challenge_icon = state_attr(challenge_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
+                        {%- set challenge_overall_sensor = challenge_sensor_id | regex_replace('^sensor\.kc_[a-zA-Z0-9_]+_challenge_status_', 'sensor.kc_challenge_status_') -%}
+                        {%- set target_value = state_attr(challenge_sensor_id, 'target_value') | int(default=0) -%}
+                        {%- set raw_progress = state_attr(challenge_sensor_id, 'raw_progress') | float(default=0) -%}
+                        {%- set awarded = state_attr(challenge_sensor_id, 'awarded') | default(false) -%}
+                        {%- set reward_points = state_attr(challenge_overall_sensor, 'reward_points') | int(default=0) -%}
+                        {%- set challenge_type = state_attr(challenge_overall_sensor, 'type') | default('total_within_window') -%}
+                        {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
+                        {%- set associated_chore = state_attr(challenge_sensor_id, 'associated_chore') | default('') -%}
+                        {%- set description = state_attr(challenge_sensor_id, 'description') | default('') -%}
+                        {%- set criteria = state_attr(challenge_sensor_id, 'criteria') | default('') -%}
+                        {%- set assigned_kids = state_attr(challenge_sensor_id, 'assigned_kids') | default([], true) -%}
+
+                        {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
+                        {%- set goal_type_label = target_value ~ ' (' ~ ui.get('total_chores', 'err-total_chores') ~ ')' if challenge_type == 'total_within_window' else target_value ~ ' (' ~ ui.get('per_day_goal', 'err-per_day_goal') ~ ')' -%}
+                        {%- set kids_display = assigned_kids | join(', ') if assigned_kids | count > 0 else '' -%}
+
+                        {%- set start_date_utc = state_attr(challenge_overall_sensor, 'start_date') -%}
+                        {%- set end_date_utc = state_attr(challenge_overall_sensor, 'end_date') -%}
+                        {%- set start_date = as_datetime(start_date_utc).astimezone().strftime('%b %d, %Y') if start_date_utc else 'N/A' -%}
+                        {%- set end_date = as_datetime(end_date_utc).astimezone().strftime('%b %d, %Y') if end_date_utc else 'N/A' -%}
+
+                        {%- set content = "## <ha-icon icon=" ~ challenge_icon ~ "></ha-icon> " ~ ui.get('challenge', 'err-challenge') ~ ": " ~ challenge_name ~ "  \n" -%}
+                        {%- set content = content ~ "### 🏅 " ~ ui.get('award_status', 'err-award_status') ~ ": &nbsp;&nbsp;" ~ awarded_text ~ "  \n" -%}
+
+                        {%- if description -%}
+                          {%- set content = content ~ "#### 📖 &nbsp;&nbsp;" ~ description ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {%- if criteria -%}
+                          {%- set content = content ~ "**📌 " ~ ui.get('criteria', 'err-criteria') ~ ":** &nbsp;&nbsp;" ~ criteria ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {%- set content = content ~ "**🎯 " ~ ui.get('goal', 'err-goal') ~ ":** &nbsp;&nbsp;" ~ goal_type_label ~ "  \n" -%}
+                        {%- set content = content ~ "**📅 " ~ ui.get('start_date', 'err-start_date') ~ ":** &nbsp;&nbsp;" ~ start_date ~ "  \n" -%}
+                        {%- set content = content ~ "**📅 " ~ ui.get('end_date', 'err-end_date') ~ ":** &nbsp;&nbsp;" ~ end_date ~ "  \n" -%}
+
+                        {%- if reward_points > 0 -%}
+                          {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ reward_points|string ~ " " ~ points_label ~ " \n" -%}
+                        {%- endif -%}
+
+                        {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ raw_progress|int|string ~ "/" ~ target_value|string ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
+
+                        {%- if kids_display -%}
+                          {%- set content = content ~ "**👥 " ~ ui.get('assigned_to', 'err-assigned_to') ~ ":** &nbsp;&nbsp;" ~ kids_display ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {%- if associated_chore -%}
+                          {%- set content = content ~ "**🛠 " ~ ui.get('related_chore', 'err-related_chore') ~ ":** &nbsp;&nbsp;" ~ associated_chore ~ "  \n" -%}
+                        {%- endif -%}
+
+                        {{
+                          {
+                            'type': 'markdown',
+                            'content': content
+                          }
+                        }},
+                      {%- endfor -%}
+                    {%- endif -%}
+                  {%- endif -%}
+  cards: []

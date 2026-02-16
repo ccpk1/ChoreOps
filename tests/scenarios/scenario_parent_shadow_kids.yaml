@@ -1,0 +1,72 @@
+# Test Scenario: PARENT SHADOW KIDS (Parent Chore Assignment Feature)
+# =============================================================================
+# Tests parent-as-kid functionality via shadow kid profiles.
+#
+# Contents:
+#   - 2 parents: Dad (with shadow kid), Mom (without shadow kid)
+#   - 1 regular kid: Sarah
+#   - Dad has: allow_chore_assignment=True, enable_gamification=True
+#   - 3 chores: one assigned to Dad (shadow), one to Sarah, one shared
+#
+# Use case: Parent chore capabilities feature testing (v0.6.0)
+# =============================================================================
+
+# System settings
+system:
+  points_label: "Points"
+  points_icon: "mdi:star-outline"
+
+# Kids (1 regular kid)
+kids:
+  - name: "Zoë"
+    ha_user: "kid1"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+# Parents (2 parents - one with shadow kid capability)
+parents:
+  # Dad opts into chore assignment - creates shadow kid "Dad Leo"
+  - name: "Dad Leo"
+    ha_user: "parent1"
+    kids: ["Zoë"]
+    mobile_notify_service: ""
+    # Shadow kid configuration
+    allow_chore_assignment: true
+    enable_chore_workflow: false # Approval-only (default)
+    enable_gamification: true # Dad earns points
+
+  # Mom does NOT opt into chore assignment - no shadow kid
+  - name: "Môm Astrid Stârblüm"
+    ha_user: "parent2"
+    kids: ["Zoë"]
+    mobile_notify_service: ""
+    allow_chore_assignment: false
+
+# Chores (3 chores)
+chores:
+  # Chore assigned ONLY to Dad's shadow kid
+  - name: "Mow lawn"
+    assigned_to: ["Dad Leo"]
+    points: 25.0
+    icon: "mdi:grass"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+    auto_approve: false
+
+  # Chore assigned to regular kid Sarah
+  - name: "Make bed"
+    assigned_to: ["Zoë"]
+    points: 5.0
+    icon: "mdi:bed"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+    auto_approve: false
+
+  # Shared chore: both Dad (shadow) and Sarah
+  - name: "Take out trash"
+    assigned_to: ["Dad Leo", "Zoë"]
+    points: 10.0
+    icon: "mdi:trash-can"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+    auto_approve: false
