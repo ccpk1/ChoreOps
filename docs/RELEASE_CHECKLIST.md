@@ -1,4 +1,4 @@
-# KidsChores Release Checklist
+# ChoreOps Release Checklist
 
 Quick reference checklist for preparing and validating releases. Complete ALL items before tagging a release.
 
@@ -122,4 +122,4 @@ If critical bug discovered post-release:
 ---
 
 **Last Updated**: January 9, 2026
-**Applies to**: KidsChores v0.5.0+
+**Applies to**: ChoreOps v0.5.0+

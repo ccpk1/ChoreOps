@@ -4,7 +4,7 @@
   "codeowners": ["@ccpk1", "@ad-ha"],
   "config_flow": true,
   "dependencies": ["lovelace"],
-  "documentation": "https://github.com/ccpk1/choreops",
+  "documentation": "https://github.com/ccpk1/choreops/wiki",
   "integration_type": "service",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/ccpk1/choreops/issues",

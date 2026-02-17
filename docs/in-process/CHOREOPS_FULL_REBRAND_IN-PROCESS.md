@@ -12,7 +12,7 @@
 | Phase / Step                                   | Description                                                | % complete | Quick notes                                                                                                              |
 | ---------------------------------------------- | ---------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Phase 1 – Governance & legal baseline          | Lock naming scope, legal obligations, and migration policy | 100%       | Decisions captured and validated in this phase                                                                           |
-| Phase 2 – Public-facing rebrand                | Update README/wiki/community/repo presentation             | 0%         | Safe to parallelize; low runtime risk                                                                                    |
+| Phase 2 – Public-facing rebrand                | Update README/wiki/community/repo presentation             | 65%        | README + metadata + active root docs rebrand completed; templates/translations/util docs remain                          |
 | Phase 3 – GitHub automation & templates        | Rebrand workflows, issue templates, and maintainer agents  | 40%        | Repo-guard + issue template naming updates done; Crowdin path and maintainer guide alignment still pending               |
 | Phase 4 – Integration runtime/domain migration | Rebrand integration internals with compatibility strategy  | 100%       | Canonical identity + package path complete; continuity/fixtures/constants done; deprecation policy and PR guardrails set |
 | Phase 5 – Validation, release, and deprecation | End-to-end verification and communication rollout          | 40%        | Quality gates + focused migration/compat tests complete; release comms/workflow validation pending                       |
@@ -21,7 +21,7 @@
 2. **Summary of recent work**
 
 - Phase 1: Completed governance/legal baseline with explicit naming matrix, migration policy, licensing resolution decision, branding policy, and release governance ownership.
-- Phase 2: Identified high-volume branding references in `README.md`, docs, dashboard templates, and wiki links.
+- Phase 2: Rebranded package metadata (`hacs.json`, `pyproject.toml`, `manifest.json`) and active root docs (`ARCHITECTURE.md`, `DEVELOPMENT_STANDARDS.md`, `QUALITY_REFERENCE.md`, `DASHBOARD_TEMPLATE_GUIDE.md`, plus checklist/review docs) to ChoreOps terminology and canonical domain/storage examples.
 - Phase 3: Updated workflow repo guard in `.github/workflows/validate.yaml` and rebranded issue-template naming to ChoreOps; remaining scope is Crowdin path alignment and maintainer guide cleanup.
 
 - Phase 4: Implemented scoped storage move to `.storage/choreops/choreops_data`, added legacy migration option in config flow (`Migrate from KidsChores`), centralized legacy artifact discovery/migration helpers in `migration_pre_v50.py`, and refactored config flow to thin migration hooks for easier one-release removal.
@@ -34,10 +34,11 @@
 
 3. **Next steps (short term)**
 
-- Start Phase 2 implementation (public-facing rebrand assets) while preserving Phase 1 guardrails.
+- Continue Phase 2 remaining work (README, dashboard templates, translation copy, utility docs) while preserving Phase 1 guardrails.
 - Start Phase 3 implementation in parallel for workflow/template renames.
 - Continue Phase 5 with workflow validation, release communication updates, and hard-cut execution gating for v0.5.0 final.
 - Add explicit hard-cut milestone to remove `custom_components/kidschores/__init__.py` after transition-window exit criteria are met.
+- Prepare HACS preflight checks to run immediately after hard-cut removal of the `kidschores` compatibility package path.
 - Track hard-cut release target as `v0.5.0` final (current train: beta5/schema45).
 
 4. **Risks / blockers**
@@ -110,12 +111,12 @@
 
 - **Goal**: Rebrand all external communication surfaces without breaking runtime behavior.
 - **Steps / detailed work items**
-  - [ ] Rebrand repository README and badges/links
+  - [x] Rebrand repository README and badges/links
     - File: `README.md` (badges and links around ~L1-10, product name around ~L9-30, install/docs links throughout)
     - Replace old repo links, wiki links, and dashboard references.
-  - [ ] Rebrand HACS and package metadata text
+  - [x] Rebrand HACS and package metadata text
     - Files: `hacs.json`, `pyproject.toml` (`name`, `description`, `authors`), `custom_components/choreops/manifest.json` (`name`, URLs)
-  - [ ] Rebrand docs set for active docs (not archival)
+  - [x] Rebrand docs set for active docs (not archival)
     - Files: `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT_STANDARDS.md`, `docs/QUALITY_REFERENCE.md`, `docs/DASHBOARD_TEMPLATE_GUIDE.md`
     - Preserve `docs/completed/legacy-kidschores/` as historical archive unless explicitly migrated.
   - [ ] Rebrand dashboard templates and user-facing markdown strings
@@ -300,6 +301,26 @@
   - `grep -RIn "custom_components.kidschores" custom_components tests .github README.md pyproject.toml --exclude-dir=.git`
   - expected result: 0 matches
 - Run full quality gates and migration tests before tagging release.
+
+### Planned post-hard-cut HACS readiness checks (pre-release, no publish yet)
+
+- Remove `custom_components/kidschores/` compatibility package path so only one integration directory remains under `custom_components/`.
+- Confirm HACS and manifest validation gates pass on `main`:
+  - `.github/workflows/validate.yaml` (`hacs/action`) ✅
+  - `.github/workflows/hassfest.yaml` ✅
+- Verify repository metadata for HACS inclusion checks:
+  - GitHub repository description is populated
+  - GitHub topics are populated
+  - Issues remain enabled
+- Finalize README quality gate for HACS:
+  - remove placeholder TODO markers
+  - remove or defer badges that require releases until first release exists
+  - keep installation/use instructions accurate for custom repository installs
+- Prepare Home Assistant brands submission package for `choreops`:
+  - target path: `home-assistant/brands/custom_integrations/choreops/`
+  - required baseline files: `icon.png` (256x256), `icon@2x.png` (512x512)
+  - optional but recommended: `logo.png`, `logo@2x.png`, and dark variants (`dark_icon.png`, `dark_logo.png`, etc.)
+- GitHub release creation is intentionally deferred until final release readiness; do not publish release assets during this preparation stage.
 
 ### Phase 4 deprecation + guardrail implementation results (2026-02-17)
 

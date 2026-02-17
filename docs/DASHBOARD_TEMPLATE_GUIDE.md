@@ -2,7 +2,7 @@
 
 **Version**: v0.5.0-beta4 | **Last Updated**: 2026-02-15
 
-This guide documents the rules and patterns for creating, modifying, and managing KidsChores dashboard templates.
+This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
 ---
 
@@ -10,7 +10,7 @@ This guide documents the rules and patterns for creating, modifying, and managin
 
 ### Multi-View Dashboard Model
 
-KidsChores generates a **single dashboard** with **multiple views (tabs)**:
+ChoreOps generates a **single dashboard** with **multiple views (tabs)**:
 
 ```
 kcd-chores (Dashboard)
@@ -75,7 +75,7 @@ This allows currently published dashboard releases that use `v...` naming to be 
 
 For a remote release template to be downloaded and used, all of the following must be true:
 
-1. GitHub Releases API is reachable for `ccpk1/kidschores-ha-dashboard`.
+1. GitHub Releases API is reachable for `ccpk1/choreops-ha-dashboard`.
 2. The selected release tag matches one of the accepted tag formats above.
 3. The tag passes compatibility filtering:
 
@@ -224,7 +224,7 @@ Preserved in output, evaluated by HA when rendering the dashboard.
 
 ```yaml
 <#-- ============================================= --#>
-<#-- KidsChores Dashboard Template - FULL Style   --#>
+<#-- ChoreOps Dashboard Template - FULL Style     --#>
 <#-- Template Schema Version: 1                   --#>
 <#-- ============================================= --#>
 ```
@@ -258,7 +258,7 @@ Every template MUST start with this header block:
 
 ```yaml
 <#-- ============================================= --#>
-<#-- KidsChores Dashboard Template - [STYLE] Style --#>
+<#-- ChoreOps Dashboard Template - [STYLE] Style --#>
 <#-- Template Schema Version: 1                    --#>
 <#-- Integration: v0.5.0-beta3 (Schema 43)         --#>
 <#-- ============================================= --#>
@@ -283,7 +283,7 @@ For admin templates, omit the injection variables section and note "No injection
 
 ## Entity ID Pattern
 
-When referencing KidsChores entities in templates, use the pattern below. Never hard code entity names:
+When referencing ChoreOps entities in templates, use the pattern below. Never hard code entity names:
 
 ```
 {#-- 1. User Configuration --#}
@@ -292,7 +292,7 @@ When referencing KidsChores entities in templates, use the pattern below. Never 
 
 
 {#-- 2. Initialize Variables --#}
-{%- set dashboard_helper = integration_entities('kidschores')
+{%- set dashboard_helper = integration_entities('choreops')
     | select('search', 'ui_dashboard_helper')
     | list
     | expand
@@ -319,7 +319,7 @@ grep -n "<#--" templates/*.yaml | grep -v "\-\-#>"
 ### 2. Template Render Test
 
 ```bash
-cd /workspaces/kidschores-ha && python3 << 'EOF'
+cd /workspaces/choreops && python3 << 'EOF'
 import jinja2
 import yaml
 from pathlib import Path

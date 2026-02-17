@@ -1,4 +1,4 @@
-# KidsChores Code Review Guide
+# ChoreOps Code Review Guide
 
 **Purpose**: This document is a procedural manual for verifying code contributions. It defines the 'Search & Destroy' steps for identifying monolithic anti-patterns.
 
@@ -6,7 +6,7 @@
 
 **Version**: 3.0
 **Last Updated**: January 27, 2026
-**Target**: KidsChores v0.5.0+ (Storage-Only Architecture)
+**Target**: ChoreOps v0.5.0+ (Storage-Only Architecture)
 
 **For Syntax & Naming Standards**: All coding patterns, naming conventions, and style rules are documented in [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md). Reviewers should verify compliance with those rules—this guide focuses on architectural boundary enforcement.
 
@@ -26,7 +26,7 @@
 
 **CRITICAL**: All new files must pass these boundary checks BEFORE detailed code review. These audits enforce architectural purity and prevent monolithic regressions.
 
-**When to use**: For any new or modified Python file in the KidsChores codebase.
+**When to use**: For any new or modified Python file in the ChoreOps codebase.
 
 **Output**: Pass/Fail for each audit step. Any failure blocks merge until corrected.
 
@@ -281,7 +281,7 @@ grep -n "title=\"[A-Z]" [filename].py
 - [ ] Cross-reference against `en.json` → verify English translations exist
 - [ ] Identify missing translation keys (constants defined but no en.json entry)
 - [ ] Document gaps for remediation
-- [ ] Note: No strings.json required (KidsChores uses en.json as master, storage-only architecture)
+- [ ] Note: No strings.json required (ChoreOps uses en.json as master, storage-only architecture)
 
 **Search patterns**:
 

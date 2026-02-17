@@ -1,8 +1,8 @@
 # 📘 Development Standards & Coding Guidelines
 
-**Purpose**: Prescriptive standards for how we code, organize, and maintain the KidsChores codebase.
+**Purpose**: Prescriptive standards for how we code, organize, and maintain the ChoreOps codebase.
 
-**Audience**: All developers writing code for KidsChores.
+**Audience**: All developers writing code for ChoreOps.
 
 **Contents**: Git workflows, naming conventions, coding patterns, entity standards, error handling.
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 🏛️ KidsChores Repository Standards
+## 🏛️ ChoreOps repository standards
 
 ### 1. Git & Workflow Standards
 
@@ -92,7 +92,7 @@ With over 1,000 constants, we follow strict naming patterns to ensure the code r
 
 **`DATA_*`** = **Internal Storage Keys**
 
-- **Usage**: Accessing/modifying `.storage/kidschores_data`
+- **Usage**: Accessing/modifying `.storage/choreops/choreops_data`
 - **Context**: `coordinator._data[const.DATA_KIDS][kid_id][const.DATA_KID_NAME]`
 - **Rule**: Always singular entity names (`DATA_KID_*`, `DATA_PARENT_*`)
 
@@ -505,7 +505,7 @@ These standards ensure we maintain Platinum quality compliance. See [QUALITY_REF
 
 **File**: [type_defs.py](../custom_components/choreops/type_defs.py)
 
-KidsChores uses a **hybrid typing strategy** that matches types to actual code patterns:
+ChoreOps uses a **hybrid typing strategy** that matches types to actual code patterns:
 
 **Use TypedDict When**:
 
@@ -781,11 +781,11 @@ from custom_components.choreops.helpers import entity_helpers
 
 # Build instance-scoped signal
 signal = entity_helpers.get_event_signal(entry_id, const.SIGNAL_SUFFIX_POINTS_CHANGED)
-# Result: "kidschores_{entry_id}_points_changed"
+# Result: "choreops_{entry_id}_points_changed"
 
 # Two instances never interfere:
-# Instance A: "kidschores_abc123_points_changed"
-# Instance B: "kidschores_xyz789_points_changed"
+# Instance A: "choreops_abc123_points_changed"
+# Instance B: "choreops_xyz789_points_changed"
 ```
 
 ##### BaseManager Pattern
@@ -1095,7 +1095,7 @@ When adding new feature flags that control entity creation:
 
 #### Entity Cleanup Architecture
 
-KidsChores uses a **dual-path reload system** where both paths must run synchronized cleanup to prevent orphaned entities.
+ChoreOps uses a **dual-path reload system** where both paths must run synchronized cleanup to prevent orphaned entities.
 
 **The Two Reload Paths:**
 

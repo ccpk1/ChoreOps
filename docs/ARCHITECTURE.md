@@ -1,4 +1,4 @@
-# KidsChores Integration Architecture
+# ChoreOps Integration Architecture
 
 **Integration Version**: 0.5.0+
 **Storage Schema Version**: 43 (Storage-Only Mode with Meta Section)
@@ -16,7 +16,7 @@ This integration **unofficially** meets **Home Assistant Platinum** quality leve
 For ongoing reference and to maintain Platinum certification, consult:
 
 - **[QUALITY_REFERENCE.md](QUALITY_REFERENCE.md)** - Platinum compliance mapping
-  - Maps KidsChores architecture to Home Assistant Platinum requirements
+  - Maps ChoreOps architecture to Home Assistant Platinum requirements
   - Documents how layered architecture enforces quality standards
   - Provides evidence locations and architectural validation references
 
@@ -29,16 +29,16 @@ For ongoing reference and to maintain Platinum certification, consult:
 
 ## 🔡 Lexicon Standards (Critical)
 
-**To prevent confusion between Home Assistant's registry and KidsChores internal data:**
+**To prevent confusion between Home Assistant's registry and ChoreOps internal data:**
 
-| Term                  | Usage                                      | Example                                |
-| --------------------- | ------------------------------------------ | -------------------------------------- |
-| **Item** / **Record** | A data entry in `.storage/kidschores_data` | "A Chore Item", "Kid Record"           |
-| **Domain Item**       | Collective term for all stored data types  | Kids, Chores, Badges (as JSON records) |
-| **Internal ID**       | UUID identifying a stored record           | `kid_id`, `chore_id` (always UUIDs)    |
-| **Entity**            | ONLY a Home Assistant platform object      | Sensor, Button, Select, Calendar       |
-| **Entity ID**         | The Home Assistant registry string         | `sensor.kc_alice_points`               |
-| **Entity Data**       | State attributes of an HA entity           | What appears in `more-info` dialog     |
+| Term                  | Usage                                             | Example                                |
+| --------------------- | ------------------------------------------------- | -------------------------------------- |
+| **Item** / **Record** | A data entry in `.storage/choreops/choreops_data` | "A Chore Item", "Kid Record"           |
+| **Domain Item**       | Collective term for all stored data types         | Kids, Chores, Badges (as JSON records) |
+| **Internal ID**       | UUID identifying a stored record                  | `kid_id`, `chore_id` (always UUIDs)    |
+| **Entity**            | ONLY a Home Assistant platform object             | Sensor, Button, Select, Calendar       |
+| **Entity ID**         | The Home Assistant registry string                | `sensor.kc_alice_points`               |
+| **Entity Data**       | State attributes of an HA entity                  | What appears in `more-info` dialog     |
 
 **Critical Rule**: Never use "Entity" when referring to a Chore, Kid, Badge, etc. These are **Items** stored in JSON, not HA registry objects.
 
@@ -112,11 +112,11 @@ DATA_READY → ChoreManager → CHORES_READY
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ KidsChores Integration Data Architecture                   │
+│ ChoreOps Integration Data Architecture                     │
 └─────────────────────────────────────────────────────────────┘
 
 ┌────────────────────────┐        ┌──────────────────────────┐
-│ config_entry.options   │        │ .storage/kidschores_data │
+│ config_entry.options   │        │ .storage/choreops/choreops_data │
 │ (System Settings Only) │        │ (Domain Items + Runtime) │
 ├────────────────────────┤        ├──────────────────────────┤
 │ • points_label         │        │ • kids                   │
@@ -206,9 +206,9 @@ async def _update_system_settings_and_reload(self):
 
 #### Storage Location
 
-**File**: `.storage/kidschores_data`
+**File**: `.storage/choreops/choreops_data`
 **Format**: JSON
-**Version**: `STORAGE_VERSION = 1` (Home Assistant Store format), `meta.schema_version = 42` (KidsChores data structure)
+**Version**: `STORAGE_VERSION = 1` (Home Assistant Store format), `meta.schema_version = 42` (ChoreOps data structure)
 
 #### Storage Structure
 
@@ -216,7 +216,7 @@ async def _update_system_settings_and_reload(self):
 {
     "version": 1,
     "minor_version": 1,
-    "key": "kidschores_data",
+    "key": "choreops_data",
     "data": {
         "meta": {
             "schema_version": 42,
@@ -269,7 +269,7 @@ All Domain Item modifications follow this pattern:
 self._data[const.DATA_KIDS][kid_id]["points"] = new_points
 
 # 2. Persist to storage
-self._persist()  # Writes to .storage/kidschores_data
+self._persist()  # Writes to .storage/choreops/choreops_data
 
 # 3. Notify entities
 self.async_update_listeners()  # Entities refresh from coordinator
@@ -286,7 +286,7 @@ def _persist(self):
 
 ### Data Persistence Principles
 
-KidsChores separates **source data** (persisted) from **derived data** (computed at runtime):
+ChoreOps separates **source data** (persisted) from **derived data** (computed at runtime):
 
 | Layer                  | Example                                     | Persisted? | Purpose                             |
 | ---------------------- | ------------------------------------------- | ---------- | ----------------------------------- |
@@ -305,6 +305,79 @@ KidsChores separates **source data** (persisted) from **derived data** (computed
 **Why**: A kid in New York completing a chore at 10 PM Monday should see stats recorded under "Monday", not "Tuesday" (which would occur if using UTC date at 3 AM Tuesday).
 
 **Application**: Affects streak calculations, period statistics, and any logic that needs to query "yesterday's data" or "last week's totals".
+
+---
+
+## Versioning Architecture
+
+ChoreOps uses a **dual versioning system**:
+
+### 1. Home Assistant Store Version (File Format)
+
+```json
+{
+    "version": 1,          // HA Store format version (always 1)
+    "minor_version": 1,    // HA Store minor version
+    "key": "choreops_data",
+    "data": { ... }        // ChoreOps data with schema_version
+}
+```
+
+### 2. ChoreOps Schema Version (Data Structure)
+
+The **`meta.schema_version`** field in storage data determines the integration's operational mode. Schema 42 is the current version:
+
+| Schema Version | Mode                  | Behavior                                                        |
+| -------------- | --------------------- | --------------------------------------------------------------- |
+| < 42           | Legacy (Pre-0.5.0)    | Reads entity data from `config_entry.options` or legacy storage |
+| ≥ 42           | Storage-Only (0.5.0+) | Reads entity data exclusively from storage with meta section    |
+
+**Key Files**:
+
+- `custom_components/choreops/const.py`: `SCHEMA_VERSION_STORAGE_ONLY = 42`
+- `custom_components/choreops/coordinator.py`: Main coordinator (7,591 lines), uses multiple inheritance
+- `custom_components/choreops/coordinator_chore_operations.py`: Chore operations class (3,852 lines), 43 methods in 11 sections
+- `custom_components/choreops/__init__.py`: Lines 45-51 (migration detection)
+
+**Code Organization**: Coordinator uses Python's multiple inheritance to organize features:
+
+- ChoreOperations class provides 43 chore lifecycle methods organized into 11 logical sections (§1-§11)
+- TYPE_CHECKING pattern provides type hints without runtime imports
+- Pattern enables extraction of 3,688 lines (34% reduction) while maintaining single coordinator interface
+
+**Legacy Format (v41 and below)**:
+
+```json
+{
+    "data": {
+        "schema_version": 41,  // Top-level schema version
+        "kids": {...}
+    }
+}
+```
+
+**Modern Format (v42+)**:
+
+```json
+{
+    "data": {
+        "meta": {
+            "schema_version": 42,                    // Nested in meta section
+            "last_migration_date": "2025-12-18...",
+            "migrations_applied": ["badge_restructure", ...]
+        },
+        "kids": {...}
+    }
+}
+```
+
+#### Why Meta Section?
+
+1. **Test Framework Compatibility**: Home Assistant test framework auto-injects `schema_version: 42` at the top level, breaking migration tests. The nested `meta.schema_version` is protected from this interference.
+
+2. **Semantic Separation**: Version metadata is separated from entity data, following database schema versioning patterns.
+
+3. **Migration Tracking**: The `meta` section can track migration history, dates, and applied transformations.
 
 ---
 
@@ -358,7 +431,7 @@ KidsChores separates **source data** (persisted) from **derived data** (computed
 
 **File**: [type_defs.py](../custom_components/choreops/type_defs.py)
 
-KidsChores uses a **hybrid type approach** balancing type safety with practical code patterns:
+ChoreOps uses a **hybrid type approach** balancing type safety with practical code patterns:
 
 ### TypedDict for Static Structures
 
@@ -420,7 +493,7 @@ Common runtime pattern:
 
 ### Why Hybrid Approach?
 
-**TypedDict requires literal string keys** but KidsChores uses variable-based key access in ~30 locations:
+**TypedDict requires literal string keys** but ChoreOps uses variable-based key access in ~30 locations:
 
 ```python
 # Variable key access patterns (incompatible with TypedDict):
@@ -443,79 +516,6 @@ for period_key in ["daily", "weekly", "monthly"]:
 | Per-entity tracking | ❌ (field names are variables) | ✅ Accessed with variables    |
 
 See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md#type-system) for implementation details and [type_defs.py](../custom_components/choreops/type_defs.py) header for full rationale.
-
----
-
-## Versioning Architecture
-
-KidsChores uses a **dual versioning system**:
-
-### 1. Home Assistant Store Version (File Format)
-
-```json
-{
-    "version": 1,          // HA Store format version (always 1)
-    "minor_version": 1,    // HA Store minor version
-    "key": "kidschores_data",
-    "data": { ... }        // KidsChores data with schema_version
-}
-```
-
-### 2. KidsChores Schema Version (Data Structure)
-
-The **`meta.schema_version`** field in storage data determines the integration's operational mode. Schema 42 is the current version:
-
-| Schema Version | Mode                  | Behavior                                                        |
-| -------------- | --------------------- | --------------------------------------------------------------- |
-| < 42           | Legacy (Pre-0.5.0)    | Reads entity data from `config_entry.options` or legacy storage |
-| ≥ 42           | Storage-Only (0.5.0+) | Reads entity data exclusively from storage with meta section    |
-
-**Key Files**:
-
-- `custom_components/choreops/const.py`: `SCHEMA_VERSION_STORAGE_ONLY = 42`
-- `custom_components/choreops/coordinator.py`: Main coordinator (7,591 lines), uses multiple inheritance
-- `custom_components/choreops/coordinator_chore_operations.py`: Chore operations class (3,852 lines), 43 methods in 11 sections
-- `custom_components/choreops/__init__.py`: Lines 45-51 (migration detection)
-
-**Code Organization**: Coordinator uses Python's multiple inheritance to organize features:
-
-- ChoreOperations class provides 43 chore lifecycle methods organized into 11 logical sections (§1-§11)
-- TYPE_CHECKING pattern provides type hints without runtime imports
-- Pattern enables extraction of 3,688 lines (34% reduction) while maintaining single coordinator interface
-
-**Legacy Format (v41 and below)**:
-
-```json
-{
-    "data": {
-        "schema_version": 41,  // Top-level schema version
-        "kids": {...}
-    }
-}
-```
-
-**Modern Format (v42+)**:
-
-```json
-{
-    "data": {
-        "meta": {
-            "schema_version": 42,                    // Nested in meta section
-            "last_migration_date": "2025-12-18...",
-            "migrations_applied": ["badge_restructure", ...]
-        },
-        "kids": {...}
-    }
-}
-```
-
-#### Why Meta Section?
-
-1. **Test Framework Compatibility**: Home Assistant test framework auto-injects `schema_version: 42` at the top level, breaking migration tests. The nested `meta.schema_version` is protected from this interference.
-
-2. **Semantic Separation**: Version metadata is separated from entity data, following database schema versioning patterns.
-
-3. **Migration Tracking**: The `meta` section can track migration history, dates, and applied transformations.
 
 ---
 
@@ -561,7 +561,7 @@ Covers 9 scenarios (EC-01 through EC-09): monthly clamping, leap year handling, 
 
 ## Statistics Engine Architecture
 
-The `engines/statistics.py` module provides unified time-series tracking for all period-based statistics across KidsChores. It centralizes period key generation, transaction recording, and data pruning.
+The `engines/statistics.py` module provides unified time-series tracking for all period-based statistics across ChoreOps. It centralizes period key generation, transaction recording, and data pruning.
 
 ### Design Principles
 
@@ -616,7 +616,7 @@ All entity types now share an identical 5-bucket period structure:
 
 ## Translation Architecture
 
-KidsChores utilizes a multi-tiered translation architecture to manage standard Home Assistant (HA) integration strings alongside specialized custom notifications and dashboard elements.
+ChoreOps utilizes a multi-tiered translation architecture to manage standard Home Assistant (HA) integration strings alongside specialized custom notifications and dashboard elements.
 
 To support this localization, we use a professional workflow through Crowdin, supported by a granted **Open Source License**. This license enables ongoing collaboration by allowing the team to share direct links with contributors, who can then suggest improvements or provide new translations for the integration. These community-driven updates are then automatically synchronized back into the repository via our automated translation workflow.
 
@@ -724,14 +724,14 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 
 ## Config and Options Flow Architecture
 
-The KidsChores integration utilizes a **Direct-to-Storage** architecture that decouples user-defined entities from the Home Assistant configuration entry. This design allows for unlimited entity scaling and optimized system performance.
+The ChoreOps integration utilizes a **Direct-to-Storage** architecture that decouples user-defined entities from the Home Assistant configuration entry. This design allows for unlimited entity scaling and optimized system performance.
 
 ### Core Design Elements
 
 - **Unified Logic via `flow_helpers.py`**: Both Config and Options flows leverage a shared utility layer to provide consistent validation and schema building. This centralization simplifies ongoing maintenance and ensures a uniform user experience across setup and configuration.
 - **Single Source of Truth via `data_builders.py`**: All entity validation and building logic is centralized in `data_builders.py`, which serves **three entry points**: Config Flow, Options Flow, and Services. This architectural decision eliminates duplicate validation code and ensures consistent business rules across UI forms and programmatic CRUD operations.
 - **CFOF Key Alignment (v0.5.0)**: Form field keys (`CFOF_*`) align with storage keys (`DATA_*`) where possible, allowing `user_input` to pass directly to `data_builders.build_*()` without mapping. Complex entities (chores, badges) still use transform functions.
-- **Direct Storage Writing**: User input is written directly to persistent storage at `.storage/kidschores_data` using **Schema 42**. This approach treats storage as the immediate source of truth, bypassing intermediate configuration entry merging.
+- **Direct Storage Writing**: User input is written directly to persistent storage at `.storage/choreops/choreops_data` using **Schema 42**. This approach treats storage as the immediate source of truth, bypassing intermediate configuration entry merging.
 - **Lightweight System Settings**: The `config_entry.options` object is reserved exclusively for system-level settings and feature flags, such as `points_label`, `update_interval`, and `kiosk_mode`. This keeps the core configuration entry lightweight and easy to validate.
 
 ### Operational Workflows
@@ -778,11 +778,11 @@ Chore state is determined by the interaction of **five configuration drivers**:
 
 ### Chore state source-of-truth matrix (Phase 5)
 
-| Storage key | State | Persisted? | Classification | Notes |
-| --- | --- | --- | --- | --- |
-| `DATA_KID_CHORE_DATA_STATE` | `pending`, `claimed`, `approved`, `overdue`, `missed` | ✅ Yes | Workflow checkpoint | Kid-level source-of-truth states written by manager transitions/boundaries |
-| `DATA_KID_CHORE_DATA_STATE` | `due`, `waiting`, `not_my_turn`, `completed_by_other` | ❌ No | Derived/display | Resolved at runtime via `resolve_kid_chore_state()` + `get_chore_status_context()` |
-| `DATA_CHORE_STATE` | `pending`, `claimed`, `approved`, `overdue`, `claimed_in_part`, `approved_in_part`, `independent`, `unknown` | ✅ Yes | Aggregate snapshot | Derived from per-kid persisted states in `_update_global_state()` and stored for fast reads |
+| Storage key                 | State                                                                                                        | Persisted? | Classification      | Notes                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- | ------------------- | ------------------------------------------------------------------------------------------- |
+| `DATA_KID_CHORE_DATA_STATE` | `pending`, `claimed`, `approved`, `overdue`, `missed`                                                        | ✅ Yes     | Workflow checkpoint | Kid-level source-of-truth states written by manager transitions/boundaries                  |
+| `DATA_KID_CHORE_DATA_STATE` | `due`, `waiting`, `not_my_turn`, `completed_by_other`                                                        | ❌ No      | Derived/display     | Resolved at runtime via `resolve_kid_chore_state()` + `get_chore_status_context()`          |
+| `DATA_CHORE_STATE`          | `pending`, `claimed`, `approved`, `overdue`, `claimed_in_part`, `approved_in_part`, `independent`, `unknown` | ✅ Yes     | Aggregate snapshot  | Derived from per-kid persisted states in `_update_global_state()` and stored for fast reads |
 
 **Guardrail**: Manager write paths must normalize non-persisted kid-level states to `pending` before storage write. Display-only states must be emitted only in runtime status context/sensor views.
 
@@ -857,7 +857,7 @@ The integration maintains backward compatibility for legacy installations:
 
 ## Shadow Kid Linking
 
-The `kidschores.manage_shadow_link` service provides programmatic control over shadow kid relationships, enabling data-preserving workflows for existing kid profiles.
+The `choreops.manage_shadow_link` service provides programmatic control over shadow kid relationships, enabling data-preserving workflows for existing kid profiles.
 
 ### Core Concept
 
@@ -889,13 +889,13 @@ Shadow kids are created with `enable_notifications: false` by default to avoid d
 
 ```yaml
 # Convert existing kid "Sarah" to shadow kid for parent "Sarah"
-service: kidschores.manage_shadow_link
+service: choreops.manage_shadow_link
 data:
   name: "Sarah"
   action: "link"
 
 # Unlink shadow kid (creates regular kid "Sarah_unlinked")
-service: kidschores.manage_shadow_link
+service: choreops.manage_shadow_link
 data:
   name: "Sarah"
   action: "unlink"
