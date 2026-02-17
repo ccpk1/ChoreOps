@@ -24,8 +24,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.utils.dt_utils import dt_add_interval, dt_today_iso
+from custom_components.choreops import const
+from custom_components.choreops.utils.dt_utils import dt_add_interval, dt_today_iso
 from tests.helpers import (
     # Badge type constants
     BADGE_TYPE_DAILY,

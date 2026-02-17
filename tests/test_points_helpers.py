@@ -4,8 +4,8 @@ Tests validate that config flow and options flow use the same centralized
 helper functions for points configuration, ensuring consistency.
 """
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers import flow_helpers as fh
+from custom_components.choreops import const
+from custom_components.choreops.helpers import flow_helpers as fh
 
 
 def test_build_points_schema_default_values() -> None:

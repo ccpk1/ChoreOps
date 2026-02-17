@@ -48,76 +48,6 @@ if TYPE_CHECKING:
 PARALLEL_UPDATES = 1
 
 
-async def _cleanup_orphaned_adjustment_buttons(
-    hass: HomeAssistant,
-    entry: KidsChoresConfigEntry,
-    coordinator: KidsChoresDataCoordinator,
-) -> None:
-    """Remove orphaned manual adjustment button entities.
-
-    When points_adjust_values changes, old button entities with obsolete delta
-    values remain in the entity registry. This function identifies and removes them.
-
-    Args:
-        hass: Home Assistant instance
-        entry: Config entry for this integration
-        coordinator: Coordinator with current kid data
-    """
-    from homeassistant.helpers import entity_registry as er
-
-    entity_registry = er.async_get(hass)
-
-    # Get current points adjust values from EconomyManager (single source of truth)
-    current_deltas = set(coordinator.economy_manager.adjustment_deltas)
-
-    # Get all button entities for this config entry
-    entities = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
-
-    # Find and remove orphaned manual adjustment buttons
-    for entity in entities:
-        # Check if this is a manual adjustment button by looking at unique_id pattern
-        # New format: {entry_id}_{kid_id}_{slugified_delta}_parent_points_adjust_button
-        # Legacy format: {entry_id}_{kid_id}_adjust_points_{delta} (pre-v0.5.0)
-        if (
-            const.BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST in entity.unique_id
-            or const.BUTTON_KC_UID_MIDFIX_ADJUST_POINTS_LEGACY in entity.unique_id
-        ):
-            # Extract delta from unique_id
-            try:
-                # Try new format first
-                if const.BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST in entity.unique_id:
-                    # unique_id format: "{entry_id}_{kid_id}_{slugified_delta}_parent_points_adjust_button"
-                    # Extract the part before the suffix
-                    prefix_part = entity.unique_id.split(
-                        const.BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST
-                    )[0]
-                    # Get last segment which is the slugified delta
-                    delta_slug = prefix_part.split("_")[-1]
-                    # Convert slugified delta back to float (replace 'neg' prefix and 'p' decimal)
-                    delta_str = delta_slug.replace("neg", "-").replace("p", ".")
-                    delta = float(delta_str)
-                else:
-                    # Legacy format: "{entry_id}_{kid_id}_adjust_points_{delta}"
-                    delta_str = entity.unique_id.split(
-                        const.BUTTON_KC_UID_MIDFIX_ADJUST_POINTS_LEGACY
-                    )[1]
-                    delta = float(delta_str)
-
-                # If this delta is not in current config, remove the entity
-                if delta not in current_deltas:
-                    const.LOGGER.debug(
-                        "Removing orphaned adjustment button: %s (delta %s not in current config)",
-                        entity.entity_id,
-                        delta,
-                    )
-                    entity_registry.async_remove(entity.entity_id)
-            except (IndexError, ValueError):
-                const.LOGGER.warning(
-                    "Could not parse delta from adjustment button uid: %s",
-                    entity.unique_id,
-                )
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: KidsChoresConfigEntry,
@@ -129,9 +59,6 @@ async def async_setup_entry(
     points_label = entry.options.get(
         const.CONF_POINTS_LABEL, const.DEFAULT_POINTS_LABEL
     )
-
-    # Clean up orphaned manual adjustment button entities before creating new ones
-    await _cleanup_orphaned_adjustment_buttons(hass, entry, coordinator)
 
     entities: list[ButtonEntity] = []
 

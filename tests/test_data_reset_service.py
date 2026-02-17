@@ -496,7 +496,7 @@ class TestDataResetBackupCreation:
 
         with (
             patch(
-                "custom_components.kidschores.helpers.backup_helpers.create_timestamped_backup",
+                "custom_components.choreops.helpers.backup_helpers.create_timestamped_backup",
                 new=mock_create_backup,
             ),
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),

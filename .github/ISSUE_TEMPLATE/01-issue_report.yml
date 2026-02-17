@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Please fill out this form to report a bug with the KidsChore Integration.**
+        **Please fill out this form to report a bug with the ChoreOps integration.**
 
   - type: input
     id: home_assistant_version
@@ -23,7 +23,7 @@ body:
   - type: input
     id: integration_version
     attributes:
-      label: KidsChore Integration Version
+      label: ChoreOps integration version
       description: "What version of the integration are you using?"
       placeholder: "e.g., 0.4.8"
     validations:
@@ -79,7 +79,7 @@ body:
         logger:
           default: warning
           logs:
-            custom_components.kidschores: debug
+            custom_components.choreops: debug
         ```
 
         See [Home Assistant Logger Documentation](https://www.home-assistant.io/integrations/logger) for more information.

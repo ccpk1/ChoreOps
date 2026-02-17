@@ -14,7 +14,7 @@ Uses scenario_full (Stårblüm family) from test_badge_helpers.py pattern.
 
 from homeassistant.core import HomeAssistant
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 
 # Note: We import from const.py for attribute keys (not tests.helpers)
 from tests.test_badge_helpers import (

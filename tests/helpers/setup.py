@@ -36,8 +36,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import yaml
 
-from custom_components.kidschores import const
-from custom_components.kidschores.coordinator import KidsChoresDataCoordinator
+from custom_components.choreops import const
+from custom_components.choreops.coordinator import KidsChoresDataCoordinator
 from tests.helpers.flow_test_helpers import FlowTestHelper
 
 _LOGGER = logging.getLogger(__name__)

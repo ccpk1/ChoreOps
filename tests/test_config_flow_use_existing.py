@@ -22,7 +22,7 @@ from tests.helpers import (
 def mock_setup_entry() -> AsyncMock:
     """Mock async_setup_entry."""
     with patch(
-        "custom_components.kidschores.async_setup_entry",
+        "custom_components.choreops.async_setup_entry",
         return_value=True,
     ) as mock_setup:
         yield mock_setup

@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import MethodType
 from typing import Any
 
-from custom_components.kidschores.managers.statistics_manager import StatisticsManager
+from custom_components.choreops.managers.statistics_manager import StatisticsManager
 
 
 def test_empty_report_rollup_uses_points_spent_keys() -> None:

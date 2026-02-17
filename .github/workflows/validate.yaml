@@ -11,7 +11,7 @@ jobs:
   validate-hacs:
     runs-on: "ubuntu-latest"
     # Skip HACS validation on forks - only validate on main repo
-    if: github.repository == 'ad-ha/kidschores-ha' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
+    if: github.repository == 'ccpk1/choreops' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
     steps:
       - uses: "actions/checkout@v3"
       - name: HACS validation

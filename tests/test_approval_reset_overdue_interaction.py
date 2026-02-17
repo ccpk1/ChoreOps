@@ -21,8 +21,8 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.util import dt as dt_util
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.const import (
+from custom_components.choreops import const
+from custom_components.choreops.const import (
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
     DATA_CHORE_APPROVAL_PERIOD_START,
@@ -33,7 +33,7 @@ from custom_components.kidschores.const import (
     DATA_KID_CHORE_DATA,
     DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START,
 )
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
@@ -558,7 +558,7 @@ class TestOverdueResetValidation:
     ) -> None:
         """Test that AT_DUE_DATE_ONCE + AT_DUE_DATE_THEN_RESET is rejected."""
         # Import flow_helpers to test validation directly
-        from custom_components.kidschores.helpers import flow_helpers as fh
+        from custom_components.choreops.helpers import flow_helpers as fh
 
         # Create minimal chore input with invalid combination
         user_input = {
@@ -612,7 +612,7 @@ class TestOverdueResetValidation:
         This combination is valid because UPON_COMPLETION provides immediate reset
         on approval, which effectively clears the overdue status immediately.
         """
-        from custom_components.kidschores.helpers import flow_helpers as fh
+        from custom_components.choreops.helpers import flow_helpers as fh
 
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",
@@ -654,7 +654,7 @@ class TestOverdueResetValidation:
         hass: HomeAssistant,
     ) -> None:
         """Test that AT_MIDNIGHT_ONCE + AT_DUE_DATE_THEN_RESET is accepted."""
-        from custom_components.kidschores.helpers import flow_helpers as fh
+        from custom_components.choreops.helpers import flow_helpers as fh
 
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",
@@ -697,7 +697,7 @@ class TestOverdueResetValidation:
         hass: HomeAssistant,
     ) -> None:
         """Test that AT_MIDNIGHT_MULTI + AT_DUE_DATE_THEN_RESET is accepted."""
-        from custom_components.kidschores.helpers import flow_helpers as fh
+        from custom_components.choreops.helpers import flow_helpers as fh
 
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",

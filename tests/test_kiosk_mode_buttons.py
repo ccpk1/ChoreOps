@@ -17,7 +17,7 @@ from homeassistant.core import Context, HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 import pytest
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 from tests.helpers import (
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,
@@ -67,7 +67,7 @@ async def test_kiosk_disabled_blocks_unauthorized_chore_claim_button(
     unauthorized_context = Context(user_id=mock_hass_users["kid2"].id)
 
     with patch(
-        "custom_components.kidschores.button.is_kiosk_mode_enabled", return_value=False
+        "custom_components.choreops.button.is_kiosk_mode_enabled", return_value=False
     ):
         result = await claim_chore(
             hass,
@@ -89,7 +89,7 @@ async def test_kiosk_enabled_allows_unauthorized_chore_claim_button(
     """Kid claim button should allow claim from unlinked user when kiosk is enabled."""
     unauthorized_context = Context(user_id=mock_hass_users["kid2"].id)
     with patch(
-        "custom_components.kidschores.button.is_kiosk_mode_enabled", return_value=True
+        "custom_components.choreops.button.is_kiosk_mode_enabled", return_value=True
     ):
         result = await claim_chore(
             hass,
@@ -121,11 +121,11 @@ async def test_kiosk_enabled_skips_reward_kid_auth_guard(
 
     with (
         patch(
-            "custom_components.kidschores.button.is_kiosk_mode_enabled",
+            "custom_components.choreops.button.is_kiosk_mode_enabled",
             return_value=True,
         ),
         patch(
-            "custom_components.kidschores.button.is_user_authorized_for_kid",
+            "custom_components.choreops.button.is_user_authorized_for_kid",
             new=AsyncMock(return_value=False),
         ) as mock_auth_for_kid,
         patch.object(

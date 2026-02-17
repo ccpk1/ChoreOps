@@ -229,7 +229,7 @@ class MigrationValidator:
 
         # Read migrated data from coordinator (not storage!)
         # Migration happens in coordinator._data and isn't auto-persisted
-        from custom_components.kidschores.const import COORDINATOR, DOMAIN
+        from custom_components.choreops.const import COORDINATOR, DOMAIN
 
         coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
         self.v42_data = coordinator._data  # pylint: disable=protected-access

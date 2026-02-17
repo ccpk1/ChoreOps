@@ -50,7 +50,7 @@ from tests.helpers.workflows import (
 )
 
 if TYPE_CHECKING:
-    from custom_components.kidschores.type_defs import ChoreData
+    from custom_components.choreops.type_defs import ChoreData
 
 
 # =============================================================================
@@ -1297,7 +1297,7 @@ class TestDueWindowEngine:
 
         from homeassistant.util import dt as dt_util
 
-        from custom_components.kidschores.engines.chore_engine import ChoreEngine
+        from custom_components.choreops.engines.chore_engine import ChoreEngine
 
         now = dt_util.utcnow()
         due_date = now + timedelta(hours=1)  # 1 hour from now
@@ -1319,7 +1319,7 @@ class TestDueWindowEngine:
 
         from homeassistant.util import dt as dt_util
 
-        from custom_components.kidschores.engines.chore_engine import ChoreEngine
+        from custom_components.choreops.engines.chore_engine import ChoreEngine
 
         now = dt_util.utcnow()
         due_date = now + timedelta(hours=5)  # 5 hours from now
@@ -1341,7 +1341,7 @@ class TestDueWindowEngine:
 
         from homeassistant.util import dt as dt_util
 
-        from custom_components.kidschores.engines.chore_engine import ChoreEngine
+        from custom_components.choreops.engines.chore_engine import ChoreEngine
 
         now = dt_util.utcnow()
         due_date = now + timedelta(hours=3)
@@ -1367,7 +1367,7 @@ class TestDueWindowEngine:
 
         from homeassistant.util import dt as dt_util
 
-        from custom_components.kidschores.engines.chore_engine import ChoreEngine
+        from custom_components.choreops.engines.chore_engine import ChoreEngine
 
         now = dt_util.utcnow()
         due_date = now + timedelta(hours=1)
@@ -1391,8 +1391,8 @@ class TestOverdueEngine:
         scenario_full: SetupResult,
     ) -> None:
         """ChoreEngine.chore_is_overdue checks for OVERDUE state."""
-        from custom_components.kidschores import const
-        from custom_components.kidschores.engines.chore_engine import ChoreEngine
+        from custom_components.choreops import const
+        from custom_components.choreops.engines.chore_engine import ChoreEngine
 
         # Test with OVERDUE state
         kid_chore_data_overdue = {

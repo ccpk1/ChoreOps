@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING, Any
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops import const
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:

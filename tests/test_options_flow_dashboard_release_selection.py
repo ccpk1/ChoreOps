@@ -9,8 +9,8 @@ from homeassistant.data_entry_flow import FlowResultType
 import pytest
 import voluptuous as vol
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers import dashboard_helpers as dh
+from custom_components.choreops import const
+from custom_components.choreops.helpers import dashboard_helpers as dh
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
@@ -135,15 +135,15 @@ async def test_dashboard_update_step_shows_release_controls(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
     ):
@@ -192,11 +192,11 @@ async def test_dashboard_create_parent_visibility_passes_linked_parent_users(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.create_kidschores_dashboard",
+            "custom_components.choreops.helpers.dashboard_builder.create_kidschores_dashboard",
             mock_create_dashboard,
         ),
     ):
@@ -267,7 +267,7 @@ async def test_dashboard_create_uses_sectioned_configure_schema(
     config_entry = scenario_minimal.config_entry
 
     with patch(
-        "custom_components.kidschores.helpers.dashboard_builder.async_check_dashboard_exists",
+        "custom_components.choreops.helpers.dashboard_builder.async_check_dashboard_exists",
         return_value=False,
     ):
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -319,7 +319,7 @@ async def test_dashboard_create_blocks_existing_dashboard_name(
     config_entry = scenario_minimal.config_entry
 
     with patch(
-        "custom_components.kidschores.helpers.dashboard_builder.async_check_dashboard_exists",
+        "custom_components.choreops.helpers.dashboard_builder.async_check_dashboard_exists",
         return_value=True,
     ):
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -373,19 +373,19 @@ async def test_dashboard_update_accepts_sectioned_configure_payload(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.update_kidschores_dashboard_views",
+            "custom_components.choreops.helpers.dashboard_builder.update_kidschores_dashboard_views",
             mock_update_dashboard,
         ),
     ):
@@ -465,19 +465,19 @@ async def test_dashboard_update_per_kid_mode_submits_without_rerender_stall(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.update_kidschores_dashboard_views",
+            "custom_components.choreops.helpers.dashboard_builder.update_kidschores_dashboard_views",
             mock_update_dashboard,
         ),
     ):
@@ -553,15 +553,15 @@ async def test_dashboard_update_schema_uses_expected_section_and_access_field_or
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
     ):
@@ -629,19 +629,19 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.update_kidschores_dashboard_views",
+            "custom_components.choreops.helpers.dashboard_builder.update_kidschores_dashboard_views",
             mock_update_dashboard,
         ),
     ):
@@ -719,19 +719,19 @@ async def test_dashboard_update_passes_per_kid_admin_mode_to_builder(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.update_kidschores_dashboard_views",
+            "custom_components.choreops.helpers.dashboard_builder.update_kidschores_dashboard_views",
             mock_update_dashboard,
         ),
     ):
@@ -791,7 +791,7 @@ async def test_dashboard_update_passes_per_kid_admin_mode_to_builder(
 
 def test_dashboard_builder_normalizes_admin_mode_aliases() -> None:
     """Builder normalization maps label-like values to canonical admin modes."""
-    from custom_components.kidschores.helpers import dashboard_builder as builder
+    from custom_components.choreops.helpers import dashboard_builder as builder
 
     assert (
         builder._normalize_admin_mode("Per Kid") == const.DASHBOARD_ADMIN_MODE_PER_KID
@@ -819,19 +819,19 @@ async def test_dashboard_update_passes_icon_and_access_metadata_to_builder(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.update_kidschores_dashboard_views",
+            "custom_components.choreops.helpers.dashboard_builder.update_kidschores_dashboard_views",
             mock_update_dashboard,
         ),
     ):
@@ -908,19 +908,19 @@ async def test_dashboard_update_linked_parents_visibility_submits(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
             return_value=update_select_schema,
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_kidschores_dashboards",
             return_value={},
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
             return_value=["KCD_v0.5.4", "KCD_v0.5.3"],
         ),
         patch(
-            "custom_components.kidschores.helpers.dashboard_builder.update_kidschores_dashboard_views",
+            "custom_components.choreops.helpers.dashboard_builder.update_kidschores_dashboard_views",
             mock_update_dashboard,
         ),
     ):
@@ -987,7 +987,7 @@ async def test_dashboard_configure_validation_no_kids_and_no_admin(
     config_entry = scenario_minimal.config_entry
 
     with patch(
-        "custom_components.kidschores.helpers.dashboard_builder.create_kidschores_dashboard",
+        "custom_components.choreops.helpers.dashboard_builder.create_kidschores_dashboard",
         return_value="kcd-chores",
     ):
         result = await hass.config_entries.options.async_init(config_entry.entry_id)

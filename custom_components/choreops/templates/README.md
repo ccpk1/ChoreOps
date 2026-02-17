@@ -77,4 +77,4 @@ If the Python context structure changes incompatibly:
 
 ## Local Fallback
 
-Templates are also bundled in `custom_components/kidschores/templates/` for offline installations. Keep both locations in sync when updating.
+Templates are also bundled in `custom_components/choreops/templates/` for offline installations. Keep both locations in sync when updating.

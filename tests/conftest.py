@@ -22,7 +22,7 @@ from homeassistant.core import HomeAssistant
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.kidschores.const import DOMAIN
+from custom_components.choreops.const import DOMAIN
 
 # ---------------------------------------------------------------------------
 # Core pytest plugin registration (REQUIRED at top-level)

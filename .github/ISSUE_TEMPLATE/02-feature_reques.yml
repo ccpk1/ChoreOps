@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        **Please describe the feature you would like to see added to the KidsChores Integration.**
+        **Please describe the feature you would like to see added to the ChoreOps integration.**
 
   - type: checkboxes
     id: problem_exists
@@ -26,7 +26,7 @@ body:
       placeholder: Ex. I'm always frustrated when [...]
     validations:
       required: false
-      
+
   - type: textarea
     id: solution
     attributes:

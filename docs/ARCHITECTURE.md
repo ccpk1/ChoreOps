@@ -9,7 +9,7 @@
 
 ## 🎯 Platinum Quality Standards
 
-This integration **unofficially** meets **Home Assistant Platinum** quality level requirements. See [quality_scale.yaml](../custom_components/kidschores/quality_scale.yaml) for current rule status and [AGENTS.md](../../core/AGENTS.md) and [Home Assistant's Integration Quality Scale](https://developers.home-assistant.io/docs/integration_quality_scale_index/) for ongoing Home Assistant quality standards.
+This integration **unofficially** meets **Home Assistant Platinum** quality level requirements. See [quality_scale.yaml](../custom_components/choreops/quality_scale.yaml) for current rule status and [AGENTS.md](../../core/AGENTS.md) and [Home Assistant's Integration Quality Scale](https://developers.home-assistant.io/docs/integration_quality_scale_index/) for ongoing Home Assistant quality standards.
 
 ### Home Assistant Quality Standards Reference
 
@@ -356,7 +356,7 @@ KidsChores separates **source data** (persisted) from **derived data** (computed
 
 ## Type System Architecture
 
-**File**: [type_defs.py](../custom_components/kidschores/type_defs.py)
+**File**: [type_defs.py](../custom_components/choreops/type_defs.py)
 
 KidsChores uses a **hybrid type approach** balancing type safety with practical code patterns:
 
@@ -442,7 +442,7 @@ for period_key in ["daily", "weekly", "monthly"]:
 | Aggregations        | ❌ (period/stat keys vary)     | ✅ Keys built dynamically     |
 | Per-entity tracking | ❌ (field names are variables) | ✅ Accessed with variables    |
 
-See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md#type-system) for implementation details and [type_defs.py](../custom_components/kidschores/type_defs.py) header for full rationale.
+See [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md#type-system) for implementation details and [type_defs.py](../custom_components/choreops/type_defs.py) header for full rationale.
 
 ---
 
@@ -472,10 +472,10 @@ The **`meta.schema_version`** field in storage data determines the integration's
 
 **Key Files**:
 
-- `custom_components/kidschores/const.py`: `SCHEMA_VERSION_STORAGE_ONLY = 42`
-- `custom_components/kidschores/coordinator.py`: Main coordinator (7,591 lines), uses multiple inheritance
-- `custom_components/kidschores/coordinator_chore_operations.py`: Chore operations class (3,852 lines), 43 methods in 11 sections
-- `custom_components/kidschores/__init__.py`: Lines 45-51 (migration detection)
+- `custom_components/choreops/const.py`: `SCHEMA_VERSION_STORAGE_ONLY = 42`
+- `custom_components/choreops/coordinator.py`: Main coordinator (7,591 lines), uses multiple inheritance
+- `custom_components/choreops/coordinator_chore_operations.py`: Chore operations class (3,852 lines), 43 methods in 11 sections
+- `custom_components/choreops/__init__.py`: Lines 45-51 (migration detection)
 
 **Code Organization**: Coordinator uses Python's multiple inheritance to organize features:
 
@@ -531,7 +531,7 @@ The `engines/schedule.py` module provides a unified scheduling system for chores
 
 ### RecurrenceEngine Class
 
-**Location**: `custom_components/kidschores/engines/schedule.py`
+**Location**: `custom_components/choreops/engines/schedule.py`
 
 **Key Methods**:
 
@@ -571,7 +571,7 @@ The `engines/statistics.py` module provides unified time-series tracking for all
 
 ### StatisticsEngine Class
 
-**Location**: `custom_components/kidschores/engines/statistics.py`
+**Location**: `custom_components/choreops/engines/statistics.py`
 
 **Key Methods**:
 
@@ -626,7 +626,7 @@ The integration maintains two distinct systems to balance core HA requirements w
 
 #### Standard Integration Translations
 
-- **Location**: `custom_components/kidschores/translations/en.json`.
+- **Location**: `custom_components/choreops/translations/en.json`.
 - **Scope**: Governs exception messages, config flow UI, entity names/states, and service descriptions.
 - **Implementation**: Utilizes the standard Home Assistant translation system via `hass.localize()` and `translation_key` attributes.
 - **Coordinator Notifications**: The Coordinator uses the `async_get_translations()` API to manage 36 dynamic notification keys for chore approvals, reward redemptions, and system reminders.

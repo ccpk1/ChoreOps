@@ -27,7 +27,7 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.core import HomeAssistant
 import pytest
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 from tests.helpers import (
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,

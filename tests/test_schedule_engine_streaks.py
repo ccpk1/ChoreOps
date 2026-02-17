@@ -12,9 +12,9 @@ Reference: STREAK_SYSTEM_IN-PROCESS.md Phase 3 Test Scenarios
 
 from datetime import UTC, datetime
 
-from custom_components.kidschores import const
-from custom_components.kidschores.engines.schedule_engine import RecurrenceEngine
-from custom_components.kidschores.type_defs import ScheduleConfig
+from custom_components.choreops import const
+from custom_components.choreops.engines.schedule_engine import RecurrenceEngine
+from custom_components.choreops.type_defs import ScheduleConfig
 
 # =============================================================================
 # Helper Functions

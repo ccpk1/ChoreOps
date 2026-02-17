@@ -26,8 +26,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.utils.dt_utils import (
+from custom_components.choreops import const
+from custom_components.choreops.utils.dt_utils import (
     dt_add_interval,
     parse_daily_multi_times,
 )
@@ -90,7 +90,7 @@ def mock_datetime(mock_time: datetime) -> Generator[None]:
     with (
         patch("homeassistant.util.dt.utcnow", return_value=mock_time),
         patch(
-            "custom_components.kidschores.utils.dt_utils.datetime",
+            "custom_components.choreops.utils.dt_utils.datetime",
             MockDatetime,
         ),
     ):

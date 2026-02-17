@@ -7,8 +7,8 @@ import datetime
 from freezegun import freeze_time
 from homeassistant.components.calendar import CalendarEvent
 
-from custom_components.kidschores import const
-from custom_components.kidschores.calendar import KidScheduleCalendar
+from custom_components.choreops import const
+from custom_components.choreops.calendar import KidScheduleCalendar
 
 
 def _build_calendar(duration_days: int) -> KidScheduleCalendar:

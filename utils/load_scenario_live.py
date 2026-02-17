@@ -23,7 +23,7 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.runner import RuntimeConfig
 
 # Import data_builders for build_chore
-from custom_components.kidschores import data_builders as eh
+from custom_components.choreops import data_builders as eh
 
 
 async def load_scenario_to_running_instance():  # pylint: disable=too-many-locals,too-many-branches,too-many-statements

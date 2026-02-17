@@ -25,7 +25,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 import pytest
 
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import setup_from_yaml
 
 pytestmark = pytest.mark.performance

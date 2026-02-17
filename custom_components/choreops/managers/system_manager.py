@@ -212,9 +212,11 @@ class SystemManager(BaseManager):
         # nuclear rebuild fallback, auto-restore, and schema 44 gate.
         # migration_performed presence means legacy data needs processing
         # regardless of reported schema version (may be prematurely stamped).
+        from ..migration_pre_v50 import has_legacy_migration_performed_marker
+
         needs_migration = (
             current_version < const.SCHEMA_VERSION_BETA4
-            or const.MIGRATION_PERFORMED in self.coordinator._data
+            or has_legacy_migration_performed_marker(self.coordinator._data)
         )
         if needs_migration:
             from ..migration_pre_v50 import PreV50Migrator

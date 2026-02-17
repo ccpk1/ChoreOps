@@ -6,7 +6,7 @@ Run from KidsChores integration workspace root.
 
 import json
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 
 # Verify all constants are defined
 required_constants = [
@@ -31,7 +31,7 @@ for constant_name in required_constants:
 # Verify select module can be imported
 print("\n📋 Module Import Check:")
 try:
-    from custom_components.kidschores import select
+    from custom_components.choreops import select
 
     print("  ✅ select.py imports successfully")
 
@@ -47,7 +47,7 @@ except ImportError as e:
 print("\n📋 Translation Check:")
 
 try:
-    with open("custom_components/kidschores/translations/en.json") as f:
+    with open("custom_components/choreops/translations/en.json") as f:
         translations = json.load(f)
 
     # Check entity translation

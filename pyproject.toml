@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kidschores"
+name = "choreops"
 version = "0.5.0"
-description = "KidsChores Home Assistant Integration - Gamified chore tracking for kids"
+description = "ChoreOps Home Assistant Integration - Gamified chore tracking for households"
 readme = "README.md"
-authors = [{ name = "KidsChores Contributors" }]
-license = { text = "MIT" }
+authors = [{ name = "ChoreOps Contributors" }]
+license = { text = "GPL-3.0-or-later" }
 requires-python = ">=3.13"
 
 [tool.pytest.ini_options]
@@ -145,16 +145,16 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 # Engines subdirectory uses relative imports for parent package (mypy requirement)
-"custom_components/kidschores/engines/**" = ["TID252"]
+"custom_components/choreops/engines/**" = ["TID252"]
 
 # Helpers subdirectory uses relative imports for parent package (sub-package pattern)
-"custom_components/kidschores/helpers/**" = ["TID252"]
+"custom_components/choreops/helpers/**" = ["TID252"]
 
 # Managers subdirectory uses relative imports for parent package (consistency)
-"custom_components/kidschores/managers/**" = ["TID252"]
+"custom_components/choreops/managers/**" = ["TID252"]
 
 # Calendar platform uses relative imports (HA component pattern)
-"custom_components/kidschores/calendar.py" = ["TID252"]
+"custom_components/choreops/calendar.py" = ["TID252"]
 
 # Tests have different requirements
 "tests/**" = [

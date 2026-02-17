@@ -444,7 +444,7 @@ class TestDeleteChoreEndToEnd:
         # First, create a chore to delete
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
-            patch("custom_components.kidschores.sensor.create_chore_entities"),
+            patch("custom_components.choreops.sensor.create_chore_entities"),
         ):
             create_response = await hass.services.async_call(
                 DOMAIN,

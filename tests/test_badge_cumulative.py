@@ -28,7 +28,7 @@ from typing import Any
 from homeassistant.core import Context, HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 from tests.helpers import (
     ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID,
     ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID,

@@ -45,7 +45,7 @@ installing incompatible dashboard templates for a given integration version.
 ### Source of truth order
 
 1. **Dashboard release metadata manifest** (future target in dashboard repo)
-2. **Integration-side fallback map** in [custom_components/kidschores/const.py](../custom_components/kidschores/const.py):
+2. **Integration-side fallback map** in [custom_components/choreops/const.py](../custom_components/choreops/const.py):
 
 - `DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG`
 - `DASHBOARD_RELEASE_MIN_COMPAT_TAG`
@@ -94,7 +94,7 @@ If any requirement fails, generator behavior falls back to bundled local templat
 
 Current implementation supports compatibility metadata in integration constants:
 
-- File: `custom_components/kidschores/const.py`
+- File: `custom_components/choreops/const.py`
 - Keys:
   - `DASHBOARD_RELEASE_MIN_COMPAT_TAG`
   - `DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG`
@@ -119,7 +119,7 @@ to bundled local templates shipped with the integration package.
 ### Location
 
 ```
-custom_components/kidschores/templates/
+custom_components/choreops/templates/
 ├── dashboard_full.yaml      # Full-featured kid dashboard
 ├── dashboard_minimal.yaml   # Essential features only
 └── dashboard_admin.yaml     # Parent administration view
@@ -324,7 +324,7 @@ import jinja2
 import yaml
 from pathlib import Path
 
-template_path = Path("custom_components/kidschores/templates/dashboard_full.yaml")
+template_path = Path("custom_components/choreops/templates/dashboard_full.yaml")
 template_str = template_path.read_text()
 
 env = jinja2.Environment(
@@ -521,7 +521,7 @@ Templates are fetched in this order:
 
 1. **Selected compatible release tag** (or newest compatible when not explicitly selected)
 2. **Fallback compatible release** (when selected release is unavailable)
-3. **Local bundled template**: `custom_components/kidschores/templates/dashboard_[style].yaml`
+3. **Local bundled template**: `custom_components/choreops/templates/dashboard_[style].yaml`
 
 Release-based fetch keeps template selection deterministic; local fallback preserves offline/recovery safety.
 

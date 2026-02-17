@@ -15,6 +15,7 @@ from zoneinfo import ZoneInfo
 from homeassistant.const import Platform
 import homeassistant.util.dt as dt_util
 
+from .migration_pre_v50_constants import *  # noqa: F403
 from .utils import dt_utils
 
 
@@ -31,8 +32,10 @@ def set_default_timezone(hass):
 # General / Integration Information
 # ================================================================================================
 
-KIDSCHORES_TITLE: Final = "KidsChores"
-DOMAIN: Final = "kidschores"
+CHOREOPS_TITLE: Final = "ChoreOps"
+DOMAIN: Final = "choreops"
+LEGACY_DOMAIN: Final = "kidschores"
+DOMAIN_ALIASES: Final[tuple[str, str]] = (DOMAIN, LEGACY_DOMAIN)
 LOGGER: Final = logging.getLogger(__package__)
 
 # Debug Mode (for development - enables invariant assertions)
@@ -53,46 +56,49 @@ COORDINATOR_SUFFIX: Final = "_coordinator"
 
 # Storage
 STORE: Final = "store"
-STORAGE_KEY: Final = "kidschores_data"
+STORAGE_DIRECTORY: Final = "choreops"
+STORAGE_KEY: Final = "choreops_data"
 STORAGE_VERSION: Final = 1
+
+# Runtime flag keys (stored in hass.data, not persisted)
+RUNTIME_KEY_STARTUP_BACKUP_CREATED: Final = "_startup_backup_created_"
+RUNTIME_KEY_ENTITY_CLEANUP_DONE: Final = "_entity_cleanup_done_"
 
 # Documentation URLs (injected via description_placeholders to satisfy hassfest)
 DOC_URL_QUICK_START: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Getting-Started:-Quick-Start"
+    "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Quick-Start"
 )
 DOC_URL_BACKUP_RESTORE: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Getting-Started:-Backup-Restore"
+    "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Backup-Restore"
 )
 DOC_URL_DASHBOARD_GENERATION: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Getting-Started:-Dashboard-Generation"
+    "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Dashboard-Generation"
 )
 DOC_URL_BADGES_OVERVIEW: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Advanced%3A-Badges-Overview"
+    "https://github.com/ccpk1/choreops/wiki/Advanced%3A-Badges-Overview"
 )
 DOC_URL_BADGES_CUMULATIVE: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Badges-Cumulative"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Cumulative"
 )
 DOC_URL_BADGES_PERIODIC: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Badges-Periodic"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Periodic"
 )
-DOC_URL_ACHIEVEMENTS_OVERVIEW: Final = "https://github.com/ad-ha/kidschores-ha/wiki/Challenges-&-Achievements%3A-Overview-&-Functionality"
-DOC_URL_BONUSES_PENALTIES: Final = "https://github.com/ad-ha/kidschores-ha/wiki/Bonuses-&-Penalties%3A-Overview-&-Examples"
-DOC_URL_CHORES: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Chores"
+DOC_URL_ACHIEVEMENTS_OVERVIEW: Final = "https://github.com/ccpk1/choreops/wiki/Challenges-&-Achievements%3A-Overview-&-Functionality"
+DOC_URL_BONUSES_PENALTIES: Final = (
+    "https://github.com/ccpk1/choreops/wiki/Bonuses-&-Penalties%3A-Overview-&-Examples"
 )
+DOC_URL_CHORES: Final = "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Chores"
 DOC_URL_CHORES_ADVANCED: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Chores-Advanced"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Chores-Advanced"
 )
 DOC_URL_KIDS_PARENTS: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Kids-Parents"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Kids-Parents"
 )
-DOC_URL_POINTS: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Points"
-)
+DOC_URL_POINTS: Final = "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Points"
 DOC_URL_REWARDS: Final = (
-    "https://github.com/ad-ha/kidschores-ha/wiki/Configuration%3A-Rewards"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Rewards"
 )
-DOC_URL_MAIN_WIKI: Final = "https://github.com/ad-ha/kidschores-ha/wiki"
+DOC_URL_MAIN_WIKI: Final = "https://github.com/ccpk1/choreops/wiki"
 
 # Description Placeholder Keys (for hassfest compliance)
 PLACEHOLDER_DOCUMENTATION_URL: Final = "documentation_url"
@@ -128,7 +134,7 @@ DASHBOARD_RELEASE_TEMPLATE_URL_PATTERN: Final = "https://raw.githubusercontent.c
 
 # Release source for remote dashboard template catalogs (Phase 1 policy)
 DASHBOARD_RELEASE_REPO_OWNER: Final = "ccpk1"
-DASHBOARD_RELEASE_REPO_NAME: Final = "kidschores-ha-dashboard"
+DASHBOARD_RELEASE_REPO_NAME: Final = "choreops-ha-dashboard"
 DASHBOARD_RELEASES_API_URL: Final = (
     "https://api.github.com/repos/{owner}/{repo}/releases"
 )
@@ -153,7 +159,7 @@ DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT: Final = True
 DASHBOARD_RELEASE_MIN_COMPAT_TAG: Final = "KCD_v0.5.0_beta1"
 
 # MVP compatibility map fallback (used until release metadata manifest is available)
-# Structure: dashboard release tag -> minimum KidsChores integration version required.
+# Structure: dashboard release tag -> minimum ChoreOps integration version required.
 DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {
     "KCD_v0.5.4": "0.5.0"
 }
@@ -1302,37 +1308,7 @@ POINTS_SOURCE_OPTIONS = [
 
 # --- Averages ---
 # NOTE: avg_*_week/month keys are NOT persisted (Phase 7.5). avg_per_chore is persisted.
-# LEGACY (v44): All point_stats fields will be deleted - DERIVED from period buckets
-DATA_KID_POINT_STATS_AVG_PER_DAY_WEEK_LEGACY: Final = (
-    "avg_points_per_day_week"  # DERIVED from weekly period
-)
-DATA_KID_POINT_STATS_AVG_PER_DAY_MONTH_LEGACY: Final = (
-    "avg_points_per_day_month"  # DERIVED from monthly period
-)
-DATA_KID_POINT_STATS_AVG_PER_CHORE_LEGACY: Final = (
-    "avg_points_per_chore"  # DERIVED from all-time stats
-)
-
-# --- Maximum Balance ---
-# LEGACY (v44): Moved to periods.all_time.all_time.highest_balance
-DATA_KID_POINT_STATS_HIGHEST_BALANCE_ALL_TIME_LEGACY: Final = (
-    "highest_balance_all_time"  # Use periods.all_time.all_time.highest_balance
-)
-
-# --- All time point stats ---
-# LEGACY (v44): These top-level keys are obsolete - use point_data.periods for all stats
-DATA_KID_POINTS_EARNED_ALL_TIME_LEGACY: Final = (
-    "points_earned_all_time"  # Use periods.all_time.all_time.points_earned
-)
-DATA_KID_POINTS_SPENT_ALL_TIME_LEGACY: Final = (
-    "points_spent_all_time"  # Use periods.all_time.all_time.points_spent
-)
-DATA_KID_POINTS_NET_ALL_TIME_LEGACY: Final = (
-    "points_net_all_time"  # DERIVED: earned + spent
-)
-DATA_KID_POINTS_BY_SOURCE_ALL_TIME_LEGACY: Final = (
-    "points_by_source_all_time"  # Use periods.all_time.all_time.by_source
-)
+# LEGACY constants moved to `migration_pre_v50_constants.py`
 
 # =============================================================================
 # PRESENTATION CONSTANTS (PRES_KID_*) - Memory-only cache keys (NOT in storage)
@@ -3970,7 +3946,7 @@ NOTIFY_TITLE = "title"
 # Notification Tag System (v0.5.0+)
 # Tags enable smart notification replacement: same tag = replace in-place, no stacking
 NOTIFY_TAG = "tag"
-NOTIFY_TAG_PREFIX = "kidschores"
+NOTIFY_TAG_PREFIX = "choreops"
 NOTIFY_TAG_TYPE_PENDING = "pending"  # Pending chore approvals
 NOTIFY_TAG_TYPE_REWARDS = "rewards"  # Reward claims pending
 NOTIFY_TAG_TYPE_SYSTEM = "system"  # System notifications (achievements, etc.)
@@ -4308,386 +4284,4 @@ REWARD_OPTION_NONE = [
 # Must be named as _LEGACY and organized in the dedicates section at the bottom of const.py.
 # DO NOT DELETE - would break migrations for upgrading users.
 # ================================================================================================
-
-# Top-level schema version field (KC 3.x→4.x migration)
-CONF_SCHEMA_VERSION_LEGACY: Final = "schema_version"
-
-# Config entry entity keys (KC 3.x stored entity data in config_entry.options)
-# These are read ONCE during migration, then entity data lives in .storage/kidschores_data
-CONF_ACHIEVEMENTS_LEGACY: Final = "achievements"
-CONF_BADGES_LEGACY: Final = "badges"
-CONF_BONUSES_LEGACY: Final = "bonuses"
-CONF_CHALLENGES_LEGACY: Final = "challenges"
-CONF_CHORES_LEGACY: Final = "chores"
-CONF_KIDS_LEGACY: Final = "kids"
-CONF_PARENTS_LEGACY: Final = "parents"
-CONF_PENALTIES_LEGACY: Final = "penalties"
-CONF_REWARDS_LEGACY: Final = "rewards"
-
-# Individual entity field keys (used during KC 3.x→4.x migration)
-CONF_COST_LEGACY: Final = "cost"
-CONF_DASHBOARD_LANGUAGE_LEGACY: Final = "dashboard_language"
-CONF_HA_USER_LEGACY: Final = "ha_user"
-CONF_INTERNAL_ID_LEGACY: Final = "internal_id"
-CONF_POINTS_LEGACY: Final = "points"
-CONF_SHARED_CHORE_LEGACY: Final = "shared_chore"
-CONF_COMPLETION_CRITERIA_LEGACY: Final = "completion_criteria"
-
-# Achievement entity fields (KC 3.x migration)
-CONF_ACHIEVEMENT_ASSIGNED_KIDS_LEGACY: Final = "assigned_kids"
-CONF_ACHIEVEMENT_CRITERIA_LEGACY: Final = "criteria"
-CONF_ACHIEVEMENT_LABELS_LEGACY: Final = "achievement_labels"
-CONF_ACHIEVEMENT_REWARD_POINTS_LEGACY: Final = "reward_points"
-CONF_ACHIEVEMENT_SELECTED_CHORE_ID_LEGACY: Final = "selected_chore_id"
-CONF_ACHIEVEMENT_TARGET_VALUE_LEGACY: Final = "target_value"
-CONF_ACHIEVEMENT_TYPE_LEGACY: Final = "type"
-
-# Bonus entity fields (KC 3.x migration)
-CONF_BONUS_DESCRIPTION_LEGACY: Final = "bonus_description"
-CONF_BONUS_LABELS_LEGACY: Final = "bonus_labels"
-CONF_BONUS_NAME_LEGACY: Final = "bonus_name"
-CONF_BONUS_POINTS_LEGACY: Final = "bonus_points"
-
-# Challenge entity fields (KC 3.x migration)
-CONF_CHALLENGE_ASSIGNED_KIDS_LEGACY: Final = "assigned_kids"
-CONF_CHALLENGE_CRITERIA_LEGACY: Final = "criteria"
-CONF_CHALLENGE_END_DATE_LEGACY: Final = "end_date"
-CONF_CHALLENGE_LABELS_LEGACY: Final = "challenge_labels"
-CONF_CHALLENGE_REWARD_POINTS_LEGACY: Final = "reward_points"
-CONF_CHALLENGE_SELECTED_CHORE_ID_LEGACY: Final = "selected_chore_id"
-CONF_CHALLENGE_START_DATE_LEGACY: Final = "start_date"
-CONF_CHALLENGE_TARGET_VALUE_LEGACY: Final = "target_value"
-CONF_CHALLENGE_TYPE_LEGACY: Final = "type"
-
-# Chore entity fields (KC 3.x migration)
-CONF_ALLOW_MULTIPLE_CLAIMS_PER_DAY_LEGACY: Final = "allow_multiple_claims_per_day"
-CONF_APPLICABLE_DAYS_LEGACY: Final = "applicable_days"
-CONF_APPROVAL_RESET_PENDING_CLAIM_ACTION_LEGACY: Final = (
-    "approval_reset_pending_claim_action"
-)
-CONF_APPROVAL_RESET_TYPE_LEGACY: Final = "approval_reset_type"
-CONF_ASSIGNED_KIDS_LEGACY: Final = "assigned_kids"
-CONF_CHORE_AUTO_APPROVE_LEGACY: Final = "auto_approve"
-CONF_CHORE_DESCRIPTION_LEGACY: Final = "chore_description"
-CONF_CHORE_LABELS_LEGACY: Final = "chore_labels"
-CONF_CHORE_NAME_LEGACY: Final = "chore_name"
-CONF_CUSTOM_INTERVAL_LEGACY: Final = "custom_interval"
-CONF_CUSTOM_INTERVAL_UNIT_LEGACY: Final = "custom_interval_unit"
-CONF_DEFAULT_POINTS_LEGACY: Final = "default_points"
-CONF_DUE_DATE_LEGACY: Final = "due_date"
-CONF_OVERDUE_HANDLING_TYPE_LEGACY: Final = "overdue_handling_type"
-CONF_RECURRING_FREQUENCY_LEGACY: Final = "recurring_frequency"
-CONF_CHORE_SHOW_ON_CALENDAR_LEGACY: Final = "show_on_calendar"
-
-# Notification entity fields (KC 3.x migration)
-CONF_ENABLE_MOBILE_NOTIFICATIONS_LEGACY: Final = "enable_mobile_notifications"
-CONF_ENABLE_PERSISTENT_NOTIFICATIONS_LEGACY: Final = "enable_persistent_notifications"
-CONF_MOBILE_NOTIFY_SERVICE_LEGACY: Final = "mobile_notify_service"
-CONF_CHORE_NOTIFICATIONS_LEGACY: Final = "chore_notifications"
-
-# Parent entity fields (KC 3.x migration)
-CONF_ASSOCIATED_KIDS_LEGACY: Final = "associated_kids"
-CONF_HA_USER_ID_LEGACY: Final = "ha_user_id"
-CONF_PARENT_NAME_LEGACY: Final = "parent_name"
-
-# Penalty entity fields (KC 3.x migration)
-CONF_PENALTY_DESCRIPTION_LEGACY: Final = "penalty_description"
-CONF_PENALTY_LABELS_LEGACY: Final = "penalty_labels"
-CONF_PENALTY_NAME_LEGACY: Final = "penalty_name"
-CONF_PENALTY_POINTS_LEGACY: Final = "penalty_points"
-
-# Reward entity fields (KC 3.x migration)
-CONF_REWARD_COST_LEGACY: Final = "reward_cost"
-CONF_REWARD_DESCRIPTION_LEGACY: Final = "reward_description"
-CONF_REWARD_LABELS_LEGACY: Final = "reward_labels"
-CONF_REWARD_NAME_LEGACY: Final = "reward_name"
-
-CFOF_CHORES_INPUT_PARTIAL_ALLOWED_LEGACY: Final = "partial_allowed"
-CONF_PARTIAL_ALLOWED_LEGACY: Final = "partial_allowed"
-# Legacy/Deprecated (Development-Only: Removed before v4.0+ production release)
-# Replaced by nested periods structure (DATA_KID_CHORE_DATA_PERIODS)
-DATA_KID_TODAY_CHORE_APPROVALS_LEGACY: Final = (
-    "today_chore_approvals"  # Use periods structure instead. [DELETE BEFORE PROD]
-)
-DATA_CHORE_PARTIAL_ALLOWED_LEGACY: Final = "partial_allowed"
-# Runtime Data Keys
-# LEGACY (v0.4.0): Chore/reward queues removed, computed from timestamps instead
-# Keep constants for backward-compat migration code in migration_pre_v42.py
-DATA_PENDING_CHORE_APPROVALS_LEGACY: Final = "pending_chore_approvals"
-DATA_PENDING_REWARD_APPROVALS_LEGACY: Final = "pending_reward_approvals"
-# LEGACY (pre-v0.5.0): User linking feature never implemented in production
-# Keep constant to clean up orphaned keys from early development/testing
-DATA_LINKED_USERS_LEGACY: Final = "linked_users"
-
-# Runtime flag keys (stored in hass.data, not persisted)
-RUNTIME_KEY_STARTUP_BACKUP_CREATED: Final = "_startup_backup_created_"
-RUNTIME_KEY_ENTITY_CLEANUP_DONE: Final = "_entity_cleanup_done_"
-
-DEFAULT_BADGE_THRESHOLD_VALUE_LEGACY: Final = 50
-DEFAULT_PARTIAL_ALLOWED_LEGACY = False
-ATTR_PARTIAL_ALLOWED_LEGACY: Final = "partial_allowed"
-
-
-# Kid Badge Data (used in migration functions)
-DATA_KID_BADGES_LEGACY: Final = (
-    "badges"  # Used in _migrate_kid_badges(), remove when migration dropped
-)
-
-# Kid Chore Tracking (LEGACY: Migration only)
-DATA_KID_CHORE_APPROVALS_LEGACY: Final = "chore_approvals"  # LEGACY: Migration only - use kid_chore_data[chore_id]["periods"][period]["approved"]
-DATA_KID_CHORE_CLAIMS_LEGACY: Final = (
-    "chore_claims"  # LEGACY: Migration only - use chore_data structure
-)
-DATA_KID_CHORE_STREAKS_LEGACY: Final = (
-    "chore_streaks"  # LEGACY: Migration only - use chore_data structure
-)
-
-# Kid Completed Chores Counters (LEGACY - migration only, use chore_stats)
-DATA_KID_COMPLETED_CHORES_MONTHLY_LEGACY = (
-    "completed_chores_monthly"  # LEGACY: Migration only
-)
-DATA_KID_COMPLETED_CHORES_TOTAL_LEGACY = (
-    "completed_chores_total"  # LEGACY: Migration only
-)
-DATA_KID_COMPLETED_CHORES_TODAY_LEGACY = (
-    "completed_chores_today"  # LEGACY: Migration only
-)
-DATA_KID_COMPLETED_CHORES_WEEKLY_LEGACY = (
-    "completed_chores_weekly"  # LEGACY: Migration only
-)
-DATA_KID_COMPLETED_CHORES_YEARLY_LEGACY = (
-    "completed_chores_yearly"  # LEGACY: Migration only
-)
-
-# Kid Points Earned Tracking (LEGACY: Migration only)
-DATA_KID_POINTS_EARNED_MONTHLY_LEGACY: Final = "points_earned_monthly"  # LEGACY: Migration only - use point_stats["periods"]["monthly"]["earned"]
-DATA_KID_POINTS_EARNED_TODAY_LEGACY: Final = "points_earned_today"  # LEGACY: Migration only - use point_stats["periods"]["daily"]["earned"]
-DATA_KID_POINTS_EARNED_WEEKLY_LEGACY: Final = "points_earned_weekly"  # LEGACY: Migration only - use point_stats["periods"]["weekly"]["earned"]
-DATA_KID_POINTS_EARNED_YEARLY_LEGACY: Final = "points_earned_yearly"  # LEGACY: Migration only - use point_stats["periods"]["yearly"]["earned"]
-
-# Additional Kid Legacy Fields (scattered throughout v0.4.0)
-DATA_KID_APPROVED_CHORES_LEGACY: Final = "approved_chores"  # LEGACY: Migration only
-DATA_KID_CLAIMED_CHORES_LEGACY: Final = (
-    "claimed_chores"  # LEGACY: Migration only - use chore_data structure
-)
-DATA_KID_MAX_POINTS_EVER_LEGACY: Final = (
-    "max_points_ever"  # Legacy field - use POINT_STATS_EARNED_ALL_TIME instead
-)
-DATA_KID_MAX_STREAK_LEGACY: Final = (
-    "max_streak"  # Legacy field - use CHORE_STATS_LONGEST_STREAK_ALL_TIME instead
-)
-DATA_KID_OVERDUE_CHORES_LEGACY: Final = "overdue_chores"  # LEGACY: Dead code - overdue tracked in chore_data[chore_id].state
-
-# Legacy Reward Fields (v0.4.0): Replaced by reward_data structure
-# Keep constants for backward-compat migration code in migration_pre_v42.py
-DATA_KID_PENDING_REWARDS_LEGACY: Final = "pending_rewards"
-DATA_KID_REDEEMED_REWARDS_LEGACY: Final = "redeemed_rewards"
-DATA_KID_REWARD_APPROVALS_LEGACY: Final = "reward_approvals"
-DATA_KID_REWARD_CLAIMS_LEGACY: Final = "reward_claims"
-
-# Legacy Chore Fields (v0.4.0): Replaced by new structures
-DATA_CHORE_ALLOW_MULTIPLE_CLAIMS_PER_DAY_LEGACY: Final = "allow_multiple_claims_per_day"  # Migration only - replaced by DATA_CHORE_APPROVAL_RESET_TYPE
-DATA_CHORE_SHARED_CHORE_LEGACY: Final = (
-    "shared_chore"  # LEGACY: Use completion_criteria
-)
-
-# Kid Chore Data Due Date (v0.5.0): Replaced by per_kid_due_dates at chore level
-# Schema v50 migration removes this field from kid_chore_data
-DATA_KID_CHORE_DATA_DUE_DATE_LEGACY: Final = (
-    "due_date"  # LEGACY: Use chore_info[per_kid_due_dates][kid_id] instead
-)
-
-# Notification Fields (v0.5.0): Removed as redundant
-# enable_notifications was always derived from bool(mobile_notify_service)
-DATA_KID_ENABLE_NOTIFICATIONS_LEGACY: Final = "enable_notifications"  # LEGACY: Deprecated - check bool(mobile_notify_service) instead
-DATA_PARENT_ENABLE_NOTIFICATIONS_LEGACY: Final = "enable_notifications"  # LEGACY: Deprecated - check bool(mobile_notify_service) instead
-
-# Overdue Notification Tracking (v0.5.0): Dead code - never populated, only cleared
-# Superseded by DATA_NOTIFICATIONS bucket with DATA_NOTIF_LAST_OVERDUE for dedup
-DATA_KID_OVERDUE_NOTIFICATIONS_LEGACY: Final = (
-    "overdue_notifications"  # LEGACY: Dead code, pop from storage
-)
-
-# Chore Fields (v0.5.0): Obsolete fields that were never used in v0.5.0+
-DATA_CHORE_ASSIGNED_TO_LEGACY: Final = (
-    "assigned_to"  # LEGACY: Never used, replaced by assigned_kids
-)
-DATA_CHORE_LAST_OVERDUE_NOTIFICATION_LEGACY: Final = (
-    "last_overdue_notification"  # LEGACY: Superseded by DATA_NOTIFICATIONS bucket
-)
-
-
-# KC 4.x Beta Cleanup (removed in schema v42)
-# Used in coordinator._migrate_*() functions to clean up deprecated keys from KC 4.x beta
-# TODO(KC 5.0): Remove after KC 4.x beta support dropped (all users on v42+)
-MIGRATION_PERFORMED = (
-    "migration_performed"  # Cleanup key, redundant with schema_version
-)
-MIGRATION_KEY_VERSION = (
-    "migration_key_version"  # Cleanup key, redundant with schema_version
-)
-MIGRATION_KEY_VERSION_NUMBER = 41  # Old target version for KC 3.x→4.x migration
-MIGRATION_DATA_LEGACY_ORPHAN = "legacy_orphan"  # Cleanup data key from beta
-
-# KC 3.x→4.x Badge Migration
-DATA_BADGE_CHORE_COUNT_TYPE_LEGACY = (
-    "chore_count_type"  # Read in _migrate_badge_schema()
-)
-DATA_BADGE_POINTS_MULTIPLIER_LEGACY = (
-    "points_multiplier"  # Read in _migrate_badge_schema()
-)
-DATA_BADGE_THRESHOLD_TYPE_LEGACY = (
-    "threshold_type"  # Read in _migrate_badge_schema(), deleted after
-)
-DATA_BADGE_THRESHOLD_VALUE_LEGACY = (
-    "threshold_value"  # Read in _migrate_badge_schema(), deleted after
-)
-
-# Point Data Migration (v42→v43 - used in _migrate_point_periods_v43())
-# v42 used nested point_data.periods structure; v43+ uses flat point_periods
-DATA_KID_POINT_DATA_LEGACY: Final = (
-    "point_data"  # v42 top-level key → v43+ use DATA_KID_POINT_PERIODS
-)
-DATA_KID_POINT_DATA_PERIODS_LEGACY: Final = (
-    "periods"  # v42 nested key → v43+ flat structure
-)
-DATA_KID_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY: Final = (
-    "points_total"  # v42 NET value → v43+ use earned+spent
-)
-
-# Point Stats Migration (v43→v44 - used in point_stats consolidation)
-# v43 had separate point_stats bucket; v44+ moves all data to point_periods.all_time
-DATA_KID_POINT_STATS_LEGACY: Final = "point_stats"
-DATA_KID_POINT_STATS_EARNED_TODAY_LEGACY: Final = "points_earned_today"
-DATA_KID_POINT_STATS_EARNED_WEEK_LEGACY: Final = "points_earned_week"
-DATA_KID_POINT_STATS_EARNED_MONTH_LEGACY: Final = "points_earned_month"
-DATA_KID_POINT_STATS_EARNED_YEAR_LEGACY: Final = "points_earned_year"
-DATA_KID_POINT_STATS_EARNED_ALL_TIME_LEGACY: Final = "points_earned_all_time"
-DATA_KID_POINT_STATS_BY_SOURCE_TODAY_LEGACY: Final = "points_by_source_today"
-DATA_KID_POINT_STATS_BY_SOURCE_WEEK_LEGACY: Final = "points_by_source_week"
-DATA_KID_POINT_STATS_BY_SOURCE_MONTH_LEGACY: Final = "points_by_source_month"
-DATA_KID_POINT_STATS_BY_SOURCE_YEAR_LEGACY: Final = "points_by_source_year"
-DATA_KID_POINT_STATS_BY_SOURCE_ALL_TIME_LEGACY: Final = "points_by_source_all_time"
-DATA_KID_POINT_STATS_SPENT_TODAY_LEGACY: Final = "points_spent_today"
-DATA_KID_POINT_STATS_SPENT_WEEK_LEGACY: Final = "points_spent_week"
-DATA_KID_POINT_STATS_SPENT_MONTH_LEGACY: Final = "points_spent_month"
-DATA_KID_POINT_STATS_SPENT_YEAR_LEGACY: Final = "points_spent_year"
-DATA_KID_POINT_STATS_SPENT_ALL_TIME_LEGACY: Final = "points_spent_all_time"
-DATA_KID_POINT_STATS_NET_TODAY_LEGACY: Final = "points_net_today"
-DATA_KID_POINT_STATS_NET_WEEK_LEGACY: Final = "points_net_week"
-DATA_KID_POINT_STATS_NET_MONTH_LEGACY: Final = "points_net_month"
-DATA_KID_POINT_STATS_NET_YEAR_LEGACY: Final = "points_net_year"
-DATA_KID_POINT_STATS_NET_ALL_TIME_LEGACY: Final = "points_net_all_time"
-DATA_KID_POINT_STATS_EARNING_STREAK_CURRENT_LEGACY: Final = (
-    "points_earning_streak_current"
-)
-DATA_KID_POINT_STATS_EARNING_STREAK_LONGEST_LEGACY: Final = (
-    "points_earning_streak_longest"
-)
-
-# Chore Stats Migration (v43→v44 - used in chore_periods consolidation Phase 2)
-# v43 had separate chore_stats bucket; v44+ moves all data to chore_periods bucket
-# Individual chore items also had total_points field that duplicated periods.all_time.points
-DATA_KID_CHORE_STATS_LEGACY: Final = "chore_stats"
-DATA_CHORE_TOTAL_POINTS_LEGACY: Final = (
-    "total_points"  # Removed from chore items in v44+
-)
-
-# Chore stats sub-keys (all removed in v44+ when chore_stats dict deleted)
-# Temporal keys (*_TODAY/*_WEEK/*_MONTH/*_YEAR) were ephemeral (not persisted)
-# All data now lives in chore_periods bucket with same period structure as per-chore periods
-DATA_KID_CHORE_STATS_APPROVED_TODAY_LEGACY: Final = "approved_today"
-DATA_KID_CHORE_STATS_APPROVED_WEEK_LEGACY: Final = "approved_week"
-DATA_KID_CHORE_STATS_APPROVED_MONTH_LEGACY: Final = "approved_month"
-DATA_KID_CHORE_STATS_APPROVED_YEAR_LEGACY: Final = "approved_year"
-DATA_KID_CHORE_STATS_APPROVED_ALL_TIME_LEGACY: Final = "approved_all_time"
-DATA_KID_CHORE_STATS_COMPLETED_TODAY_LEGACY: Final = "completed_today"
-DATA_KID_CHORE_STATS_COMPLETED_WEEK_LEGACY: Final = "completed_week"
-DATA_KID_CHORE_STATS_COMPLETED_MONTH_LEGACY: Final = "completed_month"
-DATA_KID_CHORE_STATS_COMPLETED_YEAR_LEGACY: Final = "completed_year"
-DATA_KID_CHORE_STATS_COMPLETED_ALL_TIME_LEGACY: Final = "completed_all_time"
-DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_ALL_TIME_LEGACY: Final = (
-    "most_completed_chore_all_time"
-)
-DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_WEEK_LEGACY: Final = (
-    "most_completed_chore_week"
-)
-DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_MONTH_LEGACY: Final = (
-    "most_completed_chore_month"
-)
-DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_YEAR_LEGACY: Final = (
-    "most_completed_chore_year"
-)
-DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_TODAY_LEGACY: Final = (
-    "total_points_from_chores_today"
-)
-DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_WEEK_LEGACY: Final = (
-    "total_points_from_chores_week"
-)
-DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_MONTH_LEGACY: Final = (
-    "total_points_from_chores_month"
-)
-DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_YEAR_LEGACY: Final = (
-    "total_points_from_chores_year"
-)
-DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_ALL_TIME_LEGACY: Final = (
-    "total_points_from_chores_all_time"
-)
-DATA_KID_CHORE_STATS_OVERDUE_TODAY_LEGACY: Final = "overdue_today"
-DATA_KID_CHORE_STATS_OVERDUE_WEEK_LEGACY: Final = "overdue_week"
-DATA_KID_CHORE_STATS_OVERDUE_MONTH_LEGACY: Final = "overdue_month"
-DATA_KID_CHORE_STATS_OVERDUE_YEAR_LEGACY: Final = "overdue_year"
-DATA_KID_CHORE_STATS_OVERDUE_ALL_TIME_LEGACY: Final = "overdue_count_all_time"
-DATA_KID_CHORE_STATS_CLAIMED_TODAY_LEGACY: Final = "claimed_today"
-DATA_KID_CHORE_STATS_CLAIMED_WEEK_LEGACY: Final = "claimed_week"
-DATA_KID_CHORE_STATS_CLAIMED_MONTH_LEGACY: Final = "claimed_month"
-DATA_KID_CHORE_STATS_CLAIMED_YEAR_LEGACY: Final = "claimed_year"
-DATA_KID_CHORE_STATS_CLAIMED_ALL_TIME_LEGACY: Final = "claimed_all_time"
-DATA_KID_CHORE_STATS_DISAPPROVED_TODAY_LEGACY: Final = "disapproved_today"
-DATA_KID_CHORE_STATS_DISAPPROVED_WEEK_LEGACY: Final = "disapproved_week"
-DATA_KID_CHORE_STATS_DISAPPROVED_MONTH_LEGACY: Final = "disapproved_month"
-DATA_KID_CHORE_STATS_DISAPPROVED_YEAR_LEGACY: Final = "disapproved_year"
-DATA_KID_CHORE_STATS_DISAPPROVED_ALL_TIME_LEGACY: Final = "disapproved_all_time"
-DATA_KID_CHORE_STATS_LONGEST_STREAK_WEEK_LEGACY: Final = "longest_streak_week"
-DATA_KID_CHORE_STATS_LONGEST_STREAK_MONTH_LEGACY: Final = "longest_streak_month"
-DATA_KID_CHORE_STATS_LONGEST_STREAK_YEAR_LEGACY: Final = "longest_streak_year"
-DATA_KID_CHORE_STATS_LONGEST_STREAK_ALL_TIME_LEGACY: Final = "longest_streak_all_time"
-DATA_KID_CHORE_STATS_AVG_PER_DAY_WEEK_LEGACY: Final = "avg_per_day_week"
-DATA_KID_CHORE_STATS_AVG_PER_DAY_MONTH_LEGACY: Final = "avg_per_day_month"
-DATA_KID_CHORE_STATS_CURRENT_DUE_TODAY_LEGACY: Final = "current_due_today"
-DATA_KID_CHORE_STATS_CURRENT_OVERDUE_LEGACY: Final = "current_overdue"
-DATA_KID_CHORE_STATS_CURRENT_CLAIMED_LEGACY: Final = "current_claimed"
-DATA_KID_CHORE_STATS_CURRENT_APPROVED_LEGACY: Final = "current_approved"
-
-# Entity UID Suffix Migration (v0.5.1 - used in async_migrate_uid_suffixes_v0_5_1())
-# These suffixes were used in KC 3.x/4.x; entities are cleaned up via migration
-ENTITY_SUFFIX_BADGES_LEGACY: Final = "_badges"
-ENTITY_SUFFIX_REWARD_CLAIMS_LEGACY: Final = "_reward_claims"
-ENTITY_SUFFIX_REWARD_APPROVALS_LEGACY: Final = "_reward_approvals"
-ENTITY_SUFFIX_CHORE_CLAIMS_LEGACY: Final = "_chore_claims"
-ENTITY_SUFFIX_CHORE_APPROVALS_LEGACY: Final = "_chore_approvals"
-ENTITY_SUFFIX_STREAK_LEGACY: Final = "_streak"
-
-# Button UID pattern migration (pre-v0.5.0 used midfix, v0.5.0+ uses suffix)
-BUTTON_KC_UID_MIDFIX_ADJUST_POINTS_LEGACY: Final = (
-    "_points_adjust_"  # DEPRECATED - use BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST
-)
-
-# Select UID pattern migration (pre-v0.5.0 used midfix, v0.5.0+ uses suffix)
-SELECT_KC_UID_MIDFIX_CHORES_SELECT_LEGACY: Final = "_select_chores_"  # DEPRECATED - use SELECT_KC_UID_SUFFIX_KID_DASHBOARD_HELPER_CHORES_SELECT
-
-ENTITY_SUFFIXES_LEGACY: Final = [
-    ENTITY_SUFFIX_BADGES_LEGACY,
-    ENTITY_SUFFIX_REWARD_CLAIMS_LEGACY,
-    ENTITY_SUFFIX_REWARD_APPROVALS_LEGACY,
-    ENTITY_SUFFIX_CHORE_CLAIMS_LEGACY,
-    ENTITY_SUFFIX_CHORE_APPROVALS_LEGACY,
-    ENTITY_SUFFIX_STREAK_LEGACY,
-]
-
-# Notification Migration (v0.5.0-beta4 schema 44)
-# Legacy hardcoded 30-minute reminder replaced by configurable notify_due_reminder + chore_due_reminder_offset
-# Migration in _migrate_to_schema_44() copies legacy bool to new notify_due_reminder if missing, then deletes
-CFOF_CHORES_INPUT_NOTIFY_ON_REMINDER_LEGACY: Final = "notify_on_reminder"
-DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY: Final = "notify_on_reminder"
-DEFAULT_NOTIFY_ON_REMINDER_LEGACY: Final = True
+# Legacy constants are defined in `migration_pre_v50_constants.py` and re-exported here.

@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.managers.economy_manager import InsufficientFundsError
+from custom_components.choreops import const
+from custom_components.choreops.managers.economy_manager import InsufficientFundsError
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 def mock_dispatcher_send():
     """Mock the dispatcher send function to capture emitted events."""
     with patch(
-        "custom_components.kidschores.managers.base_manager.async_dispatcher_send"
+        "custom_components.choreops.managers.base_manager.async_dispatcher_send"
     ) as mock:
         yield mock
 

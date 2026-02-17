@@ -40,7 +40,7 @@
 
 **Platinum Certification Date**: January 2026
 
-**Quality Scale File**: [quality_scale.yaml](../custom_components/kidschores/quality_scale.yaml) - All 64 rules marked "done" or "exempt" with justification for each.
+**Quality Scale File**: [quality_scale.yaml](../custom_components/choreops/quality_scale.yaml) - All 64 rules marked "done" or "exempt" with justification for each.
 
 ---
 
@@ -165,7 +165,7 @@ def update_chore_item(self, chore_id: str) -> None:
 **Enforcement**:
 
 - Phase 0 Audit Step B: Lexicon Check
-- Automated: `grep -rn "Chore Entity" custom_components/kidschores/`
+- Automated: `grep -rn "Chore Entity" custom_components/choreops/`
 - Manual: Code reviewer rejects PRs with ambiguous terminology
 
 **Consequence of Violation**: PR blocked until terminology corrected. Platinum status requires this discipline.
@@ -400,7 +400,7 @@ All 50 files meet quality standards
 ### Configuration Flow
 
 **HA Source**: [AGENTS.md § Configuration Flow](../../core/AGENTS.md)
-**KidsChores**: [config_flow.py](../custom_components/kidschores/config_flow.py)
+**KidsChores**: [config_flow.py](../custom_components/choreops/config_flow.py)
 **Standards in ARCHITECTURE.md**: [Quality Standards § 1 - Configuration Flow](ARCHITECTURE.md#1-configuration-flow-)
 
 **Key Points**:
@@ -416,7 +416,7 @@ All 50 files meet quality standards
 ### Entity Development
 
 **HA Source**: [AGENTS.md § Entity Development](../../core/AGENTS.md)
-**KidsChores**: [sensor.py](../custom_components/kidschores/sensor.py), [button.py](../custom_components/kidschores/button.py)
+**KidsChores**: [sensor.py](../custom_components/choreops/sensor.py), [button.py](../custom_components/choreops/button.py)
 **Standards in ARCHITECTURE.md**: [Entity Class Naming Standards](ARCHITECTURE.md#entity-class-naming-standards)
 
 **Key Points**:
@@ -432,7 +432,7 @@ All 50 files meet quality standards
 ### Services & Actions
 
 **HA Source**: [AGENTS.md § Service Actions](../../core/AGENTS.md)
-**KidsChores**: [services.py](../custom_components/kidschores/services.py)
+**KidsChores**: [services.py](../custom_components/choreops/services.py)
 **Standards in ARCHITECTURE.md**: [Quality Standards § 3 - Service Actions](ARCHITECTURE.md#3-service-actions-with-validation-)
 
 **Key Points**:
@@ -448,7 +448,7 @@ All 50 files meet quality standards
 ### Coordinator Pattern
 
 **HA Source**: [AGENTS.md § Data Update Coordinator](../../core/AGENTS.md)
-**KidsChores**: [coordinator.py](../custom_components/kidschores/coordinator.py)
+**KidsChores**: [coordinator.py](../custom_components/choreops/coordinator.py)
 **Standards in ARCHITECTURE.md**: [Data Separation & Storage Architecture](ARCHITECTURE.md#data-separation)
 
 **Key Pattern**:
@@ -477,14 +477,14 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Complete architecture + quality standards (NEW)
 - [CODE_REVIEW_GUIDE.md](CODE_REVIEW_GUIDE.md) - Phase 0 audit framework + review checklists
-- [quality_scale.yaml](../custom_components/kidschores/quality_scale.yaml) - Rule implementation status
+- [quality_scale.yaml](../custom_components/choreops/quality_scale.yaml) - Rule implementation status
 
 **Implementation Files**:
 
-- [const.py](../custom_components/kidschores/const.py) - All constants and translation keys
-- [config_flow.py](../custom_components/kidschores/config_flow.py) - Configuration flow
-- [services.py](../custom_components/kidschores/services.py) - Service definitions
-- [coordinator.py](../custom_components/kidschores/coordinator.py) - Core business logic
+- [const.py](../custom_components/choreops/const.py) - All constants and translation keys
+- [config_flow.py](../custom_components/choreops/config_flow.py) - Configuration flow
+- [services.py](../custom_components/choreops/services.py) - Service definitions
+- [coordinator.py](../custom_components/choreops/coordinator.py) - Core business logic
 
 **Test References**:
 
@@ -565,7 +565,7 @@ python -m json.tool translations_custom/es_dashboard.json > /dev/null && echo "V
 # Should show new language in available languages list
 
 # Ensure no hardcoded language lists anywhere
-grep -r "LANGUAGES = \[" custom_components/kidschores/ | grep -v "homeassistant.generated"
+grep -r "LANGUAGES = \[" custom_components/choreops/ | grep -v "homeassistant.generated"
 # Should return 0 results (no hardcoded lists)
 ```
 
@@ -590,7 +590,7 @@ grep -r "LANGUAGES = \[" custom_components/kidschores/ | grep -v "homeassistant.
 - [ ] **Purity Check**: No `homeassistant.*` imports in `utils/`, `engines/`, `data_builders.py`
 - [ ] **Lexicon Check**: No "Chore Entity" or "Kid Entity" in docstrings/comments (use "Item"/"Record")
 - [ ] **CRUD Ownership**: No `_data[` or `_persist()` in `options_flow.py` or `services.py`
-- [ ] **Type Checking**: `mypy custom_components/kidschores/` returns zero errors
+- [ ] **Type Checking**: `mypy custom_components/choreops/` returns zero errors
 - [ ] **Test Coverage**: New code has 95%+ test coverage
 
 ### Code Quality Standards
@@ -677,7 +677,7 @@ All Gold requirements satisfied.
 - ✅ All 64 quality scale rules (done or legitimately exempt)
 - ✅ Terminology Clarity (Item vs Entity lexicon enforced)
 
-See [quality_scale.yaml](../custom_components/kidschores/quality_scale.yaml) for complete rule status.
+See [quality_scale.yaml](../custom_components/choreops/quality_scale.yaml) for complete rule status.
 
 ---
 

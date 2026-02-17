@@ -13,8 +13,8 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.core import HomeAssistant
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.store import KidsChoresStore
+from custom_components.choreops import const
+from custom_components.choreops.store import KidsChoresStore
 
 
 @pytest.fixture

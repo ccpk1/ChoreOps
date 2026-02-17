@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.kidschores.helpers import dashboard_builder as builder
+from custom_components.choreops.helpers import dashboard_builder as builder
 
 
 @pytest.mark.asyncio

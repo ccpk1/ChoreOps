@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from custom_components.kidschores import const
-from custom_components.kidschores.engines.chore_engine import (
+from custom_components.choreops import const
+from custom_components.choreops.engines.chore_engine import (
     CHORE_ACTION_APPROVE,
     CHORE_ACTION_CLAIM,
     CHORE_ACTION_DISAPPROVE,

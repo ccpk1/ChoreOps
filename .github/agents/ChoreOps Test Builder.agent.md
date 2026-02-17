@@ -1,16 +1,16 @@
 ---
-name: KidsChores Test Builder
+name: ChoreOps Test Builder
 description: Test creation agent - scaffolds new tests following established patterns
 argument-hint: "Build test for [feature/area]"
 handoffs:
   - label: Return to Builder
-    agent: KidsChores Builder
+    agent: ChoreOps Builder
     prompt: Test file ready - integration with implementation plan. Test file [test_*.py]. Add test file path to plan as completed deliverable, run full test suite (pytest tests/ -v --tb=line), verify new test passes along with all existing tests, report test pass/fail results, continue with next phase step. Success criteria - test file integrated into test suite, full test suite passes (including new test), no regressions in existing tests.
 ---
 
 # Test Builder Agent
 
-Create new test files following established KidsChores patterns.
+Create new test files following established ChoreOps patterns.
 
 ## Primary Reference Document
 

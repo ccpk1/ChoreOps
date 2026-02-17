@@ -13,15 +13,15 @@ from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.engines.gamification_engine import GamificationEngine
-from custom_components.kidschores.utils.dt_utils import dt_now_local, dt_today_iso
+from custom_components.choreops import const
+from custom_components.choreops.engines.gamification_engine import GamificationEngine
+from custom_components.choreops.utils.dt_utils import dt_now_local, dt_today_iso
 from tests.helpers import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from custom_components.kidschores.type_defs import (
+    from custom_components.choreops.type_defs import (
         AchievementData,
         BadgeData,
         ChallengeData,

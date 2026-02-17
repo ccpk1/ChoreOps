@@ -46,7 +46,7 @@ python utils/lint_check.py --integration
 python utils/lint_check.py --tests
 
 # Check specific file
-python utils/lint_check.py --file custom_components/kidschores/coordinator.py
+python utils/lint_check.py --file custom_components/choreops/coordinator.py
 
 # Skip type checking (faster)
 python utils/lint_check.py --integration --no-types

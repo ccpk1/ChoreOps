@@ -7,8 +7,8 @@ from homeassistant.helpers import config_validation as cv
 import pytest
 import voluptuous_serialize
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers.flow_helpers import build_parent_schema
+from custom_components.choreops import const
+from custom_components.choreops.helpers.flow_helpers import build_parent_schema
 
 
 class TestOptionalSelectFieldValidation:
@@ -35,7 +35,7 @@ class TestOptionalSelectFieldValidation:
     ):
         """Test that the schema can be serialized by HA for the frontend."""
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             schema = await build_parent_schema(
@@ -81,7 +81,7 @@ class TestOptionalSelectFieldValidation:
         """Test that parent schema validates different HA user values correctly."""
         # Build the schema
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             schema = await build_parent_schema(
@@ -124,7 +124,7 @@ class TestOptionalSelectFieldValidation:
         Home Assistant's SelectSelector has issues tracking empty string selections.
         """
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             schema = await build_parent_schema(

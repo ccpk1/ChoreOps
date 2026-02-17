@@ -19,7 +19,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.kidschores.helpers.backup_helpers import (
+from custom_components.choreops import const
+from custom_components.choreops.helpers.backup_helpers import (
     cleanup_old_backups,
     create_timestamped_backup,
     format_backup_age,
@@ -63,7 +64,7 @@ def mock_config_entry():
     from pytest_homeassistant_custom_component.common import MockConfigEntry
 
     return MockConfigEntry(
-        domain="kidschores",
+        domain=const.DOMAIN,
         title="KidsChores",
         data={},
         options={},  # Empty options - tests will pass max_backups parameter
@@ -74,8 +75,8 @@ def mock_config_entry():
 # =============================================================================
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.dt_util.utcnow")
-@patch("custom_components.kidschores.helpers.backup_helpers.shutil.copy2")
+@patch("custom_components.choreops.helpers.backup_helpers.dt_util.utcnow")
+@patch("custom_components.choreops.helpers.backup_helpers.shutil.copy2")
 @patch("os.path.exists", return_value=True)
 @patch("os.makedirs")
 async def test_create_timestamped_backup_success(
@@ -93,14 +94,17 @@ async def test_create_timestamped_backup_success(
     )
 
     # Verify
-    assert filename == "kidschores_data_2024-12-18_15-30-45_recovery"
+    assert filename == "choreops_data_2024-12-18_15-30-45_recovery"
     assert mock_copy.call_count == 1
     call_args = mock_copy.call_args[0]
-    assert call_args[1] == "/mock/.storage/kidschores_data_2024-12-18_15-30-45_recovery"
+    assert (
+        call_args[1]
+        == "/mock/.storage/choreops/choreops_data_2024-12-18_15-30-45_recovery"
+    )
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.dt_util.utcnow")
-@patch("custom_components.kidschores.helpers.backup_helpers.shutil.copy2")
+@patch("custom_components.choreops.helpers.backup_helpers.dt_util.utcnow")
+@patch("custom_components.choreops.helpers.backup_helpers.shutil.copy2")
 @patch("os.path.exists", return_value=True)
 @patch("os.makedirs")
 async def test_create_timestamped_backup_all_tags(
@@ -115,7 +119,7 @@ async def test_create_timestamped_backup_all_tags(
 
     for tag in tags:
         filename = await create_timestamped_backup(mock_hass, mock_storage_manager, tag)
-        assert filename == f"kidschores_data_2024-12-18_10-00-00_{tag}"
+        assert filename == f"choreops_data_2024-12-18_10-00-00_{tag}"
         assert mock_copy.call_count >= 1
 
 
@@ -146,7 +150,7 @@ async def test_create_timestamped_backup_no_data(mock_hass):
 # =============================================================================
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.discover_backups")
+@patch("custom_components.choreops.helpers.backup_helpers.discover_backups")
 @patch("os.remove")
 async def test_cleanup_old_backups_respects_max_limit(
     mock_remove, mock_discover, mock_hass, mock_storage_manager, mock_config_entry
@@ -200,14 +204,16 @@ async def test_cleanup_old_backups_respects_max_limit(
     assert mock_remove.call_count == 2
     deleted_files = [call.args[0] for call in mock_remove.call_args_list]
     assert (
-        "/mock/.storage/kidschores_data_2024-12-18_12-00-00_recovery" in deleted_files
+        "/mock/.storage/choreops/kidschores_data_2024-12-18_12-00-00_recovery"
+        in deleted_files
     )
     assert (
-        "/mock/.storage/kidschores_data_2024-12-18_11-00-00_recovery" in deleted_files
+        "/mock/.storage/choreops/kidschores_data_2024-12-18_11-00-00_recovery"
+        in deleted_files
     )
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.discover_backups")
+@patch("custom_components.choreops.helpers.backup_helpers.discover_backups")
 @patch("os.remove")
 async def test_cleanup_old_backups_never_deletes_permanent_tags(
     mock_remove, mock_discover, mock_hass, mock_storage_manager, mock_config_entry
@@ -256,7 +262,7 @@ async def test_cleanup_old_backups_never_deletes_permanent_tags(
     assert "kidschores_data_2024-12-18_08-00-00_recovery" in deleted_file
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.discover_backups")
+@patch("custom_components.choreops.helpers.backup_helpers.discover_backups")
 @patch("os.remove")
 async def test_cleanup_old_backups_disabled_when_zero(
     mock_remove, mock_discover, mock_hass, mock_storage_manager, mock_config_entry
@@ -291,7 +297,7 @@ async def test_cleanup_old_backups_disabled_when_zero(
     assert mock_remove.call_count == 2
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.discover_backups")
+@patch("custom_components.choreops.helpers.backup_helpers.discover_backups")
 @patch("os.remove", side_effect=OSError("Permission denied"))
 async def test_cleanup_old_backups_continues_on_error(
     mock_remove, mock_discover, mock_hass, mock_storage_manager, mock_config_entry
@@ -331,7 +337,7 @@ async def test_cleanup_old_backups_continues_on_error(
     assert mock_remove.call_count == 2
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.discover_backups")
+@patch("custom_components.choreops.helpers.backup_helpers.discover_backups")
 @patch("os.remove")
 async def test_cleanup_old_backups_handles_non_integer_max_backups(
     mock_remove, mock_discover, mock_hass, mock_storage_manager, mock_config_entry
@@ -390,10 +396,12 @@ async def test_cleanup_old_backups_handles_non_integer_max_backups(
     assert mock_remove.call_count == 2
     deleted_files = [call.args[0] for call in mock_remove.call_args_list]
     assert (
-        "/mock/.storage/kidschores_data_2024-12-18_12-00-00_recovery" in deleted_files
+        "/mock/.storage/choreops/kidschores_data_2024-12-18_12-00-00_recovery"
+        in deleted_files
     )
     assert (
-        "/mock/.storage/kidschores_data_2024-12-18_11-00-00_recovery" in deleted_files
+        "/mock/.storage/choreops/kidschores_data_2024-12-18_11-00-00_recovery"
+        in deleted_files
     )
 
     # Reset mock for second test with float
@@ -593,8 +601,8 @@ def test_validate_backup_json_store_missing_data_wrapper():
 # =============================================================================
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.dt_util.utcnow")
-@patch("custom_components.kidschores.helpers.backup_helpers.shutil.copy2")
+@patch("custom_components.choreops.helpers.backup_helpers.dt_util.utcnow")
+@patch("custom_components.choreops.helpers.backup_helpers.shutil.copy2")
 @patch("os.path.exists", return_value=True)
 @patch("os.makedirs")
 async def test_backup_includes_config_entry_settings(
@@ -608,7 +616,7 @@ async def test_backup_includes_config_entry_settings(
     """Test backup includes config_entry_settings section with all 9 system settings."""
     from unittest.mock import MagicMock
 
-    from custom_components.kidschores import const
+    from custom_components.choreops import const
 
     # Setup
     mock_utcnow.return_value = datetime.datetime(
@@ -653,7 +661,7 @@ async def test_backup_includes_config_entry_settings(
         )
 
     # Assert
-    assert filename == "kidschores_data_2024-12-18_15-30-45_manual"
+    assert filename == "choreops_data_2024-12-18_15-30-45_manual"
     assert const.DATA_CONFIG_ENTRY_SETTINGS in backup_content
 
     settings = backup_content[const.DATA_CONFIG_ENTRY_SETTINGS]
@@ -669,8 +677,8 @@ async def test_backup_includes_config_entry_settings(
     assert settings[const.CONF_POINTS_ADJUST_VALUES] == [+5.0, -5.0]
 
 
-@patch("custom_components.kidschores.helpers.backup_helpers.dt_util.utcnow")
-@patch("custom_components.kidschores.helpers.backup_helpers.shutil.copy2")
+@patch("custom_components.choreops.helpers.backup_helpers.dt_util.utcnow")
+@patch("custom_components.choreops.helpers.backup_helpers.shutil.copy2")
 @patch("os.path.exists", return_value=True)
 @patch("os.makedirs")
 async def test_roundtrip_preserves_all_settings(
@@ -684,8 +692,8 @@ async def test_roundtrip_preserves_all_settings(
     """Test backup → restore roundtrip preserves all 9 system settings exactly."""
     from unittest.mock import MagicMock
 
-    from custom_components.kidschores import const
-    from custom_components.kidschores.helpers.backup_helpers import (
+    from custom_components.choreops import const
+    from custom_components.choreops.helpers.backup_helpers import (
         validate_config_entry_settings,
     )
 

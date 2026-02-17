@@ -165,7 +165,7 @@ class SystemChoresSelect(KidsChoresSelectBase):
             f"{entry.entry_id}{const.SELECT_KC_UID_SUFFIX_CHORES_SELECT}"
         )
         self._attr_name = (
-            f"{const.KIDSCHORES_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_CHORES}"
+            f"{const.CHOREOPS_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_CHORES}"
         )
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)
@@ -217,7 +217,7 @@ class SystemRewardsSelect(KidsChoresSelectBase):
             f"{entry.entry_id}{const.SELECT_KC_UID_SUFFIX_REWARDS_SELECT}"
         )
         self._attr_name = (
-            f"{const.KIDSCHORES_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_REWARDS}"
+            f"{const.CHOREOPS_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_REWARDS}"
         )
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)
@@ -269,7 +269,7 @@ class SystemPenaltiesSelect(KidsChoresSelectBase):
             f"{entry.entry_id}{const.SELECT_KC_UID_SUFFIX_PENALTIES_SELECT}"
         )
         self._attr_name = (
-            f"{const.KIDSCHORES_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_PENALTIES}"
+            f"{const.CHOREOPS_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_PENALTIES}"
         )
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)
@@ -321,7 +321,7 @@ class SystemBonusesSelect(KidsChoresSelectBase):
             f"{entry.entry_id}{const.SELECT_KC_UID_SUFFIX_BONUSES_SELECT}"
         )
         self._attr_name = (
-            f"{const.KIDSCHORES_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_BONUSES}"
+            f"{const.CHOREOPS_TITLE}: {const.TRANS_KEY_SELECT_LABEL_ALL_BONUSES}"
         )
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)

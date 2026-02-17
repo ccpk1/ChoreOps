@@ -20,9 +20,9 @@ from zoneinfo import ZoneInfo
 from homeassistant.core import HomeAssistant
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers import flow_helpers
-from custom_components.kidschores.utils.dt_utils import parse_daily_multi_times
+from custom_components.choreops import const
+from custom_components.choreops.helpers import flow_helpers
+from custom_components.choreops.utils.dt_utils import parse_daily_multi_times
 from tests.helpers import (
     APPROVAL_RESET_AT_DUE_DATE_MULTI,
     APPROVAL_RESET_AT_DUE_DATE_ONCE,

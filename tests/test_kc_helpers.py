@@ -20,19 +20,19 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers.auth_helpers import (
+from custom_components.choreops import const
+from custom_components.choreops.helpers.auth_helpers import (
     is_kiosk_mode_enabled,
     is_user_authorized_for_global_action,
 )
-from custom_components.kidschores.helpers.entity_helpers import (
+from custom_components.choreops.helpers.entity_helpers import (
     build_orphan_detection_regex,
     get_integration_entities,
     get_item_id_by_name,
     get_item_id_or_raise,
     parse_entity_reference,
 )
-from custom_components.kidschores.utils.dt_utils import dt_add_interval
+from custom_components.choreops.utils.dt_utils import dt_add_interval
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 
@@ -82,7 +82,7 @@ class TestEntityLookupHelpers:
         self, hass: HomeAssistant, scenario_minimal: SetupResult
     ) -> None:
         """Should raise HomeAssistantError on missing entity."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
 

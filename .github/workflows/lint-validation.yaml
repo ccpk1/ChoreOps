@@ -6,7 +6,7 @@ on:
       - main
       - "release/**"
     paths:
-      - "custom_components/kidschores/**/*.py"
+      - "custom_components/choreops/**/*.py"
       - "tests/**/*.py"
       - "utils/**/*.py"
       - "pyproject.toml"

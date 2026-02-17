@@ -20,8 +20,8 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.utils.dt_utils import dt_now_local, dt_now_utc
+from custom_components.choreops import const
+from custom_components.choreops.utils.dt_utils import dt_now_local, dt_now_utc
 from tests.helpers import (
     APPROVAL_RESET_AT_DUE_DATE_ONCE,
     CHORE_STATE_OVERDUE,
@@ -198,7 +198,7 @@ class TestRecordChoreMissedHelper:
 
         # Verify it's a recent timestamp (within last 5 seconds)
         now = dt_now_utc()
-        from custom_components.kidschores.utils.dt_utils import dt_parse
+        from custom_components.choreops.utils.dt_utils import dt_parse
 
         last_missed_dt = dt_parse(last_missed, return_type="datetime_utc")
         assert isinstance(last_missed_dt, datetime)
@@ -225,7 +225,7 @@ class TestRecordChoreMissedHelper:
 
         # Patch async_dispatcher_send to track signal emissions
         with patch(
-            "custom_components.kidschores.managers.base_manager.async_dispatcher_send"
+            "custom_components.choreops.managers.base_manager.async_dispatcher_send"
         ) as mock_dispatcher:
             # Record a miss
             chore_manager._record_chore_missed(zoe_id, chore_id)

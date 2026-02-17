@@ -77,8 +77,8 @@ from typing import Any
 from homeassistant.core import Context, HomeAssistant
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.utils.dt_utils import dt_now_utc, dt_to_utc
+from custom_components.choreops import const
+from custom_components.choreops.utils.dt_utils import dt_now_utc, dt_to_utc
 from tests.helpers import (
     APPROVAL_RESET_AT_DUE_DATE_MULTI,
     APPROVAL_RESET_AT_DUE_DATE_ONCE,

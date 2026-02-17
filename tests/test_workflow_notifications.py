@@ -29,6 +29,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from custom_components.choreops import const
 from tests.helpers import (
     ACTION_APPROVE_CHORE,
     DATA_KID_DASHBOARD_LANGUAGE,
@@ -42,7 +43,7 @@ from tests.helpers.setup import SetupResult, setup_from_yaml
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from custom_components.kidschores.coordinator import KidsChoresDataCoordinator
+    from custom_components.choreops.coordinator import KidsChoresDataCoordinator
 
 # =============================================================================
 # FIXTURES
@@ -109,7 +110,7 @@ def load_notification_translations(language: str) -> dict[str, Any]:
     translations_path = (
         workspace_root
         / "custom_components"
-        / "kidschores"
+        / "choreops"
         / "translations_custom"
         / f"{language}_notifications.json"
     )
@@ -258,7 +259,7 @@ class TestChoreClaimNotifications:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -282,7 +283,7 @@ class TestChoreClaimNotifications:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -313,7 +314,7 @@ class TestChoreClaimNotifications:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -355,7 +356,7 @@ class TestNotificationLanguage:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -402,7 +403,7 @@ class TestNotificationLanguage:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Max!")
@@ -453,7 +454,7 @@ class TestNotificationLanguage:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Max!")
@@ -507,7 +508,7 @@ class TestNotificationActions:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -543,7 +544,7 @@ class TestNotificationActions:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -589,7 +590,7 @@ class TestNotificationTagging:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -597,14 +598,14 @@ class TestNotificationTagging:
 
         assert len(capture.notifications) > 0, "No notification was sent on chore claim"
 
-        # Verify tag is present and has correct format: kidschores-status-{chore_id[:8]}-{kid_id[:8]}
+        # Verify tag is present and has correct format: {domain}-status-{chore_id[:8]}-{kid_id[:8]}
         # UUIDs are truncated to 8 chars to stay under Apple's 64-byte limit (v0.5.0+)
         notif = capture.notifications[0]
         extra_data = notif.get("extra_data", {})
         tag = extra_data.get("tag", "")
 
-        assert tag.startswith("kidschores-status-"), (
-            f"Expected tag to start with 'kidschores-status-', got '{tag}'"
+        assert tag.startswith(f"{const.DOMAIN}-status-"), (
+            f"Expected tag to start with '{const.DOMAIN}-status-', got '{tag}'"
         )
         # Check for truncated IDs (first 8 characters)
         assert chore_id[:8] in tag, (
@@ -739,7 +740,7 @@ class TestDueDateReminders:
         2. When approval_period_start advances (chore reset), old timestamps become obsolete
         3. No explicit clearing needed - comparison vs period boundary handles it
         """
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
         kid_id = scenario_notifications.kid_ids["Zoë"]
@@ -772,7 +773,7 @@ class TestDueDateReminders:
         # The NotificationManager._should_send_notification() would return True
 
         # Verify the logic: old timestamp < new period start means it's obsolete
-        from custom_components.kidschores.utils.dt_utils import dt_to_utc
+        from custom_components.choreops.utils.dt_utils import dt_to_utc
 
         last_notified = dt_to_utc("2026-01-29T14:00:00+00:00")
         new_period_start = dt_to_utc("2026-01-30T00:00:00+00:00")
@@ -915,7 +916,7 @@ class TestMultiplierChangeNotifications:
         scenario_notifications: SetupResult,
     ) -> None:
         """Changed multiplier sends neutral notifications to kid and parents."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
         kid_id = scenario_notifications.kid_ids["Zoë"]
@@ -1005,7 +1006,7 @@ class TestMultiplierChangeNotifications:
         scenario_notifications: SetupResult,
     ) -> None:
         """Unchanged multiplier does not send kid or parent notifications."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
         kid_id = scenario_notifications.kid_ids["Zoë"]
@@ -1052,7 +1053,7 @@ class TestMultiplierChangeNotifications:
         scenario_notifications: SetupResult,
     ) -> None:
         """Badge-earned multiplier updates should trigger multiplier notifications."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
         kid_id = scenario_notifications.kid_ids["Zoë"]
@@ -1198,7 +1199,7 @@ class TestConcurrentNotifications:
         capture = NotificationCapture()
 
         with patch(
-            "custom_components.kidschores.managers.notification_manager.async_send_notification",
+            "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
@@ -1214,7 +1215,7 @@ class TestConcurrentNotifications:
         scenario_notifications: SetupResult,
     ) -> None:
         """One parent notification failure doesn't prevent others from receiving."""
-        from custom_components.kidschores.managers import notification_manager
+        from custom_components.choreops.managers import notification_manager
 
         coordinator = scenario_notifications.coordinator
         kid_id = scenario_notifications.kid_ids["Zoë"]

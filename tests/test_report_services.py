@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers import report_helpers
+from custom_components.choreops import const
+from custom_components.choreops.helpers import report_helpers
 
 
 class _DummyStatisticsManager:

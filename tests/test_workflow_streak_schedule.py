@@ -29,7 +29,7 @@ import pytest
 
 # Additional constants not in tests.helpers yet - import directly
 # fmt: off
-from custom_components.kidschores.const import (
+from custom_components.choreops.const import (
     DATA_CHORE_APPLICABLE_DAYS,
     DATA_CHORE_CUSTOM_INTERVAL,
     DATA_CHORE_CUSTOM_INTERVAL_UNIT,
@@ -44,7 +44,7 @@ from custom_components.kidschores.const import (
     HELPER_RETURN_DATETIME_LOCAL,
     TIME_UNIT_DAYS,
 )
-from custom_components.kidschores.utils.dt_utils import dt_parse, dt_today_local
+from custom_components.choreops.utils.dt_utils import dt_parse, dt_today_local
 from tests.helpers import (
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_RECURRING_FREQUENCY,

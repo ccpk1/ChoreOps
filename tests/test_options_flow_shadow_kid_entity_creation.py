@@ -14,7 +14,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 import pytest
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 from tests.helpers import (
     DATA_KID_NAME,
     DATA_PARENT_LINKED_SHADOW_KID_ID,

@@ -18,11 +18,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
 
-from custom_components.kidschores import const
-from custom_components.kidschores.engines.gamification_engine import GamificationEngine
+from custom_components.choreops import const
+from custom_components.choreops.engines.gamification_engine import GamificationEngine
 
 if TYPE_CHECKING:
-    from custom_components.kidschores.type_defs import EvaluationContext
+    from custom_components.choreops.type_defs import EvaluationContext
 
 # =============================================================================
 # TEST FIXTURES - Minimal context builders

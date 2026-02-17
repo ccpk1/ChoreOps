@@ -10,7 +10,7 @@ Ensure all user-facing and developer-facing documentation is accurate, visually 
 
 ## Document Locations
 
-- **User Wiki**: Managed via the [GitHub Wiki](https://github.com/ad-ha/kidschores-ha/wiki).
+- **User Wiki**: Managed via the [GitHub Wiki](https://github.com/ccpk1/choreops/wiki).
 - **In-Repo Docs**: `docs/` (Architecture, Standards).
 - **Metadata**: `README.md`, `hacs.json`, and `manifest.json`.
 
@@ -21,7 +21,7 @@ Ensure all user-facing and developer-facing documentation is accurate, visually 
 Before writing, you must understand the "Who" and "How":
 
 - **Target Audience**: Is this for an End User (Home Assistant UI) or a Developer (Integration logic)?
-- **Source Truth**: Check `custom_components/kidschores/const.py` for translation keys and `en.json` for UI labels.
+- **Source Truth**: Check `custom_components/choreops/const.py` for translation keys and `en.json` for UI labels.
 - **Visuals**: Identify if a screenshot or Mermaid.js diagram is needed.
 
 ### 2. Wiki Maintenance Standards
@@ -51,15 +51,15 @@ When updating the Wiki, follow these style guidelines:
 Documentation is "executable" when a user can follow it without guessing.
 
 - **Bad**: "Set up the kid in the settings."
-- **Good**: "Navigate to **Settings** > **Devices & Services** > **KidsChores** > **Configure**. Enter the name in the 'Kid Name' field."
+- **Good**: "Navigate to **Settings** > **Devices & Services** > **ChoreOps** > **Configure**. Enter the name in the 'Kid Name' field."
 
 ## Reference Documents
 
-| Document                                                                                           | Use For                              |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| [Wiki Home](https://github.com/ad-ha/kidschores-ha/wiki)                                           | Primary user guides and tutorials    |
-| `docs/ARCHITECTURE.md`                      | Understanding entity relationships   |
-| `custom_components/kidschores/translations/en.json` | Ensuring UI terminology matches docs |
+| Document                                            | Use For                              |
+| --------------------------------------------------- | ------------------------------------ |
+| [Wiki Home](https://github.com/ccpk1/choreops/wiki) | Primary user guides and tutorials    |
+| `docs/ARCHITECTURE.md`                              | Understanding entity relationships   |
+| `custom_components/choreops/translations/en.json`   | Ensuring UI terminology matches docs |
 
 ## Documentation Quality Checklist
 

@@ -1,6 +1,6 @@
-# KidsChores HA Integration - Agent Guide
+# ChoreOps HA Integration - Agent Guide
 
-**Version**: v0.5.0+ (Platinum Quality, Storage-Only Architecture)
+**Version**: v0.5.0+
 
 **Platinum Quality** = 100% type hints + docstrings on all public methods + 95%+ test coverage + strict typing.
 
@@ -26,7 +26,7 @@ Read **only** what you need for your task:
 
 **Remember**:
 
-- **Item/Record** = JSON data in `.storage/kidschores_data`
+- **Item/Record** = JSON data in `.storage/choreops/choreops_data`
 - **Entity** = Home Assistant platform object (Sensor, Button, Select)
 - **Entity ID** = HA registry string like `sensor.kc_alice_points`
 
@@ -38,7 +38,7 @@ Read **only** what you need for your task:
 
 ```bash
 ./utils/quick_lint.sh --fix    # Must pass (includes boundary checks)
-mypy custom_components/kidschores/  # Zero errors required
+mypy custom_components/choreops/  # Zero errors required
 python -m pytest tests/ -v --tb=line  # All tests pass
 ```
 
@@ -66,7 +66,7 @@ Use `internal_id` (UUID) for logic. **NEVER** use entity names for lookups.
 
 ### 3. Storage-Only Model
 
-Entity data → `.storage/kidschores_data` (schema v42+)
+Entity data → `.storage/choreops/choreops_data` (schema v42+)
 Config entry → **9 system settings only** (points theme, intervals, retention)
 
 **Details**: See [ARCHITECTURE.md § Data Architecture](../docs/ARCHITECTURE.md#data-architecture) for storage structure, system settings breakdown, and reload performance comparisons.
@@ -212,7 +212,7 @@ async def create_chore(self, user_input: dict[str, Any]) -> dict[str, Any]:
 ### Before Writing Code
 
 1. Check if helper exists: `helpers/entity_helpers.py` (entity lookups), `helpers/flow_helpers.py` (flow validation)
-2. Find constant: `grep TRANS_KEY custom_components/kidschores/const.py`
+2. Find constant: `grep TRANS_KEY custom_components/choreops/const.py`
 3. Use test scenario: `scenario_medium` (most common), `scenario_full` (complex)
 
 ### While Writing Code
@@ -228,7 +228,7 @@ async def create_chore(self, user_input: dict[str, Any]) -> dict[str, Any]:
 Run quality gates (**in this order**):
 
 1. `./utils/quick_lint.sh --fix` (catches most issues fast)
-2. `mypy custom_components/kidschores/` (type errors)
+2. `mypy custom_components/choreops/` (type errors)
 3. `python -m pytest tests/ -v` (validates behavior)
 
 ## 🚫 Common Mistakes (Avoid These)
@@ -238,7 +238,7 @@ Run quality gates (**in this order**):
 ❌ `Optional[str]` → ✅ Use `str | None`
 ❌ F-strings in logs → ✅ Use lazy logging `%s`
 ❌ Entity names for lookups → ✅ Use `internal_id` (UUID)
-❌ Touching `config_entry.data` → ✅ Use `.storage/kidschores_data`
+❌ Touching `config_entry.data` → ✅ Use `.storage/choreops/choreops_data`
 ❌ Direct storage writes → ✅ Use Manager method that calls `coordinator._persist()`
 ❌ Importing `homeassistant` in `utils/` → ✅ Keep utils pure (no HA imports)
 ❌ Writing to `_data` outside Managers → ✅ Delegate to Manager methods
@@ -247,7 +247,7 @@ Run quality gates (**in this order**):
 
 **Key Files**:
 
-- `const.py` - All constants (TRANS_KEY_*, DATA_*, CFOF_*, SERVICE_*, etc.)
+- `const.py` - All constants (TRANS*KEY*\_, DATA\_\_, CFOF*\*, SERVICE*\*, etc.)
 - `coordinator.py` - Infrastructure hub (routing, persistence, manager lifecycle)
 - `managers/` - Stateful workflows (ChoreManager, EconomyManager, UIManager, StatisticsManager, etc.)
 - `helpers/` - HA-aware utilities (entity, flow, device, auth, backup, translation helpers)

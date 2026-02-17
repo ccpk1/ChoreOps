@@ -34,6 +34,8 @@ from tests.helpers import (
 )
 from tests.helpers.setup import setup_from_yaml
 
+STORAGE_KEY_SCOPED = "choreops/choreops_data"
+
 # =============================================================================
 # FIXTURES
 # =============================================================================
@@ -221,7 +223,7 @@ class TestPointsMigrationFromV40:
         await hass.async_block_till_done()
 
         # Verify migration transformed structure
-        migrated_data = hass_storage["kidschores_data"]["data"]
+        migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
         kids = migrated_data["kids"]
 
         for kid_id, kid_data in kids.items():
@@ -312,7 +314,7 @@ class TestPointsMigrationFromV40:
         await hass.async_block_till_done()
 
         # Verify historical periods preserved
-        migrated_data = hass_storage["kidschores_data"]["data"]
+        migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
         migrated_kid = migrated_data["kids"][first_kid_id]
         migrated_monthly = migrated_kid["point_periods"].get("monthly", {})
 
@@ -372,7 +374,7 @@ class TestPointsMigrationFromV40:
         await hass.async_block_till_done()
 
         # Verify all_time calculation
-        migrated_data = hass_storage["kidschores_data"]["data"]
+        migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
         migrated_kid = migrated_data["kids"][first_kid_id]
         all_time_entry = migrated_kid["point_periods"]["all_time"]["all_time"]
 

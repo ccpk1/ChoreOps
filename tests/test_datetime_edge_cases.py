@@ -14,7 +14,7 @@ unique edge cases that provide value in the modern test suite.
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
-from custom_components.kidschores.utils.dt_utils import (
+from custom_components.choreops.utils.dt_utils import (
     dt_add_interval,
     dt_parse,
     dt_parse_date,

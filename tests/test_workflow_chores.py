@@ -27,7 +27,7 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.core import Context, HomeAssistant
 import pytest
 
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import (
     ATTR_GLOBAL_STATE,
     CHORE_STATE_APPROVED,
@@ -67,7 +67,7 @@ from tests.helpers.workflows import (
 )
 
 if TYPE_CHECKING:
-    from custom_components.kidschores.type_defs import ChoreData, KidData
+    from custom_components.choreops.type_defs import ChoreData, KidData
 
 
 # =============================================================================
@@ -328,7 +328,7 @@ class TestIndependentChores:
         scenario_minimal: SetupResult,
     ) -> None:
         """Independent chore resolves to waiting before due window when lock enabled."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
         chore_name = "Make bed"
@@ -363,7 +363,7 @@ class TestIndependentChores:
         scenario_minimal: SetupResult,
     ) -> None:
         """Independent chore stays pending before due window when lock disabled."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
         chore_name = "Make bed"
@@ -477,7 +477,7 @@ class TestSharedFirstChores:
         This is a focused regression for shared_first display priority:
         completed_by_other must take precedence over due/overdue for blocked kids.
         """
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared First Pending Hold"
@@ -563,7 +563,7 @@ class TestSharedFirstChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Auto-approve shared_first keeps secondary kid blocked across overdue."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared First Auto Approve"
@@ -644,7 +644,7 @@ class TestSharedFirstChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Secondary shared_first kid remains completed_by_other inside due window."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared First Pending Hold"
@@ -675,7 +675,7 @@ class TestSharedFirstChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Disapprove clears shared_first winner/secondary states even when past due."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared First Pending Hold"
@@ -731,7 +731,7 @@ class TestSharedAllChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Shared_all secondary kid is not blocked and becomes overdue (claimable)."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
@@ -789,7 +789,7 @@ class TestSharedAllChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Shared_all secondary kid can be pinned to due state and remains claimable."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
@@ -824,7 +824,7 @@ class TestSharedAllChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Shared_all secondary kid resolves to missed under strict overdue lock."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
@@ -954,7 +954,7 @@ class TestSharedAllChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Shared_all secondary kid resolves to waiting pre-window when lock enabled."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
@@ -986,7 +986,7 @@ class TestSharedAllChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Shared_all secondary kid stays pending pre-window when lock disabled."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
@@ -1024,7 +1024,7 @@ class TestRotationSimpleChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Non-turn kid remains not_my_turn (not overdue/due) in rotation_simple."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Vacuum Living Room"
@@ -1078,7 +1078,7 @@ class TestRotationSimpleChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Rotation simple non-turn kid remains locked before steal window opens."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Vacuum Living Room"
@@ -1118,7 +1118,7 @@ class TestRotationSimpleChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Rotation simple non-turn kid becomes overdue/claimable after due in steal mode."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Vacuum Living Room"
@@ -1173,7 +1173,7 @@ class TestRotationSmartChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Non-turn kid remains not_my_turn (not overdue/due) in rotation_smart."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Clean Bathroom Mirror"
@@ -1227,7 +1227,7 @@ class TestRotationSmartChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Rotation smart non-turn kid moves from not_my_turn to overdue when steal opens."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Clean Bathroom Mirror"
@@ -1284,7 +1284,7 @@ class TestRotationSmartChores:
         mock_hass_users: dict[str, Any],
     ) -> None:
         """Rotation override allows non-turn kid claim without immediate state flip."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Clean Bathroom Mirror"
@@ -1337,7 +1337,7 @@ class TestRotationSmartChores:
         scenario_shared: SetupResult,
     ) -> None:
         """Rotation smart non-turn lock keeps precedence over strict missed when not in turn."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Clean Bathroom Mirror"
@@ -1709,7 +1709,7 @@ class TestWorkflowIntegrationEdgeCases:
         StatisticsManager records approval counts in period buckets (including all_time)
         via _on_chore_approved listener.
         """
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
         kid_id = scenario_minimal.kid_ids["Zoë"]
@@ -1758,7 +1758,7 @@ class TestWorkflowIntegrationEdgeCases:
         StatisticsManager records disapproval counts in period buckets (including all_time)
         via _on_chore_disapproved listener.
         """
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
         kid_id = scenario_minimal.kid_ids["Zoë"]
@@ -2394,7 +2394,7 @@ class TestEnhancedFrequencyWorkflows:
         - Verifies new due date is interval-anchored to completion
         - Verifies UI returns to pending for immediate next-cycle visibility
         """
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_enhanced_frequencies.coordinator
         chore_name = "Custom From Complete Single"
@@ -2451,7 +2451,7 @@ class TestEnhancedFrequencyWorkflows:
         - Claim lock + lock reason are asserted from UI sensor attributes
         - Dashboard helper reflects the same divergent statuses for each kid
         """
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"

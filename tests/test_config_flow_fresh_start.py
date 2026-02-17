@@ -25,7 +25,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
-from custom_components.kidschores import const
+from custom_components.choreops import const
 
 
 @pytest.mark.asyncio
@@ -43,7 +43,7 @@ async def test_fresh_start_points_only(hass: HomeAssistant) -> None:
     """
 
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         # Step 1: Start fresh config flow
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -177,7 +177,7 @@ async def test_fresh_start_points_and_kid(hass: HomeAssistant, mock_hass_users) 
     All other entity counts remain at 0.
     """
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         # Step 1: Start fresh config flow
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -354,7 +354,7 @@ async def test_fresh_start_kid_with_notify_services(
     await async_register_notify_services()
 
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         # Step 1: Start fresh config flow
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -498,7 +498,7 @@ async def test_fresh_start_with_parent_no_notifications(
     - Associated with the kid
     """
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         # Steps 1-5: Same as other tests (fresh start, intro, points, kid count=1, kid config)
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -642,7 +642,7 @@ async def test_fresh_start_with_parent_with_notifications(
     hass.services.async_register("notify", "persistent", lambda call: None)
 
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         # Steps 1-5: Same setup as previous test
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -731,7 +731,7 @@ async def test_fresh_start_two_parents_mixed_notifications(
     )
 
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         # Steps 1-5: Basic setup
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -1258,7 +1258,7 @@ async def test_fresh_start_with_parents(hass: HomeAssistant, mock_hass_users):
     parent_user = mock_hass_users["parent1"]
 
     # Mock setup to prevent actual integration loading during config flow
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_init(
             const.DOMAIN, context={"source": config_entries.SOURCE_USER}
         )

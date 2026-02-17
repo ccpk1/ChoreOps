@@ -20,8 +20,9 @@ These tests do NOT duplicate test_workflow_notifications.py which tests the
 full notification WORKFLOW (sending notifications, action button presses, etc.).
 """
 
-from custom_components.kidschores.managers import NotificationManager
-from custom_components.kidschores.notification_action_handler import (
+from custom_components.choreops import const
+from custom_components.choreops.managers import NotificationManager
+from custom_components.choreops.notification_action_handler import (
     ParsedAction,
     parse_notification_action,
 )
@@ -494,24 +495,24 @@ class TestBuildNotificationTag:
         """Test tag generation with single identifier (backwards compatible)."""
         tag = build_notification_tag("status", "kid-123")
         # Identifiers truncated to 8 chars for Apple's 64-byte limit
-        assert tag == "kidschores-status-kid-123"
+        assert tag == f"{const.DOMAIN}-status-kid-123"
 
     def test_multiple_identifiers(self) -> None:
         """Test tag generation with chore_id + kid_id for uniqueness."""
         tag = build_notification_tag("status", "chore-456", "kid-123")
         # Identifiers truncated to 8 chars: "chore-456" -> "chore-45", "kid-123" -> "kid-123"
-        assert tag == "kidschores-status-chore-45-kid-123"
+        assert tag == f"{const.DOMAIN}-status-chore-45-kid-123"
 
     def test_reward_identifiers(self) -> None:
         """Test tag generation for reward notifications."""
         tag = build_notification_tag("status", "reward-789", "kid-123")
         # Identifiers truncated: "reward-789" -> "reward-7", "kid-123" -> "kid-123"
-        assert tag == "kidschores-status-reward-7-kid-123"
+        assert tag == f"{const.DOMAIN}-status-reward-7-kid-123"
 
     def test_no_identifiers(self) -> None:
         """Test tag generation with just tag_type (fallback behavior)."""
         tag = build_notification_tag("pending")
-        assert tag == "kidschores-pending"
+        assert tag == f"{const.DOMAIN}-pending"
 
     def test_empty_string_identifier_included(self) -> None:
         """Test that empty string identifiers are included (no filtering)."""
@@ -519,7 +520,7 @@ class TestBuildNotificationTag:
         # they are included in the tag (not filtered out)
         tag = build_notification_tag("status", "chore-456", "", "kid-123")
         # Identifiers truncated: "chore-456" -> "chore-45", "" -> "", "kid-123" -> "kid-123"
-        assert tag == "kidschores-status-chore-45--kid-123"
+        assert tag == f"{const.DOMAIN}-status-chore-45--kid-123"
 
     def test_tag_type_preserved(self) -> None:
         """Test different tag types produce different prefixes."""

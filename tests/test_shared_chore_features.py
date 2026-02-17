@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.core import Context, HomeAssistant
 import pytest
 
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import (
     # Pending claim action constants
     APPROVAL_RESET_PENDING_CLAIM_AUTO_APPROVE,
@@ -62,8 +62,8 @@ from tests.helpers.workflows import (
 )
 
 if TYPE_CHECKING:
-    from custom_components.kidschores.coordinator import KidsChoresDataCoordinator
-    from custom_components.kidschores.type_defs import ChoreData
+    from custom_components.choreops.coordinator import KidsChoresDataCoordinator
+    from custom_components.choreops.type_defs import ChoreData
 
 
 # =============================================================================

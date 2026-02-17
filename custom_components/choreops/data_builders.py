@@ -1516,12 +1516,6 @@ def build_chore(
                     const.DEFAULT_NOTIFY_ON_DISAPPROVAL,
                 )
             ),
-            const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY: bool(
-                get_field(
-                    const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY,
-                    const.DEFAULT_NOTIFY_ON_REMINDER_LEGACY,
-                )
-            ),
             const.DATA_CHORE_NOTIFY_ON_OVERDUE: bool(
                 get_field(
                     const.DATA_CHORE_NOTIFY_ON_OVERDUE,
@@ -1629,7 +1623,6 @@ _CHORE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_CHORE_NOTIFY_ON_CLAIM,
         const.DATA_CHORE_NOTIFY_ON_APPROVAL,
         const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL,
-        const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY,
         const.DATA_CHORE_NOTIFY_ON_OVERDUE,
         # Calendar and features
         const.DATA_CHORE_SHOW_ON_CALENDAR,

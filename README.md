@@ -23,6 +23,8 @@
 
 # 🏆 KidsChores: The Ultimate Home Assistant Chore & Reward System
 
+> Attribution: This project continues from the original KidsChores integration created by `@ad-ha`. The ChoreOps rebrand preserves that foundation and historical lineage.
+
 **The easiest-to-use and most feature-rich chore management system for Home Assistant.**
 Get up and running in **10 minutes or less**, with **unmatched capabilities** to gamify the process and keep kids engaged!
 

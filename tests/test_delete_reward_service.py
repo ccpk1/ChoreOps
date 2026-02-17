@@ -105,7 +105,7 @@ class TestDeleteRewardByID:
         scenario_full: SetupResult,
     ) -> None:
         """Test deleting a reward cleans up kid reward_data references."""
-        from custom_components.kidschores import const
+        from custom_components.choreops import const
 
         coordinator = scenario_full.coordinator
         reward_id = scenario_full.reward_ids["Extra Screen Time"]

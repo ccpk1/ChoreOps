@@ -24,7 +24,6 @@ from homeassistant.helpers import entity_registry as er
 from . import const, data_builders as db
 from .helpers import backup_helpers as bh, entity_helpers as eh
 from .helpers.entity_helpers import get_item_id_by_name
-from .store import KidsChoresStore
 from .utils.dt_utils import (
     dt_add_interval,
     dt_next_schedule,
@@ -36,6 +35,415 @@ from .utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
     from .coordinator import KidsChoresDataCoordinator
+    from .store import KidsChoresStore
+
+
+LEGACY_STORAGE_KEY = "kidschores_data"
+LEGACY_STORAGE_PREFIX = "kidschores_"
+LEGACY_MIGRATION_PERFORMED_KEY = "migration_performed"
+LEGACY_MIGRATION_KEY_VERSION_KEY = "migration_key_version"
+LEGACY_MIGRATION_ORPHAN_PREFIX = "legacy_orphan"
+LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS = "_points_adjust_"
+LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY = "notify_on_reminder"
+LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT = True
+
+
+def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
+    """Return True when pre-v50 legacy migration marker is present."""
+    return LEGACY_MIGRATION_PERFORMED_KEY in data
+
+
+def _discover_legacy_storage_artifacts_sync(
+    storage_root: str,
+) -> dict[str, Any]:
+    """Discover legacy KidsChores storage files and backups.
+
+    Args:
+        storage_root: Absolute path to Home Assistant `.storage` directory.
+
+    Returns:
+        Discovery payload with candidate active files and backup files.
+    """
+    from pathlib import Path
+
+    storage_dir = Path(storage_root)
+
+    candidate_active_paths = [
+        storage_dir / LEGACY_STORAGE_KEY,
+    ]
+
+    active_files = [str(path) for path in candidate_active_paths if path.exists()]
+
+    backup_candidates: list[Path] = []
+    for candidate_dir in (storage_dir,):
+        if not candidate_dir.exists():
+            continue
+        backup_candidates.extend(
+            path
+            for path in candidate_dir.glob(f"{LEGACY_STORAGE_PREFIX}*.json")
+            if path.is_file()
+        )
+
+    backup_candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+
+    return {
+        "active_files": active_files,
+        "backup_files": [str(path) for path in backup_candidates],
+    }
+
+
+def _extract_storage_payload(data: dict[str, Any]) -> dict[str, Any] | None:
+    """Extract storage payload from known export/store formats.
+
+    Supported inputs:
+    - Diagnostic export format (`home_assistant` + `data`)
+    - Store format (`version` + `data`)
+    - Raw storage payload format
+    """
+    if const.DATA_KEY_HOME_ASSISTANT in data and const.DATA_KEY_DATA in data:
+        payload = data.get(const.DATA_KEY_DATA)
+        return payload if isinstance(payload, dict) else None
+
+    if const.DATA_KEY_VERSION in data and const.DATA_KEY_DATA in data:
+        payload = data.get(const.DATA_KEY_DATA)
+        return payload if isinstance(payload, dict) else None
+
+    return data
+
+
+def _looks_like_kidschores_storage_data(data: dict[str, Any]) -> bool:
+    """Return True if payload appears to be KidsChores storage data."""
+    return any(
+        key in data
+        for key in (
+            const.DATA_META,
+            const.DATA_KIDS,
+            const.DATA_CHORES,
+            const.DATA_BADGES,
+            const.DATA_REWARDS,
+        )
+    )
+
+
+async def async_discover_legacy_kidschores_artifacts(
+    hass: HomeAssistant,
+) -> dict[str, Any]:
+    """Discover legacy KidsChores artifacts that can be migrated.
+
+    This checks for legacy active files and legacy backup files under both
+    `.storage/` and `.storage/choreops/`.
+
+    Args:
+        hass: Home Assistant instance.
+
+    Returns:
+        Dict with discovery details and migration eligibility.
+    """
+    storage_root = hass.config.path(const.STORAGE_PATH_SEGMENT)
+    discovered = await hass.async_add_executor_job(
+        _discover_legacy_storage_artifacts_sync,
+        storage_root,
+    )
+
+    active_files = cast("list[str]", discovered["active_files"])
+    backup_files = cast("list[str]", discovered["backup_files"])
+
+    return {
+        "has_migration_candidate": bool(active_files or backup_files),
+        "active_files": active_files,
+        "backup_files": backup_files,
+    }
+
+
+async def async_get_data_recovery_capabilities(
+    hass: HomeAssistant,
+) -> dict[str, bool]:
+    """Return data-recovery capabilities for config flow selection rendering.
+
+    Args:
+        hass: Home Assistant instance.
+
+    Returns:
+        Dictionary containing booleans for available recovery options.
+    """
+    from pathlib import Path
+
+    from .store import KidsChoresStore
+
+    store = KidsChoresStore(hass)
+    storage_path = Path(store.get_storage_path())
+    legacy_storage_path = Path(
+        hass.config.path(const.STORAGE_PATH_SEGMENT, LEGACY_STORAGE_KEY)
+    )
+
+    storage_file_exists = await hass.async_add_executor_job(storage_path.exists)
+    legacy_storage_exists = await hass.async_add_executor_job(
+        legacy_storage_path.exists
+    )
+
+    legacy_artifacts = await async_discover_legacy_kidschores_artifacts(hass)
+    has_legacy_candidates = bool(legacy_artifacts.get("has_migration_candidate"))
+
+    return {
+        "has_current_active_file": bool(storage_file_exists or legacy_storage_exists),
+        "has_legacy_candidates": has_legacy_candidates,
+    }
+
+
+async def async_prepare_current_active_storage(
+    hass: HomeAssistant,
+) -> dict[str, Any]:
+    """Validate and normalize current active data file into scoped storage.
+
+    This operation is non-destructive for legacy source files and writes the
+    normalized wrapped storage payload to the current scoped destination.
+
+    Args:
+        hass: Home Assistant instance.
+
+    Returns:
+        Result payload with:
+        - `prepared`: bool
+        - `error`: str | None (`file_not_found`, `corrupt_file`,
+          `invalid_structure`, `unknown`)
+    """
+    import json
+    from pathlib import Path
+
+    from .store import KidsChoresStore
+
+    try:
+        store = KidsChoresStore(hass)
+        destination_path = Path(store.get_storage_path())
+        legacy_storage_path = Path(
+            hass.config.path(const.STORAGE_PATH_SEGMENT, LEGACY_STORAGE_KEY)
+        )
+
+        destination_exists = await hass.async_add_executor_job(destination_path.exists)
+        legacy_exists = await hass.async_add_executor_job(legacy_storage_path.exists)
+
+        if not destination_exists and not legacy_exists:
+            return {
+                "prepared": False,
+                "error": "file_not_found",
+            }
+
+        source_path = destination_path if destination_exists else legacy_storage_path
+
+        source_text = await hass.async_add_executor_job(source_path.read_text, "utf-8")
+        try:
+            source_data = json.loads(source_text)
+        except json.JSONDecodeError:
+            return {
+                "prepared": False,
+                "error": "corrupt_file",
+            }
+
+        if not isinstance(source_data, dict):
+            return {
+                "prepared": False,
+                "error": "invalid_structure",
+            }
+
+        if not bh.validate_backup_json(source_text):
+            return {
+                "prepared": False,
+                "error": "invalid_structure",
+            }
+
+        payload = _extract_storage_payload(source_data)
+        if payload is None:
+            return {
+                "prepared": False,
+                "error": "invalid_structure",
+            }
+
+        wrapped_data = {
+            const.DATA_KEY_VERSION: 1,
+            "minor_version": 1,
+            const.DATA_KEY_KEY: const.STORAGE_KEY,
+            const.DATA_KEY_DATA: payload,
+        }
+
+        await hass.async_add_executor_job(
+            lambda: destination_path.parent.mkdir(parents=True, exist_ok=True)
+        )
+        await hass.async_add_executor_job(
+            destination_path.write_text,
+            json.dumps(wrapped_data, indent=2),
+            "utf-8",
+        )
+
+        if source_path == legacy_storage_path:
+            const.LOGGER.info(
+                "Copied legacy active data file into scoped ChoreOps storage"
+            )
+        else:
+            const.LOGGER.info("Using current active storage file")
+
+        return {
+            "prepared": True,
+            "error": None,
+        }
+
+    except Exception as err:
+        const.LOGGER.error("Preparing current active storage failed: %s", err)
+        return {
+            "prepared": False,
+            "error": "unknown",
+        }
+
+
+async def async_migrate_from_legacy_kidschores_storage(
+    hass: HomeAssistant,
+) -> dict[str, Any]:
+    """Migrate legacy KidsChores storage into ChoreOps storage.
+
+    Migration is non-destructive: source files are never modified or deleted.
+    The function reads the best available legacy source and writes a wrapped
+    Home Assistant storage payload to `.storage/choreops/choreops_data`.
+
+    Args:
+        hass: Home Assistant instance.
+
+    Returns:
+        Result dictionary with:
+        - `migrated`: bool
+        - `source_path`: str | None
+        - `source_kind`: str | None (`active` or `backup`)
+        - `settings`: dict[str, Any]
+        - `error`: str | None
+    """
+    import json
+    from pathlib import Path
+
+    artifacts = await async_discover_legacy_kidschores_artifacts(hass)
+    active_files = cast("list[str]", artifacts["active_files"])
+    backup_files = cast("list[str]", artifacts["backup_files"])
+
+    source_path: str | None = None
+    source_kind: str | None = None
+    if active_files:
+        source_path = active_files[0]
+        source_kind = "active"
+    elif backup_files:
+        source_path = backup_files[0]
+        source_kind = "backup"
+
+    if source_path is None or source_kind is None:
+        return {
+            "migrated": False,
+            "source_path": None,
+            "source_kind": None,
+            "settings": {},
+            "error": "no_legacy_source",
+        }
+
+    try:
+        source_text = await hass.async_add_executor_job(
+            Path(source_path).read_text,
+            "utf-8",
+        )
+        source_data = json.loads(source_text)
+    except (OSError, ValueError) as err:
+        const.LOGGER.error(
+            "Failed reading legacy migration source %s: %s", source_path, err
+        )
+        return {
+            "migrated": False,
+            "source_path": source_path,
+            "source_kind": source_kind,
+            "settings": {},
+            "error": "invalid_json",
+        }
+
+    if not isinstance(source_data, dict):
+        return {
+            "migrated": False,
+            "source_path": source_path,
+            "source_kind": source_kind,
+            "settings": {},
+            "error": "invalid_structure",
+        }
+
+    payload = _extract_storage_payload(source_data)
+    if payload is None or not _looks_like_kidschores_storage_data(payload):
+        return {
+            "migrated": False,
+            "source_path": source_path,
+            "source_kind": source_kind,
+            "settings": {},
+            "error": "invalid_structure",
+        }
+
+    from .store import KidsChoresStore
+
+    store = KidsChoresStore(hass)
+    destination_path = Path(store.get_storage_path())
+    destination_dir = destination_path.parent
+
+    destination_exists = await hass.async_add_executor_job(destination_path.exists)
+    if destination_exists:
+        try:
+            backup_name = await bh.create_timestamped_backup(
+                hass,
+                store,
+                const.BACKUP_TAG_RECOVERY,
+                None,
+            )
+            if backup_name:
+                const.LOGGER.info(
+                    "Created ChoreOps safety backup before migration: %s",
+                    backup_name,
+                )
+        except Exception as err:
+            const.LOGGER.warning(
+                "Failed to create safety backup before legacy migration: %s", err
+            )
+
+    wrapped_data = {
+        const.DATA_KEY_VERSION: 1,
+        "minor_version": 1,
+        const.DATA_KEY_KEY: const.STORAGE_KEY,
+        const.DATA_KEY_DATA: payload,
+    }
+
+    await hass.async_add_executor_job(
+        lambda: destination_dir.mkdir(parents=True, exist_ok=True)
+    )
+    await hass.async_add_executor_job(
+        destination_path.write_text,
+        json.dumps(wrapped_data, indent=2),
+        "utf-8",
+    )
+
+    settings: dict[str, Any] = {}
+    raw_settings = source_data.get(const.DATA_CONFIG_ENTRY_SETTINGS)
+    if isinstance(raw_settings, dict):
+        validated = bh.validate_config_entry_settings(raw_settings)
+        settings = {
+            key: validated.get(key, default)
+            for key, default in const.DEFAULT_SYSTEM_SETTINGS.items()
+        }
+
+    const.LOGGER.info(
+        "Migrated legacy KidsChores data from %s (%s) into %s",
+        source_path,
+        source_kind,
+        destination_path,
+    )
+    const.LOGGER.info(
+        "Legacy KidsChores files were not removed. You can remove the old KidsChores "
+        "integration manually after validating ChoreOps"
+    )
+
+    return {
+        "migrated": True,
+        "source_path": source_path,
+        "source_kind": source_kind,
+        "settings": settings,
+        "error": None,
+    }
 
 
 # ================================================================================================
@@ -44,7 +452,7 @@ if TYPE_CHECKING:
 
 
 async def migrate_config_to_storage(
-    hass: HomeAssistant, entry: ConfigEntry, store: KidsChoresStore
+    hass: HomeAssistant, entry: ConfigEntry, store: "KidsChoresStore"
 ) -> None:
     """One-time migration: Move entity data from config_entry.options to storage.
 
@@ -548,7 +956,7 @@ class PreV50Migrator:
         """
         if (
             current_version >= const.SCHEMA_VERSION_STORAGE_ONLY
-            and const.MIGRATION_PERFORMED in self.coordinator._data
+            and has_legacy_migration_performed_marker(self.coordinator._data)
         ):
             const.LOGGER.warning(
                 "PreV50Migrator: Detected premature schema stamp (v%s with "
@@ -850,9 +1258,8 @@ class PreV50Migrator:
         3. Deletes the legacy notify_on_reminder field from storage
 
         After migration deployed broadly (v0.6.0+), remove:
-        - CFOF_CHORES_INPUT_NOTIFY_ON_REMINDER_LEGACY
-        - DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY
-        - DEFAULT_NOTIFY_ON_REMINDER_LEGACY
+        - LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY
+        - LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT
         - Translation key "notify_on_reminder" from all language files
         - Legacy field checks from notification_manager.py
         """
@@ -867,23 +1274,23 @@ class PreV50Migrator:
             # Skip if chore already has notify_due_reminder configured
             if const.DATA_CHORE_NOTIFY_DUE_REMINDER in chore_data:
                 # Clean up legacy field even if new field exists
-                if const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY in chore_data:
-                    del chore_data[const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY]
+                if LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY in chore_data:
+                    del chore_data[LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY]
                     migrated_count += 1
                 continue
 
             # Read legacy value (default True to preserve existing behavior)
             legacy_value = chore_data.get(
-                const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY,
-                const.DEFAULT_NOTIFY_ON_REMINDER_LEGACY,
+                LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY,
+                LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT,
             )
 
             # Copy to new field
             chore_data[const.DATA_CHORE_NOTIFY_DUE_REMINDER] = bool(legacy_value)
 
             # Delete legacy field
-            if const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY in chore_data:
-                del chore_data[const.DATA_CHORE_NOTIFY_ON_REMINDER_LEGACY]
+            if LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY in chore_data:
+                del chore_data[LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY]
 
             migrated_count += 1
 
@@ -2588,12 +2995,12 @@ class PreV50Migrator:
         self.coordinator._data.pop(const.DATA_SCHEMA_VERSION, None)
 
         # Clean up legacy beta keys (KC 4.x beta, schema v41)
-        if const.MIGRATION_PERFORMED in self.coordinator._data:
+        if LEGACY_MIGRATION_PERFORMED_KEY in self.coordinator._data:
             const.LOGGER.debug("Cleaning up legacy key: migration_performed")
-            del self.coordinator._data[const.MIGRATION_PERFORMED]
-        if const.MIGRATION_KEY_VERSION in self.coordinator._data:
+            del self.coordinator._data[LEGACY_MIGRATION_PERFORMED_KEY]
+        if LEGACY_MIGRATION_KEY_VERSION_KEY in self.coordinator._data:
             const.LOGGER.debug("Cleaning up legacy key: migration_key_version")
-            del self.coordinator._data[const.MIGRATION_KEY_VERSION]
+            del self.coordinator._data[LEGACY_MIGRATION_KEY_VERSION_KEY]
 
         const.LOGGER.debug(
             "Migration meta finalized: schema_version=%s",
@@ -3532,7 +3939,7 @@ class PreV50Migrator:
                 )
 
                 if not badge_id:
-                    badge_id = f"{const.MIGRATION_DATA_LEGACY_ORPHAN}_{random.randint(100000, 999999)}"
+                    badge_id = f"{LEGACY_MIGRATION_ORPHAN_PREFIX}_{random.randint(100000, 999999)}"
                     const.LOGGER.warning(
                         "WARNING: Migrate - Badge '%s' not found in badge data. Assigning legacy orphan ID '%s' for kid '%s'.",
                         badge_name,
@@ -4957,7 +5364,7 @@ class PreV50Migrator:
 
         for kid_id in self.coordinator.kids_data:
             for delta in points_adjust_values:
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.BUTTON_KC_UID_MIDFIX_ADJUST_POINTS_LEGACY}{delta}"
+                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}{LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS}{delta}"
                 allowed_uids.add(uid)
 
         # --- Now remove any button entity whose unique_id is not in allowed_uids ---

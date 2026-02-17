@@ -1,19 +1,19 @@
 ---
-name: KidsChores Builder
+name: ChoreOps Builder
 description: Implementation agent - executes plan phases, validates, reports progress
 argument-hint: "Work on Phase X of PLAN_NAME_IN-PROCESS.md"
 handoffs:
   - label: Create New Plan
-    agent: KidsChores Strategist
+    agent: ChoreOps Strategist
     prompt: Create initiative plan - strategic planning needed. Feature/refactor [DESCRIPTION]. Research codebase for context (existing patterns affected components), create plan following PLAN_TEMPLATE.md structure, place in docs/in-process/ folder, name INITIATIVE_NAME_IN-PROCESS.md, include any supporting docs as INITIATIVE_NAME_SUP_[DESCRIPTOR].md, verify plan quality checklist before delivering. Success criteria - main plan in docs/in-process/ with _IN-PROCESS suffix, 3-4 phases with 3-7 executable steps each, each step includes file references and line numbers, completion section filled (decisions requirements permission structure), all supporting docs created (if medium/large analysis needed).
   - label: Restructure Plan
-    agent: KidsChores Strategist
+    agent: ChoreOps Strategist
     prompt: Restructure initiative plan - planning adjustments needed. Plan file [PLAN_NAME_IN-PROCESS.md]. Changes needed [DESCRIPTION]. Review current plan structure, identify which phases/steps need adjustment, replan with new structure, keep all completed steps intact, update summary table with new phase breakdown, deliver revised plan in-place (same file location). Success criteria - plan file updated in docs/in-process/ folder, completed steps preserved, new structure documented with rationale, quality checklist items still met.
   - label: Complete & Archive Plan
-    agent: KidsChores Archivist
+    agent: ChoreOps Archivist
     prompt: Verify and archive completed plan - plan ready for completion. Plan file [PLAN_NAME_IN-PROCESS.md]. Verify all completion requirements met (from plan's completion section), identify all supporting docs (_SUP_*.md files), request explicit user permission to archive, move plan (rename _IN-PROCESS to _COMPLETED), move all supporting docs with plan, report archival complete. Success criteria - all phases 100% complete, all steps checked off, validation gates reported (lint tests mypy), user permission obtained (explicit confirmation), plan + supporting docs in docs/completed/, file names updated to _COMPLETED suffix.
   - label: Build New Test
-    agent: KidsChores Test Builder
+    agent: ChoreOps Test Builder
     prompt: Create new test file - test coverage needed. Feature/area [DESCRIPTION]. Test type [workflow/config_flow/service/edge_case]. Research existing similar tests for patterns, determine Stårblüm Family scenario to use (minimal/shared/full/custom), create test file following AGENT_TEST_CREATION_INSTRUCTIONS.md, use Rule 0-6 patterns (YAML scenarios dashboard helper service calls), scaffold test structure with proper fixtures, run type checking (mypy tests/), run test (pytest tests/test_*.py -v) to verify passes. Success criteria - test file created in tests/ folder, follows established patterns (not inventing new ones), uses Stårblüm Family data (names scenarios), all imports from tests.helpers, MyPy passes (zero type errors), test runs and passes.
 ---
 
@@ -27,7 +27,7 @@ Execute plan phases with explicit confirmation and progress checkpoints.
 
 - `docs/DEVELOPMENT_STANDARDS.md` - Naming conventions, constant patterns, entity standards, error handling
 - `docs/QUALITY_REFERENCE.md` - Validation gates, quality compliance, Home Assistant alignment
-- `AGENTS.md` - KidsChores-specific patterns and Definition of Done
+- `AGENTS.md` - ChoreOps-specific patterns and Definition of Done
 
 **Key Standards Summary**:
 
@@ -276,15 +276,15 @@ When stuck **during phase execution**:
 
 ## Boundaries
 
-| ✅ CAN                                       | ❌ CANNOT                              |
-| -------------------------------------------- | -------------------------------------- |
-| Edit code in `custom_components/kidschores/` | Work without plan reference            |
-| Update `tests/`                              | Skip validation                        |
-| Run terminal commands                        | Add/remove plan phases                 |
-| Update plan progress (checkboxes, %)         | Change plan scope                      |
-| Execute entire phase after confirmation      | Move to next phase without approval    |
-| Create supporting `_SUP_*.md` docs           | Archive plans without completion check |
-| Update main plan & supporting docs           | Create docs outside `docs/in-process/` |
+| ✅ CAN                                     | ❌ CANNOT                              |
+| ------------------------------------------ | -------------------------------------- |
+| Edit code in `custom_components/choreops/` | Work without plan reference            |
+| Update `tests/`                            | Skip validation                        |
+| Run terminal commands                      | Add/remove plan phases                 |
+| Update plan progress (checkboxes, %)       | Change plan scope                      |
+| Execute entire phase after confirmation    | Move to next phase without approval    |
+| Create supporting `_SUP_*.md` docs         | Archive plans without completion check |
+| Update main plan & supporting docs         | Create docs outside `docs/in-process/` |
 
 **Success = completed phase + passing tests + updated plan + status report**
 
@@ -329,13 +329,13 @@ These are recurring tasks you can use as shorthand. Just say the request, agent 
 
 ### Testing & Validation
 
-| Shorthand         | Full Task                                                                                                                               |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| "Full validation" | Run: `./utils/quick_lint.sh --fix` + `python -m pytest tests/ -v --tb=line` + `mypy custom_components/kidschores/`. Report all results. |
-| "Lint check"      | Run: `./utils/quick_lint.sh --fix`. Report score and any failures.                                                                      |
-| "Full test suite" | Run: `python -m pytest tests/ -v --tb=line`. Report pass/fail count.                                                                    |
-| "Type check"      | Run: `mypy custom_components/kidschores/`. Report errors or "zero errors".                                                              |
-| "Test [area]"     | Run: `pytest tests/test_[area]*.py -v`. Examples: "Test config flow", "Test workflow".                                                  |
+| Shorthand         | Full Task                                                                                                                             |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| "Full validation" | Run: `./utils/quick_lint.sh --fix` + `python -m pytest tests/ -v --tb=line` + `mypy custom_components/choreops/`. Report all results. |
+| "Lint check"      | Run: `./utils/quick_lint.sh --fix`. Report score and any failures.                                                                    |
+| "Full test suite" | Run: `python -m pytest tests/ -v --tb=line`. Report pass/fail count.                                                                  |
+| "Type check"      | Run: `mypy custom_components/choreops/`. Report errors or "zero errors".                                                              |
+| "Test [area]"     | Run: `pytest tests/test_[area]*.py -v`. Examples: "Test config flow", "Test workflow".                                                |
 
 ### Code Review
 
@@ -343,7 +343,7 @@ These are recurring tasks you can use as shorthand. Just say the request, agent 
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | "Phase 0 audit [file]" | Run `docs/CODE_REVIEW_GUIDE.md` Phase 0 audit on specified file. Report: logging compliance, mypy errors, type hint coverage, hardcoded strings. |
 | "Audit [file]"         | Same as Phase 0 audit.                                                                                                                           |
-| "Type audit [file]"    | Run `mypy custom_components/kidschores/[file].py`. Report errors or clean status.                                                                |
+| "Type audit [file]"    | Run `mypy custom_components/choreops/[file].py`. Report errors or clean status.                                                                  |
 
 ### Status & Progress
 

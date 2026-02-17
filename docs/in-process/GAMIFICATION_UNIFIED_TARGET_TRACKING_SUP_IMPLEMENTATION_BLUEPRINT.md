@@ -73,9 +73,9 @@ Define and enforce one context schema that manager always builds and engine alwa
 
 ### Files
 
-- [custom_components/kidschores/type_defs.py](../../custom_components/kidschores/type_defs.py)
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
-- [custom_components/kidschores/engines/gamification_engine.py](../../custom_components/kidschores/engines/gamification_engine.py)
+- [custom_components/choreops/type_defs.py](../../custom_components/choreops/type_defs.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
+- [custom_components/choreops/engines/gamification_engine.py](../../custom_components/choreops/engines/gamification_engine.py)
 
 ### Steps
 
@@ -108,8 +108,8 @@ Build per-badge runtime context before each badge evaluation.
 
 ### Files
 
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
-- [custom_components/kidschores/managers/statistics_manager.py](../../custom_components/kidschores/managers/statistics_manager.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
+- [custom_components/choreops/managers/statistics_manager.py](../../custom_components/choreops/managers/statistics_manager.py)
 
 ### Steps
 
@@ -140,8 +140,8 @@ Guarantee one manifest build path for badge award side effects.
 
 ### Files
 
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
-- [custom_components/kidschores/type_defs.py](../../custom_components/kidschores/type_defs.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
+- [custom_components/choreops/type_defs.py](../../custom_components/choreops/type_defs.py)
 
 ### Steps
 
@@ -170,9 +170,9 @@ Map achievement/challenge configuration to badge-like target definition and shar
 
 ### Files
 
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
-- [custom_components/kidschores/type_defs.py](../../custom_components/kidschores/type_defs.py)
-- [custom_components/kidschores/const.py](../../custom_components/kidschores/const.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
+- [custom_components/choreops/type_defs.py](../../custom_components/choreops/type_defs.py)
+- [custom_components/choreops/const.py](../../custom_components/choreops/const.py)
 
 ### Steps
 
@@ -206,10 +206,10 @@ Ensure exactly one event emission for each award completion domain event.
 
 ### Files
 
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
-- [custom_components/kidschores/managers/notification_manager.py](../../custom_components/kidschores/managers/notification_manager.py)
-- [custom_components/kidschores/managers/economy_manager.py](../../custom_components/kidschores/managers/economy_manager.py)
-- [custom_components/kidschores/type_defs.py](../../custom_components/kidschores/type_defs.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
+- [custom_components/choreops/managers/notification_manager.py](../../custom_components/choreops/managers/notification_manager.py)
+- [custom_components/choreops/managers/economy_manager.py](../../custom_components/choreops/managers/economy_manager.py)
+- [custom_components/choreops/type_defs.py](../../custom_components/choreops/type_defs.py)
 
 ### Steps
 
@@ -237,7 +237,7 @@ Reduce evaluator duplication while preserving behavior.
 
 ### Files
 
-- [custom_components/kidschores/engines/gamification_engine.py](../../custom_components/kidschores/engines/gamification_engine.py)
+- [custom_components/choreops/engines/gamification_engine.py](../../custom_components/choreops/engines/gamification_engine.py)
 
 ### Steps
 
@@ -267,8 +267,8 @@ Prevent double increment / incorrect reset on re-evaluation and undo paths.
 
 ### Files
 
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
-- [custom_components/kidschores/type_defs.py](../../custom_components/kidschores/type_defs.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
+- [custom_components/choreops/type_defs.py](../../custom_components/choreops/type_defs.py)
 
 ### Steps
 
@@ -295,10 +295,10 @@ Eliminate or explicitly retain uncertain methods with rationale.
 
 ### Candidate list
 
-- [update_streak_progress](../../custom_components/kidschores/managers/gamification_manager.py#L481)
-- [award_badge](../../custom_components/kidschores/managers/gamification_manager.py#L2840)
-- [demote_cumulative_badge](../../custom_components/kidschores/managers/gamification_manager.py#L2371)
-- [\_get_challenge_total](../../custom_components/kidschores/engines/gamification_engine.py#L1092)
+- [update_streak_progress](../../custom_components/choreops/managers/gamification_manager.py#L481)
+- [award_badge](../../custom_components/choreops/managers/gamification_manager.py#L2840)
+- [demote_cumulative_badge](../../custom_components/choreops/managers/gamification_manager.py#L2371)
+- [\_get_challenge_total](../../custom_components/choreops/engines/gamification_engine.py#L1092)
 
 ### Steps
 
@@ -323,7 +323,7 @@ Guarantee cumulative behavior remains unchanged.
 
 ### Files
 
-- [custom_components/kidschores/managers/gamification_manager.py](../../custom_components/kidschores/managers/gamification_manager.py)
+- [custom_components/choreops/managers/gamification_manager.py](../../custom_components/choreops/managers/gamification_manager.py)
 - [tests/test_badge_cumulative.py](../../tests/test_badge_cumulative.py)
 
 ### Steps
@@ -353,7 +353,7 @@ Guarantee cumulative behavior remains unchanged.
 ### Mandatory validation commands (definition of done)
 
 - `./utils/quick_lint.sh --fix`
-- `mypy custom_components/kidschores/`
+- `mypy custom_components/choreops/`
 - `python -m pytest tests/ -v --tb=line`
 
 ### Recommended additional checks

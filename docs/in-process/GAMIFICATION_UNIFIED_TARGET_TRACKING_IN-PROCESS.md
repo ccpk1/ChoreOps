@@ -61,7 +61,7 @@
   - [x] Capture current behavior matrix for non-cumulative targets in `engines/gamification_engine.py` (line hints: `evaluate_badge` ~176, `_evaluate_daily_completion` ~647, `_evaluate_streak` ~841, `_get_achievement_total` ~1062, `_get_challenge_total` ~1087).
   - [x] Inventory award-processing flow end-to-end and mark shared extraction points (line hints: manager `process_award_items` / `_build_badge_award_manifest` ~1738-1810, award application in `_apply_periodic_first_award`/`_apply_periodic_reaward` ~1345-1422 and achievement/challenge award methods ~332-470).
   - [x] Add a refactor guard doc block in `managers/gamification_manager.py` near `_evaluate_badge_for_kid` / `_evaluate_periodic_badge` / `_evaluate_cumulative_badge` (line hints: ~780/~941/~817) describing “cumulative immutable during this initiative.”
-  - [x] Define a canonical target definition (typed) in `custom_components/kidschores/type_defs.py` near `BadgeTarget` and `EvaluationContext` (line hints: ~233 and ~735) for reusable mapping across badge/achievement/challenge.
+  - [x] Define a canonical target definition (typed) in `custom_components/choreops/type_defs.py` near `BadgeTarget` and `EvaluationContext` (line hints: ~233 and ~735) for reusable mapping across badge/achievement/challenge.
   - [x] Define canonical progress mutation fields in `type_defs.py` (`days_cycle_count`, `last_update_day`, streak/day counters) and specify idempotency rules for same-day re-evaluation.
   - [x] Validate whether schema migration is needed: if only existing fields are reused, **no schema bump**; if new persisted keys are introduced, add migration plan in coordinator/store migration path.
 - **Key issues**
@@ -229,7 +229,7 @@ No new source type should duplicate criterion handlers or progress mutation logi
   - [ ] Keep cumulative suite as regression gate (`tests/test_badge_cumulative.py`) and verify no expected behavior changes.
   - [ ] Run and record validation sequence:
     - `./utils/quick_lint.sh --fix`
-    - `mypy custom_components/kidschores/`
+    - `mypy custom_components/choreops/`
     - `python -m pytest tests/ -v --tb=line`
 - **Key issues**
   - Existing `tests/test_badge_target_types.py` is mostly create/config coverage; deeper state-machine regression tests are needed for confidence.
@@ -248,7 +248,7 @@ No new source type should duplicate criterion handlers or progress mutation logi
   - `tests/test_badge_cumulative.py`: ✅ 15 passed (rerun after non-cumulative fixes)
 - **Full validation gates before completion**:
   - `./utils/quick_lint.sh --fix`
-  - `mypy custom_components/kidschores/`
+  - `mypy custom_components/choreops/`
   - `python -m pytest tests/ -v --tb=line`
 - **Performance checkpoint**:
   - `python -m pytest tests/test_performance_comprehensive.py -s --tb=short`

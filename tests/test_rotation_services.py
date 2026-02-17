@@ -13,6 +13,8 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 import pytest
 
+from custom_components.choreops import const
+
 # Import test constants from helpers (not from const.py - Rule 0)
 from tests.helpers.constants import (
     CHORE_STATE_NOT_MY_TURN,
@@ -138,7 +140,7 @@ async def test_set_rotation_turn_service(
 
     # Extract chore_id from coordinator data
     # Get coordinator from config entry
-    config_entry = hass.config_entries.async_entries("kidschores")[0]
+    config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]
     coordinator = config_entry.runtime_data
 
     # Find chore UUID dynamically using helper
@@ -149,7 +151,7 @@ async def test_set_rotation_turn_service(
 
     # Call the set_rotation_turn service
     await hass.services.async_call(
-        "kidschores",
+        const.DOMAIN,
         "set_rotation_turn",
         {
             SERVICE_FIELD_CHORE_ID: chore_id,
@@ -209,7 +211,7 @@ async def test_reset_rotation_service(
     await hass.async_block_till_done()
 
     # Get coordinator and find chore
-    config_entry = hass.config_entries.async_entries("kidschores")[0]
+    config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]
     coordinator = config_entry.runtime_data
 
     chore_id = None
@@ -237,7 +239,7 @@ async def test_reset_rotation_service(
 
     # Call reset_rotation service
     await hass.services.async_call(
-        "kidschores",
+        const.DOMAIN,
         "reset_rotation",
         {SERVICE_FIELD_CHORE_ID: chore_id},
         blocking=True,
@@ -298,7 +300,7 @@ async def test_open_rotation_cycle_service(
     await hass.async_block_till_done()
 
     # Get coordinator and find a rotation chore WITHOUT cycle override
-    config_entry = hass.config_entries.async_entries("kidschores")[0]
+    config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]
     coordinator = config_entry.runtime_data
 
     # Use "Laundry Rotation" which has rotation_cycle_override: false
@@ -316,7 +318,7 @@ async def test_open_rotation_cycle_service(
 
     # Call open_rotation_cycle service
     await hass.services.async_call(
-        "kidschores",
+        const.DOMAIN,
         "open_rotation_cycle",
         {SERVICE_FIELD_CHORE_ID: chore_id},
         blocking=True,
@@ -352,7 +354,7 @@ async def test_rotation_advancement_with_skipped_kids(
     await hass.async_block_till_done()
 
     # Get coordinator for direct data access
-    config_entry = hass.config_entries.async_entries("kidschores")[0]
+    config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]
     coordinator = config_entry.runtime_data
 
     # Find "Water Plants" chore (only assigned to Max and Lila, not Zoë)
@@ -426,14 +428,14 @@ async def test_set_turn_then_reset_preserves_single_pending_holder_invariant(
     """set_rotation_turn + reset_rotation preserves one-and-only-one pending holder."""
     await hass.async_block_till_done(wait_background_tasks=True)
 
-    config_entry = hass.config_entries.async_entries("kidschores")[0]
+    config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]
     coordinator = config_entry.runtime_data
     chore_id = get_chore_by_name(coordinator, "Dishes Rotation")
 
     # Move turn to Max first (if not already there)
     max_id = get_kid_by_name(coordinator, "Max!")
     await hass.services.async_call(
-        "kidschores",
+        const.DOMAIN,
         "set_rotation_turn",
         {SERVICE_FIELD_CHORE_ID: chore_id, SERVICE_FIELD_KID_ID: max_id},
         blocking=True,
@@ -442,7 +444,7 @@ async def test_set_turn_then_reset_preserves_single_pending_holder_invariant(
 
     # Reset back to first assigned kid
     await hass.services.async_call(
-        "kidschores",
+        const.DOMAIN,
         "reset_rotation",
         {SERVICE_FIELD_CHORE_ID: chore_id},
         blocking=True,

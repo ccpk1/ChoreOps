@@ -51,7 +51,7 @@ async def test_backup_actions_all_navigation_paths(
 
     # Mock backup discovery to avoid file system dependencies
     with patch(
-        "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+        "custom_components.choreops.helpers.backup_helpers.discover_backups",
         new=AsyncMock(return_value=[]),
     ):
         # Select backup action
@@ -122,11 +122,11 @@ async def test_max_backup_retention_changes(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+            "custom_components.choreops.helpers.backup_helpers.discover_backups",
             new=AsyncMock(return_value=mock_existing_backups),
         ),
         patch(
-            "custom_components.kidschores.helpers.backup_helpers.create_timestamped_backup",
+            "custom_components.choreops.helpers.backup_helpers.create_timestamped_backup",
             side_effect=mock_create_backup,
         ),
     ):
@@ -174,7 +174,7 @@ async def test_select_backup_to_delete_complete_flow(
     ]
 
     with patch(
-        "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+        "custom_components.choreops.helpers.backup_helpers.discover_backups",
         new=AsyncMock(return_value=mock_backups),
     ):
         # Select delete backup action
@@ -203,7 +203,7 @@ async def test_create_backup_complete_flow(
     )
 
     with patch(
-        "custom_components.kidschores.helpers.backup_helpers.create_timestamped_backup",
+        "custom_components.choreops.helpers.backup_helpers.create_timestamped_backup",
         return_value="test_backup_filename",
     ):
         # Select create backup
@@ -255,7 +255,7 @@ async def test_delete_backup_confirm_step_exists(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+            "custom_components.choreops.helpers.backup_helpers.discover_backups",
             new=AsyncMock(return_value=mock_backups),
         ),
         patch("os.path.exists", return_value=True),
@@ -411,7 +411,7 @@ async def test_backup_deletion_cancel_flow(
     ]
 
     with patch(
-        "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+        "custom_components.choreops.helpers.backup_helpers.discover_backups",
         new=AsyncMock(return_value=mock_backups),
     ):
         # Navigate to select backup to delete
@@ -452,7 +452,7 @@ async def test_backup_restore_cancel_flow(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+            "custom_components.choreops.helpers.backup_helpers.discover_backups",
             new=AsyncMock(return_value=mock_backups),
         ),
         patch("os.path.exists", return_value=True),
@@ -483,7 +483,7 @@ async def test_delete_backup_no_files_scenario(
 
     # Mock no backups found
     with patch(
-        "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+        "custom_components.choreops.helpers.backup_helpers.discover_backups",
         new=AsyncMock(return_value=[]),
     ):
         # Navigate to delete backup selection
@@ -535,7 +535,7 @@ async def test_backup_delete_options_by_tag_type(
 
     with (
         patch(
-            "custom_components.kidschores.helpers.backup_helpers.discover_backups",
+            "custom_components.choreops.helpers.backup_helpers.discover_backups",
             new=AsyncMock(return_value=mock_backups),
         ),
         patch("os.path.exists", return_value=True),

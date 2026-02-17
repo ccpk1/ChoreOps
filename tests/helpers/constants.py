@@ -1,7 +1,7 @@
 """Test constants for KidsChores integration tests.
 
 This module re-exports all constants from the integration for use in tests.
-Import from here, not directly from custom_components.kidschores.const.
+Import from here, not directly from custom_components.choreops.const.
 
 ⚠️  IMPORTANT: DO NOT REMOVE "UNUSED" IMPORTS ⚠️
 This is a re-export module. All imports are intentionally used by test files
@@ -36,7 +36,7 @@ GLOBAL STATE ATTRIBUTE (ATTR_GLOBAL_STATE on chore status sensor):
 
 # pylint: disable=unused-import
 
-from custom_components.kidschores.const import (
+from custom_components.choreops.const import (
     APPROVAL_RESET_AT_DUE_DATE_MULTI,
     APPROVAL_RESET_AT_DUE_DATE_ONCE,
     APPROVAL_RESET_AT_MIDNIGHT_MULTI,

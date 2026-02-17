@@ -2101,6 +2101,7 @@
         "cancel": "↩️  Cancel (return to backup menu)",
         "start_fresh": "🆕 Start fresh (creates backup of existing data)",
         "current_active": "📂 Use current active data file",
+        "migrate_from_kidschores": "🔄 Migrate from KidsChores (non-destructive copy)",
         "paste_json": "📋 Paste JSON from data file or diagnostics"
       }
     }

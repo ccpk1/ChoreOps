@@ -13,7 +13,7 @@
 ### 1. Understand the Flow Architecture
 
 - **Read source code FIRST**: Know what step IDs a flow returns, what methods are called, what data structures are used
-- **Check return values**: Options flows return to `async_step_init()` after entity add, not `manage_entity` (example: [options_flow.py](../custom_components/kidschores/options_flow.py) line 397)
+- **Check return values**: Options flows return to `async_step_init()` after entity add, not `manage_entity` (example: [options_flow.py](../custom_components/choreops/options_flow.py) line 397)
 - **Understand data flow**: After options flow changes, integration reloads → old coordinator references become stale
 
 ### 2. Use Established Patterns
@@ -193,7 +193,7 @@ from tests.helpers import (
 ❌ **WRONG** - Direct import from const.py:
 
 ```python
-from custom_components.kidschores.const import CHORE_STATE_PENDING  # Don't do this
+from custom_components.choreops.const import CHORE_STATE_PENDING  # Don't do this
 ```
 
 **Why**: `tests/helpers/constants.py` provides organized imports with quick-reference documentation.

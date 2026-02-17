@@ -10,8 +10,8 @@ from unittest.mock import patch
 from homeassistant.core import HomeAssistant
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.utils import dt_utils
+from custom_components.choreops import const
+from custom_components.choreops.utils import dt_utils
 
 from .helpers.constants import DATA_KID_NAME
 from .helpers.setup import setup_from_yaml
@@ -102,7 +102,7 @@ async def test_idempotency_overdue_already_overdue(
     assert chore[const.DATA_CHORE_STATE] == const.CHORE_STATE_OVERDUE
 
     # Second periodic update → should skip (idempotency)
-    with patch("custom_components.kidschores.const.LOGGER") as mock_logger:
+    with patch("custom_components.choreops.const.LOGGER") as mock_logger:
         await coordinator.chore_manager._on_periodic_update(
             now_utc=dt_utils.dt_now_utc()
         )

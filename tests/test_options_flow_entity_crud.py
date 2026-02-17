@@ -15,7 +15,7 @@ from homeassistant.data_entry_flow import FlowResultType
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.kidschores.helpers.flow_helpers import (
+from custom_components.choreops.helpers.flow_helpers import (
     CHORE_SECTION_ADVANCED_CONFIGURATIONS,
     CHORE_SECTION_ROOT_FORM,
     CHORE_SECTION_SCHEDULE,
@@ -109,7 +109,7 @@ async def init_integration(
     )
     config_entry.add_to_hass(hass)
 
-    with patch("custom_components.kidschores.async_setup_entry", return_value=True):
+    with patch("custom_components.choreops.async_setup_entry", return_value=True):
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 

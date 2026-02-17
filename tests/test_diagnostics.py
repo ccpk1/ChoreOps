@@ -13,8 +13,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.diagnostics import (
+from custom_components.choreops import const
+from custom_components.choreops.diagnostics import (
     async_get_config_entry_diagnostics,
     async_get_device_diagnostics,
 )
@@ -240,8 +240,8 @@ async def test_diagnostics_simplicity():
 
 async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coordinator):
     """Test diagnostics export includes config_entry_settings section."""
-    from custom_components.kidschores import const
-    from custom_components.kidschores.diagnostics import (
+    from custom_components.choreops import const
+    from custom_components.choreops.diagnostics import (
         async_get_config_entry_diagnostics,
     )
 

@@ -8,9 +8,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.helpers.entity_helpers import get_event_signal
-from custom_components.kidschores.managers.base_manager import BaseManager
+from custom_components.choreops import const
+from custom_components.choreops.helpers.entity_helpers import get_event_signal
+from custom_components.choreops.managers.base_manager import BaseManager
 
 
 class MockManager(BaseManager):
@@ -31,7 +31,7 @@ class TestGetEventSignal:
         signal = get_event_signal(entry_id, suffix)
 
         assert signal == f"{const.DOMAIN}_{entry_id}_{suffix}"
-        assert signal == "kidschores_abc123_points_changed"
+        assert signal == f"{const.DOMAIN}_abc123_points_changed"
 
     def test_get_event_signal_multi_instance_isolation(self) -> None:
         """Test that two instances get different signals."""
@@ -64,7 +64,7 @@ class TestGetEventSignal:
 
         for suffix, expected_suffix in signals:
             signal = get_event_signal(entry_id, suffix)
-            assert signal == f"kidschores_test_entry_{expected_suffix}"
+            assert signal == f"{const.DOMAIN}_test_entry_{expected_suffix}"
 
 
 class TestBaseManager:
@@ -100,7 +100,7 @@ class TestBaseManager:
         manager = MockManager(mock_hass, mock_coordinator)
 
         with patch(
-            "custom_components.kidschores.managers.base_manager.async_dispatcher_send"
+            "custom_components.choreops.managers.base_manager.async_dispatcher_send"
         ) as mock_send:
             manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_CHANGED,
@@ -136,7 +136,7 @@ class TestBaseManager:
         callback = AsyncMock()
 
         with patch(
-            "custom_components.kidschores.managers.base_manager.async_dispatcher_connect"
+            "custom_components.choreops.managers.base_manager.async_dispatcher_connect"
         ) as mock_connect:
             mock_unsub = MagicMock()
             mock_connect.return_value = mock_unsub
@@ -208,7 +208,7 @@ class TestMultiInstanceIsolation:
         manager = MockManager(mock_hass, mock_coord)
 
         with patch(
-            "custom_components.kidschores.managers.base_manager.async_dispatcher_send"
+            "custom_components.choreops.managers.base_manager.async_dispatcher_send"
         ) as mock_send:
             manager.emit(const.SIGNAL_SUFFIX_BADGE_EARNED, badge_id="badge1")
 
@@ -249,11 +249,11 @@ class TestStartupCascade:
 
     def test_cascade_managers_have_ready_handlers(self) -> None:
         """Verify managers implement _on_*_ready handlers for cascade."""
-        from custom_components.kidschores.managers.chore_manager import ChoreManager
-        from custom_components.kidschores.managers.gamification_manager import (
+        from custom_components.choreops.managers.chore_manager import ChoreManager
+        from custom_components.choreops.managers.gamification_manager import (
             GamificationManager,
         )
-        from custom_components.kidschores.managers.statistics_manager import (
+        from custom_components.choreops.managers.statistics_manager import (
             StatisticsManager,
         )
 

@@ -177,7 +177,7 @@ rules:
 
   integration-owner:
     status: done
-    # manifest.json: "codeowners": ["@ad-ha", "@ccpk1"]
+    # manifest.json: "codeowners": ["@ccpk1", "@ad-ha"]
 
   log-when-unavailable:
     status: done

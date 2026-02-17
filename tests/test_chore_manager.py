@@ -16,13 +16,13 @@ from unittest.mock import AsyncMock, MagicMock
 from homeassistant.exceptions import ServiceValidationError
 import pytest
 
-from custom_components.kidschores import const, data_builders as db
-from custom_components.kidschores.engines.chore_engine import TransitionEffect
-from custom_components.kidschores.managers.chore_manager import ChoreManager
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops import const, data_builders as db
+from custom_components.choreops.engines.chore_engine import TransitionEffect
+from custom_components.choreops.managers.chore_manager import ChoreManager
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 
 if TYPE_CHECKING:
-    from custom_components.kidschores.type_defs import ResetContext, ResetDecision
+    from custom_components.choreops.type_defs import ResetContext, ResetDecision
 
 # ============================================================================
 # Test Fixtures
@@ -156,7 +156,7 @@ class TestTimeScanCache:
             return dt_now_utc()
 
         monkeypatch.setattr(
-            "custom_components.kidschores.managers.chore_manager.dt_to_utc",
+            "custom_components.choreops.managers.chore_manager.dt_to_utc",
             _fake_dt_to_utc,
         )
 
@@ -181,7 +181,7 @@ class TestTimeScanCache:
             return timedelta(hours=1)
 
         monkeypatch.setattr(
-            "custom_components.kidschores.managers.chore_manager.dt_parse_duration",
+            "custom_components.choreops.managers.chore_manager.dt_parse_duration",
             _fake_parse_duration,
         )
 
@@ -442,7 +442,7 @@ class TestResetExecutor:
 
         with pytest.MonkeyPatch.context() as monkeypatch:
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.get_boundary_category",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
                 lambda **_kwargs: (
                     const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
                 ),
@@ -502,7 +502,7 @@ class TestResetExecutor:
 
         with pytest.MonkeyPatch.context() as monkeypatch:
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.get_boundary_category",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
                 lambda **_kwargs: (
                     const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
                 ),
@@ -560,7 +560,7 @@ class TestResetExecutor:
 
         with pytest.MonkeyPatch.context() as monkeypatch:
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.get_boundary_category",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
                 lambda **_kwargs: (
                     const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
                 ),
@@ -626,13 +626,13 @@ class TestResetExecutor:
 
         with pytest.MonkeyPatch.context() as monkeypatch:
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.get_boundary_category",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
                 lambda **_kwargs: (
                     const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
                 ),
             )
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.is_rotation_mode",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.is_rotation_mode",
                 lambda _chore_info: True,
             )
 
@@ -763,7 +763,7 @@ class TestApprovalResetExecutorLane:
 
         with pytest.MonkeyPatch.context() as monkeypatch:
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.get_boundary_category",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
                 lambda **_kwargs: (
                     const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
                 ),
@@ -833,7 +833,7 @@ class TestApprovalResetExecutorLane:
 
         with pytest.MonkeyPatch.context() as monkeypatch:
             monkeypatch.setattr(
-                "custom_components.kidschores.managers.chore_manager.ChoreEngine.get_boundary_category",
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
                 lambda **_kwargs: (
                     const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE
                 ),

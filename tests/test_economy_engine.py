@@ -18,14 +18,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.engines.economy_engine import (
+from custom_components.choreops import const
+from custom_components.choreops.engines.economy_engine import (
     EconomyEngine,
     InsufficientFundsError,
 )
 
 if TYPE_CHECKING:
-    from custom_components.kidschores.type_defs import LedgerEntry
+    from custom_components.choreops.type_defs import LedgerEntry
 
 # =============================================================================
 # Test: InsufficientFundsError

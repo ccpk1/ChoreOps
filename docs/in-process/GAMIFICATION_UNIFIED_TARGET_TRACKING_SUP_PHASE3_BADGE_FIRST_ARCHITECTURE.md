@@ -104,7 +104,7 @@ Provide a badge-first architecture reference that hardens shared target-evaluati
 ## Required quality gates before achievement/challenge rewiring
 
 - `./utils/quick_lint.sh --fix`
-- `mypy custom_components/kidschores/`
+- `mypy custom_components/choreops/`
 - Badge-focused tests:
   - `tests/test_gamification_engine.py`
   - `tests/test_badge_target_types.py`

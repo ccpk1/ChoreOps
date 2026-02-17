@@ -23,7 +23,7 @@ from typing import Any
 import pytest
 
 # Import const for tests that verify constant existence in source module
-from custom_components.kidschores import const
+from custom_components.choreops import const
 from tests.helpers import (
     TRANS_KEY_NOTIF_ACTION_APPROVE,
     TRANS_KEY_NOTIF_ACTION_DISAPPROVE,
@@ -38,10 +38,10 @@ from tests.helpers import (
 def get_translations_dir() -> Path:
     """Get path to custom translations directory."""
     # Use absolute path based on this file's location
-    # tests/test_translations_custom.py -> custom_components/kidschores/translations_custom
+    # tests/test_translations_custom.py -> custom_components/choreops/translations_custom
     tests_dir = Path(__file__).parent
     workspace_root = tests_dir.parent
-    return workspace_root / "custom_components" / "kidschores" / "translations_custom"
+    return workspace_root / "custom_components" / "choreops" / "translations_custom"
 
 
 def load_notification_translations(language: str) -> dict[str, Any]:

@@ -1,10 +1,10 @@
 ---
-name: KidsChores Strategist
+name: ChoreOps Strategist
 description: Strategic planning agent - creates initiative plans, NO code implementation
 argument-hint: "Plan for [feature/refactor name]"
 handoffs:
   - label: Execute This Plan
-    agent: KidsChores Builder
+    agent: ChoreOps Builder
     prompt: Execute plan phases - plan ready for implementation. Plan file [PLAN_NAME_IN-PROCESS.md]. Confirm phase scope before starting (explicitly list steps), execute all steps in confirmed phase, report completion with validation results (lint tests mypy), update plan document with progress, propose next steps (Phase X or alternatives), wait for user approval before proceeding to next phase. Success criteria - all steps in phase checked off, validation gates passed (lint 9.5+ tests 100% mypy 0 errors), phase completion report provided, plan updated with % complete.
 ---
 
@@ -43,7 +43,7 @@ Before planning, gather context:
 cat `docs/ARCHITECTURE.md` | grep -A 10 "relevant section"
 
 # Check existing patterns
-grep -r "similar_pattern" custom_components/kidschores/
+grep -r "similar_pattern" custom_components/choreops/
 
 # Find test patterns
 grep -r "test_similar_feature" tests/
@@ -119,7 +119,7 @@ Each step must be:
 
 ```
 - [ ] Add parent assignment field to chore creation schema
-  - File: custom_components/kidschores/flow_helpers.py
+  - File: custom_components/choreops/flow_helpers.py
   - Add to build_chore_schema(): vol.Optional("assigned_parent"): SelectSelector
   - Use get_parent_select_options() helper
 ```
@@ -208,7 +208,7 @@ Plans should be:
 | Identify affected files/lines           | Edit source files     |
 | Note schema version requirements        | Create migrations     |
 
-**When user asks to implement**: Hand off to **KidsChores Plan Agent**
+**When user asks to implement**: Hand off to **ChoreOps Plan Agent**
 
 **Your success metric**: Implementer can execute plan without additional research
 

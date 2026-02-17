@@ -102,7 +102,7 @@ class TestHaUserIdClearing:
         # Use a real HA user ID from the mock_hass_users fixture
         test_ha_user = mock_hass_users["kid2"]  # Different user to avoid original
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             result = await hass.config_entries.options.async_configure(
@@ -140,7 +140,7 @@ class TestHaUserIdClearing:
 
         # Step 6: Submit with SENTINEL_NO_SELECTION (None option selected) - ALL required fields
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             result = await hass.config_entries.options.async_configure(
@@ -198,7 +198,7 @@ class TestHaUserIdClearing:
         # Use a real HA user ID from the mock_hass_users fixture
         test_ha_user = mock_hass_users["parent2"]  # Different user to avoid original
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             result = await hass.config_entries.options.async_configure(
@@ -237,7 +237,7 @@ class TestHaUserIdClearing:
 
         # Step 6: Submit with SENTINEL_NO_SELECTION (None option selected) - ALL required fields
         with patch(
-            "custom_components.kidschores.helpers.translation_helpers.get_available_dashboard_languages",
+            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
             result = await hass.config_entries.options.async_configure(

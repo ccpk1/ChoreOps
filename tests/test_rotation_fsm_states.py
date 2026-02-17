@@ -12,7 +12,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 import pytest
 
-from custom_components.kidschores.utils.dt_utils import dt_now_utc
+from custom_components.choreops.utils.dt_utils import dt_now_utc
 
 # Import test constants from helpers (not from const.py - Rule 0)
 from tests.helpers.constants import (

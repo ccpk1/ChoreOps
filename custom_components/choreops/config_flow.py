@@ -12,7 +12,7 @@ from homeassistant.core import callback
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
-from . import const, data_builders as db
+from . import const, data_builders as db, migration_pre_v50 as mp50
 from .data_builders import EntityValidationError
 from .helpers import backup_helpers as bh, flow_helpers as fh
 from .options_flow import KidsChoresOptionsFlowHandler
@@ -92,6 +92,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         """Handle data recovery options when existing storage is found."""
         from pathlib import Path
 
+        from .store import KidsChoresStore
+
         # Note: We don't load translations because SelectSelector cannot
         # dynamically translate runtime-generated options (backup file lists).
         # Using emoji prefixes (📄) as language-neutral solution instead.
@@ -108,6 +110,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self._handle_start_fresh()
             elif selection == "current_active":
                 return await self._handle_use_current()
+            elif selection == "migrate_from_kidschores":
+                return await self._handle_migrate_from_kidschores()
             elif selection == "paste_json":
                 return await self._handle_paste_json()
             else:
@@ -133,12 +137,13 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self._handle_restore_backup(selection)
 
         # Build selection menu
-        storage_path = Path(
-            self.hass.config.path(const.STORAGE_PATH_SEGMENT, const.STORAGE_KEY)
+        store = KidsChoresStore(self.hass)
+        storage_path = Path(store.get_storage_path())
+        recovery_capabilities = await mp50.async_get_data_recovery_capabilities(
+            self.hass
         )
-        storage_file_exists = await self.hass.async_add_executor_job(
-            storage_path.exists
-        )
+        has_current_data_file = recovery_capabilities["has_current_active_file"]
+        has_legacy_candidates = recovery_capabilities["has_legacy_candidates"]
 
         # Discover backups (pass None for store - not needed for discovery)
         backups = await bh.discover_backups(self.hass, None)
@@ -148,8 +153,11 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         options = []
 
         # Only show "use current" if file actually exists
-        if storage_file_exists:
+        if has_current_data_file:
             options.append("current_active")
+
+        if has_legacy_candidates:
+            options.append("migrate_from_kidschores")
 
         options.append("start_fresh")
 
@@ -234,75 +242,53 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
     async def _handle_use_current(self):
         """Handle 'Use Current Active' - validate and continue setup."""
-        import json
-        from pathlib import Path
-
-        try:
-            # Get storage path without creating storage manager yet
-            storage_path = Path(self.hass.config.path(".storage", const.STORAGE_KEY))
-
-            storage_file_exists = await self.hass.async_add_executor_job(
-                storage_path.exists
-            )
-            if not storage_file_exists:
-                return self.async_abort(
-                    reason=const.TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND
-                )
-
-            # Validate JSON
-            data_str = await self.hass.async_add_executor_job(
-                storage_path.read_text, "utf-8"
-            )
-
-            try:
-                current_data = json.loads(data_str)  # Validate parseable JSON
-            except json.JSONDecodeError:
-                const.LOGGER.error("Current active file has invalid JSON")
+        result = await mp50.async_prepare_current_active_storage(self.hass)
+        if not result.get("prepared"):
+            error_key = result.get("error")
+            if error_key == "file_not_found":
+                return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND)
+            if error_key == "corrupt_file":
                 return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_CORRUPT_FILE)
-
-            # Check if file has Home Assistant storage format wrapper
-            needs_wrapping = not ("version" in current_data and "data" in current_data)
-
-            # Validate structure (validate_backup_json handles both formats)
-            if not bh.validate_backup_json(data_str):
-                const.LOGGER.error("Current active file missing required keys")
+            if error_key == "invalid_structure":
                 return self.async_abort(
                     reason=const.TRANS_KEY_CFOP_ERROR_INVALID_STRUCTURE
                 )
+            return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_UNKNOWN)
 
-            # Wrap raw data if needed
-            if needs_wrapping:
-                # Raw data format (like v30, v31, v40beta1 samples)
-                # Need to wrap it in proper storage format
-                const.LOGGER.info(
-                    "Using current active storage file (wrapping raw data)"
-                )
+        # File is valid - create config entry immediately with existing data
+        # No need to collect kids/chores/points since they're already defined
+        return self.async_create_entry(
+            title="KidsChores",
+            data={},  # Empty - integration will load from storage file
+        )
 
-                # Build wrapped format
-                wrapped_data = {
-                    "version": 1,
-                    "minor_version": 1,
-                    "key": const.STORAGE_KEY,
-                    "data": current_data,
-                }
+    async def _handle_migrate_from_kidschores(self):
+        """Handle one-time migration from legacy KidsChores artifacts."""
+        try:
+            result = await mp50.async_migrate_from_legacy_kidschores_storage(self.hass)
+            if not result.get("migrated"):
+                error_key = result.get("error")
+                if error_key == "no_legacy_source":
+                    return self.async_abort(
+                        reason=const.TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND
+                    )
+                if error_key in {"invalid_json", "invalid_structure"}:
+                    return self.async_abort(
+                        reason=const.TRANS_KEY_CFOP_ERROR_INVALID_STRUCTURE
+                    )
+                return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_UNKNOWN)
 
-                # Write wrapped data directly to file
-                await self.hass.async_add_executor_job(
-                    storage_path.write_text, json.dumps(wrapped_data, indent=2), "utf-8"
-                )
-            else:
-                # Already in storage format - file is ready to use
-                const.LOGGER.info("Using current active storage file (already wrapped)")
+            options = result.get("settings")
+            if not isinstance(options, dict):
+                options = {}
 
-            # File is valid - create config entry immediately with existing data
-            # No need to collect kids/chores/points since they're already defined
             return self.async_create_entry(
                 title="KidsChores",
-                data={},  # Empty - integration will load from storage file
+                data={},
+                options=options,
             )
-
         except Exception as err:
-            const.LOGGER.error("Use current failed: %s", err)
+            const.LOGGER.error("Legacy migration failed: %s", err)
             return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_UNKNOWN)
 
     async def _handle_restore_backup(self, backup_filename: str):
@@ -315,7 +301,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         try:
             # Get storage path directly without creating storage manager yet
-            storage_path = Path(self.hass.config.path(".storage", const.STORAGE_KEY))
+            store = KidsChoresStore(self.hass)
+            storage_path = Path(store.get_storage_path())
             backup_path = storage_path.parent / backup_filename
 
             backup_file_exists = await self.hass.async_add_executor_job(
@@ -353,7 +340,6 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             )
             if storage_file_exists:
                 # Create storage manager only for safety backup creation
-                store = KidsChoresStore(self.hass)
                 # Note: config_entry not available yet in config flow, settings will be defaults
                 safety_backup = await bh.create_timestamped_backup(
                     self.hass, store, const.BACKUP_TAG_RECOVERY, None
@@ -428,6 +414,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         import json
         from pathlib import Path
 
+        from .store import KidsChoresStore
+
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -477,10 +465,10 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                         }
 
                         # Write to storage file
-                        storage_path = Path(
-                            self.hass.config.path(
-                                const.STORAGE_PATH_SEGMENT, const.STORAGE_KEY
-                            )
+                        storage_path = Path(KidsChoresStore(self.hass).get_storage_path())
+
+                        await self.hass.async_add_executor_job(
+                            lambda: storage_path.parent.mkdir(parents=True, exist_ok=True)
                         )
 
                         # Write wrapped data to storage (directory created by HA/test fixtures)

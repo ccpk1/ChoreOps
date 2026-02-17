@@ -16,8 +16,8 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.kidschores import const
-from custom_components.kidschores.engines.statistics_engine import StatisticsEngine
+from custom_components.choreops import const
+from custom_components.choreops.engines.statistics_engine import StatisticsEngine
 
 
 @pytest.fixture

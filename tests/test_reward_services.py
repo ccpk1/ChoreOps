@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from custom_components.kidschores.const import (
+from custom_components.choreops.const import (
     DATA_KID_POINTS,
     DATA_KID_REWARD_DATA,
     DATA_KID_REWARD_DATA_PENDING_COUNT,

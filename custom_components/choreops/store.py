@@ -37,7 +37,8 @@ class KidsChoresStore:
         """
         self.hass = hass
         self._storage_key = storage_key
-        self._store: Store = Store(hass, const.STORAGE_VERSION, storage_key)
+        scoped_storage_key = f"{const.STORAGE_DIRECTORY}/{storage_key}"
+        self._store: Store = Store(hass, const.STORAGE_VERSION, scoped_storage_key)
         self._data: dict[str, Any] = {}  # In-memory data cache for quick access.
 
     @staticmethod
@@ -86,6 +87,29 @@ class KidsChoresStore:
             )
 
         if existing_data is None:
+            # Try legacy storage keys before creating default structure.
+            from . import migration_pre_v50 as mp50
+
+            legacy_keys = [
+                mp50.LEGACY_STORAGE_KEY,
+            ]
+            for legacy_key in legacy_keys:
+                legacy_store: Store = Store(
+                    self.hass,
+                    const.STORAGE_VERSION,
+                    legacy_key,
+                )
+                legacy_data = await legacy_store.async_load()
+                if legacy_data is not None:
+                    self._data = legacy_data
+                    await self._store.async_save(self._data)
+                    const.LOGGER.info(
+                        "INFO: Migrated legacy storage key %s into %s",
+                        legacy_key,
+                        f"{const.STORAGE_DIRECTORY}/{self._storage_key}",
+                    )
+                    return
+
             # No existing data, create a new default structure.
             const.LOGGER.info("INFO: No existing storage found. Initializing new data")
             self._data = KidsChoresStore.get_default_structure()

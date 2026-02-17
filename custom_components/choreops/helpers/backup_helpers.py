@@ -106,11 +106,11 @@ async def create_timestamped_backup(
         config_entry: Optional config entry to capture settings from
 
     Returns:
-        Filename of created backup (e.g., 'kidschores_data_2025-12-18_14-30-22_removal')
+        Filename of created backup (e.g., 'choreops_data_2025-12-18_14-30-22_removal')
         or None if backup creation failed or backups are disabled.
 
-    File naming format: kidschores_data_YYYY-MM-DD_HH-MM-SS_<tag>
-    Example: kidschores_data_2025-12-18_14-30-22_removal
+    File naming format: choreops_data_YYYY-MM-DD_HH-MM-SS_<tag>
+    Example: choreops_data_2025-12-18_14-30-22_removal
 
     Note: If config_entry is provided and max_backups is 0, no backup is created.
     """
@@ -131,7 +131,7 @@ async def create_timestamped_backup(
     try:
         # Get current UTC timestamp in filesystem-safe ISO 8601 format
         timestamp = dt_util.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"kidschores_data_{timestamp}_{tag}"
+        filename = f"{const.STORAGE_KEY}_{timestamp}_{tag}"
 
         # Get storage file path
         storage_path = store.get_storage_path()
@@ -141,14 +141,14 @@ async def create_timestamped_backup(
             const.LOGGER.warning("Storage file does not exist, cannot create backup")
             return None
 
-        # Ensure .storage directory exists (non-blocking)
-        storage_dir = hass.config.path(".storage")
+        # Ensure scoped storage directory exists (non-blocking)
+        storage_dir = hass.config.path(".storage", const.STORAGE_DIRECTORY)
         await hass.async_add_executor_job(
             lambda: os.makedirs(storage_dir, exist_ok=True)
         )
 
         # Copy file to backup location (non-blocking)
-        backup_path = hass.config.path(".storage", filename)
+        backup_path = hass.config.path(".storage", const.STORAGE_DIRECTORY, filename)
         await hass.async_add_executor_job(shutil.copy2, storage_path, backup_path)
 
         # Augment backup with config_entry settings if provided
@@ -273,7 +273,9 @@ async def cleanup_old_backups(
 
             for backup in backups_to_delete:
                 try:
-                    backup_path = hass.config.path(".storage", backup["filename"])
+                    backup_path = hass.config.path(
+                        ".storage", const.STORAGE_DIRECTORY, backup["filename"]
+                    )
                     await hass.async_add_executor_job(os.remove, backup_path)
                     const.LOGGER.info(
                         "Cleaned up old %s backup: %s", tag, backup["filename"]
@@ -296,17 +298,17 @@ async def discover_backups(hass: HomeAssistant, store) -> list[dict]:
 
     Returns:
         List of backup metadata dictionaries with keys:
-        - filename: str (e.g., 'kidschores_data_2025-12-18_14-30-22_removal')
+        - filename: str (e.g., 'choreops_data_2025-12-18_14-30-22_removal')
         - tag: str (e.g., 'recovery', 'removal', 'reset', 'pre-migration', 'manual')
         - timestamp: datetime (parsed from filename)
         - age_hours: float (hours since backup creation)
         - size_bytes: int (file size in bytes)
 
-    File naming format: kidschores_data_YYYY-MM-DD_HH-MM-SS_<tag>
+    File naming format: choreops_data_YYYY-MM-DD_HH-MM-SS_<tag>
     Invalid filenames are skipped with debug log.
     """
     backups_list: list[dict[str, Any]] = []
-    storage_dir = hass.config.path(".storage")
+    storage_dir = hass.config.path(".storage", const.STORAGE_DIRECTORY)
 
     try:
         # Check if storage directory exists (non-blocking)
@@ -316,19 +318,20 @@ async def discover_backups(hass: HomeAssistant, store) -> list[dict]:
 
         # Get directory listing (non-blocking)
         filenames = await hass.async_add_executor_job(os.listdir, storage_dir)
+        storage_prefix = f"{const.STORAGE_KEY}_"
         for filename in filenames:
-            # Match format: kidschores_data_YYYY-MM-DD_HH-MM-SS_<tag>
-            if not filename.startswith("kidschores_data_"):
+            # Match format: choreops_data_YYYY-MM-DD_HH-MM-SS_<tag>
+            if not filename.startswith(storage_prefix):
                 continue
 
             # Skip active file (no timestamp/tag suffix)
-            if filename == "kidschores_data":
+            if filename == const.STORAGE_KEY:
                 continue
 
-            # Parse filename: kidschores_data_YYYY-MM-DD_HH-MM-SS_<tag>
+            # Parse filename: choreops_data_YYYY-MM-DD_HH-MM-SS_<tag>
             try:
-                # Remove 'kidschores_data_' prefix
-                suffix = filename[16:]  # len("kidschores_data_") = 16
+                # Remove '{storage_key}_' prefix
+                suffix = filename[len(storage_prefix) :]
 
                 # Split into timestamp and tag parts
                 # Format: YYYY-MM-DD_HH-MM-SS_<tag>

@@ -40,11 +40,11 @@
 
 ```bash
 # Check for Home Assistant imports in pure modules
-grep -r "from homeassistant" custom_components/kidschores/utils/
-grep -r "from homeassistant" custom_components/kidschores/engines/
-grep -r "import homeassistant" custom_components/kidschores/utils/
-grep -r "import homeassistant" custom_components/kidschores/engines/
-grep -r "from homeassistant" custom_components/kidschores/data_builders.py
+grep -r "from homeassistant" custom_components/choreops/utils/
+grep -r "from homeassistant" custom_components/choreops/engines/
+grep -r "import homeassistant" custom_components/choreops/utils/
+grep -r "import homeassistant" custom_components/choreops/engines/
+grep -r "from homeassistant" custom_components/choreops/data_builders.py
 ```
 
 **Pass Criteria**: Zero results from all grep commands.
@@ -63,9 +63,9 @@ grep -r "from homeassistant" custom_components/kidschores/data_builders.py
 
 ```bash
 # Search for ambiguous "Entity" usage in code comments
-grep -rn "Chore Entity\|Kid Entity\|Badge Entity\|Reward Entity" custom_components/kidschores/data_builders.py
-grep -rn "Chore Entity\|Kid Entity\|Badge Entity\|Reward Entity" custom_components/kidschores/managers/
-grep -rn "entity data\|Entity data" custom_components/kidschores/ | grep -v "# Entity data" | grep -v "Entity ID"
+grep -rn "Chore Entity\|Kid Entity\|Badge Entity\|Reward Entity" custom_components/choreops/data_builders.py
+grep -rn "Chore Entity\|Kid Entity\|Badge Entity\|Reward Entity" custom_components/choreops/managers/
+grep -rn "entity data\|Entity data" custom_components/choreops/ | grep -v "# Entity data" | grep -v "Entity ID"
 ```
 
 **Pass Criteria**:
@@ -88,12 +88,12 @@ grep -rn "entity data\|Entity data" custom_components/kidschores/ | grep -v "# E
 
 ```bash
 # Check for direct storage writes in UI/Service layers
-grep -n "coordinator._data\[\|self._data\[" custom_components/kidschores/options_flow.py
-grep -n "coordinator._persist()\|self._persist()" custom_components/kidschores/options_flow.py
-grep -n "coordinator._data\[\|self._data\[" custom_components/kidschores/services.py
-grep -n "coordinator._persist()\|self._persist()" custom_components/kidschores/services.py
-grep -n "\[const.DATA_" custom_components/kidschores/options_flow.py
-grep -n "\[const.DATA_" custom_components/kidschores/services.py
+grep -n "coordinator._data\[\|self._data\[" custom_components/choreops/options_flow.py
+grep -n "coordinator._persist()\|self._persist()" custom_components/choreops/options_flow.py
+grep -n "coordinator._data\[\|self._data\[" custom_components/choreops/services.py
+grep -n "coordinator._persist()\|self._persist()" custom_components/choreops/services.py
+grep -n "\[const.DATA_" custom_components/choreops/options_flow.py
+grep -n "\[const.DATA_" custom_components/choreops/services.py
 ```
 
 **Pass Criteria**: Zero matches in `options_flow.py` and `services.py`.
@@ -144,11 +144,11 @@ grep -n "\[const.DATA_" custom_components/kidschores/services.py
 
 ```bash
 # Search for Manager-to-Manager direct calls in managers/
-grep -rn "self\.coordinator\.\w*_manager\." custom_components/kidschores/managers/ | grep -v "# OK:" | grep -v "^\s*#"
-grep -rn "await.*_manager\." custom_components/kidschores/managers/ | grep -v "# OK:" | grep -v "^\s*#"
+grep -rn "self\.coordinator\.\w*_manager\." custom_components/choreops/managers/ | grep -v "# OK:" | grep -v "^\s*#"
+grep -rn "await.*_manager\." custom_components/choreops/managers/ | grep -v "# OK:" | grep -v "^\s*#"
 
 # Verify signals are emitted after persistence
-grep -B5 "self\.emit\|async_dispatcher_send" custom_components/kidschores/managers/*.py | grep "_persist()"
+grep -B5 "self\.emit\|async_dispatcher_send" custom_components/choreops/managers/*.py | grep "_persist()"
 ```
 
 **Pass Criteria**:
@@ -222,7 +222,7 @@ grep -n "const\.LOGGER\.\(debug\|info\|warning\|error\)" file.py
 
 ```bash
 # Validate type compliance for entire integration
-mypy custom_components/kidschores/
+mypy custom_components/choreops/
 ```
 
 **Pass Criteria**: Zero mypy errors.
@@ -290,7 +290,7 @@ grep -n "title=\"[A-Z]" [filename].py
 grep -n "TRANS_KEY_\|CFOP_ERROR_" file.py
 
 # Verify in en.json (master file)
-grep -c "TRANS_KEY_\|CFOP_ERROR_" custom_components/kidschores/translations/en.json
+grep -c "TRANS_KEY_\|CFOP_ERROR_" custom_components/choreops/translations/en.json
 ```
 
 **Documentation**:
@@ -306,7 +306,7 @@ grep -c "TRANS_KEY_\|CFOP_ERROR_" custom_components/kidschores/translations/en.j
 
 ```json
 {
-  "file": "custom_components/kidschores/flow_helpers.py",
+  "file": "custom_components/choreops/flow_helpers.py",
   "audit_date": "2025-12-19",
   "loc_total": 3316,
   "sections": {
@@ -716,7 +716,7 @@ async def async_set_value(self, value: datetime) -> None:
 python -m pytest tests/ -v --tb=line
 
 # Type checking (if enabled)
-mypy custom_components/kidschores/
+mypy custom_components/choreops/
 ```
 
 - [ ] All linting passes (9.5+/10)
