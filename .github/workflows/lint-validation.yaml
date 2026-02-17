@@ -37,6 +37,15 @@ jobs:
           pip install ruff mypy pytest pytest-asyncio pytest-homeassistant-custom-component
           pip install types-python-dateutil types-PyYAML
 
+      - name: Brand regression guard
+        run: |
+          set -euo pipefail
+          if grep -RInE "ad-ha/kidschores-ha|kidschores-ha-dashboard" \
+            .github README.md pyproject.toml hacs.json custom_components/choreops/manifest.json; then
+            echo "❌ Deprecated KidsChores branding string found in active project files"
+            exit 1
+          fi
+
       - name: Run Quick Lint
         run: |
           chmod +x ./utils/quick_lint.sh

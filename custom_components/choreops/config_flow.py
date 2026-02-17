@@ -246,7 +246,9 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         if not result.get("prepared"):
             error_key = result.get("error")
             if error_key == "file_not_found":
-                return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND)
+                return self.async_abort(
+                    reason=const.TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND
+                )
             if error_key == "corrupt_file":
                 return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_CORRUPT_FILE)
             if error_key == "invalid_structure":
@@ -465,10 +467,14 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                         }
 
                         # Write to storage file
-                        storage_path = Path(KidsChoresStore(self.hass).get_storage_path())
+                        storage_path = Path(
+                            KidsChoresStore(self.hass).get_storage_path()
+                        )
 
                         await self.hass.async_add_executor_job(
-                            lambda: storage_path.parent.mkdir(parents=True, exist_ok=True)
+                            lambda: storage_path.parent.mkdir(
+                                parents=True, exist_ok=True
+                            )
                         )
 
                         # Write wrapped data to storage (directory created by HA/test fixtures)

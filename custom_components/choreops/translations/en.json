@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Welcome to KidsChores",
-        "description": "This wizard will guide you through setting up KidsChores.\n\n[📖 Quick Start Guide]({documentation_url})"
+        "title": "Welcome to ChoreOps",
+        "description": "This wizard will guide you through setting up ChoreOps.\n\n[📖 Quick Start Guide]({documentation_url})"
       },
       "data_recovery": {
         "title": "Data Recovery Options",
-        "description": "Existing KidsChores data found in:\n{storage_path}\n\nFound {backup_count} backup files.\n\nWhat would you like to do?\n\n[📖 Learn more about Backup & Restore]({documentation_url})",
+        "description": "Existing ChoreOps data found in:\n{storage_path}\n\nFound {backup_count} backup files.\n\nWhat would you like to do?\n\n[📖 Learn more about Backup & Restore]({documentation_url})",
         "data": {
           "backup_selection": "Select Option"
         }
       },
       "paste_json_input": {
         "title": "Import JSON Data",
-        "description": "Paste the complete JSON content from either:\n\n• A KidsChores data file (kidschores_data)\n• A diagnostics download\n\nThe system will automatically detect and unwrap the format as needed. Both raw storage data and diagnostics export formats are supported.",
+        "description": "Paste the complete JSON content from either:\n\n• A ChoreOps data file (choreops_data)\n• A diagnostics download\n\nThe system will automatically detect and unwrap the format as needed. Both raw storage data and diagnostics export formats are supported.",
         "data": {
           "json_data": "JSON Data"
         },
         "data_description": {
-          "json_data": "Paste the complete JSON content here. Accepts data from kidschores_data file or diagnostics export (automatically unwraps extra structure)."
+          "json_data": "Paste the complete JSON content here. Accepts data from choreops_data file or diagnostics export (automatically unwraps extra structure)."
         }
       },
       "points_label": {
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Invalid points adjust values. Must be a list."
     },
     "abort": {
-      "single_instance_allowed": "Only a single KidsChores instance can be configured.",
-      "already_configured": "KidsChores data has been restored successfully. You can now reload the integration.",
+      "single_instance_allowed": "Only a single ChoreOps instance can be configured.",
+      "already_configured": "ChoreOps data has been restored successfully. You can now reload the integration.",
       "file_not_found": "The selected backup file could not be found.",
       "corrupt_file": "The selected file contains invalid JSON and cannot be read.",
-      "invalid_structure": "The selected file is missing required KidsChores data structure.",
+      "invalid_structure": "The selected file is missing required ChoreOps data structure.",
       "reconfigure_failed": "Reconfiguration failed. Please try again.",
       "reconfigure_successful": "System settings updated successfully."
     }
@@ -481,7 +481,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "KidsChores Options",
+        "title": "ChoreOps Options",
         "description": "Manage kids, chores, badges, rewards, penalties, bonuses, or finish.\n\n[📖 View Documentation]({documentation_url})",
         "data": {
           "menu_selection": "Select an Option"
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Dashboard Actions",
-        "description": "Create, update, or delete KidsChores Lovelace dashboards.\n\nStatus: {status}\n\n**Required Custom Cards** (install via HACS Frontend):\n- Mushroom Cards (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nWithout these cards, dashboards will show errors. Install them first from HACS before generating dashboards.",
+        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\nStatus: {status}\n\n**Required Custom Cards** (install via HACS Frontend):\n- Mushroom Cards (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nWithout these cards, dashboards will show errors. Install them first from HACS before generating dashboards.",
         "data": {
           "dashboard_action": "Action",
           "dashboard_check_cards": "Check Card Installation"
@@ -1525,7 +1525,7 @@
       },
       "dashboard_update_select": {
         "title": "Update Dashboard",
-        "description": "Select an existing KidsChores dashboard to update and reconfigure.",
+        "description": "Select an existing ChoreOps dashboard to update and reconfigure.",
         "data": {
           "dashboard_update_selection": "Dashboard to Update"
         },
@@ -1621,7 +1621,7 @@
       },
       "dashboard_delete": {
         "title": "Delete Dashboard",
-        "description": "Select KidsChores dashboards to delete.\n\n⚠️ This action cannot be undone.",
+        "description": "Select ChoreOps dashboards to delete.\n\n⚠️ This action cannot be undone.",
         "data": {
           "dashboard_update_selection": "Dashboard"
         },
@@ -1636,7 +1636,7 @@
       },
       "manage_general_options": {
         "title": "General Options",
-        "description": "Manage general settings for the KidsChores integration.\n\n[📖 Learn more about Backup & Restore]({documentation_url})",
+        "description": "Manage general settings for the ChoreOps integration.\n\n[📖 Learn more about Backup & Restore]({documentation_url})",
         "data": {
           "points_adjust_values": "Manual Points Adjustment Button Values",
           "update_interval": "Update Interval",
@@ -1653,7 +1653,7 @@
         },
         "data_description": {
           "points_adjust_values": "List of values for the manual points adjustment buttons. Each value separate by '|'.",
-          "update_interval": "Interval in minutes for updating the internal state of KidsChores.",
+          "update_interval": "Interval in minutes for updating the internal state of ChoreOps.",
           "calendar_show_period": "Number of days in the future to show scheduled chores and challenges in the calendar.",
           "retention_periods": "Data retention periods in format Daily|Weekly|Monthly|Yearly (e.g., '7|4|12|3'). Each value must be a positive integer.",
           "retention_daily": "Number of days of daily historical data to retain before cleanup. Minimum 1, maximum 90.",
@@ -1668,7 +1668,7 @@
       },
       "backup_actions": {
         "title": "Backup Management",
-        "description": "Manage your KidsChores data backups. Current status: {backup_count} backups using {storage_size} MB.",
+        "description": "Manage your ChoreOps data backups. Current status: {backup_count} backups using {storage_size} MB.",
         "data": {
           "backup_action_selection": "Select an Action"
         },
@@ -1678,7 +1678,7 @@
       },
       "backup_actions_menu": {
         "title": "Backup Actions",
-        "description": "Manage your KidsChores data backups.",
+        "description": "Manage your ChoreOps data backups.",
         "data": {
           "backup_action_selection": "Select an Action"
         },
@@ -1688,7 +1688,7 @@
       },
       "create_manual_backup": {
         "title": "Create Manual Backup",
-        "description": "Create a new backup of your KidsChores data.\n\nCurrent backups: {backup_count}\nRetention setting: {retention} backups",
+        "description": "Create a new backup of your ChoreOps data.\n\nCurrent backups: {backup_count}\nRetention setting: {retention} backups",
         "data": {
           "confirm": "Confirm backup creation"
         }
@@ -1709,24 +1709,24 @@
       },
       "restore_backup": {
         "title": "Data Recovery Options",
-        "description": "Existing KidsChores data found in:\n{storage_path}\n\nFound {backup_count} backup files.\n\nWhat would you like to do?",
+        "description": "Existing ChoreOps data found in:\n{storage_path}\n\nFound {backup_count} backup files.\n\nWhat would you like to do?",
         "data": {
           "backup_selection": "Select Option"
         }
       },
       "paste_json_restore": {
         "title": "Import JSON Data",
-        "description": "Paste the complete JSON content from either:\n\n• A KidsChores data file (kidschores_data)\n• A diagnostics download\n\nThe system will automatically detect and unwrap the format as needed. Both raw storage data and diagnostics export formats are supported.",
+        "description": "Paste the complete JSON content from either:\n\n• A ChoreOps data file (choreops_data)\n• A diagnostics download\n\nThe system will automatically detect and unwrap the format as needed. Both raw storage data and diagnostics export formats are supported.",
         "data": {
           "json_data": "JSON Data"
         },
         "data_description": {
-          "json_data": "Paste the complete JSON content here. Accepts data from kidschores_data file or diagnostics export (automatically unwraps extra structure)."
+          "json_data": "Paste the complete JSON content here. Accepts data from choreops_data file or diagnostics export (automatically unwraps extra structure)."
         }
       },
       "create_backup_confirm": {
         "title": "Create Manual Backup",
-        "description": "Create a manual backup of your current KidsChores data?",
+        "description": "Create a manual backup of your current ChoreOps data?",
         "data": {
           "confirm": "Confirm"
         }
@@ -1814,7 +1814,7 @@
       "dashboard_template_error": "Failed to fetch dashboard template. Check network connection or try again later.",
       "dashboard_render_error": "Failed to render dashboard template. This may indicate a template bug.",
       "dashboard_save_error": "Failed to save dashboard to Home Assistant. Check system logs for details.",
-      "dashboard_release_incompatible": "Selected dashboard release is not compatible with your installed KidsChores version.",
+      "dashboard_release_incompatible": "Selected dashboard release is not compatible with your installed ChoreOps version.",
       "dashboard_no_name": "Please enter a name for the dashboard.",
       "dashboard_no_kids": "Please select at least one kid or enable 'Include Admin Tab'.",
       "dashboard_no_dashboards": "Please select at least one dashboard to delete.",
@@ -1846,7 +1846,7 @@
       "no_challenge": "No Challenges are setup for edit. Add one entry first.",
       "setup_complete": "Setup Complete",
       "backup_restored": "Backup restored successfully. The integration has been reloaded with the restored data.",
-      "no_dashboards_to_delete": "No KidsChores dashboards found. Create one first using Manage Dashboard."
+      "no_dashboards_to_delete": "No ChoreOps dashboards found. Create one first using Manage Dashboard."
     }
   },
   "selector": {

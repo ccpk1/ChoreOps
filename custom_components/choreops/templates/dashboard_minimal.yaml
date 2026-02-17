@@ -1,5 +1,5 @@
 <#-- ============================================= --#>
-<#-- KidsChores Dashboard Template - MINIMAL  --#>
+<#-- ChoreOps Dashboard Template - MINIMAL  --#>
 <#-- Template Schema Version: 1                  --#>
 <#-- Integration: v0.5.0-beta3 (Schema 43)      --#>
 <#-- ============================================= --#>
@@ -37,11 +37,11 @@
                 template: >-
                   {#-- ============================================= --#}
 
-                  {#-- ============ Version KCD_v0.5.0b3 ============= --#}
+                  {#-- ============ Version COD_v0.5.0b3 ============= --#}
 
                   {#-- ============================================= --#}
 
-                  {#-- Requires KidsChores Integration 0.5.0  --#}
+                  {#-- Requires ChoreOps Integration 0.5.0  --#}
 
                   {#-- Language translation now managed by the integration --#}
 
@@ -58,7 +58,7 @@
 
                   {#-- 2. Initialize Variables --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -74,7 +74,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -82,7 +82,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -193,7 +193,7 @@
 
                   {#-- 2. Initialize Variables --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -220,7 +220,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -228,7 +228,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}

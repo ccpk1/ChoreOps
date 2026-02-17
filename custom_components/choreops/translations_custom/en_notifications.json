@@ -1,6 +1,6 @@
 {
   "_comment_kid_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "KID NOTIFICATIONS: Gamified, second-person, encouraging tone with emojis. NO 'KidsChores:' prefix.",
+  "_comment_kid_desc": "KID NOTIFICATIONS: Gamified, second-person, encouraging tone with emojis. NO 'ChoreOps:' prefix.",
   "_comment_kid_footer": "══════════════════════════════════════════════════════════════════",
 
   "chore_approved_kid": {
@@ -61,7 +61,7 @@
   },
 
   "_comment_parent_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "PARENT NOTIFICATIONS: Informative, third-person, actionable. Format: '{kid_name}: Action'. NO 'KidsChores:' prefix.",
+  "_comment_parent_desc": "PARENT NOTIFICATIONS: Informative, third-person, actionable. Format: '{kid_name}: Action'. NO 'ChoreOps:' prefix.",
   "_comment_parent_footer": "══════════════════════════════════════════════════════════════════",
 
   "chore_claimed_parent": {
@@ -110,23 +110,23 @@
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
 
   "data_reset": {
-    "title": "🔄 KidsChores: Data Reset",
+    "title": "🔄 ChoreOps: Data Reset",
     "message": "System data has been reset"
   },
   "data_reset_global": {
-    "title": "🔄 KidsChores: Full Reset",
+    "title": "🔄 ChoreOps: Full Reset",
     "message": "All system data has been reset to defaults"
   },
   "data_reset_kid": {
-    "title": "🔄 KidsChores: Kid Reset",
+    "title": "🔄 ChoreOps: Kid Reset",
     "message": "Data reset for {kid_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 KidsChores: {item_type} Reset",
+    "title": "🔄 ChoreOps: {item_type} Reset",
     "message": "All {item_type} data has been reset"
   },
   "data_reset_item": {
-    "title": "🔄 KidsChores: Item Reset",
+    "title": "🔄 ChoreOps: Item Reset",
     "message": "{item_type} '{item_name}' has been reset"
   },
 

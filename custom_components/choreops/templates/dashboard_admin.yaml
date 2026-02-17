@@ -1,5 +1,5 @@
 <#-- ============================================= --#>
-<#-- KidsChores Dashboard Template - ADMIN      --#>
+<#-- ChoreOps Dashboard Template - ADMIN      --#>
 <#-- Template Schema Version: 1                  --#>
 <#-- Integration: v0.5.0-beta3 (Schema 43)      --#>
 <#-- ============================================= --#>
@@ -12,7 +12,7 @@
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
 
-- title: KidsChores Admin
+- title: ChoreOps Admin
   path: admin
   sections:
     - type: grid
@@ -29,7 +29,7 @@
 
               {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-              {%- set admin_selector_eid = integration_entities('kidschores')
+              {%- set admin_selector_eid = integration_entities('choreops')
                   | select('match', '^select\\.')
                   | list
                   | expand
@@ -42,7 +42,7 @@
               {{
                 {
                   'type': 'markdown',
-                  'content': '# KidsChores System Administration\n\n**Select a child to manage their chores, rewards, and activity.**'
+                  'content': '# ChoreOps System Administration\n\n**Select a child to manage their chores, rewards, and activity.**'
                 }
               }},
 
@@ -76,7 +76,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -99,7 +99,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Admin Selector Not Found**\n\nThe admin kid selector entity could not be found.\n\nThe integration may need to be restarted or reloaded.\nCheck Settings → Integrations → KidsChores."
+                        'content': "⚠️ **Admin Selector Not Found**\n\nThe admin kid selector entity could not be found.\n\nThe integration may need to be restarted or reloaded.\nCheck Settings → Integrations → ChoreOps."
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -120,7 +120,7 @@
 
                       {#-- 4. Initialize Variables --#}
 
-                      {%- set dashboard_helper = integration_entities('kidschores')
+                      {%- set dashboard_helper = integration_entities('choreops')
                           | select('search', '^sensor\\.')
                           | list
                           | expand
@@ -143,7 +143,7 @@
                         {{
                           {
                             'type': 'markdown',
-                            'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find dashboard helper for: `" ~ name ~ "`\n\nThe integration may not have initialized properly.\nCheck Settings → Integrations → KidsChores."
+                            'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find dashboard helper for: `" ~ name ~ "`\n\nThe integration may not have initialized properly.\nCheck Settings → Integrations → ChoreOps."
                           }
                         }},
                         {%- set skip_render = true -%}
@@ -277,7 +277,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -309,7 +309,7 @@
 
                     {#-- 3. Get Dashboard Helper for Selected Kid --#}
 
-                    {%- set dashboard_helper = integration_entities('kidschores')
+                    {%- set dashboard_helper = integration_entities('choreops')
                         | select('search', '^sensor\\.')
                         | list
                         | expand
@@ -324,7 +324,7 @@
                       {{
                         {
                           'type': 'markdown',
-                          'content': "⚠️ **Dashboard Helper Not Found**\n\nCannot find dashboard helper for: **" ~ name ~ "**\n\nThe KidsChores integration may not have this child\nor the helper sensor is unavailable.\n\n🔧 **Troubleshooting:**\n- Check Settings → Integrations → KidsChores\n- Verify child name matches exactly\n- Wait a moment and try again"
+                          'content': "⚠️ **Dashboard Helper Not Found**\n\nCannot find dashboard helper for: **" ~ name ~ "**\n\nThe ChoreOps integration may not have this child\nor the helper sensor is unavailable.\n\n🔧 **Troubleshooting:**\n- Check Settings → Integrations → ChoreOps\n- Verify child name matches exactly\n- Wait a moment and try again"
                         }
                       }},
                       {%- set skip_render = true -%}
@@ -488,7 +488,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -514,7 +514,7 @@
 
                   {#-- 3. Initialize Variables --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -558,7 +558,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -769,7 +769,7 @@
                             'icon_color': 'orange',
                             'tap_action': {
                               'action': 'call-service',
-                              'service': 'kidschores.reset_overdue_chores',
+                              'service': 'choreops.reset_overdue_chores',
                               'data': {
                                 'kid_name': ns.kid_name_for_service if ns.kid_name_for_service else name
                               }
@@ -806,7 +806,7 @@
                               'icon_color': 'orange',
                               'tap_action': {
                                 'action': 'call-service',
-                                'service': 'kidschores.reset_overdue_chores',
+                                'service': 'choreops.reset_overdue_chores',
                                 'data': {
                                   'chore_name': ns.chore_selected,
                                   'kid_name': ns.kid_name_for_service
@@ -830,7 +830,7 @@
                             'layout': 'vertical',
                             'tap_action': {
                               'action': 'call-service',
-                              'service': 'kidschores.skip_chore_due_date',
+                              'service': 'choreops.skip_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
                                 'kid_name': ns.kid_name_for_service
@@ -845,7 +845,7 @@
                             'layout': 'vertical',
                             'tap_action': {
                               'action': 'call-service',
-                              'service': 'kidschores.set_chore_due_date',
+                              'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
                                 'kid_name': ns.kid_name_for_service,
@@ -861,7 +861,7 @@
                             'layout': 'vertical',
                             'tap_action': {
                               'action': 'call-service',
-                              'service': 'kidschores.set_chore_due_date',
+                              'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
                                 'kid_name': ns.kid_name_for_service,
@@ -877,7 +877,7 @@
                             'layout': 'vertical',
                             'tap_action': {
                               'action': 'call-service',
-                              'service': 'kidschores.set_chore_due_date',
+                              'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
                                 'kid_name': ns.kid_name_for_service,
@@ -906,7 +906,7 @@
                             },
                             'hold_action': {
                               'action': 'call-service',
-                              'service': 'kidschores.set_chore_due_date',
+                              'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
                                 'kid_name': ns.kid_name_for_service,
@@ -933,7 +933,7 @@
                           },
                           'tap_action': {
                             'action': 'url',
-                            'url_path': '/config/integrations/integration/kidschores'
+                            'url_path': '/config/integrations/integration/choreops'
                           }
                         }
                       ]
@@ -959,7 +959,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -982,7 +982,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -1006,7 +1006,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -1053,7 +1053,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -1076,7 +1076,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -1156,7 +1156,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -1179,7 +1179,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -1248,7 +1248,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -1271,7 +1271,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -1358,7 +1358,7 @@
 
                   {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
 
-                  {%- set admin_selector_eid = integration_entities('kidschores')
+                  {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
@@ -1381,7 +1381,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('kidschores')
+                  {%- set dashboard_helper = integration_entities('choreops')
                       | select('search', '^sensor\\.')
                       | list
                       | expand
@@ -1405,7 +1405,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe KidsChores integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nKidsChores to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/kidschores-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}

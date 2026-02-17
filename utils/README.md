@@ -1,6 +1,6 @@
 # Utils Directory
 
-Development utilities and helper scripts for KidsChores integration development.
+Development utilities and helper scripts for ChoreOps integration development.
 
 ## Scripts
 
@@ -23,7 +23,7 @@ python utils/load_test_scenario_to_live_ha.py --reset
 **Requirements**:
 
 - Home Assistant running at http://localhost:8123
-- KidsChores integration already installed
+- ChoreOps integration already installed
 - Long-lived access token from Profile → Security
 
 **What it does**:

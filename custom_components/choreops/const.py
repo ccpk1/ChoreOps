@@ -114,8 +114,10 @@ PLACEHOLDER_DOCUMENTATION_URL: Final = "documentation_url"
 # Schema version for template context structure (bump when context dict changes)
 DASHBOARD_TEMPLATE_SCHEMA_VERSION: Final = 1
 
-# URL path prefix for generated dashboards (e.g., kcd-alice, kcd-admin)
-DASHBOARD_URL_PATH_PREFIX: Final = "kcd-"
+# URL path prefix for generated dashboards (e.g., cod-alice, cod-admin)
+DASHBOARD_URL_PATH_PREFIX: Final = "cod-"
+# Legacy URL prefix retained during compatibility window
+DASHBOARD_LEGACY_URL_PATH_PREFIX: Final = "kcd-"
 
 # Available dashboard styles
 DASHBOARD_STYLE_FULL: Final = "full"
@@ -141,13 +143,15 @@ DASHBOARD_RELEASES_API_URL: Final = (
 
 # Supported release-tag grammar (parser contract)
 # Accepted examples:
+#   - COD_v0.5.0_beta3
+#   - COD_v0.5.0-beta3
 #   - KCD_v0.5.0_beta3
 #   - KCD_v0.5.0-beta3
 #   - v0.5.0-beta3
 #   - v0.5.4
 #   - 0.5.4
 DASHBOARD_RELEASE_TAG_PATTERN: Final = (
-    r"^(?:(?:KCD_)?v)?(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    r"^(?:(?:KCD_|COD_)?v)?(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
     r"(?:(?:_|-)?(?P<pre_label>beta|b)(?P<pre_num>\d+))?$"
 )
 

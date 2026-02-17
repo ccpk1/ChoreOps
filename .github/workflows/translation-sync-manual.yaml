@@ -40,8 +40,24 @@ jobs:
         with:
           ref: ${{ inputs.branch || github.ref_name }}
 
+      - name: Validate Crowdin configuration
+        id: crowdin_preflight
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+        run: |
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+            echo "run_crowdin=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Crowdin secrets are not configured. Skipping translation sync."
+            echo "::notice::Set CROWDIN_PROJECT_ID and CROWDIN_PERSONAL_TOKEN repository secrets to enable this workflow."
+          else
+            echo "run_crowdin=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Crowdin secrets detected. Translation sync will run."
+          fi
+
       # STEP 1: Upload Sources
       - name: Upload Sources
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
         uses: crowdin/github-action@v2
         with:
           upload_sources: true
@@ -56,6 +72,7 @@ jobs:
       # STEP 2: Trigger Google Translate (MT) via Crowdin CLI
       # This auto translate service has a cost associated with it, so it may be stopped or disabled in the future.
       - name: Trigger Google Translate
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
         run: |
           npm install -g @crowdin/cli
           crowdin pre-translate \
@@ -68,6 +85,7 @@ jobs:
 
       # STEP 3: Download & Create PR
       - name: Download Translations
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
         uses: crowdin/github-action@v2
         with:
           upload_sources: false
@@ -81,3 +99,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Crowdin sync skipped
+        if: steps.crowdin_preflight.outputs.run_crowdin != 'true'
+        run: |
+          echo "Crowdin sync skipped: repository secrets are not configured yet."

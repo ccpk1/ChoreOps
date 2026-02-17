@@ -3,8 +3,8 @@
 # Usage: ./utils/quick_lint.sh [--fix]
 
 # === LINT TARGET ROOT (change here if repo moves) ===
-LINT_TARGET_ROOT="/workspaces/kidschores-ha"
-# If you move the repo, update LINT_TARGET_ROOT above.
+LINT_TARGET_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# If you move the repo, this resolves automatically from script location.
 
 cd "$LINT_TARGET_ROOT" || exit 1
 
@@ -14,12 +14,12 @@ run_mypy_quick() {
 
     if [[ "${FULL_MYPY:-0}" == "1" ]]; then
         echo "FULL_MYPY=1 set; running full mypy on integration + tests"
-        mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/kidschores tests
+        mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/choreops tests
         return $?
     fi
 
     echo "Default mode: checking production integration code only"
-    mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/kidschores
+    mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/choreops
 }
 
 echo "🔍 Running ruff linting..."
@@ -28,12 +28,12 @@ echo ""
 if [[ "$1" == "--fix" ]]; then
     # Auto-fix issues with ruff
     echo "🔧 Running ruff check with auto-fix..."
-    ruff check --fix custom_components/kidschores tests
+    ruff check --fix custom_components/choreops tests
     ruff_check_exit=$?
 
     echo ""
     echo "🔧 Running ruff format..."
-    ruff format custom_components/kidschores tests
+    ruff format custom_components/choreops tests
     ruff_format_exit=$?
 
     run_mypy_quick
@@ -56,12 +56,12 @@ if [[ "$1" == "--fix" ]]; then
 else
     # Check only (no auto-fix)
     echo "Running ruff check (read-only)..."
-    ruff check custom_components/kidschores tests
+    ruff check custom_components/choreops tests
     ruff_check_exit=$?
 
     echo ""
     echo "Checking code formatting..."
-    ruff format --check custom_components/kidschores tests
+    ruff format --check custom_components/choreops tests
     ruff_format_exit=$?
 
     run_mypy_quick

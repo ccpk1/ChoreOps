@@ -14,6 +14,11 @@ jobs:
     if: github.repository == 'ccpk1/choreops' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
     steps:
       - uses: "actions/checkout@v3"
+      - name: HACS prerequisite guidance
+        run: |
+          echo "::notice::HACS validation requires a valid integration manifest at custom_components/choreops/manifest.json and a valid hacs.json file."
+          echo "::notice::The brands check also requires this integration to be registered in the Home Assistant brands repository custom domain catalog."
+          echo "::notice::If brands registration is pending, HACS may fail even when local lint/tests pass."
       - name: HACS validation
         uses: "hacs/action@main"
         with:

@@ -39,17 +39,19 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 **The best of both worlds.** Configure some profiles with full gamification to drive engagement, while keeping other profiles strictly utilitarian.
 
----
-
 <p align="center">
   <b>No subscription. No cloud lock-in. 100% local on your Home Assistant instance.</b>
 </p>
+
+---
 
 > **Attribution & Legacy**<br>
 > ChoreOps is the official evolution of the **KidsChores** integration. While the original project is now deprecated, its concepts and features grew into this new system to better serve the entire Home Assistant community—expanding the scope beyond just "kids" to the whole household.
 >
 > The original creator, **@ad-ha**, remains involved with this progression and continues to inspire the project's direction.<br>
 > 🔄 **Coming from KidsChores?** We have a direct migration path to move your data over. **[View the Migration Guide →](https://github.com/ccpk1/choreops/wiki/Migration)**
+
+---
 
 ## Key capabilities
 

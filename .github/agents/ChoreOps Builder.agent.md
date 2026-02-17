@@ -230,7 +230,7 @@ Why it matters:
 - **Ask if unsure**: Don't waste time comparing - just ask user for scope confirmation
   | Logging | `LOGGER.debug("val: %s", var)` — no f-strings |
   | Types | 100% hints, `str \| None` not `Optional[str]` |
-  | Storage | `.storage/kidschores_data`, never `config_entry.data` |
+  | Storage | `.storage/choreops/choreops_data`, never `config_entry.data` |
 
 ## Validation Gates (Required)
 

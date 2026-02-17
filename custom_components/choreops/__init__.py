@@ -226,7 +226,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -
         )
 
     # Dashboard storage dedupe (v0.5.0 migration safety)
-    # Remove stale duplicate kcd-* records to prevent Lovelace panel collisions
+    # Remove stale duplicate cod-/kcd- records to prevent Lovelace panel collisions
     # on subsequent Home Assistant startups.
     try:
         from .helpers import dashboard_builder as dbuilder

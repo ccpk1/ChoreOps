@@ -9,20 +9,21 @@
 
 ## Summary & immediate steps
 
-| Phase / Step                                   | Description                                                | % complete | Quick notes                                                                                                              |
-| ---------------------------------------------- | ---------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Phase 1 – Governance & legal baseline          | Lock naming scope, legal obligations, and migration policy | 100%       | Decisions captured and validated in this phase                                                                           |
-| Phase 2 – Public-facing rebrand                | Update README/wiki/community/repo presentation             | 65%        | README + metadata + active root docs rebrand completed; templates/translations/util docs remain                          |
-| Phase 3 – GitHub automation & templates        | Rebrand workflows, issue templates, and maintainer agents  | 40%        | Repo-guard + issue template naming updates done; Crowdin path and maintainer guide alignment still pending               |
-| Phase 4 – Integration runtime/domain migration | Rebrand integration internals with compatibility strategy  | 100%       | Canonical identity + package path complete; continuity/fixtures/constants done; deprecation policy and PR guardrails set |
-| Phase 5 – Validation, release, and deprecation | End-to-end verification and communication rollout          | 40%        | Quality gates + focused migration/compat tests complete; release comms/workflow validation pending                       |
+| Phase / Step                                   | Description                                                | % complete | Quick notes                                                                                                                                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 – Governance & legal baseline          | Lock naming scope, legal obligations, and migration policy | 100%       | Decisions captured and validated in this phase                                                                                                                                         |
+| Phase 2 – Public-facing rebrand                | Update README/wiki/community/repo presentation             | 100%       | README + metadata + active root docs + translations + dashboard template/domain updates + utility docs/script references complete                                                      |
+| Phase 3 – GitHub automation & templates        | Rebrand workflows, issue templates, and maintainer agents  | 100%       | Workflow guards, issue templates, maintainer guides, funding/governance review, and brand-regression CI guard completed                                                                |
+| Phase 4 – Integration runtime/domain migration | Rebrand integration internals with compatibility strategy  | 100%       | Canonical identity + package path complete; continuity/fixtures/constants done; deprecation policy and PR guardrails set                                                               |
+| Phase 5 – Validation, release, and deprecation | End-to-end verification and communication rollout          | 55%        | Quality gates + focused migration/compat tests complete; workflow checks triaged and hardened for missing Crowdin secrets; HACS external prerequisites + PR-run evidence still pending |
 
 1. **Key objective** – Rebrand all project surfaces from KidsChores to ChoreOps, including the fundamental package path migration from `custom_components/kidschores` to `custom_components/choreops`, while preserving existing users through an explicit compatibility and migration strategy.
 2. **Summary of recent work**
 
 - Phase 1: Completed governance/legal baseline with explicit naming matrix, migration policy, licensing resolution decision, branding policy, and release governance ownership.
 - Phase 2: Rebranded package metadata (`hacs.json`, `pyproject.toml`, `manifest.json`) and active root docs (`ARCHITECTURE.md`, `DEVELOPMENT_STANDARDS.md`, `QUALITY_REFERENCE.md`, `DASHBOARD_TEMPLATE_GUIDE.md`, plus checklist/review docs) to ChoreOps terminology and canonical domain/storage examples.
-- Phase 3: Updated workflow repo guard in `.github/workflows/validate.yaml` and rebranded issue-template naming to ChoreOps; remaining scope is Crowdin path alignment and maintainer guide cleanup.
+- Phase 2: Icon and logo asset preparation is complete and Home Assistant brands PR has been submitted from fork branch `add-choreops-brand-assets` (awaiting review/merge).
+- Phase 3: Completed workflow repo guards and issue-template naming, aligned maintainer guides under `.github/agents/`, and added brand-regression CI guard in `.github/workflows/lint-validation.yaml`.
 
 - Phase 4: Implemented scoped storage move to `.storage/choreops/choreops_data`, added legacy migration option in config flow (`Migrate from KidsChores`), centralized legacy artifact discovery/migration helpers in `migration_pre_v50.py`, and refactored config flow to thin migration hooks for easier one-release removal.
 - Phase 4: Extracted legacy migration constants into `migration_pre_v50_constants.py`, corrected legacy storage fallback behavior to root-only `.storage/kidschores_data` probing, and removed duplicate button setup cleanup so orphan cleanup remains manager-owned.
@@ -34,7 +35,7 @@
 
 3. **Next steps (short term)**
 
-- Continue Phase 2 remaining work (README, dashboard templates, translation copy, utility docs) while preserving Phase 1 guardrails.
+- Phase 2 public-facing rebrand is complete; maintain only regression checks and follow-up link hygiene as needed.
 - Start Phase 3 implementation in parallel for workflow/template renames.
 - Continue Phase 5 with workflow validation, release communication updates, and hard-cut execution gating for v0.5.0 final.
 - Add explicit hard-cut milestone to remove `custom_components/kidschores/__init__.py` after transition-window exit criteria are met.
@@ -119,14 +120,14 @@
   - [x] Rebrand docs set for active docs (not archival)
     - Files: `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT_STANDARDS.md`, `docs/QUALITY_REFERENCE.md`, `docs/DASHBOARD_TEMPLATE_GUIDE.md`
     - Preserve `docs/completed/legacy-kidschores/` as historical archive unless explicitly migrated.
-  - [ ] Rebrand dashboard templates and user-facing markdown strings
+  - [x] Rebrand dashboard templates and user-facing markdown strings
     - Files: `custom_components/choreops/templates/dashboard_admin.yaml`, `dashboard_full.yaml`, `dashboard_minimal.yaml`
     - Update help text and dashboard repo links (currently `ccpk1/kidschores-ha-dashboard`).
-  - [ ] Rebrand localization source copy and user-facing strings
+  - [x] Rebrand localization source copy and user-facing strings
     - Files: `custom_components/choreops/translations/en.json`, `translations_custom/en_dashboard.json`, `translations_custom/en_notifications.json`
     - Ensure translation key IDs remain stable unless migration strategy requires changes.
     - For newly introduced user-facing migration/deprecation copy, add explicit `TRANS_KEY_*` constants in `custom_components/choreops/const.py` and map them in English translation files before localization sync.
-  - [ ] Update auxiliary utility docs and script references
+  - [x] Update auxiliary utility docs and script references
     - Files: `utils/README.md`, `utils/quick_lint.sh` (workspace path reference), utility markdown docs
 - **Key issues**
   - Extensive link churn may create broken docs if wiki/repo targets are not created first.
@@ -142,12 +143,12 @@
   - [x] Rebrand issue templates and labels language
     - Files: `.github/ISSUE_TEMPLATE/01-issue_report.yml`, `.github/ISSUE_TEMPLATE/02-feature_reques.yml`, `.github/ISSUE_TEMPLATE/config.yml`
     - Update integration name, logging namespace examples, and title prefixes if needed.
-  - [ ] Rebrand maintainer/agent guides under `.github/agents/`
-    - Files include: `KidsChores Builder.agent.md`, `KidsChores Strategist.agent.md`, `KidsChores Documentarian.md`, `KidsChores Maintainer.md`, `KidsChores Test Builder.agent.md`
+  - [x] Rebrand maintainer/agent guides under `.github/agents/`
+    - Files include: `ChoreOps Builder.agent.md`, `ChoreOps Strategist.agent.md`, `ChoreOps Documentarian.agent.md`, `ChoreOps Maintainer.agent.md`, `ChoreOps Test Builder.agent.md`
     - Align operational commands and naming with final domain strategy.
-  - [ ] Review funding/governance metadata
+  - [x] Review funding/governance metadata
     - Files: `.github/FUNDING.yml`, (add/update) `CODEOWNERS`, (optional) PR template if standardizing contributor intake
-  - [ ] Add/refresh CI policy checks for brand regressions
+  - [x] Add/refresh CI policy checks for brand regressions
     - Add grep-based check in CI to prevent reintroduction of deprecated brand/domain strings in active files.
 - **Key issues**
   - Workflow changes can silently disable CI if triggers or repo conditions are incorrect.
@@ -233,14 +234,24 @@
     - Candidate files: `tests/test_migration_hardening.py`, `tests/test_config_flow_*.py`, `tests/test_yaml_setup.py`, `tests/test_translations_custom.py`
   - [ ] Validate GitHub workflows end-to-end on PR + main
     - Ensure `validate`, `hassfest`, lint, and translation-sync jobs execute with correct repo/path assumptions
+    - Current findings (2026-02-17):
+      - Main branch runs reviewed via GitHub Actions: `Validate with hassfest` passing, while `HACS Action` and `Translation Sync` have failures unrelated to local code quality gates.
+      - `Translation Sync` failure root cause: Crowdin secrets are unset/empty at runtime (`CROWDIN_PROJECT_ID` empty), causing Crowdin action failure (`For input string: ""`).
+      - Mitigation implemented: `.github/workflows/translation-sync-manual.yaml` now runs a preflight secret check and gracefully skips Crowdin steps with explicit warnings/notices when secrets are unavailable.
+      - `HACS Action` failure root causes: HACS integration manifest validation context failure (`expected a dictionary. Got None`) and brands prerequisite failure (repository not yet added as custom domain in brands repo).
+      - Mitigation implemented: `.github/workflows/validate.yaml` now prints explicit prerequisite guidance in CI logs before the HACS action step.
+      - PR-run coverage gap: no PR-event workflow runs currently available for this phase item.
   - [ ] Prepare release package and communication assets
     - Update changelog/release notes with migration warnings and exact upgrade steps
     - Update wiki pages and “known impacts” section for domain/storage changes
+  - [ ] Resolve deferred dashboard template sourcing decision
+    - Confirm current release-tag + bundled fallback remains final for v0.5.0 and decide whether any dynamic fallback design is needed in a later milestone.
   - [ ] Post-release monitoring and rollback window
     - Define 7-14 day post-release triage protocol and emergency rollback path
 - **Key issues**
   - Release without migration docs will drive avoidable support load.
   - CI passing is necessary but insufficient; real-world upgrade path must be tested from legacy installs.
+  - Workflow validation remains blocked on external repository/secret prerequisites (Crowdin secrets + HACS brands registration) and missing PR run evidence.
 
 ## Testing & validation
 
@@ -316,10 +327,11 @@
   - remove placeholder TODO markers
   - remove or defer badges that require releases until first release exists
   - keep installation/use instructions accurate for custom repository installs
-- Prepare Home Assistant brands submission package for `choreops`:
+- [x] Prepare Home Assistant brands submission package for `choreops`:
   - target path: `home-assistant/brands/custom_integrations/choreops/`
   - required baseline files: `icon.png` (256x256), `icon@2x.png` (512x512)
   - optional but recommended: `logo.png`, `logo@2x.png`, and dark variants (`dark_icon.png`, `dark_logo.png`, etc.)
+- [x] Submit brands PR to `home-assistant/brands` from fork branch (`add-choreops-brand-assets`)
 - GitHub release creation is intentionally deferred until final release readiness; do not publish release assets during this preparation stage.
 
 ### Phase 4 deprecation + guardrail implementation results (2026-02-17)
@@ -365,6 +377,9 @@
 - **GitHub ecosystem follow-up items**
   - If repository rename occurs, implement redirect checks for badges, wiki URLs, issue links, and dashboard companion repo links.
   - Reconfirm Crowdin project mapping and secrets ownership after repo/branch naming changes.
+- **Dashboard template sourcing follow-up (deferred by owner)**
+  - Keep current behavior for v0.5.0: release-tag selection with bundled local fallback (no dynamic main-branch sourcing changes).
+  - Add end-of-plan decision checkpoint to determine if dynamic fallback remains unnecessary or should be designed for a later milestone.
 - **Attribution implementation status**
   - Explicit fork attribution is now present in [README.md](../../README.md) with credit to the original KidsChores creator; release notes should repeat this attribution callout at tag time.
 - **Top-level non-docs scan (2026-02-17, docs excluded)**

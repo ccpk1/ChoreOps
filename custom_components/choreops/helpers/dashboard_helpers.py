@@ -507,7 +507,7 @@ def get_existing_kidschores_dashboards(
     """Get list of existing KidsChores dashboards.
 
     Scans the lovelace dashboards collection for dashboards
-    with url_path starting with 'kcd-' (our namespace).
+    with url_path starting with cod-/kcd- (our namespace).
 
     Args:
         hass: Home Assistant instance.
@@ -524,12 +524,17 @@ def get_existing_kidschores_dashboards(
 
     lovelace_data = hass.data[LOVELACE_DATA]
 
-    # Check dashboards dict for kcd-* entries
+    # Check dashboards dict for cod-/kcd- entries
     for url_path in lovelace_data.dashboards:
         # Skip None or non-string keys
         if not url_path or not isinstance(url_path, str):
             continue
-        if url_path.startswith("kcd-"):
+        if url_path.startswith(
+            (
+                const.DASHBOARD_URL_PATH_PREFIX,
+                const.DASHBOARD_LEGACY_URL_PATH_PREFIX,
+            )
+        ):
             # Try to get the title from the panel
             title = url_path  # Fallback
             if hasattr(lovelace_data.dashboards[url_path], "config"):

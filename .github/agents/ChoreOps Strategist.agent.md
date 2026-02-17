@@ -166,7 +166,7 @@ Before delivering plan:
 
 ### Schema Changes
 
-If plan affects `.storage/kidschores_data`:
+If plan affects `.storage/choreops/choreops_data`:
 
 1. Note SCHEMA_VERSION increment in Phase 1
 2. Add migration step: `_migrate_to_v{VERSION}()`

@@ -68,8 +68,8 @@ class DashboardReleaseTag:
     """Normalized representation of a supported dashboard release tag.
 
     Supported formats:
-            - `KCD_vX.Y.Z` / `vX.Y.Z` / `X.Y.Z`
-            - `KCD_vX.Y.Z_betaN` / `KCD_vX.Y.Z-betaN` / `vX.Y.Z-betaN`
+            - `COD_vX.Y.Z` / `KCD_vX.Y.Z` / `vX.Y.Z` / `X.Y.Z`
+            - `COD_vX.Y.Z_betaN` / `COD_vX.Y.Z-betaN` / `vX.Y.Z-betaN`
     """
 
     raw_tag: str
@@ -596,10 +596,20 @@ def get_multi_view_url_path(dashboard_name: str) -> str:
         dashboard_name: User-specified dashboard name (e.g., "Chores").
 
     Returns:
-        Slugified URL path with kcd- prefix (e.g., "kcd-chores").
+        Slugified URL path with cod- prefix (e.g., "cod-chores").
     """
     slug = slugify(dashboard_name.lower())
-    return f"kcd-{slug}"
+    return f"{const.DASHBOARD_URL_PATH_PREFIX}{slug}"
+
+
+def _is_choreops_dashboard_url_path(url_path: str) -> bool:
+    """Return True for current or legacy ChoreOps dashboard URL paths."""
+    return url_path.startswith(
+        (
+            const.DASHBOARD_URL_PATH_PREFIX,
+            const.DASHBOARD_LEGACY_URL_PATH_PREFIX,
+        )
+    )
 
 
 def _get_collection_items(collection: DashboardsCollection) -> list[dict[str, Any]]:
@@ -623,7 +633,7 @@ def check_dashboard_exists(hass: HomeAssistant, url_path: str) -> bool:
 
     Args:
         hass: Home Assistant instance.
-        url_path: Dashboard URL path to check (e.g., "kcd-alice").
+        url_path: Dashboard URL path to check (e.g., "cod-alice").
 
     Returns:
         True if dashboard exists, False otherwise.
@@ -648,7 +658,7 @@ async def async_check_dashboard_exists(hass: HomeAssistant, url_path: str) -> bo
 
     Args:
         hass: Home Assistant instance.
-        url_path: Dashboard URL path to check (e.g., "kcd-alice").
+        url_path: Dashboard URL path to check (e.g., "cod-alice").
 
     Returns:
         True if dashboard exists, False otherwise.
@@ -689,7 +699,7 @@ async def async_dedupe_kidschores_dashboards(
         item_url_path = item.get(CONF_URL_PATH)
         if not isinstance(item_url_path, str):
             continue
-        if not item_url_path.startswith(const.DASHBOARD_URL_PATH_PREFIX):
+        if not _is_choreops_dashboard_url_path(item_url_path):
             continue
         if url_path and item_url_path != url_path:
             continue
@@ -772,7 +782,7 @@ async def create_kidschores_dashboard(
         icon: Dashboard icon.
 
     Returns:
-        The URL path of the created dashboard (e.g., "kcd-chores").
+        The URL path of the created dashboard (e.g., "cod-chores").
 
     Raises:
         DashboardExistsError: If dashboard exists and force_rebuild is False.
@@ -1282,7 +1292,7 @@ async def delete_kidschores_dashboard(
 
     Args:
         hass: Home Assistant instance.
-        url_path: Dashboard URL path (e.g., "kcd-alice").
+        url_path: Dashboard URL path (e.g., "cod-alice").
 
     Raises:
         DashboardSaveError: If deletion fails.
@@ -1290,7 +1300,7 @@ async def delete_kidschores_dashboard(
     if hass.config.recovery_mode:
         raise DashboardSaveError("Cannot delete dashboards in recovery mode")
 
-    if not url_path.startswith("kcd-"):
+    if not _is_choreops_dashboard_url_path(url_path):
         raise DashboardSaveError(f"Cannot delete non-KidsChores dashboard: {url_path}")
 
     await _delete_dashboard(hass, url_path)
