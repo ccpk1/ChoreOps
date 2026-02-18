@@ -1,3 +1,15 @@
+![Status](https://img.shields.io/badge/Status-Pre--Alpha-red)
+![Build](https://img.shields.io/badge/Build-Unstable-orange)
+
+<br><br><br><br><br><br>
+
+> [!WARNING]
+> **UNDER ACTIVE DEVELOPMENT**
+> This repository is currently in a pre-alpha state and is being refactored from the original [KidsChores] integration.
+> Breaking changes are pushed directly to `main` without notice. Please do not install this in a production Home Assistant environment yet.
+
+## <br><br><br><br><br><br>
+
 TODO: All links need updated and confirmed, as well as consider any additional logos etc.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
@@ -19,7 +31,7 @@ TODO: All links need updated and confirmed, as well as consider any additional l
 
 **ChoreOps helps keep your home running smoothly... _Level Up your Household Tasks_**
 
-Whether you are staying on top of a busy lifestyle, sharing duties with a housemate, or trying to motivate your kids, ChoreOps fills a critical gap in the ecosystem. Users needed something more powerful than a simple to-do list, but more integrated and private than external cloud services.
+Whether you are staying on top of a busy lifestyle, sharing duties with a housemate, or trying to motivate your kids, ChoreOps fills a gap in the ecosystem. Users needed something more powerful than a simple to-do list, but more integrated and private than external cloud services.
 
 Born from the popular _KidsChores_ integration, ChoreOps evolves that foundation into a sophisticated **Household Operations Platform**. It recognizes that while the high-quality gamification at its core is a powerful motivator for many, others just want the trash taken out on time.
 
