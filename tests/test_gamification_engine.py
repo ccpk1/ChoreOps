@@ -142,14 +142,18 @@ def make_achievement(
     name: str = "Test Achievement",
     target_type: str = const.ACHIEVEMENT_TYPE_TOTAL,
     target_value: int = 10,
+    source_badge_id: str | None = None,
 ) -> dict[str, Any]:
     """Build a minimal achievement definition."""
-    return {
+    achievement = {
         const.DATA_ACHIEVEMENT_ID: achievement_id,
         const.DATA_ACHIEVEMENT_NAME: name,
         const.DATA_ACHIEVEMENT_TYPE: target_type,
         const.DATA_ACHIEVEMENT_TARGET_VALUE: target_value,
     }
+    if source_badge_id:
+        achievement[const.DATA_ACHIEVEMENT_SOURCE_BADGE_ID] = source_badge_id
+    return achievement
 
 
 def make_challenge(
@@ -717,6 +721,28 @@ class TestEvaluateAchievement:
         result = GamificationEngine.evaluate_achievement(context, achievement)
 
         assert result["criteria_met"] is True
+
+    def test_total_achievement_badge_award_count_extension(self) -> None:
+        """TOTAL achievement can map to badge award_count source when configured."""
+        context = make_context()
+        context["badges_earned"] = {
+            "badge-hero": {
+                const.DATA_KID_BADGES_EARNED_AWARD_COUNT: 3,
+            }
+        }
+        achievement = make_achievement(
+            target_type=const.ACHIEVEMENT_TYPE_TOTAL,
+            target_value=3,
+            source_badge_id="badge-hero",
+        )
+
+        result = GamificationEngine.evaluate_achievement(context, achievement)
+
+        assert result["criteria_met"] is True
+        criterion = result["criterion_results"][0]
+        assert (
+            criterion["criterion_type"] == const.CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT
+        )
 
 
 # =============================================================================

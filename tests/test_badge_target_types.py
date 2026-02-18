@@ -17,6 +17,7 @@ Note: Section 1.1 (Cumulative) and Section 1.3 (Weekly - actually handled
 by periodic with weekly reset) are covered in test_badge_cumulative.py.
 """
 
+import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigFlowResult
@@ -716,6 +717,112 @@ class TestPeriodicBadgeTargetTypes:
 
         assert normalized == 1
         assert badge_progress[const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES] == []
+
+    async def test_scope_filter_empty_selected_includes_all_assigned(
+        self,
+        hass: HomeAssistant,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Empty selected chores means all chores assigned to kid are in scope."""
+        config_entry = setup_minimal.config_entry
+        coordinator = setup_minimal.coordinator
+
+        kid_id = next(iter(coordinator.kids_data.keys()))
+        badge_data = {
+            CFOF_BADGES_INPUT_NAME: "Scope All Assigned Guard",
+            CFOF_BADGES_INPUT_ICON: "mdi:playlist-check",
+            CFOF_BADGES_INPUT_TARGET_TYPE: "points",
+            CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_SELECTED_CHORES: [],
+            CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
+            CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
+        }
+
+        await add_badge_via_options_flow(
+            hass,
+            config_entry.entry_id,
+            BADGE_TYPE_PERIODIC,
+            badge_data,
+        )
+        _badge_id, badge_info = get_badge_by_name(
+            coordinator, "Scope All Assigned Guard"
+        )
+
+        assigned_chores = [
+            chore_id
+            for chore_id, chore_info in coordinator.chores_data.items()
+            if not chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            or kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        ]
+        in_scope = coordinator.gamification_manager.get_badge_in_scope_chores_list(
+            badge_info,
+            kid_id,
+        )
+
+        assert sorted(in_scope) == sorted(assigned_chores)
+
+    async def test_scope_filter_selected_is_intersection(
+        self,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Selected chores are intersected with kid-assigned chores."""
+        coordinator = setup_minimal.coordinator
+
+        kid_id = next(iter(coordinator.kids_data.keys()))
+        all_chore_ids = list(coordinator.chores_data.keys())
+        assert len(all_chore_ids) >= 2
+        selected_valid = all_chore_ids[0]
+        selected_not_assigned = all_chore_ids[1]
+
+        badge_info = {
+            const.DATA_BADGE_TYPE: const.BADGE_TYPE_PERIODIC,
+            const.DATA_BADGE_TRACKED_CHORES: {
+                const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES: [
+                    selected_valid,
+                    selected_not_assigned,
+                ]
+            },
+        }
+
+        in_scope = coordinator.gamification_manager.get_badge_in_scope_chores_list(
+            badge_info,
+            kid_id,
+            kid_assigned_chores=[selected_valid],
+        )
+        assert in_scope == [selected_valid]
+
+    async def test_unknown_target_mapper_warns_and_returns_unknown(
+        self,
+        setup_minimal: SetupResult,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        """Unknown target types warn and map to explicit unknown_target."""
+        coordinator = setup_minimal.coordinator
+        kid_id = next(iter(coordinator.kids_data.keys()))
+
+        badge_data = {
+            const.DATA_BADGE_NAME: "Unknown Mapper Guard",
+            const.DATA_BADGE_TYPE: const.BADGE_TYPE_PERIODIC,
+            const.DATA_BADGE_TARGET: {
+                const.DATA_BADGE_TARGET_TYPE: "unexpected_target_type",
+                const.DATA_BADGE_TARGET_THRESHOLD_VALUE: 3,
+            },
+            const.DATA_BADGE_TRACKED_CHORES: {
+                const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES: [],
+            },
+            const.DATA_BADGE_ASSIGNED_TO: [kid_id],
+        }
+
+        caplog.set_level(logging.WARNING)
+        mapped = coordinator.gamification_manager._map_badge_to_canonical_target(
+            kid_id,
+            "badge-unknown",
+            badge_data,
+        )
+
+        assert mapped["target_type"] == "unknown_target"
+        assert "Unknown periodic badge target type" in caplog.text
 
 
 # ============================================================================

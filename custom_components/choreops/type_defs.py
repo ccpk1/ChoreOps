@@ -335,6 +335,7 @@ class BadgeTarget(TypedDict, total=False):
 # This type is additive in Phase 1 and is used as a cross-goal mapping contract
 # for badges, achievements, and challenges in later phases.
 CanonicalTargetType = Literal[
+    "unknown_target",
     "points",
     "points_chores",
     "chore_count",
@@ -343,6 +344,10 @@ CanonicalTargetType = Literal[
     "daily_completion_no_overdue",
     "daily_completion_due_no_overdue",
     "daily_minimum",
+    "completion_streak",
+    "completion_streak_due",
+    "completion_streak_no_overdue",
+    "completion_streak_due_no_overdue",
     "streak",
     "streak_due",
     "streak_no_overdue",
@@ -370,6 +375,7 @@ class CanonicalTargetDefinition(TypedDict, total=False):
     min_count_required: NotRequired[int]
     percent_required: NotRequired[float]
     baseline_value: NotRequired[float]
+    source_badge_id: NotRequired[str]
     tracked_chore_ids: NotRequired[list[str]]
 
 
@@ -464,7 +470,6 @@ Common keys (not exhaustive, keys added at runtime):
 - total_count: int
 - total_points: float
 - periods: KidChoreDataPeriods
-- badge_refs: list[str] (badge UUIDs)
 - last_longest_streak_all_time: int
 - claimed_by: str | list[str] (who claimed)
 - completed_by: str | list[str] (who completed)

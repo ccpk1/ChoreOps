@@ -3,7 +3,7 @@
 - **Name / Code**: Gamification Unified Target Tracking (Badges → Achievements/Challenges)
 - **Target release / milestone**: v0.5.0-beta4 hardening (pre-release stabilization)
 - **Owner / driver(s)**: KidsChores core maintainers (Gamification domain)
-- **Status**: In progress (Phase 1 complete)
+- **Status**: Complete (implemented, validated, approved for archive)
 
 ## Summary & immediate steps
 
@@ -11,13 +11,13 @@
 | ------------------------------------------- | ------------------------------------------------------------------------------ | ---------- | --------------------------------------------------------------------------------------------- |
 | Phase 1 – Baseline & guardrails             | Freeze cumulative paths, define unified target contract                        | 100%       | Contracts and inventories captured; cumulative freeze guard added                             |
 | Phase 2 – Non-cumulative badge hardening    | Fix/standardize periodic + daily + streak badge evaluation/state updates       | 100%       | Runtime context + idempotent progress writes now active                                       |
-| Phase 3 – Achievement/challenge unification | Badge-first architecture hardening, then shared target evaluator/state updater | 68%        | Step 3 shared progress-mutator interface complete; achievement/challenge rewiring still gated |
-| Phase 4 – Tests, perf, rollout safety       | Expand deterministic tests + regression/perf coverage + migration check        | 65%        | Added migration cleanup + periodic loop/status regressions + cumulative guard reruns          |
+| Phase 3 – Achievement/challenge unification | Badge-first architecture hardening, then shared target evaluator/state updater | 100%       | Added source mappers + canonical evaluator wiring + manager lifecycle wrappers                 |
+| Phase 4 – Tests, perf, rollout safety       | Expand deterministic tests + regression/perf coverage + migration check        | 100%       | Added manager integration + mapped target coverage + full validation gate pass                 |
 
 1. **Key objective** – Make non-cumulative target tracking deterministic and reusable, then use the exact same core logic for achievements and challenges.
-2. **Summary of recent work** – Phase 3 Step 3 completed: periodic badge persistence now routes through a shared `persist_target_progress_state` interface (with backward-compatible wrapper behavior), keeping badge behavior stable while establishing the common mutator contract for future achievement/challenge adoption.
-3. **Next steps (short term)** – Complete remaining Phase 4 coverage for manager pending-queue/event-driven integration paths, then execute the Phase 3 badge-first architecture hardening checklist before any achievement/challenge evaluator rewiring.
-4. **Risks / blockers** – Highest risk remains accidental impact to cumulative badge behavior; focused cumulative guard suite reruns are green and should continue as a required regression gate.
+2. **Summary of recent work** – Completed Phase 3 achievement/challenge rewiring: added canonical source mappers, routed achievement/challenge evaluation through canonical engine path, and kept challenge lifecycle window ownership in manager wrappers.
+3. **Next steps (short term)** – Owner review and release-prep handoff (no additional phase implementation blockers remain in this plan).
+4. **Risks / blockers** – No active implementation blockers; continue cumulative behavior regression checks in follow-on work.
 5. **Critical quality expectation** – Final outcome must show high standardization and organization across contracts, naming, and flow ownership; implementation must favor deterministic, auditable behavior over convenience shortcuts.
 6. **References** –
    - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
@@ -29,8 +29,9 @@
 - [GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_PHASE0_DEEP_DIVE.md](GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_PHASE0_DEEP_DIVE.md)
 - [GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_IMPLEMENTATION_BLUEPRINT.md](GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_IMPLEMENTATION_BLUEPRINT.md)
 - [GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_PHASE3_BADGE_FIRST_ARCHITECTURE.md](GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_PHASE3_BADGE_FIRST_ARCHITECTURE.md)
+- [GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_PERIODIC_TARGET_AUDIT.md](GAMIFICATION_UNIFIED_TARGET_TRACKING_SUP_PERIODIC_TARGET_AUDIT.md)
 
-- **Overall plan progress**: 84% (2/4 phases complete; Phase 4 in-progress, Phase 3 badge-first implementation underway)
+- **Overall plan progress**: 100% (4/4 phases complete)
 
 6. **Decisions & completion check**
    - **Decisions captured**:
@@ -38,7 +39,7 @@
      - Unified logic will be implemented as: `Engine = pure criterion/daily status evaluation`, `Manager = idempotent progress mutation + award side effects`.
      - Achievements and challenges will use badge-style target mapping with lifecycle wrappers (achievement: non-resetting; challenge: date-window gated).
      - Rolling-window requirements should prefer persisted per-item progress fields over long-term daily history retention when equivalent.
-   - **Completion confirmation**: `[ ]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
+  - **Completion confirmation**: `[x]` All follow-up items completed (architecture updates, cleanup, documentation, etc.) before requesting owner approval to mark initiative done.
 
 > **Important:** Keep the entire Summary section (table + bullets) current with every meaningful update (after commits, tickets, or blockers change). Records should stay concise, fact-based, and readable so anyone can instantly absorb where each phase stands. This summary is the only place readers should look for the high-level snapshot.
 
@@ -117,6 +118,45 @@
   - Efficiency risk: repeated daily-scope chore scans per target type if context is not normalized once per evaluation cycle.
   - Known architecture miss to fix in this phase: non-cumulative badge evaluation may run without persisting progress updates into `kid.badge_progress`.
 
+#### Phase 2B – Missed hardening follow-ups (captured after periodic target audit)
+
+- **Goal**: Close remaining non-cumulative target hardening gaps discovered during post-Phase-2 audit before achievement/challenge rewiring expands shared logic surface area.
+- **Steps / detailed work items**
+  - [x] Remove runtime regeneration of chore `badge_refs` from `GamificationManager` startup/reference sync path and keep schema-44 migration cleanup as backward-compatibility-only behavior.
+  - [x] Remove or downscope remaining `badge_refs` documentation/type hints (for example in `type_defs.py`) so docs align with runtime architecture.
+  - [x] Add explicit manager-level tests for tracked-chore scope filtering:
+    - empty `selected_chores` means all chores assigned to the kid are in scope
+    - non-empty `selected_chores` is intersected with the kid-assigned chore set
+    - mixed selected list (assigned + unassigned) only includes assigned chore IDs
+  - [x] Add an explicit mapper guard for unknown periodic target types (avoid implicit defaulting to daily-completion semantics in mapping paths).
+  - [x] Add explicit fail-fast or warning behavior in badge target mapper when `target_type` is unknown, and ensure this path is validated by dedicated tests.
+  - [x] Add a single canonical target registry proposal (or implementation spike) that can drive:
+    - engine handler routing
+    - manager canonical mapping flags (`due-only`, `no-overdue`, `%/min-count`)
+    - manager persistence bucket strategy
+  - [x] Remove duplicated target-type branching by moving engine registry + manager mapper + manager persistence routing to one shared metadata table (single source of truth), with compatibility shims where needed.
+  - [x] Add a naming-standard pass for canonical streak families to make completion-day streak semantics explicit and avoid confusion with true chore streak metrics.
+  - [x] Add manager-level integration tests for pending-queue/event-driven paths (`chore_approved`, `chore_disapproved`, `chore_overdue`, midnight rollover) to verify end-to-end queueing → evaluation → persistence behavior (not only unit-level engine checks).
+  - [x] Review and resolve award-count ownership inconsistency:
+    - `update_badges_earned_for_kid` comments describe tenant-owned award count in periods
+    - periodic re-award path directly mutates `DATA_KID_BADGES_EARNED_AWARD_COUNT`
+    - choose one canonical ownership model and align comments + implementation.
+
+#### Phase 2B implementation update (2026-02-18)
+
+- Runtime `badge_refs` regeneration was removed from startup cascade (`_on_stats_ready` now signals readiness without rebuilding legacy references).
+- Legacy `badge_refs` documentation was downscoped from type docs; migration cleanup remains as compatibility path.
+- Canonical periodic target metadata registry now drives engine routing metadata, manager canonical mapping flags, and manager persistence bucket strategy from a single source.
+- Unknown periodic target handling now warns explicitly and avoids implicit daily fallback semantics.
+- Added manager-level test coverage for scope filtering behavior and pending-queue event-driven re-evaluation paths.
+- Award count ownership comments were aligned with current manager-owned periodic re-award behavior.
+- **Key issues**
+  - Current architecture has a contradiction: migration removes legacy `badge_refs`, but runtime currently rebuilds `badge_refs` structures at startup/reference sync.
+  - Target logic semantics are currently represented in multiple places (engine registry, manager mapper, manager persistence branches), creating future drift risk as achievement/challenge wrappers are added.
+  - Existing tests verify broad periodic behavior, but scoped-filter edge coverage (assigned/intersection cases) is still shallow for this contract-critical path.
+  - Unknown target handling currently risks implicit fallback semantics in mapper paths, which can hide configuration defects.
+  - Award-count ownership semantics are not fully aligned between documented architecture comments and periodic re-award implementation behavior.
+
 ### Phase 3 – Achievement/challenge unification
 
 - **Goal**: Finalize badge-first architecture, naming, and shared method contracts so achievement/challenge unification becomes a thin, low-risk wrapper migration.
@@ -130,13 +170,13 @@
     - shared mapper + status resolver + progress mutator + award-dispatch adapter
     - badge-focused tests/regression gates must pass first
   - [x] Harden and validate badge-first shared methods before achievement/challenge rewiring (implementation).
-  - [ ] Introduce mapper functions in `managers/gamification_manager.py` to convert `AchievementData` and `ChallengeData` into canonical target definitions (line hints: around `_evaluate_achievement_for_kid` ~1410 and `_evaluate_challenge_for_kid` ~1485).
-  - [ ] Route `_evaluate_achievement_for_kid` and `_evaluate_challenge_for_kid` through the same core evaluator path used by non-cumulative badges (engine + manager state updater), replacing direct bespoke type branches (line hints: manager ~1410-1565; engine `evaluate_achievement` ~273 and `evaluate_challenge` ~361).
-  - [ ] Keep lifecycle wrappers in manager:
+  - [x] Introduce mapper functions in `managers/gamification_manager.py` to convert `AchievementData` and `ChallengeData` into canonical target definitions (line hints: around `_evaluate_achievement_for_kid` ~1410 and `_evaluate_challenge_for_kid` ~1485).
+  - [x] Route `_evaluate_achievement_for_kid` and `_evaluate_challenge_for_kid` through the same core evaluator path used by non-cumulative badges (engine + manager state updater), replacing direct bespoke type branches (line hints: manager ~1410-1565; engine `evaluate_achievement` ~273 and `evaluate_challenge` ~361).
+  - [x] Keep lifecycle wrappers in manager:
     - achievement: no reset window, permanent once awarded.
     - challenge: active only within `start_date`/`end_date`.
-  - [ ] Add achievement-specific extension for badge award count tracking using earned badge data (`badges_earned[badge_id].award_count`) with explicit mapping constant(s) in `const.py` (line hints: earned-badge constants ~920-929).
-  - [ ] Align data construction/validation compatibility in `data_builders.py` and `helpers/flow_helpers.py` only if new target option(s) or fields are exposed (line hints: `build_achievement` ~2275, `build_challenge` ~2579, achievement/challenge schemas in flow helpers ~2556/~2704).
+  - [x] Add achievement-specific extension for badge award count tracking using earned badge data (`badges_earned[badge_id].award_count`) with explicit mapping constant(s) in `const.py` (line hints: earned-badge constants ~920-929).
+  - [x] Align data construction/validation compatibility in `data_builders.py` and `helpers/flow_helpers.py` only if new target option(s) or fields are exposed (line hints: `build_achievement` ~2275, `build_challenge` ~2579, achievement/challenge schemas in flow helpers ~2556/~2704).
 - **Key issues**
   - Achievement/challenge code changes are explicitly blocked until badge-first architecture hardening tasks and gates are complete.
   - Existing gamification method naming is partially inconsistent across evaluation, mutation, and side-effect operations; a standardized naming map is required before broad refactors.
@@ -207,6 +247,31 @@
   - `./utils/quick_lint.sh --fix` → Ruff + MyPy + boundary checks all passed
 - Scope lock preserved: no achievement/challenge rewiring performed in this step.
 
+#### Phase 3 implementation update: Step 4 achievement/challenge canonical rewiring
+
+- Implemented canonical source mappers in `managers/gamification_manager.py`:
+  - `_map_achievement_to_canonical_target(...)`
+  - `_map_challenge_to_canonical_target(...)`
+- Added shared source runtime-context builder:
+  - `_build_source_runtime_context(...)` with scoped stats hydration and typed progress injection.
+- Routed achievement/challenge manager evaluation through canonical engine path:
+  - `_evaluate_achievement_for_kid(...)` now maps + evaluates canonical targets
+  - `_evaluate_challenge_for_kid(...)` now maps + evaluates canonical targets
+- Added manager lifecycle wrapper enforcement for challenges:
+  - challenge evaluation returns early outside active `start_date`/`end_date` window.
+- Added canonical evaluator support in `engines/gamification_engine.py`:
+  - `evaluate_canonical_target(...)`
+  - `_evaluate_canonical_target_criterion(...)`
+- Added achievement badge-award-count extension support:
+  - constants and source mapping in `const.py`
+  - canonical path reads `badges_earned[badge_id].award_count` when configured.
+- Compatibility note:
+  - no new options/config flow fields were exposed, so no builder/flow schema changes were required in this step.
+- Validation evidence:
+  - `python -m pytest tests/test_gamification_engine.py tests/test_workflow_gamification_pending_queue.py -q` → `39 passed`
+  - `./utils/quick_lint.sh --fix` → Ruff + MyPy + boundary checks passed
+  - `mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/choreops` → success
+
 #### Phase 3 planning deliverable: extensibility contract
 
 For future gamification sources, required additions must be limited to:
@@ -224,10 +289,10 @@ No new source type should duplicate criterion handlers or progress mutation logi
   - [x] Add schema-44 migration cleanup for legacy `kid_chore_data.*.badge_refs` in `migration_pre_v50.py` and regression coverage in `tests/test_migration_hardening.py`.
   - [x] Expand unit tests in `tests/test_gamification_engine.py` for normalized daily evaluator, streak continuation/break, idempotent same-day re-evaluation, and tracked-chore/no-overdue variants.
   - [x] Add non-cumulative runtime regression tests in `tests/test_badge_target_types.py` for all-scope tracking normalization, rollover/start-date correctness, precision/day-marker persistence, status transitions, and current-cycle re-award guard.
-  - [ ] Add manager integration tests (new or existing workflow file, e.g., `tests/test_workflow_*.py`) covering pending queue + event-driven re-evaluation (`chore_approved`, `chore_disapproved`, `chore_overdue`, midnight rollover).
-  - [ ] Add dedicated tests for achievement/challenge mapped targets and lifecycle differences; include badge-award-count achievement case.
-  - [ ] Keep cumulative suite as regression gate (`tests/test_badge_cumulative.py`) and verify no expected behavior changes.
-  - [ ] Run and record validation sequence:
+  - [x] Add manager integration tests (new or existing workflow file, e.g., `tests/test_workflow_*.py`) covering pending queue + event-driven re-evaluation (`chore_approved`, `chore_disapproved`, `chore_overdue`, midnight rollover).
+  - [x] Add dedicated tests for achievement/challenge mapped targets and lifecycle differences; include badge-award-count achievement case.
+  - [x] Keep cumulative suite as regression gate (`tests/test_badge_cumulative.py`) and verify no expected behavior changes.
+  - [x] Run and record validation sequence:
     - `./utils/quick_lint.sh --fix`
     - `mypy custom_components/choreops/`
     - `python -m pytest tests/ -v --tb=line`
@@ -246,6 +311,10 @@ No new source type should duplicate criterion handlers or progress mutation logi
   - `tests/test_gamification_engine.py`: ✅ targeted suite passed after idempotency + due-only/no-overdue additions
   - `tests/test_badge_target_types.py`: ✅ 16 passed
   - `tests/test_badge_cumulative.py`: ✅ 15 passed (rerun after non-cumulative fixes)
+  - `python -m pytest tests/test_gamification_engine.py tests/test_workflow_gamification_pending_queue.py -q`: ✅ `39 passed`
+  - `python -m pytest tests/test_workflow_gamification_pending_queue.py -q`: ✅ `7 passed`
+  - `python -m pytest tests/ -v --tb=line`: ✅ `1439 passed, 2 skipped, 2 deselected`
+  - `./utils/quick_lint.sh --fix`: ✅ Ruff + MyPy + boundary checks passed
 - **Full validation gates before completion**:
   - `./utils/quick_lint.sh --fix`
   - `mypy custom_components/choreops/`

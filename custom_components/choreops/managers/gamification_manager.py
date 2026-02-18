@@ -43,6 +43,7 @@ if TYPE_CHECKING:
         BadgeData,
         CanonicalTargetDefinition,
         ChallengeData,
+        ChallengeProgress,
         EvaluationContext,
         EvaluationResult,
         KidBadgeProgress,
@@ -216,11 +217,8 @@ class GamificationManager(BaseManager):
             payload: Event data (unused)
         """
         const.LOGGER.debug(
-            "GamificationManager: Processing STATS_READY - updating badge references"
+            "GamificationManager: Processing STATS_READY - signaling ready"
         )
-
-        # Initialize badge references in kid chore tracking
-        self.update_chore_badge_references_for_kid()
 
         # Signal cascade complete
         self.emit(const.SIGNAL_SUFFIX_GAMIFICATION_READY)
@@ -1046,6 +1044,15 @@ class GamificationManager(BaseManager):
             badge_id,
             badge_data,
         )
+        target_metadata = GamificationEngine.get_periodic_target_metadata(
+            str(canonical_target.get("source_raw_type", ""))
+        )
+        if target_metadata is None:
+            const.LOGGER.warning(
+                "Skipping periodic badge evaluation for badge %s due to unknown target type",
+                badge_id,
+            )
+            return
 
         # Ensure periodic badge progress structure exists before evaluation.
         self._ensure_kid_periodic_badge_structures(kid_id, badge_id, badge_data)
@@ -1107,81 +1114,19 @@ class GamificationManager(BaseManager):
         target = cast("dict[str, Any]", badge_data.get(const.DATA_BADGE_TARGET, {}))
         target_type = str(target.get(const.DATA_BADGE_TARGET_TYPE, ""))
 
-        canonical_type: str = "daily_completion"
-        use_due_only_scope = False
-        require_no_overdue = False
-        min_count_required: int | None = None
-        percent_required: float | None = None
+        target_metadata = GamificationEngine.get_periodic_target_metadata(target_type)
+        canonical_type = (
+            str(target_metadata.get("canonical_type"))
+            if target_metadata is not None
+            else "unknown_target"
+        )
 
-        if target_type == const.BADGE_TARGET_THRESHOLD_TYPE_POINTS:
-            canonical_type = "points"
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES:
-            canonical_type = "points_chores"
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT:
-            canonical_type = "chore_count"
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES:
-            canonical_type = "daily_completion"
-            percent_required = 1.0
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_CHORES:
-            canonical_type = "daily_completion"
-            percent_required = 0.8
-        elif (
-            target_type
-            == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES_NO_OVERDUE
-        ):
-            canonical_type = "daily_completion_no_overdue"
-            percent_required = 1.0
-            require_no_overdue = True
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES:
-            canonical_type = "daily_completion_due"
-            percent_required = 1.0
-            use_due_only_scope = True
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_DUE_CHORES:
-            canonical_type = "daily_completion_due"
-            percent_required = 0.8
-            use_due_only_scope = True
-        elif (
-            target_type
-            == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES_NO_OVERDUE
-        ):
-            canonical_type = "daily_completion_due_no_overdue"
-            percent_required = 1.0
-            use_due_only_scope = True
-            require_no_overdue = True
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_3_CHORES:
-            canonical_type = "daily_minimum"
-            min_count_required = 3
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES:
-            canonical_type = "daily_minimum"
-            min_count_required = 5
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_7_CHORES:
-            canonical_type = "daily_minimum"
-            min_count_required = 7
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES:
-            canonical_type = "streak"
-            percent_required = 1.0
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES:
-            canonical_type = "streak"
-            percent_required = 0.8
-        elif (
-            target_type
-            == const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE
-        ):
-            canonical_type = "streak_no_overdue"
-            percent_required = 1.0
-            require_no_overdue = True
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES:
-            canonical_type = "streak_due"
-            percent_required = 0.8
-            use_due_only_scope = True
-        elif (
-            target_type
-            == const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE
-        ):
-            canonical_type = "streak_due_no_overdue"
-            percent_required = 1.0
-            use_due_only_scope = True
-            require_no_overdue = True
+        if target_metadata is None:
+            const.LOGGER.warning(
+                "Unknown periodic badge target type '%s' for badge %s",
+                target_type,
+                badge_id,
+            )
 
         mapped_target: CanonicalTargetDefinition = {
             "target_type": cast("Any", canonical_type),
@@ -1196,14 +1141,19 @@ class GamificationManager(BaseManager):
             ),
         }
 
-        if use_due_only_scope:
+        if target_metadata is None:
+            return mapped_target
+
+        if target_metadata.get("use_due_only_scope"):
             mapped_target["use_due_only_scope"] = True
-        if require_no_overdue:
+        if target_metadata.get("require_no_overdue"):
             mapped_target["require_no_overdue"] = True
+        min_count_required = target_metadata.get("min_count_required")
         if min_count_required is not None:
-            mapped_target["min_count_required"] = min_count_required
+            mapped_target["min_count_required"] = int(min_count_required)
+        percent_required = target_metadata.get("percent_required")
         if percent_required is not None:
-            mapped_target["percent_required"] = percent_required
+            mapped_target["percent_required"] = float(percent_required)
 
         return mapped_target
 
@@ -1636,6 +1586,15 @@ class GamificationManager(BaseManager):
             target = cast("dict[str, Any]", badge_data.get(const.DATA_BADGE_TARGET, {}))
             target_type = target.get(const.DATA_BADGE_TARGET_TYPE)
 
+        target_metadata = GamificationEngine.get_periodic_target_metadata(
+            str(target_type)
+        )
+        persist_bucket = (
+            str(target_metadata.get("persist_bucket"))
+            if target_metadata is not None
+            else "unknown"
+        )
+
         criterion_results = result.get("criterion_results", [])
         criterion_current_value = 0.0
         if criterion_results:
@@ -1643,10 +1602,7 @@ class GamificationManager(BaseManager):
                 criterion_results[0].get("current_value", 0.0)
             )
 
-        if target_type in (
-            const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
-            const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES,
-        ):
+        if persist_bucket == "points_cycle":
             if (
                 float(
                     progress.get(const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
@@ -1664,7 +1620,7 @@ class GamificationManager(BaseManager):
                     progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
                     changed = True
 
-        elif target_type == const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT:
+        elif persist_bucket == "chores_cycle":
             chores_count = int(criterion_current_value)
             if (
                 int(progress.get(const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0))
@@ -1681,22 +1637,7 @@ class GamificationManager(BaseManager):
                     progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
                     changed = True
 
-        elif target_type in (
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES_NO_OVERDUE,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_DUE_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES_NO_OVERDUE,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_3_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_7_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES,
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
-        ):
+        elif persist_bucket == "days_cycle":
             previous_days = int(
                 progress.get(const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
             )
@@ -1714,6 +1655,12 @@ class GamificationManager(BaseManager):
                 if previous_update_day != today_iso:
                     progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
                     changed = True
+
+        elif persist_bucket == "unknown":
+            const.LOGGER.warning(
+                "Skipping periodic badge progress persistence for unknown target type '%s'",
+                target_type,
+            )
 
         return changed
 
@@ -2163,9 +2110,27 @@ class GamificationManager(BaseManager):
             # Achievements are permanent - no re-evaluation needed
             return
 
-        # Cast TypedDict to dict for engine (engine expects generic dict)
-        achievement_dict = cast("dict[str, Any]", achievement_data)
-        result = GamificationEngine.evaluate_achievement(context, achievement_dict)
+        canonical_target = self._map_achievement_to_canonical_target(
+            kid_id,
+            achievement_id,
+            achievement_data,
+            kid_progress,
+        )
+        runtime_context = self._build_source_runtime_context(
+            context,
+            kid_id=kid_id,
+            canonical_target=canonical_target,
+            current_achievement_progress=kid_progress,
+        )
+        result = GamificationEngine.evaluate_canonical_target(
+            runtime_context,
+            entity_id=achievement_id,
+            entity_name=str(
+                achievement_data.get(const.DATA_ACHIEVEMENT_NAME, "Unknown Achievement")
+            ),
+            entity_type="achievement",
+            canonical_target=canonical_target,
+        )
 
         # Apply result
         await self._apply_achievement_result(
@@ -2237,12 +2202,178 @@ class GamificationManager(BaseManager):
             # Challenges can only be completed once
             return
 
-        # Cast TypedDict to dict for engine (engine expects generic dict)
-        challenge_dict = cast("dict[str, Any]", challenge_data)
-        result = GamificationEngine.evaluate_challenge(context, challenge_dict)
+        today_iso = str(context.get("today_iso", dt_today_iso()))
+        start_date = str(challenge_data.get(const.DATA_CHALLENGE_START_DATE, ""))
+        end_date = str(challenge_data.get(const.DATA_CHALLENGE_END_DATE, ""))
+
+        # Lifecycle wrapper ownership stays in manager: only active-window
+        # challenges are evaluated.
+        if start_date and today_iso < start_date[:10]:
+            return
+        if end_date and today_iso > end_date[:10]:
+            return
+
+        canonical_target = self._map_challenge_to_canonical_target(
+            kid_id,
+            challenge_id,
+            challenge_data,
+        )
+        runtime_context = self._build_source_runtime_context(
+            context,
+            kid_id=kid_id,
+            canonical_target=canonical_target,
+            current_challenge_progress=kid_progress,
+        )
+        result = GamificationEngine.evaluate_canonical_target(
+            runtime_context,
+            entity_id=challenge_id,
+            entity_name=str(
+                challenge_data.get(const.DATA_CHALLENGE_NAME, "Unknown Challenge")
+            ),
+            entity_type="challenge",
+            canonical_target=canonical_target,
+        )
 
         # Apply result
         await self._apply_challenge_result(kid_id, challenge_id, challenge_data, result)
+
+    def _map_achievement_to_canonical_target(
+        self,
+        kid_id: str,
+        achievement_id: str,
+        achievement_data: AchievementData,
+        kid_progress: AchievementProgress | dict[str, Any],
+    ) -> CanonicalTargetDefinition:
+        """Map Achievement Item definitions to canonical target definitions."""
+        raw_type = str(achievement_data.get(const.DATA_ACHIEVEMENT_TYPE, ""))
+        canonical_type = str(
+            const.ACHIEVEMENT_TO_CANONICAL_TARGET_MAP.get(raw_type, "unknown_target")
+        )
+        source_badge_id = str(
+            achievement_data.get(const.DATA_ACHIEVEMENT_SOURCE_BADGE_ID, "")
+        )
+        kid_data = self.coordinator.kids_data.get(kid_id)
+        kid_badges_earned = (
+            kid_data.get(const.DATA_KID_BADGES_EARNED, {}) if kid_data else {}
+        )
+
+        if (
+            raw_type == const.ACHIEVEMENT_TYPE_TOTAL
+            and source_badge_id
+            and source_badge_id in kid_badges_earned
+        ):
+            canonical_type = const.CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT
+
+        mapped: CanonicalTargetDefinition = {
+            "target_type": cast("Any", canonical_type),
+            "threshold_value": float(
+                achievement_data.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 0.0)
+            ),
+            "source_entity_type": "achievement",
+            "source_item_id": achievement_id,
+            "source_raw_type": raw_type,
+            "baseline_value": float(
+                cast("Any", kid_progress).get(const.DATA_ACHIEVEMENT_BASELINE, 0)
+            ),
+        }
+        selected_chore_id = str(
+            achievement_data.get(const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID, "")
+        )
+        if selected_chore_id:
+            kid_assigned_chores = self._get_kid_assigned_chores(kid_id)
+            mapped["tracked_chore_ids"] = (
+                [selected_chore_id] if selected_chore_id in kid_assigned_chores else []
+            )
+        if source_badge_id:
+            mapped["source_badge_id"] = source_badge_id
+        return mapped
+
+    def _map_challenge_to_canonical_target(
+        self,
+        kid_id: str,
+        challenge_id: str,
+        challenge_data: ChallengeData,
+    ) -> CanonicalTargetDefinition:
+        """Map Challenge Item definitions to canonical target definitions."""
+        raw_type = str(challenge_data.get(const.DATA_CHALLENGE_TYPE, ""))
+        canonical_type = str(
+            const.CHALLENGE_TO_CANONICAL_TARGET_MAP.get(raw_type, "unknown_target")
+        )
+
+        mapped: CanonicalTargetDefinition = {
+            "target_type": cast("Any", canonical_type),
+            "threshold_value": float(
+                challenge_data.get(const.DATA_CHALLENGE_TARGET_VALUE, 0.0)
+            ),
+            "source_entity_type": "challenge",
+            "source_item_id": challenge_id,
+            "source_raw_type": raw_type,
+        }
+        selected_chore_id = str(
+            challenge_data.get(const.DATA_CHALLENGE_SELECTED_CHORE_ID, "")
+        )
+        if selected_chore_id:
+            kid_assigned_chores = self._get_kid_assigned_chores(kid_id)
+            mapped["tracked_chore_ids"] = (
+                [selected_chore_id] if selected_chore_id in kid_assigned_chores else []
+            )
+        return mapped
+
+    def _build_source_runtime_context(
+        self,
+        base_context: EvaluationContext,
+        *,
+        kid_id: str,
+        canonical_target: CanonicalTargetDefinition,
+        current_achievement_progress: AchievementProgress
+        | dict[str, Any]
+        | None = None,
+        current_challenge_progress: ChallengeProgress | dict[str, Any] | None = None,
+    ) -> EvaluationContext:
+        """Build runtime context for canonical source target evaluation."""
+        runtime_context = cast("EvaluationContext", dict(base_context))
+        today_iso = str(base_context.get("today_iso", dt_today_iso()))
+        tracked_chores_from_target = canonical_target.get("tracked_chore_ids")
+        if isinstance(tracked_chores_from_target, list):
+            tracked_chores = tracked_chores_from_target
+        else:
+            tracked_chores = self._get_kid_assigned_chores(kid_id)
+
+        runtime_context["today_stats"] = (
+            self.coordinator.statistics_manager.get_badge_scoped_today_stats(
+                kid_id,
+                tracked_chores,
+                today_iso=today_iso,
+                current_badge_progress=None,
+            )
+        )
+        runtime_context["today_completion"] = (
+            self.coordinator.statistics_manager.get_badge_scoped_today_completion(
+                kid_id,
+                tracked_chores,
+                today_iso=today_iso,
+                only_due_today=False,
+            )
+        )
+        runtime_context["today_completion_due"] = (
+            self.coordinator.statistics_manager.get_badge_scoped_today_completion(
+                kid_id,
+                tracked_chores,
+                today_iso=today_iso,
+                only_due_today=True,
+            )
+        )
+
+        if current_achievement_progress is not None:
+            runtime_context["current_achievement_progress"] = cast(
+                "Any", current_achievement_progress
+            )
+        if current_challenge_progress is not None:
+            runtime_context["current_challenge_progress"] = cast(
+                "Any", current_challenge_progress
+            )
+
+        return runtime_context
 
     async def _apply_challenge_result(
         self,
@@ -2547,12 +2678,7 @@ class GamificationManager(BaseManager):
 
         # OPTIMIZATION: Use pre-computed list if provided, otherwise compute
         if kid_assigned_chores is None:
-            kid_assigned_chores = []
-            # Get all chores assigned to this kid
-            for chore_id, chore_info in self.coordinator.chores_data.items():
-                chore_assigned_to = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-                if not chore_assigned_to or kid_id in chore_assigned_to:
-                    kid_assigned_chores.append(chore_id)
+            kid_assigned_chores = self._get_kid_assigned_chores(kid_id)
 
         # If badge does not include tracked chores, return empty list
         if include_tracked_chores:
@@ -2572,6 +2698,15 @@ class GamificationManager(BaseManager):
             return kid_assigned_chores
         # Badge does not include tracked chores component, return empty list
         return []
+
+    def _get_kid_assigned_chores(self, kid_id: str) -> list[str]:
+        """Return all chore IDs currently assigned to the kid."""
+        kid_assigned_chores: list[str] = []
+        for chore_id, chore_info in self.coordinator.chores_data.items():
+            chore_assigned_to = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            if not chore_assigned_to or kid_id in chore_assigned_to:
+                kid_assigned_chores.append(chore_id)
+        return kid_assigned_chores
 
     def get_cumulative_badge_levels(
         self, kid_id: str
@@ -2775,7 +2910,8 @@ class GamificationManager(BaseManager):
         if badge_id not in badges_earned:
             # Create new badge tracking entry with empty periods (Landlord creates structure only)
             # StatisticsEngine creates daily/weekly/monthly/yearly keys on-demand
-            # award_count stored ONLY in periods.all_time.all_time (Tenant writes)
+            # Top-level award_count is manager-owned for periodic re-awards.
+            # Tenant-owned period aggregates remain in periods buckets.
             badges_earned[badge_id] = {  # pyright: ignore[reportArgumentType]
                 const.DATA_KID_BADGES_EARNED_NAME: badge_info.get(
                     const.DATA_BADGE_NAME, ""
@@ -2790,7 +2926,8 @@ class GamificationManager(BaseManager):
             )
         else:
             # Update existing badge tracking (Landlord updates metadata fields only)
-            # award_count increment handled by Tenant (periods.all_time.all_time)
+            # award_count increment for periodic re-award is manager-owned.
+            # Tenant-owned period aggregates are still handled in periods buckets.
             tracking_entry = badges_earned[badge_id]
             tracking_entry[const.DATA_KID_BADGES_EARNED_NAME] = badge_info.get(
                 const.DATA_BADGE_NAME, ""
@@ -2872,7 +3009,10 @@ class GamificationManager(BaseManager):
     ) -> None:
         """Update badge reference lists in kid chore data.
 
-        Maintains a list of which badges reference each chore for quick lookups.
+        Legacy helper retained for diagnostics and migration parity.
+
+        Runtime badge evaluation resolves scope dynamically from badge definitions,
+        so startup no longer materializes `badge_refs` snapshots.
 
         Args:
             include_cumulative_badges: Include cumulative badges in references.

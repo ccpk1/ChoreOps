@@ -26,12 +26,17 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from .. import const
 
 if TYPE_CHECKING:
-    from ..type_defs import CriterionResult, EvaluationContext, EvaluationResult
+    from ..type_defs import (
+        CanonicalTargetDefinition,
+        CriterionResult,
+        EvaluationContext,
+        EvaluationResult,
+    )
 
 
 # =============================================================================
@@ -98,6 +103,16 @@ class GamificationEngine:
     # Maps badge target_type to handler function
     # Handlers are registered as static methods below
     _CRITERION_HANDLERS: dict[str, CriterionHandler] = {}
+    _PERIODIC_TARGET_METADATA: dict[str, dict[str, Any]] = {}
+
+    @classmethod
+    def get_periodic_target_metadata(
+        cls,
+        target_type: str,
+    ) -> dict[str, Any] | None:
+        """Return canonical periodic target metadata for a raw target type."""
+        cls._register_handlers()
+        return cls._PERIODIC_TARGET_METADATA.get(target_type)
 
     @classmethod
     def _register_handlers(cls) -> None:
@@ -109,61 +124,173 @@ class GamificationEngine:
         if cls._CRITERION_HANDLERS:
             return  # Already registered
 
+        target_specs: list[tuple[str, CriterionHandler, dict[str, Any]]] = [
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
+                cls._evaluate_points,
+                {
+                    "canonical_type": "points",
+                    "persist_bucket": "points_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES,
+                cls._evaluate_points_from_chores,
+                {
+                    "canonical_type": "points_chores",
+                    "persist_bucket": "points_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT,
+                cls._evaluate_chore_count,
+                {
+                    "canonical_type": "chore_count",
+                    "persist_bucket": "chores_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES,
+                cls._evaluate_daily_completion_all,
+                {
+                    "canonical_type": "daily_completion",
+                    "percent_required": 1.0,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_CHORES,
+                cls._evaluate_daily_completion_80pct,
+                {
+                    "canonical_type": "daily_completion",
+                    "percent_required": 0.8,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES_NO_OVERDUE,
+                cls._evaluate_daily_completion_no_overdue,
+                {
+                    "canonical_type": "daily_completion_no_overdue",
+                    "percent_required": 1.0,
+                    "require_no_overdue": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES,
+                cls._evaluate_daily_due_all,
+                {
+                    "canonical_type": "daily_completion_due",
+                    "percent_required": 1.0,
+                    "use_due_only_scope": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_DUE_CHORES,
+                cls._evaluate_daily_due_80pct,
+                {
+                    "canonical_type": "daily_completion_due",
+                    "percent_required": 0.8,
+                    "use_due_only_scope": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES_NO_OVERDUE,
+                cls._evaluate_daily_due_no_overdue,
+                {
+                    "canonical_type": "daily_completion_due_no_overdue",
+                    "percent_required": 1.0,
+                    "use_due_only_scope": True,
+                    "require_no_overdue": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_3_CHORES,
+                cls._evaluate_daily_min_3,
+                {
+                    "canonical_type": "daily_minimum",
+                    "min_count_required": 3,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES,
+                cls._evaluate_daily_min_5,
+                {
+                    "canonical_type": "daily_minimum",
+                    "min_count_required": 5,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_7_CHORES,
+                cls._evaluate_daily_min_7,
+                {
+                    "canonical_type": "daily_minimum",
+                    "min_count_required": 7,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES,
+                cls._evaluate_streak_all,
+                {
+                    "canonical_type": "completion_streak",
+                    "percent_required": 1.0,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES,
+                cls._evaluate_streak_80pct,
+                {
+                    "canonical_type": "completion_streak",
+                    "percent_required": 0.8,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE,
+                cls._evaluate_streak_no_overdue,
+                {
+                    "canonical_type": "completion_streak_no_overdue",
+                    "percent_required": 1.0,
+                    "require_no_overdue": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES,
+                cls._evaluate_streak_due_80pct,
+                {
+                    "canonical_type": "completion_streak_due",
+                    "percent_required": 0.8,
+                    "use_due_only_scope": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+            (
+                const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE,
+                cls._evaluate_streak_due_no_overdue,
+                {
+                    "canonical_type": "completion_streak_due_no_overdue",
+                    "percent_required": 1.0,
+                    "use_due_only_scope": True,
+                    "require_no_overdue": True,
+                    "persist_bucket": "days_cycle",
+                },
+            ),
+        ]
+
         cls._CRITERION_HANDLERS = {
-            # Points-based
-            const.BADGE_TARGET_THRESHOLD_TYPE_POINTS: cls._evaluate_points,
-            const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES: (
-                cls._evaluate_points_from_chores
-            ),
-            # Chore count
-            const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT: cls._evaluate_chore_count,
-            # Daily completion variants (all tracked chores)
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES: (
-                cls._evaluate_daily_completion_all
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_CHORES: (
-                cls._evaluate_daily_completion_80pct
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_CHORES_NO_OVERDUE: (
-                cls._evaluate_daily_completion_no_overdue
-            ),
-            # Daily completion variants (due today only)
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES: (
-                cls._evaluate_daily_due_all
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_80PCT_DUE_CHORES: (
-                cls._evaluate_daily_due_80pct
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_SELECTED_DUE_CHORES_NO_OVERDUE: (
-                cls._evaluate_daily_due_no_overdue
-            ),
-            # Daily completion variants (minimum count)
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_3_CHORES: (
-                cls._evaluate_daily_min_3
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES: (
-                cls._evaluate_daily_min_5
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_7_CHORES: (
-                cls._evaluate_daily_min_7
-            ),
-            # Streak variants (all tracked chores)
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES: (
-                cls._evaluate_streak_all
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_CHORES: (
-                cls._evaluate_streak_80pct
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_CHORES_NO_OVERDUE: (
-                cls._evaluate_streak_no_overdue
-            ),
-            # Streak variants (due today only)
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_80PCT_DUE_CHORES: (
-                cls._evaluate_streak_due_80pct
-            ),
-            const.BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE: (
-                cls._evaluate_streak_due_no_overdue
-            ),
+            target_type: handler for target_type, handler, _meta in target_specs
+        }
+        cls._PERIODIC_TARGET_METADATA = {
+            target_type: dict(meta) for target_type, _handler, meta in target_specs
         }
 
     # =========================================================================
@@ -293,68 +420,62 @@ class GamificationEngine:
         achievement_name = achievement_data.get(
             const.DATA_ACHIEVEMENT_NAME, "Unknown Achievement"
         )
-        achievement_type = achievement_data.get(const.DATA_ACHIEVEMENT_TYPE)
-        threshold = achievement_data.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 0)
+        achievement_type = str(achievement_data.get(const.DATA_ACHIEVEMENT_TYPE, ""))
+        threshold = float(
+            achievement_data.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 0.0)
+        )
 
         # Get kid's achievement tracking data from context
         # This is per-kid progress keyed by kid_id within achievement_progress
         kid_id: str = context.get("kid_id") or ""
         achievement_progress: dict[str, Any] = context.get("achievement_progress") or {}
-        tracking: dict[str, Any] = (
-            achievement_progress.get(achievement_id, {}).get(kid_id) or {}
+        tracking_raw = achievement_progress.get(achievement_id, {})
+        if isinstance(tracking_raw, dict) and kid_id in tracking_raw:
+            nested_tracking = tracking_raw.get(kid_id)
+            if isinstance(nested_tracking, dict):
+                tracking = nested_tracking
+            else:
+                tracking = {}
+        elif isinstance(tracking_raw, dict):
+            tracking = tracking_raw
+        else:
+            tracking = {}
+
+        source_badge_id = str(
+            achievement_data.get(const.DATA_ACHIEVEMENT_SOURCE_BADGE_ID, "")
         )
 
-        # Get pre-computed stats from context
-        today_stats: dict[str, Any] = context.get("today_stats") or {}
+        canonical_type = const.ACHIEVEMENT_TO_CANONICAL_TARGET_MAP.get(
+            achievement_type,
+            "unknown_target",
+        )
+        if (
+            achievement_type == const.ACHIEVEMENT_TYPE_TOTAL
+            and source_badge_id
+            and source_badge_id in (context.get("badges_earned") or {})
+        ):
+            canonical_type = const.CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT
 
-        # Calculate progress based on type
-        current_value = 0
-        progress = 0.0
-        criteria_met = False
-        reason = ""
+        runtime_context = cast("EvaluationContext", dict(context))
+        runtime_context["current_achievement_progress"] = cast("Any", tracking)
 
-        if achievement_type == const.ACHIEVEMENT_TYPE_STREAK:
-            current_value = tracking.get(const.DATA_KID_CURRENT_STREAK, 0)
-            progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
-            criteria_met = current_value >= threshold
-            reason = f"Streak: {current_value}/{threshold} days"
+        canonical_target: CanonicalTargetDefinition = {
+            "target_type": cast("Any", canonical_type),
+            "threshold_value": threshold,
+            "source_entity_type": "achievement",
+            "source_item_id": achievement_id,
+            "source_raw_type": achievement_type,
+            "baseline_value": float(tracking.get(const.DATA_ACHIEVEMENT_BASELINE, 0)),
+        }
+        if source_badge_id:
+            canonical_target["source_badge_id"] = source_badge_id
 
-        elif achievement_type == const.ACHIEVEMENT_TYPE_TOTAL:
-            # Total is delta from baseline
-            baseline = tracking.get(const.DATA_ACHIEVEMENT_BASELINE, 0)
-            current_total = cls._get_achievement_total(context, achievement_data)
-            current_value = current_total - baseline
-            progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
-            criteria_met = current_value >= threshold
-            reason = f"Total: {current_value}/{threshold}"
-
-        elif achievement_type == const.ACHIEVEMENT_TYPE_DAILY_MIN:
-            # Check if today meets minimum
-            today_approved = today_stats.get("today_approved", 0)
-            current_value = today_approved
-            progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
-            criteria_met = current_value >= threshold
-            reason = f"Today: {current_value}/{threshold}"
-
-        else:
-            reason = f"Unknown achievement type: {achievement_type}"
-
-        return cls._make_result(
+        return cls.evaluate_canonical_target(
+            runtime_context,
             entity_id=achievement_id,
             entity_name=achievement_name,
             entity_type="achievement",
-            criteria_met=criteria_met,
-            overall_progress=progress,
-            criterion_results=[
-                cls._make_criterion_result(
-                    criterion_type=achievement_type or "unknown",
-                    met=criteria_met,
-                    progress=progress,
-                    threshold=threshold,
-                    current_value=current_value,
-                    reason=reason,
-                )
-            ],
+            canonical_target=canonical_target,
         )
 
     @classmethod
@@ -382,8 +503,8 @@ class GamificationEngine:
         challenge_name = challenge_data.get(
             const.DATA_CHALLENGE_NAME, "Unknown Challenge"
         )
-        challenge_type = challenge_data.get(const.DATA_CHALLENGE_TYPE)
-        threshold = challenge_data.get(const.DATA_CHALLENGE_TARGET_VALUE, 0)
+        challenge_type = str(challenge_data.get(const.DATA_CHALLENGE_TYPE, ""))
+        threshold = float(challenge_data.get(const.DATA_CHALLENGE_TARGET_VALUE, 0.0))
 
         # Check date window
         start_date = challenge_data.get(const.DATA_CHALLENGE_START_DATE)
@@ -417,52 +538,139 @@ class GamificationEngine:
         # challenge_progress in context contains per-challenge, per-kid progress
         kid_id: str = context.get("kid_id") or ""
         challenge_progress: dict[str, Any] = context.get("challenge_progress") or {}
-        tracking: dict[str, Any] = (
-            challenge_progress.get(challenge_id, {}).get(kid_id) or {}
+        tracking_raw = challenge_progress.get(challenge_id, {})
+        if isinstance(tracking_raw, dict) and kid_id in tracking_raw:
+            nested_tracking = tracking_raw.get(kid_id)
+            if isinstance(nested_tracking, dict):
+                tracking = nested_tracking
+            else:
+                tracking = {}
+        elif isinstance(tracking_raw, dict):
+            tracking = tracking_raw
+        else:
+            tracking = {}
+
+        canonical_type = const.CHALLENGE_TO_CANONICAL_TARGET_MAP.get(
+            challenge_type,
+            "unknown_target",
         )
 
-        # Get pre-computed stats from context
-        today_stats: dict[str, Any] = context.get("today_stats") or {}
+        runtime_context = cast("EvaluationContext", dict(context))
+        runtime_context["current_challenge_progress"] = cast("Any", tracking)
 
-        # Calculate progress based on type
-        current_value = 0
-        progress = 0.0
-        criteria_met = False
-        reason = ""
+        canonical_target: CanonicalTargetDefinition = {
+            "target_type": cast("Any", canonical_type),
+            "threshold_value": threshold,
+            "source_entity_type": "challenge",
+            "source_item_id": challenge_id,
+            "source_raw_type": challenge_type,
+        }
 
-        if challenge_type == const.CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW:
-            # Challenges track count directly, not baseline-based
-            current_value = tracking.get(const.DATA_CHALLENGE_COUNT, 0)
-            progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
-            criteria_met = current_value >= threshold
-            reason = f"Total: {current_value}/{threshold}"
-
-        elif challenge_type == const.CHALLENGE_TYPE_DAILY_MIN:
-            today_approved = today_stats.get("today_approved", 0)
-            current_value = today_approved
-            progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
-            criteria_met = current_value >= threshold
-            reason = f"Today: {current_value}/{threshold}"
-
-        else:
-            reason = f"Unknown challenge type: {challenge_type}"
-
-        return cls._make_result(
+        return cls.evaluate_canonical_target(
+            runtime_context,
             entity_id=challenge_id,
             entity_name=challenge_name,
             entity_type="challenge",
-            criteria_met=criteria_met,
-            overall_progress=progress,
-            criterion_results=[
-                cls._make_criterion_result(
-                    criterion_type=challenge_type or "unknown",
-                    met=criteria_met,
-                    progress=progress,
-                    threshold=threshold,
-                    current_value=current_value,
-                    reason=reason,
+            canonical_target=canonical_target,
+        )
+
+    @classmethod
+    def evaluate_canonical_target(
+        cls,
+        context: EvaluationContext,
+        *,
+        entity_id: str,
+        entity_name: str,
+        entity_type: str,
+        canonical_target: CanonicalTargetDefinition,
+    ) -> EvaluationResult:
+        """Evaluate a canonical target definition for any gamification source."""
+        criterion_result = cls._evaluate_canonical_target_criterion(
+            context,
+            canonical_target,
+        )
+
+        return cls._make_result(
+            entity_id=entity_id,
+            entity_name=entity_name,
+            entity_type=entity_type,
+            criteria_met=criterion_result["met"],
+            overall_progress=criterion_result["progress"],
+            criterion_results=[criterion_result],
+            reason=criterion_result["reason"],
+        )
+
+    @staticmethod
+    def _evaluate_canonical_target_criterion(
+        context: EvaluationContext,
+        canonical_target: CanonicalTargetDefinition,
+    ) -> CriterionResult:
+        """Evaluate one canonical target and return normalized criterion result."""
+        target_type = str(canonical_target.get("target_type", "unknown_target"))
+        threshold = float(canonical_target.get("threshold_value", 0.0))
+
+        current_value = 0.0
+        reason = ""
+
+        if target_type == const.CANONICAL_TARGET_TYPE_DAILY_MINIMUM:
+            today_stats = context.get("today_stats") or {}
+            current_value = float(today_stats.get("today_approved", 0))
+            reason = f"Today: {current_value}/{threshold}"
+
+        elif target_type == const.CANONICAL_TARGET_TYPE_COMPLETION_STREAK:
+            achievement_progress = context.get("current_achievement_progress") or {}
+            current_value = float(
+                cast("dict[str, Any]", achievement_progress).get(
+                    const.DATA_KID_CURRENT_STREAK,
+                    0,
                 )
-            ],
+            )
+            reason = f"Streak: {current_value}/{threshold}"
+
+        elif target_type == const.CANONICAL_TARGET_TYPE_TOTAL_WITH_BASELINE:
+            chore_periods_all_time = context.get("chore_periods_all_time") or {}
+            baseline = float(canonical_target.get("baseline_value", 0.0))
+            total_approved = float(
+                chore_periods_all_time.get(const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0)
+            )
+            current_value = max(total_approved - baseline, 0.0)
+            reason = f"Total: {current_value}/{threshold}"
+
+        elif target_type == const.CANONICAL_TARGET_TYPE_TOTAL_WITHIN_WINDOW:
+            challenge_progress = context.get("current_challenge_progress") or {}
+            current_value = float(
+                cast("dict[str, Any]", challenge_progress).get(
+                    const.DATA_CHALLENGE_COUNT,
+                    0,
+                )
+            )
+            reason = f"Total: {current_value}/{threshold}"
+
+        elif target_type == const.CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT:
+            badges_earned = context.get("badges_earned") or {}
+            source_badge_id = str(canonical_target.get("source_badge_id", ""))
+            badge_entry = badges_earned.get(source_badge_id, {})
+            current_value = float(
+                cast("dict[str, Any]", badge_entry).get(
+                    const.DATA_KID_BADGES_EARNED_AWARD_COUNT,
+                    0,
+                )
+            )
+            reason = f"Badge awards: {current_value}/{threshold}"
+
+        else:
+            reason = f"Unknown canonical target type: {target_type}"
+
+        progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
+        criteria_met = current_value >= threshold if threshold > 0 else False
+
+        return GamificationEngine._make_criterion_result(
+            criterion_type=target_type,
+            met=criteria_met,
+            progress=progress,
+            threshold=threshold,
+            current_value=current_value,
+            reason=reason,
         )
 
     # =========================================================================

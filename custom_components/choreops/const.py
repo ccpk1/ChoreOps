@@ -946,6 +946,25 @@ ACHIEVEMENT_TYPE_TOTAL: Final = "chore_total"
 CHALLENGE_TYPE_DAILY_MIN: Final = "daily_minimum"
 CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW: Final = "total_within_window"
 
+# Canonical target type names (shared mapper/evaluator contract)
+CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT: Final = "badge_award_count"
+CANONICAL_TARGET_TYPE_COMPLETION_STREAK: Final = "completion_streak"
+CANONICAL_TARGET_TYPE_DAILY_MINIMUM: Final = "daily_minimum"
+CANONICAL_TARGET_TYPE_TOTAL_WITH_BASELINE: Final = "total_with_baseline"
+CANONICAL_TARGET_TYPE_TOTAL_WITHIN_WINDOW: Final = "total_within_window"
+
+# Source-to-canonical mapping contracts
+ACHIEVEMENT_TO_CANONICAL_TARGET_MAP: Final = {
+    ACHIEVEMENT_TYPE_DAILY_MIN: CANONICAL_TARGET_TYPE_DAILY_MINIMUM,
+    ACHIEVEMENT_TYPE_STREAK: CANONICAL_TARGET_TYPE_COMPLETION_STREAK,
+    ACHIEVEMENT_TYPE_TOTAL: CANONICAL_TARGET_TYPE_TOTAL_WITH_BASELINE,
+}
+
+CHALLENGE_TO_CANONICAL_TARGET_MAP: Final = {
+    CHALLENGE_TYPE_DAILY_MIN: CANONICAL_TARGET_TYPE_DAILY_MINIMUM,
+    CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW: CANONICAL_TARGET_TYPE_TOTAL_WITHIN_WINDOW,
+}
+
 
 # ------------------------------------------------------------------------------------------------
 # Data Keys
@@ -1705,6 +1724,7 @@ DATA_ACHIEVEMENT_PROGRESS: Final = "progress"
 DATA_ACHIEVEMENT_PROGRESS_SUFFIX: Final = "_achievement_progress"
 DATA_ACHIEVEMENT_REWARD_POINTS: Final = "reward_points"
 DATA_ACHIEVEMENT_SELECTED_CHORE_ID: Final = "selected_chore_id"
+DATA_ACHIEVEMENT_SOURCE_BADGE_ID: Final = "source_badge_id"
 DATA_ACHIEVEMENT_TARGET_VALUE: Final = "target_value"
 DATA_ACHIEVEMENT_TYPE: Final = "type"
 
