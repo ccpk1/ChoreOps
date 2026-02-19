@@ -80,7 +80,7 @@ from .helpers.entity_helpers import (
     get_item_name_or_log_error,
     get_kid_name_by_id,
     get_parent_for_shadow_kid,
-    is_shadow_kid,
+    is_user_feature_gated_profile,
     should_create_entity,
     should_create_gamification_entities,
 )
@@ -162,14 +162,14 @@ async def async_setup_entry(
         if not kid_name:
             continue
 
-        # Determine shadow kid context flags for should_create_entity()
-        is_shadow = is_shadow_kid(coordinator, kid_id)
+        # Determine profile context flags for should_create_entity()
+        is_feature_gated_profile = is_user_feature_gated_profile(coordinator, kid_id)
         gamification_enabled = should_create_gamification_entities(coordinator, kid_id)
 
         # Points counter sensor (GAMIFICATION requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_POINTS_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
         ):
             entities.append(
@@ -181,14 +181,14 @@ async def async_setup_entry(
         # Chores sensor with all stats (ALWAYS created)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_CHORES_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
         ):
             entities.append(KidChoresSensor(coordinator, entry, kid_id, kid_name))
 
         # Chore completion sensors (EXTRA requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_TOTAL_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -197,7 +197,7 @@ async def async_setup_entry(
             )
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_DAILY_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -206,7 +206,7 @@ async def async_setup_entry(
             )
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_WEEKLY_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -215,7 +215,7 @@ async def async_setup_entry(
             )
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_MONTHLY_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -226,7 +226,7 @@ async def async_setup_entry(
         # Kid Badges (displays highest cumulative badge) (GAMIFICATION requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_BADGES_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
         ):
             entities.append(KidBadgesSensor(coordinator, entry, kid_id, kid_name))
@@ -234,7 +234,7 @@ async def async_setup_entry(
         # Points earned sensors (EXTRA requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_DAILY_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -245,7 +245,7 @@ async def async_setup_entry(
             )
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_WEEKLY_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -256,7 +256,7 @@ async def async_setup_entry(
             )
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_MONTHLY_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -269,7 +269,7 @@ async def async_setup_entry(
         # Maximum points sensor (EXTRA requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_MAX_POINTS_EVER_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -282,7 +282,7 @@ async def async_setup_entry(
         # Penalty applied sensors (EXTRA requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_PENALTY_APPLIES_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -301,7 +301,7 @@ async def async_setup_entry(
         # Bonus applied sensors (EXTRA requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_BONUS_APPLIES_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -320,7 +320,7 @@ async def async_setup_entry(
         # Badge progress sensors (GAMIFICATION requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
         ):
             badge_progress_data = kid_info.get(const.DATA_KID_BADGE_PROGRESS, {})
@@ -344,7 +344,7 @@ async def async_setup_entry(
         # Achievement Progress per Kid (GAMIFICATION requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_ACHIEVEMENT_PROGRESS_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
         ):
             for achievement_id, achievement in coordinator.achievements_data.items():
@@ -371,7 +371,7 @@ async def async_setup_entry(
         # Challenge Progress per Kid (GAMIFICATION requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
         ):
             for challenge_id, challenge in coordinator.challenges_data.items():
@@ -395,7 +395,7 @@ async def async_setup_entry(
         # Highest Streak Sensor per Kid (EXTRA requirement)
         if should_create_entity(
             const.SENSOR_KC_UID_SUFFIX_KID_HIGHEST_STREAK_SENSOR,
-            is_shadow_kid=is_shadow,
+            is_feature_gated_profile=is_feature_gated_profile,
             gamification_enabled=gamification_enabled,
             extra_enabled=show_legacy_entities,
         ):
@@ -450,14 +450,16 @@ async def async_setup_entry(
 
         # For each kid with gamification enabled, create the reward status sensor
         for kid_id, kid_info in coordinator.kids_data.items():
-            is_shadow = is_shadow_kid(coordinator, kid_id)
+            is_feature_gated_profile = is_user_feature_gated_profile(
+                coordinator, kid_id
+            )
             gamification_enabled = should_create_gamification_entities(
                 coordinator, kid_id
             )
             # Skip shadow kids without gamification using unified check
             if not should_create_entity(
                 const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR,
-                is_shadow_kid=is_shadow,
+                is_feature_gated_profile=is_feature_gated_profile,
                 gamification_enabled=gamification_enabled,
             ):
                 continue
@@ -4385,12 +4387,12 @@ class KidDashboardHelperSensor(KidsChoresCoordinatorEntity, SensorEntity):
         except (KeyError, ValueError, AttributeError):
             entity_registry = None
 
-        # Shadow kid capability check - determine early to filter lists
-        is_shadow = kid_info.get(const.DATA_KID_IS_SHADOW, False)
+        # Feature-gated profile check - determine early to filter lists
+        is_feature_gated_profile = kid_info.get(const.DATA_KID_IS_SHADOW, False)
         gamification_enabled = True
         chore_workflow_enabled = True
 
-        if is_shadow:
+        if is_feature_gated_profile:
             # Get parent data to check capability flags
             parent_data = get_parent_for_shadow_kid(self.coordinator, self._kid_id)
             if parent_data:
@@ -4837,7 +4839,8 @@ class KidDashboardHelperSensor(KidsChoresCoordinatorEntity, SensorEntity):
             const.ATTR_KID_NAME: self._kid_name,
             const.ATTR_TRANSLATION_SENSOR: self._get_translation_sensor_eid(),
             "language": dashboard_language,
-            "is_shadow_kid": is_shadow,
+            "is_feature_gated_profile": is_feature_gated_profile,
+            "is_shadow_kid": is_feature_gated_profile,
             "gamification_enabled": gamification_enabled,
             "chore_workflow_enabled": chore_workflow_enabled,
         }

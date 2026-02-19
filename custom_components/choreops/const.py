@@ -341,6 +341,9 @@ SCHEMA_VERSION_STORAGE_ONLY: Final = (
 SCHEMA_VERSION_BETA4: Final = (
     44  # v0.5.0-beta4: Post-migration tweaks, only runs after schema 43 confirmed.
 )
+SCHEMA_VERSION_BETA5: Final = (
+    45  # v0.5.0-beta5: Unified users capability-model contract checkpoint.
+)
 
 # Float precision for stored numeric values (points, chore stats, etc.)
 # Prevents Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
@@ -987,6 +990,7 @@ DATA_KIDS: Final = "kids"
 DATA_LAST_CHANGE: Final = "last_change"
 DATA_NAME: Final = "name"
 DATA_PARENTS: Final = "parents"
+DATA_USERS: Final = "users"
 DATA_PENALTIES: Final = "penalties"
 DATA_PROGRESS: Final = "progress"
 DATA_REWARDS: Final = "rewards"
@@ -1263,6 +1267,20 @@ DATA_KID_REWARD_STATS_MOST_REDEEMED_MONTH: Final = "most_redeemed_month"
 DATA_KID_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
 DATA_KID_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 
+# USERS (schema 45+ capability model)
+DATA_USER_ID: Final = "user_id"
+DATA_USER_INTERNAL_ID: Final = "internal_id"
+DATA_USER_NAME: Final = "name"
+DATA_USER_HA_USER_ID: Final = "ha_user_id"
+DATA_USER_CAN_APPROVE: Final = "can_approve"
+DATA_USER_CAN_MANAGE: Final = "can_manage"
+DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
+
+# Legacy payload compatibility window (Phase 1 contract)
+COMPAT_PAYLOAD_KEY_KID_ID: Final = "kid_id"
+COMPAT_PAYLOAD_KEY_USER_ID: Final = "user_id"
+COMPAT_LEGACY_ID_WINDOW_END_SCHEMA: Final = 46
+
 # ——————————————————————————————————————————————
 # Custom Translation Settings (Dashboard & Notifications)
 # ——————————————————————————————————————————————
@@ -1463,7 +1481,10 @@ DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
 DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
 DATA_PARENT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
 DATA_PARENT_ENABLE_GAMIFICATION: Final = "enable_gamification"
-DATA_PARENT_LINKED_SHADOW_KID_ID: Final = "linked_shadow_kid_id"
+# Canonical parent-linked profile key (legacy storage key retained for compatibility)
+DATA_PARENT_LINKED_PROFILE_ID: Final = "linked_shadow_kid_id"
+# Legacy alias retained for transition compatibility
+DATA_PARENT_LINKED_SHADOW_KID_ID: Final = DATA_PARENT_LINKED_PROFILE_ID
 DATA_PARENT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 
 # Shadow Kid Markers (stored on kid entity)
@@ -2924,7 +2945,6 @@ SERVICE_SKIP_CHORE_DUE_DATE: Final = "skip_chore_due_date"
 SERVICE_SET_ROTATION_TURN: Final = "set_rotation_turn"
 SERVICE_RESET_ROTATION: Final = "reset_rotation"
 SERVICE_OPEN_ROTATION_CYCLE: Final = "open_rotation_cycle"
-SERVICE_MANAGE_SHADOW_LINK: Final = "manage_shadow_link"
 SERVICE_UPDATE_CHORE: Final = "update_chore"
 SERVICE_UPDATE_REWARD: Final = "update_reward"
 SERVICE_GENERATE_ACTIVITY_REPORT: Final = "generate_activity_report"
@@ -3086,10 +3106,6 @@ FIELD_POINTS_AWARDED = SERVICE_FIELD_CHORE_POINTS_AWARDED
 FIELD_REWARD_NAME = SERVICE_FIELD_REWARD_NAME
 FIELD_NAME = "name"  # Generic, kept for simple services
 FIELD_ACTION = SERVICE_FIELD_ACTION
-
-# Action values for manage_shadow_link service
-ACTION_LINK: Final = "link"
-ACTION_UNLINK: Final = "unlink"
 
 
 # ------------------------------------------------------------------------------------------------

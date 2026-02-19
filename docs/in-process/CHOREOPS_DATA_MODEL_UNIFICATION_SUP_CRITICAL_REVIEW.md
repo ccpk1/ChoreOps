@@ -36,6 +36,16 @@ Identify high-leverage opportunities and hidden failure modes in the Option 3 pl
 - Opportunity: write targeted migration + authorization parity tests first.
 - Value: catches regressions while refactor is still small.
 
+### 5) Use dual-read coordinator compatibility during refactor wave
+
+- Opportunity: expose temporary filtered `kids_data`/`parents_data` views from canonical `users_data`.
+- Value: managers can be migrated one-by-one without requiring a single high-risk mega-PR.
+
+### 6) Keep legacy shadow service as no-op compatibility shim first
+
+- Opportunity: remap shadow-link calls to capability toggles (`can_be_assigned`) before endpoint removal.
+- Value: existing automations remain operational while users transition to the new model.
+
 ## Critical traps and mitigations
 
 ### Trap A: Capability inference from assignment links
@@ -50,9 +60,9 @@ Identify high-leverage opportunities and hidden failure modes in the Option 3 pl
 - Risk: mixing Home Assistant `user.is_admin` runtime checks with stored capability checks creates contradictory behavior.
 - Mitigation:
   - Define strict precedence contract:
-    1) HA admin runtime override,
-    2) stored capabilities,
-    3) deny.
+    1. HA admin runtime override,
+    2. stored capabilities,
+    3. deny.
   - Apply uniformly in auth helpers and service handlers.
 
 ### Trap C: ID collision during parent merge
@@ -60,7 +70,7 @@ Identify high-leverage opportunities and hidden failure modes in the Option 3 pl
 - Risk: kid and parent IDs are generated independently today; collisions are unlikely but must be handled deterministically.
 - Mitigation:
   - During standalone parent creation in `users`, detect existing key collisions.
-  - If collision exists, generate a new ID and record a migration remap log entry.
+  - If collision exists, preserve kid-origin record as canonical (history-safe), generate new ID for parent-derived record, and record migration remap metadata.
 
 ### Trap D: Partial migration persistence
 
@@ -97,6 +107,13 @@ Identify high-leverage opportunities and hidden failure modes in the Option 3 pl
   - Migrate tests in staged batches (helpers first, migration tests second, workflow suites third).
   - Run full suite at each stage boundary, not just at the end.
 
+### Trap I: Fixture search-and-replace fallacy
+
+- Risk: bulk replacing fixture keys (`kids`→`users`) can invalidate behavior-focused tests and hide migration defects.
+- Mitigation:
+  - Build a migration fixture wrapper that runs legacy fixture payloads through real migration logic before assertions.
+  - Keep at least one untouched legacy fixture set to validate true upgrade behavior.
+
 ## Additional gaps to add to the main plan
 
 - Add explicit phase task: service schema compatibility window and deprecation schedule.
@@ -129,13 +146,13 @@ Identify high-leverage opportunities and hidden failure modes in the Option 3 pl
 
 ## Decision quality scorecard (current plan readiness)
 
-| Area | Status | Confidence | Notes |
-| --- | --- | --- | --- |
-| Strategy clarity | Strong | High | Option 3 choice and migration method are clear |
-| Role model clarity | Improved | Medium-high | Needs strict auth precedence codification |
-| Migration safety | Good | Medium | Needs collision policy + one-write atomic pattern tests |
-| API compatibility | Incomplete | Medium-low | Needs explicit compatibility/deprecation step |
-| Test readiness | Good | Medium | Sequencing is defined, workload still large |
+| Area               | Status     | Confidence  | Notes                                                   |
+| ------------------ | ---------- | ----------- | ------------------------------------------------------- |
+| Strategy clarity   | Strong     | High        | Option 3 choice and migration method are clear          |
+| Role model clarity | Improved   | Medium-high | Needs strict auth precedence codification               |
+| Migration safety   | Good       | Medium      | Needs collision policy + one-write atomic pattern tests |
+| API compatibility  | Incomplete | Medium-low  | Needs explicit compatibility/deprecation step           |
+| Test readiness     | Good       | Medium      | Sequencing is defined, workload still large             |
 
 ## Recommended immediate additions before implementation starts
 

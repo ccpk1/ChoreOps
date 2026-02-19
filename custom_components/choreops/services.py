@@ -10,21 +10,18 @@ from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
 from . import const
 from .helpers import flow_helpers, report_helpers, translation_helpers
 from .helpers.auth_helpers import (
-    is_user_authorized_for_global_action,
-    is_user_authorized_for_kid,
+    AUTH_ACTION_APPROVAL,
+    AUTH_ACTION_MANAGEMENT,
+    is_user_authorized_for_action,
 )
-from .helpers.entity_helpers import (
-    get_first_kidschores_entry,
-    get_item_id_by_name,
-    get_item_id_or_raise,
-)
+from .helpers.entity_helpers import get_first_kidschores_entry, get_item_id_or_raise
 from .utils.dt_utils import dt_parse
 
 if TYPE_CHECKING:
@@ -192,15 +189,6 @@ SKIP_CHORE_DUE_DATE_SCHEMA = vol.Schema(
         vol.Optional(const.FIELD_KID_NAME): cv.string,
         vol.Optional(const.FIELD_KID_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
-    }
-)
-
-MANAGE_SHADOW_LINK_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.FIELD_NAME): cv.string,
-        vol.Required(const.FIELD_ACTION): vol.In(
-            [const.ACTION_LINK, const.ACTION_UNLINK]
-        ),
     }
 )
 
@@ -523,148 +511,6 @@ def async_setup_services(hass: HomeAssistant):
     # ==========================================================================
     # RESET SERVICE HANDLERS
     # ==========================================================================
-
-    async def handle_manage_shadow_link(call: ServiceCall):
-        """Handle linking or unlinking a shadow kid."""
-        entry_id = get_first_kidschores_entry(hass)
-        if not entry_id:
-            const.LOGGER.warning(
-                "Manage Shadow Link: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
-            )
-            return
-
-        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        name = call.data[const.FIELD_NAME]
-        action = call.data[const.FIELD_ACTION]
-
-        # Resolve name to IDs (case-insensitive)
-        kid_id = get_item_id_by_name(coordinator, const.ENTITY_TYPE_KID, name)
-        parent_id = get_item_id_by_name(coordinator, const.ENTITY_TYPE_PARENT, name)
-
-        if action == const.ACTION_LINK:
-            # LINK: Validate kid and parent exist with matching names
-            if not kid_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_NOT_FOUND_BY_NAME,
-                    translation_placeholders={"name": name},
-                )
-            if not parent_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_PARENT_NOT_FOUND_BY_NAME,
-                    translation_placeholders={"name": name},
-                )
-
-            kid_info = coordinator.kids_data.get(kid_id)
-            parent_info = coordinator.parents_data.get(parent_id)
-
-            if not kid_info or not parent_info:
-                const.LOGGER.error(
-                    "Data mismatch: kid_id=%s, parent_id=%s", kid_id, parent_id
-                )
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
-                )
-
-            # Validate kid is not already a shadow kid
-            if kid_info.get(const.DATA_KID_IS_SHADOW, False):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_ALREADY_SHADOW,
-                    translation_placeholders={"name": name},
-                )
-
-            # Validate parent doesn't already have a different shadow kid
-            existing_shadow_id = parent_info.get(const.DATA_PARENT_LINKED_SHADOW_KID_ID)
-            if existing_shadow_id and existing_shadow_id != kid_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_PARENT_HAS_DIFFERENT_SHADOW,
-                    translation_placeholders={"name": name},
-                )
-
-            # Link: Update kid to shadow status
-            coordinator.user_manager.update_kid(
-                kid_id,
-                {
-                    const.DATA_KID_IS_SHADOW: True,
-                    const.DATA_KID_LINKED_PARENT_ID: parent_id,
-                },
-            )
-
-            # Link: Update parent (enable all chore features for shadow kid)
-            # Always enable workflow and gamification when linking
-            # This gives the parent full chore functionality through their shadow kid
-            # User can disable these later in options flow if desired
-            coordinator.user_manager.update_parent(
-                parent_id,
-                {
-                    const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: True,
-                    const.DATA_PARENT_LINKED_SHADOW_KID_ID: kid_id,
-                    const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: True,
-                    const.DATA_PARENT_ENABLE_GAMIFICATION: True,
-                },
-            )
-
-            const.LOGGER.info("Linked kid '%s' to parent '%s' as shadow", name, name)
-
-            # LINK action: Reload to update device info (model changes from Kid → Shadow Kid)
-            # Note: update_kid() and update_parent() already persisted
-            await hass.config_entries.async_reload(coordinator.config_entry.entry_id)
-
-        elif action == const.ACTION_UNLINK:
-            # UNLINK: Validate kid exists
-            if not kid_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_NOT_FOUND_BY_NAME,
-                    translation_placeholders={"name": name},
-                )
-
-            kid_info = coordinator.kids_data.get(kid_id)
-            if not kid_info:
-                const.LOGGER.error("Data mismatch: kid_id=%s", kid_id)
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
-                )
-
-            # Validate kid IS a shadow kid
-            if not kid_info.get(const.DATA_KID_IS_SHADOW, False):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_NOT_SHADOW,
-                    translation_placeholders={"name": name},
-                )
-
-            # Use UserManager's public unlink method (per Platinum Architecture)
-            # Manager handles: data modification + persist + signal emission
-            await coordinator.user_manager.unlink_shadow(kid_id)
-
-            # Update device info via device registry (avoids full reload)
-            # The kid's model changes from "Parent Profile" → "Kid Profile"
-            device_registry = dr.async_get(hass)
-            device = device_registry.async_get_device(
-                identifiers={(const.DOMAIN, kid_id)}
-            )
-            if device:
-                device_registry.async_update_device(
-                    device.id,
-                    model="Kid Profile",
-                )
-                const.LOGGER.debug(
-                    "Updated device model for unlinked kid %s to 'Kid Profile'",
-                    kid_id,
-                )
-
-    hass.services.async_register(
-        const.DOMAIN,
-        const.SERVICE_MANAGE_SHADOW_LINK,
-        handle_manage_shadow_link,
-        schema=MANAGE_SHADOW_LINK_SCHEMA,
-    )
 
     # ========================================================================
     # CHORE SERVICE HANDLERS
@@ -1033,7 +879,12 @@ def async_setup_services(hass: HomeAssistant):
             raise
 
         # Check if user is authorized
-        if user_id and not await is_user_authorized_for_kid(hass, user_id, kid_id):
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
+        ):
             const.LOGGER.warning(
                 "Claim Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
             )
@@ -1117,8 +968,10 @@ def async_setup_services(hass: HomeAssistant):
             raise HomeAssistantError("Could not resolve chore_id")
 
         # Check if user is authorized
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPROVE_CHORE
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning(
                 "Approve Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1182,8 +1035,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_DISAPPROVE_CHORE
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning(
                 "Disapprove Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1760,7 +1615,12 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_kid(hass, user_id, kid_id):
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
+        ):
             const.LOGGER.warning(
                 "Redeem Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
             )
@@ -1857,8 +1717,10 @@ def async_setup_services(hass: HomeAssistant):
             raise
 
         # Check if user is authorized
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPROVE_REWARD
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning(
                 "Approve Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1927,8 +1789,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_DISAPPROVE_REWARD
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning(
                 "Disapprove Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1995,8 +1859,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPLY_PENALTY
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning(
                 "Apply Penalty: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -2062,8 +1928,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPLY_BONUS
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning("Apply Bonus: User not authorized")
             raise HomeAssistantError(
@@ -2118,8 +1986,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_REMOVE_AWARDED_BADGES
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning("Remove Awarded Badges: User not authorized.")
             raise HomeAssistantError(
@@ -2629,7 +2499,6 @@ async def async_unload_services(hass: HomeAssistant) -> None:
         const.SERVICE_DELETE_CHORE,
         const.SERVICE_DELETE_REWARD,
         const.SERVICE_DISAPPROVE_CHORE,
-        const.SERVICE_MANAGE_SHADOW_LINK,
         const.SERVICE_REDEEM_REWARD,
         const.SERVICE_DISAPPROVE_REWARD,
         const.SERVICE_APPLY_PENALTY,

@@ -19,7 +19,7 @@ from homeassistant.util import dt as dt_util
 from . import const
 from .coordinator import KidsChoresConfigEntry, KidsChoresDataCoordinator
 from .helpers.device_helpers import create_kid_device_info_from_coordinator
-from .helpers.entity_helpers import is_shadow_kid, should_create_entity
+from .helpers.entity_helpers import is_user_feature_gated_profile, should_create_entity
 
 # Platinum requirement: Parallel Updates
 # Set to 1 (serialized) for entities that modify state
@@ -39,7 +39,7 @@ async def async_setup_entry(
         # Use registry-based creation decision for future flexibility
         if should_create_entity(
             const.DATETIME_KC_UID_SUFFIX_DATE_HELPER,
-            is_shadow_kid=is_shadow_kid(coordinator, kid_id),
+            is_feature_gated_profile=is_user_feature_gated_profile(coordinator, kid_id),
         ):
             kid_name = kid_info.get(const.DATA_KID_NAME, f"Kid {kid_id}")
             entities.append(

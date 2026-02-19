@@ -224,6 +224,18 @@ class SystemManager(BaseManager):
             migrator = PreV50Migrator(self.coordinator)
             await migrator.run_full_pre_v50_cascade(current_version)
 
+        # 1b. Schema 45 contract hook (runs before DATA_READY)
+        from ..migration_pre_v50 import async_apply_schema45_user_contract
+
+        schema45_summary = await async_apply_schema45_user_contract(self.coordinator)
+        const.LOGGER.info(
+            "SystemManager: Schema45 migration summary users=%d linked_merges=%d standalone_parents=%d collisions=%d",
+            schema45_summary["users_migrated"],
+            schema45_summary["linked_parent_merges"],
+            schema45_summary["standalone_parent_creations"],
+            schema45_summary["parent_id_collisions"],
+        )
+
         # 2. Startup Safety Net (Registry validation)
         await self.run_startup_safety_net()
         const.LOGGER.info("SystemManager: Data integrity verified")

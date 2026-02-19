@@ -47,7 +47,7 @@ if TYPE_CHECKING:
         EvaluationContext,
         EvaluationResult,
         KidBadgeProgress,
-        KidData,
+        UserData,
     )
 
 
@@ -414,7 +414,7 @@ class GamificationManager(BaseManager):
         ).get(kid_id)
         if progress_for_kid is None:
             # If it doesn't exist, initialize it with baseline from the kid's current total.
-            kid_info: KidData | dict[str, Any] = self.coordinator.kids_data.get(
+            kid_info: UserData | dict[str, Any] = self.coordinator.kids_data.get(
                 kid_id, {}
             )
             # Read approved_all_time from chore_periods.all_time bucket (v43+)
@@ -1209,7 +1209,7 @@ class GamificationManager(BaseManager):
         badge_id: str,
     ) -> bool:
         """Return True if periodic badge already has an award recorded this cycle."""
-        kid_data: KidData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
+        kid_data: UserData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
 
         badges_earned = cast(
             "dict[str, Any]", kid_data.get(const.DATA_KID_BADGES_EARNED, {})
@@ -1257,7 +1257,7 @@ class GamificationManager(BaseManager):
         kid_id = base_context["kid_id"]
         today_iso = base_context["today_iso"]
 
-        kid_data: KidData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
+        kid_data: UserData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
         badge_progress = cast(
             "dict[str, Any]",
             kid_data.get(const.DATA_KID_BADGE_PROGRESS, {}),
@@ -2466,6 +2466,10 @@ class GamificationManager(BaseManager):
                 challenge_progress[chal_id] = chal_progress[kid_id]
 
         # Build context (using cast pattern for TypedDict compatibility)
+        chore_periods = cast(
+            "dict[str, Any]",
+            kid_data.get(const.DATA_KID_CHORE_PERIODS, {}),
+        )
         context: EvaluationContext = {
             "kid_id": kid_id,
             "kid_name": kid_data.get(const.DATA_KID_NAME, "Unknown"),
@@ -2481,9 +2485,10 @@ class GamificationManager(BaseManager):
             # All-time uses nested structure: periods["all_time"]["all_time"] = {data}
             "chore_periods_all_time": cast(
                 "dict[str, Any]",
-                cast("dict[str, Any]", kid_data.get(const.DATA_KID_CHORE_PERIODS, {}))
-                .get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
-                .get(const.PERIOD_ALL_TIME, {}),
+                chore_periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}).get(
+                    const.PERIOD_ALL_TIME,
+                    {},
+                ),
             ),
             "achievement_progress": achievement_progress,
             "challenge_progress": challenge_progress,
@@ -3707,7 +3712,7 @@ class GamificationManager(BaseManager):
             badge_id: The badge's internal UUID
         """
         badge_info: BadgeData | None = self.coordinator.badges_data.get(badge_id)
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
         if not kid_info:
             const.LOGGER.error("award_badge: Kid ID '%s' not found", kid_id)
             return
@@ -3757,7 +3762,7 @@ class GamificationManager(BaseManager):
         Args:
             kid_id: The kid's internal UUID
         """
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
         if not kid_info:
             return
 
@@ -4698,7 +4703,7 @@ class GamificationManager(BaseManager):
             item_id,
         )
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        kids_data = self.coordinator.users_data
 
         # Determine which kids to process
         if kid_id:
@@ -4711,11 +4716,13 @@ class GamificationManager(BaseManager):
             if not kid_info:
                 continue
 
+            kid_info_dict = cast("dict[str, Any]", kid_info)
+
             # Reset badge-related fields from _BADGE_KID_RUNTIME_FIELDS
             for field in db._BADGE_KID_RUNTIME_FIELDS:
-                if field not in kid_info:
+                if field not in kid_info_dict:
                     continue
-                field_data = kid_info[field]
+                field_data = kid_info_dict[field]
                 if item_id and isinstance(field_data, dict):
                     # Item scope - only clear specific badge
                     field_data.pop(item_id, None)
@@ -4771,7 +4778,7 @@ class GamificationManager(BaseManager):
         )
 
         achievements_data = self.coordinator._data.get(const.DATA_ACHIEVEMENTS, {})
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        kids_data = self.coordinator.users_data
 
         # Determine which achievements to process
         if item_id:

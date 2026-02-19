@@ -2,7 +2,7 @@
 """Handles persistent data storage for the KidsChores integration.
 
 Uses Home Assistant's Storage helper to save and load chore-related data, ensuring
-the state is preserved across restarts. This includes data for kids, chores,
+the state is preserved across restarts. This includes data for users, chores,
 badges, rewards, penalties, and their statuses.
 """
 
@@ -56,17 +56,16 @@ class KidsChoresStore:
         """
         return {
             const.DATA_META: {
-                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_STORAGE_ONLY,
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA5,
                 const.DATA_META_PENDING_EVALUATIONS: [],
                 const.DATA_META_LAST_MIDNIGHT_PROCESSED: None,
             },
-            const.DATA_KIDS: {},
+            const.DATA_USERS: {},
             const.DATA_CHORES: {},
             const.DATA_BADGES: {},
             const.DATA_REWARDS: {},
             const.DATA_PENALTIES: {},
             const.DATA_BONUSES: {},
-            const.DATA_PARENTS: {},
             const.DATA_ACHIEVEMENTS: {},
             const.DATA_CHALLENGES: {},
             const.DATA_NOTIFICATIONS: {},  # Chore notification timestamps (v0.5.0+)
@@ -123,8 +122,7 @@ class KidsChoresStore:
             const.LOGGER.debug(
                 "DEBUG: Loaded existing data from storage: %s entities",
                 {
-                    "kids": len(self._data.get(const.DATA_KIDS, {})),
-                    "parents": len(self._data.get(const.DATA_PARENTS, {})),
+                    "users": len(self._data.get(const.DATA_USERS, {})),
                     "chores": len(self._data.get(const.DATA_CHORES, {})),
                     "badges": len(self._data.get(const.DATA_BADGES, {})),
                     "rewards": len(self._data.get(const.DATA_REWARDS, {})),
@@ -142,8 +140,7 @@ class KidsChoresStore:
         const.LOGGER.debug(
             "DEBUG: Storage manager data property accessed: %s entities",
             {
-                "kids": len(self._data.get(const.DATA_KIDS, {})),
-                "parents": len(self._data.get(const.DATA_PARENTS, {})),
+                "users": len(self._data.get(const.DATA_USERS, {})),
                 "chores": len(self._data.get(const.DATA_CHORES, {})),
                 "badges": len(self._data.get(const.DATA_BADGES, {})),
                 "rewards": len(self._data.get(const.DATA_REWARDS, {})),
@@ -169,8 +166,7 @@ class KidsChoresStore:
         const.LOGGER.debug(
             "DEBUG: Storage manager set_data called with: %s entities",
             {
-                "kids": len(new_data.get(const.DATA_KIDS, {})),
-                "parents": len(new_data.get(const.DATA_PARENTS, {})),
+                "users": len(new_data.get(const.DATA_USERS, {})),
                 "chores": len(new_data.get(const.DATA_CHORES, {})),
                 "badges": len(new_data.get(const.DATA_BADGES, {})),
                 "rewards": len(new_data.get(const.DATA_REWARDS, {})),

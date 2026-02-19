@@ -52,6 +52,34 @@ class UserManager(BaseManager):
         """
         return self.coordinator._data
 
+    def _kid_records(self) -> dict[str, Any]:
+        """Return mutable kid/user record bucket with users-first precedence."""
+        users = self._data.get(const.DATA_USERS)
+        if isinstance(users, dict) and users:
+            return users
+
+        kids = self._data.get(const.DATA_KIDS)
+        if isinstance(kids, dict) and kids:
+            return kids
+
+        if isinstance(users, dict):
+            return users
+
+        if isinstance(kids, dict):
+            return kids
+
+        self._data[const.DATA_USERS] = {}
+        return self._data[const.DATA_USERS]
+
+    def _parent_records(self) -> dict[str, Any]:
+        """Return mutable parent record bucket during migration window."""
+        parents = self._data.get(const.DATA_PARENTS)
+        if isinstance(parents, dict):
+            return parents
+
+        self._data[const.DATA_PARENTS] = {}
+        return self._data[const.DATA_PARENTS]
+
     async def async_setup(self) -> None:
         """Set up the user manager.
 
@@ -75,7 +103,7 @@ class UserManager(BaseManager):
             return
 
         # Clean own domain: remove deleted kid from parent associated_kids
-        parents_data = self._data.get(const.DATA_PARENTS, {})
+        parents_data = self._parent_records()
         cleaned = False
         for parent_info in parents_data.values():
             assoc_kids = parent_info.get(const.DATA_PARENT_ASSOCIATED_KIDS, [])
@@ -146,7 +174,8 @@ class UserManager(BaseManager):
             kid_id = internal_id
 
         # Ensure kids dict exists and store kid data
-        self._data.setdefault(const.DATA_KIDS, {})[kid_id] = kid_data
+        kid_records = self._kid_records()
+        kid_records[kid_id] = kid_data
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
 
@@ -178,7 +207,8 @@ class UserManager(BaseManager):
         Raises:
             HomeAssistantError: If kid not found
         """
-        if kid_id not in self._data.get(const.DATA_KIDS, {}):
+        kid_records = self._kid_records()
+        if kid_id not in kid_records:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
@@ -189,11 +219,11 @@ class UserManager(BaseManager):
             )
 
         # Merge updates into existing kid data
-        self._data[const.DATA_KIDS][kid_id].update(updates)
+        kid_records[kid_id].update(updates)
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
 
-        kid_name = self._data[const.DATA_KIDS][kid_id].get(const.DATA_KID_NAME, kid_id)
+        kid_name = kid_records[kid_id].get(const.DATA_KID_NAME, kid_id)
         const.LOGGER.info("Updated kid '%s' (ID: %s)", kid_name, kid_id)
 
         # Emit kid updated event
@@ -216,7 +246,8 @@ class UserManager(BaseManager):
         Raises:
             HomeAssistantError: If kid not found
         """
-        if kid_id not in self._data.get(const.DATA_KIDS, {}):
+        kid_records = self._kid_records()
+        if kid_id not in kid_records:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
@@ -226,20 +257,19 @@ class UserManager(BaseManager):
                 },
             )
 
-        kid_info = self._data[const.DATA_KIDS][kid_id]
+        kid_info = kid_records[kid_id]
         kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
 
         # Shadow kid handling: disable parent flag and use existing cleanup
         if kid_info.get(const.DATA_KID_IS_SHADOW, False):
             parent_id = kid_info.get(const.DATA_KID_LINKED_PARENT_ID)
-            if parent_id and parent_id in self._data.get(const.DATA_PARENTS, {}):
+            parent_records = self._parent_records()
+            if parent_id and parent_id in parent_records:
                 # Disable chore assignment on parent and clear link
-                self._data[const.DATA_PARENTS][parent_id][
-                    const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT
-                ] = False
-                self._data[const.DATA_PARENTS][parent_id][
-                    const.DATA_PARENT_LINKED_SHADOW_KID_ID
-                ] = None
+                parent_records[parent_id][const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT] = (
+                    False
+                )
+                parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = None
             # Unlink shadow kid (preserves kid + entities)
             self._unlink_shadow_kid(kid_id)
 
@@ -266,7 +296,7 @@ class UserManager(BaseManager):
             return  # Done - don't continue to normal kid deletion
 
         # Normal kid deletion continues below
-        del self._data[const.DATA_KIDS][kid_id]
+        del kid_records[kid_id]
 
         # Remove HA entities for this kid
         remove_entities_by_item_id(
@@ -346,16 +376,16 @@ class UserManager(BaseManager):
         parent_name = str(parent_data.get(const.DATA_PARENT_NAME, parent_id))
 
         # Ensure parents dict exists and store parent data
-        self._data.setdefault(const.DATA_PARENTS, {})[parent_id] = parent_data
+        parent_records = self._parent_records()
+        parent_records[parent_id] = parent_data
 
         # Create shadow kid if chore assignment is enabled
         shadow_kid_id: str | None = None
         if parent_data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False):
             shadow_kid_id = self._create_shadow_kid_for_parent(parent_id, parent_data)
-            # Link shadow kid to parent
-            self._data[const.DATA_PARENTS][parent_id][
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
-            ] = shadow_kid_id
+            parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = (
+                shadow_kid_id
+            )
 
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
@@ -391,7 +421,8 @@ class UserManager(BaseManager):
         Raises:
             HomeAssistantError: If parent not found
         """
-        if parent_id not in self._data.get(const.DATA_PARENTS, {}):
+        parent_records = self._parent_records()
+        if parent_id not in parent_records:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
@@ -401,45 +432,36 @@ class UserManager(BaseManager):
                 },
             )
 
-        parent_data = self._data[const.DATA_PARENTS][parent_id]
+        parent_data = parent_records[parent_id]
 
         # Check for shadow kid state changes
-        existing_shadow_kid_id = parent_data.get(const.DATA_PARENT_LINKED_SHADOW_KID_ID)
+        existing_shadow_kid_id = self._find_shadow_kid_for_parent(parent_id)
         was_enabled = parent_data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False)
         allow_chore_assignment = updates.get(
             const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, was_enabled
         )
 
-        # Check if caller explicitly links to an existing kid (non-None value)
-        # This skips auto-creation when services.py links a specific kid
-        # Options flow passes None (from build_parent), so auto-creation proceeds
-        explicit_shadow_link = updates.get(const.DATA_PARENT_LINKED_SHADOW_KID_ID)
-
         # Merge updates into existing parent data
-        self._data[const.DATA_PARENTS][parent_id].update(updates)
+        parent_records[parent_id].update(updates)
 
-        # Handle shadow kid creation/deletion (skip if explicit link to existing kid)
-        if allow_chore_assignment and not was_enabled and not explicit_shadow_link:
+        # Handle shadow kid creation/deletion
+        if allow_chore_assignment and not was_enabled and not existing_shadow_kid_id:
             # Enabling chore assignment - create shadow kid
             shadow_kid_id = self._create_shadow_kid_for_parent(
-                parent_id, self._data[const.DATA_PARENTS][parent_id]
+                parent_id, parent_records[parent_id]
             )
-            self._data[const.DATA_PARENTS][parent_id][
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
-            ] = shadow_kid_id
+            parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = (
+                shadow_kid_id
+            )
         elif not allow_chore_assignment and was_enabled and existing_shadow_kid_id:
             # Disabling chore assignment - unlink shadow kid (preserves data)
             self._unlink_shadow_kid(existing_shadow_kid_id)
-            self._data[const.DATA_PARENTS][parent_id][
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
-            ] = None
+            parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = None
 
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
 
-        parent_name = self._data[const.DATA_PARENTS][parent_id].get(
-            const.DATA_PARENT_NAME, parent_id
-        )
+        parent_name = parent_records[parent_id].get(const.DATA_PARENT_NAME, parent_id)
         const.LOGGER.info("Updated parent '%s' (ID: %s)", parent_name, parent_id)
 
         # Emit parent updated event
@@ -461,7 +483,8 @@ class UserManager(BaseManager):
         Raises:
             HomeAssistantError: If parent not found
         """
-        if parent_id not in self._data.get(const.DATA_PARENTS, {}):
+        parent_records = self._parent_records()
+        if parent_id not in parent_records:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
@@ -471,18 +494,18 @@ class UserManager(BaseManager):
                 },
             )
 
-        parent_data = self._data[const.DATA_PARENTS][parent_id]
+        parent_data = parent_records[parent_id]
         parent_name = parent_data.get(const.DATA_PARENT_NAME, parent_id)
 
         # Cascade unlink shadow kid if exists (preserves data)
-        shadow_kid_id = parent_data.get(const.DATA_PARENT_LINKED_SHADOW_KID_ID)
+        shadow_kid_id = self._find_shadow_kid_for_parent(parent_id)
         if shadow_kid_id:
             self._unlink_shadow_kid(shadow_kid_id)
             const.LOGGER.info(
                 "Cascade unlinked shadow kid for parent '%s'", parent_name
             )
 
-        del self._data[const.DATA_PARENTS][parent_id]
+        del parent_records[parent_id]
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self.coordinator._persist(immediate=immediate_persist)
@@ -501,6 +524,19 @@ class UserManager(BaseManager):
     # -------------------------------------------------------------------------
     # SHADOW KID HELPERS
     # -------------------------------------------------------------------------
+
+    def _find_shadow_kid_for_parent(self, parent_id: str) -> str | None:
+        """Return linked shadow kid ID for a parent based on kid records."""
+        kids = self._kid_records()
+
+        for kid_id, kid_data_raw in kids.items():
+            if not isinstance(kid_data_raw, dict):
+                continue
+            if not kid_data_raw.get(const.DATA_KID_IS_SHADOW, False):
+                continue
+            if kid_data_raw.get(const.DATA_KID_LINKED_PARENT_ID) == parent_id:
+                return kid_id
+        return None
 
     def _create_shadow_kid_for_parent(
         self, parent_id: str, parent_info: dict[str, Any]
@@ -543,7 +579,8 @@ class UserManager(BaseManager):
         shadow_kid_id = str(shadow_kid_data[const.DATA_KID_INTERNAL_ID])
 
         # Ensure kids dict exists and store shadow kid data (no persist - caller handles)
-        self._data.setdefault(const.DATA_KIDS, {})[shadow_kid_id] = shadow_kid_data
+        kid_records = self._kid_records()
+        kid_records[shadow_kid_id] = shadow_kid_data
 
         const.LOGGER.info(
             "Created shadow kid '%s' (ID: %s) for parent '%s' (ID: %s)",
@@ -568,7 +605,8 @@ class UserManager(BaseManager):
         Raises:
             ServiceValidationError: If kid not found or not a shadow kid
         """
-        if shadow_kid_id not in self._data[const.DATA_KIDS]:
+        kid_records = self._kid_records()
+        if shadow_kid_id not in kid_records:
             const.LOGGER.warning(
                 "Attempted to unlink non-existent shadow kid: %s", shadow_kid_id
             )
@@ -581,7 +619,7 @@ class UserManager(BaseManager):
                 },
             )
 
-        kid_info = self._data[const.DATA_KIDS][shadow_kid_id]
+        kid_info = kid_records[shadow_kid_id]
         kid_name = kid_info.get(const.DATA_KID_NAME, shadow_kid_id)
 
         # Verify this is actually a shadow kid
@@ -593,22 +631,20 @@ class UserManager(BaseManager):
                 translation_placeholders={"name": kid_name},
             )
 
-        # Get linked parent to clear their reference
+        # Get linked parent ID for logging context
         parent_id = kid_info.get(const.DATA_KID_LINKED_PARENT_ID)
-        if parent_id and parent_id in self._data.get(const.DATA_PARENTS, {}):
-            # Clear parent's link to this shadow kid
-            self._data[const.DATA_PARENTS][parent_id][
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
-            ] = None
+        parent_records = self._parent_records()
+        if parent_id and parent_id in parent_records:
+            parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = None
             const.LOGGER.debug("Cleared parent '%s' link to shadow kid", parent_id)
+        elif parent_id:
+            const.LOGGER.debug("Unlinking shadow kid from parent '%s'", parent_id)
 
         # Convert shadow kid to regular kid
         new_name = f"{kid_name}_unlinked"
-        self._data[const.DATA_KIDS][shadow_kid_id][const.DATA_KID_NAME] = new_name
-        self._data[const.DATA_KIDS][shadow_kid_id][const.DATA_KID_IS_SHADOW] = False
-        self._data[const.DATA_KIDS][shadow_kid_id][const.DATA_KID_LINKED_PARENT_ID] = (
-            None
-        )
+        kid_records[shadow_kid_id][const.DATA_KID_NAME] = new_name
+        kid_records[shadow_kid_id][const.DATA_KID_IS_SHADOW] = False
+        kid_records[shadow_kid_id][const.DATA_KID_LINKED_PARENT_ID] = None
 
         const.LOGGER.info(
             "Unlinked shadow kid '%s' (ID: %s) → renamed to '%s'",
@@ -634,7 +670,7 @@ class UserManager(BaseManager):
             ServiceValidationError: If kid not found or not a shadow kid
         """
         # Get kid name before unlinking for signal payload
-        kid_info = self._data.get(const.DATA_KIDS, {}).get(shadow_kid_id, {})
+        kid_info = self._kid_records().get(shadow_kid_id, {})
         kid_name = kid_info.get(const.DATA_KID_NAME, shadow_kid_id)
 
         # Perform the unlink (modifies _data)

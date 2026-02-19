@@ -17,7 +17,7 @@ Submodules:
 
 Usage:
     from . import entity_helpers
-    from .auth_helpers import is_user_authorized_for_kid
+    from .auth_helpers import is_user_authorized_for_action
     from . import flow_helpers as fh
     from . import translation_helpers as th
 """

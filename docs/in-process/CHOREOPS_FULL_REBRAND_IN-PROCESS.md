@@ -9,13 +9,13 @@
 
 ## Summary & immediate steps
 
-| Phase / Step                                   | Description                                                | % complete | Quick notes                                                                                                                                                                            |
-| ---------------------------------------------- | ---------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 – Governance & legal baseline          | Lock naming scope, legal obligations, and migration policy | 100%       | Decisions captured and validated in this phase                                                                                                                                         |
-| Phase 2 – Public-facing rebrand                | Update README/wiki/community/repo presentation             | 100%       | README + metadata + active root docs + translations + dashboard template/domain updates + utility docs/script references complete                                                      |
-| Phase 3 – GitHub automation & templates        | Rebrand workflows, issue templates, and maintainer agents  | 100%       | Workflow guards, issue templates, maintainer guides, funding/governance review, and brand-regression CI guard completed                                                                |
-| Phase 4 – Integration runtime/domain migration | Rebrand integration internals with compatibility strategy  | 100%       | Canonical identity + package path complete; continuity/fixtures/constants done; deprecation policy and PR guardrails set                                                               |
-| Phase 5 – Validation, release, and deprecation | End-to-end verification and communication rollout          | 55%        | Quality gates + focused migration/compat tests complete; workflow checks triaged and hardened for missing Crowdin secrets; HACS external prerequisites + PR-run evidence still pending |
+| Phase / Step                                   | Description                                                | % complete | Quick notes                                                                                                                                                                                |
+| ---------------------------------------------- | ---------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Phase 1 – Governance & legal baseline          | Lock naming scope, legal obligations, and migration policy | 100%       | Decisions captured and validated in this phase                                                                                                                                             |
+| Phase 2 – Public-facing rebrand                | Update README/wiki/community/repo presentation             | 100%       | README + metadata + active root docs + translations + dashboard template/domain updates + utility docs/script references complete                                                          |
+| Phase 3 – GitHub automation & templates        | Rebrand workflows, issue templates, and maintainer agents  | 100%       | Workflow guards, issue templates, maintainer guides, funding/governance review, and brand-regression CI guard completed                                                                    |
+| Phase 4 – Integration runtime/domain migration | Rebrand integration internals with compatibility strategy  | 100%       | Canonical identity + package path complete; continuity/fixtures/constants done; deprecation policy and PR guardrails set                                                                   |
+| Phase 5 – Validation, release, and deprecation | End-to-end verification and communication rollout          | 62%        | Quality gates + focused migration/compat tests complete; workflow checks triaged and hardened for missing Crowdin secrets; wiki content migrated and local wiki-isolation guardrails added |
 
 1. **Key objective** – Rebrand all project surfaces from KidsChores to ChoreOps, including the fundamental package path migration from `custom_components/kidschores` to `custom_components/choreops`, while preserving existing users through an explicit compatibility and migration strategy.
 2. **Summary of recent work**
@@ -31,6 +31,10 @@
 - Phase 4: Completed package-path migration milestone by moving integration sources to `custom_components/choreops`, adding a legacy package compatibility shim at `custom_components/kidschores/__init__.py`, and bulk-updating active import/path references.
 - Phase 4: Verified active code/test references contain no stale `custom_components.kidschores` or `custom_components/kidschores` paths except the intentional compatibility shim.
 - Phase 5: Validation gates and release checklist dependencies identified from `utils/quick_lint.sh`, `mypy`, pytest suite, and `docs/RELEASE_CHECKLIST.md`.
+- Phase 5: Added local wiki authoring guardrails by isolating wiki edits to a dedicated sibling repo (`/workspaces/choreops-wiki`) with documented workflow guidance.
+- Phase 5: Added dedicated supporting plan for wiki branding cleanup and link normalization: `docs/in-process/CHOREOPS_WIKI_REBRAND_IN-PROCESS.md`.
+- Phase 5: Wiki supporting plan now includes owner-approved Phase 1 decisions and explicit pre-phase gate approvals for Phases 2-4.
+- Phase 5: Wiki rebrand supporting plan Phase 1 is complete (style guide + baseline/permission inventory documented) and Phase 2 is ready pending Gate 2.1 approval.
 - Scope guardrails captured: domain/storage-key rename required; internal Python variable names remain unchanged to reduce regression risk.
 
 3. **Next steps (short term)**
@@ -129,6 +133,12 @@
     - For newly introduced user-facing migration/deprecation copy, add explicit `TRANS_KEY_*` constants in `custom_components/choreops/const.py` and map them in English translation files before localization sync.
   - [x] Update auxiliary utility docs and script references
     - Files: `utils/README.md`, `utils/quick_lint.sh` (workspace path reference), utility markdown docs
+  - [x] Migrate wiki content from KidsChores to ChoreOps wiki
+    - Source: `https://github.com/ad-ha/kidschores-ha/wiki`
+    - Destination: `https://github.com/ccpk1/choreops/wiki`
+    - Method: git-based wiki sync preserving page history in destination as a migration commit
+    - Validation: spot-check all migrated pages and verify key navigation pages render in destination wiki
+    - Result (2026-02-18): migrated and pushed via wiki git remotes (`ad-ha/kidschores-ha.wiki.git` → `ccpk1/ChoreOps.wiki.git`), including `Home.md` and `_Sidebar.md`
 - **Key issues**
   - Extensive link churn may create broken docs if wiki/repo targets are not created first.
   - Translation key renames can create unnecessary churn; prefer value-text updates unless required.
@@ -244,6 +254,11 @@
   - [ ] Prepare release package and communication assets
     - Update changelog/release notes with migration warnings and exact upgrade steps
     - Update wiki pages and “known impacts” section for domain/storage changes
+    - Execute supporting wiki cleanup plan: `docs/in-process/CHOREOPS_WIKI_REBRAND_IN-PROCESS.md`
+  - [x] Add local wiki authoring isolation guardrails
+    - Provisioned local wiki clone outside project repo at `/workspaces/choreops-wiki` (remote: `https://github.com/ccpk1/ChoreOps.wiki.git`)
+    - Added workspace/task and documentation guidance for isolated wiki editing and independent commit/push flow
+    - Result (2026-02-18): wiki changes no longer appear inside `choreops` repository status when editing docs locally
   - [ ] Resolve deferred dashboard template sourcing decision
     - Confirm current release-tag + bundled fallback remains final for v0.5.0 and decide whether any dynamic fallback design is needed in a later milestone.
   - [ ] Post-release monitoring and rollback window

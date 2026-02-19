@@ -58,12 +58,12 @@ if TYPE_CHECKING:
     from ..type_defs import (
         ChoreData,
         KidChoreDataEntry,
-        KidData,
         ResetApplyContext,
         ResetBoundaryCategory,
         ResetContext,
         ResetDecision,
         ResetTrigger,
+        UserData,
     )
 
 
@@ -1427,7 +1427,7 @@ class ChoreManager(BaseManager):
                 for effect in effects:
                     self._apply_effect(effect, chore_id)
                 # Clear claimed_by/completed_by using helper
-                other_kid_info: KidData | dict[str, Any] = (
+                other_kid_info: UserData | dict[str, Any] = (
                     self._coordinator.kids_data.get(other_kid_id, {})
                 )
                 other_kid_chore = ChoreEngine.get_chore_data_for_kid(
@@ -1969,8 +1969,8 @@ class ChoreManager(BaseManager):
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
             # Get kid name for signal emission
-            kid_info: KidData = cast(
-                "KidData", self._coordinator.kids_data.get(kid_id, {})
+            kid_info: UserData = cast(
+                "UserData", self._coordinator.kids_data.get(kid_id, {})
             )
             kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
 
@@ -2009,8 +2009,8 @@ class ChoreManager(BaseManager):
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
             # Get kid name for signal emission
-            kid_info: KidData = cast(
-                "KidData", self._coordinator.kids_data.get(kid_id, {})
+            kid_info: UserData = cast(
+                "UserData", self._coordinator.kids_data.get(kid_id, {})
             )
             kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
 
@@ -2404,7 +2404,7 @@ class ChoreManager(BaseManager):
                 kid_id,
                 chore_id,
             )
-            kid_info: KidData | dict[str, Any] = self._coordinator.kids_data.get(
+            kid_info: UserData | dict[str, Any] = self._coordinator.kids_data.get(
                 kid_id, {}
             )
             kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
@@ -3113,7 +3113,9 @@ class ChoreManager(BaseManager):
         Returns:
             True if approved in current period, False otherwise.
         """
-        kid_data: KidData | dict[str, Any] = self._coordinator.kids_data.get(kid_id, {})
+        kid_data: UserData | dict[str, Any] = self._coordinator.kids_data.get(
+            kid_id, {}
+        )
         kid_chore_data = ChoreEngine.get_chore_data_for_kid(kid_data, chore_id)
         if not kid_chore_data:
             return False
@@ -3160,7 +3162,7 @@ class ChoreManager(BaseManager):
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
             # INDEPENDENT: Period start is per-kid in kid_chore_data
-            kid_data: KidData | dict[str, Any] = self._coordinator.kids_data.get(
+            kid_data: UserData | dict[str, Any] = self._coordinator.kids_data.get(
                 kid_id, {}
             )
             kid_chore_data = ChoreEngine.get_chore_data_for_kid(kid_data, chore_id)
@@ -3258,7 +3260,9 @@ class ChoreManager(BaseManager):
             Number of chores with pending claims for this kid.
         """
         count = 0
-        kid_info: KidData | dict[str, Any] = self._coordinator.kids_data.get(kid_id, {})
+        kid_info: UserData | dict[str, Any] = self._coordinator.kids_data.get(
+            kid_id, {}
+        )
         chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
 
         for chore_id in chore_data:
@@ -3396,7 +3400,7 @@ class ChoreManager(BaseManager):
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        kid_data: KidData | dict[str, Any] = (
+        kid_data: UserData | dict[str, Any] = (
             self._coordinator.kids_data.get(kid_id, {}) if kid_id else {}
         )
         return ChoreEngine.get_last_completed_for_kid(chore_data, kid_data, kid_id)
@@ -3561,7 +3565,9 @@ class ChoreManager(BaseManager):
 
         Returns an empty dict if the kid or chore data doesn't exist.
         """
-        kid_info: KidData = cast("KidData", self._coordinator.kids_data.get(kid_id, {}))
+        kid_info: UserData = cast(
+            "UserData", self._coordinator.kids_data.get(kid_id, {})
+        )
         return kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
 
     def get_chore_claimant(self, chore_id: str) -> str | None:
@@ -3651,14 +3657,16 @@ class ChoreManager(BaseManager):
             kid_id: Kid UUID to ensure structure for
             chore_id: Optional chore UUID to ensure per-chore periods for
         """
-        kids = self._coordinator._data.get(const.DATA_KIDS, {})
+        kids = self._coordinator.users_data
         kid = kids.get(kid_id)
         if kid is None:
             return  # Kid not found - caller should validate first
 
+        kid_info = cast("dict[str, Any]", kid)
+
         # Kid-level chore_periods bucket (v44+)
-        if const.DATA_KID_CHORE_PERIODS not in kid:
-            kid[const.DATA_KID_CHORE_PERIODS] = {}  # Tenant populates sub-keys
+        if const.DATA_KID_CHORE_PERIODS not in kid_info:
+            kid_info[const.DATA_KID_CHORE_PERIODS] = {}  # Tenant populates sub-keys
 
         # Per-chore periods structure (if chore_id provided)
         if chore_id:
@@ -4730,7 +4738,7 @@ class ChoreManager(BaseManager):
         kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
 
         # Get kid name for notification standard
-        kid_info: KidData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
+        kid_info: UserData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
         kid_name = str(kid_info.get(const.DATA_KID_NAME, "Unknown"))
 
         # Get previous missed streak from chore data (not from daily buckets)
@@ -4888,7 +4896,9 @@ class ChoreManager(BaseManager):
         Updates DATA_CHORE_PER_KID_DUE_DATES[kid_id].
         Used for INDEPENDENT chores (each kid has own due date).
         """
-        kid_info: KidData | dict[str, Any] = self._coordinator.kids_data.get(kid_id, {})
+        kid_info: UserData | dict[str, Any] = self._coordinator.kids_data.get(
+            kid_id, {}
+        )
 
         # Get per-kid current due date
         per_kid_due_dates = chore_info.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})

@@ -431,7 +431,7 @@ async def build_parent_schema(
                     native_name=True,
                 )
             ),
-            # Parent chore capability options
+            # Parent capability toggles (assignment + feature gates)
             vol.Optional(
                 const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
                 default=False,  # Static default
@@ -467,7 +467,7 @@ def validate_parents_inputs(
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
         existing_parents: Optional dictionary of existing parents for duplicate checking.
-        existing_kids: Optional dictionary of existing kids for cross-validation.
+        existing_kids: Optional dictionary of existing user/kid records for cross-validation.
         current_parent_id: ID of parent being edited (to exclude from duplicate check).
 
     Returns:

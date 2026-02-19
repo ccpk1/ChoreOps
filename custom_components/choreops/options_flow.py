@@ -228,19 +228,19 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         entity_dict = self._get_entity_dict()
 
         # Build sorted list of entity names for consistent display order
-        # For kids, append marker to shadow kids for clarity (language-agnostic)
-        shadow_marker = " 🔗"  # Link symbol indicates parent linkage
+        # For kid records, append marker to parent-linked profiles for clarity
+        linked_profile_marker = " 🔗"  # Link symbol indicates parent linkage
         entity_names = []
         for data in entity_dict.values():
             name = data.get(
                 const.OPTIONS_FLOW_DATA_ENTITY_NAME,
                 const.TRANS_KEY_DISPLAY_UNKNOWN_ENTITY,
             )
-            # Add shadow kid marker for clarity in dropdown
+            # Add linked-profile marker for clarity in dropdown
             if self._entity_type == const.OPTIONS_FLOW_DIC_KID and data.get(
                 const.DATA_KID_IS_SHADOW, False
             ):
-                name = f"{name}{shadow_marker}"
+                name = f"{name}{linked_profile_marker}"
             entity_names.append(name)
 
         entity_names = sorted(entity_names, key=str.casefold)
@@ -249,8 +249,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             selected_name = _ensure_str(
                 user_input[const.OPTIONS_FLOW_INPUT_ENTITY_NAME]
             )
-            # Strip shadow marker when matching back to internal_id
-            match_name = selected_name.replace(shadow_marker, "")
+            # Strip marker when matching back to internal_id
+            match_name = selected_name.replace(linked_profile_marker, "")
             internal_id = next(
                 (
                     eid
@@ -500,8 +500,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Retrieve HA users for linking
         users = await self.hass.auth.async_get_users()
 
-        # Check if this is a shadow kid to show appropriate warnings
-        is_shadow_kid = kid_data.get(const.DATA_KID_IS_SHADOW, False)
+        # Check if this is a parent-linked profile to show warnings
+        is_linked_profile = kid_data.get(const.DATA_KID_IS_SHADOW, False)
 
         # Prepare suggested values for form (current kid data)
         suggested_values = {
@@ -524,8 +524,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Apply values as suggestions
         schema = self.add_suggested_values_to_schema(schema, suggested_values)
 
-        # Use different step_id for shadow kids (shows appropriate warnings)
-        if is_shadow_kid:
+        # Use different step_id for parent-linked profiles
+        if is_linked_profile:
             return self.async_show_form(
                 step_id=const.OPTIONS_FLOW_STEP_EDIT_KID_SHADOW,
                 data_schema=schema,
@@ -546,9 +546,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     async def async_step_edit_kid_shadow(self, user_input=None):
-        """Edit a shadow kid - delegates to edit_kid handler.
+        """Edit a parent-linked kid profile - delegates to edit_kid handler.
 
-        Shadow kids use a different translation key to show warnings,
+        Parent-linked profiles use a different translation key to show warnings,
         but the processing logic is identical to regular kids.
         """
         return await self.async_step_edit_kid(user_input)
@@ -599,7 +599,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             if not errors:
                 try:
-                    # Use UserManager for parent creation (handles shadow kid internally)
+                    # Use UserManager for parent creation (handles linked profile internally)
                     # Immediate persist for reload
                     internal_id = coordinator.user_manager.create_parent(
                         user_input, immediate_persist=True
@@ -620,7 +620,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Retrieve HA users and existing kids for linking
         users = await self.hass.auth.async_get_users()
-        # Build sorted kids dict for dropdown (exclude shadow kids)
+        # Build sorted kids dict for dropdown (exclude parent-linked profiles)
         kids_dict = {
             kid_data[const.DATA_KID_NAME]: kid_id
             for kid_id, kid_data in coordinator.kids_data.items()
@@ -662,8 +662,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             # Layer 2: UI validation (excludes current parent from duplicate check)
             # Note: internal_id is already validated as str above
-            # For shadow kid conflict: only check non-shadow kids
-            non_shadow_kids = {
+            # For parent-linkage conflict checks: only check non-linked kids
+            non_feature_gated_kids = {
                 kid_id: data
                 for kid_id, data in coordinator.kids_data.items()
                 if not data.get(const.DATA_KID_IS_SHADOW, False)
@@ -671,7 +671,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             errors = fh.validate_parents_inputs(
                 user_input,
                 parents_dict,
-                non_shadow_kids,
+                non_feature_gated_kids,
                 current_parent_id=str(internal_id),
             )
 
@@ -680,16 +680,16 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     # Build merged parent data using data_builders
                     updated_parent = db.build_parent(user_input, existing=parent_data)
 
-                    # Handle workflow/gamification flag changes for existing shadow kid
+                    # Handle workflow/gamification flag changes for existing linked profile
                     # This must happen BEFORE update_parent because we need old vs new comparison
-                    existing_shadow_kid_id = parent_data.get(
-                        const.DATA_PARENT_LINKED_SHADOW_KID_ID
+                    existing_linked_kid_id = parent_data.get(
+                        const.DATA_PARENT_LINKED_PROFILE_ID
                     )
                     allow_chore_assignment = user_input.get(
                         const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT, False
                     )
 
-                    if existing_shadow_kid_id and allow_chore_assignment:
+                    if existing_linked_kid_id and allow_chore_assignment:
                         old_workflow = parent_data.get(
                             const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False
                         )
@@ -710,11 +710,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         ):
                             await (
                                 coordinator.system_manager.remove_conditional_entities(
-                                    kid_ids=[existing_shadow_kid_id]
+                                    kid_ids=[existing_linked_kid_id]
                                 )
                             )
 
-                    # Use UserManager for parent update (handles shadow kid create/unlink)
+                    # Use UserManager for parent update (handles linked profile create/unlink)
                     # Immediate persist for reload
                     coordinator.user_manager.update_parent(
                         str(internal_id), dict(updated_parent), immediate_persist=True
@@ -734,7 +734,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Retrieve HA users and existing kids for linking
         users = await self.hass.auth.async_get_users()
-        # Exclude shadow kids from association list (prevents circular linkage)
+        # Exclude parent-linked profiles from association list
         kids_dict = {
             kid_data[const.DATA_KID_NAME]: kid_id
             for kid_id, kid_data in coordinator.kids_data.items()

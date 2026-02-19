@@ -637,7 +637,7 @@ def validate_kid_data(
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
         2. Name not duplicate among kids
-        3. Name not conflict with shadow kid parents (allow_chore_assignment=True)
+        3. Name not conflict with assignment-enabled parent profiles
     """
     errors: dict[str, str] = {}
 
@@ -654,22 +654,23 @@ def validate_kid_data(
         errors[const.CFOP_ERROR_KID_NAME] = const.TRANS_KEY_CFOF_INVALID_KID_NAME
         return errors
 
-    # === 2. Duplicate name check among kids (exclude shadow kids) ===
-    # Shadow kids are managed by the parent system - their name conflicts are
+    # === 2. Duplicate name check among kids (exclude parent-linked profiles) ===
+    # Parent-linked profiles are managed by the parent linkage system -
+    # their name conflicts are
     # handled by rule 3 (parent name conflict check)
     if name and existing_kids:
         for kid_id, kid_data in existing_kids.items():
             if kid_id == current_kid_id:
                 continue  # Skip self when updating
             if kid_data.get(const.DATA_KID_IS_SHADOW, False):
-                continue  # Shadow kids handled by parent validation
+                continue  # Parent-linked profiles handled by parent validation
             if kid_data.get(const.DATA_KID_NAME) == name:
                 errors[const.CFOP_ERROR_KID_NAME] = const.TRANS_KEY_CFOF_DUPLICATE_KID
                 return errors
 
-    # === 3. Conflict with shadow kid parents ===
-    # Check for conflicts with shadow kid parents only (allow_chore_assignment=True)
-    # Regular parents without allow_chore_assignment don't create kid-like entities
+    # === 3. Conflict with assignment-enabled parent profiles ===
+    # Check conflicts only for assignment-enabled parents
+    # Parents without assignment capability do not create linked kid-like profiles
     if name and existing_parents:
         for parent_data in existing_parents.values():
             if parent_data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False):
@@ -697,7 +698,7 @@ def build_kid(
     Args:
         user_input: Form/service data with CFOF_* keys (may have missing fields)
         existing: None for create, existing KidData for update
-        is_shadow: If True, mark as shadow kid (for parent chore assignment)
+        is_shadow: Legacy compatibility flag for parent-linked profile
         linked_parent_id: Parent ID to link (required when is_shadow=True)
 
     Returns:
@@ -713,7 +714,7 @@ def build_kid(
         # UPDATE mode - preserves existing fields not in user_input
         kid = build_kid({CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_kid)
 
-        # SHADOW KID mode - creates shadow kid linked to parent
+        # Linked profile mode - creates parent-linked kid profile
         kid = build_kid(parent_derived_input, is_shadow=True, linked_parent_id="uuid")
     """
     is_create = existing is None
@@ -829,12 +830,12 @@ def build_kid(
         # NOTE: DATA_KID_OVERDUE_CHORES removed - dead code, overdue tracked in chore_data[chore_id].state
     }
 
-    # --- Shadow kid markers (only set if requested) ---
+    # --- Compatibility linkage markers (only set if requested) ---
     if is_shadow:
         kid_data[const.DATA_KID_IS_SHADOW] = True
         kid_data[const.DATA_KID_LINKED_PARENT_ID] = linked_parent_id
     elif existing:
-        # Preserve existing shadow status on update
+        # Preserve existing linked-profile status on update
         if existing.get(const.DATA_KID_IS_SHADOW):
             kid_data[const.DATA_KID_IS_SHADOW] = True
             kid_data[const.DATA_KID_LINKED_PARENT_ID] = existing.get(
@@ -921,8 +922,8 @@ def validate_parent_data(
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
         2. Name not duplicate among parents
-        3. Name not conflict with kids (only if allow_chore_assignment=True)
-        4. Workflow/gamification require allow_chore_assignment
+        3. Name not conflict with kids (only when assignment is enabled)
+        4. Workflow/gamification require assignment enablement
     """
     errors: dict[str, str] = {}
 
@@ -950,10 +951,10 @@ def validate_parent_data(
                 )
                 return errors
 
-    # === 3. Conflict with kids (only if allow_chore_assignment) ===
-    # When allow_chore_assignment=True, a shadow kid record will be created with this name
-    allow_chore_assignment = data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False)
-    if allow_chore_assignment and name and existing_kids:
+    # === 3. Conflict with kids (only when assignment is enabled) ===
+    # When assignment is enabled, a linked profile record may use this name
+    assignment_enabled = data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False)
+    if assignment_enabled and name and existing_kids:
         for kid_data in existing_kids.values():
             if kid_data.get(const.DATA_KID_NAME) == name:
                 errors[const.CFOP_ERROR_PARENT_NAME] = (
@@ -961,10 +962,10 @@ def validate_parent_data(
                 )
                 return errors
 
-    # === 4. Workflow/gamification require allow_chore_assignment ===
+    # === 4. Workflow/gamification require assignment enablement ===
     enable_chore_workflow = data.get(const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False)
     enable_gamification = data.get(const.DATA_PARENT_ENABLE_GAMIFICATION, False)
-    if (enable_chore_workflow or enable_gamification) and not allow_chore_assignment:
+    if (enable_chore_workflow or enable_gamification) and not assignment_enabled:
         errors[const.CFOP_ERROR_CHORE_OPTIONS] = (
             const.TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT
         )
@@ -1102,7 +1103,7 @@ def build_parent(
             )
         ),
         linked_shadow_kid_id=(
-            existing.get(const.DATA_PARENT_LINKED_SHADOW_KID_ID) if existing else None
+            existing.get(const.DATA_PARENT_LINKED_PROFILE_ID) if existing else None
         ),
     )
 

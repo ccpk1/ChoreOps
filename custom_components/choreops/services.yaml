@@ -487,30 +487,6 @@ remove_awarded_badges:
       selector:
         text:
 
-manage_shadow_link:
-  name: "Manage Parent Shadow Kid Link"
-  description: "Link or unlink an existing kid profile to/from a parent. Requires kid and parent to have matching names. Unlinking preserves all data and renames kid with '_unlinked' suffix."
-  fields:
-    name:
-      name: "Name"
-      description: "Name that matches BOTH the parent and kid (case-insensitive)"
-      required: true
-      example: "Sarah"
-      selector:
-        text:
-    action:
-      name: "Action"
-      description: "Link connects kid to parent as shadow. Unlink disconnects and renames kid."
-      required: true
-      example: "link"
-      selector:
-        select:
-          options:
-            - label: "Link (connect kid to parent)"
-              value: "link"
-            - label: "Unlink (disconnect and rename)"
-              value: "unlink"
-
 create_reward:
   name: "Create Reward"
   description: "Create a new reward that kids can redeem using their points. Returns the reward_id of the created reward."

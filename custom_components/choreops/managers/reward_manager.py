@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
     from ..coordinator import KidsChoresDataCoordinator
-    from ..type_defs import KidData, RewardData
+    from ..type_defs import RewardData, UserData
 
 
 class RewardManager(BaseManager):
@@ -170,7 +170,9 @@ class RewardManager(BaseManager):
         Returns:
             Reward tracking dict or empty dict if not found and create=False
         """
-        kid_info: KidData = cast("KidData", self.coordinator.kids_data.get(kid_id, {}))
+        kid_info: UserData = cast(
+            "UserData", self.coordinator.kids_data.get(kid_id, {})
+        )
         reward_data = kid_info.setdefault(const.DATA_KID_REWARD_DATA, {})
         if create and reward_id not in reward_data:
             reward_data[reward_id] = {
@@ -210,14 +212,16 @@ class RewardManager(BaseManager):
             kid_id: Kid UUID to ensure structure for
             reward_id: Optional reward UUID to ensure per-reward periods for
         """
-        kids = self.coordinator._data.get(const.DATA_KIDS, {})
+        kids = self.coordinator.users_data
         kid = kids.get(kid_id)
         if kid is None:
             return  # Kid not found - caller should validate first
 
+        kid_info = cast("dict[str, Any]", kid)
+
         # Kid-level reward_periods bucket (v44+)
-        if const.DATA_KID_REWARD_PERIODS not in kid:
-            kid[const.DATA_KID_REWARD_PERIODS] = {}  # Tenant populates sub-keys
+        if const.DATA_KID_REWARD_PERIODS not in kid_info:
+            kid_info[const.DATA_KID_REWARD_PERIODS] = {}  # Tenant populates sub-keys
 
         # Per-reward periods structure (if reward_id provided)
         if reward_id:
@@ -310,7 +314,7 @@ class RewardManager(BaseManager):
                 },
             )
 
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
         if not kid_info:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -415,7 +419,7 @@ class RewardManager(BaseManager):
         # Landlord genesis - ensure reward_periods and per-reward periods exist
         self._ensure_kid_structures(kid_id, reward_id)
 
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
         if not kid_info:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -578,7 +582,7 @@ class RewardManager(BaseManager):
                 },
             )
 
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
 
         # Update kid_reward_data structure
         if kid_info:
@@ -639,7 +643,7 @@ class RewardManager(BaseManager):
                 },
             )
 
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
         if not kid_info:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -691,7 +695,7 @@ class RewardManager(BaseManager):
         """
         if reward_id and kid_id:
             # Reset a specific reward for a specific kid
-            kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
+            kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
             if not kid_info:
                 const.LOGGER.error(
                     "ERROR: Reset Rewards - Kid ID '%s' not found", kid_id
@@ -726,7 +730,7 @@ class RewardManager(BaseManager):
 
         elif kid_id:
             # Reset all rewards for a specific kid
-            kid_info_elif: KidData | None = self.coordinator.kids_data.get(kid_id)
+            kid_info_elif: UserData | None = self.coordinator.kids_data.get(kid_id)
             if not kid_info_elif:
                 const.LOGGER.error(
                     "ERROR: Reset Rewards - Kid ID '%s' not found", kid_id
@@ -962,7 +966,7 @@ class RewardManager(BaseManager):
             item_id,
         )
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        kids_data = self.coordinator.users_data
 
         # Determine which kids to process
         if kid_id:

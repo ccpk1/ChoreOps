@@ -2,7 +2,7 @@
 
 Tests for:
 - Item lookup helpers (get_item_id_by_name, get_item_id_or_raise)
-- Authorization helpers (is_user_authorized_for_global_action, is_user_authorized_for_kid)
+- Authorization helpers (is_user_authorized_for_action)
 - Progress calculation helpers
 - Datetime boundary handling in dt_add_interval
 
@@ -10,7 +10,7 @@ NOTE: Some functions have been migrated to helpers/ modules:
 - entity_helpers: get_integration_entities, parse_entity_reference, build_orphan_detection_regex,
                   get_item_id_by_name, get_item_id_or_raise, get_item_name_or_log_error,
                   get_kid_name_by_id, get_event_signal
-- auth_helpers: is_user_authorized_for_global_action, is_user_authorized_for_kid
+- auth_helpers: is_user_authorized_for_action
 """
 
 from datetime import UTC, datetime
@@ -22,8 +22,10 @@ import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.helpers.auth_helpers import (
+    AUTH_ACTION_APPROVAL,
+    AUTH_ACTION_MANAGEMENT,
     is_kiosk_mode_enabled,
-    is_user_authorized_for_global_action,
+    is_user_authorized_for_action,
 )
 from custom_components.choreops.helpers.entity_helpers import (
     build_orphan_detection_regex,
@@ -214,8 +216,10 @@ class TestAuthorizationHelpers:
         """Admin user should be authorized for global actions."""
         admin_user = mock_hass_users["admin"]
 
-        is_authorized = await is_user_authorized_for_global_action(
-            hass, admin_user.id, "approve_chores"
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            admin_user.id,
+            AUTH_ACTION_MANAGEMENT,
         )
 
         assert is_authorized is True
@@ -229,12 +233,88 @@ class TestAuthorizationHelpers:
         """Registered parent user should be authorized for global actions."""
         parent_user = mock_hass_users["parent1"]
 
-        is_authorized = await is_user_authorized_for_global_action(
-            hass, parent_user.id, "approve_chores"
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            parent_user.id,
+            AUTH_ACTION_MANAGEMENT,
         )
 
         # Parent users ARE authorized when registered in coordinator.parents_data
         assert is_authorized is True
+
+    async def test_non_parent_non_admin_global_denied(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Kid user should be denied for global actions without parent capability."""
+        kid_user = mock_hass_users["kid1"]
+
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            kid_user.id,
+            AUTH_ACTION_MANAGEMENT,
+        )
+
+        assert is_authorized is False
+
+    async def test_admin_user_kid_authorization_override(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Admin user should be authorized for kid-scoped actions."""
+        admin_user = mock_hass_users["admin"]
+        kid_id = scenario_minimal.kid_ids["Zoë"]
+
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            admin_user.id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
+        )
+
+        assert is_authorized is True
+
+    async def test_kid_self_authorization_allows_kid_scope(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Kid linked to the target kid_id should be authorized for kid scope."""
+        kid_user = mock_hass_users["kid1"]
+        kid_id = scenario_minimal.kid_ids["Zoë"]
+
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            kid_user.id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
+        )
+
+        assert is_authorized is True
+
+    async def test_unrelated_kid_denied_kid_scope(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Unrelated kid should be denied when not admin and not parent."""
+        unrelated_kid_user = mock_hass_users["kid2"]
+        kid_id = scenario_minimal.kid_ids["Zoë"]
+
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            unrelated_kid_user.id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
+        )
+
+        assert is_authorized is False
 
     async def test_kiosk_mode_defaults_to_disabled(
         self,

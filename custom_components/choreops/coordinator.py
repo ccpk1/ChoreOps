@@ -15,7 +15,7 @@ import asyncio
 from datetime import timedelta
 import sys
 import time
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -43,9 +43,12 @@ from .type_defs import (
     ChallengesCollection,
     ChoresCollection,
     KidsCollection,
+    ParentData,
     ParentsCollection,
     PenaltiesCollection,
     RewardsCollection,
+    UserData,
+    UsersCollection,
 )
 
 # Type alias for typed config entry access (modern HA pattern)
@@ -183,7 +186,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         const.LOGGER.debug(
             "DEBUG: Coordinator received data from storage manager: %s entities",
             {
-                "kids": len(stored_data.get(const.DATA_KIDS, {})),
+                "users": len(stored_data.get(const.DATA_USERS, {})),
                 "chores": len(stored_data.get(const.DATA_CHORES, {})),
                 "badges": len(stored_data.get(const.DATA_BADGES, {})),
                 "schema_version": stored_data.get(const.DATA_META, {}).get(
@@ -345,14 +348,63 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
     # -------------------------------------------------------------------------------------
 
     @property
+    def users_data(self) -> UsersCollection:
+        """Return canonical users data for schema45+ runtime logic."""
+        users = self._data.get(const.DATA_USERS, {})
+        if isinstance(users, dict) and users:
+            return {
+                user_id: cast("UserData", user_data)
+                for user_id, user_data in users.items()
+                if isinstance(user_data, dict)
+            }
+
+        legacy_kids = self._data.get(const.DATA_KIDS, {})
+        if not isinstance(legacy_kids, dict):
+            return {}
+        return {
+            kid_id: cast("UserData", kid_data)
+            for kid_id, kid_data in legacy_kids.items()
+            if isinstance(kid_data, dict)
+        }
+
+    @property
     def kids_data(self) -> KidsCollection:
-        """Return the kids data."""
-        return self._data.get(const.DATA_KIDS, {})
+        """Return kid-compatible data view.
+
+        During schema45 migration window, `users` is canonical while much of
+        runtime still consumes `kids_data`.
+        """
+        return {
+            user_id: user_data
+            for user_id, user_data in self.users_data.items()
+            if isinstance(user_data, dict)
+            and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True)
+        }
 
     @property
     def parents_data(self) -> ParentsCollection:
-        """Return the parents data."""
-        return self._data.get(const.DATA_PARENTS, {})
+        """Return parent-compatible data view.
+
+        During schema45 migration window, preserve legacy parent view when
+        available, otherwise derive from canonical `users`.
+        """
+        parents = self._data.get(const.DATA_PARENTS, {})
+        if isinstance(parents, dict) and parents:
+            return parents
+
+        users = self.users_data
+        if users:
+            return {
+                user_id: cast("ParentData", user_data)
+                for user_id, user_data in users.items()
+                if isinstance(user_data, dict)
+                and (
+                    user_data.get(const.DATA_USER_CAN_APPROVE, False)
+                    or user_data.get(const.DATA_USER_CAN_MANAGE, False)
+                )
+            }
+
+        return {}
 
     @property
     def chores_data(self) -> ChoresCollection:

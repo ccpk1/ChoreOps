@@ -11,12 +11,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 import pytest
 
-from tests.helpers import (
-    DATA_CHORES,
-    DATA_KIDS,
-    DATA_PARENTS,
-    SCHEMA_VERSION_STORAGE_ONLY,
-)
+from tests.helpers import DATA_CHORES, SCHEMA_VERSION_STORAGE_ONLY
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 
@@ -68,14 +63,14 @@ async def test_direct_storage_creates_one_parent_one_kid_one_chore(
     assert SCHEMA_VERSION_STORAGE_ONLY >= 42
 
     # Verify parent from storyline
-    parents = coordinator.data[DATA_PARENTS]
+    parents = coordinator.parents_data
     assert len(parents) >= 1
     parent_id = scenario_minimal.parent_ids["Môm Astrid Stârblüm"]
     assert parent_id in parents
     assert parents[parent_id]["name"] == "Môm Astrid Stârblüm"
 
     # Verify kid from storyline
-    kids = coordinator.data[DATA_KIDS]
+    kids = coordinator.kids_data
     assert len(kids) >= 1
     kid_id = scenario_minimal.kid_ids["Zoë"]
     assert kid_id in kids

@@ -23,7 +23,7 @@ from .helpers.device_helpers import (
     create_kid_device_info_from_coordinator,
     create_system_device_info,
 )
-from .helpers.entity_helpers import is_shadow_kid, should_create_entity
+from .helpers.entity_helpers import is_user_feature_gated_profile, should_create_entity
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -89,7 +89,7 @@ async def async_setup_entry(
     for kid_id in coordinator.kids_data:
         if should_create_entity(
             const.SELECT_KC_UID_SUFFIX_KID_DASHBOARD_HELPER_CHORES_SELECT,
-            is_shadow_kid=is_shadow_kid(coordinator, kid_id),
+            is_feature_gated_profile=is_user_feature_gated_profile(coordinator, kid_id),
         ):
             selects.append(KidDashboardHelperChoresSelect(coordinator, entry, kid_id))
 

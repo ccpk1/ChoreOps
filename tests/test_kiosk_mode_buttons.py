@@ -125,7 +125,7 @@ async def test_kiosk_enabled_skips_reward_kid_auth_guard(
             return_value=True,
         ),
         patch(
-            "custom_components.choreops.button.is_user_authorized_for_kid",
+            "custom_components.choreops.button.is_user_authorized_for_action",
             new=AsyncMock(return_value=False),
         ) as mock_auth_for_kid,
         patch.object(

@@ -847,39 +847,92 @@ async def remove_orphaned_manual_adjustment_buttons(
 
 
 # ==============================================================================
-# Shadow Kid Helpers
-# Parent chore capability detection and workflow/gamification control.
+# Profile gating helpers
+# Capability-aware workflow/gamification gating with legacy compatibility.
 # ==============================================================================
 
 
 def is_shadow_kid(coordinator: KidsChoresDataCoordinator, kid_id: str) -> bool:
-    """Check if a kid is a shadow kid (linked to a parent).
+    """Legacy compatibility check for shadow-profile marker.
 
-    Shadow kids are created when a parent enables chore assignment. They
-    represent the parent's profile in the chore tracking system.
+    During the migration window, this field indicates a feature-gated profile
+    shape inherited from legacy parent-link flows.
 
     Args:
         coordinator: The KidsChores data coordinator.
         kid_id: The internal ID (UUID) of the kid to check.
 
     Returns:
-        True if the kid is a shadow kid, False otherwise.
+        True if the legacy shadow marker is present, False otherwise.
     """
     kid_info: KidData = cast("KidData", coordinator.kids_data.get(kid_id, {}))
     return bool(kid_info.get(const.DATA_KID_IS_SHADOW, False))
 
 
-def get_parent_for_shadow_kid(
+def is_user_approval_profile(
     coordinator: KidsChoresDataCoordinator, kid_id: str
-) -> dict[str, Any] | None:
-    """Get the parent data for a shadow kid.
+) -> bool:
+    """Return whether this user currently maps to an approval-profile record.
+
+    Phase 3 bridge: this currently maps to legacy shadow-profile semantics
+    and is intentionally behavior-compatible with existing entity creation
+    logic while naming migrates to capability-oriented terminology.
+    """
+    return is_user_feature_gated_profile(coordinator, kid_id)
+
+
+def is_user_feature_gated_profile(
+    coordinator: KidsChoresDataCoordinator, kid_id: str
+) -> bool:
+    """Return whether this user follows feature-gated entity creation rules.
+
+    Phase 3 bridge: this currently maps to legacy shadow-profile semantics
+    and is intentionally behavior-compatible while runtime naming migrates
+    to capability-oriented terminology.
+    """
+    return is_shadow_kid(coordinator, kid_id)
+
+
+def is_user_assignment_participant(
+    coordinator: KidsChoresDataCoordinator, kid_id: str
+) -> bool:
+    """Return whether a user is allowed to participate in assignment workflows.
+
+    Schema45+ contract uses capability flags (`can_be_assigned`) as the
+    canonical participation signal. During migration, legacy kid records that
+    still carry shadow markers keep backward-compatible behavior.
 
     Args:
         coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the shadow kid.
+        kid_id: Internal user/kid ID.
 
     Returns:
-        The parent's data dictionary, or None if not a shadow kid or parent not found.
+        True when assignment participation is enabled.
+    """
+    kid_info = cast("dict[str, Any]", coordinator.kids_data.get(kid_id, {}))
+
+    # Canonical schema45+ capability
+    if const.DATA_USER_CAN_BE_ASSIGNED in kid_info:
+        return bool(kid_info.get(const.DATA_USER_CAN_BE_ASSIGNED, True))
+
+    # Legacy fallback during migration window
+    if const.DATA_KID_IS_SHADOW in kid_info:
+        return not bool(kid_info.get(const.DATA_KID_IS_SHADOW, False))
+
+    return True
+
+
+def get_parent_for_shadow_kid(
+    coordinator: KidsChoresDataCoordinator, kid_id: str
+) -> dict[str, Any] | None:
+    """Get linked parent data for a legacy shadow-profile record.
+
+    Args:
+        coordinator: The KidsChores data coordinator.
+        kid_id: The internal ID (UUID) of the user/kid record.
+
+    Returns:
+        The parent data dictionary, or None if no legacy link is present.
     """
     kid_info: KidData = cast("KidData", coordinator.kids_data.get(kid_id, {}))
     parent_id = kid_info.get(const.DATA_KID_LINKED_PARENT_ID)
@@ -894,21 +947,24 @@ def should_create_workflow_buttons(
     """Determine if claim/disapprove buttons should be created for a kid.
 
     Workflow buttons (Claim, Disapprove) are created for:
-    - Regular kids (always have full workflow)
-    - Shadow kids with enable_chore_workflow=True
+    - Assignment participants using default profile behavior
+    - Feature-gated profiles with enable_chore_workflow=True
 
     They are NOT created for:
-    - Shadow kids with enable_chore_workflow=False (approval-only mode)
+    - Feature-gated profiles with enable_chore_workflow=False
 
     Args:
         coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the kid.
+        kid_id: The internal ID (UUID) of the user/kid record.
 
     Returns:
         True if workflow buttons should be created, False otherwise.
     """
-    if not is_shadow_kid(coordinator, kid_id):
-        return True  # Regular kids always get workflow buttons
+    if not is_user_assignment_participant(coordinator, kid_id):
+        return False
+
+    if not is_user_feature_gated_profile(coordinator, kid_id):
+        return True  # Default assignment participants always get workflow buttons
 
     parent_data = get_parent_for_shadow_kid(coordinator, kid_id)
     if parent_data:
@@ -923,21 +979,24 @@ def should_create_gamification_entities(
 
     Gamification entities (points sensors, badge progress, reward/bonus/penalty
     buttons, points adjust buttons) are created for:
-    - Regular kids (always have gamification)
-    - Shadow kids with enable_gamification=True
+    - Assignment participants using default profile behavior
+    - Feature-gated profiles with enable_gamification=True
 
     They are NOT created for:
-    - Shadow kids with enable_gamification=False
+    - Feature-gated profiles with enable_gamification=False
 
     Args:
         coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the kid.
+        kid_id: The internal ID (UUID) of the user/kid record.
 
     Returns:
         True if gamification entities should be created, False otherwise.
     """
-    if not is_shadow_kid(coordinator, kid_id):
-        return True  # Regular kids always get gamification
+    if not is_user_assignment_participant(coordinator, kid_id):
+        return False
+
+    if not is_user_feature_gated_profile(coordinator, kid_id):
+        return True  # Default assignment participants always get gamification
 
     parent_data = get_parent_for_shadow_kid(coordinator, kid_id)
     if parent_data:
@@ -948,6 +1007,9 @@ def should_create_gamification_entities(
 def should_create_entity(
     unique_id_suffix: str,
     *,
+    is_feature_gated_profile: bool = False,
+    is_approval_profile: bool = False,
+    is_assignment_participant: bool = True,
     is_shadow_kid: bool = False,
     workflow_enabled: bool = True,
     gamification_enabled: bool = True,
@@ -958,7 +1020,7 @@ def should_create_entity(
     Single source of truth for entity creation decisions. Uses ENTITY_REGISTRY.
 
     === FLAG LAYERING LOGIC ===
-    | Requirement   | Regular Kid           | Shadow Kid                           |
+    | Requirement   | Default profile       | Feature-gated profile                |
     |---------------|-----------------------|--------------------------------------|
     | ALWAYS        | Created               | Created                              |
     | WORKFLOW      | Created               | Only if workflow_enabled=True        |
@@ -967,9 +1029,12 @@ def should_create_entity(
 
     Args:
         unique_id_suffix: The entity's unique_id suffix (e.g., "_chore_status")
-        is_shadow_kid: Whether this is a shadow kid
-        workflow_enabled: Whether workflow is enabled (for shadow kids)
-        gamification_enabled: Whether gamification is enabled (for shadow kids)
+        is_feature_gated_profile: Preferred profile-gating flag for platform code.
+        is_approval_profile: Capability-oriented profile flag used by platform code.
+        is_assignment_participant: Whether this user participates in assignment scope.
+        is_shadow_kid: Legacy compatibility flag (deprecated; maps to approval profile)
+        workflow_enabled: Whether workflow is enabled for gated profiles.
+        gamification_enabled: Whether gamification is enabled for gated profiles.
         extra_enabled: Whether show_legacy_entities (extra entities) flag is enabled
 
     Returns:
@@ -982,24 +1047,30 @@ def should_create_entity(
             requirement = req
             break
 
-    # Unknown suffix - default to gamification (safer for shadow kids)
+    feature_gated_profile = (
+        is_feature_gated_profile or is_approval_profile or is_shadow_kid
+    )
+
+    # Unknown suffix - default to gamification for gated profiles
     if requirement is None:
-        return not is_shadow_kid or gamification_enabled
+        if not is_assignment_participant:
+            return False
+        return not feature_gated_profile or gamification_enabled
 
     # Check requirement against context
     match requirement:
         case const.EntityRequirement.ALWAYS:
             return True
         case const.EntityRequirement.WORKFLOW:
-            return not is_shadow_kid or workflow_enabled
+            return not feature_gated_profile or workflow_enabled
         case const.EntityRequirement.GAMIFICATION:
-            return not is_shadow_kid or gamification_enabled
+            return not feature_gated_profile or gamification_enabled
         case const.EntityRequirement.EXTRA:
             # EXTRA requires BOTH extra flag AND gamification
-            # Regular kids: always have gamification, so just check flag
-            # Shadow kids: need flag AND gamification_enabled
+            # Default profiles: always have gamification, so just check flag
+            # Feature-gated profiles: need flag AND gamification_enabled
             if not extra_enabled:
                 return False
-            return not is_shadow_kid or gamification_enabled
+            return not feature_gated_profile or gamification_enabled
 
     return False

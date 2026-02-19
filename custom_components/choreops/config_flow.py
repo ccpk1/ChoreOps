@@ -652,10 +652,10 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 internal_id = str(parent_data[const.DATA_PARENT_INTERNAL_ID])
                 parent_name = str(parent_data[const.DATA_PARENT_NAME])
 
-                # Create shadow kid if chore assignment is enabled
+                # Create parent-linked profile if assignment is enabled
                 if parent_data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False):
-                    # Build shadow kid input from parent data
-                    shadow_input = {
+                    # Build linked profile input from parent data
+                    linked_profile_input = {
                         const.CFOF_KIDS_INPUT_KID_NAME: parent_name,
                         const.CFOF_KIDS_INPUT_HA_USER: parent_data.get(
                             const.DATA_PARENT_HA_USER_ID, ""
@@ -664,23 +664,27 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                             const.DATA_PARENT_DASHBOARD_LANGUAGE,
                             const.DEFAULT_DASHBOARD_LANGUAGE,
                         ),
-                        # Shadow kids have notifications disabled by default
+                        # Linked profiles have notifications disabled by default
                         const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: const.SENTINEL_EMPTY,
                     }
-                    shadow_kid_data = dict(
+                    linked_profile_data = dict(
                         db.build_kid(
-                            shadow_input, is_shadow=True, linked_parent_id=internal_id
+                            linked_profile_input,
+                            is_shadow=True,
+                            linked_parent_id=internal_id,
                         )
                     )
-                    shadow_kid_id = str(shadow_kid_data[const.DATA_KID_INTERNAL_ID])
-                    # Add shadow kid to kids temp so it appears in chore assignment
-                    self._kids_temp[shadow_kid_id] = shadow_kid_data
-                    # Link shadow kid to parent
-                    parent_data[const.DATA_PARENT_LINKED_SHADOW_KID_ID] = shadow_kid_id
+                    linked_profile_id = str(
+                        linked_profile_data[const.DATA_KID_INTERNAL_ID]
+                    )
+                    # Add linked profile to temp kids so it appears in assignment
+                    self._kids_temp[linked_profile_id] = linked_profile_data
+                    # Link profile record back to parent
+                    parent_data[const.DATA_PARENT_LINKED_PROFILE_ID] = linked_profile_id
                     const.LOGGER.debug(
-                        "DEBUG: Created shadow kid '%s' (ID: %s) for parent '%s'",
-                        shadow_kid_data[const.DATA_KID_NAME],
-                        shadow_kid_id,
+                        "DEBUG: Created linked profile '%s' (ID: %s) for parent '%s'",
+                        linked_profile_data[const.DATA_KID_NAME],
+                        linked_profile_id,
                         parent_name,
                     )
 
@@ -1421,13 +1425,13 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         if user_input is not None:
             return await self._create_entry()
 
-        # Create a mapping from kid_id to kid_name for easy lookup
+        # Create a mapping from assignment-profile IDs to display names
         kid_id_to_name = {
             kid_id: data[const.DATA_KID_NAME]
             for kid_id, data in self._kids_temp.items()
         }
 
-        # Enhance parents summary to include associated kids by name
+        # Enhance parent summary to include associated profile names
         parents_summary = []
         for parent in self._parents_temp.values():
             associated_kids_names = [

@@ -650,9 +650,7 @@ class TestShadowKidNameConflicts:
 
         # Rename existing kid to "John" to set up conflict test
         existing_kid_id = list(coordinator.kids_data.keys())[0]
-        coordinator._data[const.DATA_KIDS][existing_kid_id][const.DATA_KID_NAME] = (
-            "John"
-        )
+        coordinator.kids_data[existing_kid_id][const.DATA_KID_NAME] = "John"
 
         # Try to add parent named "John" with chore assignment enabled
         # This would create shadow kid also named "John" - validation should reject

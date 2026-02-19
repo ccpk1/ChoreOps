@@ -26,15 +26,16 @@ from . import const
 from .coordinator import KidsChoresConfigEntry, KidsChoresDataCoordinator
 from .entity import KidsChoresCoordinatorEntity
 from .helpers.auth_helpers import (
+    AUTH_ACTION_APPROVAL,
+    AUTH_ACTION_MANAGEMENT,
     is_kiosk_mode_enabled,
-    is_user_authorized_for_global_action,
-    is_user_authorized_for_kid,
+    is_user_authorized_for_action,
 )
 from .helpers.device_helpers import create_kid_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_friendly_label,
     get_kid_name_by_id,
-    is_shadow_kid,
+    is_user_feature_gated_profile,
     should_create_entity,
     should_create_gamification_entities,
     should_create_workflow_buttons,
@@ -81,7 +82,9 @@ async def async_setup_entry(
             )
 
             # Get flag states for unified entity creation decisions
-            is_shadow = is_shadow_kid(coordinator, kid_id)
+            is_feature_gated_profile = is_user_feature_gated_profile(
+                coordinator, kid_id
+            )
             workflow_enabled = should_create_workflow_buttons(coordinator, kid_id)
             gamification_enabled = should_create_gamification_entities(
                 coordinator, kid_id
@@ -90,7 +93,7 @@ async def async_setup_entry(
             # Claim Button - WORKFLOW requirement
             if should_create_entity(
                 const.BUTTON_KC_UID_SUFFIX_CLAIM,
-                is_shadow_kid=is_shadow,
+                is_feature_gated_profile=is_feature_gated_profile,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
             ):
@@ -109,7 +112,7 @@ async def async_setup_entry(
             # Approve Button - ALWAYS requirement
             if should_create_entity(
                 const.BUTTON_KC_UID_SUFFIX_APPROVE,
-                is_shadow_kid=is_shadow,
+                is_feature_gated_profile=is_feature_gated_profile,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
             ):
@@ -128,7 +131,7 @@ async def async_setup_entry(
             # Disapprove Button - WORKFLOW requirement
             if should_create_entity(
                 const.BUTTON_KC_UID_SUFFIX_DISAPPROVE,
-                is_shadow_kid=is_shadow,
+                is_feature_gated_profile=is_feature_gated_profile,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
             ):
@@ -362,8 +365,11 @@ class KidChoreClaimButton(KidsChoresCoordinatorEntity, ButtonEntity):
                     const.LOGGER.debug(
                         "Kiosk mode enabled: skipping kid auth check for chore claim button"
                     )
-                elif not await is_user_authorized_for_kid(
-                    self.hass, user_id, self._kid_id
+                elif not await is_user_authorized_for_action(
+                    self.hass,
+                    user_id,
+                    AUTH_ACTION_APPROVAL,
+                    target_user_id=self._kid_id,
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -498,8 +504,10 @@ class ParentChoreApproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
         """
         try:
             user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_global_action(
-                self.hass, user_id, const.SERVICE_APPROVE_CHORE
+            if user_id and not await is_user_authorized_for_action(
+                self.hass,
+                user_id,
+                AUTH_ACTION_MANAGEMENT,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -658,8 +666,10 @@ class ParentChoreDisapproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 )
             else:
                 # Parent/admin disapproval: Requires authorization and tracks stats
-                if user_id and not await is_user_authorized_for_global_action(
-                    self.hass, user_id, const.SERVICE_DISAPPROVE_CHORE
+                if user_id and not await is_user_authorized_for_action(
+                    self.hass,
+                    user_id,
+                    AUTH_ACTION_MANAGEMENT,
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -797,8 +807,11 @@ class KidRewardRedeemButton(KidsChoresCoordinatorEntity, ButtonEntity):
                     const.LOGGER.debug(
                         "Kiosk mode enabled: skipping kid auth check for reward redeem button"
                     )
-                elif not await is_user_authorized_for_kid(
-                    self.hass, user_id, self._kid_id
+                elif not await is_user_authorized_for_action(
+                    self.hass,
+                    user_id,
+                    AUTH_ACTION_APPROVAL,
+                    target_user_id=self._kid_id,
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -930,8 +943,10 @@ class ParentRewardApproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
         """
         try:
             user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_global_action(
-                self.hass, user_id, const.SERVICE_APPROVE_REWARD
+            if user_id and not await is_user_authorized_for_action(
+                self.hass,
+                user_id,
+                AUTH_ACTION_MANAGEMENT,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -1093,8 +1108,10 @@ class ParentRewardDisapproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 )
             else:
                 # Parent/admin disapproval: Requires authorization and tracks stats
-                if user_id and not await is_user_authorized_for_global_action(
-                    self.hass, user_id, const.SERVICE_DISAPPROVE_REWARD
+                if user_id and not await is_user_authorized_for_action(
+                    self.hass,
+                    user_id,
+                    AUTH_ACTION_MANAGEMENT,
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -1239,8 +1256,10 @@ class ParentBonusApplyButton(KidsChoresCoordinatorEntity, ButtonEntity):
         """
         try:
             user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_global_action(
-                self.hass, user_id, const.SERVICE_APPLY_BONUS
+            if user_id and not await is_user_authorized_for_action(
+                self.hass,
+                user_id,
+                AUTH_ACTION_MANAGEMENT,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -1386,8 +1405,10 @@ class ParentPenaltyApplyButton(KidsChoresCoordinatorEntity, ButtonEntity):
             user_id = self._context.user_id if self._context else None
             const.LOGGER.debug("Context user_id=%s", user_id)
 
-            if user_id and not await is_user_authorized_for_global_action(
-                self.hass, user_id, const.SERVICE_APPLY_PENALTY
+            if user_id and not await is_user_authorized_for_action(
+                self.hass,
+                user_id,
+                AUTH_ACTION_MANAGEMENT,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -1560,8 +1581,10 @@ class ParentPointsAdjustButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 self._delta,
             )
             user_id = self._context.user_id if self._context else None
-            if user_id and not await is_user_authorized_for_global_action(
-                self.hass, user_id, const.SERVICE_ADJUST_POINTS
+            if user_id and not await is_user_authorized_for_action(
+                self.hass,
+                user_id,
+                AUTH_ACTION_MANAGEMENT,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,

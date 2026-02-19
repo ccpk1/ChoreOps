@@ -51,6 +51,7 @@ from typing import Any, Literal, NotRequired, TypedDict
 # =============================================================================
 
 KidId = str  # UUID string
+UserId = str  # UUID string (canonical schema45+ identity)
 ChoreId = str  # UUID string
 BadgeId = str  # UUID string
 RewardId = str  # UUID string
@@ -684,6 +685,14 @@ class KidData(TypedDict):
     # SHARED_FIRST blocking computed dynamically, not tracked in kid lists
 
 
+class UserData(KidData):
+    """Canonical user record type for schema45+ unified model.
+
+    Phase 3 bridge: `UserData` currently reuses the `KidData` shape so
+    runtime refactors can migrate manager/platform code incrementally.
+    """
+
+
 # =============================================================================
 # Achievement Types
 # =============================================================================
@@ -825,6 +834,7 @@ class ScheduleConfig(TypedDict, total=False):
 # =============================================================================
 
 KidsCollection = dict[KidId, KidData]
+UsersCollection = dict[UserId, UserData]
 ChoresCollection = dict[ChoreId, ChoreData]
 BadgesCollection = dict[BadgeId, BadgeData]
 RewardsCollection = dict[RewardId, RewardData]

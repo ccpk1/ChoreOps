@@ -7,7 +7,7 @@ All functions here require a `hass` object for auth system access.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final, Literal
 
 from .. import const
 
@@ -69,111 +69,138 @@ def is_kiosk_mode_enabled(hass: HomeAssistant) -> bool:
 # Authorization Checks
 # ==============================================================================
 
+type AuthorizationAction = Literal["approval", "management"]
 
-async def is_user_authorized_for_global_action(
+AUTH_ACTION_APPROVAL: Final[AuthorizationAction] = "approval"
+AUTH_ACTION_MANAGEMENT: Final[AuthorizationAction] = "management"
+
+
+async def is_user_authorized_for_action(
     hass: HomeAssistant,
     user_id: str,
-    action: str,
+    action: AuthorizationAction,
+    target_user_id: str | None = None,
 ) -> bool:
-    """Check if user is allowed to do a global action (penalty, reward, points adjust).
+    """Check authorization for a capability action.
 
-    Authorization rules:
-      - Admin users => authorized
-      - Registered KidsChores parents => authorized
-      - Everyone else => not authorized
+    Precedence order:
+    1) Home Assistant admin override
+    2) Explicit capability checks
+    3) Deny
 
     Args:
-        hass: HomeAssistant instance
-        user_id: User ID to check
-        action: Action name for logging purposes
+        hass: Home Assistant instance.
+        user_id: Home Assistant user ID.
+        action: Action contract (`approval` or `management`).
+        target_user_id: Target user ID for approval-scoped checks.
 
     Returns:
-        True if authorized, False otherwise
+        True when permission is granted, else False.
     """
-    if not user_id:
-        return False
+    if action == AUTH_ACTION_MANAGEMENT:
+        return await _has_management_authority(hass, user_id)
 
-    user: User | None = await hass.auth.async_get_user(user_id)
-    if not user:
-        const.LOGGER.warning("WARNING: %s: Invalid user ID '%s'", action, user_id)
-        return False
+    if action == AUTH_ACTION_APPROVAL:
+        if target_user_id is None:
+            return False
+        return await _has_approval_authority_for_target(
+            hass,
+            user_id,
+            target_user_id,
+        )
 
-    if user.is_admin:
-        return True
-
-    # Allow non-admin users if they are registered as a parent in KidsChores
-    coordinator = _get_kidschores_coordinator(hass)
-    if coordinator:
-        for parent in coordinator.parents_data.values():
-            if parent.get(const.DATA_PARENT_HA_USER_ID) == user.id:
-                return True
-
-    const.LOGGER.warning(
-        "WARNING: %s: Non-admin user '%s' is not authorized in this logic",
-        action,
-        user.name,
-    )
     return False
 
 
-async def is_user_authorized_for_kid(
+async def _has_management_authority(
     hass: HomeAssistant,
     user_id: str,
-    kid_id: str,
 ) -> bool:
-    """Check if user is authorized to manage chores/rewards for a specific kid.
-
-    Authorization rules:
-      - Admin => authorized
-      - If kid_info['ha_user_id'] == user.id => authorized
-      - If user is a registered parent => authorized
-      - Otherwise => not authorized
-
-    Args:
-        hass: HomeAssistant instance
-        user_id: User ID to check
-        kid_id: Kid ID to check authorization for
-
-    Returns:
-        True if authorized, False otherwise
-    """
+    """Check whether a user can perform management actions."""
     if not user_id:
         return False
 
     user: User | None = await hass.auth.async_get_user(user_id)
     if not user:
-        const.LOGGER.warning("WARNING: Authorization: Invalid user ID '%s'", user_id)
         return False
 
-    # Admin => automatically allowed
     if user.is_admin:
         return True
 
-    # Allow non-admin users if they are registered as a parent in KidsChores
     coordinator: KidsChoresDataCoordinator | None = _get_kidschores_coordinator(hass)
-    if coordinator:
-        for parent in coordinator.parents_data.values():
-            if parent.get(const.DATA_PARENT_HA_USER_ID) == user.id:
-                return True
-
     if not coordinator:
-        const.LOGGER.warning("WARNING: Authorization: KidsChores coordinator not found")
         return False
 
-    kid_info = coordinator.kids_data.get(kid_id)
+    users = coordinator._data.get(const.DATA_USERS, {})
+    if isinstance(users, dict) and users:
+        for user_data in users.values():
+            if not isinstance(user_data, dict):
+                continue
+            if user_data.get(const.DATA_USER_HA_USER_ID) == user.id and user_data.get(
+                const.DATA_USER_CAN_MANAGE,
+                False,
+            ):
+                return True
+        return False
+
+    # Legacy fallback during migration
+    for parent in coordinator.parents_data.values():
+        if parent.get(const.DATA_PARENT_HA_USER_ID) == user.id:
+            return True
+
+    return False
+
+
+async def _has_approval_authority_for_target(
+    hass: HomeAssistant,
+    user_id: str,
+    target_user_id: str,
+) -> bool:
+    """Check whether a user can perform approval actions for a target user."""
+    if not user_id:
+        return False
+
+    user: User | None = await hass.auth.async_get_user(user_id)
+    if not user:
+        return False
+
+    if user.is_admin:
+        return True
+
+    coordinator: KidsChoresDataCoordinator | None = _get_kidschores_coordinator(hass)
+    if not coordinator:
+        return False
+
+    users = coordinator._data.get(const.DATA_USERS, {})
+    if isinstance(users, dict) and users:
+        for user_data in users.values():
+            if not isinstance(user_data, dict):
+                continue
+            if user_data.get(const.DATA_USER_HA_USER_ID) == user.id and user_data.get(
+                const.DATA_USER_CAN_APPROVE,
+                False,
+            ):
+                return True
+
+        target_data = users.get(target_user_id)
+        if isinstance(target_data, dict):
+            linked_ha_id = target_data.get(const.DATA_USER_HA_USER_ID)
+            can_be_assigned = target_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True)
+            if linked_ha_id and linked_ha_id == user.id and can_be_assigned:
+                return True
+        return False
+
+    # Legacy fallback during migration
+    for parent in coordinator.parents_data.values():
+        if parent.get(const.DATA_PARENT_HA_USER_ID) == user.id:
+            return True
+
+    kid_info = coordinator.kids_data.get(target_user_id)
     if not kid_info:
-        const.LOGGER.warning(
-            "WARNING: Authorization: Kid ID '%s' not found in coordinator data", kid_id
-        )
         return False
 
     linked_ha_id = kid_info.get(const.DATA_KID_HA_USER_ID)
     if linked_ha_id and linked_ha_id == user.id:
         return True
 
-    const.LOGGER.warning(
-        "WARNING: Authorization: Non-admin user '%s' attempted to manage Kid ID '%s' but is not linked",
-        user.name,
-        kid_info.get(const.DATA_KID_NAME),
-    )
     return False

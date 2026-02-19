@@ -260,6 +260,47 @@ async def _update_system_settings_and_reload(self):
 
 **Entities** (Sensors, Buttons) are ephemeral platform objects created at runtime to represent these Items in the HA UI. Entity states reflect Item data but are not persisted—only the underlying Items are stored.
 
+### Schema 45 contract (Option 3 unification)
+
+Schema 45 introduces a contract-first migration checkpoint for unified user modeling:
+
+- Canonical storage target: `users`
+- Canonical runtime terms: `user_id`, `user_data`
+- Canonical capability flags:
+  - `can_approve`
+  - `can_manage`
+  - `can_be_assigned`
+
+#### Identity and capability decoupling
+
+- Identity is represented by a single `user_id` record in `users`.
+- Capability flags define authority and participation; identity labels are not derived from any single flag.
+- Canonical runtime storage must not require separate `kids` or `parents` buckets.
+
+#### Explicit removals in this pivot
+
+- No canonical shadow-link model (`linked_shadow_kid_id` is removed from target architecture).
+- No canonical parent dictionary in coordinator runtime state.
+- Any temporary legacy adapters are transitional read/input aliases only and must not become source-of-truth data structures.
+
+#### Authorization precedence contract
+
+Permission checks follow strict precedence:
+
+1. Home Assistant runtime admin override
+2. Stored integration capabilities
+3. Deny
+
+Capabilities are explicit; they are not inferred from assignment/linking relationships.
+
+#### Compatibility window contract
+
+Service/event payloads support both `kid_id` and `user_id` keys during a temporary compatibility window. Legacy key usage emits deprecation warnings and is removed at the documented end version.
+
+#### Parent merge collision policy
+
+When migrating standalone parent records into `users`, ID collisions resolve by preserving the kid-origin record as canonical and remapping the parent-derived record to a new UUID with remap logging.
+
 ### Coordinator Persistence Pattern
 
 All Domain Item modifications follow this pattern:

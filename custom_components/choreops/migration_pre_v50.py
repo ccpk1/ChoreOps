@@ -22,6 +22,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
 
 from . import const, data_builders as db
+from .coordinator import KidsChoresDataCoordinator
 from .helpers import backup_helpers as bh, entity_helpers as eh
 from .helpers.entity_helpers import get_item_id_by_name
 from .utils.dt_utils import (
@@ -34,7 +35,6 @@ from .utils.dt_utils import (
 from .utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
-    from .coordinator import KidsChoresDataCoordinator
     from .store import KidsChoresStore
 
 
@@ -51,6 +51,141 @@ LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT = True
 def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
     """Return True when pre-v50 legacy migration marker is present."""
     return LEGACY_MIGRATION_PERFORMED_KEY in data
+
+
+async def async_apply_schema45_user_contract(
+    coordinator: KidsChoresDataCoordinator,
+) -> dict[str, int]:
+    """Apply schema 45 contract hook before DATA_READY emission.
+
+    Phase 1 contract checkpoint:
+    - Executes in SystemManager.ensure_data_integrity() before DATA_READY.
+    - Idempotently stamps migration metadata for schema-45 contract readiness.
+    - Does not perform structural migration yet (handled in Phase 2).
+
+    Args:
+        coordinator: Integration coordinator instance.
+    """
+    data = coordinator._data
+    meta = data.setdefault(const.DATA_META, {})
+    applied = meta.setdefault(const.DATA_META_MIGRATIONS_APPLIED, [])
+    if not isinstance(applied, list):
+        applied = []
+        meta[const.DATA_META_MIGRATIONS_APPLIED] = applied
+
+    legacy_users = data.get(const.DATA_USERS)
+    users: dict[str, Any] = legacy_users if isinstance(legacy_users, dict) else {}
+    if not users:
+        kids = data.pop(const.DATA_KIDS, {})
+        users = kids if isinstance(kids, dict) else {}
+        data[const.DATA_USERS] = users
+
+    parents_raw = data.get(const.DATA_PARENTS, {})
+    parents: dict[str, Any] = parents_raw if isinstance(parents_raw, dict) else {}
+
+    remap_key = "schema45_parent_id_remap"
+    remap_raw = meta.get(remap_key, {})
+    remap: dict[str, str] = remap_raw if isinstance(remap_raw, dict) else {}
+    meta[remap_key] = remap
+
+    users_migrated = 0
+    linked_parent_merges = 0
+    standalone_parent_creations = 0
+    parent_id_collisions = 0
+
+    for user_id, user_data_raw in users.items():
+        if not isinstance(user_data_raw, dict):
+            continue
+        user_data = cast("dict[str, Any]", user_data_raw)
+        user_data.setdefault(const.DATA_USER_INTERNAL_ID, user_id)
+        user_data.setdefault(const.DATA_USER_ID, user_id)
+        user_data.setdefault(
+            const.DATA_USER_HA_USER_ID,
+            user_data.get(const.DATA_KID_HA_USER_ID),
+        )
+        user_data.setdefault(const.DATA_USER_CAN_APPROVE, False)
+        user_data.setdefault(const.DATA_USER_CAN_MANAGE, False)
+        user_data.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+        users_migrated += 1
+
+    for parent_id, parent_data_raw in parents.items():
+        if not isinstance(parent_data_raw, dict):
+            continue
+
+        parent_data = cast("dict[str, Any]", parent_data_raw)
+        linked_shadow_kid_id = parent_data.get(const.DATA_PARENT_LINKED_PROFILE_ID)
+        if isinstance(linked_shadow_kid_id, str) and linked_shadow_kid_id in users:
+            target_id = linked_shadow_kid_id
+            linked_parent_merges += 1
+            target_user = cast("dict[str, Any]", users[target_id])
+            target_user[const.DATA_USER_CAN_APPROVE] = True
+            target_user[const.DATA_USER_CAN_MANAGE] = True
+            target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+            target_user.setdefault(
+                const.DATA_USER_HA_USER_ID,
+                parent_data.get(const.DATA_PARENT_HA_USER_ID),
+            )
+            continue
+
+        mapped_parent_id = remap.get(parent_id, parent_id)
+        target_id = mapped_parent_id
+        if target_id in users and target_id == parent_id:
+            parent_id_collisions += 1
+            suffix_index = 1
+            while True:
+                candidate_id = f"{parent_id}_parent_{suffix_index}"
+                if candidate_id not in users:
+                    target_id = candidate_id
+                    remap[parent_id] = target_id
+                    break
+                suffix_index += 1
+
+        if target_id in users:
+            target_user = cast("dict[str, Any]", users[target_id])
+        else:
+            target_user = {
+                const.DATA_USER_INTERNAL_ID: target_id,
+                const.DATA_USER_ID: target_id,
+                const.DATA_USER_NAME: parent_data.get(const.DATA_PARENT_NAME, ""),
+                const.DATA_USER_HA_USER_ID: parent_data.get(
+                    const.DATA_PARENT_HA_USER_ID
+                ),
+                const.DATA_USER_CAN_BE_ASSIGNED: False,
+            }
+            users[target_id] = target_user
+            standalone_parent_creations += 1
+
+        target_user[const.DATA_USER_CAN_APPROVE] = True
+        target_user[const.DATA_USER_CAN_MANAGE] = True
+        target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, False)
+        target_user.setdefault(
+            const.DATA_USER_HA_USER_ID,
+            parent_data.get(const.DATA_PARENT_HA_USER_ID),
+        )
+
+    # Users is the canonical identity container for schema45+.
+    data[const.DATA_USERS] = users
+
+    contract_marker = "schema45_user_contract_hook"
+    if contract_marker not in applied:
+        applied.append(contract_marker)
+
+    meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_BETA5
+
+    summary = {
+        "users_migrated": users_migrated,
+        "linked_parent_merges": linked_parent_merges,
+        "standalone_parent_creations": standalone_parent_creations,
+        "parent_id_collisions": parent_id_collisions,
+    }
+    const.LOGGER.debug(
+        "Schema45 migration summary: users=%d linked_merges=%d standalone_parents=%d collisions=%d",
+        summary["users_migrated"],
+        summary["linked_parent_merges"],
+        summary["standalone_parent_creations"],
+        summary["parent_id_collisions"],
+    )
+    return summary
 
 
 def _discover_legacy_storage_artifacts_sync(
@@ -5718,8 +5853,8 @@ class PreV50Migrator:
                 const.DATA_PARENT_ENABLE_GAMIFICATION,
                 const.DEFAULT_PARENT_ENABLE_GAMIFICATION,
             ),
-            const.DATA_PARENT_LINKED_SHADOW_KID_ID: parent_data.get(
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
+            const.DATA_PARENT_LINKED_PROFILE_ID: parent_data.get(
+                const.DATA_PARENT_LINKED_PROFILE_ID
             ),
         }
         const.LOGGER.debug(
@@ -5795,9 +5930,9 @@ class PreV50Migrator:
         )
         # Update shadow kid link if provided (set by options_flow when toggling
         # allow_chore_assignment)
-        if const.DATA_PARENT_LINKED_SHADOW_KID_ID in parent_data:
-            parent_info[const.DATA_PARENT_LINKED_SHADOW_KID_ID] = parent_data.get(
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
+        if const.DATA_PARENT_LINKED_PROFILE_ID in parent_data:
+            parent_info[const.DATA_PARENT_LINKED_PROFILE_ID] = parent_data.get(
+                const.DATA_PARENT_LINKED_PROFILE_ID
             )
 
         const.LOGGER.debug(

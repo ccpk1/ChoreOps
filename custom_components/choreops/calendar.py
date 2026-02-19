@@ -23,7 +23,7 @@ from .engines.schedule_engine import RecurrenceEngine
 from .helpers.device_helpers import create_kid_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_event_signal,
-    is_shadow_kid,
+    is_user_feature_gated_profile,
     should_create_entity,
 )
 from .utils.dt_utils import dt_now_local, dt_parse, parse_daily_multi_times
@@ -57,7 +57,7 @@ async def async_setup_entry(
         # Use registry-based creation decision for future flexibility
         if should_create_entity(
             const.CALENDAR_KC_UID_SUFFIX_CALENDAR,
-            is_shadow_kid=is_shadow_kid(coordinator, kid_id),
+            is_feature_gated_profile=is_user_feature_gated_profile(coordinator, kid_id),
         ):
             kid_name = kid_info.get(
                 const.DATA_KID_NAME, f"{const.TRANS_KEY_LABEL_KID} {kid_id}"

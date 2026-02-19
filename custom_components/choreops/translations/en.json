@@ -2107,20 +2107,6 @@
     }
   },
   "services": {
-    "manage_shadow_link": {
-      "name": "Manage parent shadow kid link",
-      "description": "Link or unlink an existing kid profile to/from a parent. Requires kid and parent to have matching names. Unlinking preserves all data and renames kid with '_unlinked' suffix.",
-      "fields": {
-        "name": {
-          "name": "Name",
-          "description": "Name that matches BOTH the parent and kid (case-insensitive)"
-        },
-        "action": {
-          "name": "Action",
-          "description": "Link connects kid to parent as shadow. Unlink disconnects and renames kid."
-        }
-      }
-    },
     "claim_chore": {
       "name": "Claim Chore",
       "description": "A kid claims a chore, marking it as 'claimed' for parental approval.",
