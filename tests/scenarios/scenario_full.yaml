@@ -4,8 +4,8 @@
 # Keys match the setup_integration() helper function parameters.
 #
 # Contents:
-#   - 2 parents: Môm Astrid Stârblüm, Dad Leo
-#   - 3 kids: Zoë, Max!, Lila
+#   - 2 approvers: Môm Astrid Stârblüm, Dad Leo
+#   - 3 assignees: Zoë, Max!, Lila
 #   - 19 chores covering all completion criteria and frequencies
 #
 # Use case: Comprehensive coverage of all chore types and combinations
@@ -16,49 +16,49 @@ system:
   points_label: "Star Points"
   points_icon: "mdi:star"
 
-# Kids (maps to KID_COUNT + KIDS steps)
-# Keys map to _configure_kid_step() parameters:
+# Assignees (maps to KID_COUNT + KIDS steps)
+# Keys map to _configure_assignee_step() parameters:
 #   - name (required): Display name
-#   - ha_user (required): Key in mock_hass_users fixture ("kid1", "kid2", "kid3")
+#   - ha_user (required): Key in mock_hass_users fixture ("assignee1", "assignee2", "assignee3")
 #   - dashboard_language: Language code (default: "en")
 #   - mobile_notify_service: str (default: "")
-kids:
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Lila"
-    ha_user: "kid3"
+    ha_user: "assignee3"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (maps to PARENT_COUNT + PARENTS steps)
-# Keys map to _configure_parent_step() parameters:
+# Approvers (maps to PARENT_COUNT + PARENTS steps)
+# Keys map to _configure_approver_step() parameters:
 #   - name (required): Display name
-#   - ha_user (required): Key in mock_hass_users fixture ("parent1", "parent2")
-#   - kids: List of kid names to associate (default: all kids)
+#   - ha_user (required): Key in mock_hass_users fixture ("approver1", "approver2")
+#   - assignees: List of assignee names to associate (default: all assignees)
 #   - mobile_notify_service: str (default: "")
-parents:
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Max!", "Lila"] # All kids
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!", "Lila"] # All assignees
     mobile_notify_service: ""
 
   - name: "Dad Leo"
-    ha_user: "parent2"
-    kids: ["Zoë", "Max!", "Lila"] # All kids
+    ha_user: "approver2"
+    assignees: ["Zoë", "Max!", "Lila"] # All assignees
     mobile_notify_service: ""
 
 # Chores (maps to CHORE_COUNT + CHORES steps)
 # Keys map to _configure_chore_step() parameters:
 #   - name (required): Display name
-#   - assigned_to (required): List of kid names
+#   - assigned_to (required): List of assignee names
 #   - points: Points value (default: 10.0)
 #   - description: Chore description (default: "")
 #   - icon: MDI icon (default: "mdi:check")
@@ -77,7 +77,7 @@ parents:
 #   - overdue_handling_type: str (default: "none")
 chores:
   # ==========================================================================
-  # INDEPENDENT CHORES (Single Kid)
+  # INDEPENDENT CHORES (Single Assignee)
   # ==========================================================================
 
   # Test: Basic daily independent chore
@@ -131,10 +131,10 @@ chores:
     recurring_frequency: "daily"
 
   # ==========================================================================
-  # INDEPENDENT CHORES (Multi Kid)
+  # INDEPENDENT CHORES (Multi Assignee)
   # ==========================================================================
 
-  # Test: Multi-kid independent (each completes separately)
+  # Test: Multi-assignee independent (each completes separately)
   - name: "Stär sweep"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 20.0
@@ -142,7 +142,7 @@ chores:
     completion_criteria: "independent"
     recurring_frequency: "daily"
 
-  # Test: Two-kid independent with higher points
+  # Test: Two-assignee independent with higher points
   - name: "Ørgänize Bookshelf"
     assigned_to: ["Zoë", "Lila"]
     points: 18.0
@@ -162,7 +162,7 @@ chores:
   # SHARED_ALL CHORES
   # ==========================================================================
 
-  # Test: Daily shared_all (all kids must claim/approve)
+  # Test: Daily shared_all (all assignees must claim/approve)
   - name: "Family Dinner Prep"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 15.0
@@ -178,7 +178,7 @@ chores:
     completion_criteria: "shared_all"
     recurring_frequency: "weekly"
 
-  # Test: Two-kid shared_all
+  # Test: Two-assignee shared_all
   - name: "Sibling Rööm Cleanup"
     assigned_to: ["Max!", "Lila"]
     points: 20.0
@@ -206,7 +206,7 @@ chores:
     completion_criteria: "shared_first"
     recurring_frequency: "daily"
 
-  # Test: Two-kid shared_first with higher points
+  # Test: Two-assignee shared_first with higher points
   - name: "Wåsh Family Car"
     assigned_to: ["Zoë", "Lila"]
     points: 30.0
@@ -214,7 +214,7 @@ chores:
     completion_criteria: "shared_first"
     recurring_frequency: "weekly"
 
-  # Test: Three-kid shared_first for isolated 3-kid test
+  # Test: Three-assignee shared_first for isolated 3-assignee test
   - name: "Måil Pickup Race"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 8.0
@@ -250,7 +250,7 @@ chores:
 # Keys map to _configure_badge_step() parameters (via FlowTestHelper.build_badge_form_data):
 #   - name (required): Display name
 #   - type: "cumulative"/"daily"/"periodic"/"special" (default: "cumulative")
-#   - assigned_to: List of kid names (required)
+#   - assigned_to: List of assignee names (required)
 #   - award_points: Points awarded when badge earned (default: 0)
 #   - target_type: "chore_count"/"points_earned" (for cumulative, default: "chore_count")
 #   - threshold_value: Numeric target (required for cumulative)
@@ -267,7 +267,7 @@ badges:
     threshold_value: 100
     icon: "mdi:medal-outline"
 
-  # Test: Cumulative badge - total all-time points (multi-kid)
+  # Test: Cumulative badge - total all-time points (multi-assignee)
   - name: "Team Player Badge"
     type: "cumulative"
     assigned_to: ["Max!", "Lila"]
@@ -299,7 +299,7 @@ rewards:
   - name: "Special Outing"
     cost: 200
     icon: "mdi:car-side"
-    description: "Go to your favorite place with parent"
+    description: "Go to your favorite place with approver"
 
 # Penalties (maps to PENALTY_COUNT + PENALTIES steps)
 # Keys map to _configure_penalty_step() parameters (via FlowTestHelper.build_penalty_form_data):
@@ -318,7 +318,7 @@ penalties:
   - name: "Sibling Fight"
     points: 15
     icon: "mdi:account-alert"
-    description: "Argument with sibling requiring parent intervention"
+    description: "Argument with sibling requiring approver intervention"
 
 # Bonuses (maps to BONUS_COUNT + BONUSES steps)
 # Keys map to _configure_bonus_step() parameters (via FlowTestHelper.build_bonus_form_data):
@@ -343,13 +343,13 @@ bonuses:
 # Keys map to _configure_achievement_step() parameters (via FlowTestHelper.build_achievement_form_data):
 #   - name (required): Display name
 #   - type: Achievement type (required) - valid: "chore_streak", "chore_total", "daily_minimum"
-#   - assigned_to: List of kid names (required)
+#   - assigned_to: List of assignee names (required)
 #   - target_value: Numeric target (required)
 #   - reward_points: Points awarded (default: 0)
 #   - icon: MDI icon (default: "mdi:trophy")
 #   - description: Achievement description (default: "")
 achievements:
-  # Test: Total achievement (assigned to multiple kids)
+  # Test: Total achievement (assigned to multiple assignees)
   - name: "Early Bird"
     type: "chore_total"
     assigned_to: ["Zoë", "Max!"]
@@ -371,7 +371,7 @@ achievements:
 # Keys map to _configure_challenge_step() parameters (via FlowTestHelper.build_challenge_form_data):
 #   - name (required): Display name
 #   - type: Challenge type (required) - valid: "daily_minimum", "total_within_window"
-#   - assigned_to: List of kid names (required)
+#   - assigned_to: List of assignee names (required)
 #   - target_value: Numeric target (required)
 #   - reward_points: Points awarded (default: 0)
 #   - start_date: ISO date string (required for total_within_window)

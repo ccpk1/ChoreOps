@@ -1,5 +1,5 @@
 # File: helpers/dashboard_builder.py
-"""Dashboard generation engine for KidsChores.
+"""Dashboard generation engine for ChoreOps.
 
 Provides template fetching, rendering, and Lovelace dashboard creation
 via Home Assistant's storage-based dashboard API.
@@ -45,7 +45,10 @@ from packaging.version import InvalidVersion, Version
 import yaml
 
 from .. import const
-from .dashboard_helpers import build_dashboard_context, resolve_kid_template_profile
+from .dashboard_helpers import (
+    build_dashboard_context,
+    resolve_assignee_template_profile,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -525,8 +528,8 @@ def render_dashboard_template(
 
     Args:
         template_str: Raw template string with << >> placeholders.
-        context: Template context dict. For kid dashboards, use DashboardContext
-            with kid.name and kid.slug. For admin, use empty dict {}.
+        context: Template context dict. For assignee dashboards, use DashboardContext
+            with assignee.name and assignee.slug. For admin, use empty dict {}.
 
     Returns:
         Parsed YAML as dict (single view object).
@@ -535,7 +538,7 @@ def render_dashboard_template(
         DashboardRenderError: If template rendering or YAML parsing fails.
     """
     # Create Jinja2 environment with custom delimiters
-    # This allows << kid.name >> for our injection while preserving
+    # This allows << assignee.name >> for our injection while preserving
     # {{ states('sensor.x') }} for HA runtime evaluation
     #
     # IMPORTANT: Use custom comment delimiters that DON'T match {# #}
@@ -676,11 +679,11 @@ async def async_check_dashboard_exists(hass: HomeAssistant, url_path: str) -> bo
     return False
 
 
-async def async_dedupe_kidschores_dashboards(
+async def async_dedupe_choreops_dashboards(
     hass: HomeAssistant,
     url_path: str | None = None,
 ) -> dict[str, int]:
-    """Remove duplicate KidsChores dashboard records from collection storage.
+    """Remove duplicate ChoreOps dashboard records from collection storage.
 
     Keeps the most recent record for each url path and removes older duplicates.
 
@@ -745,12 +748,12 @@ async def async_dedupe_kidschores_dashboards(
 # ==============================================================================
 
 
-async def create_kidschores_dashboard(
+async def create_choreops_dashboard(
     hass: HomeAssistant,
     dashboard_name: str,
-    kid_names: list[str],
+    assignee_names: list[str],
     style: str = const.DASHBOARD_STYLE_FULL,
-    kid_template_profiles: dict[str, str] | None = None,
+    assignee_template_profiles: dict[str, str] | None = None,
     include_admin: bool = True,
     admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
     force_rebuild: bool = False,
@@ -762,20 +765,20 @@ async def create_kidschores_dashboard(
     pinned_release_tag: str | None = None,
     include_prereleases: bool = const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT,
 ) -> str:
-    """Create a KidsChores dashboard with views for multiple kids.
+    """Create a ChoreOps dashboard with views for multiple assignees.
 
     This is the main entry point for dashboard generation. It creates a single
-    dashboard with multiple views (tabs) - one for each kid plus an optional
+    dashboard with multiple views (tabs) - one for each assignee plus an optional
     admin view.
 
     Args:
         hass: Home Assistant instance.
         dashboard_name: User-specified dashboard name (e.g., "Chores").
-        kid_names: List of kid names to create views for.
+        assignee_names: List of assignee names to create views for.
         style: Dashboard style (full, minimal, compact).
-        kid_template_profiles: Optional per-kid template profile map.
+        assignee_template_profiles: Optional per-assignee template profile map.
         include_admin: Whether to include an admin view tab.
-        admin_mode: Admin layout mode (none, global, per_kid, both).
+        admin_mode: Admin layout mode (none, global, per_assignee, both).
         force_rebuild: If True, delete existing dashboard first.
         show_in_sidebar: Whether to show in sidebar.
         require_admin: Whether dashboard requires admin access.
@@ -823,24 +826,26 @@ async def create_kidschores_dashboard(
     # Ensure default style template is available for fallback behavior
     await _get_template(style)
 
-    # Build views for each kid
+    # Build views for each assignee
     views: list[dict[str, Any]] = []
 
-    for kid_name in kid_names:
-        kid_style = resolve_kid_template_profile(
-            kid_name,
+    for assignee_name in assignee_names:
+        assignee_style = resolve_assignee_template_profile(
+            assignee_name,
             style,
-            kid_template_profiles,
+            assignee_template_profiles,
         )
-        template_str = await _get_template(kid_style)
-        kid_context = build_dashboard_context(kid_name, template_profile=kid_style)
+        template_str = await _get_template(assignee_style)
+        assignee_context = build_dashboard_context(
+            assignee_name, template_profile=assignee_style
+        )
         # Convert TypedDict to regular dict for generic render function
-        kid_view = render_dashboard_template(template_str, dict(kid_context))
-        views.append(kid_view)
+        assignee_view = render_dashboard_template(template_str, dict(assignee_context))
+        views.append(assignee_view)
         const.LOGGER.debug(
-            "Built view for kid: %s (template_profile=%s)",
-            kid_name,
-            kid_style,
+            "Built view for assignee: %s (template_profile=%s)",
+            assignee_name,
+            assignee_style,
         )
 
     normalized_admin_mode = _normalize_admin_mode(admin_mode)
@@ -854,21 +859,21 @@ async def create_kidschores_dashboard(
             include_prereleases=include_prereleases,
         )
         # Admin template still needs comment stripping via Jinja2 render
-        # Pass empty context since admin doesn't need kid injection
+        # Pass empty context since admin doesn't need assignee injection
         admin_view = render_dashboard_template(admin_template_str, {})
         if isinstance(admin_view, dict):
             include_global_admin = normalized_admin_mode in (
                 const.DASHBOARD_ADMIN_MODE_GLOBAL,
                 const.DASHBOARD_ADMIN_MODE_BOTH,
             )
-            include_per_kid_admin = normalized_admin_mode in (
-                const.DASHBOARD_ADMIN_MODE_PER_KID,
+            include_per_assignee_admin = normalized_admin_mode in (
+                const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
                 const.DASHBOARD_ADMIN_MODE_BOTH,
             )
 
             if include_global_admin:
                 global_admin_view = dict(admin_view)
-                global_admin_view.setdefault("title", "KidsChores Admin")
+                global_admin_view.setdefault("title", "ChoreOps Admin")
                 global_admin_view["path"] = "admin"
                 if visible_entries := _build_admin_visible_users(
                     admin_view_visibility,
@@ -877,17 +882,17 @@ async def create_kidschores_dashboard(
                     global_admin_view["visible"] = visible_entries
                 views.append(global_admin_view)
 
-            if include_per_kid_admin:
-                for kid_name in kid_names:
-                    per_kid_admin_view = dict(admin_view)
-                    per_kid_admin_view["title"] = f"Admin - {kid_name}"
-                    per_kid_admin_view["path"] = f"admin-{slugify(kid_name)}"
+            if include_per_assignee_admin:
+                for assignee_name in assignee_names:
+                    per_assignee_admin_view = dict(admin_view)
+                    per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
+                    per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
                     if visible_entries := _build_admin_visible_users(
                         admin_view_visibility,
                         admin_visible_user_ids,
                     ):
-                        per_kid_admin_view["visible"] = visible_entries
-                    views.append(per_kid_admin_view)
+                        per_assignee_admin_view["visible"] = visible_entries
+                    views.append(per_assignee_admin_view)
             const.LOGGER.debug(
                 "Added admin view(s) for mode: %s",
                 normalized_admin_mode,
@@ -913,7 +918,7 @@ async def create_kidschores_dashboard(
     await _save_dashboard_config(hass, url_path, dashboard_config)
 
     const.LOGGER.info(
-        "Created KidsChores dashboard: %s with %d views (style=%s, admin=%s)",
+        "Created ChoreOps dashboard: %s with %d views (style=%s, admin=%s)",
         url_path,
         len(views),
         style,
@@ -941,7 +946,7 @@ def _build_admin_visible_users(
     admin_visible_user_ids: list[str] | None,
 ) -> list[dict[str, str]] | None:
     """Build Home Assistant `visible` entries for admin view access control."""
-    if admin_view_visibility != const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_PARENTS:
+    if admin_view_visibility != const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS:
         return None
 
     if not admin_visible_user_ids:
@@ -967,20 +972,20 @@ def _normalize_admin_mode(admin_mode: str) -> str:
     alias_map: dict[str, str] = {
         const.DASHBOARD_ADMIN_MODE_NONE: const.DASHBOARD_ADMIN_MODE_NONE,
         const.DASHBOARD_ADMIN_MODE_GLOBAL: const.DASHBOARD_ADMIN_MODE_GLOBAL,
-        const.DASHBOARD_ADMIN_MODE_PER_KID: const.DASHBOARD_ADMIN_MODE_PER_KID,
+        const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE: const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
         const.DASHBOARD_ADMIN_MODE_BOTH: const.DASHBOARD_ADMIN_MODE_BOTH,
         "shared": const.DASHBOARD_ADMIN_MODE_GLOBAL,
-        "per_kid": const.DASHBOARD_ADMIN_MODE_PER_KID,
+        "per_assignee": const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
         "both": const.DASHBOARD_ADMIN_MODE_BOTH,
         "none": const.DASHBOARD_ADMIN_MODE_NONE,
     }
     return alias_map.get(normalized, const.DASHBOARD_ADMIN_MODE_GLOBAL)
 
 
-async def update_kidschores_dashboard_views(
+async def update_choreops_dashboard_views(
     hass: HomeAssistant,
     url_path: str,
-    kid_names: list[str],
+    assignee_names: list[str],
     template_profile: str,
     include_admin: bool,
     admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
@@ -994,13 +999,13 @@ async def update_kidschores_dashboard_views(
 ) -> int:
     """Update selected views on an existing dashboard without deleting it.
 
-    Keeps existing dashboard metadata/title and preserves non-selected kid views.
+    Keeps existing dashboard metadata/title and preserves non-selected assignee views.
 
     Args:
         hass: Home Assistant instance.
         url_path: Existing dashboard url path.
-        kid_names: Kids to update in-place.
-        template_profile: Template profile to apply for updated kid views.
+        assignee_names: Assignees to update in-place.
+        template_profile: Template profile to apply for updated assignee views.
         include_admin: Whether admin view should exist after update.
 
     Returns:
@@ -1048,22 +1053,24 @@ async def update_kidschores_dashboard_views(
             )
         return template_cache[target_style]
 
-    updated_kid_views_by_path: dict[str, dict[str, Any]] = {}
-    for kid_name in kid_names:
-        kid_template = await _get_template(template_profile)
-        kid_context = build_dashboard_context(
-            kid_name, template_profile=template_profile
+    updated_assignee_views_by_path: dict[str, dict[str, Any]] = {}
+    for assignee_name in assignee_names:
+        assignee_template = await _get_template(template_profile)
+        assignee_context = build_dashboard_context(
+            assignee_name, template_profile=template_profile
         )
-        kid_view = render_dashboard_template(kid_template, dict(kid_context))
-        kid_path = kid_view.get("path")
-        if isinstance(kid_path, str):
-            updated_kid_views_by_path[kid_path] = kid_view
+        assignee_view = render_dashboard_template(
+            assignee_template, dict(assignee_context)
+        )
+        assignee_path = assignee_view.get("path")
+        if isinstance(assignee_path, str):
+            updated_assignee_views_by_path[assignee_path] = assignee_view
         else:
             # Template should always provide a path; append fallback if missing
-            existing_views.append(kid_view)
+            existing_views.append(assignee_view)
 
     merged_views: list[dict[str, Any]] = []
-    replaced_kid_paths: set[str] = set()
+    replaced_assignee_paths: set[str] = set()
     existing_admin_view: dict[str, Any] | None = None
 
     for view in existing_views:
@@ -1072,15 +1079,15 @@ async def update_kidschores_dashboard_views(
             continue
 
         path = view.get("path")
-        if isinstance(path, str) and path in updated_kid_views_by_path:
-            merged_views.append(updated_kid_views_by_path[path])
-            replaced_kid_paths.add(path)
+        if isinstance(path, str) and path in updated_assignee_views_by_path:
+            merged_views.append(updated_assignee_views_by_path[path])
+            replaced_assignee_paths.add(path)
             continue
 
         merged_views.append(view)
 
-    for path, view in updated_kid_views_by_path.items():
-        if path not in replaced_kid_paths:
+    for path, view in updated_assignee_views_by_path.items():
+        if path not in replaced_assignee_paths:
             merged_views.append(view)
 
     if include_admin:
@@ -1098,14 +1105,14 @@ async def update_kidschores_dashboard_views(
             const.DASHBOARD_ADMIN_MODE_GLOBAL,
             const.DASHBOARD_ADMIN_MODE_BOTH,
         )
-        include_per_kid_admin = normalized_admin_mode in (
-            const.DASHBOARD_ADMIN_MODE_PER_KID,
+        include_per_assignee_admin = normalized_admin_mode in (
+            const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
             const.DASHBOARD_ADMIN_MODE_BOTH,
         )
 
         if include_global_admin:
             global_admin_view = dict(admin_view)
-            global_admin_view.setdefault("title", "KidsChores Admin")
+            global_admin_view.setdefault("title", "ChoreOps Admin")
             global_admin_view["path"] = "admin"
             if visible_entries := _build_admin_visible_users(
                 admin_view_visibility,
@@ -1114,17 +1121,17 @@ async def update_kidschores_dashboard_views(
                 global_admin_view["visible"] = visible_entries
             merged_views.append(global_admin_view)
 
-        if include_per_kid_admin:
-            for kid_name in kid_names:
-                per_kid_admin_view = dict(admin_view)
-                per_kid_admin_view["title"] = f"Admin - {kid_name}"
-                per_kid_admin_view["path"] = f"admin-{slugify(kid_name)}"
+        if include_per_assignee_admin:
+            for assignee_name in assignee_names:
+                per_assignee_admin_view = dict(admin_view)
+                per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
+                per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
                 if visible_entries := _build_admin_visible_users(
                     admin_view_visibility,
                     admin_visible_user_ids,
                 ):
-                    per_kid_admin_view["visible"] = visible_entries
-                merged_views.append(per_kid_admin_view)
+                    per_assignee_admin_view["visible"] = visible_entries
+                merged_views.append(per_assignee_admin_view)
     elif existing_admin_view is not None:
         const.LOGGER.debug("Removed admin view from dashboard: %s", url_path)
 
@@ -1145,9 +1152,9 @@ async def update_kidschores_dashboard_views(
     )
 
     const.LOGGER.info(
-        "Updated dashboard views in-place: %s (kids_updated=%d, include_admin=%s, views=%d)",
+        "Updated dashboard views in-place: %s (assignees_updated=%d, include_admin=%s, views=%d)",
         url_path,
-        len(kid_names),
+        len(assignee_names),
         include_admin,
         len(merged_views),
     )
@@ -1278,13 +1285,13 @@ async def _delete_dashboard(hass: HomeAssistant, url_path: str) -> None:
     const.LOGGER.debug("Removed dashboard panel: %s", url_path)
 
 
-async def delete_kidschores_dashboard(
+async def delete_choreops_dashboard(
     hass: HomeAssistant,
     url_path: str,
 ) -> None:
-    """Delete a KidsChores dashboard.
+    """Delete a ChoreOps dashboard.
 
-    Public function to delete an existing KidsChores dashboard.
+    Public function to delete an existing ChoreOps dashboard.
     Handles all three aspects of dashboard removal:
     1. Panel (sidebar item)
     2. Storage (config file)
@@ -1301,11 +1308,11 @@ async def delete_kidschores_dashboard(
         raise DashboardSaveError("Cannot delete dashboards in recovery mode")
 
     if not _is_choreops_dashboard_url_path(url_path):
-        raise DashboardSaveError(f"Cannot delete non-KidsChores dashboard: {url_path}")
+        raise DashboardSaveError(f"Cannot delete non-ChoreOps dashboard: {url_path}")
 
     await _delete_dashboard(hass, url_path)
 
-    const.LOGGER.info("Deleted KidsChores dashboard: %s", url_path)
+    const.LOGGER.info("Deleted ChoreOps dashboard: %s", url_path)
 
 
 async def _create_dashboard_entry(
@@ -1357,7 +1364,7 @@ async def _create_dashboard_entry(
     ]
 
     if len(existing_items) > 1:
-        await async_dedupe_kidschores_dashboards(hass, url_path=url_path)
+        await async_dedupe_choreops_dashboards(hass, url_path=url_path)
         await dashboards_collection.async_load()
         existing_items = [
             item

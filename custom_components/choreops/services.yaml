@@ -1,16 +1,16 @@
 # File: services.yaml
 #
-# Custom services documentation for the KidsChores integration.
+# Custom services documentation for the ChoreOps integration.
 # These services allow direct actions through scripts or automations.
 # Includes UI editor support with selectors for text inputs and numbers.
 
 claim_chore:
   name: "Claim Chore"
-  description: "A kid claims a chore, marking it as 'claimed' for parental approval."
+  description: "An assignee claims a chore, marking it as 'claimed' for approver review."
   fields:
-    kid_name:
-      name: "Kid Name"
-      description: "The name of the kid claiming the chore."
+    user_name:
+      name: "User Name"
+      description: "The name of the user claiming the chore."
       example: "Alice"
       required: true
       selector:
@@ -25,18 +25,18 @@ claim_chore:
 
 approve_chore:
   name: "Approve Chore"
-  description: "Parent approves a chore, awarding points (full or partial)."
+  description: "Approver approves a chore, awarding points (full or partial)."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent approving the chore."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver approving the chore."
       example: "Mom"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The name of the kid who performed the chore."
+    user_name:
+      name: "User Name"
+      description: "The name of the user who performed the chore."
       example: "Alice"
       required: true
       selector:
@@ -61,18 +61,18 @@ approve_chore:
 
 disapprove_chore:
   name: "Disapprove Chore"
-  description: "Parent disapproves a chore for a kid, reverting its status."
+  description: "Approver disapproves a chore for an assignee, reverting its status."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent disapproving the chore."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver disapproving the chore."
       example: "Mom"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The name of the kid whose chore is being disapproved."
+    user_name:
+      name: "User Name"
+      description: "The name of the user whose chore is being disapproved."
       example: "Bob"
       required: true
       selector:
@@ -87,18 +87,18 @@ disapprove_chore:
 
 redeem_reward:
   name: "Redeem Reward"
-  description: "A kid redeems a reward, marking it as 'pending' for parental approval."
+  description: "An assignee redeems a reward, marking it as 'pending' for approver review."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent authorizing the reward redemption."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver authorizing the reward redemption."
       example: "Mom"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The kid redeeming the reward."
+    user_name:
+      name: "User Name"
+      description: "The user redeeming the reward."
       example: "Alice"
       required: true
       selector:
@@ -113,18 +113,18 @@ redeem_reward:
 
 approve_reward:
   name: "Approve Reward"
-  description: "Parent approves a reward claimed by a kid, deducting points. Supports optional cost override for context-aware pricing (e.g., weekend discounts, birthday free grants)."
+  description: "Approver approves a reward claimed by an assignee, deducting points. Supports optional cost override for context-aware pricing (e.g., weekend discounts, birthday free grants)."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent approving the reward."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver approving the reward."
       example: "Mom"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The kid who is redeeming the reward."
+    user_name:
+      name: "User Name"
+      description: "The user who is redeeming the reward."
       example: "Alice"
       required: true
       selector:
@@ -149,18 +149,18 @@ approve_reward:
 
 disapprove_reward:
   name: "Disapprove Reward"
-  description: "Parent disapproves a reward redemption for a kid."
+  description: "Approver disapproves a reward redemption for an assignee."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent disapproving the reward."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver disapproving the reward."
       example: "Dad"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The kid whose reward redemption is being disapproved."
+    user_name:
+      name: "User Name"
+      description: "The user whose reward redemption is being disapproved."
       example: "Bob"
       required: true
       selector:
@@ -175,18 +175,18 @@ disapprove_reward:
 
 apply_penalty:
   name: "Apply Penalty"
-  description: "A parent applies a penalty, deducting points from a kid."
+  description: "An approver applies a penalty, deducting points from an assignee."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent applying the penalty."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver applying the penalty."
       example: "Dad"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The kid receiving the penalty."
+    user_name:
+      name: "User Name"
+      description: "The user receiving the penalty."
       example: "Bob"
       required: true
       selector:
@@ -201,18 +201,18 @@ apply_penalty:
 
 apply_bonus:
   name: "Apply Bonus"
-  description: "A parent applies a bonus to award extra points."
+  description: "An approver applies a bonus to award extra points to an assignee."
   fields:
-    parent_name:
-      name: "Parent Name"
-      description: "The parent applying the bonus."
+    approver_name:
+      name: "Approver Name"
+      description: "The approver applying the bonus."
       example: "Dad"
       required: true
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "The kid receiving the bonus."
+    user_name:
+      name: "User Name"
+      description: "The user receiving the bonus."
       example: "Bob"
       required: true
       selector:
@@ -228,20 +228,20 @@ apply_bonus:
 generate_activity_report:
   name: "Generate Activity Report"
   description: >
-    Build a 7-day activity report from kid ledger data. This service is
+    Build a 7-day activity report from user ledger data. This service is
     response-first and returns markdown, with optional HTML conversion for
     email-oriented workflows, when called with return_response: true.
   fields:
-    kid_name:
-      name: "Kid Name"
-      description: "Optional filter. If omitted, includes all kids in one aggregate report."
+    user_name:
+      name: "User Name"
+      description: "Optional filter. If omitted, includes all users in one aggregate report."
       required: false
       example: "Alice"
       selector:
         text:
     report_language:
       name: "Report Language"
-      description: "Optional language code for report text (for example en, es, de). If omitted, uses selected kid language when kid_name is provided, otherwise English."
+      description: "Optional language code for report text (for example en, es, de). If omitted, uses selected user language when user_name is provided, otherwise English."
       required: false
       example: "en"
       selector:
@@ -286,9 +286,9 @@ reset_chores_to_pending_state:
 reset_transactional_data:
   name: "Reset Transactional Data"
   description: >
-    Reset runtime/transactional data while preserving configuration (kids, chores, rewards, etc.).
-    An automatic backup is created before reset as kidschores_data_<timestamp>_reset in the .storage directory.
-    Use scope to target specific kids or domains.
+    Reset runtime/transactional data while preserving configuration (assignees, chores, rewards, etc.).
+    An automatic backup is created before reset as choreops_data_<timestamp>_reset in the .storage directory.
+    Use scope to target specific assignees or domains.
     IMPORTANT: Requires confirm_destructive: true as a safety mechanism.
   fields:
     confirm_destructive:
@@ -300,7 +300,7 @@ reset_transactional_data:
         boolean:
     scope:
       name: "Scope"
-      description: "Reset scope: 'global' resets all data, 'kid' resets data for a specific kid only."
+      description: "Reset scope: 'global' resets all data, 'user' resets data for a specific user only."
       required: false
       default: "global"
       example: "global"
@@ -308,10 +308,10 @@ reset_transactional_data:
         select:
           options:
             - "global"
-            - "kid"
-    kid_name:
-      name: "Kid Name"
-      description: "Required if scope is 'kid'. The name of the kid whose data should be reset."
+            - "user"
+    user_name:
+      name: "User Name"
+      description: "Required if scope is 'user'. The name of the user whose data should be reset."
       required: false
       example: "Alice"
       selector:
@@ -345,8 +345,8 @@ reset_overdue_chores:
   description: >
     Reset overdue chore(s) back to the Pending state and reschedule them based on
     their recurring frequency and previous due date. You may optionally provide a
-    chore_id (or chore_name) to reset a specific chore and optionally a kid_name
-    to reset the chore only for that kid.
+    chore_id (or chore_name) to reset a specific chore and optionally a user_name
+    to reset the chore only for that user.
   fields:
     chore_id:
       name: "Chore ID"
@@ -362,9 +362,9 @@ reset_overdue_chores:
       required: false
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "If provided, reset the chore only for this kid."
+    user_name:
+      name: "User Name"
+      description: "If provided, reset the chore only for this user."
       example: "Alice"
       required: false
       selector:
@@ -376,7 +376,7 @@ set_chore_due_date:
     Set (or clear) the due date for a chore. Provide the chore name and, if desired,
     a new due date. If no due date is provided the existing due date will be cleared.
     The service will reject due dates set in the past. For independent chores, optionally
-    provide a kid_name to set the due date only for that kid.
+    provide a user_name to set the due date only for that user.
   fields:
     chore_name:
       name: "Chore Name"
@@ -394,19 +394,19 @@ set_chore_due_date:
       required: false
       selector:
         datetime: {}
-    kid_name:
-      name: "Kid Name"
+    user_name:
+      name: "User Name"
       description: >
-        For shared chores, specify the kid to set the due date for.
-        If omitted, sets the due date for all assigned kids.
+        For shared chores, specify the user to set the due date for.
+        If omitted, sets the due date for all assignees assigned to this chore.
       example: "Alice"
       required: false
       selector:
         text:
-    kid_id:
-      name: "Kid ID"
+    user_id:
+      name: "User ID"
       description: >
-        The internal ID of the kid. Advanced users only - use kid_name instead.
+        The internal ID of the user. Advanced users only - use user_name instead.
       example: "abc123-def456"
       required: false
       advanced: true
@@ -419,7 +419,7 @@ skip_chore_due_date:
     Skip the current due date of a recurring chore. This service immediately
     reschedules the chore's due date based on its recurring frequency and resets
     its state to pending. Any pending claims or approvals will be removed.
-    For independent chores, optionally provide a kid_name to skip only for that kid.
+    For independent chores, optionally provide a user_name to skip only for that user.
   fields:
     chore_id:
       name: "Chore ID"
@@ -437,19 +437,19 @@ skip_chore_due_date:
       required: false
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
+    user_name:
+      name: "User Name"
       description: >
-        For shared chores, specify the kid to skip the due date for.
-        If omitted, skips the due date for all assigned kids.
+        For shared chores, specify the user to skip the due date for.
+        If omitted, skips the due date for all assignees assigned to this chore.
       example: "Alice"
       required: false
       selector:
         text:
-    kid_id:
-      name: "Kid ID"
+    user_id:
+      name: "User ID"
       description: >
-        The internal ID of the kid. Advanced users only - use kid_name instead.
+        The internal ID of the user. Advanced users only - use user_name instead.
       example: "abc123-def456"
       required: false
       advanced: true
@@ -458,7 +458,7 @@ skip_chore_due_date:
     mark_as_missed:
       name: "Mark as Missed"
       description: >
-        When true, records this skip as a missed chore in the kid's statistics.
+        When true, records this skip as a missed chore in the assignee's statistics.
         Useful for tracking intentional skips separately from automated overdue resets.
       required: false
       default: false
@@ -468,13 +468,13 @@ skip_chore_due_date:
 remove_awarded_badges:
   name: "Remove Awarded Badges"
   description: >
-    Remove all awarded badges for all kids. Optionally, provide badge_name to reset a
-    specific badge across all kids. Use kid_name to reset all badges for a specific kid.
-    Combine both to reset a specific badge for a specific kid.
+    Remove all awarded badges for all assignees. Optionally, provide badge_name to reset a
+    specific badge across all assignees. Use user_name to reset all badges for a specific user.
+    Combine both to reset a specific badge for a specific user.
   fields:
-    kid_name:
-      name: "Kid Name"
-      description: "The kid awarded badges will be removed from."
+    user_name:
+      name: "User Name"
+      description: "The user awarded badges will be removed from."
       example: "Bob"
       required: false
       selector:
@@ -487,33 +487,9 @@ remove_awarded_badges:
       selector:
         text:
 
-manage_shadow_link:
-  name: "Manage Parent Shadow Kid Link"
-  description: "Link or unlink an existing kid profile to/from a parent. Requires kid and parent to have matching names. Unlinking preserves all data and renames kid with '_unlinked' suffix."
-  fields:
-    name:
-      name: "Name"
-      description: "Name that matches BOTH the parent and kid (case-insensitive)"
-      required: true
-      example: "Sarah"
-      selector:
-        text:
-    action:
-      name: "Action"
-      description: "Link connects kid to parent as shadow. Unlink disconnects and renames kid."
-      required: true
-      example: "link"
-      selector:
-        select:
-          options:
-            - label: "Link (connect kid to parent)"
-              value: "link"
-            - label: "Unlink (disconnect and rename)"
-              value: "unlink"
-
 create_reward:
   name: "Create Reward"
-  description: "Create a new reward that kids can redeem using their points. Returns the reward_id of the created reward."
+  description: "Create a new reward that assignees can redeem using their points. Returns the reward_id of the created reward."
   fields:
     name:
       name: "Reward Name"
@@ -638,9 +614,9 @@ create_chore:
       required: true
       selector:
         text:
-    assigned_kids:
-      name: "Assigned Kids"
-      description: "List of kid names to assign to this chore."
+    assigned_user_names:
+      name: "Assigned to"
+      description: "List of assignee names to assign to this chore."
       example: "['Emma', 'Jack']"
       required: true
       selector:
@@ -718,7 +694,7 @@ create_chore:
             - "sun"
     completion_criteria:
       name: "Completion Criteria"
-      description: "How the chore is completed when multiple kids are assigned: independent (each kid completes separately), shared_first (first kid to complete earns points), or shared_all (all kids must complete)."
+      description: "How the chore is completed when multiple assignees are assigned: independent (each assignee completes separately), shared_first (first assignee to complete earns points), or shared_all (all assignees must complete)."
       example: "independent"
       required: false
       selector:
@@ -765,7 +741,7 @@ create_chore:
             - "at_due_date_clear_immediate_on_late"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
-      description: "If enabled, kids cannot claim this chore before the due window begins."
+      description: "If enabled, assignees cannot claim this chore before the due window begins."
       example: false
       required: false
       selector:
@@ -779,7 +755,7 @@ create_chore:
         boolean:
     due_date:
       name: "Due Date"
-      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assigned kids."
+      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assignees assigned to this chore."
       example: "2026-01-15T17:00:00"
       required: false
       selector:
@@ -817,9 +793,9 @@ update_chore:
       required: false
       selector:
         text:
-    assigned_kids:
-      name: "Assigned Kids"
-      description: "New list of kid names to assign to this chore."
+    assigned_user_names:
+      name: "Assigned to"
+      description: "New list of assignee names to assign to this chore."
       example: "['Emma', 'Jack', 'Sophia']"
       required: false
       selector:
@@ -933,7 +909,7 @@ update_chore:
             - "at_due_date_clear_immediate_on_late"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
-      description: "If enabled, kids cannot claim this chore before the due window begins."
+      description: "If enabled, assignees cannot claim this chore before the due window begins."
       example: true
       required: false
       selector:
@@ -947,7 +923,7 @@ update_chore:
         boolean:
     due_date:
       name: "Due Date"
-      description: "New due date. For INDEPENDENT chores, updates the due date for all assigned kids."
+      description: "New due date. For INDEPENDENT chores, updates the due date for all assignees assigned to this chore."
       example: "2026-01-20T17:00:00"
       required: false
       selector:
@@ -969,7 +945,7 @@ update_chore:
 
 delete_chore:
   name: "Delete Chore"
-  description: "Delete a chore by ID or name. Cleans up all references in achievements, challenges, and kids."
+  description: "Delete a chore by ID or name. Cleans up all references in achievements, challenges, and assignees."
   fields:
     id:
       name: "Chore ID"
@@ -988,7 +964,7 @@ delete_chore:
 
 set_rotation_turn:
   name: "Set Rotation Turn"
-  description: "Manually assign the current turn to a specific kid in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  description: "Manually assign the current turn to a specific assignee in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
   fields:
     chore_id:
       name: "Chore ID"
@@ -1004,16 +980,16 @@ set_rotation_turn:
       required: false
       selector:
         text:
-    kid_id:
-      name: "Kid ID"
-      description: "Internal ID of the kid to assign the turn to. Must be assigned to this chore. Optional if kid_name is provided."
+    user_id:
+      name: "User ID"
+      description: "Internal ID of the user to assign the turn to. Must be assigned to this chore. Optional if user_name is provided."
       example: "xyz789-abc123-456..."
       required: false
       selector:
         text:
-    kid_name:
-      name: "Kid Name"
-      description: "Name of the kid to assign the turn to. Must be assigned to this chore. Optional if kid_id is provided."
+    user_name:
+      name: "User Name"
+      description: "Name of the user to assign the turn to. Must be assigned to this chore. Optional if user_id is provided."
       example: "Alice"
       required: false
       selector:
@@ -1021,7 +997,7 @@ set_rotation_turn:
 
 reset_rotation:
   name: "Reset Rotation"
-  description: "Reset rotation turn to the first assigned kid. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  description: "Reset rotation turn to the first assigned assignee. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
   fields:
     chore_id:
       name: "Chore ID"
@@ -1040,7 +1016,7 @@ reset_rotation:
 
 open_rotation_cycle:
   name: "Open Rotation Cycle"
-  description: "Enable rotation cycle override for one cycle, allowing any assigned kid to claim regardless of turn. Override clears after next approval. Use either ID or name for identification."
+  description: "Enable rotation cycle override for one cycle, allowing any assigned assignee to claim regardless of turn. Override clears after next approval. Use either ID or name for identification."
   fields:
     chore_id:
       name: "Chore ID"

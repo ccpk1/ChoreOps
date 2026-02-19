@@ -18,7 +18,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, cast
 
-from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import HomeAssistantError
 
 from . import const
@@ -26,8 +25,8 @@ from . import const
 if TYPE_CHECKING:
     from homeassistant.core import Event, HomeAssistant
 
-    from .coordinator import KidsChoresDataCoordinator
-    from .type_defs import KidData
+    from .coordinator import ChoreOpsDataCoordinator
+    from .type_defs import UserData
 
 
 # =============================================================================
@@ -40,37 +39,37 @@ class ParsedAction:
     """Type-safe parsed notification action.
 
     Represents a notification action string parsed into its components.
-    Action strings are pipe-separated: "action_type|entry_id[:8]|kid_id|entity_id[|notif_id]"
+    Action strings are pipe-separated: "action_type|entry_id[:8]|user_id|entity_id[|notif_id]"
 
     Attributes:
         action_type: The action constant (e.g., ACTION_APPROVE_CHORE)
-        entry_id: The config entry ID (truncated to 8 chars, optional for backward compatibility)
-        kid_id: The internal ID of the kid
+        entry_id: The config entry ID (truncated to 8 chars)
+        user_id: The internal ID of the target user
         entity_id: The chore_id or reward_id depending on action type
         notif_id: Optional notification tracking ID (rewards only)
 
     Example:
-        # Chore action: "approve_chore|abc12345|kid-123|chore-456"
+        # Chore action: "approve_chore|abc12345|user-123|chore-456"
         parsed = ParsedAction(
             action_type="approve_chore",
             entry_id="abc12345",
-            kid_id="kid-123",
+            user_id="user-123",
             entity_id="chore-456",
         )
 
-        # Reward action: "approve_reward|abc12345|kid-123|reward-456|notif-789"
+        # Reward action: "approve_reward|abc12345|user-123|reward-456|notif-789"
         parsed = ParsedAction(
             action_type="approve_reward",
             entry_id="abc12345",
-            kid_id="kid-123",
+            user_id="user-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
     """
 
     action_type: str
-    entry_id: str | None
-    kid_id: str
+    entry_id: str
+    user_id: str
     entity_id: str  # chore_id or reward_id
     notif_id: str | None = None
 
@@ -80,7 +79,7 @@ class ParsedAction:
         return self.action_type in (
             const.ACTION_APPROVE_CHORE,
             const.ACTION_CLAIM_CHORE,
-            const.ACTION_COMPLETE_FOR_KID,
+            const.ACTION_COMPLETE_FOR_ASSIGNEE,
             const.ACTION_DISAPPROVE_CHORE,
             const.ACTION_SKIP_CHORE,
         )
@@ -118,10 +117,9 @@ class ParsedAction:
 def parse_notification_action(action_field: str) -> ParsedAction | None:
     """Parse a notification action string into a structured ParsedAction.
 
-    Parses pipe-separated action strings with backward compatibility:
-    - New format: "CLAIM_CHORE|entry_id[:8]|kid_id|chore_id"
-    - Legacy format: "CLAIM_CHORE|kid_id|chore_id" (entry_id will be None)
-    - With notification ID: "APPROVE_REWARD|entry_id[:8]|kid_id|reward_id|notification_id"
+    Parses pipe-separated action strings:
+    - Format: "CLAIM_CHORE|entry_id[:8]|user_id|chore_id"
+    - With notification ID: "APPROVE_REWARD|entry_id[:8]|user_id|reward_id|notification_id"
 
     Args:
         action_field: Pipe-separated action string from notification callback
@@ -133,7 +131,7 @@ def parse_notification_action(action_field: str) -> ParsedAction | None:
         >>> parsed = parse_notification_action("CLAIM_CHORE|abc12345|def123|ghi456")
         >>> parsed.action_type  # "CLAIM_CHORE"
         >>> parsed.entry_id     # "abc12345"
-        >>> parsed.kid_id       # "def123"
+        >>> parsed.user_id      # "def123"
         >>> parsed.entity_id    # "ghi456"
     """
     if not action_field:
@@ -152,7 +150,7 @@ def parse_notification_action(action_field: str) -> ParsedAction | None:
             const.ACTION_APPROVE_CHORE,
             const.ACTION_DISAPPROVE_CHORE,
             const.ACTION_CLAIM_CHORE,
-            const.ACTION_COMPLETE_FOR_KID,
+            const.ACTION_COMPLETE_FOR_ASSIGNEE,
             const.ACTION_SKIP_CHORE,
             const.ACTION_APPROVE_REWARD,
             const.ACTION_DISAPPROVE_REWARD,
@@ -162,27 +160,22 @@ def parse_notification_action(action_field: str) -> ParsedAction | None:
             const.LOGGER.warning("Unknown action type: %s", action_type)
             return None
 
-        # Detect format: new format has 4+ parts, legacy has 3-4 parts
-        # New: ACTION|entry_id|kid_id|entity_id[|notif_id] (4-5 parts)
-        # Legacy: ACTION|kid_id|entity_id[|notif_id] (3-4 parts)
+        # Hard-fork format: ACTION|entry_id|user_id|entity_id[|notif_id]
+        if len(parts) < 4 or len(parts[1]) != 8:
+            const.LOGGER.warning(
+                "Invalid hard-fork action string format: %s", action_field
+            )
+            return None
 
-        if len(parts) >= 4 and len(parts[1]) == 8:
-            # New format: entry_id is exactly 8 characters (truncated)
-            entry_id = parts[1]
-            kid_id = parts[2]
-            entity_id = parts[3]
-            notif_id = parts[4] if len(parts) > 4 else None
-        else:
-            # Legacy format: no entry_id
-            entry_id = None
-            kid_id = parts[1]
-            entity_id = parts[2]
-            notif_id = parts[3] if len(parts) > 3 else None
+        entry_id = parts[1]
+        user_id = parts[2]
+        entity_id = parts[3]
+        notif_id = parts[4] if len(parts) > 4 else None
 
         parsed_action = ParsedAction(
             action_type=action_type,
             entry_id=entry_id,
-            kid_id=kid_id,
+            user_id=user_id,
             entity_id=entity_id,
             notif_id=notif_id,
         )
@@ -226,43 +219,30 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
         const.LOGGER.error("Failed to parse notification action: %s", action_field)
         return
 
-    # Parent name may be provided in the event data or use a default
-    parent_name = event.data.get(
-        const.NOTIFY_PARENT_NAME, const.NOTIFY_DEFAULT_PARENT_NAME
+    # Approver name may be provided in the event data or use a default
+    approver_name = event.data.get(
+        const.NOTIFY_APPROVER_NAME, const.NOTIFY_DEFAULT_APPROVER_NAME
     )
 
-    # Retrieve the coordinator using modern registry lookup pattern
-    # Support multi-instance: use entry_id if provided, otherwise find any loaded entry
+    # Retrieve the coordinator using modern registry lookup pattern.
+    # Hard-fork contract requires entry_id in every action payload.
     target_entry = None
-    if parsed.entry_id:
-        # Multi-instance: find entry by truncated ID
-        for entry in hass.config_entries.async_entries(const.DOMAIN):
-            if entry.entry_id.startswith(parsed.entry_id):
-                target_entry = entry
-                break
-        if not target_entry:
-            const.LOGGER.error(
-                "KidsChores config entry not found for truncated ID: %s",
-                parsed.entry_id,
-            )
-            return
-    else:
-        # Legacy: find first loaded entry
-        entries = [
-            e
-            for e in hass.config_entries.async_entries(const.DOMAIN)
-            if e.state == ConfigEntryState.LOADED
-        ]
-        if not entries:
-            const.LOGGER.error("No loaded KidsChores config entries found")
-            return
-        target_entry = entries[0]
+    for entry in hass.config_entries.async_entries(const.DOMAIN):
+        if entry.entry_id.startswith(parsed.entry_id):
+            target_entry = entry
+            break
+    if not target_entry:
+        const.LOGGER.error(
+            "ChoreOps config entry not found for truncated ID: %s",
+            parsed.entry_id,
+        )
+        return
 
     # Get coordinator from runtime_data
-    coordinator: KidsChoresDataCoordinator = target_entry.runtime_data
+    coordinator: ChoreOpsDataCoordinator = target_entry.runtime_data
     if not coordinator:
         const.LOGGER.error(
-            "KidsChores coordinator not found in runtime_data for entry: %s",
+            "ChoreOps coordinator not found in runtime_data for entry: %s",
             target_entry.entry_id,
         )
         return
@@ -270,59 +250,59 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
     try:
         if parsed.action_type == const.ACTION_APPROVE_CHORE:
             await coordinator.chore_manager.approve_chore(
-                parent_name=parent_name,
-                kid_id=parsed.kid_id,
+                approver_name,
+                assignee_id=parsed.user_id,
                 chore_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_CLAIM_CHORE:
-            # Kid claiming chore from notification (e.g., overdue reminder)
-            kid_info: KidData = cast(
-                "KidData", coordinator.kids_data.get(parsed.kid_id, {})
+            # Assignee claiming chore from notification (e.g., overdue reminder)
+            user_info: UserData = cast(
+                "UserData", coordinator.assignees_data.get(parsed.user_id, {})
             )
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+            user_name = user_info.get(const.DATA_USER_NAME, "Unknown")
             # Async method with lock protection
             await coordinator.chore_manager.claim_chore(
-                kid_id=parsed.kid_id,
+                assignee_id=parsed.user_id,
                 chore_id=parsed.entity_id,
-                user_name=kid_name,
+                user_name=user_name,
             )
-        elif parsed.action_type == const.ACTION_COMPLETE_FOR_KID:
-            # Parent completes chore directly (no claim needed)
+        elif parsed.action_type == const.ACTION_COMPLETE_FOR_ASSIGNEE:
+            # Approver completes chore directly (no claim needed)
             await coordinator.chore_manager.approve_chore(
-                parent_name=parent_name,
-                kid_id=parsed.kid_id,
+                approver_name,
+                assignee_id=parsed.user_id,
                 chore_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_DISAPPROVE_CHORE:
             await coordinator.chore_manager.disapprove_chore(
-                parent_name=parent_name,
-                kid_id=parsed.kid_id,
+                approver_name,
+                assignee_id=parsed.user_id,
                 chore_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_SKIP_CHORE:
             # Reset overdue chore to pending and reschedule
             await coordinator.chore_manager.reset_overdue_chores(
                 chore_id=parsed.entity_id,
-                kid_id=parsed.kid_id,
+                assignee_id=parsed.user_id,
             )
         elif parsed.action_type == const.ACTION_APPROVE_REWARD:
             await coordinator.reward_manager.approve(
-                parent_name=parent_name,
-                kid_id=parsed.kid_id,
+                approver_name,
+                assignee_id=parsed.user_id,
                 reward_id=parsed.entity_id,
                 notif_id=parsed.notif_id,
             )
         elif parsed.action_type == const.ACTION_DISAPPROVE_REWARD:
             # Async method with lock protection
             await coordinator.reward_manager.disapprove(
-                parent_name=parent_name,
-                kid_id=parsed.kid_id,
+                approver_name,
+                assignee_id=parsed.user_id,
                 reward_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_REMIND_30:
             # Reminder can be for chore or reward - use computed properties
             await coordinator.notification_manager.remind_in_minutes(
-                kid_id=parsed.kid_id,
+                assignee_id=parsed.user_id,
                 chore_id=parsed.chore_id,
                 reward_id=parsed.reward_id,
                 minutes=const.DEFAULT_REMINDER_DELAY,

@@ -21,9 +21,9 @@ class TestGhostNotificationPrevention:
 
     def test_format_notification_text_success(self):
         """Test successful placeholder formatting."""
-        template = "{kid_name}: {chore_name} is overdue! Due date was {due_date}."
+        template = "{assignee_name}: {chore_name} is overdue! Due date was {due_date}."
         data = {
-            "kid_name": "Alice",
+            "assignee_name": "Alice",
             "chore_name": "Clean Room",
             "due_date": "2023-12-15",
         }
@@ -33,9 +33,9 @@ class TestGhostNotificationPrevention:
 
     def test_format_notification_text_missing_single_placeholder(self):
         """Test handling of single missing placeholder - should return None."""
-        template = "{kid_name}: {chore_name} is overdue! Due date was {due_date}."
+        template = "{assignee_name}: {chore_name} is overdue! Due date was {due_date}."
         data = {
-            "kid_name": "Alice",
+            "assignee_name": "Alice",
             "chore_name": "Clean Room",
             # missing "due_date"
         }
@@ -44,9 +44,9 @@ class TestGhostNotificationPrevention:
 
     def test_format_notification_text_missing_multiple_placeholders(self):
         """Test handling of multiple missing placeholders - should return None."""
-        template = "{kid_name}: {chore_name} is overdue! Due date was {due_date}."
+        template = "{assignee_name}: {chore_name} is overdue! Due date was {due_date}."
         data = {
-            "kid_name": "Alice"
+            "assignee_name": "Alice"
             # missing both "chore_name" and "due_date"
         }
         result = format_notification_text(template, data, "test_key")
@@ -54,14 +54,14 @@ class TestGhostNotificationPrevention:
 
     def test_format_notification_text_no_data(self):
         """Test handling when no data is provided - should return None."""
-        template = "{kid_name}: {chore_name} is overdue! Due date was {due_date}."
+        template = "{assignee_name}: {chore_name} is overdue! Due date was {due_date}."
         data = None
         result = format_notification_text(template, data, "test_key")
         assert result is None
 
     def test_format_notification_text_empty_data(self):
         """Test handling when empty data dict is provided - should return None."""
-        template = "{kid_name}: {chore_name} is overdue! Due date was {due_date}."
+        template = "{assignee_name}: {chore_name} is overdue! Due date was {due_date}."
         data = {}
         result = format_notification_text(template, data, "test_key")
         assert result is None
@@ -76,16 +76,16 @@ class TestGhostNotificationPrevention:
     def test_format_notification_text_no_placeholder_needed(self):
         """Test template with no placeholders."""
         template = "No placeholders needed here"
-        data = {"kid_name": "Alice"}  # data provided but not needed
+        data = {"assignee_name": "Alice"}  # data provided but not needed
         result = format_notification_text(template, data, "test_key")
         assert result == "No placeholders needed here"
 
     def test_chore_overdue_realistic_scenario(self):
         """Test realistic chore overdue scenario that caused the original issue."""
         # This is the real template that was causing ghost notifications
-        template = "{kid_name}: {chore_name} is overdue!"
+        template = "{assignee_name}: {chore_name} is overdue!"
         # Simulate missing data that would cause the ghost notification
         data = {}  # completely empty - system bug caused this
         result = format_notification_text(template, data, "chore_overdue")
-        # The fix: should return None instead of "{kid_name}: {chore_name} is overdue!"
+        # The fix: should return None instead of "{assignee_name}: {chore_name} is overdue!"
         assert result is None

@@ -1,7 +1,7 @@
 {
   "entity": {
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "default": "mdi:calendar"
       }
     },
@@ -18,38 +18,38 @@
       "system_bonuses_select": {
         "default": "mdi:playlist-star"
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "default": "mdi:clipboard-list"
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "default": "mdi:hand-back-right"
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "default": "mdi:check-circle"
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "default": "mdi:close-circle"
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "default": "mdi:hand-coin-outline"
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "default": "mdi:check-decagram"
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "default": "mdi:alert-decagram"
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "default": "mdi:star-circle"
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "default": "mdi:alert-circle"
       }
     },
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "default": "mdi:checkbox-blank-circle-outline",
         "state": {
           "approved": "mdi:checkbox-marked-circle",
@@ -64,7 +64,7 @@
           "unknown": "mdi:help-circle-outline"
         }
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "default": "mdi:clipboard-text-clock-outline"
       },
       "system_chore_shared_state_sensor": {
@@ -82,10 +82,10 @@
           "unknown": "mdi:help-circle-outline"
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "default": "mdi:shield-star"
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "default": "mdi:shield-star-outline"
       },
       "system_chore_approvals_sensor": {
@@ -106,10 +106,10 @@
       "system_rewards_pending_approval_sensor": {
         "default": "mdi:gift-open-outline"
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "default": "mdi:blur-linear"
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "default": "mdi:star-outline",
         "range": {
           "0": "mdi:star-outline",
@@ -117,19 +117,19 @@
           "100": "mdi:star"
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "default": "mdi:star-circle"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "default": "mdi:star-circle-outline"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "default": "mdi:star-box"
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "default": "mdi:star-shooting"
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "default": "mdi:gift-outline",
         "state": {
           "locked": "mdi:gift-off-outline",
@@ -138,16 +138,16 @@
           "approved": "mdi:star-circle-outline"
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "default": "mdi:playlist-star"
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "default": "mdi:alert-outline"
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "default": "mdi:trophy-variant"
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "default": "mdi:flag-checkered"
       },
       "system_achievement_sensor": {
@@ -162,7 +162,7 @@
       "system_dashboard_translation_sensor": {
         "default": "mdi:translate"
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "default": "mdi:view-dashboard-outline"
       }
     }

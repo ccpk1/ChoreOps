@@ -111,7 +111,7 @@ async def test_max_backup_retention_changes(
     # Mock discovery with proper backup metadata structure
     mock_existing_backups = [
         {
-            "filename": f"kidschores_data_2024-01-{i + 1:02d}_10-00-00_recovery",
+            "filename": f"choreops_data_2024-01-{i + 1:02d}_10-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime(2024, 1, i + 1, 10, 0, 0, tzinfo=UTC),
             "age_hours": float(24 * i),
@@ -158,14 +158,14 @@ async def test_select_backup_to_delete_complete_flow(
 
     mock_backups = [
         {
-            "filename": "kidschores_data_2024-01-01_10-00-00_recovery",
+            "filename": "choreops_data_2024-01-01_10-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             "age_hours": 24.0,
             "size_bytes": 1024,
         },
         {
-            "filename": "kidschores_data_2024-01-02_10-00-00_manual",
+            "filename": "choreops_data_2024-01-02_10-00-00_manual",
             "tag": "manual",
             "timestamp": datetime(2024, 1, 2, 10, 0, 0, tzinfo=UTC),
             "age_hours": 12.0,
@@ -245,7 +245,7 @@ async def test_delete_backup_confirm_step_exists(
     # Mock backup data with proper dictionary structure that discover_backups returns
     mock_backups = [
         {
-            "filename": f"kidschores_data_2024-01-01_10-00-00_{tag_type}",
+            "filename": f"choreops_data_2024-01-01_10-00-00_{tag_type}",
             "tag": tag_type,
             "timestamp": datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             "age_hours": 24.5,
@@ -359,7 +359,7 @@ async def test_all_backup_methods_exist_on_handler(
     hass: HomeAssistant,
     init_integration,
 ) -> None:
-    """Test that all backup-related methods exist on KidsChoresOptionsFlowHandler."""
+    """Test that all backup-related methods exist on ChoreOpsOptionsFlowHandler."""
     config_entry = init_integration
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
 
@@ -402,7 +402,7 @@ async def test_backup_deletion_cancel_flow(
 
     mock_backups = [
         {
-            "filename": "kidschores_data_2024-01-01_10-00-00_recovery",
+            "filename": "choreops_data_2024-01-01_10-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             "age_hours": 24.0,
@@ -442,7 +442,7 @@ async def test_backup_restore_cancel_flow(
 
     mock_backups = [
         {
-            "filename": "kidschores_data_2024-01-01_10-00-00_recovery",
+            "filename": "choreops_data_2024-01-01_10-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             "age_hours": 24.0,
@@ -525,7 +525,7 @@ async def test_backup_delete_options_by_tag_type(
     # Mock backup of specific tag type
     mock_backups = [
         {
-            "filename": f"kidschores_data_2024-01-01_10-00-00_{tag_type}",
+            "filename": f"choreops_data_2024-01-01_10-00-00_{tag_type}",
             "tag": tag_type,
             "timestamp": datetime(2024, 1, 1, 10, 0, 0, tzinfo=UTC),
             "age_hours": 24.0,

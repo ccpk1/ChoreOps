@@ -1,4 +1,4 @@
-"""UI Manager for KidsChores dashboard and translation sensor features.
+"""UI Manager for ChoreOps dashboard and translation sensor features.
 
 Responsible for:
 - Translation sensor lifecycle (creation, lookup, cleanup)
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 class UIManager(BaseManager):
@@ -36,13 +36,13 @@ class UIManager(BaseManager):
     """
 
     def __init__(
-        self, hass: HomeAssistant, coordinator: KidsChoresDataCoordinator
+        self, hass: HomeAssistant, coordinator: ChoreOpsDataCoordinator
     ) -> None:
         """Initialize UI manager.
 
         Args:
             hass: Home Assistant instance
-            coordinator: Parent coordinator managing this integration instance
+            coordinator: Approver coordinator managing this integration instance
         """
         super().__init__(hass, coordinator)
 
@@ -67,8 +67,7 @@ class UIManager(BaseManager):
         # Listen for user deletion to clean up translation sensors
         # Follows Platinum Architecture: UIManager reacts to signals instead of
         # being called directly by UserManager
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._on_user_deleted)
-        self.listen(const.SIGNAL_SUFFIX_PARENT_DELETED, self._on_user_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._on_user_deleted)
 
         # Listen for chore state changes that affect pending approvals
         # These signals are already emitted by ChoreManager - no coupling needed
@@ -114,7 +113,7 @@ class UIManager(BaseManager):
         (translation sensors that are no longer needed).
 
         Args:
-            payload: Event data (kid_id/parent_id - not used, we scan all users)
+            payload: Event data (assignee_id/approver_id - not used, we scan all users)
         """
         # Don't need payload data - just check if any languages are now unused
         self.remove_unused_translation_sensors()
@@ -228,20 +227,21 @@ class UIManager(BaseManager):
 
         return entity_id
 
-    async def ensure_translation_sensor_exists(self, lang_code: str) -> str:
+    async def ensure_translation_sensor_exists(self, lang_code: str) -> str | None:
         """Ensure a translation sensor exists for the given language code.
 
         If the sensor doesn't exist, creates it dynamically using the stored
         async_add_entities callback. Returns the entity ID.
 
-        This is called when a kid's dashboard language changes to a new language
+        This is called when an assignee's dashboard language changes to a new language
         that doesn't have a translation sensor yet.
 
         Args:
             lang_code: ISO language code (e.g., 'en', 'es', 'de')
 
         Returns:
-            The entity ID of the translation sensor (existing or newly created)
+            The entity ID of the translation sensor if available in registry,
+            otherwise None
         """
         # Import here to avoid circular dependency
         from ..sensor import SystemDashboardTranslationSensor
@@ -253,13 +253,10 @@ class UIManager(BaseManager):
         if eid:
             return eid
 
-        # If sensor was marked as created but not in registry, use constructed entity_id
+        # If sensor was marked as created but not in registry yet, return None.
+        # The caller should retry after entity registry update.
         if lang_code in self._translation_sensors_created:
-            # Construct expected entity_id (sensor exists but not yet in registry)
-            return (
-                f"{const.SENSOR_KC_PREFIX}"
-                f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{lang_code}"
-            )
+            return None
 
         # If no callback registered (shouldn't happen), log warning and return fallback
         if self._sensor_add_entities_callback is None:
@@ -274,11 +271,7 @@ class UIManager(BaseManager):
                 )
                 if fallback_eid:
                     return fallback_eid
-            # Last resort: construct expected entity_id
-            return (
-                f"{const.SENSOR_KC_PREFIX}"
-                f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{lang_code}"
-            )
+            return None
 
         # Create the new translation sensor
         const.LOGGER.info(
@@ -290,14 +283,11 @@ class UIManager(BaseManager):
         self._sensor_add_entities_callback([new_sensor])
         self._translation_sensors_created.add(lang_code)
 
-        # Return expected entity_id (sensor not yet in registry)
-        return (
-            f"{const.SENSOR_KC_PREFIX}"
-            f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{lang_code}"
-        )
+        # Return registry-resolved entity ID if available now; otherwise None.
+        return self.get_translation_sensor_eid(lang_code)
 
     def get_languages_in_use(self) -> set[str]:
-        """Get all unique dashboard languages currently in use by kids and parents.
+        """Get all unique dashboard languages currently in use by assignees and approvers.
 
         Used to determine which translation sensors are needed.
 
@@ -305,14 +295,14 @@ class UIManager(BaseManager):
             Set of ISO language codes in use (always includes 'en' as fallback)
         """
         languages: set[str] = set()
-        for kid_info in self.coordinator.kids_data.values():
-            lang = kid_info.get(
-                const.DATA_KID_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        for assignee_info in self.coordinator.assignees_data.values():
+            lang = assignee_info.get(
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             )
             languages.add(lang)
-        for parent_info in self.coordinator.parents_data.values():
-            lang = parent_info.get(
-                const.DATA_PARENT_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        for approver_info in self.coordinator.approvers_data.values():
+            lang = approver_info.get(
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             )
             languages.add(lang)
         # Always include English as fallback
@@ -323,7 +313,7 @@ class UIManager(BaseManager):
         """Remove translation sensors for languages no longer in use.
 
         This is an optimization to avoid keeping unused sensors in memory.
-        Called when a kid/parent is deleted or their language is changed.
+        Called when an assignee/approver is deleted or their language is changed.
 
         Note: Entity removal is handled via entity registry; we just update tracking.
         """
@@ -359,7 +349,7 @@ class UIManager(BaseManager):
         to the next day at 9 AM, regardless of current value.
 
         This is a Dashboard UX feature to ensure datetime helpers always show
-        a future date when kids check their dashboard in the morning.
+        a future date when assignees check their dashboard in the morning.
 
         Args:
             _now: Current datetime (provided by async_track_time_change, unused)
@@ -371,13 +361,15 @@ class UIManager(BaseManager):
         entity_registry = er.async_get(self.hass)
 
         # Find all datetime helper entities using unique_id pattern
-        for kid_id, kid_info in self.coordinator.kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, f"Kid {kid_id}")
+        for assignee_id, assignee_info in self.coordinator.assignees_data.items():
+            assignee_name = assignee_info.get(
+                const.DATA_USER_NAME, f"Assignee {assignee_id}"
+            )
 
             # Construct unique_id pattern (matches datetime.py)
             expected_unique_id = (
                 f"{self.coordinator.config_entry.entry_id}_"
-                f"{kid_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
+                f"{assignee_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
             )
 
             # Find entity by unique_id
@@ -403,6 +395,6 @@ class UIManager(BaseManager):
             )
             const.LOGGER.debug(
                 "Advanced datetime helper for %s to %s",
-                kid_name,
+                assignee_name,
                 tomorrow_9am.isoformat(),
             )

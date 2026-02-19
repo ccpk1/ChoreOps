@@ -1,5 +1,5 @@
 # File: coordinator.py
-"""Coordinator for the KidsChores integration.
+"""Coordinator for the ChoreOps integration.
 
 Handles data synchronization, chore claiming and approval, badge tracking,
 reward redemption, penalty application, and recurring chore handling.
@@ -15,7 +15,7 @@ import asyncio
 from datetime import timedelta
 import sys
 import time
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -35,26 +35,28 @@ from .managers import (
     UIManager,
     UserManager,
 )
-from .store import KidsChoresStore
+from .store import ChoreOpsStore
 from .type_defs import (
     AchievementsCollection,
+    ApproversCollection,
+    AssigneesCollection,
     BadgesCollection,
     BonusesCollection,
     ChallengesCollection,
     ChoresCollection,
-    KidsCollection,
-    ParentsCollection,
     PenaltiesCollection,
     RewardsCollection,
+    UserData,
+    UsersCollection,
 )
 
 # Type alias for typed config entry access (modern HA pattern)
 # Must be defined after imports but before class since it references the class
-type KidsChoresConfigEntry = ConfigEntry["KidsChoresDataCoordinator"]
+type ChoreOpsConfigEntry = ConfigEntry["ChoreOpsDataCoordinator"]
 
 
-class KidsChoresDataCoordinator(DataUpdateCoordinator):
-    """Coordinator for KidsChores integration.
+class ChoreOpsDataCoordinator(DataUpdateCoordinator):
+    """Coordinator for ChoreOps integration.
 
     Manages data primarily using internal_id for entities.
 
@@ -70,9 +72,9 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         config_entry: ConfigEntry,
-        store: KidsChoresStore,
+        store: ChoreOpsStore,
     ):
-        """Initialize the KidsChoresDataCoordinator."""
+        """Initialize the ChoreOpsDataCoordinator."""
         update_interval_minutes = config_entry.options.get(
             const.CONF_UPDATE_INTERVAL, const.DEFAULT_UPDATE_INTERVAL
         )
@@ -110,7 +112,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         # Economy manager for point transactions and ledger (v0.5.0+)
         self.economy_manager = EconomyManager(hass, self)
 
-        # User manager for Kid/Parent CRUD operations (v0.5.0+)
+        # User manager for Assignee/Approver CRUD operations (v0.5.0+)
         # Phase 7.3b: Centralized create/update/delete with proper event signaling
         self.user_manager = UserManager(hass, self)
 
@@ -162,7 +164,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
 
             return self._data
         except Exception as err:
-            raise UpdateFailed(f"Error updating KidsChores data: {err}") from err
+            raise UpdateFailed(f"Error updating ChoreOps data: {err}") from err
 
     async def async_config_entry_first_refresh(self):
         """Load from storage and hand off to SystemManager for integrity.
@@ -183,7 +185,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         const.LOGGER.debug(
             "DEBUG: Coordinator received data from storage manager: %s entities",
             {
-                "kids": len(stored_data.get(const.DATA_KIDS, {})),
+                "users": len(stored_data.get(const.DATA_USERS, {})),
                 "chores": len(stored_data.get(const.DATA_CHORES, {})),
                 "badges": len(stored_data.get(const.DATA_BADGES, {})),
                 "schema_version": stored_data.get(const.DATA_META, {}).get(
@@ -345,14 +347,104 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
     # -------------------------------------------------------------------------------------
 
     @property
-    def kids_data(self) -> KidsCollection:
-        """Return the kids data."""
-        return self._data.get(const.DATA_KIDS, {})
+    def users_data(self) -> UsersCollection:
+        """Return canonical users data for schema45+ runtime logic."""
+        users = self._data.get(const.DATA_USERS, {})
+        if isinstance(users, dict) and users:
+            return {
+                user_id: cast("UserData", user_data)
+                for user_id, user_data in users.items()
+                if isinstance(user_data, dict)
+            }
+
+        legacy_assignees = self._data.get(const.DATA_USERS, {})
+        if not isinstance(legacy_assignees, dict):
+            return {}
+        return {
+            assignee_id: cast("UserData", assignee_data)
+            for assignee_id, assignee_data in legacy_assignees.items()
+            if isinstance(assignee_data, dict)
+        }
 
     @property
-    def parents_data(self) -> ParentsCollection:
-        """Return the parents data."""
-        return self._data.get(const.DATA_PARENTS, {})
+    def users_for_management(self) -> UsersCollection:
+        """Return records visible in the role-based Manage Users flow.
+
+        Inclusion contract:
+        - assignee-only users (`can_be_assigned=true`) are included
+        - approver-only users (`can_approve=true`, `can_be_assigned=false`) are included
+        - dual-role users are included
+        - linked-profile users are included
+
+        Phase 1 lock: this list is authoritative for user-management UX and must
+        not be narrowed to a legacy approver-only bucket.
+        """
+        canonical_users = self._data.get(const.DATA_USERS)
+        if isinstance(canonical_users, dict):
+            merged_users: dict[str, object] = {
+                user_id: dict(user_data)
+                for user_id, user_data in canonical_users.items()
+                if isinstance(user_data, dict)
+            }
+        else:
+            merged_users = {}
+
+            legacy_assignees = self._data.get(const.DATA_USERS, {})
+            if isinstance(legacy_assignees, dict):
+                for user_id, user_data in legacy_assignees.items():
+                    if isinstance(user_data, dict):
+                        existing_user = merged_users.get(user_id)
+                        if isinstance(existing_user, dict):
+                            merged_users[user_id] = {**existing_user, **user_data}
+                        else:
+                            merged_users[user_id] = dict(user_data)
+
+        def _sort_key(item: tuple[str, object]) -> tuple[str, str]:
+            user_id, user_data_raw = item
+            user_data = user_data_raw if isinstance(user_data_raw, dict) else {}
+            user_name = str(user_data.get(const.DATA_USER_NAME, "")).casefold()
+            return (user_name, user_id)
+
+        sorted_users: dict[str, object] = dict(
+            sorted(merged_users.items(), key=_sort_key)
+        )
+
+        return cast("UsersCollection", sorted_users)
+
+    @property
+    def assignees_data(self) -> AssigneesCollection:
+        """Return assignee-compatible data view.
+
+        During schema45 migration window, `users` is canonical while much of
+        runtime still consumes `assignees_data`.
+        """
+        return {
+            user_id: user_data
+            for user_id, user_data in self.users_data.items()
+            if isinstance(user_data, dict)
+            and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
+        }
+
+    @property
+    def approvers_data(self) -> ApproversCollection:
+        """Return approver-compatible data view.
+
+        Approver role records are derived from canonical `users`.
+        """
+        users = self.users_data
+        if users:
+            return {
+                user_id: user_data
+                for user_id, user_data in users.items()
+                if isinstance(user_data, dict)
+                and (
+                    user_data.get(const.DATA_USER_CAN_APPROVE, False)
+                    or user_data.get(const.DATA_USER_CAN_MANAGE, False)
+                    or bool(user_data.get(const.DATA_USER_ASSOCIATED_USER_IDS))
+                )
+            }
+
+        return {}
 
     @property
     def chores_data(self) -> ChoresCollection:

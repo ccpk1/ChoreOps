@@ -51,12 +51,9 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 **The best of both worlds.** Configure some profiles with full gamification to drive engagement, while keeping other profiles strictly utilitarian.
 
-<p align="center">
-  <b>No subscription. No cloud lock-in. 100% local on your Home Assistant instance.</b>
-</p>
-
 ---
 
+> [!NOTE]
 > **Attribution & Legacy**<br>
 > ChoreOps is the official evolution of the **KidsChores** integration. While the original project is now deprecated, its concepts and features grew into this new system to better serve the entire Home Assistant community—expanding the scope beyond just "kids" to the whole household.
 >
@@ -67,7 +64,8 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 ## Key capabilities
 
-- 🧠 **Intelligent logic**: sophisticated recurring schedules, first-come-first-served pools, per-kid schedules, and complex rotation algorithms
+- ⚡ **Native data access**: rich state is exposed as Home Assistant sensors and actions are exposed as button entities, so you can build automations, scripts, and dashboards with standard HA tools—no lock-in custom app UI
+- 🧠 **Intelligent logic**: sophisticated recurring schedules, first-come-first-served pools, per-assignee schedules, and complex rotation algorithms
 - 🎨 **Easy Dashboards:** Quickly set up full featured dashboards for any user easily-no YAML required
 - 🔔 **Advanced notifications**: actionable alerts with approval workflows and reminder controls
 - 🎮 **Optional gamification**: robust progression systems you can enable or minimize as needed
@@ -103,7 +101,12 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 
 ## Reference Documentation
 
-TODO: Add Wiki once live
+- 📚 Wiki Home: [ChoreOps Wiki](https://github.com/ccpk1/choreops/wiki)
+- 🚀 Getting Started: [Installation](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Installation) · [Quick Start](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Quick-Start) · [Scenarios](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Scenarios) · [Migration from KidsChores](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Migration-from-KidsChores)
+- ⚙️ Configuration: [Users](https://github.com/ccpk1/choreops/wiki/Configuration:-Users) · [Chores](https://github.com/ccpk1/choreops/wiki/Configuration:-Chores)
+- 🏅 Gamification: [Points](https://github.com/ccpk1/choreops/wiki/Configuration:-Points) · [Rewards](https://github.com/ccpk1/choreops/wiki/Configuration:-Rewards) · [Badges Overview](https://github.com/ccpk1/choreops/wiki/Configuration:-Badges-Overview) · [Achievements](https://github.com/ccpk1/choreops/wiki/Configuration:-Achievements) · [Challenges](https://github.com/ccpk1/choreops/wiki/Configuration:-Challenges)
+- 🔧 Operations: [Services Reference](https://github.com/ccpk1/choreops/wiki/Services:-Reference) · [Advanced Dashboard](https://github.com/ccpk1/choreops/wiki/Advanced:-Dashboard) · [Advanced Access Control](https://github.com/ccpk1/choreops/wiki/Advanced:-Access-Control)
+- 🧪 Technical: [Entities & States](https://github.com/ccpk1/choreops/wiki/Technical:-Entities-States) · [Dashboard Generation](https://github.com/ccpk1/choreops/wiki/Technical:-Dashboard-Generation) · [Troubleshooting](https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting) · [FAQ](<https://github.com/ccpk1/choreops/wiki/Frequently-Asked-Questions-(FAQ)>)
 
 ## Quick installation
 

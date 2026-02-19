@@ -223,6 +223,28 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "lf"
 
+[tool.pylint.MAIN]
+py-version = "3.13"
+persistent = false
+
+[tool.pylint."MESSAGES CONTROL"]
+# Pylint noise controls aligned with repository Ruff policy and legacy migration footprint.
+disable = [
+  "line-too-long",
+  "protected-access",
+  "import-outside-toplevel",
+  "unused-argument",
+  "broad-exception-caught",
+  "cyclic-import",
+  "duplicate-code",
+  "too-many-locals",
+  "too-many-arguments",
+  "too-many-positional-arguments",
+  "too-many-branches",
+  "too-many-statements",
+  "too-many-return-statements",
+]
+
 [tool.mypy]
 python_version = "3.13"
 show_error_codes = true

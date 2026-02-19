@@ -1,13 +1,13 @@
 # Test Scenario: MINIMAL (Modern Config-Flow Format)
 # =============================================================================
-# Quick setup for simple tests. 1 kid, 1 parent, 5 varied chores.
+# Quick setup for simple tests. 1 assignee, 1 approver, 5 varied chores.
 #
 # Contents:
-#   - 1 parent: Môm Astrid Stârblüm (Stårblüm family standard)
-#   - 1 kid: Zoë (Stårblüm family standard)
+#   - 1 approver: Môm Astrid Stârblüm (Stårblüm family standard)
+#   - 1 assignee: Zoë (Stårblüm family standard)
 #   - 5 chores: mix of frequencies and one auto-approve
 #
-# Use case: Fast smoke tests, single-kid workflows, basic validation
+# Use case: Fast smoke tests, single-assignee workflows, basic validation
 # =============================================================================
 
 # System settings
@@ -15,18 +15,18 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-# Kids (1 kid)
-kids:
+# Assignees (1 assignee)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (1 parent)
-parents:
+# Approvers (1 approver)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë"]
+    ha_user: "approver1"
+    assignees: ["Zoë"]
     mobile_notify_service: ""
 
 # Chores (5 chores - varied types)
@@ -78,7 +78,7 @@ chores:
 # =============================================================================
 # CHORE SUMMARY
 # =============================================================================
-# All INDEPENDENT (single kid)
+# All INDEPENDENT (single assignee)
 # - Daily (3): Make bed (5pts), Brush teeth (3pts, auto-approve), Do homework (20pts)
 # - Weekly (1): Clean room (15pts)
 # - Monthly (1): Organize closet (25pts)

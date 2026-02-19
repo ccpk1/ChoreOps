@@ -26,6 +26,13 @@ from typing import NamedTuple
 # Base paths
 REPO_ROOT = Path(__file__).parent.parent
 COMPONENT_PATH = REPO_ROOT / "custom_components" / "kidschores"
+HARDFORK_COMPONENT_PATH = REPO_ROOT / "custom_components" / "choreops"
+CONTRACT_LINT_BASELINE = (
+    REPO_ROOT
+    / "docs"
+    / "in-process"
+    / "CHOREOPS_DATA_MODEL_UNIFICATION_SUP_CONTRACT_LINT_BASELINE.txt"
+)
 
 # Pure modules that must not import homeassistant
 PURE_MODULE_PATHS = [
@@ -533,6 +540,199 @@ def find_emit_before_persist() -> list[Violation]:
     return violations
 
 
+def _load_contract_lint_baseline() -> set[str]:
+    """Load baseline signatures for hard-fork contract lint violations."""
+    if not CONTRACT_LINT_BASELINE.exists():
+        return set()
+
+    signatures: set[str] = set()
+    with open(CONTRACT_LINT_BASELINE, encoding="utf-8") as baseline_file:
+        for line in baseline_file:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            signatures.add(stripped)
+    return signatures
+
+
+def _contract_signature(rule: str, file_path: Path, line: str) -> str:
+    """Create a stable baseline signature for contract lint checks."""
+    relative_path = file_path.relative_to(REPO_ROOT)
+    return f"{rule}|{relative_path}|{line.strip()}"
+
+
+def find_hardfork_contract_legacy_usage() -> list[Violation]:
+    """Check hard-fork runtime surfaces for legacy contract usage.
+
+    Enforces no new usage of legacy request fields/symbols while allowing
+    existing debt through a committed baseline artifact.
+    """
+    violations = []
+
+    target_files = [
+        HARDFORK_COMPONENT_PATH / "services.py",
+        HARDFORK_COMPONENT_PATH / "notification_action_handler.py",
+        HARDFORK_COMPONENT_PATH / "config_flow.py",
+        HARDFORK_COMPONENT_PATH / "options_flow.py",
+        HARDFORK_COMPONENT_PATH / "helpers" / "flow_helpers.py",
+        HARDFORK_COMPONENT_PATH / "data_builders.py",
+    ]
+
+    legacy_field_patterns = [
+        ("legacy-field", re.compile(r"\bkid_name\b")),
+        ("legacy-field", re.compile(r"\bparent_name\b")),
+        ("legacy-field", re.compile(r"SERVICE_FIELD_KID_NAME")),
+        ("legacy-field", re.compile(r"SERVICE_FIELD_PARENT_NAME")),
+        ("legacy-field", re.compile(r"FIELD_KID_NAME")),
+        ("legacy-field", re.compile(r"FIELD_PARENT_NAME")),
+    ]
+
+    lexical_patterns = [
+        ("legacy-lexical", re.compile(r"\bkidschores\b", re.IGNORECASE)),
+        ("legacy-lexical", re.compile(r"\bshadow_\w+")),
+        ("legacy-lexical", re.compile(r"\blinked_\w+")),
+    ]
+
+    baseline = _load_contract_lint_baseline()
+
+    for file_path in target_files:
+        if not file_path.exists():
+            continue
+
+        with open(file_path, encoding="utf-8") as file_obj:
+            for line_num, line in enumerate(file_obj, start=1):
+                if line.lstrip().startswith("#"):
+                    continue
+
+                for rule, pattern in [*legacy_field_patterns, *lexical_patterns]:
+                    if not pattern.search(line):
+                        continue
+
+                    signature = _contract_signature(rule, file_path, line)
+                    if signature in baseline:
+                        continue
+
+                    message = "Legacy hard-fork contract usage"
+                    if rule == "legacy-field":
+                        message = (
+                            "Legacy request field usage detected in hard-fork runtime "
+                            "surface"
+                        )
+                    elif rule == "legacy-lexical":
+                        message = "Legacy lexical symbol detected in hard-fork runtime surface"
+
+                    violations.append(
+                        Violation(
+                            category="CONTRACT_LINT",
+                            file_path=file_path,
+                            line_number=line_num,
+                            line_content=line.strip(),
+                            message=message,
+                            doc_reference=(
+                                "CHOREOPS_DATA_MODEL_UNIFICATION_IN-PROCESS.md "
+                                "Phase 4 contract-lint gate"
+                            ),
+                        )
+                    )
+
+    return violations
+
+
+def find_hardfork_wrapper_reintroduction() -> list[Violation]:
+    """Block hard-fork-prohibited runtime wrapper and alias reintroduction."""
+    violations: list[Violation] = []
+
+    disallowed_symbol_patterns: list[tuple[str, re.Pattern[str]]] = [
+        (
+            "legacy-wrapper",
+            re.compile(r"\bdef\s+build_parent_section_suggested_values\b"),
+        ),
+        ("legacy-wrapper", re.compile(r"\bdef\s+normalize_parent_form_input\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+build_parent_schema\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+map_parent_form_errors\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+validate_parents_inputs\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+_get_parent_ha_user_ids\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+async_step_add_kid\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+async_step_edit_kid\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+async_step_delete_kid\b")),
+        ("legacy-alias", re.compile(r"\bCONFIG_FLOW_STEP_KID_COUNT\b")),
+        ("legacy-alias", re.compile(r"\bCONFIG_FLOW_STEP_KIDS\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_KIDS\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_ADD_KID\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_EDIT_KID\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_EDIT_KID_SHADOW\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_DELETE_KID\b")),
+    ]
+
+    legacy_class_pattern = re.compile(
+        r"^\s*class\s+\w*(Kid|Parent|Linked|Shadow|KidsChores)\w*"
+    )
+    allowed_legacy_class_lines = {
+        "class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):",
+        "class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):",
+    }
+
+    target_files = [
+        HARDFORK_COMPONENT_PATH / "helpers" / "flow_helpers.py",
+        HARDFORK_COMPONENT_PATH / "options_flow.py",
+        HARDFORK_COMPONENT_PATH / "config_flow.py",
+        HARDFORK_COMPONENT_PATH / "const.py",
+        HARDFORK_COMPONENT_PATH / "data_builders.py",
+        HARDFORK_COMPONENT_PATH / "services.py",
+    ]
+
+    for file_path in target_files:
+        if not file_path.exists():
+            continue
+
+        with open(file_path, encoding="utf-8") as file_obj:
+            for line_num, line in enumerate(file_obj, start=1):
+                if line.lstrip().startswith("#"):
+                    continue
+
+                for rule, pattern in disallowed_symbol_patterns:
+                    if pattern.search(line):
+                        message = "Hard-fork prohibited compatibility wrapper or alias"
+                        if rule == "legacy-alias":
+                            message = "Hard-fork prohibited legacy runtime alias symbol detected"
+
+                        violations.append(
+                            Violation(
+                                category="HARDFORK_WRAPPER",
+                                file_path=file_path,
+                                line_number=line_num,
+                                line_content=line.strip(),
+                                message=message,
+                                doc_reference=(
+                                    "HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md "
+                                    "Phase 3 wrapper elimination"
+                                ),
+                            )
+                        )
+
+                if legacy_class_pattern.search(line):
+                    stripped = line.strip()
+                    if stripped in allowed_legacy_class_lines:
+                        continue
+                    violations.append(
+                        Violation(
+                            category="HARDFORK_CLASS",
+                            file_path=file_path,
+                            line_number=line_num,
+                            line_content=stripped,
+                            message=(
+                                "Legacy class naming detected in hard-fork runtime surface"
+                            ),
+                            doc_reference=(
+                                "HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md "
+                                "Phase 3 class naming audit gate"
+                            ),
+                        )
+                    )
+
+    return violations
+
+
 def format_violations(violations: list[Violation]) -> str:
     """Format violations for display."""
     if not violations:
@@ -578,6 +778,8 @@ def main() -> int:
         ("Logging Quality", find_fstrings_in_logging),
         ("Type Syntax", find_old_typing_syntax),
         ("Exception Handling", find_bare_exceptions),
+        ("Hard-fork Contract Lint", find_hardfork_contract_legacy_usage),
+        ("Hard-fork Wrapper Guardrails", find_hardfork_wrapper_reintroduction),
     ]
 
     for check_name, check_func in checks:

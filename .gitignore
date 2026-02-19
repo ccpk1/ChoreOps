@@ -60,3 +60,8 @@ Thumbs.db
 *.tmp
 *.temp
 .cache/
+
+# Local wiki guardrails (keep wiki repo separate from main code repo)
+wiki/
+wiki-local/
+.wiki/

@@ -85,7 +85,19 @@ Quick reference checklist for preparing and validating releases. Complete ALL it
 - [ ] **Config flow works**: Fresh setup creates correct entities
 - [ ] **Options flow works**: Editing entities persists changes
 - [ ] **Migration tested**: Upgrade from previous version succeeds
-- [ ] **Dashboard compatible**: Kid Dashboard renders correctly with new schema
+- [ ] **Backup/restore validation completed**
+  - Create pre-upgrade backup artifact
+  - Execute upgrade and confirm migration summary counts
+  - Restore backup and confirm prior state is recoverable
+- [ ] **Dashboard compatible**: Assignee Dashboard renders correctly with new schema
+
+## Migration go/no-go gate
+
+- [ ] **Go/no-go decision recorded**
+  - GO only when migration-path suites pass:
+    - `python -m pytest tests/test_migration_hardening.py tests/test_config_flow_use_existing.py -v --tb=line`
+  - GO only when rollback validation (backup + restore) has been executed
+  - NO-GO if migration summary logs show unresolved collisions/remaps without documented acceptance
 
 ## Common Release Issues
 

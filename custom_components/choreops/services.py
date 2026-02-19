@@ -1,5 +1,5 @@
 # File: services.py
-"""Defines custom services for the KidsChores integration.
+"""Defines custom services for the ChoreOps integration.
 
 These services allow direct actions through scripts or automations.
 Includes UI editor support with selectors for dropdowns and text inputs.
@@ -10,31 +10,29 @@ from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers import config_validation as cv
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
 from . import const
 from .helpers import flow_helpers, report_helpers, translation_helpers
 from .helpers.auth_helpers import (
-    is_user_authorized_for_global_action,
-    is_user_authorized_for_kid,
+    AUTH_ACTION_APPROVAL,
+    AUTH_ACTION_MANAGEMENT,
+    AUTH_ACTION_PARTICIPATION,
+    is_user_authorized_for_action,
 )
-from .helpers.entity_helpers import (
-    get_first_kidschores_entry,
-    get_item_id_by_name,
-    get_item_id_or_raise,
-)
+from .helpers.entity_helpers import get_first_choreops_entry, get_item_id_or_raise
 from .utils.dt_utils import dt_parse
 
 if TYPE_CHECKING:
-    from .coordinator import KidsChoresDataCoordinator
+    from .coordinator import ChoreOpsDataCoordinator
     from .type_defs import ChoreData
 
 
 def _get_coordinator_by_entry_id(
     hass: HomeAssistant, entry_id: str
-) -> "KidsChoresDataCoordinator":
+) -> "ChoreOpsDataCoordinator":
     """Get coordinator from config entry ID using runtime_data.
 
     Args:
@@ -42,7 +40,7 @@ def _get_coordinator_by_entry_id(
         entry_id: Config entry ID string
 
     Returns:
-        KidsChoresDataCoordinator instance
+        ChoreOpsDataCoordinator instance
 
     Raises:
         HomeAssistantError: If entry not found or not loaded
@@ -53,98 +51,98 @@ def _get_coordinator_by_entry_id(
             translation_domain=const.DOMAIN,
             translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
         )
-    return cast("KidsChoresDataCoordinator", entry.runtime_data)
+    return cast("ChoreOpsDataCoordinator", entry.runtime_data)
 
 
 # --- Service Schemas ---
 
 # Common schema base patterns for DRY principle
-_KID_CHORE_BASE = {
-    vol.Required(const.FIELD_KID_NAME): cv.string,
-    vol.Required(const.FIELD_CHORE_NAME): cv.string,
+_ASSIGNEE_CHORE_BASE = {
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
 }
 
-_PARENT_KID_CHORE_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
-    vol.Required(const.FIELD_CHORE_NAME): cv.string,
+_APPROVER_ASSIGNEE_CHORE_BASE = {
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
 }
 
-_PARENT_KID_REWARD_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
-    vol.Required(const.FIELD_REWARD_NAME): cv.string,
+_APPROVER_ASSIGNEE_REWARD_BASE = {
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_REWARD_NAME): cv.string,
 }
 
-_PARENT_KID_PENALTY_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
-    vol.Required(const.FIELD_PENALTY_NAME): cv.string,
+_APPROVER_ASSIGNEE_PENALTY_BASE = {
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_PENALTY_NAME): cv.string,
 }
 
-_PARENT_KID_BONUS_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
-    vol.Required(const.FIELD_BONUS_NAME): cv.string,
+_APPROVER_ASSIGNEE_BONUS_BASE = {
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_BONUS_NAME): cv.string,
 }
 
 # Service schemas using base patterns
-CLAIM_CHORE_SCHEMA = vol.Schema(_KID_CHORE_BASE)
+CLAIM_CHORE_SCHEMA = vol.Schema(_ASSIGNEE_CHORE_BASE)
 
 APPROVE_CHORE_SCHEMA = vol.Schema(
     {
-        **_PARENT_KID_CHORE_BASE,  # type: ignore[misc]
-        vol.Optional(const.FIELD_POINTS_AWARDED): vol.Coerce(float),
+        **_APPROVER_ASSIGNEE_CHORE_BASE,  # type: ignore[misc]
+        vol.Optional(const.SERVICE_FIELD_CHORE_POINTS_AWARDED): vol.Coerce(float),
     }
 )
 
-DISAPPROVE_CHORE_SCHEMA = vol.Schema(_PARENT_KID_CHORE_BASE)
+DISAPPROVE_CHORE_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_CHORE_BASE)
 
-REDEEM_REWARD_SCHEMA = vol.Schema(_PARENT_KID_REWARD_BASE)
+REDEEM_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
 
 APPROVE_REWARD_SCHEMA = vol.Schema(
     {
-        **_PARENT_KID_REWARD_BASE,  # type: ignore[misc]
-        vol.Optional(const.FIELD_COST_OVERRIDE): vol.Coerce(float),
+        **_APPROVER_ASSIGNEE_REWARD_BASE,  # type: ignore[misc]
+        vol.Optional(const.SERVICE_FIELD_REWARD_COST_OVERRIDE): vol.Coerce(float),
     }
 )
 
-DISAPPROVE_REWARD_SCHEMA = vol.Schema(_PARENT_KID_REWARD_BASE)
+DISAPPROVE_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
 
-APPLY_PENALTY_SCHEMA = vol.Schema(_PARENT_KID_PENALTY_BASE)
+APPLY_PENALTY_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_PENALTY_BASE)
 
-APPLY_BONUS_SCHEMA = vol.Schema(_PARENT_KID_BONUS_BASE)
+APPLY_BONUS_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_BONUS_BASE)
 
 # Optional filter base patterns for reset operations
-_OPTIONAL_KID_FILTER = {vol.Optional(const.FIELD_KID_NAME): cv.string}
+_OPTIONAL_ASSIGNEE_FILTER = {vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string}
 
-_OPTIONAL_KID_PENALTY_FILTER = {
-    vol.Optional(const.FIELD_KID_NAME): cv.string,
-    vol.Optional(const.FIELD_PENALTY_NAME): cv.string,
+_OPTIONAL_ASSIGNEE_PENALTY_FILTER = {
+    vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_PENALTY_NAME): cv.string,
 }
 
-_OPTIONAL_KID_BONUS_FILTER = {
-    vol.Optional(const.FIELD_KID_NAME): cv.string,
-    vol.Optional(const.FIELD_BONUS_NAME): cv.string,
+_OPTIONAL_ASSIGNEE_BONUS_FILTER = {
+    vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_BONUS_NAME): cv.string,
 }
 
-_OPTIONAL_KID_REWARD_FILTER = {
-    vol.Optional(const.FIELD_KID_NAME): cv.string,
-    vol.Optional(const.FIELD_REWARD_NAME): cv.string,
+_OPTIONAL_ASSIGNEE_REWARD_FILTER = {
+    vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_REWARD_NAME): cv.string,
 }
 
 RESET_OVERDUE_CHORES_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
     }
 )
 
 REMOVE_AWARDED_BADGES_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_KID_NAME): vol.Any(cv.string, None),
-        vol.Optional(const.FIELD_BADGE_NAME): vol.Any(cv.string, None),
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): vol.Any(cv.string, None),
+        vol.Optional(const.SERVICE_FIELD_BADGE_NAME): vol.Any(cv.string, None),
     }
 )
 
@@ -157,9 +155,9 @@ RESET_TRANSACTIONAL_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(const.SERVICE_FIELD_CONFIRM_DESTRUCTIVE): cv.boolean,
         vol.Optional(const.SERVICE_FIELD_SCOPE): vol.In(
-            [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_KID]
+            [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_USER]
         ),
-        vol.Optional(const.SERVICE_FIELD_KID_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
         vol.Optional(const.SERVICE_FIELD_ITEM_TYPE): vol.In(
             [
                 const.DATA_RESET_ITEM_TYPE_POINTS,
@@ -178,35 +176,26 @@ RESET_TRANSACTIONAL_DATA_SCHEMA = vol.Schema(
 
 SET_CHORE_DUE_DATE_SCHEMA = vol.Schema(
     {
-        vol.Required(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_DUE_DATE): vol.Any(cv.string, None),
-        vol.Optional(const.FIELD_KID_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_ID): cv.string,
+        vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_DUE_DATE): vol.Any(cv.string, None),
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
     }
 )
 
 SKIP_CHORE_DUE_DATE_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
-    }
-)
-
-MANAGE_SHADOW_LINK_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.FIELD_NAME): cv.string,
-        vol.Required(const.FIELD_ACTION): vol.In(
-            [const.ACTION_LINK, const.ACTION_UNLINK]
-        ),
     }
 )
 
 GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.SERVICE_FIELD_KID_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_LANGUAGE): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_NOTIFY_SERVICE): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_TITLE): cv.string,
@@ -274,7 +263,7 @@ DELETE_REWARD_SCHEMA = vol.Schema(
 #
 # Field validation:
 # - name: required for create, optional for update
-# - assigned_kids: required for create (list of kid names resolved to UUIDs)
+# - assigned_user_names: required for create (list of assignee names resolved to UUIDs)
 # - completion_criteria: allowed for create and update (validated in Manager)
 # - Other fields use defaults from const.DEFAULT_*
 
@@ -331,7 +320,14 @@ _DAY_OF_WEEK_VALUES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 CREATE_CHORE_SCHEMA = vol.Schema(
     {
         vol.Required(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-        vol.Required(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS): vol.All(
+        # Canonical public contract: callers provide assignee display names.
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
+            cv.ensure_list, [cv.string]
+        ),
+        # Compatibility exception: legacy automations still send name lists under
+        # assigned_user_ids. We accept this field during transition and normalize
+        # to real UUIDs in the handler before any storage/update operations.
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
             cv.ensure_list, [cv.string]
         ),
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
@@ -383,7 +379,13 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
             _COMPLETION_CRITERIA_VALUES
         ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS): vol.All(
+        # Canonical input key (names in payload).
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
+            cv.ensure_list, [cv.string]
+        ),
+        # Compatibility exception: keep accepting legacy key in updates so
+        # existing automations do not break. Handler normalizes values to UUIDs.
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
             cv.ensure_list, [cv.string]
         ),
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
@@ -438,7 +440,10 @@ _SERVICE_TO_CHORE_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION: const.DATA_CHORE_DESCRIPTION,
     const.SERVICE_FIELD_CHORE_CRUD_ICON: const.DATA_CHORE_ICON,
     const.SERVICE_FIELD_CHORE_CRUD_LABELS: const.DATA_CHORE_LABELS,
-    const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS: const.DATA_CHORE_ASSIGNED_KIDS,
+    # Internal canonical assignment storage is always UUIDs in
+    # DATA_CHORE_ASSIGNED_USER_IDS. Handler normalization ensures this mapping
+    # only receives IDs, even when legacy callers provide name lists.
+    const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS: const.DATA_CHORE_ASSIGNED_USER_IDS,
     const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY: const.DATA_CHORE_RECURRING_FREQUENCY,
     const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: const.DATA_CHORE_APPLICABLE_DAYS,
     const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA: const.DATA_CHORE_COMPLETION_CRITERIA,
@@ -467,19 +472,19 @@ _SERVICE_TO_REWARD_DATA_MAPPING: dict[str, str] = {
 # ROTATION MANAGEMENT SCHEMAS (Phase 3 Step 7 - v0.5.0)
 # ==============================================================================
 
-# Set rotation turn to specific kid
+# Set rotation turn to specific assignee
 SET_ROTATION_TURN_SCHEMA = vol.Schema(
     {
         # Either chore_id OR chore_name required
         vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-        # Either kid_id OR kid_name required
-        vol.Optional(const.SERVICE_FIELD_KID_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_KID_NAME): cv.string,
+        # Either assignee_id OR assignee_name required
+        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
     }
 )
 
-# Reset rotation to first assigned kid
+# Reset rotation to first assigned assignee
 RESET_ROTATION_SCHEMA = vol.Schema(
     {
         # Either chore_id OR chore_name required
@@ -488,7 +493,7 @@ RESET_ROTATION_SCHEMA = vol.Schema(
     }
 )
 
-# Open rotation cycle (allow any kid to claim once)
+# Open rotation cycle (allow any assignee to claim once)
 OPEN_ROTATION_CYCLE_SCHEMA = vol.Schema(
     {
         # Either chore_id OR chore_name required
@@ -518,166 +523,24 @@ def _map_service_to_data_keys(
 
 # --- Setup Services ---
 def async_setup_services(hass: HomeAssistant):
-    """Register KidsChores services."""
+    """Register ChoreOps services."""
 
     # ==========================================================================
     # RESET SERVICE HANDLERS
     # ==========================================================================
-
-    async def handle_manage_shadow_link(call: ServiceCall):
-        """Handle linking or unlinking a shadow kid."""
-        entry_id = get_first_kidschores_entry(hass)
-        if not entry_id:
-            const.LOGGER.warning(
-                "Manage Shadow Link: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
-            )
-            return
-
-        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        name = call.data[const.FIELD_NAME]
-        action = call.data[const.FIELD_ACTION]
-
-        # Resolve name to IDs (case-insensitive)
-        kid_id = get_item_id_by_name(coordinator, const.ENTITY_TYPE_KID, name)
-        parent_id = get_item_id_by_name(coordinator, const.ENTITY_TYPE_PARENT, name)
-
-        if action == const.ACTION_LINK:
-            # LINK: Validate kid and parent exist with matching names
-            if not kid_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_NOT_FOUND_BY_NAME,
-                    translation_placeholders={"name": name},
-                )
-            if not parent_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_PARENT_NOT_FOUND_BY_NAME,
-                    translation_placeholders={"name": name},
-                )
-
-            kid_info = coordinator.kids_data.get(kid_id)
-            parent_info = coordinator.parents_data.get(parent_id)
-
-            if not kid_info or not parent_info:
-                const.LOGGER.error(
-                    "Data mismatch: kid_id=%s, parent_id=%s", kid_id, parent_id
-                )
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
-                )
-
-            # Validate kid is not already a shadow kid
-            if kid_info.get(const.DATA_KID_IS_SHADOW, False):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_ALREADY_SHADOW,
-                    translation_placeholders={"name": name},
-                )
-
-            # Validate parent doesn't already have a different shadow kid
-            existing_shadow_id = parent_info.get(const.DATA_PARENT_LINKED_SHADOW_KID_ID)
-            if existing_shadow_id and existing_shadow_id != kid_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_PARENT_HAS_DIFFERENT_SHADOW,
-                    translation_placeholders={"name": name},
-                )
-
-            # Link: Update kid to shadow status
-            coordinator.user_manager.update_kid(
-                kid_id,
-                {
-                    const.DATA_KID_IS_SHADOW: True,
-                    const.DATA_KID_LINKED_PARENT_ID: parent_id,
-                },
-            )
-
-            # Link: Update parent (enable all chore features for shadow kid)
-            # Always enable workflow and gamification when linking
-            # This gives the parent full chore functionality through their shadow kid
-            # User can disable these later in options flow if desired
-            coordinator.user_manager.update_parent(
-                parent_id,
-                {
-                    const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: True,
-                    const.DATA_PARENT_LINKED_SHADOW_KID_ID: kid_id,
-                    const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: True,
-                    const.DATA_PARENT_ENABLE_GAMIFICATION: True,
-                },
-            )
-
-            const.LOGGER.info("Linked kid '%s' to parent '%s' as shadow", name, name)
-
-            # LINK action: Reload to update device info (model changes from Kid → Shadow Kid)
-            # Note: update_kid() and update_parent() already persisted
-            await hass.config_entries.async_reload(coordinator.config_entry.entry_id)
-
-        elif action == const.ACTION_UNLINK:
-            # UNLINK: Validate kid exists
-            if not kid_id:
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_NOT_FOUND_BY_NAME,
-                    translation_placeholders={"name": name},
-                )
-
-            kid_info = coordinator.kids_data.get(kid_id)
-            if not kid_info:
-                const.LOGGER.error("Data mismatch: kid_id=%s", kid_id)
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
-                )
-
-            # Validate kid IS a shadow kid
-            if not kid_info.get(const.DATA_KID_IS_SHADOW, False):
-                raise HomeAssistantError(
-                    translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_KID_NOT_SHADOW,
-                    translation_placeholders={"name": name},
-                )
-
-            # Use UserManager's public unlink method (per Platinum Architecture)
-            # Manager handles: data modification + persist + signal emission
-            await coordinator.user_manager.unlink_shadow(kid_id)
-
-            # Update device info via device registry (avoids full reload)
-            # The kid's model changes from "Parent Profile" → "Kid Profile"
-            device_registry = dr.async_get(hass)
-            device = device_registry.async_get_device(
-                identifiers={(const.DOMAIN, kid_id)}
-            )
-            if device:
-                device_registry.async_update_device(
-                    device.id,
-                    model="Kid Profile",
-                )
-                const.LOGGER.debug(
-                    "Updated device model for unlinked kid %s to 'Kid Profile'",
-                    kid_id,
-                )
-
-    hass.services.async_register(
-        const.DOMAIN,
-        const.SERVICE_MANAGE_SHADOW_LINK,
-        handle_manage_shadow_link,
-        schema=MANAGE_SHADOW_LINK_SCHEMA,
-    )
 
     # ========================================================================
     # CHORE SERVICE HANDLERS
     # ========================================================================
 
     async def handle_create_chore(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.create_chore service call.
+        """Handle assigneeschores.create_chore service call.
 
         Creates a new chore using data_builders.build_chore() for consistent
         field handling with the Options Flow UI.
 
         Args:
-            call: Service call with name, assigned_kids, and optional fields
+            call: Service call with name, assigned assignees, and optional fields
 
         Returns:
             Dict with chore_id of the created chore
@@ -688,7 +551,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Create Chore: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -700,25 +563,49 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        # Resolve kid names to UUIDs
-        kid_names = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS, [])
-        kid_ids = []
-        for kid_name in kid_names:
+        # Resolve assignee names to UUIDs.
+        # Exception by design: during contract migration we accept legacy payloads
+        # that still put names under assigned_user_ids.
+        assignee_names = call.data.get(
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES
+        )
+        if assignee_names is None:
+            assignee_names = call.data.get(
+                const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
+            )
+        if not assignee_names:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_MISSING_FIELD,
+                translation_placeholders={
+                    "field": (
+                        f"{const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES}"
+                        f"/{const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS}"
+                    ),
+                    "entity": const.LABEL_CHORE,
+                },
+            )
+
+        assignee_ids = []
+        for assignee_name in assignee_names:
             try:
-                kid_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_KID, kid_name
+                assignee_id = get_item_id_or_raise(
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
-                kid_ids.append(kid_id)
+                assignee_ids.append(assignee_id)
             except HomeAssistantError as err:
-                const.LOGGER.warning("Create Chore - kid lookup failed: %s", err)
+                const.LOGGER.warning("Create Chore - assignee lookup failed: %s", err)
                 raise
 
         # Map service fields to DATA_* keys
         data_input = _map_service_to_data_keys(
             dict(call.data), _SERVICE_TO_CHORE_DATA_MAPPING
         )
-        # Override assigned_kids with resolved UUIDs
-        data_input[const.DATA_CHORE_ASSIGNED_KIDS] = kid_ids
+        # Override assigned assignees with resolved UUIDs
+        data_input[const.DATA_CHORE_ASSIGNED_USER_IDS] = assignee_ids
 
         # Extract due_date for special handling (not passed to build_chore)
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE)
@@ -751,10 +638,10 @@ def async_setup_services(hass: HomeAssistant):
             # Note: set_due_date handles its own persist
             if due_date_input:
                 await coordinator.chore_manager.set_due_date(
-                    internal_id, due_date_input, kid_id=None
+                    internal_id, due_date_input, assignee_id=None
                 )
 
-            # Create chore status sensor entities for all assigned kids
+            # Create chore status sensor entities for all assigned assignees
             from .sensor import create_chore_entities
 
             create_chore_entities(coordinator, internal_id)
@@ -783,7 +670,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     async def handle_update_chore(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.update_chore service call.
+        """Handle assigneeschores.update_chore service call.
 
         Updates an existing chore using data_builders.build_chore() for consistent
         field handling with the Options Flow UI. Only provided fields are updated.
@@ -807,7 +694,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -824,7 +711,7 @@ def async_setup_services(hass: HomeAssistant):
         if not chore_id and chore_name:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Update Chore: %s", err)
@@ -852,20 +739,38 @@ def async_setup_services(hass: HomeAssistant):
             # name was used for lookup, not for renaming
             service_data.pop(const.SERVICE_FIELD_CHORE_CRUD_NAME, None)
 
-        # Resolve kid names to UUIDs if assigned_kids is being updated
-        if const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS in service_data:
-            kid_names = service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS]
-            kid_ids = []
-            for kid_name in kid_names:
+        # Resolve assignee names to UUIDs if assignees are being updated.
+        # Exception by design: keep reading legacy assigned_user_ids payloads as
+        # name lists for backward compatibility with existing automations.
+        assignee_names = service_data.get(
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES
+        )
+        if assignee_names is None and (
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS in service_data
+        ):
+            assignee_names = service_data[
+                const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
+            ]
+
+        if assignee_names is not None:
+            assignee_ids = []
+            for assignee_name in assignee_names:
                 try:
-                    kid_id = get_item_id_or_raise(
-                        coordinator, const.ENTITY_TYPE_KID, kid_name
+                    assignee_id = get_item_id_or_raise(
+                        coordinator,
+                        const.ITEM_TYPE_USER,
+                        assignee_name,
+                        role=const.ROLE_ASSIGNEE,
                     )
-                    kid_ids.append(kid_id)
+                    assignee_ids.append(assignee_id)
                 except HomeAssistantError as err:
-                    const.LOGGER.warning("Update Chore - kid lookup failed: %s", err)
+                    const.LOGGER.warning(
+                        "Update Chore - assignee lookup failed: %s", err
+                    )
                     raise
-            service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS] = kid_ids
+            service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS] = (
+                assignee_ids
+            )
 
         # Map service fields to DATA_* keys
         data_input = _map_service_to_data_keys(
@@ -880,11 +785,11 @@ def async_setup_services(hass: HomeAssistant):
             data_input[const.DATA_CHORE_DUE_DATE] = due_date_input
 
         # For update: merge with existing data for accurate validation
-        # (assigned_kids may not be in data_input if not being updated)
+        # (assigned_user_ids may not be in data_input if not being updated)
         validation_data = dict(data_input)
-        if const.DATA_CHORE_ASSIGNED_KIDS not in validation_data:
-            validation_data[const.DATA_CHORE_ASSIGNED_KIDS] = existing_chore.get(
-                const.DATA_CHORE_ASSIGNED_KIDS, []
+        if const.DATA_CHORE_ASSIGNED_USER_IDS not in validation_data:
+            validation_data[const.DATA_CHORE_ASSIGNED_USER_IDS] = existing_chore.get(
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             )
         # Similarly for other fields needed for combination validation
         for key in (
@@ -919,7 +824,7 @@ def async_setup_services(hass: HomeAssistant):
             # Note: set_due_date handles its own persist
             if due_date_input is not None:
                 await coordinator.chore_manager.set_due_date(
-                    chore_id, due_date_input, kid_id=None
+                    chore_id, due_date_input, assignee_id=None
                 )
 
             const.LOGGER.info(
@@ -945,7 +850,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     async def handle_delete_chore(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.delete_chore service call.
+        """Handle assigneeschores.delete_chore service call.
 
         Deletes a chore and cleans up all references.
 
@@ -963,7 +868,7 @@ def async_setup_services(hass: HomeAssistant):
             HomeAssistantError: If chore not found or neither
                 chore_id nor name provided
         """
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -980,7 +885,7 @@ def async_setup_services(hass: HomeAssistant):
         if not chore_id and chore_name:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Delete Chore: %s", err)
@@ -1010,7 +915,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_claim_chore(call: ServiceCall):
         """Handle claiming a chore."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Claim Chore: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1019,21 +924,31 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
         user_id = call.context.user_id
-        kid_name = call.data[const.FIELD_KID_NAME]
-        chore_name = call.data[const.FIELD_CHORE_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
 
-        # Map kid_name and chore_name to internal_ids
+        # Map assignee_name and chore_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             chore_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                coordinator, const.ITEM_TYPE_CHORE, chore_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Claim Chore: %s", err)
             raise
 
         # Check if user is authorized
-        if user_id and not await is_user_authorized_for_kid(hass, user_id, kid_id):
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_PARTICIPATION,
+            target_user_id=assignee_id,
+        ):
             const.LOGGER.warning(
                 "Claim Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
             )
@@ -1045,13 +960,15 @@ def async_setup_services(hass: HomeAssistant):
 
         # Process chore claim via ChoreManager
         await coordinator.chore_manager.claim_chore(
-            kid_id=kid_id, chore_id=chore_id, user_name=f"user:{user_id}"
+            assignee_id=assignee_id,
+            chore_id=chore_id,
+            user_name=f"user:{user_id}",
         )
 
         const.LOGGER.info(
-            "Chore '%s' claimed by kid '%s' by user '%s'",
+            "Chore '%s' claimed by assignee '%s' by user '%s'",
             chore_name,
-            kid_name,
+            assignee_name,
             user_id,
         )
         await coordinator.async_request_refresh()
@@ -1065,7 +982,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_approve_chore(call: ServiceCall):
         """Handle approving a claimed chore."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
 
         if not entry_id:
             const.LOGGER.warning(
@@ -1075,20 +992,25 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
         user_id = call.context.user_id
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        points_awarded = call.data.get(const.FIELD_POINTS_AWARDED)
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        points_awarded = call.data.get(const.SERVICE_FIELD_CHORE_POINTS_AWARDED)
 
-        # Resolve kid_id (either from kid_id or kid_name)
-        kid_id = call.data.get(const.SERVICE_FIELD_KID_ID)
-        kid_name = call.data.get(const.SERVICE_FIELD_KID_NAME)
+        # Resolve assignee_id (either from assignee_id or assignee_name)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
-        if not kid_id and not kid_name:
-            raise HomeAssistantError("Either kid_id or kid_name must be provided")
+        if not assignee_id and not assignee_name:
+            raise HomeAssistantError(
+                "Either assignee_id or assignee_name must be provided"
+            )
 
-        if kid_name and not kid_id:
+        if assignee_name and not assignee_id:
             try:
-                kid_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_KID, kid_name
+                assignee_id = get_item_id_or_raise(
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Approve Chore: %s", err)
@@ -1104,21 +1026,24 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Approve Chore: %s", err)
                 raise
-
+            approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
         # Ensure IDs are resolved (type safety)
-        if not kid_id:
-            raise HomeAssistantError("Could not resolve kid_id")
+        if not assignee_id:
+            raise HomeAssistantError("Could not resolve assignee_id")
         if not chore_id:
-            raise HomeAssistantError("Could not resolve chore_id")
+            assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
         # Check if user is authorized
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPROVE_CHORE
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=assignee_id,
         ):
             const.LOGGER.warning(
                 "Approve Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1132,16 +1057,16 @@ def async_setup_services(hass: HomeAssistant):
         # Approve chore and assign points
         try:
             await coordinator.chore_manager.approve_chore(
-                parent_name=parent_name,
-                kid_id=kid_id,
+                approver_name,
+                assignee_id=assignee_id,
                 chore_id=chore_id,
                 points_override=points_awarded,
             )
             const.LOGGER.info(
-                "Chore '%s' approved for kid '%s' by parent '%s'. Points Awarded: %s",
+                "Chore '%s' approved for assignee '%s' by approver '%s'. Points Awarded: %s",
                 chore_name,
-                kid_name,
-                parent_name,
+                assignee_name,
+                approver_name,
                 points_awarded,
             )
             await coordinator.async_request_refresh()
@@ -1157,7 +1082,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_disapprove_chore(call: ServiceCall):
         """Handle disapproving a chore."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Disapprove Chore: %s",
@@ -1166,15 +1091,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        kid_name = call.data[const.FIELD_KID_NAME]
-        chore_name = call.data[const.FIELD_CHORE_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
 
-        # Map kid_name and chore_name to internal_ids
+        # Map assignee_name and chore_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             chore_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                coordinator, const.ITEM_TYPE_CHORE, chore_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Disapprove Chore: %s", err)
@@ -1182,8 +1112,11 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_DISAPPROVE_CHORE
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=assignee_id,
         ):
             const.LOGGER.warning(
                 "Disapprove Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1198,15 +1131,15 @@ def async_setup_services(hass: HomeAssistant):
 
         # Disapprove the chore via ChoreManager
         await coordinator.chore_manager.disapprove_chore(
-            parent_name=parent_name,
-            kid_id=kid_id,
+            approver_name,
+            assignee_id=assignee_id,
             chore_id=chore_id,
         )
         const.LOGGER.info(
-            "Chore '%s' disapproved for kid '%s' by parent '%s'",
+            "Chore '%s' disapproved for assignee '%s' by approver '%s'",
             chore_name,
-            kid_name,
-            parent_name,
+            assignee_name,
+            approver_name,
         )
         await coordinator.async_request_refresh()
 
@@ -1220,10 +1153,10 @@ def async_setup_services(hass: HomeAssistant):
     async def handle_set_chore_due_date(call: ServiceCall):
         """Handle setting (or clearing) the due date of a chore.
 
-        For INDEPENDENT chores, optionally specify kid_id or kid_name.
-        For SHARED chores, kid_id is ignored (single due date for all kids).
+        For INDEPENDENT chores, optionally specify assignee_id or assignee_name.
+        For SHARED chores, assignee_id is ignored (single due date for all assignees).
         """
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Set Chore Due Date: %s",
@@ -1232,32 +1165,35 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        chore_name = call.data[const.FIELD_CHORE_NAME]
-        due_date_input = call.data.get(const.FIELD_DUE_DATE)
-        kid_name = call.data.get(const.FIELD_KID_NAME)
-        kid_id = call.data.get(const.FIELD_KID_ID)
+        chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
+        due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_DUE_DATE)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
 
         # Look up the chore by name:
         try:
             chore_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                coordinator, const.ITEM_TYPE_CHORE, chore_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Set Chore Due Date: %s", err)
             raise
 
-        # If kid_name is provided, resolve it to kid_id
-        if kid_name and not kid_id:
+        # If assignee_name is provided, resolve it to assignee_id
+        if assignee_name and not assignee_id:
             try:
-                kid_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_KID, kid_name
+                assignee_id = get_item_id_or_raise(
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Set Chore Due Date: %s", err)
                 raise
 
-        # Validate that if kid_id is provided, the chore is INDEPENDENT and kid is assigned
-        if kid_id:
+        # Validate that if assignee_id is provided, the chore is INDEPENDENT and assignee is assigned
+        if assignee_id:
             chore_info: ChoreData = cast(
                 "ChoreData", coordinator.chores_data.get(chore_id, {})
             )
@@ -1265,36 +1201,36 @@ def async_setup_services(hass: HomeAssistant):
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             )
-            # Reject kid_id for SHARED and SHARED_FIRST chores
-            # (they use chore-level due dates, not per-kid)
+            # Reject assignee_id for SHARED and SHARED_FIRST chores
+            # (they use chore-level due dates, not per-assignee)
             if completion_criteria in (
                 const.COMPLETION_CRITERIA_SHARED,
                 const.COMPLETION_CRITERIA_SHARED_FIRST,
             ):
                 const.LOGGER.warning(
-                    "Set Chore Due Date: Cannot specify kid_id for %s chore '%s'",
+                    "Set Chore Due Date: Cannot specify assignee_id for %s chore '%s'",
                     completion_criteria,
                     chore_name,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_SHARED_CHORE_KID,
+                    translation_key=const.TRANS_KEY_ERROR_SHARED_CHORE_ASSIGNEE,
                     translation_placeholders={"chore_name": str(chore_name)},
                 )
 
-            assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            if kid_id not in assigned_kids:
+            assigned_user_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if assignee_id not in assigned_user_ids:
                 const.LOGGER.warning(
-                    "Set Chore Due Date: Kid '%s' not assigned to chore '%s'",
-                    kid_id,
+                    "Set Chore Due Date: Assignee '%s' not assigned to chore '%s'",
+                    assignee_id,
                     chore_name,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
                     translation_key=const.TRANS_KEY_ERROR_NOT_ASSIGNED,
                     translation_placeholders={
-                        "entity": str(kid_name or kid_id),
-                        "kid": str(chore_name),
+                        "entity": str(assignee_name or assignee_id),
+                        "assignee": str(chore_name),
                     },
                 )
 
@@ -1331,7 +1267,7 @@ def async_setup_services(hass: HomeAssistant):
                 raise
 
             # Update the chore’s due_date:
-            await coordinator.chore_manager.set_due_date(chore_id, due_dt, kid_id)
+            await coordinator.chore_manager.set_due_date(chore_id, due_dt, assignee_id)
             const.LOGGER.info(
                 "Set due date for chore '%s' (ID: %s) to %s",
                 chore_name,
@@ -1340,7 +1276,7 @@ def async_setup_services(hass: HomeAssistant):
             )
         else:
             # Clear the due date by setting it to None
-            await coordinator.chore_manager.set_due_date(chore_id, None, kid_id)
+            await coordinator.chore_manager.set_due_date(chore_id, None, assignee_id)
             const.LOGGER.info(
                 "Cleared due date for chore '%s' (ID: %s)", chore_name, chore_id
             )
@@ -1357,10 +1293,10 @@ def async_setup_services(hass: HomeAssistant):
     async def handle_skip_chore_due_date(call: ServiceCall) -> None:
         """Handle skipping the due date on a chore by rescheduling it to the next due date.
 
-        For INDEPENDENT chores, you can optionally specify kid_name or kid_id.
-        For SHARED chores, you must not specify a kid.
+        For INDEPENDENT chores, you can optionally specify assignee_name or assignee_id.
+        For SHARED chores, you must not specify a assignee.
         """
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Skip Chore Due Date: %s",
@@ -1371,13 +1307,13 @@ def async_setup_services(hass: HomeAssistant):
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
         # Get parameters: either chore_id or chore_name must be provided.
-        chore_id = call.data.get(const.FIELD_CHORE_ID)
-        chore_name = call.data.get(const.FIELD_CHORE_NAME)
+        chore_id = call.data.get(const.SERVICE_FIELD_CHORE_ID)
+        chore_name = call.data.get(const.SERVICE_FIELD_CHORE_NAME)
 
         try:
             if not chore_id and chore_name:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
         except HomeAssistantError as err:
             const.LOGGER.warning("Skip Chore Due Date: %s", err)
@@ -1389,16 +1325,21 @@ def async_setup_services(hass: HomeAssistant):
                 translation_key=const.TRANS_KEY_ERROR_MISSING_CHORE,
             )
 
-        # Get kid parameters (for INDEPENDENT chores only)
-        kid_name = call.data.get(const.FIELD_KID_NAME)
-        kid_id = call.data.get(const.FIELD_KID_ID)
+        # Get assignee parameters (for INDEPENDENT chores only)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
 
-        # Resolve kid_name to kid_id if provided
-        if kid_name and not kid_id:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+        # Resolve assignee_name to assignee_id if provided
+        if assignee_name and not assignee_id:
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
 
-        # Validate kid_id (if provided)
-        if kid_id:
+        # Validate assignee_id (if provided)
+        if assignee_id:
             chore_info: ChoreData = cast(
                 "ChoreData", coordinator.chores_data.get(chore_id, {})
             )
@@ -1406,63 +1347,67 @@ def async_setup_services(hass: HomeAssistant):
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             )
-            # Reject kid_id for SHARED and SHARED_FIRST chores
-            # (they use chore-level due dates, not per-kid)
+            # Reject assignee_id for SHARED and SHARED_FIRST chores
+            # (they use chore-level due dates, not per-assignee)
             if completion_criteria in (
                 const.COMPLETION_CRITERIA_SHARED,
                 const.COMPLETION_CRITERIA_SHARED_FIRST,
             ):
                 const.LOGGER.warning(
-                    "Skip Chore Due Date: Cannot specify kid_id for %s chore '%s'",
+                    "Skip Chore Due Date: Cannot specify assignee_id for %s chore '%s'",
                     completion_criteria,
                     chore_name,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_SHARED_CHORE_KID,
+                    translation_key=const.TRANS_KEY_ERROR_SHARED_CHORE_ASSIGNEE,
                     translation_placeholders={"chore_name": str(chore_name)},
                 )
 
-            assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            if kid_id not in assigned_kids:
+            assigned_user_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if assignee_id not in assigned_user_ids:
                 const.LOGGER.warning(
-                    "Skip Chore Due Date: Kid '%s' not assigned to chore '%s'",
-                    kid_id,
+                    "Skip Chore Due Date: Assignee '%s' not assigned to chore '%s'",
+                    assignee_id,
                     chore_name,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
                     translation_key=const.TRANS_KEY_ERROR_NOT_ASSIGNED,
                     translation_placeholders={
-                        "entity": str(kid_name or kid_id),
-                        "kid": str(chore_name),
+                        "entity": str(assignee_name or assignee_id),
+                        "assignee": str(chore_name),
                     },
                 )
 
-        # Record miss if requested (for INDEPENDENT chores, requires kid_id)
+        # Record miss if requested (for INDEPENDENT chores, requires assignee_id)
         mark_as_missed = call.data.get(const.SERVICE_FIELD_MARK_AS_MISSED, False)
         if mark_as_missed:
-            if kid_id:
-                # INDEPENDENT chore - record miss for specific kid
-                coordinator.chore_manager._record_chore_missed(kid_id, chore_id)
+            if assignee_id:
+                # INDEPENDENT chore - record miss for specific assignee
+                coordinator.chore_manager._record_chore_missed(assignee_id, chore_id)
             else:
-                # SHARED chore - record miss for all assigned kids
+                # SHARED chore - record miss for all assigned assignees
                 chore_info = cast(
                     "ChoreData", coordinator.chores_data.get(chore_id, {})
                 )
-                assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-                for assigned_kid_id in assigned_kids:
+                assigned_user_ids = chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
+                )
+                for assigned_assignee_id in assigned_user_ids:
                     coordinator.chore_manager._record_chore_missed(
-                        assigned_kid_id, chore_id
+                        assigned_assignee_id, chore_id
                     )
 
-        await coordinator.chore_manager.skip_due_date(chore_id, kid_id)
-        kid_context = f" for kid '{kid_name or kid_id}'" if kid_id else ""
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id)
+        assignee_context = (
+            f" for assignee '{assignee_name or assignee_id}'" if assignee_id else ""
+        )
         const.LOGGER.info(
             "Skipped due date for chore '%s' (ID: %s)%s",
             chore_name or chore_id,
             chore_id,
-            kid_context,
+            assignee_context,
         )
         await coordinator.async_request_refresh()
 
@@ -1478,7 +1423,7 @@ def async_setup_services(hass: HomeAssistant):
     # ==========================================================================
 
     async def handle_create_reward(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.create_reward service call.
+        """Handle assigneeschores.create_reward service call.
 
         Creates a new reward using data_builders.build_reward() for consistent
         field handling with the Options Flow UI.
@@ -1495,7 +1440,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Create Reward: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1556,7 +1501,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     async def handle_update_reward(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.update_reward service call.
+        """Handle assigneeschores.update_reward service call.
 
         Updates an existing reward using data_builders.build_reward() for consistent
         field handling with the Options Flow UI. Only provided fields are updated.
@@ -1578,7 +1523,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -1595,7 +1540,7 @@ def async_setup_services(hass: HomeAssistant):
         if not reward_id and reward_name:
             try:
                 reward_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                    coordinator, const.ITEM_TYPE_REWARD, reward_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Update Reward: %s", err)
@@ -1671,7 +1616,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     async def handle_delete_reward(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.delete_reward service call.
+        """Handle assigneeschores.delete_reward service call.
 
         Deletes a reward and cleans up all references.
 
@@ -1689,7 +1634,7 @@ def async_setup_services(hass: HomeAssistant):
             HomeAssistantError: If reward not found or neither
                 id nor name provided
         """
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -1706,7 +1651,7 @@ def async_setup_services(hass: HomeAssistant):
         if not reward_id and reward_name:
             try:
                 reward_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                    coordinator, const.ITEM_TYPE_REWARD, reward_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Delete Reward: %s", err)
@@ -1736,7 +1681,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_redeem_reward(call: ServiceCall):
         """Handle redeeming a reward (claiming without deduction)."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Redeem Reward: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1744,15 +1689,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        kid_name = call.data[const.FIELD_KID_NAME]
-        reward_name = call.data[const.FIELD_REWARD_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        reward_name = call.data[const.SERVICE_FIELD_REWARD_NAME]
 
-        # Map kid_name and reward_name to internal_ids
+        # Map assignee_name and reward_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             reward_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                coordinator, const.ITEM_TYPE_REWARD, reward_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Redeem Reward: %s", err)
@@ -1760,7 +1710,12 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_kid(hass, user_id, kid_id):
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=assignee_id,
+        ):
             const.LOGGER.warning(
                 "Redeem Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
             )
@@ -1770,17 +1725,17 @@ def async_setup_services(hass: HomeAssistant):
                 translation_placeholders={"action": const.ERROR_ACTION_REDEEM_REWARDS},
             )
 
-        # Check if kid has enough points
-        kid_info = coordinator.kids_data.get(kid_id)
+        # Check if assignee has enough points
+        assignee_info = coordinator.assignees_data.get(assignee_id)
         reward_info = coordinator.rewards_data.get(reward_id)
-        if not kid_info:
-            const.LOGGER.warning("Redeem Reward: Kid not found")
+        if not assignee_info:
+            const.LOGGER.warning("Redeem Reward: Assignee not found")
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
                 translation_placeholders={
-                    "entity_type": const.LABEL_KID,
-                    "name": kid_name or "unknown",
+                    "entity_type": const.LABEL_ASSIGNEE,
+                    "name": assignee_name or "unknown",
                 },
             )
         if not reward_info:
@@ -1794,7 +1749,7 @@ def async_setup_services(hass: HomeAssistant):
                 },
             )
 
-        if kid_info[const.DATA_KID_POINTS] < reward_info.get(
+        if assignee_info[const.DATA_USER_POINTS] < reward_info.get(
             const.DATA_REWARD_COST, const.DEFAULT_ZERO
         ):
             const.LOGGER.warning(
@@ -1804,7 +1759,7 @@ def async_setup_services(hass: HomeAssistant):
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_INSUFFICIENT_POINTS,
                 translation_placeholders={
-                    "kid_name": kid_name,
+                    "assignee_name": assignee_name,
                     "reward_name": reward_name,
                 },
             )
@@ -1812,13 +1767,15 @@ def async_setup_services(hass: HomeAssistant):
         # Process reward claim without deduction
         try:
             await coordinator.reward_manager.redeem(
-                parent_name=parent_name, kid_id=kid_id, reward_id=reward_id
+                approver_name,
+                assignee_id=assignee_id,
+                reward_id=reward_id,
             )
             const.LOGGER.info(
-                "Reward '%s' claimed by kid '%s' and pending approval by parent '%s'",
+                "Reward '%s' claimed by assignee '%s' and pending approval by approver '%s'",
                 reward_name,
-                kid_name,
-                parent_name,
+                assignee_name,
+                approver_name,
             )
             await coordinator.async_request_refresh()
         except HomeAssistantError:  # pylint: disable=try-except-raise  # Log before re-raise
@@ -1832,8 +1789,8 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     async def handle_approve_reward(call: ServiceCall):
-        """Handle approving a reward claimed by a kid."""
-        entry_id = get_first_kidschores_entry(hass)
+        """Handle approving a reward claimed by a assignee."""
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Approve Reward: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1842,23 +1799,31 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
         user_id = call.context.user_id
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        kid_name = call.data[const.FIELD_KID_NAME]
-        reward_name = call.data[const.FIELD_REWARD_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        reward_name = call.data[const.SERVICE_FIELD_REWARD_NAME]
 
-        # Map kid_name and reward_name to internal_ids
+        # Map assignee_name and reward_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             reward_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                coordinator, const.ITEM_TYPE_REWARD, reward_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Approve Reward: %s", err)
             raise
 
         # Check if user is authorized
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPROVE_REWARD
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=assignee_id,
         ):
             const.LOGGER.warning(
                 "Approve Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1871,20 +1836,20 @@ def async_setup_services(hass: HomeAssistant):
 
         # Approve reward redemption and deduct points
         # Extract optional cost_override (None if not provided)
-        cost_override = call.data.get(const.FIELD_COST_OVERRIDE)
+        cost_override = call.data.get(const.SERVICE_FIELD_REWARD_COST_OVERRIDE)
 
         try:
             await coordinator.reward_manager.approve(
-                parent_name=parent_name,
-                kid_id=kid_id,
+                approver_name,
+                assignee_id=assignee_id,
                 reward_id=reward_id,
                 cost_override=cost_override,
             )
             const.LOGGER.info(
-                "Reward '%s' approved for kid '%s' by parent '%s'%s",
+                "Reward '%s' approved for assignee '%s' by approver '%s'%s",
                 reward_name,
-                kid_name,
-                parent_name,
+                assignee_name,
+                approver_name,
                 f" (cost override: {cost_override})"
                 if cost_override is not None
                 else "",
@@ -1902,7 +1867,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_disapprove_reward(call: ServiceCall):
         """Handle disapproving a reward."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Disapprove Reward: %s",
@@ -1911,15 +1876,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        kid_name = call.data[const.FIELD_KID_NAME]
-        reward_name = call.data[const.FIELD_REWARD_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        reward_name = call.data[const.SERVICE_FIELD_REWARD_NAME]
 
-        # Map kid_name and reward_name to internal_ids
+        # Map assignee_name and reward_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             reward_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                coordinator, const.ITEM_TYPE_REWARD, reward_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Disapprove Reward: %s", err)
@@ -1927,8 +1897,11 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_DISAPPROVE_REWARD
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=assignee_id,
         ):
             const.LOGGER.warning(
                 "Disapprove Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1943,15 +1916,15 @@ def async_setup_services(hass: HomeAssistant):
 
         # Disapprove the reward
         await coordinator.reward_manager.disapprove(
-            parent_name=parent_name,
-            kid_id=kid_id,
+            approver_name,
+            assignee_id=assignee_id,
             reward_id=reward_id,
         )
         const.LOGGER.info(
-            "Reward '%s' disapproved for kid '%s' by parent '%s'",
+            "Reward '%s' disapproved for assignee '%s' by approver '%s'",
             reward_name,
-            kid_name,
-            parent_name,
+            assignee_name,
+            approver_name,
         )
         await coordinator.async_request_refresh()
 
@@ -1963,7 +1936,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     # NOTE: reset_rewards service REMOVED - superseded by reset_transactional_data
-    # with scope="kid" or scope="global" and item_type="rewards"
+    # with scope="assignee" or scope="global" and item_type="rewards"
 
     # ==========================================================================
     # PENALTY SERVICE HANDLERS
@@ -1971,7 +1944,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_apply_penalty(call: ServiceCall):
         """Handle applying a penalty."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Apply Penalty: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1979,15 +1952,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        kid_name = call.data[const.FIELD_KID_NAME]
-        penalty_name = call.data[const.FIELD_PENALTY_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        penalty_name = call.data[const.SERVICE_FIELD_PENALTY_NAME]
 
-        # Map kid_name and penalty_name to internal_ids
+        # Map assignee_name and penalty_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             penalty_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_PENALTY, penalty_name
+                coordinator, const.ITEM_TYPE_PENALTY, penalty_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Apply Penalty: %s", err)
@@ -1995,8 +1973,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPLY_PENALTY
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning(
                 "Apply Penalty: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -2010,13 +1990,15 @@ def async_setup_services(hass: HomeAssistant):
         # Apply penalty
         try:
             await coordinator.economy_manager.apply_penalty(
-                parent_name=parent_name, kid_id=kid_id, penalty_id=penalty_id
+                approver_name,
+                assignee_id=assignee_id,
+                penalty_id=penalty_id,
             )
             const.LOGGER.info(
-                "Penalty '%s' applied for kid '%s' by parent '%s'",
+                "Penalty '%s' applied for assignee '%s' by approver '%s'",
                 penalty_name,
-                kid_name,
-                parent_name,
+                assignee_name,
+                approver_name,
             )
             await coordinator.async_request_refresh()
         except HomeAssistantError:  # pylint: disable=try-except-raise  # Log before re-raise
@@ -2030,7 +2012,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     # NOTE: reset_penalties service REMOVED - superseded by reset_transactional_data
-    # with scope="kid" or scope="global" and item_type="penalties"
+    # with scope="assignee" or scope="global" and item_type="penalties"
 
     # ==========================================================================
     # BONUS SERVICE HANDLERS
@@ -2038,7 +2020,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_apply_bonus(call: ServiceCall):
         """Handle applying a bonus."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Apply Bonus: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -2046,15 +2028,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        parent_name = call.data[const.FIELD_PARENT_NAME]
-        kid_name = call.data[const.FIELD_KID_NAME]
-        bonus_name = call.data[const.FIELD_BONUS_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        bonus_name = call.data[const.SERVICE_FIELD_BONUS_NAME]
 
-        # Map kid_name and bonus_name to internal_ids
+        # Map assignee_name and bonus_name to internal_ids
         try:
-            kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+            assignee_id = get_item_id_or_raise(
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
+            )
             bonus_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_BONUS, bonus_name
+                coordinator, const.ITEM_TYPE_BONUS, bonus_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Apply Bonus: %s", err)
@@ -2062,8 +2049,10 @@ def async_setup_services(hass: HomeAssistant):
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_APPLY_BONUS
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning("Apply Bonus: User not authorized")
             raise HomeAssistantError(
@@ -2075,13 +2064,13 @@ def async_setup_services(hass: HomeAssistant):
         # Apply bonus
         try:
             await coordinator.economy_manager.apply_bonus(
-                parent_name=parent_name, kid_id=kid_id, bonus_id=bonus_id
+                approver_name, assignee_id=assignee_id, bonus_id=bonus_id
             )
             const.LOGGER.info(
-                "Bonus '%s' applied for kid '%s' by parent '%s'",
+                "Bonus '%s' applied for assignee '%s' by approver '%s'",
                 bonus_name,
-                kid_name,
-                parent_name,
+                assignee_name,
+                approver_name,
             )
             await coordinator.async_request_refresh()
         except HomeAssistantError:  # pylint: disable=try-except-raise  # Log before re-raise
@@ -2095,7 +2084,7 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     # NOTE: reset_bonuses service REMOVED - superseded by reset_transactional_data
-    # with scope="kid" or scope="global" and item_type="bonuses"
+    # with scope="assignee" or scope="global" and item_type="bonuses"
 
     # ==========================================================================
     # BADGE SERVICE HANDLERS
@@ -2103,7 +2092,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_remove_awarded_badges(call: ServiceCall):
         """Handle removing awarded badges."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Remove Awarded Badges: %s",
@@ -2113,13 +2102,15 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        kid_name = call.data.get(const.FIELD_KID_NAME)
-        badge_name = call.data.get(const.FIELD_BADGE_NAME)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        badge_name = call.data.get(const.SERVICE_FIELD_BADGE_NAME)
 
         # Check if user is authorized
         user_id = call.context.user_id
-        if user_id and not await is_user_authorized_for_global_action(
-            hass, user_id, const.SERVICE_REMOVE_AWARDED_BADGES
+        if user_id and not await is_user_authorized_for_action(
+            hass,
+            user_id,
+            AUTH_ACTION_MANAGEMENT,
         ):
             const.LOGGER.warning("Remove Awarded Badges: User not authorized.")
             raise HomeAssistantError(
@@ -2129,18 +2120,21 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         # Log action based on parameters provided
-        if kid_name is None and badge_name is None:
-            const.LOGGER.info("Removing all badges for all kids.")
-        elif kid_name is None:
-            const.LOGGER.info("Removing badge '%s' for all kids.", badge_name)
+        if assignee_name is None and badge_name is None:
+            const.LOGGER.info("Removing all badges for all assignees.")
+        elif assignee_name is None:
+            const.LOGGER.info("Removing badge '%s' for all assignees.", badge_name)
         elif badge_name is None:
-            const.LOGGER.info("Removing all badges for kid '%s'.", kid_name)
+            const.LOGGER.info("Removing all badges for assignee '%s'.", assignee_name)
         else:
-            const.LOGGER.info("Removing badge '%s' for kid '%s'.", badge_name, kid_name)
+            const.LOGGER.info(
+                "Removing badge '%s' for assignee '%s'.", badge_name, assignee_name
+            )
 
         # Remove awarded badges via GamificationManager
         coordinator.gamification_manager.remove_awarded_badges(
-            kid_name=kid_name, badge_name=badge_name
+            assignee_name,
+            badge_name,
         )
         await coordinator.async_request_refresh()
 
@@ -2156,10 +2150,10 @@ def async_setup_services(hass: HomeAssistant):
     # ==========================================================================
 
     async def handle_set_rotation_turn(call: ServiceCall) -> None:
-        """Set rotation turn to a specific kid."""
-        entry_id = get_first_kidschores_entry(hass)
+        """Set rotation turn to a specific assignee."""
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
-            const.LOGGER.warning("Set Rotation Turn: No KidsChores entry found")
+            const.LOGGER.warning("Set Rotation Turn: No ChoreOps entry found")
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
@@ -2174,7 +2168,7 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Set Rotation Turn: %s", err)
@@ -2183,36 +2177,41 @@ def async_setup_services(hass: HomeAssistant):
         if not chore_id:
             raise HomeAssistantError("Could not resolve chore_id")
 
-        # Resolve kid_id (either from kid_id or kid_name)
-        kid_id = call.data.get(const.SERVICE_FIELD_KID_ID)
-        kid_name = call.data.get(const.SERVICE_FIELD_KID_NAME)
+        # Resolve assignee_id (either from assignee_id or assignee_name)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
-        if not kid_id and not kid_name:
-            raise HomeAssistantError("Either kid_id or kid_name must be provided")
+        if not assignee_id and not assignee_name:
+            raise HomeAssistantError(
+                "Either assignee_id or assignee_name must be provided"
+            )
 
-        if kid_name and not kid_id:
+        if assignee_name and not assignee_id:
             try:
-                kid_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_KID, kid_name
+                assignee_id = get_item_id_or_raise(
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Set Rotation Turn: %s", err)
                 raise
 
-        if not kid_id:
-            raise HomeAssistantError("Could not resolve kid_id")
+        if not assignee_id:
+            raise HomeAssistantError("Could not resolve assignee_id")
 
         # Delegate to ChoreManager
-        await coordinator.chore_manager.set_rotation_turn(chore_id, kid_id)
+        await coordinator.chore_manager.set_rotation_turn(chore_id, assignee_id)
 
         # Refresh coordinator to update entity states
         await coordinator.async_request_refresh()
 
     async def handle_reset_rotation(call: ServiceCall) -> None:
-        """Reset rotation to first assigned kid."""
-        entry_id = get_first_kidschores_entry(hass)
+        """Reset rotation to first assigned assignee."""
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
-            const.LOGGER.warning("Reset Rotation: No KidsChores entry found")
+            const.LOGGER.warning("Reset Rotation: No ChoreOps entry found")
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
@@ -2227,7 +2226,7 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Reset Rotation: %s", err)
@@ -2243,10 +2242,10 @@ def async_setup_services(hass: HomeAssistant):
         await coordinator.async_request_refresh()
 
     async def handle_open_rotation_cycle(call: ServiceCall) -> None:
-        """Open rotation cycle - allow any kid to claim once."""
-        entry_id = get_first_kidschores_entry(hass)
+        """Open rotation cycle - allow any assignee to claim once."""
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
-            const.LOGGER.warning("Open Rotation Cycle: No KidsChores entry found")
+            const.LOGGER.warning("Open Rotation Cycle: No ChoreOps entry found")
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
@@ -2261,7 +2260,7 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Open Rotation Cycle: %s", err)
@@ -2300,8 +2299,8 @@ def async_setup_services(hass: HomeAssistant):
     # ==========================================================================
 
     async def handle_generate_activity_report(call: ServiceCall) -> dict[str, Any]:
-        """Handle kidschores.generate_activity_report service call."""
-        entry_id = get_first_kidschores_entry(hass)
+        """Handle assigneeschores.generate_activity_report service call."""
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -2310,13 +2309,14 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        kid_name = call.data.get(const.SERVICE_FIELD_KID_NAME)
-        kid_id: str | None = None
-        if kid_name:
-            kid_id = get_item_id_or_raise(
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        assignee_id: str | None = None
+        if assignee_name:
+            assignee_id = get_item_id_or_raise(
                 coordinator,
-                const.ENTITY_TYPE_KID,
-                str(kid_name),
+                const.ITEM_TYPE_USER,
+                str(assignee_name),
+                role=const.ROLE_ASSIGNEE,
             )
 
         try:
@@ -2333,8 +2333,8 @@ def async_setup_services(hass: HomeAssistant):
             ) from err
 
         report_language = _resolve_report_language(
-            coordinator.kids_data,
-            kid_id,
+            coordinator.assignees_data,
+            assignee_id,
             cast(
                 "str | None",
                 call.data.get(const.SERVICE_FIELD_REPORT_LANGUAGE),
@@ -2349,14 +2349,14 @@ def async_setup_services(hass: HomeAssistant):
         )
 
         report_response = report_helpers.build_activity_report(
-            kids_data=coordinator.kids_data,
+            assignees_data=coordinator.assignees_data,
             range_result=range_result,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             report_title=cast(
                 "str | None",
                 call.data.get(const.SERVICE_FIELD_REPORT_TITLE),
             ),
-            report_style=const.REPORT_STYLE_KID,
+            report_style=const.REPORT_STYLE_ASSIGNEE,
             stats_manager=coordinator.statistics_manager,
             report_translations=await translation_helpers.load_report_translation(
                 hass,
@@ -2396,7 +2396,7 @@ def async_setup_services(hass: HomeAssistant):
                     )
                     notify_payload: dict[str, Any] = {
                         "title": call.data.get(const.SERVICE_FIELD_REPORT_TITLE)
-                        or "KidsChores Activity Report",
+                        or "ChoreOps Activity Report",
                         "message": notify_message,
                     }
 
@@ -2437,16 +2437,16 @@ def async_setup_services(hass: HomeAssistant):
             "delivered": delivered,
         }
 
-        kid_ready_report = report_response["markdown"]
+        assignee_ready_report = report_response["markdown"]
         if (
             report_output_format == const.REPORT_OUTPUT_FORMAT_HTML
             and html_body is not None
         ):
-            kid_ready_report = html_body
-        kid_ready_report = _strip_yaml_block_wrapper(kid_ready_report)
+            assignee_ready_report = html_body
+        assignee_ready_report = _strip_yaml_block_wrapper(assignee_ready_report)
 
         response_payload: dict[str, Any] = {
-            "report": kid_ready_report,
+            "report": assignee_ready_report,
             "output_format": report_output_format,
             "report_language": report_language,
             "report_window_days": 7,
@@ -2468,18 +2468,18 @@ def async_setup_services(hass: HomeAssistant):
     )
 
     def _resolve_report_language(
-        kids_data: dict[str, Any],
-        kid_id: str | None,
+        assignees_data: dict[str, Any],
+        assignee_id: str | None,
         requested_language: str | None,
     ) -> str:
-        """Resolve report language with explicit > kid preference > default order."""
+        """Resolve report language with explicit > assignee preference > default order."""
         if requested_language:
             return requested_language
 
-        if kid_id is not None:
-            kid_info = kids_data.get(kid_id, {})
-            if isinstance(kid_info, dict):
-                preferred = kid_info.get(const.DATA_KID_DASHBOARD_LANGUAGE)
+        if assignee_id is not None:
+            assignee_info = assignees_data.get(assignee_id, {})
+            if isinstance(assignee_info, dict):
+                preferred = assignee_info.get(const.DATA_USER_DASHBOARD_LANGUAGE)
                 if isinstance(preferred, str) and preferred:
                     return preferred
 
@@ -2510,10 +2510,10 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_reset_chores_to_pending_state(_call: ServiceCall):
         """Handle manually resetting all chores to pending, clearing claims/approvals."""
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
-                "Reset Chores To Pending State: No KidsChores entry found"
+                "Reset Chores To Pending State: No ChoreOps entry found"
             )
             return
 
@@ -2532,7 +2532,7 @@ def async_setup_services(hass: HomeAssistant):
     async def handle_reset_overdue_chores(call: ServiceCall) -> None:
         """Handle resetting overdue chores."""
 
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
             const.LOGGER.warning(
                 "Reset Overdue Chores: %s",
@@ -2543,36 +2543,39 @@ def async_setup_services(hass: HomeAssistant):
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
         # Get parameters
-        chore_id = call.data.get(const.FIELD_CHORE_ID)
-        chore_name = call.data.get(const.FIELD_CHORE_NAME)
-        kid_name = call.data.get(const.FIELD_KID_NAME)
+        chore_id = call.data.get(const.SERVICE_FIELD_CHORE_ID)
+        chore_name = call.data.get(const.SERVICE_FIELD_CHORE_NAME)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
         # Map names to IDs (optional parameters)
         try:
             if not chore_id and chore_name:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
         except HomeAssistantError as err:
             const.LOGGER.warning("Reset Overdue Chores: %s", err)
             raise
 
-        kid_id: str | None = None
+        assignee_id: str | None = None
         try:
-            if kid_name:
-                kid_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_KID, kid_name
+            if assignee_name:
+                assignee_id = get_item_id_or_raise(
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
         except HomeAssistantError as err:
             const.LOGGER.warning("Reset Overdue Chores: %s", err)
             raise
 
         await coordinator.chore_manager.reset_overdue_chores(
-            chore_id=chore_id, kid_id=kid_id
+            chore_id=chore_id, assignee_id=assignee_id
         )
 
         const.LOGGER.info(
-            "Reset overdue chores (chore_id=%s, kid_id=%s)", chore_id, kid_id
+            "Reset overdue chores (chore_id=%s, assignee_id=%s)", chore_id, assignee_id
         )
 
         await coordinator.async_request_refresh()
@@ -2595,12 +2598,12 @@ def async_setup_services(hass: HomeAssistant):
         backup creation, and domain manager orchestration.
 
         Args:
-            call: Service call with confirm_destructive, scope, kid_name,
+            call: Service call with confirm_destructive, scope, assignee_name,
                   item_type, item_name fields
         """
-        entry_id = get_first_kidschores_entry(hass)
+        entry_id = get_first_choreops_entry(hass)
         if not entry_id:
-            const.LOGGER.warning("Reset Transactional Data: No KidsChores entry found")
+            const.LOGGER.warning("Reset Transactional Data: No ChoreOps entry found")
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
@@ -2616,11 +2619,11 @@ def async_setup_services(hass: HomeAssistant):
         schema=RESET_TRANSACTIONAL_DATA_SCHEMA,
     )
 
-    const.LOGGER.info("KidsChores services have been registered successfully")
+    const.LOGGER.info("ChoreOps services have been registered successfully")
 
 
 async def async_unload_services(hass: HomeAssistant) -> None:
-    """Unregister KidsChores services when unloading the integration."""
+    """Unregister ChoreOps services when unloading the integration."""
     services = [
         const.SERVICE_CLAIM_CHORE,
         const.SERVICE_APPROVE_CHORE,
@@ -2629,7 +2632,6 @@ async def async_unload_services(hass: HomeAssistant) -> None:
         const.SERVICE_DELETE_CHORE,
         const.SERVICE_DELETE_REWARD,
         const.SERVICE_DISAPPROVE_CHORE,
-        const.SERVICE_MANAGE_SHADOW_LINK,
         const.SERVICE_REDEEM_REWARD,
         const.SERVICE_DISAPPROVE_REWARD,
         const.SERVICE_APPLY_PENALTY,
@@ -2656,4 +2658,4 @@ async def async_unload_services(hass: HomeAssistant) -> None:
         if hass.services.has_service(const.DOMAIN, service):
             hass.services.async_remove(const.DOMAIN, service)
 
-    const.LOGGER.info("KidsChores services have been unregistered")
+    const.LOGGER.info("ChoreOps services have been unregistered")

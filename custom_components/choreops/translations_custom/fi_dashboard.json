@@ -104,7 +104,7 @@
   "ok": "OK",
   "overdue": "Myöhässä",
   "overdue_chores": "Myöhässä olevat askareet",
-  "parent_dashboard_for": "Kojelauta kohteelle",
+  "approver_dashboard_for": "Kojelauta kohteelle",
   "penalties_applied": "Sovelletut rangaistukset",
   "penalty": "Rangaistus",
   "pending": "Odottaa",

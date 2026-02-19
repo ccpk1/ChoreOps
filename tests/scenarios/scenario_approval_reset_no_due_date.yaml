@@ -12,8 +12,8 @@
 # - This applies to all three completion criteria types
 #
 # Contents:
-#   - 2 kids: TestKid1, TestKid2
-#   - 1 parent: TestParent
+#   - 2 assignees: TestAssignee1, TestAssignee2
+#   - 1 approver: TestApprover
 #   - 3 chores (one for each completion criteria):
 #       * Independent: "No Due Date Independent"
 #       * Shared First: "No Due Date Shared First"
@@ -24,26 +24,26 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-kids:
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-parents:
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Max!"]
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!"]
     mobile_notify_service: ""
 
 chores:
   # Test: INDEPENDENT chore with frequency="none", no due_date
-  # Each kid has their own instance - approval reset affects only that kid
+  # Each assignee has their own instance - approval reset affects only that assignee
   - name: "No Due Date Independent"
     assigned_to: ["Zoë", "Max!"]
     points: 10.0
@@ -67,7 +67,7 @@ chores:
     # NO due_date field = chore resets immediately when _reset_daily_chore_statuses() runs
 
   # Test: SHARED_ALL chore with frequency="none", no due_date
-  # All kids must complete - reset affects all kids
+  # All assignees must complete - reset affects all assignees
   - name: "No Due Date Shared All"
     assigned_to: ["Zoë", "Max!"]
     points: 20.0
@@ -81,8 +81,8 @@ chores:
 # TEST EXPECTATIONS
 # =============================================================================
 # For all three chore types:
-# 1. Kid claims chore → state = CLAIMED
-# 2. Parent approves → state = APPROVED, points awarded
+# 1. Assignee claims chore → state = CLAIMED
+# 2. Approver approves → state = APPROVED, points awarded
 # 3. Call _reset_daily_chore_statuses([const.FREQUENCY_DAILY])
 #    (frequency="none" chores are ALWAYS included per line 7876)
 # 4. Expected: state = PENDING, ready for next claim

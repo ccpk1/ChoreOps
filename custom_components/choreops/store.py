@@ -1,8 +1,8 @@
 # File: store.py
-"""Handles persistent data storage for the KidsChores integration.
+"""Handles persistent data storage for the ChoreOps integration.
 
 Uses Home Assistant's Storage helper to save and load chore-related data, ensuring
-the state is preserved across restarts. This includes data for kids, chores,
+the state is preserved across restarts. This includes data for users, chores,
 badges, rewards, penalties, and their statuses.
 """
 
@@ -18,11 +18,11 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-class KidsChoresStore:
-    """Handles persistent storage operations for KidsChores data.
+class ChoreOpsStore:
+    """Handles persistent storage operations for ChoreOps data.
 
     Thin wrapper around Home Assistant's Store API for loading, saving, and
-    accessing KidsChores data. Utilizes internal_id as the primary key for all entities.
+    accessing ChoreOps data. Utilizes internal_id as the primary key for all entities.
     """
 
     def __init__(
@@ -45,7 +45,7 @@ class KidsChoresStore:
     def get_default_structure() -> dict[str, Any]:
         """Return canonical empty data structure for fresh installations.
 
-        This is the SINGLE SOURCE OF TRUTH for KidsChores storage schema.
+        This is the SINGLE SOURCE OF TRUTH for ChoreOps storage schema.
         Used by:
         - Store.async_initialize() when no storage file exists
         - ConfigFlow._create_entry() when creating fresh installation
@@ -56,17 +56,16 @@ class KidsChoresStore:
         """
         return {
             const.DATA_META: {
-                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_STORAGE_ONLY,
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA5,
                 const.DATA_META_PENDING_EVALUATIONS: [],
                 const.DATA_META_LAST_MIDNIGHT_PROCESSED: None,
             },
-            const.DATA_KIDS: {},
+            const.DATA_USERS: {},
             const.DATA_CHORES: {},
             const.DATA_BADGES: {},
             const.DATA_REWARDS: {},
             const.DATA_PENALTIES: {},
             const.DATA_BONUSES: {},
-            const.DATA_PARENTS: {},
             const.DATA_ACHIEVEMENTS: {},
             const.DATA_CHALLENGES: {},
             const.DATA_NOTIFICATIONS: {},  # Chore notification timestamps (v0.5.0+)
@@ -77,7 +76,7 @@ class KidsChoresStore:
 
         If no data exists, initializes with an empty structure.
         """
-        const.LOGGER.debug("DEBUG: KidsChoresStore: Loading data from storage")
+        const.LOGGER.debug("DEBUG: ChoreOpsStore: Loading data from storage")
         existing_data = await self._store.async_load()
 
         # DEBUG: Check what async_load returned
@@ -92,6 +91,7 @@ class KidsChoresStore:
 
             legacy_keys = [
                 mp50.LEGACY_STORAGE_KEY,
+                mp50.LEGACY_STORAGE_KEY_TRANSITIONAL,
             ]
             for legacy_key in legacy_keys:
                 legacy_store: Store = Store(
@@ -112,7 +112,7 @@ class KidsChoresStore:
 
             # No existing data, create a new default structure.
             const.LOGGER.info("INFO: No existing storage found. Initializing new data")
-            self._data = KidsChoresStore.get_default_structure()
+            self._data = ChoreOpsStore.get_default_structure()
             const.LOGGER.debug(
                 "DEBUG: Initialized with default structure: %s keys",
                 len(self._data.keys()),
@@ -123,8 +123,7 @@ class KidsChoresStore:
             const.LOGGER.debug(
                 "DEBUG: Loaded existing data from storage: %s entities",
                 {
-                    "kids": len(self._data.get(const.DATA_KIDS, {})),
-                    "parents": len(self._data.get(const.DATA_PARENTS, {})),
+                    "users": len(self._data.get(const.DATA_USERS, {})),
                     "chores": len(self._data.get(const.DATA_CHORES, {})),
                     "badges": len(self._data.get(const.DATA_BADGES, {})),
                     "rewards": len(self._data.get(const.DATA_REWARDS, {})),
@@ -142,8 +141,7 @@ class KidsChoresStore:
         const.LOGGER.debug(
             "DEBUG: Storage manager data property accessed: %s entities",
             {
-                "kids": len(self._data.get(const.DATA_KIDS, {})),
-                "parents": len(self._data.get(const.DATA_PARENTS, {})),
+                "users": len(self._data.get(const.DATA_USERS, {})),
                 "chores": len(self._data.get(const.DATA_CHORES, {})),
                 "badges": len(self._data.get(const.DATA_BADGES, {})),
                 "rewards": len(self._data.get(const.DATA_REWARDS, {})),
@@ -169,8 +167,7 @@ class KidsChoresStore:
         const.LOGGER.debug(
             "DEBUG: Storage manager set_data called with: %s entities",
             {
-                "kids": len(new_data.get(const.DATA_KIDS, {})),
-                "parents": len(new_data.get(const.DATA_PARENTS, {})),
+                "users": len(new_data.get(const.DATA_USERS, {})),
                 "chores": len(new_data.get(const.DATA_CHORES, {})),
                 "badges": len(new_data.get(const.DATA_BADGES, {})),
                 "rewards": len(new_data.get(const.DATA_REWARDS, {})),
@@ -219,13 +216,13 @@ class KidsChoresStore:
         """Clear all stored data and reset to default structure."""
 
         const.LOGGER.warning(
-            "WARNING: Clearing all KidsChores data and resetting storage"
+            "WARNING: Clearing all ChoreOps data and resetting storage"
         )
         # Completely clear any existing data.
         self._data.clear()
 
         # Set the default empty structure
-        self._data = KidsChoresStore.get_default_structure()
+        self._data = ChoreOpsStore.get_default_structure()
         await self.async_save()
 
     async def async_delete_storage(self) -> None:
@@ -255,12 +252,12 @@ class KidsChoresStore:
         """Update a specific section of the data structure.
 
         Args:
-            key: The data key to update (e.g., const.DATA_KIDS, const.DATA_CHORES).
+            key: The data key to update (e.g., const.DATA_USERS, const.DATA_CHORES).
             value: The new value for the specified key.
 
         Note:
             If the key doesn't exist, a warning is logged and no update occurs.
-            Valid keys are defined in const.py (DATA_KIDS, DATA_CHORES, etc.).
+            Valid keys are defined in const.py (DATA_USERS, DATA_CHORES, etc.).
         """
         if key in self._data:
             const.LOGGER.debug("DEBUG: Updating data for key: %s", key)

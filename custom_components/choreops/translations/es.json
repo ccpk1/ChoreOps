@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Bienvenido a KidsChores",
-        "description": "Este asistente lo guiará en la configuración de KidsChores.\n\n[📖 Guía de inicio rápido]({documentation_url})"
+        "title": "Bienvenido a ChoreOps",
+        "description": "Este asistente lo guiará en la configuración de ChoreOps.\n\n[📖 Guía de inicio rápido]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opciones de recuperación de datos",
-        "description": "Datos existentes de KidsChores encontrados en:\n{storage_path}\n\nSe encontraron {backup_count} archivos de copia de seguridad.\n\n¿Qué te gustaría hacer?\n\n[📖 Más información sobre copias de seguridad y restauración]({documentation_url})",
+        "description": "Datos existentes de ChoreOps encontrados en:\n{storage_path}\n\nSe encontraron {backup_count} archivos de copia de seguridad.\n\n¿Qué te gustaría hacer?\n\n[📖 Más información sobre copias de seguridad y restauración]({documentation_url})",
         "data": {
           "backup_selection": "Seleccionar opción"
         }
       },
       "paste_json_input": {
         "title": "Importar datos JSON",
-        "description": "Pegue el contenido JSON completo desde:\n\n• Un archivo de datos de KidsChores (kidschores_data)\n• Una descarga de diagnóstico\n\nEl sistema detectará y descomprimirá automáticamente el formato según sea necesario. Se admiten tanto los datos de almacenamiento sin procesar como los formatos de exportación de diagnóstico.",
+        "description": "Pegue el contenido JSON completo desde:\n\n• Un archivo de datos de ChoreOps (choreops_data)\n• Una descarga de diagnóstico\n\nEl sistema detectará y descomprimirá automáticamente el formato según sea necesario. Se admiten tanto los datos de almacenamiento sin procesar como los formatos de exportación de diagnóstico.",
         "data": {
           "json_data": "Datos JSON"
         },
         "data_description": {
-          "json_data": "Pegue aquí el contenido JSON completo. Acepta datos del archivo kidschores_data o de la exportación de diagnósticos (desenvuelve automáticamente la estructura adicional)."
+          "json_data": "Pegue aquí el contenido JSON completo. Acepta datos del archivo choreops_data o de la exportación de diagnósticos (desenvuelve automáticamente la estructura adicional)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Valores de puntos separados por barras verticales para botones de ajuste manual (p. ej., +1,0|-1,0|+10,0|-10,0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Número de niños",
         "description": "¿Cuántos niños quieres gestionar?",
         "data": {
-          "kid_count": "Número de niños"
+          "assignee_count": "Número de niños"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Definir niño",
         "description": "Introduzca el nombre de cada niño.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "Idioma utilizado para el panel de tareas y las notificaciones."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Número de padres",
         "description": "¿Cuántos padres quieres definir inicialmente?",
         "data": {
-          "parent_count": "Número de padres"
+          "approver_count": "Número de padres"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Definir padre",
         "description": "Ingrese detalles de cada padre.",
         "data": {
           "name": "Nombre del padre",
           "ha_user_id": "Usuario de Home Assistant",
-          "associated_kids": "Niños asociados",
+          "associated_assignees": "Niños asociados",
           "mobile_notify_service": "Notificaciones",
           "dashboard_language": "Idioma"
         },
         "data_description": {
           "name": "Nombre único para este padre, utilizado en todo el sistema.",
           "ha_user_id": "Opcional: Vincula a este padre a un usuario de Home Assistant para recibir notificaciones y acceder al panel de control.",
-          "associated_kids": "Seleccione qué niños supervisa este padre para notificaciones y acciones de aprobación.",
+          "associated_assignees": "Seleccione qué niños supervisa este padre para notificaciones y acciones de aprobación.",
           "mobile_notify_service": "Seleccione un servicio de notificación para habilitar las notificaciones para este padre o déjelo vacío para deshabilitarlo.",
           "dashboard_language": "Idioma utilizado para el panel de tareas y las notificaciones."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Descripción (opcional)",
               "icon": "📋 Icono (mdi:xxx)",
               "default_points": "💰 Puntos otorgados",
-              "assigned_kids": "👥 Niños asignados",
+              "assigned_assignees": "👥 Niños asignados",
               "completion_criteria": "👥 Criterios de finalización"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Instrucciones opcionales o detalles sobre cómo completar esta tarea.",
               "icon": "Ícono de diseño de materiales (por ejemplo, mdi:escoba, mdi:lavavajillas).",
               "default_points": "Puntos ganados al completarlo.",
-              "assigned_kids": "Niños que pueden ver y reclamar esta tarea.",
+              "assigned_assignees": "Niños que pueden ver y reclamar esta tarea.",
               "completion_criteria": "Controla cómo se completa la tarea cuando se asignan varios niños: seguimiento individual, finalización compartida o rotación por turnos."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "📋 Icono (mdi:xxx)",
           "chore_labels": "📋Etiquetas (opcional)",
           "default_points": "💰 Puntos otorgados",
-          "assigned_kids": "👥 Niños asignados",
+          "assigned_assignees": "👥 Niños asignados",
           "completion_criteria": "👥 Criterios de finalización",
           "approval_reset_type": "➡️ Finalizaciones permitidas y tiempo de restablecimiento de aprobaciones",
           "approval_reset_pending_claim_action": "➡️ Manejo de reclamos pendientes al restablecer la aprobación",
@@ -212,7 +212,7 @@
           "icon": "Ícono de diseño de materiales (por ejemplo, mdi:escoba, mdi:lavavajillas).",
           "chore_labels": "Etiquetas para organizar tareas (p. ej., \"cocina\", \"exterior\"). Déjalo en blanco si no es necesario.",
           "default_points": "Puntos ganados al completarlo.",
-          "assigned_kids": "Niños que pueden ver y reclamar esta tarea.",
+          "assigned_assignees": "Niños que pueden ver y reclamar esta tarea.",
           "completion_criteria": "Controla cómo se completa la tarea cuando se asignan varios niños: seguimiento individual, finalización compartida o rotación por turnos.",
           "approval_reset_type": "Controla cuándo se activa el límite del ciclo de aprobación de la tarea (medianoche, fecha de vencimiento, al finalizar o activación manual).",
           "approval_reset_pending_claim_action": "Esto es lo que sucede con las reclamaciones que aún están esperando aprobación cuando se produce el restablecimiento de la aprobación.",
@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "points_multiplier": "🎁 PREMIOS: Multiplicador de puntos (Predeterminado 💎 1.0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "points_multiplier": "Si el multiplicador es un premio seleccionado, establezca un multiplicador para los puntos obtenidos mientras esta insignia esté activa (por ejemplo, 1.5x).",
@@ -359,7 +359,7 @@
           "description": "Descripción (opcional)",
           "achievement_labels": "Etiquetas de logros",
           "icon": "Icono (mdi:xxx)",
-          "assigned_kids": "Niños asignados",
+          "assigned_assignees": "Niños asignados",
           "type": "Tipo de logro",
           "selected_chore_id": "Seleccionar tarea asociada",
           "criteria": "Criterios (opcional)",
@@ -383,7 +383,7 @@
           "description": "Descripción (opcional)",
           "challenge_labels": "Etiquetas de desafío",
           "icon": "Icono (mdi:xxx)",
-          "assigned_kids": "Niños asignados",
+          "assigned_assignees": "Niños asignados",
           "type": "Tipo de desafío",
           "selected_chore_id": "Seleccione la tarea asociada con el desafío (opcional)",
           "criteria": "Criterios (opcional)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Ya existe una insignia con este nombre",
       "duplicate_challenge": "Ya existe un desafío con este nombre",
       "duplicate_chore": "Ya existe una tarea con este nombre",
-      "duplicate_kid": "Ya existe un niño con ese nombre",
-      "duplicate_parent": "Ya existe un padre con este nombre",
+      "duplicate_assignee": "Ya existe un niño con ese nombre",
+      "duplicate_approver": "Ya existe un padre con este nombre",
       "duplicate_penalty": "Ya existe una penalización con este nombre",
       "duplicate_reward": "Ya existe una recompensa con este nombre",
       "duplicate_bonus": "Ya existe un bono con este nombre",
-      "shadow_kid_name_conflict": "No se puede habilitar la asignación de tareas: ya existe un niño con tu nombre. Primero, cámbiale el nombre.",
+      "shadow_assignee_name_conflict": "No se puede habilitar la asignación de tareas: ya existe un niño con tu nombre. Primero, cámbiale el nombre.",
       "due_date_in_past": "La fecha de vencimiento debe ser en el futuro.",
       "end_date_in_past": "La fecha de finalización debe ser futura.",
       "end_date_not_after_start_date": "La fecha de finalización debe ser posterior a la fecha de inicio",
       "err_end_before_start": "La fecha de finalización debe ser posterior a la fecha de inicio",
       "err_name_duplicate": "Ya existe un desafío con este nombre",
-      "achievement_no_kids_assigned": "Al menos un niño debe estar asignado al logro.",
-      "challenge_no_kids_assigned": "Al menos un niño debe ser asignado al desafío.",
+      "achievement_no_assignees_assigned": "Al menos un niño debe estar asignado al logro.",
+      "challenge_no_assignees_assigned": "Al menos un niño debe ser asignado al desafío.",
       "invalid_achievement_count": "Recuento de logros no válido",
       "invalid_achievement_name": "Nombre de logro no válido",
       "invalid_badge": "Insignia no válida",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Nombre de desafío no válido",
       "invalid_chore": "Tarea no válida",
       "invalid_chore_count": "Recuento de tareas no válido",
-      "rotation_min_kids": "Las tareas de rotación requieren al menos 2 niños asignados",
+      "rotation_min_assignees": "Las tareas de rotación requieren al menos 2 niños asignados",
       "invalid_chore_name": "Nombre de tarea no válido",
       "invalid_points": "Los puntos deben ser cero o mayores",
       "invalid_overdue_reset_combination": "La gestión de retrasos \"A la fecha de vencimiento y luego reiniciar\" solo funciona con reinicios a medianoche. Seleccione \"A medianoche (una vez)\" o \"A medianoche (repetidamente)\" para el tipo de reinicio de aprobación.",
       "invalid_due_date": "Fecha de vencimiento no válida",
       "date_required_for_frequency": "Se requiere una fecha de vencimiento para esta frecuencia recurrente. Borrar fechas solo funciona con las frecuencias Ninguna, Diaria o Semanal.",
       "invalid_end_date": "Fecha de finalización no válida.",
-      "invalid_kid_count": "Recuento de niños no válido",
-      "invalid_kid_name": "Nombre de niño no válido",
-      "invalid_parent_count": "Recuento de padres no válido",
-      "invalid_parent_name": "Nombre de padre no válido",
-      "no_kids_assigned": "Al menos un niño debe estar asignado a la tarea.",
+      "invalid_assignee_count": "Recuento de niños no válido",
+      "invalid_assignee_name": "Nombre de niño no válido",
+      "invalid_user_count": "Recuento de padres no válido",
+      "invalid_approver_name": "Nombre de padre no válido",
+      "no_assignees_assigned": "Al menos un niño debe estar asignado a la tarea.",
       "invalid_penalty": "Penalización inválida",
       "invalid_penalty_count": "Recuento de penalizaciones no válido",
       "invalid_penalty_name": "Nombre de penalización no válido",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Los valores de ajuste de puntos no son válidos. Debe ser una lista."
     },
     "abort": {
-      "single_instance_allowed": "Solo se puede configurar una única instancia de KidsChores.",
-      "already_configured": "Los datos de KidsChores se han restaurado correctamente. Ahora puedes volver a cargar la integración.",
+      "single_instance_allowed": "Solo se puede configurar una única instancia de ChoreOps.",
+      "already_configured": "Los datos de ChoreOps se han restaurado correctamente. Ahora puedes volver a cargar la integración.",
       "file_not_found": "No se pudo encontrar el archivo de respaldo seleccionado.",
       "corrupt_file": "El archivo seleccionado contiene JSON no válido y no se puede leer.",
-      "invalid_structure": "Al archivo seleccionado le falta la estructura de datos requerida por KidsChores.",
+      "invalid_structure": "Al archivo seleccionado le falta la estructura de datos requerida por ChoreOps.",
       "reconfigure_failed": "Error en la reconfiguración. Inténtalo de nuevo.",
       "reconfigure_successful": "La configuración del sistema se actualizó correctamente."
     }
@@ -481,7 +481,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Opciones de KidsChores",
+        "title": "Opciones de ChoreOps",
         "description": "Administra niños, tareas, insignias, recompensas, penalizaciones, bonificaciones o finaliza.\n\n[📖 Ver documentación]({documentation_url})",
         "data": {
           "menu_selection": "Seleccione una opción"
@@ -509,7 +509,7 @@
           "points_icon": "Icono de puntos"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Agregar niño",
         "description": "Proporcione los detalles del nuevo niño.\n\n📖 [Guía de configuración]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "Idioma utilizado para el panel de tareas y las notificaciones."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Agregar padre",
         "description": "Proporcione los detalles del nuevo padre.\n\n📖 [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del padre",
           "ha_user_id": "Usuario de Home Assistant",
-          "associated_kids": "Niños asociados",
+          "associated_assignees": "Niños asociados",
           "mobile_notify_service": "Notificaciones",
           "dashboard_language": "Idioma",
           "allow_chore_assignment": "Permitir que me asignen tareas",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Nombre único para este padre, utilizado en todo el sistema.",
           "ha_user_id": "Opcional: Vincula a este padre a un usuario de Home Assistant para recibir notificaciones y acceder al panel de control.",
-          "associated_kids": "Seleccione qué niños supervisa este padre para notificaciones y acciones de aprobación.",
+          "associated_assignees": "Seleccione qué niños supervisa este padre para notificaciones y acciones de aprobación.",
           "mobile_notify_service": "Seleccione un servicio de notificación para habilitar las notificaciones para este padre o déjelo vacío para deshabilitarlo.",
           "allow_chore_assignment": "Crea un perfil para que se te asignen tareas. De forma predeterminada, solo se muestra el botón \"Aprobar\" para completar con un solo clic. Nota: Al desmarcar la casilla, se conserva el perfil del niño con el sufijo \"_unlinked\" para su limpieza manual.",
           "enable_chore_workflow": "Agrega botones Reclamar y Desaprobar para un flujo de trabajo completo (reclamar → aprobar/desaprobar).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Descripción (opcional)",
               "icon": "📋 Icono (mdi:xxx)",
               "default_points": "💰 Puntos otorgados",
-              "assigned_kids": "👥 Niños asignados",
+              "assigned_assignees": "👥 Niños asignados",
               "completion_criteria": "👥 Criterios de finalización"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Instrucciones opcionales o detalles sobre cómo completar esta tarea.",
               "icon": "Ícono de diseño de materiales (por ejemplo, mdi:escoba, mdi:lavavajillas).",
               "default_points": "Puntos ganados al completarlo.",
-              "assigned_kids": "Niños que pueden ver y reclamar esta tarea.",
+              "assigned_assignees": "Niños que pueden ver y reclamar esta tarea.",
               "completion_criteria": "Controla cómo se completa la tarea cuando se asignan varios niños: seguimiento individual, finalización compartida o rotación por turnos."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "📋 Icono (mdi:xxx)",
           "chore_labels": "📋Etiquetas (opcional)",
           "default_points": "💰 Puntos otorgados",
-          "assigned_kids": "👥 Niños asignados",
+          "assigned_assignees": "👥 Niños asignados",
           "completion_criteria": "👥 Criterios de finalización",
           "approval_reset_type": "➡️ Finalizaciones permitidas y tiempo de restablecimiento de aprobaciones",
           "approval_reset_pending_claim_action": "➡️ Manejo de reclamos pendientes al restablecer la aprobación",
@@ -654,7 +654,7 @@
           "icon": "Ícono de diseño de materiales (por ejemplo, mdi:escoba, mdi:lavavajillas).",
           "chore_labels": "Etiquetas para organizar tareas (p. ej., \"cocina\", \"exterior\"). Déjalo en blanco si no es necesario.",
           "default_points": "Puntos ganados al completarlo.",
-          "assigned_kids": "Niños que pueden ver y reclamar esta tarea.",
+          "assigned_assignees": "Niños que pueden ver y reclamar esta tarea.",
           "completion_criteria": "Controla cómo se completa la tarea cuando se asignan varios niños: seguimiento individual, finalización compartida o rotación por turnos.",
           "approval_reset_type": "Controla cuándo se activa el límite del ciclo de aprobación de la tarea (medianoche, fecha de vencimiento, al finalizar o activación manual).",
           "approval_reset_pending_claim_action": "Controla lo que sucede con las reclamaciones no aprobadas cuando se activa el límite de restablecimiento de aprobación.",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "points_multiplier": "🎁 PREMIOS: Multiplicador de puntos (Predeterminado 💎 1.0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Seleccione las tareas que otorgan puntos para esta insignia. Deje en blanco para registrar todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "points_multiplier": "Si el multiplicador es un premio seleccionado, establezca un multiplicador para los puntos obtenidos mientras esta insignia esté activa (por ejemplo, 1.5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 OBJETIVO DIARIO: Tipo de objetivo",
           "threshold_value": "OBJETIVO DIARIO: Valor Umbral",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Seleccione el tipo de objetivo diario para esta insignia (por ejemplo, puntos, cantidad de tareas o días).",
           "threshold_value": "Establece los puntos diarios, la cantidad de tareas o la cantidad de días necesarios para obtener esta insignia. Para los tipos de objetivo \"Días\", introduce 1, ya que la insignia se evalúa diariamente (p. ej., 1 por completar todas las tareas seleccionadas en un día).",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "recurring_frequency": "🔄 CICLO DE REINICIO: Frecuencia",
@@ -794,7 +794,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "recurring_frequency": "Define el cronograma de reinicio para esta insignia (por ejemplo, semanal, mensual).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_achievement": "🏆 Logro asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_achievement": "Vincula esta insignia a un logro específico para realizar un seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_challenge": "🏁 Desafío asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_challenge": "Vincula esta insignia a un desafío específico para su seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 RECURRENCIA: Unidad de intervalo personalizada (obligatoria para la frecuencia personalizada)",
           "start_date": "🔄 RECURRENCIA: Fecha de inicio (Opcional)",
           "grace_period_days": "🔄 RECURRENCIA: Periodo de gracia en días (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (por ejemplo, días, semanas).",
           "start_date": "Establezca la fecha de inicio para el ciclo de reinicio (opcional).",
           "grace_period_days": "Especifique el número de días adicionales después del final del ciclo para que los niños alcancen los puntos requeridos antes del descenso (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -932,7 +932,7 @@
           "description": "Descripción (opcional)",
           "achievement_labels": "Etiquetas de logros",
           "icon": "Icono (mdi:xxx)",
-          "assigned_kids": "Niños asignados",
+          "assigned_assignees": "Niños asignados",
           "type": "Tipo de logro",
           "selected_chore_id": "Seleccionar tarea asociada",
           "criteria": "Criterios (opcional)",
@@ -949,7 +949,7 @@
           "description": "Descripción (opcional)",
           "challenge_labels": "Etiquetas de desafío",
           "icon": "Icono (mdi:xxx)",
-          "assigned_kids": "Niños asignados",
+          "assigned_assignees": "Niños asignados",
           "type": "Tipo de desafío",
           "selected_chore_id": "Seleccione la tarea asociada con el desafío (opcional)",
           "criteria": "Criterios (opcional)",
@@ -960,7 +960,7 @@
           "internal_id": "Identificación interna"
         }
       },
-      "edit_kid": {
+      "edit_assignee": {
         "title": "Editar niño",
         "description": "Modificar los detalles del niño seleccionado.\n\n📖 [Guía de configuración]({documentation_url})",
         "data": {
@@ -977,8 +977,8 @@
           "dashboard_language": "Idioma utilizado para el panel de tareas y las notificaciones."
         }
       },
-      "edit_kid_shadow": {
-        "title": "Editar Shadow Kid",
+      "edit_assignee_shadow": {
+        "title": "Editar Shadow Assignee",
         "description": "Modifique los detalles del niño sombra seleccionado. ⚠️ Este niño está vinculado a un padre. Cambiar el nombre anulará el requisito de coincidencia de nombres para la desvinculación mediante el servicio.",
         "data": {
           "name": "Nombre del niño",
@@ -994,13 +994,13 @@
           "dashboard_language": "Idioma utilizado para el panel de tareas y las notificaciones."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Editar padre",
         "description": "Modificar los detalles del padre seleccionado.\n\n📖 [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del padre",
           "ha_user_id": "Usuario de Home Assistant",
-          "associated_kids": "Niños asociados",
+          "associated_assignees": "Niños asociados",
           "mobile_notify_service": "Notificaciones",
           "dashboard_language": "Idioma",
           "allow_chore_assignment": "Permitir que me asignen tareas",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Nombre único para este padre, utilizado en todo el sistema.",
           "ha_user_id": "Opcional: Vincula a este padre a un usuario de Home Assistant para recibir notificaciones y acceder al panel de control.",
-          "associated_kids": "Seleccione qué niños supervisará este padre para recibir notificaciones y acciones de aprobación.",
+          "associated_assignees": "Seleccione qué niños supervisará este padre para recibir notificaciones y acciones de aprobación.",
           "mobile_notify_service": "Seleccione un servicio de notificación para habilitar las notificaciones para este padre o déjelo vacío para deshabilitarlo.",
           "allow_chore_assignment": "Crea un perfil para que se te asignen tareas. De forma predeterminada, solo se muestra el botón \"Aprobar\" para completar con un solo clic. Nota: Al desmarcar la casilla, se conserva el perfil del niño con el sufijo \"_unlinked\" para su limpieza manual.",
           "enable_chore_workflow": "Agrega botones Reclamar y Desaprobar para un flujo de trabajo completo (reclamar → aprobar/desaprobar).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Descripción (opcional)",
               "icon": "📋 Icono (mdi:xxx)",
               "default_points": "💰 Puntos otorgados",
-              "assigned_kids": "👥 Niños asignados",
+              "assigned_assignees": "👥 Niños asignados",
               "completion_criteria": "👥 Criterios de finalización"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Instrucciones opcionales o detalles sobre cómo completar esta tarea.",
               "icon": "Ícono de diseño de materiales (por ejemplo, mdi:escoba, mdi:lavavajillas).",
               "default_points": "Puntos ganados al completarlo.",
-              "assigned_kids": "Niños que pueden ver y reclamar esta tarea.",
+              "assigned_assignees": "Niños que pueden ver y reclamar esta tarea.",
               "completion_criteria": "Controla cómo se completa la tarea cuando se asignan varios niños: seguimiento individual, finalización compartida o rotación por turnos."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋Etiquetas (opcional)",
           "internal_id": "Identificación interna",
           "default_points": "💰 Puntos otorgados",
-          "assigned_kids": "👥 Niños asignados",
+          "assigned_assignees": "👥 Niños asignados",
           "completion_criteria": "👥 Criterios de finalización",
           "approval_reset_type": "➡️ Finalizaciones permitidas y tiempo de restablecimiento de aprobaciones",
           "approval_reset_pending_claim_action": "➡️ Manejo de reclamos pendientes al restablecer la aprobación",
@@ -1123,7 +1123,7 @@
           "icon": "Ícono de diseño de materiales (por ejemplo, mdi:escoba, mdi:lavavajillas).",
           "chore_labels": "Etiquetas para organizar tareas (p. ej., \"cocina\", \"exterior\"). Déjalo en blanco si no es necesario.",
           "default_points": "Puntos ganados al completarlo.",
-          "assigned_kids": "Niños que pueden ver y reclamar esta tarea.",
+          "assigned_assignees": "Niños que pueden ver y reclamar esta tarea.",
           "completion_criteria": "Controla cómo se completa la tarea cuando se asignan varios niños: seguimiento individual, finalización compartida o rotación por turnos.",
           "approval_reset_type": "Controla cuándo se activa el límite del ciclo de aprobación de la tarea (medianoche, fecha de vencimiento, al finalizar o activación manual).",
           "approval_reset_pending_claim_action": "Controla lo que sucede con las reclamaciones no aprobadas cuando se activa el límite de restablecimiento de aprobación.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "Cuándo enviar notificaciones: por reclamo, por aprobación, por rechazo o cualquier combinación."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Editar fechas de entrega por niño: {chore_name}",
-        "description": "Establezca fechas de entrega individuales para cada niño asignado. El campo de fecha en el formulario de edición principal funciona como **plantilla** para mayor comodidad: úselo para aplicar rápidamente la misma fecha a todos los niños mediante la casilla de verificación a continuación, o déjelo en blanco y establezca las fechas individualmente aquí.\n\nSe muestran los campos para: {kid_names}. Déjelo en blanco si no hay fecha límite.{template_date}\n\n📖 [Guía avanzada]({documentation_url})",
+        "description": "Establezca fechas de entrega individuales para cada niño asignado. El campo de fecha en el formulario de edición principal funciona como **plantilla** para mayor comodidad: úselo para aplicar rápidamente la misma fecha a todos los niños mediante la casilla de verificación a continuación, o déjelo en blanco y establezca las fechas individualmente aquí.\n\nSe muestran los campos para: {assignee_names}. Déjelo en blanco si no hay fecha límite.{template_date}\n\n📖 [Guía avanzada]({documentation_url})",
         "data": {
           "apply_template_to_all": "Aplicar fecha de plantilla a todos los niños"
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Ingrese de 2 a 6 horas en formato de 24 horas, separadas por | (barra vertical). Ejemplo: 08:00|17:00 para mañana y tarde."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Horario por niño: {chore_name}",
-        "description": "Configura los ajustes de horario individuales para cada niño asignado a esta tarea. Los valores del formulario principal funcionan como **plantillas**: usa las casillas de verificación para aplicarlos a todos los niños o personaliza la configuración de cada uno individualmente.\n\n**Nota:** No todos los campos a continuación se aplican a todas las tareas. El formulario muestra dinámicamente las opciones relevantes según el modo de finalización, la frecuencia y si se han establecido fechas de vencimiento.\n\n**Formato diario (varias):** Si se muestra, introduce de 2 a 6 horas en formato de 24 horas separadas por | (barra vertical). Ejemplo: 08:00|17:00\n\nNiños: {kid_names}{template_info}\n\n📖 [Guía avanzada]({documentation_url})",
+        "description": "Configura los ajustes de horario individuales para cada niño asignado a esta tarea. Los valores del formulario principal funcionan como **plantillas**: usa las casillas de verificación para aplicarlos a todos los niños o personaliza la configuración de cada uno individualmente.\n\n**Nota:** No todos los campos a continuación se aplican a todas las tareas. El formulario muestra dinámicamente las opciones relevantes según el modo de finalización, la frecuencia y si se han establecido fechas de vencimiento.\n\n**Formato diario (varias):** Si se muestra, introduce de 2 a 6 horas en formato de 24 horas separadas por | (barra vertical). Ejemplo: 08:00|17:00\n\nNiños: {assignee_names}{template_info}\n\n📖 [Guía avanzada]({documentation_url})",
         "data": {
           "apply_days_to_all": "Aplicar días de plantilla a todos los niños",
           "apply_times_to_all": "Aplicar horarios de plantilla a todos los niños",
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "points_multiplier": "🎁 PREMIOS: Multiplicador de puntos (Predeterminado 💎 1.0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "points_multiplier": "Si el multiplicador es un premio seleccionado, establezca un multiplicador para los puntos obtenidos mientras esta insignia esté activa (por ejemplo, 1.5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 OBJETIVO DIARIO: Tipo de objetivo",
           "threshold_value": "OBJETIVO DIARIO: Valor Umbral",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Seleccione el tipo de objetivo diario para esta insignia (por ejemplo, puntos, cantidad de tareas o días).",
           "threshold_value": "Establece los puntos diarios, la cantidad de tareas o la cantidad de días necesarios para obtener esta insignia. Para los tipos de objetivo \"Días\", introduce 1, ya que la insignia se evalúa diariamente (p. ej., 1 por completar todas las tareas seleccionadas en un día).",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "recurring_frequency": "🔄 CICLO DE REINICIO: Frecuencia",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que aportan puntos para esta insignia. Deja en blanco si quieres hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "recurring_frequency": "Define el cronograma de reinicio para esta insignia (por ejemplo, semanal, mensual).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_achievement": "🏆 Logro asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_achievement": "Vincula esta insignia a un logro específico para realizar un seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_challenge": "🏁 Desafío asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_challenge": "Vincula esta insignia a un desafío específico para su seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 RECURRENCIA: Unidad de intervalo personalizada (obligatoria para la frecuencia personalizada)",
           "start_date": "🔄 RECURRENCIA: Fecha de inicio (Opcional)",
           "grace_period_days": "🔄 RECURRENCIA: Periodo de gracia en días (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (por ejemplo, días, semanas).",
           "start_date": "Establezca la fecha de inicio para el ciclo de reinicio (opcional).",
           "grace_period_days": "Especifique el número de días adicionales después del final del ciclo para que los niños alcancen los puntos requeridos antes del descenso (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1428,7 +1428,7 @@
           "description": "Descripción (opcional)",
           "achievement_labels": "Etiquetas de logros",
           "icon": "Icono (mdi:xxx)",
-          "assigned_kids": "Niños asignados",
+          "assigned_assignees": "Niños asignados",
           "type": "Tipo de logro",
           "selected_chore_id": "Seleccionar tarea asociada",
           "criteria": "Criterios (opcional)",
@@ -1445,7 +1445,7 @@
           "description": "Descripción (opcional)",
           "challenge_labels": "Etiquetas de desafío",
           "icon": "Icono (mdi:xxx)",
-          "assigned_kids": "Niños asignados",
+          "assigned_assignees": "Niños asignados",
           "type": "Tipo de desafío",
           "selected_chore_id": "Seleccione la tarea asociada con el desafío (opcional)",
           "criteria": "Criterios (opcional)",
@@ -1456,14 +1456,14 @@
           "internal_id": "Identificación interna"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Eliminar niño",
-        "description": "¿Estás seguro de que deseas eliminar al niño {kid_name}?",
+        "description": "¿Estás seguro de que deseas eliminar al niño {assignee_name}?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Eliminar padre",
-        "description": "¿Estás seguro de que deseas eliminar el padre {parent_name}?",
+        "description": "¿Estás seguro de que deseas eliminar el padre {approver_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Administrar el panel de control",
-        "description": "Crear, actualizar o eliminar paneles de KidsChores Lovelace.\n\n**Tarjetas personalizadas necesarias** (instalar mediante la interfaz de HACS):\n- Tarjetas de hongo (custom:mushroom-template-card)\n- Entidades automáticas (custom:auto-entities)\n- Tarjeta de minigráfico (custom:mini-graph-card)\n\nSin estas tarjetas, los paneles mostrarán errores. Instálelas primero desde HACS antes de generar paneles.",
+        "description": "Crear, actualizar o eliminar paneles de ChoreOps Lovelace.\n\n**Tarjetas personalizadas necesarias** (instalar mediante la interfaz de HACS):\n- Tarjetas de hongo (custom:mushroom-template-card)\n- Entidades automáticas (custom:auto-entities)\n- Tarjeta de minigráfico (custom:mini-graph-card)\n\nSin estas tarjetas, los paneles mostrarán errores. Instálelas primero desde HACS antes de generar paneles.",
         "data": {
           "dashboard_action": "Acción",
           "dashboard_check_cards": "Instalación de la tarjeta de verificación"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Crear/actualizar panel de control",
-        "description": "Genera un panel de KidsChores con pestañas para cada niño.\n\nElige un nombre para el panel, selecciona los niños que deseas incluir y, opcionalmente, agrega una pestaña de Administrador para la gestión de padres.\n\n[📖 Guía para generar paneles]({documentation_url})",
+        "description": "Genera un panel de ChoreOps con pestañas para cada niño.\n\nElige un nombre para el panel, selecciona los niños que deseas incluir y, opcionalmente, agrega una pestaña de Administrador para la gestión de padres.\n\n[📖 Guía para generar paneles]({documentation_url})",
         "data": {
           "dashboard_name": "Nombre del tablero",
           "dashboard_style": "Estilo del tablero",
-          "dashboard_kid_selection": "Niños (una pestaña por niño)",
+          "dashboard_assignee_selection": "Niños (una pestaña por niño)",
           "dashboard_include_admin": "Incluir pestaña de administración",
           "dashboard_force_rebuild": "Forzar reconstrucción (sobrescribir existente)"
         },
         "data_description": {
           "dashboard_name": "Nombre del panel (aparece en la barra lateral). Sugerencia: Tareas",
           "dashboard_style": "Elija el diseño del panel: Completo (todas las funciones), Mínimo (solo lo esencial) o Compacto (diseño denso).",
-          "dashboard_kid_selection": "Selecciona para qué niños crear pestañas. Cada niño tiene su propia vista/pestaña.",
+          "dashboard_assignee_selection": "Selecciona para qué niños crear pestañas. Cada niño tiene su propia vista/pestaña.",
           "dashboard_include_admin": "Agregue una pestaña de administración con controles principales para aprobaciones y gestión.",
           "dashboard_force_rebuild": "Si se habilita, se sobrescribirá el panel existente. De lo contrario, la generación falla si el panel ya existe."
         }
       },
       "dashboard_delete": {
         "title": "Eliminar el panel de control",
-        "description": "Seleccione los paneles de KidsChores que desea eliminar.\n\n⚠️ Esta acción no se puede deshacer.",
+        "description": "Seleccione los paneles de ChoreOps que desea eliminar.\n\n⚠️ Esta acción no se puede deshacer.",
         "data": {
           "dashboard_delete_selection": "Paneles para eliminar"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Opciones generales",
-        "description": "Administrar la configuración general para la integración de KidsChores.\n\n[📖 Obtenga más información sobre Copia de seguridad y restauración]({documentation_url})",
+        "description": "Administrar la configuración general para la integración de ChoreOps.\n\n[📖 Obtenga más información sobre Copia de seguridad y restauración]({documentation_url})",
         "data": {
           "points_adjust_values": "Valores del botón de ajuste de puntos manual",
           "update_interval": "Intervalo de actualización",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Lista de valores para los botones de ajuste manual de puntos. Cada valor se separa con '|'.",
-          "update_interval": "Intervalo en minutos para actualizar el estado interno de KidsChores.",
+          "update_interval": "Intervalo en minutos para actualizar el estado interno de ChoreOps.",
           "calendar_show_period": "Número de días en el futuro para mostrar las tareas y los desafíos programados en el calendario.",
           "retention_periods": "Periodos de conservación de datos en formato Diario|Semanal|Mensual|Anual (p. ej., '7|4|12|3'). Cada valor debe ser un entero positivo.",
           "retention_daily": "Número de días de datos históricos diarios que se conservarán antes de la limpieza. Mínimo 1, máximo 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Gestión de copias de seguridad",
-        "description": "Gestiona las copias de seguridad de tus datos de KidsChores. Estado actual: {backup_count} copias de seguridad que ocupan {storage_size} MB.",
+        "description": "Gestiona las copias de seguridad de tus datos de ChoreOps. Estado actual: {backup_count} copias de seguridad que ocupan {storage_size} MB.",
         "data": {
           "backup_action_selection": "Seleccione una acción"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Acciones de respaldo",
-        "description": "Administre las copias de seguridad de datos de KidsChores.",
+        "description": "Administre las copias de seguridad de datos de ChoreOps.",
         "data": {
           "backup_action_selection": "Seleccione una acción"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Crear copia de seguridad manual",
-        "description": "Crea una nueva copia de seguridad de tus datos de KidsChores.\n\nCopias de seguridad actuales: {backup_count}\nConfiguración de retención: {retention} copias de seguridad",
+        "description": "Crea una nueva copia de seguridad de tus datos de ChoreOps.\n\nCopias de seguridad actuales: {backup_count}\nConfiguración de retención: {retention} copias de seguridad",
         "data": {
           "confirm": "Confirmar la creación de la copia de seguridad"
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Opciones de recuperación de datos",
-        "description": "Datos existentes de KidsChores encontrados en:\n{storage_path}\n\nSe encontraron {backup_count} archivos de respaldo.\n\n¿Qué le gustaría hacer?",
+        "description": "Datos existentes de ChoreOps encontrados en:\n{storage_path}\n\nSe encontraron {backup_count} archivos de respaldo.\n\n¿Qué le gustaría hacer?",
         "data": {
           "backup_selection": "Seleccionar opción"
         }
       },
       "paste_json_restore": {
         "title": "Importar datos JSON",
-        "description": "Pegue el contenido JSON completo desde:\n\n• Un archivo de datos de KidsChores (kidschores_data)\n• Una descarga de diagnóstico\n\nEl sistema detectará y descomprimirá automáticamente el formato según sea necesario. Se admiten tanto los datos de almacenamiento sin procesar como los formatos de exportación de diagnóstico.",
+        "description": "Pegue el contenido JSON completo desde:\n\n• Un archivo de datos de ChoreOps (choreops_data)\n• Una descarga de diagnóstico\n\nEl sistema detectará y descomprimirá automáticamente el formato según sea necesario. Se admiten tanto los datos de almacenamiento sin procesar como los formatos de exportación de diagnóstico.",
         "data": {
           "json_data": "Datos JSON"
         },
         "data_description": {
-          "json_data": "Pegue aquí el contenido JSON completo. Acepta datos del archivo kidschores_data o de la exportación de diagnósticos (desenvuelve automáticamente la estructura adicional)."
+          "json_data": "Pegue aquí el contenido JSON completo. Acepta datos del archivo choreops_data o de la exportación de diagnósticos (desenvuelve automáticamente la estructura adicional)."
         }
       },
       "create_backup_confirm": {
         "title": "Crear copia de seguridad manual",
-        "description": "¿Quieres crear una copia de seguridad manual de tus datos actuales de KidsChores?",
+        "description": "¿Quieres crear una copia de seguridad manual de tus datos actuales de ChoreOps?",
         "data": {
           "confirm": "Confirmar"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Ya existe una insignia con este nombre",
       "duplicate_challenge": "Ya existe un desafío con este nombre",
       "duplicate_chore": "Ya existe una tarea con este nombre",
-      "duplicate_kid": "Ya existe un niño con ese nombre",
-      "duplicate_parent": "Ya existe un padre con este nombre",
+      "duplicate_assignee": "Ya existe un niño con ese nombre",
+      "duplicate_approver": "Ya existe un padre con este nombre",
       "duplicate_penalty": "Ya existe una penalización con este nombre",
       "duplicate_reward": "Ya existe una recompensa con este nombre",
       "duplicate_bonus": "Ya existe un bono con este nombre",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Fecha de vencimiento no válida",
       "date_required_for_frequency": "Se requiere una fecha de vencimiento para esta frecuencia recurrente. Borrar fechas solo funciona con las frecuencias Ninguna, Diaria o Semanal.",
       "invalid_end_date": "Fecha de finalización no válida.",
-      "invalid_kid_count": "Recuento de niños no válido",
-      "invalid_kid_name": "Nombre de niño no válido",
-      "no_kids_assigned": "Al menos un niño debe estar asignado a la tarea.",
-      "achievement_no_kids_assigned": "Al menos un niño debe estar asignado al logro.",
-      "challenge_no_kids_assigned": "Al menos un niño debe ser asignado al desafío.",
+      "invalid_assignee_count": "Recuento de niños no válido",
+      "invalid_assignee_name": "Nombre de niño no válido",
+      "no_assignees_assigned": "Al menos un niño debe estar asignado a la tarea.",
+      "achievement_no_assignees_assigned": "Al menos un niño debe estar asignado al logro.",
+      "challenge_no_assignees_assigned": "Al menos un niño debe ser asignado al desafío.",
       "invalid_penalty": "Penalización inválida",
       "invalid_penalty_count": "Recuento de penalizaciones no válido",
       "invalid_bonus": "Bono no válido",
@@ -1721,23 +1721,23 @@
       "file_not_found": "No se pudo encontrar el archivo seleccionado.",
       "invalid_selection": "Seleccione una opción válida.",
       "error_daily_multi_requires_compatible_reset": "La frecuencia 'varias veces al día' es incompatible con los tipos de reinicio de medianoche porque solo reinician las aprobaciones una vez a medianoche.",
-      "error_daily_multi_independent_multi_kids": "La frecuencia \"Varias veces al día\" con finalización INDEPENDIENTE requiere solo un niño, a menos que se configuren horarios por niño. Configure horarios diferentes para cada niño en la configuración por niño.",
+      "error_daily_multi_independent_multi_assignees": "La frecuencia \"Varias veces al día\" con finalización INDEPENDIENTE requiere solo un niño, a menos que se configuren horarios por niño. Configure horarios diferentes para cada niño en la configuración por niño.",
       "error_daily_multi_times_required": "Se requiere una lista de tiempos para la frecuencia \"Varias veces al día\".",
       "error_daily_multi_times_invalid_format": "Formato de hora no válido. Use el formato de 24 horas (HH:MM) separado por | (p. ej., 08:00|17:00).",
       "error_daily_multi_times_too_few": "Se requieren al menos 2 veces para la frecuencia \"Varias veces al día\". Para una sola vez, use la frecuencia \"Diaria\".",
       "error_daily_multi_times_too_many": "Se permite un máximo de 6 veces por día para la frecuencia \"Varias veces por día\".",
       "error_daily_multi_due_date_required": "La frecuencia \"Varias veces al día\" requiere establecer una fecha de vencimiento. La fecha determina cuándo comienza la programación y las horas determinan los intervalos de disponibilidad diarios.",
-      "rotation_min_kids": "Las tareas de rotación requieren al menos 2 niños asignados",
+      "rotation_min_assignees": "Las tareas de rotación requieren al menos 2 niños asignados",
       "error_allow_steal_incompatible": "Permitir el manejo de robos vencidos solo es compatible con tareas de rotación (rotation_simple o rotation_smart), tipo de reinicio \"Una vez al día\" y requiere una fecha de vencimiento para definir cuándo se abre la ventana de robo.",
       "error_at_due_date_reset_requires_due_date": "Los tipos de restablecimiento de aprobación \"En fecha de vencimiento\" (Única o Múltiple) requieren que se establezca una fecha de vencimiento. Sin una fecha de vencimiento, el restablecimiento de aprobación nunca se activará y la tarea permanecerá aprobada indefinidamente.",
-      "error_per_kid_applicable_days_invalid": "Formato de días aplicable no válido para uno o más niños. Los días deben ser enteros del 0 al 6 (de lunes a domingo) sin duplicados.",
-      "error_per_kid_daily_multi_times_invalid": "Formato de hora diaria no válido para uno o más niños. Use el formato de 24 horas separado por | (p. ej., 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Formato de días aplicable no válido para uno o más niños. Los días deben ser enteros del 0 al 6 (de lunes a domingo) sin duplicados.",
+      "error_per_assignee_daily_multi_times_invalid": "Formato de hora diaria no válido para uno o más niños. Use el formato de 24 horas separado por | (p. ej., 08:00|17:00).",
       "dashboard_exists": "Ya existe un panel con esta URL. Activa \"Forzar reconstrucción\" para sobrescribirla.",
       "dashboard_template_error": "No se pudo obtener la plantilla del panel. Verifique la conexión de red o inténtelo de nuevo más tarde.",
       "dashboard_render_error": "No se pudo renderizar la plantilla del panel. Esto podría indicar un error en la plantilla.",
       "dashboard_save_error": "No se pudo guardar el panel en Home Assistant. Consulta los registros del sistema para obtener más información.",
       "dashboard_no_name": "Ingrese un nombre para el panel de control.",
-      "dashboard_no_kids": "Seleccione al menos un niño o habilite 'Incluir pestaña de administrador'.",
+      "dashboard_no_assignees": "Seleccione al menos un niño o habilite 'Incluir pestaña de administrador'.",
       "dashboard_no_dashboards": "Seleccione al menos un panel para eliminar."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Desafío no válido",
       "invalid_chore": "Tarea no válida",
       "invalid_entity": "Entidad inválida",
-      "invalid_kid": "Niño inválido",
-      "invalid_parent": "Padre inválido",
+      "invalid_assignee": "Niño inválido",
+      "invalid_approver": "Padre inválido",
       "invalid_penalty": "Penalización no válida",
       "invalid_reward": "Recompensa no válida",
       "invalid_bonus": "Bono inválido",
-      "no_kid": "No se han configurado niños para editar. Agregue una entrada primero.",
-      "no_parent": "No hay padres configurados para editar. Agregue una entrada primero.",
+      "no_assignee": "No se han configurado niños para editar. Agregue una entrada primero.",
+      "no_approver": "No hay padres configurados para editar. Agregue una entrada primero.",
       "no_chore": "No hay tareas configuradas para editar. Agregue una entrada primero.",
       "no_badge": "No hay insignias configuradas para editar. Agrega una entrada primero.",
       "no_reward": "No hay recompensas configuradas para editar. Agrega una entrada primero.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "No hay desafíos configurados para editar. Agrega una entrada primero.",
       "setup_complete": "Configuración completada",
       "backup_restored": "La copia de seguridad se restauró correctamente. La integración se ha recargado con los datos restaurados.",
-      "no_dashboards_to_delete": "No se encontraron paneles de KidsChores. Crea uno primero usando \"Administrar panel\"."
+      "no_dashboards_to_delete": "No se encontraron paneles de ChoreOps. Crea uno primero usando \"Administrar panel\"."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Administrar puntos",
-        "manage_kid": "Administrar niños",
-        "manage_parent": "Administrar padres",
+        "manage_assignee": "Administrar niños",
+        "manage_approver": "Administrar padres",
         "manage_chore": "Gestionar tareas",
         "manage_badge": "Administrar insignia",
         "manage_reward": "Administrar recompensas",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Administrador (panel principal)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2021,7 +2021,7 @@
       "name": "Reclamar tarea",
       "description": "Un niño reclama una tarea y la marca como \"reclamada\" para obtener la aprobación de sus padres.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El nombre del niño que reclama la tarea.",
           "example": "Alicia"
@@ -2037,12 +2037,12 @@
       "name": "Aprobar tarea",
       "description": "El padre aprueba la tarea y otorga puntos.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre aprobando la tarea.",
           "example": "Mamá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El nombre del niño que realizó la tarea.",
           "example": "Alicia"
@@ -2063,12 +2063,12 @@
       "name": "Desaprobar tarea",
       "description": "Un padre desaprueba una tarea para un niño, revirtiendo su estatus.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre desaprueba la tarea.",
           "example": "Mamá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El nombre del niño cuya tarea está siendo desaprobada.",
           "example": "Alicia"
@@ -2084,12 +2084,12 @@
       "name": "Canjear recompensa",
       "description": "Un padre canjea una recompensa por un niño, descontando puntos.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre que autoriza el canje de la recompensa.",
           "example": "Mamá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño redimiendo la recompensa.",
           "example": "Alicia"
@@ -2105,12 +2105,12 @@
       "name": "Aprobar recompensa",
       "description": "El padre aprueba una recompensa reclamada por un niño.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre aprobando la recompensa.",
           "example": "Mamá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño que está redimiendo la recompensa.",
           "example": "Alicia"
@@ -2130,12 +2130,12 @@
       "name": "Recompensa por desaprobar",
       "description": "Un padre desaprueba el canje de una recompensa por un niño.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre desaprueba la recompensa.",
           "example": "Papá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño cuya recompensa por la redención está siendo desaprobada.",
           "example": "Alicia"
@@ -2151,12 +2151,12 @@
       "name": "Aplicar penalización",
       "description": "Un padre aplica una penalización para deducir puntos.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre que aplica la sanción.",
           "example": "Papá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño recibiendo el penalti.",
           "example": "Alicia"
@@ -2172,12 +2172,12 @@
       "name": "Aplicar Bono",
       "description": "Un padre aplica un bono a un niño, otorgándole puntos.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nombre del padre",
           "description": "El padre que aplica el bono.",
           "example": "Mamá"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño recibiendo el bono.",
           "example": "Alicia"
@@ -2281,7 +2281,7 @@
           "description": "El nombre de la tarea a crear.",
           "example": "Sala limpia"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Niños asignados",
           "description": "Lista de nombres de niños para asignar a esta tarea.",
           "example": "['Emma', 'Jack']"
@@ -2377,7 +2377,7 @@
           "description": "El nombre de la tarea a actualizar (alternativa a id). Más intuitivo que id.",
           "example": "Sala limpia"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Niños asignados",
           "description": "Nueva lista de nombres de niños para asignar a esta tarea.",
           "example": "['Emma', 'Jack']"
@@ -2484,12 +2484,12 @@
           "description": "Nombre de la tarea de rotación. Opcional si se proporciona chore_id.",
           "example": "Dormitorio limpio"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Identificación de niño",
           "description": "ID interno del niño al que se asignará el turno. Debe estar asignado a esta tarea. Opcional si se proporciona el nombre del niño.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "Nombre del niño al que se asignará el turno. Debe estar asignado a esta tarea. Opcional si se proporciona el ID del niño.",
           "example": "Alicia"
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Restablecer datos transaccionales",
-      "description": "Restablezca los datos de ejecución/transaccionales conservando la configuración (niños, tareas, recompensas, etc.). Se crea una copia de seguridad automática antes del restablecimiento, llamada kidschores_data_timestamp_reset, en el directorio .storage. Use el alcance para identificar niños o dominios específicos. Requiere que el parámetro confirm_destructive esté definido como verdadero como mecanismo de seguridad.",
+      "description": "Restablezca los datos de ejecución/transaccionales conservando la configuración (niños, tareas, recompensas, etc.). Se crea una copia de seguridad automática antes del restablecimiento, llamada choreops_data_timestamp_reset, en el directorio .storage. Use el alcance para identificar niños o dominios específicos. Requiere que el parámetro confirm_destructive esté definido como verdadero como mecanismo de seguridad.",
       "fields": {
         "confirm_destructive": {
           "name": "Confirmar Destructivo",
@@ -2544,7 +2544,7 @@
           "name": "Alcance",
           "description": "Restablecer alcance: 'global' restablece todos los datos, 'niño' restablece los datos de un niño específico únicamente."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "Obligatorio si el ámbito es \"niño\". El nombre del niño cuyos datos deben restablecerse."
         },
@@ -2560,7 +2560,7 @@
     },
     "reset_overdue_chores": {
       "name": "Restablecer tareas atrasadas",
-      "description": "Restablezca las tareas atrasadas al estado Pendiente y reprograme las tareas según su frecuencia y fecha de vencimiento anterior. Opcionalmente, puede proporcionar un chore_id (o chore_name) para restablecer una tarea específica y, opcionalmente, un kid_name para restablecer la tarea solo para ese niño.",
+      "description": "Restablezca las tareas atrasadas al estado Pendiente y reprograme las tareas según su frecuencia y fecha de vencimiento anterior. Opcionalmente, puede proporcionar un chore_id (o chore_name) para restablecer una tarea específica y, opcionalmente, un assignee_name para restablecer la tarea solo para ese niño.",
       "fields": {
         "chore_id": {
           "name": "Identificación de tarea",
@@ -2572,7 +2572,7 @@
           "description": "El nombre de la tarea a restablecer (opcional si se proporciona chore_id).",
           "example": "Lavar platos"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño recibiendo el penalti.",
           "example": "Alicia"
@@ -2593,14 +2593,14 @@
           "description": "La nueva fecha de entrega de la tarea. Usa el selector de fecha/hora para elegir una fecha y hora válidas (en tu zona horaria local). Deja el campo en blanco para borrar la fecha de entrega.",
           "example": "01/03/2025 23:59:00"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "Para tareas independientes, especifique el niño para el que se establecerá la fecha de entrega. Si se omite, se establece la fecha de entrega para todos los niños asignados.",
           "example": "Alicia"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Identificación de niño",
-          "description": "El ID interno del niño. Solo para usuarios avanzados: use kid_name.",
+          "description": "El ID interno del niño. Solo para usuarios avanzados: use assignee_name.",
           "example": "abc123-def456"
         }
       }
@@ -2619,14 +2619,14 @@
           "description": "El nombre de la tarea a restablecer (opcional si se proporciona chore_id).",
           "example": "Lavar platos"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "Para tareas independientes, especifique el niño cuya fecha de entrega se omite. Si se omite, se omite la fecha de entrega para todos los niños asignados.",
           "example": "Alicia"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Identificación de niño",
-          "description": "El ID interno del niño. Solo para usuarios avanzados: use kid_name.",
+          "description": "El ID interno del niño. Solo para usuarios avanzados: use assignee_name.",
           "example": "abc123-def456"
         },
         "mark_as_missed": {
@@ -2639,7 +2639,7 @@
       "name": "Eliminar insignias otorgadas",
       "description": "Eliminar todas las insignias otorgadas a todos los niños. Opcionalmente, proporcione el nombre de la insignia para restablecer una insignia específica para todos los niños. Use el nombre del niño para restablecer todas las insignias de un niño específico. Combine ambos para restablecer una insignia específica para un niño específico.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Nombre del niño",
           "description": "El niño que reciba la insignia será eliminado.",
           "example": "Chelín"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Estado de la tarea - {chore_name}",
         "state": {
           "pending": "Pendiente",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Estados del ciclo de vida de tareas específicas de los niños, estadísticas de rendimiento y metadatos de configuración"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Descripción"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Niños asignados"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Omitido"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Girar el nombre del niño"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Saldo de puntos actual con estadísticas detalladas de ganancias y gastos"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Máximo {points} Siempre"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Tareas completadas - Mensual"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Quehaceres",
         "unit_of_measurement": "Quehaceres",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Total de tareas completadas en todo momento con estadísticas detalladas"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Insignias",
         "state_attributes": {
           "purpose": {
             "name": "Objetivo",
             "state": {
-              "purpose_kid_badges": "Insignia más alta obtenida y progreso acumulativo en tiempo real, incluidos ciclos activos e historial de premios en todos los tipos de insignias"
+              "purpose_assignee_badges": "Insignia más alta obtenida y progreso acumulativo en tiempo real, incluidos ciclos activos e historial de premios en todos los tipos de insignias"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Etiquetas"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Niños ganados"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Niños asignados"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Progreso de la insignia - {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Porcentaje de progreso de la insignia (0-100) que rastrea la finalización para obtener esta insignia, con el estado de los criterios, las fechas y el historial de premios"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Descripción"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Niños asignados"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Estado de recompensa - {reward_name}",
         "state": {
           "locked": "Bloqueado",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Estado de canje de recompensas con historial de reclamos y botones de acción"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Sanciones aplicadas - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "Se aplica bonificación - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Puntos ganados - Diarios"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Puntos ganados - Semanalmente"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Puntos ganados - Mensualmente"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Descripción"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Niños asignados"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Puntos de recompensa"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Ganado por"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Descripción"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Niños asignados"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Fecha de finalización"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Ganado por"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Progreso - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Porcentaje de progreso individual del niño (0-100) hacia la obtención de este logro, con recuento de progreso bruto actual y estado del premio"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Descripción"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Niños asignados"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Progreso - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Porcentaje de progreso individual de cada niño (0-100) hacia completar este desafío dentro del período de fechas, con el recuento de progreso bruto actual y el estado del premio"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Descripción"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Niños asignados"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Racha de tareas más alta",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "Asistente del panel de interfaz de usuario",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Tareas por etiqueta"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Seleccionar Bono"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Selector de niños del panel de administración",
         "state_attributes": {
           "purpose": {
             "name": "Objetivo",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Selector de niños a nivel de sistema para tarjetas del panel de administración"
+              "purpose_system_dashboard_admin_assignee": "Selector de niños a nivel de sistema para tarjetas del panel de administración"
             }
           },
           "dashboard_helper_eid": {
             "name": "ID de entidad auxiliar del panel"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Babosa infantil seleccionada"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Nombre del niño seleccionado"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "Asistente de lista de tareas del panel de interfaz de usuario",
         "state_attributes": {
           "purpose": {
             "name": "Objetivo",
             "state": {
-              "purpose_select_kid_chores": "Selección de tareas para niños para el filtrado del panel"
+              "purpose_select_assignee_chores": "Selección de tareas para niños para el filtrado del panel"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Calendario",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Calendario que muestra el cronograma de tareas de los niños y las fechas de entrega."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "Asistente de fecha del panel de interfaz de usuario",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Asistente de selección de fecha para el filtrado y la navegación de la interfaz de usuario del panel"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Reclamar tarea - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "El niño afirma haber completado la tarea asignada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Aprobar tarea - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "El padre aprueba la tarea reclamada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Desaprobar tarea - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "Padre desaprueba la supuesta tarea"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Reclamar recompensa - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "El niño canjea su recompensa usando puntos"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Aprobar recompensa - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "El padre aprueba la recompensa canjeada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Recompensa por desaprobar - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "Los padres desaprueban la recompensa canjeada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Aplicar penalización - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "El padre aplica penalización (resta puntos)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Aplicar Bono - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "El padre aplica el bono (suma puntos)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Ajustar {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "Los padres ajustan manualmente los puntos de sus hijos"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nombre del niño"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Incremento {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Decremento {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "No se encontró ningún niño con el nombre {name}"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "No se encontró ningún padre con el nombre {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "El niño {name} ya está vinculado a un padre"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "El niño {name} no está vinculado a ningún padre"
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "El padre {name} ya está vinculado a un niño diferente"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} no encontrado"
     },
     "not_assigned": {
-      "message": "{entity} no asignado a {kid}"
+      "message": "{entity} no asignado a {assignee}"
     },
     "rotation_no_turn_holder": {
       "message": "Las tareas de rotación deben tener un titular de turno asignado"
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Todos los niños en orden de rotación deben ser asignados a la tarea."
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Las tareas de rotación requieren al menos 2 niños asignados"
     },
     "not_rotation": {
       "message": "Esta tarea no está en modo de rotación"
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "El niño no está asignado a esta tarea."
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "No hay niños asignados a esta tarea."
     },
     "insufficient_points": {
-      "message": "{kid} tiene {current} puntos pero necesita {required} puntos"
+      "message": "{assignee} tiene {current} puntos pero necesita {required} puntos"
     },
     "already_claimed": {
       "message": "{entity} ya ha sido reclamado"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "La frecuencia recurrente {frequency} no es válida"
     },
-    "chore_overdue_for_kid": {
-      "message": "La tarea {chore_name} está atrasada para {kid_name}"
+    "chore_overdue_for_assignee": {
+      "message": "La tarea {chore_name} está atrasada para {assignee_name}"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "El niño {kid_name} no está asignado a la tarea {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "El niño {assignee_name} no está asignado a la tarea {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "No se puede especificar un niño para la tarea compartida {chore_name}. Las tareas compartidas tienen una fecha de vencimiento para todos los niños."
     },
     "reward_not_found": {
@@ -4471,14 +4471,14 @@
     "data_reset_confirmation_required": {
       "message": "Debes configurar confirm_destructive: true para continuar con el restablecimiento de datos"
     },
-    "data_reset_kid_not_found": {
-      "message": "Niño {kid_name} no encontrado"
+    "data_reset_assignee_not_found": {
+      "message": "Niño {assignee_name} no encontrado"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} no encontrado"
     },
     "data_reset_invalid_scope": {
-      "message": "Ámbito no válido {scope}. Debe ser: global, kid, item_type o item."
+      "message": "Ámbito no válido {scope}. Debe ser: global, assignee, item_type o item."
     },
     "data_reset_invalid_item_type": {
       "message": "Item_type {item_type}no válido. Debe ser: niños, tareas, recompensas, insignias, logros, desafíos, penalizaciones o bonificaciones."
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "Se han restablecido todos los datos de ejecución. Se conserva la configuración."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Restablecimiento de datos completo para {kid_name}. Puntos, estadísticas y progreso borrados."
+    "notif_message_data_reset_assignee": {
+      "message": "Restablecimiento de datos completo para {assignee_name}. Puntos, estadísticas y progreso borrados."
     },
     "notif_message_data_reset_item_type": {
       "message": "Restablecimiento de datos completo para todos los {item_type}. Se borraron los datos de tiempo de ejecución."
@@ -4502,7 +4502,7 @@
       "message": "Tarea perdida"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} se perdió la tarea: {chore_name}"
+      "message": "{assignee_name} se perdió la tarea: {chore_name}"
     }
   }
 }

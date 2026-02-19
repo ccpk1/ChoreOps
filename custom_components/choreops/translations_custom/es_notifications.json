@@ -1,127 +1,127 @@
 {
-  "_comment_kid_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "NOTIFICACIONES PARA NIÑOS: Tono gamificado, en segunda persona, alentador y con emojis. SIN prefijo \"KidsChores:\".",
-  "_comment_kid_footer": "══════════════════════════════════════════════════════════════════",
-  "chore_approved_kid": {
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "NOTIFICACIONES PARA NIÑOS: Tono gamificado, en segunda persona, alentador y con emojis. SIN prefijo \"ChoreOps:\".",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "¡Tarea aprobada!",
     "message": "¡{chore_name} aprobado! Has ganado {points} puntos."
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Tarea devuelta",
     "message": "{chore_name} necesita más trabajo."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Tarea atrasada",
     "message": "¡{chore_name} está atrasado! Complétalo ahora para ganar {points} puntos."
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Tarea expirada",
     "message": "{chore_name} expiró sin completarse."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Recordatorio de tareas",
     "message": "¡{chore_name} se entrega en {minutes} minutos! Vale {points} puntos"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Tarea pendiente",
     "message": "¡{chore_name} ya está disponible! Complétalo en {hours} hora(s) para ganar {points} puntos."
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 ¡Recompensa aprobada!",
     "message": "{reward_name} ¡aprobado!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "Solicitud de recompensa devuelta",
     "message": "{reward_name} no fue aprobado esta vez."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "¡Insignia ganada!",
     "message": "¡Has ganado la insignia {badge_name} !"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "¡Logro obtenido!",
     "message": "¡Te ganaste {achievement_name}! ¡Sigue así!"
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 ¡Desafío completado!",
     "message": "¡Has completado {challenge_name}! ¡Sigue así!"
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Sanción aplicada",
     "message": "{penalty_name}: {points} puntos deducidos. ¡A por todas!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ ¡Bono aplicado!",
     "message": "{bonus_name}: ¡Ganaste {points} puntos extra! ¡Buen trabajo!"
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Multiplicador actualizado",
     "message": "Tu multiplicador de puntos cambió de {old_multiplier}x a {new_multiplier}x"
   },
-  "_comment_parent_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "NOTIFICACIONES PARA PADRES: Informativas, en tercera persona, con instrucciones. Formato: '{kid_name}: Acción'. Sin prefijo 'KidsChores:'.",
-  "_comment_parent_footer": "══════════════════════════════════════════════════════════════════",
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Tarea reclamada",
-    "message": "{kid_name} reclamó {chore_name} y está trabajando en ello ahora"
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "NOTIFICACIONES PARA PADRES: Informativas, en tercera persona, con instrucciones. Formato: '{assignee_name}: Acción'. Sin prefijo 'ChoreOps:'.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Tarea reclamada",
+    "message": "{assignee_name} reclamó {chore_name} y está trabajando en ello ahora"
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Se necesita aprobación",
-    "message": "Recordatorio: {chore_name} reclamado por {kid_name} está esperando tu revisión"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Se necesita aprobación",
+    "message": "Recordatorio: {chore_name} reclamado por {assignee_name} está esperando tu revisión"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Tarea atrasada",
-    "message": "La tarea de {kid_name} {chore_name} está vencida (fecha de entrega: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Tarea atrasada",
+    "message": "La tarea de {assignee_name} {chore_name} está vencida (fecha de entrega: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} Pendiente",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Pendiente",
     "message": "{count} tareas pendientes de revisión. Último: {latest_chore} (+{points} pts)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Solicitud de recompensa",
-    "message": "{kid_name} solicitó {reward_name} por {points} puntos"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Solicitud de recompensa",
+    "message": "{assignee_name} solicitó {reward_name} por {points} puntos"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Recompensa pendiente",
-    "message": "Recordatorio: {reward_name} solicitado por {kid_name} está esperando su aprobación"
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Recompensa pendiente",
+    "message": "Recordatorio: {reward_name} solicitado por {assignee_name} está esperando su aprobación"
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Insignia obtenida",
-    "message": "¡{kid_name} obtuvo la insignia {badge_name} !"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Insignia obtenida",
+    "message": "¡{assignee_name} obtuvo la insignia {badge_name} !"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Logro",
-    "message": "{kid_name} ganó {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Logro",
+    "message": "{assignee_name} ganó {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Desafío completado",
-    "message": "{kid_name} completado {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Desafío completado",
+    "message": "{assignee_name} completado {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Multiplicador actualizado",
-    "message": "El multiplicador de puntos de {kid_name}cambió de {old_multiplier}x a {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Multiplicador actualizado",
+    "message": "El multiplicador de puntos de {assignee_name}cambió de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "NOTIFICACIONES DE SISTEMA/ADMINISTRADOR: Operaciones de gestión de datos",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "KidsChores: Restablecimiento de datos",
+    "title": "ChoreOps: Restablecimiento de datos",
     "message": "Los datos del sistema se han restablecido"
   },
   "data_reset_global": {
-    "title": "🔄 KidsChores: Reinicio completo",
+    "title": "🔄 ChoreOps: Reinicio completo",
     "message": "Todos los datos del sistema se han restablecido a los valores predeterminados."
   },
-  "data_reset_kid": {
-    "title": "🔄 KidsChores: Reinicio infantil",
-    "message": "Restablecimiento de datos para {kid_name}"
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Reinicio infantil",
+    "message": "Restablecimiento de datos para {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 KidsChores: {item_type} Reiniciar",
+    "title": "🔄 ChoreOps: {item_type} Reiniciar",
     "message": "Se han restablecido todos los datos de {item_type}"
   },
   "data_reset_item": {
-    "title": "KidsChores: Restablecimiento de elementos",
+    "title": "ChoreOps: Restablecimiento de elementos",
     "message": "{item_type} '{item_name}' se ha restablecido"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════════",

@@ -2,7 +2,7 @@
 
 This module validates:
 1. v40beta1 → v43 migration transforms point_data to point_periods correctly
-2. Kid _points sensor exposes all required attributes
+2. Assignee _points sensor exposes all required attributes
 3. Sensor attributes update correctly on manual point adjustments
 4. Earned/spent/net relationships and by_source tracking
 
@@ -15,7 +15,7 @@ Strategy:
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.core import Context, HomeAssistant
 import pytest
@@ -23,14 +23,15 @@ from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,  # type: ignore[import-untyped]
 )
 
+from custom_components.choreops import const
 from tests.helpers import (
     CONF_POINTS_ICON,
     CONF_POINTS_LABEL,
     CONF_UPDATE_INTERVAL,
     DOMAIN,
     SetupResult,
+    get_assignee_points,
     get_dashboard_helper,
-    get_kid_points,
 )
 from tests.helpers.setup import setup_from_yaml
 
@@ -46,7 +47,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid (zoe), 1 parent."""
+    """Load minimal scenario: 1 assignee (zoe), 1 approver."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -61,14 +62,14 @@ async def scenario_minimal(
 
 def verify_points_sensor_attributes_complete(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     expected_values: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Verify _points sensor has all required attributes with optional value checks.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         expected_values: Optional dict of attribute names → expected values
 
     Returns:
@@ -77,11 +78,11 @@ def verify_points_sensor_attributes_complete(
     Raises:
         AssertionError: If any required attribute is missing or value mismatches
     """
-    dashboard = get_dashboard_helper(hass, kid_slug)
+    dashboard = get_dashboard_helper(hass, assignee_slug)
     core_sensors = dashboard.get("core_sensors", {})
     points_eid = core_sensors.get("points_eid")
     assert points_eid is not None, (
-        f"points_eid not found in dashboard helper for {kid_slug}"
+        f"points_eid not found in dashboard helper for {assignee_slug}"
     )
 
     points_sensor = hass.states.get(points_eid)
@@ -139,6 +140,20 @@ def verify_points_sensor_attributes_complete(
     return attrs
 
 
+def get_assignable_users(migrated_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Return assignable user records from migrated storage payload."""
+    users = migrated_data.get(const.DATA_USERS, {})
+    if not isinstance(users, dict):
+        return {}
+
+    return {
+        user_id: user_data
+        for user_id, user_data in users.items()
+        if isinstance(user_data, dict)
+        and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
+    }
+
+
 def verify_by_source_structure(by_source: dict[str, float] | str) -> None:
     """Verify by_source dict has expected structure.
 
@@ -183,6 +198,23 @@ def find_adjust_button(dashboard: dict[str, Any], value: int) -> dict[str, Any] 
     )
 
 
+def normalize_legacy_sample_keys(payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize legacy sample keys from kidschores naming to choreops naming."""
+    normalized = json.loads(json.dumps(payload))
+    data = normalized.get("data")
+    if not isinstance(data, dict):
+        return normalized
+
+    if "kids" in data and const.DATA_USERS not in data:
+        data[const.DATA_USERS] = data.pop("kids")
+    if "assignees" in data and const.DATA_USERS not in data:
+        data[const.DATA_USERS] = data.pop("assignees")
+    if "parents" in data and "approvers" not in data:
+        data["approvers"] = data.pop("parents")
+
+    return normalized
+
+
 # =============================================================================
 # MIGRATION STRUCTURE VALIDATION
 # =============================================================================
@@ -201,16 +233,18 @@ class TestPointsMigrationFromV40:
         sample_path = (
             Path(__file__).parent / "migration_samples" / "kidschores_data_40beta1"
         )
-        v40beta1_data = json.loads(sample_path.read_text())
+        v40beta1_data = normalize_legacy_sample_keys(
+            json.loads(sample_path.read_text())
+        )
 
         # Pre-load v40beta1 data into storage (pytest-homeassistant mocks this)
-        hass_storage["kidschores_data"] = v40beta1_data
+        hass_storage["choreops_data"] = v40beta1_data
 
         # Setup integration (triggers migration during coordinator init)
         # Use v40 schema version so migration runs
         config_entry = MockConfigEntry(
             domain=DOMAIN,
-            title="KidsChores",
+            title="ChoreOps",
             data={"schema_version": 40},  # v40 to trigger migration
             options={
                 CONF_POINTS_LABEL: "Points",
@@ -224,15 +258,17 @@ class TestPointsMigrationFromV40:
 
         # Verify migration transformed structure
         migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
-        kids = migrated_data["kids"]
+        assignees = get_assignable_users(migrated_data)
 
-        for kid_id, kid_data in kids.items():
+        for assignee_id, assignee_data in assignees.items():
             # Verify new v43 structure exists
-            assert "points" in kid_data, f"Kid {kid_id} missing 'points'"
-            assert "point_periods" in kid_data, f"Kid {kid_id} missing 'point_periods'"
+            assert "points" in assignee_data, f"Assignee {assignee_id} missing 'points'"
+            assert "point_periods" in assignee_data, (
+                f"Assignee {assignee_id} missing 'point_periods'"
+            )
 
             # Verify point_periods is flat structure (not nested)
-            point_periods = kid_data["point_periods"]
+            point_periods = assignee_data["point_periods"]
             assert isinstance(point_periods, dict), (
                 "point_periods should be dict at top level"
             )
@@ -258,7 +294,7 @@ class TestPointsMigrationFromV40:
             assert "by_source" in all_time_entry, "Missing 'by_source' in all_time"
 
             # Verify period-specific buckets exist if they were in v40 data
-            # (not all kids will have all period types - some may only have yearly data)
+            # (not all assignees will have all period types - some may only have yearly data)
             for bucket_name in ["yearly", "monthly", "weekly", "daily"]:
                 if bucket_name in point_periods:
                     bucket_data = point_periods[bucket_name]
@@ -267,8 +303,8 @@ class TestPointsMigrationFromV40:
                     )
 
             # Verify old v42 structure is gone
-            assert "point_data" not in kid_data, (
-                f"Kid {kid_id} still has old 'point_data' structure"
+            assert "point_data" not in assignee_data, (
+                f"Assignee {assignee_id} still has old 'point_data' structure"
             )
 
     async def test_migration_preserves_historical_data(
@@ -281,27 +317,33 @@ class TestPointsMigrationFromV40:
         sample_path = (
             Path(__file__).parent / "migration_samples" / "kidschores_data_40beta1"
         )
-        v40beta1_data = json.loads(sample_path.read_text())
+        v40beta1_data = normalize_legacy_sample_keys(
+            json.loads(sample_path.read_text())
+        )
 
         # Pre-load into hass_storage
-        hass_storage["kidschores_data"] = v40beta1_data
+        hass_storage["choreops_data"] = v40beta1_data
 
         # Count historical periods in original data
-        original_kids = v40beta1_data["data"]["kids"]
-        first_kid_id = next(iter(original_kids.keys()))
-        original_kid = original_kids[first_kid_id]
-        original_monthly_count = len(
-            original_kid.get("point_data", {})
-            .get("periods", {})
-            .get("monthly", {})
-            .keys()
+        original_data = v40beta1_data["data"]
+        original_assignees = original_data.get(const.DATA_USERS, {})
+        assert isinstance(original_assignees, dict)
+        original_monthly_count = sum(
+            len(
+                assignee_data.get("point_data", {})
+                .get("periods", {})
+                .get("monthly", {})
+                .keys()
+            )
+            for assignee_data in original_assignees.values()
+            if isinstance(assignee_data, dict)
         )
 
         # Setup integration (triggers migration)
         # Use v40 schema version so migration runs
         config_entry = MockConfigEntry(
             domain=DOMAIN,
-            title="KidsChores",
+            title="ChoreOps",
             data={"schema_version": 40},  # v40 to trigger migration
             options={
                 CONF_POINTS_LABEL: "Points",
@@ -315,26 +357,39 @@ class TestPointsMigrationFromV40:
 
         # Verify historical periods preserved
         migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
-        migrated_kid = migrated_data["kids"][first_kid_id]
-        migrated_monthly = migrated_kid["point_periods"].get("monthly", {})
-
-        # Should have same number of monthly periods
-        assert len(migrated_monthly.keys()) == original_monthly_count, (
-            f"Monthly period count mismatch: "
-            f"original {original_monthly_count}, migrated {len(migrated_monthly.keys())}"
+        migrated_assignees = get_assignable_users(migrated_data)
+        migrated_monthly_count = sum(
+            len(
+                cast("dict[str, Any]", assignee_data.get("point_periods", {}))
+                .get("monthly", {})
+                .keys()
+            )
+            for assignee_data in migrated_assignees.values()
+            if isinstance(assignee_data, dict)
         )
 
-        # Verify each monthly period has v43 structure
-        for period_key, period_data in migrated_monthly.items():
-            assert "points_earned" in period_data, (
-                f"Monthly period {period_key} missing 'points_earned'"
+        # Should preserve total number of monthly periods across assignable users
+        assert migrated_monthly_count == original_monthly_count, (
+            f"Monthly period count mismatch: "
+            f"original {original_monthly_count}, migrated {migrated_monthly_count}"
+        )
+
+        # Verify each migrated monthly period has v43 structure
+        for assignee_data in migrated_assignees.values():
+            point_periods = cast(
+                "dict[str, Any]", assignee_data.get("point_periods", {})
             )
-            assert "points_spent" in period_data, (
-                f"Monthly period {period_key} missing 'points_spent'"
-            )
-            assert "by_source" in period_data, (
-                f"Monthly period {period_key} missing 'by_source'"
-            )
+            migrated_monthly = cast("dict[str, Any]", point_periods.get("monthly", {}))
+            for period_key, period_data in migrated_monthly.items():
+                assert "points_earned" in period_data, (
+                    f"Monthly period {period_key} missing 'points_earned'"
+                )
+                assert "points_spent" in period_data, (
+                    f"Monthly period {period_key} missing 'points_spent'"
+                )
+                assert "by_source" in period_data, (
+                    f"Monthly period {period_key} missing 'by_source'"
+                )
 
     async def test_migration_calculates_all_time_correctly(
         self,
@@ -346,22 +401,18 @@ class TestPointsMigrationFromV40:
         sample_path = (
             Path(__file__).parent / "migration_samples" / "kidschores_data_40beta1"
         )
-        v40beta1_data = json.loads(sample_path.read_text())
+        v40beta1_data = normalize_legacy_sample_keys(
+            json.loads(sample_path.read_text())
+        )
 
         # Pre-load into hass_storage
-        hass_storage["kidschores_data"] = v40beta1_data
-
-        # Get original values for comparison
-        original_kids = v40beta1_data["data"]["kids"]
-        first_kid_id = next(iter(original_kids.keys()))
-        original_kid = original_kids[first_kid_id]
-        original_balance = original_kid.get("points", 0.0)
+        hass_storage["choreops_data"] = v40beta1_data
 
         # Setup integration (triggers migration)
         # Use v40 schema version so migration runs
         config_entry = MockConfigEntry(
             domain=DOMAIN,
-            title="KidsChores",
+            title="ChoreOps",
             data={"schema_version": 40},  # v40 to trigger migration
             options={
                 CONF_POINTS_LABEL: "Points",
@@ -373,32 +424,38 @@ class TestPointsMigrationFromV40:
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        # Verify all_time calculation
+        # Verify all_time calculation invariants for each assignable user
         migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
-        migrated_kid = migrated_data["kids"][first_kid_id]
-        all_time_entry = migrated_kid["point_periods"]["all_time"]["all_time"]
-
-        earned = all_time_entry["points_earned"]
-        spent = all_time_entry["points_spent"]
-        highest_balance = all_time_entry["highest_balance"]
-
-        # Verify all_time logic: earned = highest_balance
-        assert earned == highest_balance, (
-            f"all_time earned should equal highest_balance: "
-            f"earned={earned}, highest={highest_balance}"
+        migrated_assignees = get_assignable_users(migrated_data)
+        assert migrated_assignees, (
+            "Expected at least one assignable user after migration"
         )
 
-        # Verify spent = current_balance - highest_balance
-        expected_spent = original_balance - highest_balance
-        assert spent == expected_spent, (
-            f"all_time spent incorrect: expected {expected_spent}, got {spent}"
-        )
+        for assignee_id, migrated_assignee in migrated_assignees.items():
+            all_time_entry = migrated_assignee["point_periods"]["all_time"]["all_time"]
 
-        # Verify earned + spent = current_balance (net relationship)
-        assert earned + spent == original_balance, (
-            f"Net relationship broken: "
-            f"earned({earned}) + spent({spent}) != balance({original_balance})"
-        )
+            earned = all_time_entry["points_earned"]
+            spent = all_time_entry["points_spent"]
+            highest_balance = all_time_entry["highest_balance"]
+            current_balance = migrated_assignee.get("points", 0.0)
+
+            # Verify all_time logic: earned = highest_balance
+            assert earned == highest_balance, (
+                f"{assignee_id}: all_time earned should equal highest_balance: "
+                f"earned={earned}, highest={highest_balance}"
+            )
+
+            # Verify spent = current_balance - highest_balance
+            expected_spent = current_balance - highest_balance
+            assert spent == expected_spent, (
+                f"{assignee_id}: all_time spent incorrect: expected {expected_spent}, got {spent}"
+            )
+
+            # Verify earned + spent = current_balance (net relationship)
+            assert earned + spent == current_balance, (
+                f"{assignee_id}: net relationship broken: "
+                f"earned({earned}) + spent({spent}) != balance({current_balance})"
+            )
 
 
 # =============================================================================
@@ -415,7 +472,7 @@ class TestPointsSensorAttributes:
         scenario_minimal: SetupResult,
     ) -> None:
         """Verify ALL 26+ sensor attributes exist."""
-        # scenario_minimal has kid "zoe" already setup
+        # scenario_minimal has assignee "zoe" already setup
         attrs = verify_points_sensor_attributes_complete(hass, "zoe")
 
         # Verify structure of by_source dicts
@@ -474,6 +531,13 @@ class TestPointsSensorAttributes:
 class TestPointsSensorUpdatesOnManualAdjustment:
     """Verify _points sensor updates correctly when manual points added/removed."""
 
+    async def _flush_gamification_updates(
+        self, hass: HomeAssistant, scenario_minimal: SetupResult
+    ) -> None:
+        """Flush pending gamification evaluations triggered by point adjustments."""
+        await scenario_minimal.coordinator.gamification_manager._evaluate_pending_assignees()
+        await hass.async_block_till_done()
+
     async def test_plus_ten_updates_all_earned_attributes(
         self,
         hass: HomeAssistant,
@@ -483,25 +547,26 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         """Verify +10 manual adjustment updates all earned attributes."""
         # Get initial state
         initial_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        initial_balance = get_kid_points(hass, "zoe")
+        initial_balance = get_assignee_points(hass, "zoe")
 
-        # Press +10 button with parent context
+        # Press +10 button with approver context
         dashboard = get_dashboard_helper(hass, "zoe")
         plus_10_btn = find_adjust_button(dashboard, 10)
         assert plus_10_btn is not None, "No +10 adjustment button found"
 
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": plus_10_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        new_balance = get_kid_points(hass, "zoe")
+        new_balance = get_assignee_points(hass, "zoe")
 
         # Verify balance increased
         assert new_balance == initial_balance + 10.0
@@ -548,14 +613,15 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         plus_2_btn = find_adjust_button(dashboard, 2)
         assert plus_2_btn is not None
 
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": plus_2_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
@@ -592,14 +658,15 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         plus_2_btn = find_adjust_button(dashboard, 2)
         assert plus_2_btn is not None
 
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": plus_2_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
@@ -627,25 +694,25 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         """Verify highest_balance updates when new balance exceeds it."""
         # Get initial state
         initial_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        initial_balance = get_kid_points(hass, "zoe")
+        initial_balance = get_assignee_points(hass, "zoe")
 
         # Press +10 button
         dashboard = get_dashboard_helper(hass, "zoe")
         plus_10_btn = find_adjust_button(dashboard, 10)
         assert plus_10_btn is not None
 
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": plus_10_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        new_balance = get_kid_points(hass, "zoe")
+        new_balance = get_assignee_points(hass, "zoe")
 
         # Verify highest_balance updated if new balance is higher
         expected_highest = max(
@@ -664,25 +731,26 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         """Verify -2 manual adjustment increases spent, not earned."""
         # Get initial state
         initial_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        initial_balance = get_kid_points(hass, "zoe")
+        initial_balance = get_assignee_points(hass, "zoe")
 
-        # Press -2 button with parent context
+        # Press -2 button with approver context
         dashboard = get_dashboard_helper(hass, "zoe")
         minus_2_btn = find_adjust_button(dashboard, -2)
         assert minus_2_btn is not None, "No -2 adjustment button found"
 
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": minus_2_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        new_balance = get_kid_points(hass, "zoe")
+        new_balance = get_assignee_points(hass, "zoe")
 
         # Verify balance decreased
         assert new_balance == initial_balance - 2.0
@@ -722,10 +790,10 @@ class TestPointsSensorUpdatesOnManualAdjustment:
         """Verify multiple adjustments (+2, +10, -2) cumulate correctly."""
         # Get initial state
         initial_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        initial_balance = get_kid_points(hass, "zoe")
+        initial_balance = get_assignee_points(hass, "zoe")
 
         dashboard = get_dashboard_helper(hass, "zoe")
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
         # Press +2
         plus_2_btn = find_adjust_button(dashboard, 2)
@@ -735,8 +803,9 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             "press",
             {"entity_id": plus_2_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Press +10
         plus_10_btn = find_adjust_button(dashboard, 10)
@@ -746,8 +815,9 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             "press",
             {"entity_id": plus_10_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Press -2
         minus_2_btn = find_adjust_button(dashboard, -2)
@@ -757,12 +827,13 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             "press",
             {"entity_id": minus_2_btn["eid"]},
             blocking=True,
-            context=parent_context,
+            context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get final state
         final_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
-        final_balance = get_kid_points(hass, "zoe")
+        final_balance = get_assignee_points(hass, "zoe")
 
         # Verify balance: +2 +10 -2 = +10
         assert final_balance == initial_balance + 10.0

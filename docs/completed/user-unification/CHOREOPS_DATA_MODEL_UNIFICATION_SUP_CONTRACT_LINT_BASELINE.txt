@@ -1,0 +1,107 @@
+# Hard-fork contract-lint baseline signatures
+# Generated from runtime surfaces listed in CHOREOPS_DATA_MODEL_UNIFICATION_IN-PROCESS.md Phase 4
+# Format: <rule>|<relative_path>|<line_content>
+
+legacy-field|custom_components/choreops/config_flow.py|const.CFOF_KIDS_INPUT_KID_NAME: parent_name,
+legacy-field|custom_components/choreops/config_flow.py|parent_name = str(parent_data[const.DATA_PARENT_NAME])
+legacy-field|custom_components/choreops/config_flow.py|parent_name,
+legacy-field|custom_components/choreops/helpers/flow_helpers.py|kids_dict[kid_name] for kid_name in assigned_kids_names if kid_name in kids_dict
+legacy-field|custom_components/choreops/helpers/flow_helpers.py|{"value": kid_id, "label": kid_name} for kid_name, kid_id in kids_dict.items()
+legacy-field|custom_components/choreops/notification_action_handler.py|kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+legacy-field|custom_components/choreops/notification_action_handler.py|parent_name=approver_name,
+legacy-field|custom_components/choreops/notification_action_handler.py|user_name=kid_name,
+legacy-field|custom_components/choreops/options_flow.py|"Applied template date to %s: %s", kid_name, template_date_str
+legacy-field|custom_components/choreops/options_flow.py|clear_field_name = f"clear_due_date_{kid_name}"
+legacy-field|custom_components/choreops/options_flow.py|const.LOGGER.debug("Cleared date for %s", kid_name)
+legacy-field|custom_components/choreops/options_flow.py|const.LOGGER.warning("Invalid date for %s: %s", kid_name, e)
+legacy-field|custom_components/choreops/options_flow.py|date_value = user_input.get(f"due_date_{kid_name}")
+legacy-field|custom_components/choreops/options_flow.py|date_value = user_input.get(kid_name)
+legacy-field|custom_components/choreops/options_flow.py|days_field = f"applicable_days_{kid_name}"
+legacy-field|custom_components/choreops/options_flow.py|errors[kid_name] = const.TRANS_KEY_CFOF_INVALID_DUE_DATE
+legacy-field|custom_components/choreops/options_flow.py|for kid_name, kid_id in name_to_id.items():
+legacy-field|custom_components/choreops/options_flow.py|kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+legacy-field|custom_components/choreops/options_flow.py|kid_names_list.append(kid_name)
+legacy-field|custom_components/choreops/options_flow.py|name_to_id[kid_name] = kid_id
+legacy-field|custom_components/choreops/options_flow.py|schema_fields[vol.Optional(kid_name, default=default_value)] = vol.Any(
+legacy-field|custom_components/choreops/options_flow.py|times_field = f"daily_multi_times_{kid_name}"
+legacy-field|custom_components/choreops/options_flow.py|vol.Optional(f"applicable_days_{kid_name}", default=default_days)
+legacy-field|custom_components/choreops/options_flow.py|vol.Optional(f"clear_due_date_{kid_name}", default=False)
+legacy-field|custom_components/choreops/options_flow.py|vol.Optional(f"daily_multi_times_{kid_name}", default=default_times)
+legacy-field|custom_components/choreops/options_flow.py|vol.Optional(f"due_date_{kid_name}", default=default_date_value)
+legacy-field|custom_components/choreops/options_flow.py|{"value": key, "label": f"{kid_name}: {label}"}
+legacy-field|custom_components/choreops/services.py|"entity": str(kid_name or kid_id),
+legacy-field|custom_components/choreops/services.py|"kid_name": kid_name,
+legacy-field|custom_components/choreops/services.py|"name": kid_name or "unknown",
+legacy-field|custom_components/choreops/services.py|For INDEPENDENT chores, optionally specify kid_id or kid_name.
+legacy-field|custom_components/choreops/services.py|For INDEPENDENT chores, you can optionally specify kid_name or kid_id.
+legacy-field|custom_components/choreops/services.py|call: Service call with confirm_destructive, scope, kid_name,
+legacy-field|custom_components/choreops/services.py|const.LOGGER.info("Removing all badges for kid '%s'.", kid_name)
+legacy-field|custom_components/choreops/services.py|const.LOGGER.info("Removing badge '%s' for kid '%s'.", badge_name, kid_name)
+legacy-field|custom_components/choreops/services.py|coordinator, const.ENTITY_TYPE_KID, kid_name
+legacy-field|custom_components/choreops/services.py|elif kid_name is None:
+legacy-field|custom_components/choreops/services.py|for kid_name in kid_names:
+legacy-field|custom_components/choreops/services.py|if kid_name and not kid_id:
+legacy-field|custom_components/choreops/services.py|if kid_name is None and badge_name is None:
+legacy-field|custom_components/choreops/services.py|if kid_name:
+legacy-field|custom_components/choreops/services.py|if not kid_id and not kid_name:
+legacy-field|custom_components/choreops/services.py|kid_context = f" for kid '{kid_name or kid_id}'" if kid_id else ""
+legacy-field|custom_components/choreops/services.py|kid_id = get_item_id_or_raise(coordinator, const.ENTITY_TYPE_KID, kid_name)
+legacy-field|custom_components/choreops/services.py|kid_name = call.data.get(const.FIELD_KID_NAME)
+legacy-field|custom_components/choreops/services.py|kid_name = call.data.get(const.SERVICE_FIELD_KID_NAME)
+legacy-field|custom_components/choreops/services.py|kid_name = call.data[const.FIELD_KID_NAME]
+legacy-field|custom_components/choreops/services.py|kid_name,
+legacy-field|custom_components/choreops/services.py|kid_name=kid_name, badge_name=badge_name
+legacy-field|custom_components/choreops/services.py|parent_name = call.data[const.FIELD_PARENT_NAME]
+legacy-field|custom_components/choreops/services.py|parent_name,
+legacy-field|custom_components/choreops/services.py|parent_name=parent_name,
+legacy-field|custom_components/choreops/services.py|parent_name=parent_name, kid_id=kid_id, bonus_id=bonus_id
+legacy-field|custom_components/choreops/services.py|parent_name=parent_name, kid_id=kid_id, penalty_id=penalty_id
+legacy-field|custom_components/choreops/services.py|parent_name=parent_name, kid_id=kid_id, reward_id=reward_id
+legacy-field|custom_components/choreops/services.py|raise HomeAssistantError("Either kid_id or kid_name must be provided")
+legacy-field|custom_components/choreops/services.py|str(kid_name),
+legacy-lexical|custom_components/choreops/config_flow.py|"""Config Flow for KidsChores with internal_id-based entity management."""
+legacy-lexical|custom_components/choreops/config_flow.py|"""Handle one-time migration from legacy KidsChores artifacts."""
+legacy-lexical|custom_components/choreops/config_flow.py|"""Multi-step config flow for the KidsChores integration, storing entities by internal_id.
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_data = dict(
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_data[const.DATA_KID_INTERNAL_ID]
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_data[const.DATA_KID_NAME],
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_id = str(
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_id,
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_input = {
+legacy-lexical|custom_components/choreops/config_flow.py|linked_profile_input,
+legacy-lexical|custom_components/choreops/config_flow.py|linked_user_id=internal_id,
+legacy-lexical|custom_components/choreops/config_flow.py|parent_data[const.DATA_PARENT_LINKED_PROFILE_ID] = linked_profile_id
+legacy-lexical|custom_components/choreops/config_flow.py|self._kids_temp[linked_profile_id] = linked_profile_data
+legacy-lexical|custom_components/choreops/data_builders.py|kid = build_kid(parent_derived_input, is_shadow=True, linked_parent_id="uuid")
+legacy-lexical|custom_components/choreops/data_builders.py|kid_data[const.DATA_KID_LINKED_PARENT_ID] = linked_parent_id
+legacy-lexical|custom_components/choreops/data_builders.py|linked_parent_id: Parent ID to link (required when is_shadow=True)
+legacy-lexical|custom_components/choreops/data_builders.py|linked_parent_id: str | None = None,
+legacy-lexical|custom_components/choreops/data_builders.py|linked_parent_id=linked_user_id,
+legacy-lexical|custom_components/choreops/data_builders.py|linked_user_id: str | None = None,
+legacy-lexical|custom_components/choreops/helpers/flow_helpers.py|"""Helpers for the KidsChores integration's Config and Options flow.
+legacy-lexical|custom_components/choreops/notification_action_handler.py|"KidsChores config entry not found for truncated ID: %s",
+legacy-lexical|custom_components/choreops/notification_action_handler.py|"KidsChores coordinator not found in runtime_data for entry: %s",
+legacy-lexical|custom_components/choreops/options_flow.py|"""Options Flow for the KidsChores integration, managing entities by internal_id.
+legacy-lexical|custom_components/choreops/options_flow.py|Shows list of existing KidsChores dashboards for deletion.
+legacy-lexical|custom_components/choreops/options_flow.py|const.LOGGER.debug("System settings updated and KidsChores reloaded")
+legacy-lexical|custom_components/choreops/options_flow.py|linked_profile_marker = " 🔗"  # Link symbol indicates parent linkage
+legacy-lexical|custom_components/choreops/options_flow.py|match_name = selected_name.replace(linked_profile_marker, "")
+legacy-lexical|custom_components/choreops/options_flow.py|name = f"{name}{linked_profile_marker}"
+legacy-lexical|custom_components/choreops/services.py|"""Defines custom services for the KidsChores integration.
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.create_chore service call.
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.create_reward service call.
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.delete_chore service call.
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.delete_reward service call.
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.generate_activity_report service call."""
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.update_chore service call.
+legacy-lexical|custom_components/choreops/services.py|"""Handle kidschores.update_reward service call.
+legacy-lexical|custom_components/choreops/services.py|"""Register KidsChores services."""
+legacy-lexical|custom_components/choreops/services.py|"""Unregister KidsChores services when unloading the integration."""
+legacy-lexical|custom_components/choreops/services.py|"Reset Chores To Pending State: No KidsChores entry found"
+legacy-lexical|custom_components/choreops/services.py|const.LOGGER.info("KidsChores services have been registered successfully")
+legacy-lexical|custom_components/choreops/services.py|const.LOGGER.info("KidsChores services have been unregistered")
+legacy-lexical|custom_components/choreops/services.py|const.LOGGER.warning("Open Rotation Cycle: No KidsChores entry found")
+legacy-lexical|custom_components/choreops/services.py|const.LOGGER.warning("Reset Rotation: No KidsChores entry found")
+legacy-lexical|custom_components/choreops/services.py|const.LOGGER.warning("Reset Transactional Data: No KidsChores entry found")
+legacy-lexical|custom_components/choreops/services.py|const.LOGGER.warning("Set Rotation Turn: No KidsChores entry found")
+legacy-lexical|custom_components/choreops/services.py|or "KidsChores Activity Report",

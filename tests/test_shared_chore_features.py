@@ -11,9 +11,9 @@ COMPLIANT WITH AGENT_TEST_CREATION_INSTRUCTIONS.md:
 - Rule 6: Coordinator data access only for internal logic verification and reset operations
 
 Test coverage:
-- SHARED_ALL auto-approve: Each kid's claim auto-approves for that kid
+- SHARED_ALL auto-approve: Each assignee's claim auto-approves for that assignee
 - SHARED_ALL pending claim actions: HOLD, CLEAR, AUTO_APPROVE behavior at reset
-- SHARED_FIRST auto-approve: First kid to claim gets auto-approved
+- SHARED_FIRST auto-approve: First assignee to claim gets auto-approved
 - SHARED_FIRST pending claim actions: HOLD, CLEAR, AUTO_APPROVE behavior at reset
 
 NOTE: Reset operations use direct coordinator API because resets are internal
@@ -57,12 +57,12 @@ from tests.helpers.workflows import (
     claim_chore,
     disapprove_chore,
     find_chore,
+    get_assignee_points,
     get_dashboard_helper,
-    get_kid_points,
 )
 
 if TYPE_CHECKING:
-    from custom_components.choreops.coordinator import KidsChoresDataCoordinator
+    from custom_components.choreops.coordinator import ChoreOpsDataCoordinator
     from custom_components.choreops.type_defs import ChoreData
 
 
@@ -87,19 +87,19 @@ async def shared_scenario(
 
 
 def get_chore_state_from_sensor(
-    hass: HomeAssistant, kid_slug: str, chore_name: str
+    hass: HomeAssistant, assignee_slug: str, chore_name: str
 ) -> str:
     """Get chore state from sensor entity (what the user sees in UI).
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe", "max", "lila")
+        assignee_slug: Assignee's slug (e.g., "zoe", "max", "lila")
         chore_name: Display name of chore
 
     Returns:
         State string from sensor entity
     """
-    dashboard = get_dashboard_helper(hass, kid_slug)
+    dashboard = get_dashboard_helper(hass, assignee_slug)
     chore = find_chore(dashboard, chore_name)
     if chore is None:
         return "not_found"
@@ -108,21 +108,21 @@ def get_chore_state_from_sensor(
     return chore_state.state if chore_state else "unavailable"
 
 
-def get_points_from_sensor(hass: HomeAssistant, kid_slug: str) -> float:
-    """Get kid's points from sensor entity.
+def get_points_from_sensor(hass: HomeAssistant, assignee_slug: str) -> float:
+    """Get assignee's points from sensor entity.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
 
     Returns:
         Current point balance
     """
-    return get_kid_points(hass, kid_slug)
+    return get_assignee_points(hass, assignee_slug)
 
 
 def set_chore_due_date_to_past(
-    coordinator: "KidsChoresDataCoordinator",
+    coordinator: "ChoreOpsDataCoordinator",
     chore_id: str,
     days_ago: int = 1,
 ) -> None:
@@ -162,18 +162,18 @@ def set_chore_due_date_to_past(
 class TestSharedAllAutoApprove:
     """Tests for shared_all chores with auto_approve=True.
 
-    When a shared_all chore has auto_approve enabled, each kid's claim
-    should automatically be approved for that kid (awarding points).
+    When a shared_all chore has auto_approve enabled, each assignee's claim
+    should automatically be approved for that assignee (awarding points).
     """
 
     @pytest.mark.asyncio
-    async def test_shared_all_auto_approve_first_kid(
+    async def test_shared_all_auto_approve_first_assignee(
         self,
         hass: HomeAssistant,
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: First kid claiming shared_all auto-approve chore gets approved."""
+        """Test: First assignee claiming shared_all auto-approve chore gets approved."""
         coordinator = shared_scenario.coordinator
 
         # Verify chore configuration
@@ -189,8 +189,10 @@ class TestSharedAllAutoApprove:
         points_before = get_points_from_sensor(hass, "zoe")
 
         # Claim the chore via button press (should auto-approve)
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        result = await claim_chore(hass, "zoe", "Shared All Auto Approve", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        result = await claim_chore(
+            hass, "zoe", "Shared All Auto Approve", assignee_context
+        )
         assert result.success, f"Claim failed: {result.error}"
 
         # Wait for auto-approve task to complete
@@ -205,24 +207,26 @@ class TestSharedAllAutoApprove:
         assert points_after == points_before + 12.0
 
     @pytest.mark.asyncio
-    async def test_shared_all_auto_approve_second_kid(
+    async def test_shared_all_auto_approve_second_assignee(
         self,
         hass: HomeAssistant,
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Second kid can also claim and get auto-approved (shared_all)."""
-        # First kid claims
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared All Auto Approve", kid1_context)
+        """Test: Second assignee can also claim and get auto-approved (shared_all)."""
+        # First assignee claims
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared All Auto Approve", assignee1_context)
         await hass.async_block_till_done()
 
         # Get Max's points before
         max_points_before = get_points_from_sensor(hass, "max")
 
-        # Second kid claims (should also auto-approve)
-        kid2_context = Context(user_id=mock_hass_users["kid2"].id)
-        result = await claim_chore(hass, "max", "Shared All Auto Approve", kid2_context)
+        # Second assignee claims (should also auto-approve)
+        assignee2_context = Context(user_id=mock_hass_users["assignee2"].id)
+        result = await claim_chore(
+            hass, "max", "Shared All Auto Approve", assignee2_context
+        )
         assert result.success, f"Claim failed: {result.error}"
 
         await hass.async_block_till_done()
@@ -236,26 +240,26 @@ class TestSharedAllAutoApprove:
         assert max_points_after == max_points_before + 12.0
 
     @pytest.mark.asyncio
-    async def test_shared_all_auto_approve_all_kids_get_points(
+    async def test_shared_all_auto_approve_all_assignees_get_points(
         self,
         hass: HomeAssistant,
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: All assigned kids can get points from shared_all auto-approve."""
+        """Test: All assigned assignees can get points from shared_all auto-approve."""
         # Get initial points
         zoe_before = get_points_from_sensor(hass, "zoe")
         max_before = get_points_from_sensor(hass, "max")
         lila_before = get_points_from_sensor(hass, "lila")
 
-        # All kids claim via button presses (each should auto-approve)
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
-        kid3_ctx = Context(user_id=mock_hass_users["kid3"].id)
+        # All assignees claim via button presses (each should auto-approve)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        assignee3_ctx = Context(user_id=mock_hass_users["assignee3"].id)
 
-        await claim_chore(hass, "zoe", "Shared All Auto Approve", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Auto Approve", kid2_ctx)
-        await claim_chore(hass, "lila", "Shared All Auto Approve", kid3_ctx)
+        await claim_chore(hass, "zoe", "Shared All Auto Approve", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Auto Approve", assignee2_ctx)
+        await claim_chore(hass, "lila", "Shared All Auto Approve", assignee3_ctx)
 
         # Wait for all auto-approve tasks to complete
         await hass.async_block_till_done()
@@ -288,8 +292,8 @@ class TestSharedAllAutoApprove:
 class TestSharedFirstAutoApprove:
     """Tests for shared_first chores with auto_approve=True.
 
-    When a shared_first chore has auto_approve enabled, the first kid to claim
-    gets auto-approved and all other kids get 'completed_by_other' state.
+    When a shared_first chore has auto_approve enabled, the first assignee to claim
+    gets auto-approved and all other assignees get 'completed_by_other' state.
     """
 
     @pytest.mark.asyncio
@@ -299,7 +303,7 @@ class TestSharedFirstAutoApprove:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: First kid to claim shared_first auto-approve gets approved."""
+        """Test: First assignee to claim shared_first auto-approve gets approved."""
         coordinator = shared_scenario.coordinator
 
         # Verify chore configuration
@@ -315,10 +319,10 @@ class TestSharedFirstAutoApprove:
         # Get points before
         points_before = get_points_from_sensor(hass, "zoe")
 
-        # First kid claims via button press (should auto-approve)
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
+        # First assignee claims via button press (should auto-approve)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
         result = await claim_chore(
-            hass, "zoe", "Shared First Auto Approve", kid_context
+            hass, "zoe", "Shared First Auto Approve", assignee_context
         )
         assert result.success, f"Claim failed: {result.error}"
 
@@ -339,10 +343,10 @@ class TestSharedFirstAutoApprove:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Other kids get completed_by_other when first kid claims."""
+        """Test: Other assignees get completed_by_other when first assignee claims."""
         # Zoë claims first via button press (auto-approve)
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Auto Approve", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared First Auto Approve", assignee_context)
         await hass.async_block_till_done()
 
         # Zoë should be APPROVED
@@ -368,14 +372,14 @@ class TestSharedFirstAutoApprove:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Only the winning kid gets points in shared_first auto-approve."""
+        """Test: Only the winning assignee gets points in shared_first auto-approve."""
         # Get initial points
         zoe_before = get_points_from_sensor(hass, "zoe")
         max_before = get_points_from_sensor(hass, "max")
 
         # Zoë claims first via button press
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Auto Approve", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared First Auto Approve", assignee_context)
         await hass.async_block_till_done()
 
         # Only Zoë should have points increase (15 points)
@@ -401,7 +405,7 @@ class TestSharedAllPendingClaimHold:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: HOLD action retains all kids' claims after reset."""
+        """Test: HOLD action retains all assignees' claims after reset."""
         coordinator = shared_scenario.coordinator
         chore_id = shared_scenario.chore_ids["Shared All Pending Hold"]
 
@@ -414,12 +418,12 @@ class TestSharedAllPendingClaimHold:
             == APPROVAL_RESET_PENDING_CLAIM_HOLD
         )
 
-        # Both kids claim via button presses
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        # Both assignees claim via button presses
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
-        await claim_chore(hass, "zoe", "Shared All Pending Hold", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Pending Hold", kid2_ctx)
+        await claim_chore(hass, "zoe", "Shared All Pending Hold", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Hold", assignee2_ctx)
 
         # Verify both CLAIMED before reset
         assert (
@@ -456,7 +460,7 @@ class TestSharedAllPendingClaimClear:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: CLEAR action resets all kids' claims to PENDING."""
+        """Test: CLEAR action resets all assignees' claims to PENDING."""
         coordinator = shared_scenario.coordinator
         chore_id = shared_scenario.chore_ids["Shared All Pending Clear"]
 
@@ -469,12 +473,12 @@ class TestSharedAllPendingClaimClear:
             == APPROVAL_RESET_PENDING_CLAIM_CLEAR
         )
 
-        # Both kids claim via button presses
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        # Both assignees claim via button presses
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
-        await claim_chore(hass, "zoe", "Shared All Pending Clear", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Pending Clear", kid2_ctx)
+        await claim_chore(hass, "zoe", "Shared All Pending Clear", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Clear", assignee2_ctx)
 
         # Set due date to past so reset will process
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -508,12 +512,12 @@ class TestSharedAllPendingClaimClear:
         zoe_before = get_points_from_sensor(hass, "zoe")
         max_before = get_points_from_sensor(hass, "max")
 
-        # Both kids claim via button presses
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        # Both assignees claim via button presses
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
-        await claim_chore(hass, "zoe", "Shared All Pending Clear", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Pending Clear", kid2_ctx)
+        await claim_chore(hass, "zoe", "Shared All Pending Clear", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Clear", assignee2_ctx)
 
         # Set due date to past and trigger reset (INTERNAL API)
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -535,7 +539,7 @@ class TestSharedAllPendingClaimAutoApprove:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: AUTO_APPROVE action awards points to all kids with pending claims."""
+        """Test: AUTO_APPROVE action awards points to all assignees with pending claims."""
         coordinator = shared_scenario.coordinator
         chore_id = shared_scenario.chore_ids["Shared All Pending Auto Approve"]
 
@@ -553,12 +557,12 @@ class TestSharedAllPendingClaimAutoApprove:
         zoe_before = get_points_from_sensor(hass, "zoe")
         max_before = get_points_from_sensor(hass, "max")
 
-        # Both kids claim via button presses
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        # Both assignees claim via button presses
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
-        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Pending Auto Approve", kid2_ctx)
+        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Auto Approve", assignee2_ctx)
 
         # Set due date to past and trigger reset (INTERNAL API)
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -580,12 +584,12 @@ class TestSharedAllPendingClaimAutoApprove:
         coordinator = shared_scenario.coordinator
         chore_id = shared_scenario.chore_ids["Shared All Pending Auto Approve"]
 
-        # Both kids claim via button presses
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        # Both assignees claim via button presses
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
-        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Pending Auto Approve", kid2_ctx)
+        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Auto Approve", assignee2_ctx)
 
         # Set due date to past and trigger reset (INTERNAL API)
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -622,14 +626,14 @@ class TestSharedAllPendingClaimAutoApprove:
         )
         chore_points = chore_info.get(DATA_CHORE_DEFAULT_POINTS, 0)
 
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
         zoe_before = get_points_from_sensor(hass, "zoe")
         max_before = get_points_from_sensor(hass, "max")
 
-        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", kid1_ctx)
-        await claim_chore(hass, "max", "Shared All Pending Auto Approve", kid2_ctx)
+        await claim_chore(hass, "zoe", "Shared All Pending Auto Approve", assignee1_ctx)
+        await claim_chore(hass, "max", "Shared All Pending Auto Approve", assignee2_ctx)
 
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
@@ -696,8 +700,8 @@ class TestSharedFirstPendingClaimHold:
         )
 
         # Zoë claims first via button press (Max becomes completed_by_other)
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Pending Hold", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared First Pending Hold", assignee_ctx)
 
         # Verify states before reset
         assert (
@@ -744,8 +748,8 @@ class TestSharedFirstPendingClaimClear:
         )
 
         # Zoë claims first via button press
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Pending Clear", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared First Pending Clear", assignee_ctx)
 
         # Set due date to past and trigger reset (INTERNAL API)
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -792,8 +796,10 @@ class TestSharedFirstPendingClaimAutoApprove:
         max_before = get_points_from_sensor(hass, "max")
 
         # Zoë claims first via button press (Max becomes completed_by_other)
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Pending Auto Approve", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(
+            hass, "zoe", "Shared First Pending Auto Approve", assignee_ctx
+        )
 
         # Set due date to past and trigger reset (INTERNAL API)
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -816,8 +822,10 @@ class TestSharedFirstPendingClaimAutoApprove:
         chore_id: str = shared_scenario.chore_ids["Shared First Pending Auto Approve"]
 
         # Zoë claims first via button press
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Pending Auto Approve", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(
+            hass, "zoe", "Shared First Pending Auto Approve", assignee_ctx
+        )
 
         # Set due date to past and trigger reset (INTERNAL API)
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
@@ -858,12 +866,14 @@ class TestSharedFirstPendingClaimAutoApprove:
         )
         chore_points = chore_info.get(DATA_CHORE_DEFAULT_POINTS, 0)
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
 
         zoe_before = get_points_from_sensor(hass, "zoe")
         max_before = get_points_from_sensor(hass, "max")
 
-        await claim_chore(hass, "zoe", "Shared First Pending Auto Approve", kid_ctx)
+        await claim_chore(
+            hass, "zoe", "Shared First Pending Auto Approve", assignee_ctx
+        )
 
         set_chore_due_date_to_past(coordinator, chore_id, days_ago=1)
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
@@ -918,7 +928,7 @@ class TestSharedFirstEdgeCases:
     and pending claim action tests above:
     - Reclaim after disapproval (new race begins)
     - Global chore state transitions
-    - Sensor consistency across kids
+    - Sensor consistency across assignees
     """
 
     @pytest.mark.asyncio
@@ -928,18 +938,18 @@ class TestSharedFirstEdgeCases:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: After disapproval, ANY kid can claim (new race begins).
+        """Test: After disapproval, ANY assignee can claim (new race begins).
 
         Legacy: test_shared_first_reclaim_after_disapproval
-        When a shared_first chore is disapproved, all kids reset to pending.
-        This means the chore becomes a new race - a different kid can win.
+        When a shared_first chore is disapproved, all assignees reset to pending.
+        This means the chore becomes a new race - a different assignee can win.
         """
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Zoë claims first via button press (Max becomes completed_by_other)
-        await claim_chore(hass, "zoe", "Shared First Pending Clear", kid1_ctx)
+        await claim_chore(hass, "zoe", "Shared First Pending Clear", assignee1_ctx)
 
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Shared First Pending Clear")
@@ -950,8 +960,8 @@ class TestSharedFirstEdgeCases:
             == "completed_by_other"
         )
 
-        # Parent disapproves Zoë via button press - this resets all kids
-        await disapprove_chore(hass, "zoe", "Shared First Pending Clear", parent_ctx)
+        # Approver disapproves Zoë via button press - this resets all assignees
+        await disapprove_chore(hass, "zoe", "Shared First Pending Clear", approver_ctx)
 
         # Both should be reset to PENDING
         assert (
@@ -964,7 +974,7 @@ class TestSharedFirstEdgeCases:
         )
 
         # NOW: Max can claim (new race!)
-        await claim_chore(hass, "max", "Shared First Pending Clear", kid2_ctx)
+        await claim_chore(hass, "max", "Shared First Pending Clear", assignee2_ctx)
 
         # Max should be CLAIMED, Zoë should be COMPLETED_BY_OTHER
         assert (
@@ -1001,14 +1011,14 @@ class TestSharedFirstEdgeCases:
         # Initial global state (may be None/pending)
         initial_state = chore_info.get(DATA_CHORE_STATE)
 
-        # First kid claims via button press
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Pending Clear", kid_ctx)
+        # First assignee claims via button press
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared First Pending Clear", assignee_ctx)
 
         # Global state should now be CLAIMED
         claimed_state = coordinator.chores_data[chore_id].get(DATA_CHORE_STATE)
         assert claimed_state == CHORE_STATE_CLAIMED, (
-            f"Global state should be 'claimed' after first kid claims, "
+            f"Global state should be 'claimed' after first assignee claims, "
             f"was: {initial_state}, now: {claimed_state}"
         )
 
@@ -1030,18 +1040,18 @@ class TestSharedFirstEdgeCases:
         coordinator = shared_scenario.coordinator
         chore_id = shared_scenario.chore_ids["Shared First Pending Clear"]
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        # First kid claims via button press
-        await claim_chore(hass, "zoe", "Shared First Pending Clear", kid_ctx)
+        # First assignee claims via button press
+        await claim_chore(hass, "zoe", "Shared First Pending Clear", assignee_ctx)
 
         # Verify claimed state
         claimed_state = coordinator.chores_data[chore_id].get(DATA_CHORE_STATE)
         assert claimed_state == CHORE_STATE_CLAIMED
 
-        # Parent approves via button press
-        await approve_chore(hass, "zoe", "Shared First Pending Clear", parent_ctx)
+        # Approver approves via button press
+        await approve_chore(hass, "zoe", "Shared First Pending Clear", approver_ctx)
 
         # Global state should now be APPROVED
         approved_state = coordinator.chores_data[chore_id].get(DATA_CHORE_STATE)
@@ -1050,16 +1060,16 @@ class TestSharedFirstEdgeCases:
         )
 
     @pytest.mark.asyncio
-    async def test_shared_first_with_three_kids_blocked_claims(
+    async def test_shared_first_with_three_assignees_blocked_claims(
         self,
         hass: HomeAssistant,
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Three-kid shared_first - second and third kids blocked.
+        """Test: Three-assignee shared_first - second and third assignees blocked.
 
-        Legacy: test_shared_first_with_three_kids
-        When one kid claims, all other kids immediately get completed_by_other.
+        Legacy: test_shared_first_with_three_assignees
+        When one assignee claims, all other assignees immediately get completed_by_other.
         """
         # Get initial points
         zoe_before = get_points_from_sensor(hass, "zoe")
@@ -1067,8 +1077,8 @@ class TestSharedFirstEdgeCases:
         lila_before = get_points_from_sensor(hass, "lila")
 
         # Zoë claims first via button press (auto-approved - this is auto-approve chore)
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Shared First Auto Approve", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Shared First Auto Approve", assignee_ctx)
         await hass.async_block_till_done()
 
         # Zoë should be APPROVED (auto-approve chore)
@@ -1097,10 +1107,10 @@ class TestSharedFirstEdgeCases:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Disapproval clears completed_by_other state for all kids.
+        """Test: Disapproval clears completed_by_other state for all assignees.
 
-        Legacy: test_shared_first_disapproval_resets_all_kids
-        When the claimer is disapproved, ALL kids (including those blocked
+        Legacy: test_shared_first_disapproval_resets_all_assignees
+        When the claimer is disapproved, ALL assignees (including those blocked
         by completed_by_other status) should reset to pending.
 
         Phase 2: Tests computed completed_by_other logic via helper function.
@@ -1108,20 +1118,20 @@ class TestSharedFirstEdgeCases:
         from tests.test_chore_state_matrix import is_in_completed_by_other
 
         coordinator = shared_scenario.coordinator
-        max_id = shared_scenario.kid_ids["Max!"]
+        max_id = shared_scenario.assignee_ids["Max!"]
         chore_id = shared_scenario.chore_ids["Shared First Pending Clear"]
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Zoë claims via button press (Max becomes blocked by completed_by_other)
-        await claim_chore(hass, "zoe", "Shared First Pending Clear", kid_ctx)
+        await claim_chore(hass, "zoe", "Shared First Pending Clear", assignee_ctx)
 
         # Verify Max sees completed_by_other (computed check via helper)
         assert is_in_completed_by_other(coordinator, max_id, chore_id)
 
         # Disapprove Zoë via button press
-        await disapprove_chore(hass, "zoe", "Shared First Pending Clear", parent_ctx)
+        await disapprove_chore(hass, "zoe", "Shared First Pending Clear", approver_ctx)
 
         # Max should no longer see completed_by_other (computed check via helper)
         assert not is_in_completed_by_other(coordinator, max_id, chore_id), (
@@ -1142,8 +1152,8 @@ class TestSharedFirstEdgeCases:
 class TestSharedFirstRaceConditions:
     """Test race conditions in shared_first chores.
 
-    Verifies that when multiple kids claim a shared_first chore concurrently:
-    - Only ONE kid gets APPROVED (winner)
+    Verifies that when multiple assignees claim a shared_first chore concurrently:
+    - Only ONE assignee gets APPROVED (winner)
     - All others get COMPLETED_BY_OTHER (losers)
     - Points awarded only to winner
     - No double-point awards
@@ -1161,14 +1171,14 @@ class TestSharedFirstRaceConditions:
         """Test that concurrent claims result in exactly ONE winner.
 
         Scenario:
-        - 3 kids (Zoë, Max, Lila) all claim the SAME shared_first chore simultaneously
+        - 3 assignees (Zoë, Max, Lila) all claim the SAME shared_first chore simultaneously
         - Use asyncio.create_task() to simulate true concurrency
 
         Expected:
-        - Exactly 1 kid: APPROVED (the winner - determined by race)
-        - Exactly 2 kids: COMPLETED_BY_OTHER (the losers)
+        - Exactly 1 assignee: APPROVED (the winner - determined by race)
+        - Exactly 2 assignees: COMPLETED_BY_OTHER (the losers)
 
-        NOTE: We don't assert WHICH kid wins (non-deterministic), just that
+        NOTE: We don't assert WHICH assignee wins (non-deterministic), just that
         exactly one winner exists and others are marked correctly.
         """
         from tests.helpers import claim_chore
@@ -1176,10 +1186,10 @@ class TestSharedFirstRaceConditions:
         # Use "Shared First Auto Approve" chore for instant approval on claim
         chore_name = "Shared First Auto Approve"
 
-        # Create concurrent claim tasks for all 3 kids
-        zoe_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        max_ctx = Context(user_id=mock_hass_users["kid2"].id)
-        lila_ctx = Context(user_id=mock_hass_users["kid3"].id)
+        # Create concurrent claim tasks for all 3 assignees
+        zoe_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        max_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        lila_ctx = Context(user_id=mock_hass_users["assignee3"].id)
 
         # Fire all 3 claims simultaneously
         import asyncio
@@ -1224,10 +1234,10 @@ class TestSharedFirstRaceConditions:
         shared_scenario: Any,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test that concurrent claims award points to exactly ONE kid.
+        """Test that concurrent claims award points to exactly ONE assignee.
 
         Scenario:
-        - 3 kids claim shared_first chore simultaneously
+        - 3 assignees claim shared_first chore simultaneously
         - Chore worth 15 points (Shared First Auto Approve)
 
         Expected:
@@ -1237,20 +1247,20 @@ class TestSharedFirstRaceConditions:
 
         This ensures no double/triple point awards from race conditions.
         """
-        from tests.helpers import claim_chore, get_kid_points
+        from tests.helpers import claim_chore, get_assignee_points
 
         chore_name = "Shared First Auto Approve"
 
-        # Record starting points for all kids
-        zoe_start = get_kid_points(hass, "zoe")
-        max_start = get_kid_points(hass, "max")
-        lila_start = get_kid_points(hass, "lila")
+        # Record starting points for all assignees
+        zoe_start = get_assignee_points(hass, "zoe")
+        max_start = get_assignee_points(hass, "max")
+        lila_start = get_assignee_points(hass, "lila")
         total_start = zoe_start + max_start + lila_start
 
         # Fire concurrent claims
-        zoe_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        max_ctx = Context(user_id=mock_hass_users["kid2"].id)
-        lila_ctx = Context(user_id=mock_hass_users["kid3"].id)
+        zoe_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        max_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        lila_ctx = Context(user_id=mock_hass_users["assignee3"].id)
 
         import asyncio
 
@@ -1264,9 +1274,9 @@ class TestSharedFirstRaceConditions:
         await hass.async_block_till_done()
 
         # Get ending points
-        zoe_end = get_kid_points(hass, "zoe")
-        max_end = get_kid_points(hass, "max")
-        lila_end = get_kid_points(hass, "lila")
+        zoe_end = get_assignee_points(hass, "zoe")
+        max_end = get_assignee_points(hass, "max")
+        lila_end = get_assignee_points(hass, "lila")
         total_end = zoe_end + max_end + lila_end
 
         # Calculate point deltas
@@ -1281,16 +1291,16 @@ class TestSharedFirstRaceConditions:
             f"Deltas: Zoë={zoe_delta}, Max={max_delta}, Lila={lila_delta}"
         )
 
-        # Assert exactly 1 kid got +15, others got 0
+        # Assert exactly 1 assignee got +15, others got 0
         deltas = [zoe_delta, max_delta, lila_delta]
         winners = [d for d in deltas if d == 15.0]
         losers = [d for d in deltas if d == 0.0]
 
         assert len(winners) == 1, (
-            f"Expected exactly 1 kid with +15 points, got {len(winners)}. "
+            f"Expected exactly 1 assignee with +15 points, got {len(winners)}. "
             f"Deltas: {deltas}"
         )
         assert len(losers) == 2, (
-            f"Expected exactly 2 kids with 0 point change, got {len(losers)}. "
+            f"Expected exactly 2 assignees with 0 point change, got {len(losers)}. "
             f"Deltas: {deltas}"
         )

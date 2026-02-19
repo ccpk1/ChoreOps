@@ -14,6 +14,7 @@ All cascade, fallback, and schema-44 logic lives in migration_pre_v50.py
 import copy
 from datetime import UTC, datetime
 import json
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -23,7 +24,9 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.choreops import const, migration_pre_v50 as mp50
-from custom_components.choreops.store import KidsChoresStore
+from custom_components.choreops.store import ChoreOpsStore
+
+LEGACY_ASSIGNEES_BUCKET = "assignees"
 
 # =============================================================================
 # FIXTURES
@@ -39,12 +42,12 @@ def base_storage_data() -> dict[str, Any]:
             const.DATA_META_LAST_MIGRATION_DATE: "2025-01-01T00:00:00+00:00",
             const.DATA_META_MIGRATIONS_APPLIED: [],
         },
-        const.DATA_KIDS: {
-            "kid-uuid-1": {
-                const.DATA_KID_INTERNAL_ID: "kid-uuid-1",
-                const.DATA_KID_NAME: "Alice",
-                const.DATA_KID_POINTS: 150.0,
-                const.DATA_KID_HA_USER_ID: "",
+        LEGACY_ASSIGNEES_BUCKET: {
+            "assignee-uuid-1": {
+                const.DATA_USER_INTERNAL_ID: "assignee-uuid-1",
+                const.DATA_USER_NAME: "Alice",
+                const.DATA_USER_POINTS: 150.0,
+                const.DATA_USER_HA_USER_ID: "",
             },
         },
         const.DATA_CHORES: {
@@ -52,7 +55,7 @@ def base_storage_data() -> dict[str, Any]:
                 const.DATA_CHORE_INTERNAL_ID: "chore-uuid-1",
                 const.DATA_CHORE_NAME: "Dishes",
                 const.DATA_CHORE_DEFAULT_POINTS: 10.0,
-                const.DATA_CHORE_ASSIGNED_KIDS: ["kid-uuid-1"],
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-uuid-1"],
             },
         },
         const.DATA_REWARDS: {},
@@ -61,7 +64,7 @@ def base_storage_data() -> dict[str, Any]:
         const.DATA_BONUSES: {},
         const.DATA_ACHIEVEMENTS: {},
         const.DATA_CHALLENGES: {},
-        const.DATA_PARENTS: {},
+        const.DATA_APPROVERS: {},
         "pending_approvals": {"chores": {}, "rewards": {}},
     }
 
@@ -74,14 +77,14 @@ def mock_coordinator(hass: HomeAssistant, base_storage_data: dict[str, Any]):
     coordinator._data = copy.deepcopy(base_storage_data)
     coordinator.config_entry = MockConfigEntry(
         domain=const.DOMAIN,
-        title="KidsChores",
+        title="ChoreOps",
         data={},
         options={},
     )
     coordinator.config_entry.add_to_hass(hass)
 
     # Mock store
-    store = MagicMock(spec=KidsChoresStore)
+    store = MagicMock(spec=ChoreOpsStore)
     store.data = coordinator._data
     store.set_data = MagicMock()
     store.async_save = AsyncMock()
@@ -104,6 +107,20 @@ def system_manager(hass: HomeAssistant, mock_coordinator):
     from custom_components.choreops.managers.system_manager import SystemManager
 
     return SystemManager(hass, mock_coordinator)
+
+
+@pytest.fixture
+def migrate_payload_to_schema45_users() -> Any:
+    """Return helper that applies the real schema45 users-contract migration hook."""
+
+    async def _apply(payload: dict[str, Any]) -> dict[str, Any]:
+        coordinator = SimpleNamespace(_data=copy.deepcopy(payload))
+        await mp50.async_apply_schema45_user_contract(coordinator)
+        data = coordinator._data
+        assert isinstance(data, dict)
+        return data
+
+    return _apply
 
 
 # =============================================================================
@@ -133,6 +150,26 @@ class TestSchemaStampFix:
             < const.SCHEMA_VERSION_STORAGE_ONLY
             < const.SCHEMA_VERSION_BETA4
         )
+
+    async def test_schema45_wrapper_promotes_legacy_assignees_to_users(
+        self,
+        base_storage_data: dict[str, Any],
+        migrate_payload_to_schema45_users: Any,
+    ) -> None:
+        """Schema45 contract wrapper promotes legacy payload to users identity map."""
+        migrated_data = await migrate_payload_to_schema45_users(base_storage_data)
+
+        users = migrated_data.get(const.DATA_USERS)
+        assert isinstance(users, dict)
+        assert "assignee-uuid-1" in users
+        assert LEGACY_ASSIGNEES_BUCKET not in migrated_data
+
+        alice = users["assignee-uuid-1"]
+        assert alice[const.DATA_USER_CAN_APPROVE] is False
+        assert alice[const.DATA_USER_CAN_MANAGE] is False
+        assert alice[const.DATA_USER_CAN_BE_ASSIGNED] is True
+        assert alice[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
+        assert alice[const.DATA_USER_ENABLE_GAMIFICATION] is True
 
 
 # =============================================================================
@@ -175,14 +212,14 @@ class TestAtomicRollback:
             "_migrate_datetime_wrapper",
             "_migrate_stored_datetimes",
             "_migrate_chore_data",
-            "_migrate_kid_data",
-            "_migrate_legacy_kid_chore_data_and_streaks",
+            "_migrate_assignee_data",
+            "_migrate_legacy_assignee_chore_data_and_streaks",
             "_migrate_badges",
-            "_migrate_kid_legacy_badges_to_cumulative_progress",
-            "_migrate_kid_legacy_badges_to_badges_earned",
+            "_migrate_assignee_legacy_badges_to_cumulative_progress",
+            "_migrate_assignee_legacy_badges_to_badges_earned",
             "_migrate_legacy_point_stats",
             "_migrate_independent_chores",
-            "_migrate_per_kid_applicable_days",
+            "_migrate_per_assignee_applicable_days",
             "_migrate_approval_reset_type",
             "_migrate_to_timestamp_tracking",
             "_migrate_reward_data_to_periods",
@@ -191,7 +228,7 @@ class TestAtomicRollback:
             "_consolidate_point_stats",
             "_remove_legacy_fields",
             "_round_float_precision",
-            "_cleanup_kid_chore_data_due_dates_v50",
+            "_cleanup_assignee_chore_data_due_dates_v50",
             "_simplify_notification_config_v50",
             "remove_deprecated_button_entities",
             "remove_deprecated_sensor_entities",
@@ -242,33 +279,36 @@ class TestAtomicRollback:
 class TestNuclearRebuild:
     """Test rebuild via build_*() preserves user definitions."""
 
-    def test_rebuild_preserves_kid_points(self, migrator) -> None:
-        """Nuclear rebuild preserves kid points value."""
-        # Set up kid with points
-        migrator.coordinator._data[const.DATA_KIDS] = {
-            "kid-uuid-1": {
-                const.DATA_KID_INTERNAL_ID: "kid-uuid-1",
-                const.DATA_KID_NAME: "Alice",
-                const.DATA_KID_POINTS: 250.5,
-                const.DATA_KID_HA_USER_ID: "",
+    def test_rebuild_preserves_assignee_points(self, migrator) -> None:
+        """Nuclear rebuild preserves assignee points value."""
+        # Set up assignee with points
+        migrator.coordinator._data[const.DATA_USERS] = {
+            "assignee-uuid-1": {
+                const.DATA_USER_INTERNAL_ID: "assignee-uuid-1",
+                const.DATA_USER_NAME: "Alice",
+                const.DATA_USER_POINTS: 250.5,
+                const.DATA_USER_HA_USER_ID: "",
             },
         }
 
         result = migrator._attempt_nuclear_rebuild()
         assert result is True
 
-        kid = migrator.coordinator._data[const.DATA_KIDS]["kid-uuid-1"]
-        assert kid[const.DATA_KID_NAME] == "Alice"
-        assert kid[const.DATA_KID_POINTS] == 250.5
+        assignee = migrator.coordinator._data[const.DATA_USERS]["assignee-uuid-1"]
+        assert assignee[const.DATA_USER_NAME] == "Alice"
+        assert assignee[const.DATA_USER_POINTS] == 250.5
 
-    def test_rebuild_preserves_chore_assigned_kids(self, migrator) -> None:
+    def test_rebuild_preserves_chore_assigned_assignees(self, migrator) -> None:
         """Nuclear rebuild preserves chore assignments."""
         migrator.coordinator._data[const.DATA_CHORES] = {
             "chore-uuid-1": {
                 const.DATA_CHORE_INTERNAL_ID: "chore-uuid-1",
                 const.DATA_CHORE_NAME: "Dishes",
                 const.DATA_CHORE_DEFAULT_POINTS: 10.0,
-                const.DATA_CHORE_ASSIGNED_KIDS: ["kid-uuid-1", "kid-uuid-2"],
+                const.DATA_CHORE_ASSIGNED_USER_IDS: [
+                    "assignee-uuid-1",
+                    "assignee-uuid-2",
+                ],
             },
         }
 
@@ -277,8 +317,8 @@ class TestNuclearRebuild:
 
         chore = migrator.coordinator._data[const.DATA_CHORES]["chore-uuid-1"]
         assert chore[const.DATA_CHORE_NAME] == "Dishes"
-        assert "kid-uuid-1" in chore[const.DATA_CHORE_ASSIGNED_KIDS]
-        assert "kid-uuid-2" in chore[const.DATA_CHORE_ASSIGNED_KIDS]
+        assert "assignee-uuid-1" in chore[const.DATA_CHORE_ASSIGNED_USER_IDS]
+        assert "assignee-uuid-2" in chore[const.DATA_CHORE_ASSIGNED_USER_IDS]
 
     def test_rebuild_stamps_schema_43(self, migrator) -> None:
         """Nuclear rebuild stamps SCHEMA_VERSION_STORAGE_ONLY."""
@@ -290,15 +330,16 @@ class TestNuclearRebuild:
 
     def test_rebuild_skips_bad_items(self, migrator) -> None:
         """Nuclear rebuild skips items that fail to build, continues others."""
-        migrator.coordinator._data[const.DATA_KIDS] = {
-            "good-kid": {
-                const.DATA_KID_INTERNAL_ID: "good-kid",
-                const.DATA_KID_NAME: "Alice",
-                const.DATA_KID_POINTS: 100.0,
+        migrator.coordinator._data[const.DATA_USERS] = {
+            "good-assignee": {
+                const.DATA_USER_INTERNAL_ID: "good-assignee",
+                const.DATA_USER_NAME: "Alice",
+                const.DATA_USER_POINTS: 100.0,
             },
-            "bad-kid": {
-                # Missing required name field — may cause build_kid() to fail
-                const.DATA_KID_INTERNAL_ID: "bad-kid",
+            "bad-assignee": {
+                # Missing required name field — may cause
+                # build_user_assignment_profile() to fail
+                const.DATA_USER_INTERNAL_ID: "bad-assignee",
             },
         }
 
@@ -306,8 +347,8 @@ class TestNuclearRebuild:
         result = migrator._attempt_nuclear_rebuild()
         assert result is True
 
-        # Good kid should be preserved
-        assert "good-kid" in migrator.coordinator._data[const.DATA_KIDS]
+        # Good assignee should be preserved
+        assert "good-assignee" in migrator.coordinator._data[const.DATA_USERS]
 
     def test_wipe_all_kc_entities(self, migrator) -> None:
         """Entity wipe removes all KC entities from registry."""
@@ -351,7 +392,7 @@ class TestAutoRestore:
             const.DATA_META: {
                 const.DATA_META_SCHEMA_VERSION: 41,
             },
-            const.DATA_KIDS: {"kid-1": {"name": "Alice"}},
+            const.DATA_USERS: {"assignee-1": {"name": "Alice"}},
             const.DATA_CHORES: {},
             const.DATA_REWARDS: {},
             const.DATA_BADGES: {},
@@ -360,7 +401,7 @@ class TestAutoRestore:
         # Write a real backup file
         storage_dir = tmp_path / ".storage"
         storage_dir.mkdir()
-        backup_filename = "kidschores_data_2025-01-01_00-00-00_pre-migration"
+        backup_filename = "choreops_data_2025-01-01_00-00-00_pre-migration"
         backup_file = storage_dir / backup_filename
         backup_file.write_text(json.dumps(backup_data))
 
@@ -427,7 +468,7 @@ class TestAutoRestore:
             new_callable=AsyncMock,
             return_value=[
                 {
-                    "filename": "kidschores_data_2025-01-01_00-00-00_recovery",
+                    "filename": "choreops_data_2025-01-01_00-00-00_recovery",
                     "tag": "recovery",
                     "timestamp": None,
                     "age_hours": 0.5,
@@ -476,32 +517,35 @@ class TestSchema44Gate:
         assert "some_phase" in applied
         assert "schema_44_beta4" in applied
 
-    def test_schema_44_removes_legacy_kid_chore_badge_refs(self, migrator) -> None:
-        """Schema 44 removes legacy badge_refs from kid chore records."""
+    def test_schema_44_removes_legacy_assignee_chore_badge_refs(self, migrator) -> None:
+        """Schema 44 removes legacy badge_refs from assignee chore records."""
         migrator.coordinator._data[const.DATA_META] = {
             const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_STORAGE_ONLY,
             const.DATA_META_MIGRATIONS_APPLIED: ["config_to_storage"],
         }
 
-        kids = migrator.coordinator._data.setdefault(const.DATA_KIDS, {})
-        kids["kid-uuid-1"][const.DATA_KID_CHORE_DATA] = {
+        assignees = migrator.coordinator._data.setdefault(const.DATA_USERS, {})
+        assignee_data = assignees.setdefault("assignee-uuid-1", {})
+        assignee_data[const.DATA_USER_CHORE_DATA] = {
             "chore-uuid-1": {
-                const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
-                const.DATA_KID_CHORE_DATA_BADGE_REFS: ["badge-a", "badge-b"],
+                const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                const.DATA_USER_CHORE_DATA_BADGE_REFS: ["badge-a", "badge-b"],
             },
             "chore-uuid-2": {
-                const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
             },
         }
 
         migrator._migrate_to_schema_44()
 
-        kid_chore_data = kids["kid-uuid-1"][const.DATA_KID_CHORE_DATA]
+        assignee_chore_data = assignees["assignee-uuid-1"][const.DATA_USER_CHORE_DATA]
         assert (
-            const.DATA_KID_CHORE_DATA_BADGE_REFS not in kid_chore_data["chore-uuid-1"]
+            const.DATA_USER_CHORE_DATA_BADGE_REFS
+            not in assignee_chore_data["chore-uuid-1"]
         )
         assert (
-            const.DATA_KID_CHORE_DATA_BADGE_REFS not in kid_chore_data["chore-uuid-2"]
+            const.DATA_USER_CHORE_DATA_BADGE_REFS
+            not in assignee_chore_data["chore-uuid-2"]
         )
 
 

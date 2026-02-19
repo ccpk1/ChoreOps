@@ -1,105 +1,105 @@
 {
-  "_comment_kid_section": "═════════════════════════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "BARNVARSLER: Spillbasert, andrepersons, oppmuntrende tone med emojier. INGEN prefiks for «BarnGjørninger:».",
-  "_comment_kid_footer": "═════════════════════════════════════════════════════════════════════════════════════",
-  "chore_approved_kid": {
+  "_comment_assignee_section": "═════════════════════════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "BARNVARSLER: Spillbasert, andrepersons, oppmuntrende tone med emojier. INGEN prefiks for «BarnGjørninger:».",
+  "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "🎉 Godkjent husarbeid!",
     "message": "{chore_name} godkjent! Du har tjent {points} poeng"
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Gjøremål returnert",
     "message": "{chore_name} trenger mer arbeid."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Forfalt husarbeid",
     "message": "{chore_name} er for sent! Fullfør nå for å tjene {points} poeng"
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Gjøremål utløpt",
     "message": "{chore_name} utløp uten fullføring."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Påminnelse om husarbeid",
     "message": "{chore_name} forfaller om {minutes} minutter! Verdt {points} poeng"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Gjøremål forfaller nå",
     "message": "{chore_name} forfaller nå! Fullfør innen {hours} time(r) for å tjene {points} poeng"
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 Belønning godkjent!",
     "message": "{reward_name} godkjent!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "💭 Belønningsforespørsel returnert",
     "message": "{reward_name} ble ikke godkjent denne gangen."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "🥇 Merke opptjent!",
     "message": "Du har fortjent {badge_name} -merket!"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "🏆 Prestasjon oppnådd!",
     "message": "Du fortjente {achievement_name}! Fortsett det gode arbeidet"
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 Utfordring fullført!",
     "message": "Du fullførte {challenge_name}! Fortsett det gode arbeidet."
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Straff ilagt",
     "message": "{penalty_name}: {points} poeng trukket. La oss komme tilbake på sporet!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ Bonus benyttet!",
     "message": "{bonus_name}: Du har tjent {points} bonuspoeng! Bra jobbet"
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator oppdatert",
     "message": "Poengmultiplikatoren din ble endret fra {old_multiplier}x til {new_multiplier}x"
   },
-  "_comment_parent_section": "═════════════════════════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "FORELDREVARSLER: Informativ, tredjeperson, handlingsrettet. Format: '{kid_name}: Handling'. INGEN 'Barneoppgaver:' prefiks.",
-  "_comment_parent_footer": "═════════════════════════════════════════════════════════════════════════════════════",
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Gjøremål gjort krav på",
-    "message": "{kid_name} har gjort krav på {chore_name} og jobber med det nå"
+  "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "FORELDREVARSLER: Informativ, tredjeperson, handlingsrettet. Format: '{assignee_name}: Handling'. INGEN 'Barneoppgaver:' prefiks.",
+  "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Gjøremål gjort krav på",
+    "message": "{assignee_name} har gjort krav på {chore_name} og jobber med det nå"
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Godkjenning kreves",
-    "message": "Påminnelse: {chore_name} gjort krav på av {kid_name} venter på din anmeldelse"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Godkjenning kreves",
+    "message": "Påminnelse: {chore_name} gjort krav på av {assignee_name} venter på din anmeldelse"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Forfalt husarbeid",
-    "message": "{kid_name}sitt gjøremål {chore_name} er forfalt (forfaller: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Forfalt husarbeid",
+    "message": "{assignee_name}sitt gjøremål {chore_name} er forfalt (forfaller: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} Venter",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Venter",
     "message": "{count} gjøremål venter på gjennomgang. Siste: {latest_chore} (+{points} poeng)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Belønningsforespørsel",
-    "message": "{kid_name} ba om {reward_name} for {points} poeng"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Belønningsforespørsel",
+    "message": "{assignee_name} ba om {reward_name} for {points} poeng"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Belønning venter",
-    "message": "Påminnelse: {reward_name} forespurt av {kid_name} venter på din godkjenning"
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Belønning venter",
+    "message": "Påminnelse: {reward_name} forespurt av {assignee_name} venter på din godkjenning"
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Merke opptjent",
-    "message": "{kid_name} har fått {badge_name} -merket!"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Merke opptjent",
+    "message": "{assignee_name} har fått {badge_name} -merket!"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Prestasjon",
-    "message": "{kid_name} opptjent {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Prestasjon",
+    "message": "{assignee_name} opptjent {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Utfordring ferdig",
-    "message": "{kid_name} fullført {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Utfordring ferdig",
+    "message": "{assignee_name} fullført {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Multiplikator oppdatert",
-    "message": "Poengmultiplikatoren for {kid_name}er endret fra {old_multiplier}x til {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Multiplikator oppdatert",
+    "message": "Poengmultiplikatoren for {assignee_name}er endret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMIN-VARSLER: Databehandlingsoperasjoner",
@@ -112,9 +112,9 @@
     "title": "🔄 Barneoppgaver: Full tilbakestilling",
     "message": "Alle systemdata er tilbakestilt til standardinnstillinger"
   },
-  "data_reset_kid": {
+  "data_reset_assignee": {
     "title": "🔄 Barneoppgaver: Tilbakestilling av barn",
-    "message": "Datatilbakestilling for {kid_name}"
+    "message": "Datatilbakestilling for {assignee_name}"
   },
   "data_reset_item_type": {
     "title": "🔄 Barneoppgaver: {item_type} Tilbakestill",

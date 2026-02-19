@@ -1,5 +1,5 @@
 # File: flow_helpers.py
-"""Helpers for the KidsChores integration's Config and Options flow.
+"""Helpers for the ChoreOps integration's Config and Options flow.
 
 Provides schema builders, UI validation wrappers, and data transformation for
 internal_id-based entity management.
@@ -23,7 +23,7 @@ All entity types follow a consistent pattern across two modules:
 ## LAYER ARCHITECTURE ##
 
 ### Layer 1: Schema Building (flow_helpers)
-**Function:** `build_<entity>_schema(default, kids_dict, ...) -> vol.Schema`
+**Function:** `build_<entity>_schema(default, assignees_dict, ...) -> vol.Schema`
 **Purpose:** Construct voluptuous schemas for Home Assistant UI forms
 **Keys:** Uses CFOF_* constants (Config Flow / Options Flow form field names)
 
@@ -93,8 +93,7 @@ CFOF_* constant values are now aligned with DATA_* values where possible,
 eliminating the need for mapping functions. This simplifies the call site pattern.
 
 **Entities with aligned keys (pass user_input directly to build_*()):**
-- Kids: `CFOF_KIDS_INPUT_KID_NAME = "name"` matches `DATA_KID_NAME = "name"`
-- Parents: `CFOF_PARENTS_INPUT_NAME = "name"` matches `DATA_PARENT_NAME = "name"`
+- Users: `CFOF_USERS_INPUT_NAME = "name"` matches `DATA_USER_NAME = "name"`
 - Rewards: `CFOF_REWARDS_INPUT_NAME = "name"` matches `DATA_REWARD_NAME = "name"`
 - Bonuses: `CFOF_BONUSES_INPUT_NAME = "name"` matches `DATA_BONUS_NAME = "name"`
 - Penalties: `CFOF_PENALTIES_INPUT_NAME = "name"` matches `DATA_PENALTY_NAME = "name"`
@@ -104,7 +103,7 @@ eliminating the need for mapping functions. This simplifies the call site patter
 
 **Entities requiring explicit CFOF→DATA mapping (complex transformations):**
 - Chores: `db.map_cfof_to_chore_data()` - Handles daily_multi_times string→list parsing
-  and per-kid configuration mapping (simple field keys are aligned)
+  and per-assignee configuration mapping (simple field keys are aligned)
 
 **Entities with embedded key mapping (complex conditional fields):**
 - Badges: `build_badge()` handles CFOF→DATA mapping internally via get_field() closure
@@ -238,15 +237,93 @@ def validate_points_inputs(user_input: dict[str, Any]) -> dict[str, str]:
 
 
 # ----------------------------------------------------------------------------------
-# KIDS SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
+# USER PROFILE SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
 # ----------------------------------------------------------------------------------
 
+# Section organization (intentional):
+# 1) Sectioned USER-form pipeline for current config/options UX
+#    - constants: USER_SECTION_* and USER_*_FIELDS
+#    - internals: _build/_normalize/_map/_validate *_impl helpers
+#    - public wrappers: build_user_schema, normalize_user_form_input,
+#      map_user_form_errors, validate_users_inputs
+#
+# Sectioned schema + validation is the only supported path for USER forms.
 
-async def build_kid_schema(
+
+USER_SECTION_IDENTITY_PROFILE = "section_identity_profile"
+USER_SECTION_SYSTEM_USAGE = "section_system_usage"
+USER_SECTION_ADMIN_APPROVAL = "section_admin_approval"
+
+# Section field group contracts:
+# - Identity profile: personal mapping and notification preferences
+# - System usage: assignment + workflow/gamification capability flags
+# - Admin approval: approval/management flags and associated user links
+
+USER_IDENTITY_FIELDS = (
+    const.CFOF_USERS_INPUT_NAME,
+    const.CFOF_USERS_INPUT_HA_USER_ID,
+    const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
+    const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+)
+
+USER_SYSTEM_USAGE_FIELDS = (
+    const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
+)
+
+USER_ADMIN_APPROVAL_FIELDS = (
+    const.CFOF_USERS_INPUT_CAN_APPROVE,
+    const.CFOF_USERS_INPUT_CAN_MANAGE,
+    const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+)
+
+
+def _build_user_section_suggested_values_impl(
+    flat_values: dict[str, Any],
+) -> dict[str, Any]:
+    """Build sectioned suggested values from flat persisted user values."""
+    return {
+        USER_SECTION_IDENTITY_PROFILE: {
+            key: flat_values[key] for key in USER_IDENTITY_FIELDS if key in flat_values
+        },
+        USER_SECTION_SYSTEM_USAGE: {
+            key: flat_values[key]
+            for key in USER_SYSTEM_USAGE_FIELDS
+            if key in flat_values
+        },
+        USER_SECTION_ADMIN_APPROVAL: {
+            key: flat_values[key]
+            for key in USER_ADMIN_APPROVAL_FIELDS
+            if key in flat_values
+        },
+    }
+
+
+def _normalize_user_form_input_impl(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Normalize user form payload for sectioned and non-sectioned modes.
+
+    Home Assistant `section()` wraps values under section keys. This helper
+    flattens those values so downstream validation/builders consume one shape.
+    """
+    normalized: dict[str, Any] = dict(user_input)
+    for section_key in (
+        USER_SECTION_IDENTITY_PROFILE,
+        USER_SECTION_SYSTEM_USAGE,
+        USER_SECTION_ADMIN_APPROVAL,
+    ):
+        section_data = normalized.pop(section_key, None)
+        if isinstance(section_data, dict):
+            normalized.update(section_data)
+    return normalized
+
+
+async def _build_user_schema_impl(
     hass,
     users,
+    assignees_dict,
 ):
-    """Build a Voluptuous schema for adding/editing a Kid.
+    """Build sectioned USER-form schema for add/edit user profile.
 
     Uses static defaults for optional fields - use suggested_value for edit forms.
 
@@ -258,123 +335,9 @@ async def build_kid_schema(
     user_options = [
         {"value": const.SENTINEL_NO_SELECTION, "label": const.LABEL_NONE}
     ] + [{"value": user.id, "label": user.name} for user in users]
-    # Notification service options: None = disabled, service = enabled
-    notify_options = [
-        {"value": const.SENTINEL_NO_SELECTION, "label": const.LABEL_DISABLED},
-        *_get_notify_services(hass),
-    ]
-
-    # Get available dashboard languages
-    language_options = await th.get_available_dashboard_languages(hass)
-
-    return vol.Schema(
-        {
-            vol.Required(
-                const.CFOF_KIDS_INPUT_KID_NAME, default=const.SENTINEL_EMPTY
-            ): str,
-            vol.Optional(
-                const.CFOF_KIDS_INPUT_HA_USER,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=user_options,
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
-            ),
-            vol.Optional(
-                const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE,
-                default=const.DEFAULT_DASHBOARD_LANGUAGE,  # Static default
-            ): selector.LanguageSelector(
-                selector.LanguageSelectorConfig(
-                    languages=language_options,
-                    native_name=True,
-                )
-            ),
-            # Single notification service selector (None = disabled, service = enabled)
-            vol.Optional(
-                const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", notify_options),
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
-            ),
-            # Note: Due date reminders moved to per-chore control (v0.5.0+)
-            # See chore configuration "Send Reminders" toggle
-        }
-    )
-
-
-def validate_kids_inputs(
-    user_input: dict[str, Any],
-    existing_kids: dict[str, Any] | None = None,
-    existing_parents: dict[str, Any] | None = None,
-    *,
-    current_kid_id: str | None = None,
-) -> dict[str, str]:
-    """Validate kid configuration inputs for Options Flow.
-
-    This is a UI-specific wrapper that:
-    1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
-    2. Calls data_builders.validate_kid_data() (single source of truth)
-
-    Note: Since Phase 6 CFOF Key Alignment, CFOF_KIDS_INPUT_KID_NAME = "name"
-    matches DATA_KID_NAME = "name", so no key transformation is needed.
-
-    Args:
-        user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        existing_kids: Optional dictionary of existing kids for duplicate checking.
-        existing_parents: Optional dictionary of existing parents for cross-validation.
-        current_kid_id: ID of kid being edited (to exclude from duplicate check).
-
-    Returns:
-        Dictionary of errors (empty if validation passes).
-    """
-    from .. import data_builders as db
-
-    # Build DATA_* dict for shared validation
-    data_dict: dict[str, Any] = {
-        const.DATA_KID_NAME: user_input.get(const.CFOF_KIDS_INPUT_KID_NAME, ""),
-    }
-
-    # Call shared validation (single source of truth)
-    is_update = current_kid_id is not None
-    return db.validate_kid_data(
-        data_dict,
-        existing_kids,
-        existing_parents,
-        is_update=is_update,
-        current_kid_id=current_kid_id,
-    )
-
-
-# ----------------------------------------------------------------------------------
-# PARENTS SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
-# ----------------------------------------------------------------------------------
-
-
-async def build_parent_schema(
-    hass,
-    users,
-    kids_dict,
-):
-    """Build a Voluptuous schema for adding/editing a Parent.
-
-    Uses static defaults for optional fields - use suggested_value for edit forms.
-
-    Notification configuration simplified to single service selector:
-    - Service selected = notifications enabled to that service
-    - None selected = notifications disabled
-    """
-    # Use SENTINEL_NO_SELECTION for "None" option - empty string doesn't work reliably
-    user_options = [
-        {"value": const.SENTINEL_NO_SELECTION, "label": const.LABEL_NONE}
-    ] + [{"value": user.id, "label": user.name} for user in users]
-    kid_options = [
-        {"value": kid_id, "label": kid_name} for kid_name, kid_id in kids_dict.items()
+    assignee_options = [
+        {"value": assignee_id, "label": assignee_name}
+        for assignee_name, assignee_id in assignees_dict.items()
     ]
     # Notification service options: None = disabled, service = enabled
     notify_options = [
@@ -385,90 +348,145 @@ async def build_parent_schema(
     # Get available dashboard languages
     language_options = await th.get_available_dashboard_languages(hass)
 
+    identity_fields: dict[Any, Any] = {
+        vol.Required(const.CFOF_USERS_INPUT_NAME, default=const.SENTINEL_EMPTY): str,
+        vol.Optional(
+            const.CFOF_USERS_INPUT_HA_USER_ID,
+            default=const.SENTINEL_NO_SELECTION,
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=user_options,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                multiple=False,
+            )
+        ),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
+            default=const.DEFAULT_DASHBOARD_LANGUAGE,
+        ): selector.LanguageSelector(
+            selector.LanguageSelectorConfig(
+                languages=language_options,
+                native_name=True,
+            )
+        ),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+            default=const.SENTINEL_NO_SELECTION,
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=cast("list[selector.SelectOptionDict]", notify_options),
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                multiple=False,
+            )
+        ),
+    }
+
+    usage_fields: dict[Any, Any] = {
+        vol.Optional(
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
+            default=False,
+        ): selector.BooleanSelector(),
+    }
+
+    admin_fields: dict[Any, Any] = {
+        vol.Optional(
+            const.CFOF_USERS_INPUT_CAN_APPROVE,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_CAN_MANAGE,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+            default=[],
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=cast("list[selector.SelectOptionDict]", assignee_options),
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSOCIATED_USER_IDS,
+                multiple=True,
+            )
+        ),
+    }
+
     return vol.Schema(
         {
-            vol.Required(
-                const.CFOF_PARENTS_INPUT_NAME, default=const.SENTINEL_EMPTY
-            ): str,
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_HA_USER,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=user_options,
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
+            vol.Optional(USER_SECTION_IDENTITY_PROFILE): section(
+                vol.Schema(identity_fields)
             ),
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-                default=[],  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", kid_options),
-                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSOCIATED_KIDS,
-                    multiple=True,
-                )
+            vol.Optional(USER_SECTION_SYSTEM_USAGE): section(vol.Schema(usage_fields)),
+            vol.Optional(USER_SECTION_ADMIN_APPROVAL): section(
+                vol.Schema(admin_fields),
+                {"collapsed": True},
             ),
-            # Single notification service selector (None = disabled, service = enabled)
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", notify_options),
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
-            ),
-            # Dashboard language
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE,
-                default=const.DEFAULT_DASHBOARD_LANGUAGE,  # Static default
-            ): selector.LanguageSelector(
-                selector.LanguageSelectorConfig(
-                    languages=language_options,
-                    native_name=True,
-                )
-            ),
-            # Parent chore capability options
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-                default=False,  # Static default
-            ): selector.BooleanSelector(),
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
-                default=False,  # Static default
-            ): selector.BooleanSelector(),
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
-                default=False,  # Static default
-            ): selector.BooleanSelector(),
-        }
+        },
+        extra=vol.ALLOW_EXTRA,
     )
 
 
-def validate_parents_inputs(
+def _map_user_form_errors_impl(errors: dict[str, str]) -> dict[str, str]:
+    """Map field-level errors to section aliases for sectioned UI rendering.
+
+    This preserves original field keys and additionally maps section keys so
+    the UI can highlight collapsed groups with validation issues.
+    """
+    mapped_errors: dict[str, str] = {}
+
+    field_to_section: dict[str, str] = {
+        **dict.fromkeys(USER_IDENTITY_FIELDS, USER_SECTION_IDENTITY_PROFILE),
+        **dict.fromkeys(USER_SYSTEM_USAGE_FIELDS, USER_SECTION_SYSTEM_USAGE),
+        **dict.fromkeys(USER_ADMIN_APPROVAL_FIELDS, USER_SECTION_ADMIN_APPROVAL),
+    }
+
+    field_aliases = {
+        const.CFOP_ERROR_CHORE_OPTIONS: const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    }
+
+    for error_field, translation_key in errors.items():
+        mapped_errors[error_field] = translation_key
+
+        normalized_field = field_aliases.get(error_field, error_field)
+        mapped_errors[normalized_field] = translation_key
+
+        if normalized_field == const.CFOP_ERROR_BASE:
+            continue
+
+        if section_key := field_to_section.get(normalized_field):
+            mapped_errors[section_key] = translation_key
+            mapped_errors[f"{section_key}.{normalized_field}"] = translation_key
+
+    return mapped_errors
+
+
+def _validate_users_inputs_impl(
     user_input: dict[str, Any],
-    existing_parents: dict[str, Any] | None = None,
-    existing_kids: dict[str, Any] | None = None,
+    existing_users: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
     *,
-    current_parent_id: str | None = None,
+    current_user_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate parent configuration inputs for Options Flow.
+    """Validate sectioned USER-form configuration inputs.
 
     This is a UI-specific wrapper that:
     1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
-    2. Calls data_builders.validate_parent_data() (single source of truth)
+    2. Calls data_builders.validate_user_profile_data() (single source of truth)
 
-    Note: Since Phase 6 CFOF Key Alignment, CFOF_PARENTS_INPUT_NAME = "name"
-    matches DATA_PARENT_NAME = "name", so no key transformation is needed.
+    Note: Since Phase 6 CFOF Key Alignment, CFOF_USERS_INPUT_NAME = "name"
+    matches DATA_USER_NAME = "name", so no key transformation is needed.
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        existing_parents: Optional dictionary of existing parents for duplicate checking.
-        existing_kids: Optional dictionary of existing kids for cross-validation.
-        current_parent_id: ID of parent being edited (to exclude from duplicate check).
+        existing_users: Optional dictionary of existing user profiles for duplicate checking.
+        existing_assignees: Optional dictionary of existing assignee profiles for cross-validation.
+        current_user_id: ID of user profile being edited (to exclude from duplicate check).
 
     Returns:
         Dictionary of errors (empty if validation passes).
@@ -477,26 +495,90 @@ def validate_parents_inputs(
 
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
-        const.DATA_PARENT_NAME: user_input.get(const.CFOF_PARENTS_INPUT_NAME, ""),
-        const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: user_input.get(
-            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT, False
-        ),
-        const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: user_input.get(
-            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW, False
-        ),
-        const.DATA_PARENT_ENABLE_GAMIFICATION: user_input.get(
-            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION, False
-        ),
+        const.DATA_USER_NAME: user_input.get(const.CFOF_USERS_INPUT_NAME, ""),
     }
 
+    if const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS in user_input:
+        data_dict[const.DATA_USER_ASSOCIATED_USER_IDS] = user_input.get(
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+            [],
+        )
+    if const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED in user_input:
+        data_dict[const.DATA_USER_CAN_BE_ASSIGNED] = user_input.get(
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+            False,
+        )
+    if const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW in user_input:
+        data_dict[const.DATA_USER_ENABLE_CHORE_WORKFLOW] = user_input.get(
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+            False,
+        )
+    if const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION in user_input:
+        data_dict[const.DATA_USER_ENABLE_GAMIFICATION] = user_input.get(
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
+            False,
+        )
+    if const.CFOF_USERS_INPUT_CAN_APPROVE in user_input:
+        data_dict[const.DATA_USER_CAN_APPROVE] = user_input.get(
+            const.CFOF_USERS_INPUT_CAN_APPROVE,
+            False,
+        )
+    if const.CFOF_USERS_INPUT_CAN_MANAGE in user_input:
+        data_dict[const.DATA_USER_CAN_MANAGE] = user_input.get(
+            const.CFOF_USERS_INPUT_CAN_MANAGE,
+            False,
+        )
+
     # Call shared validation (single source of truth)
-    is_update = current_parent_id is not None
-    return db.validate_parent_data(
+    is_update = current_user_id is not None
+    return db.validate_user_profile_data(
         data_dict,
-        existing_parents,
-        existing_kids,
+        existing_users,
+        existing_assignees,
         is_update=is_update,
-        current_parent_id=current_parent_id,
+        current_user_id=current_user_id,
+    )
+
+
+def build_user_section_suggested_values(flat_values: dict[str, Any]) -> dict[str, Any]:
+    """Public wrapper for sectioned suggested values in USER form."""
+    return _build_user_section_suggested_values_impl(flat_values)
+
+
+def normalize_user_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Public wrapper to normalize USER-form payload shape."""
+    return _normalize_user_form_input_impl(user_input)
+
+
+async def build_user_schema(hass, users, assignees_dict):
+    """Public schema builder for sectioned USER-form surfaces.
+
+    Args:
+        hass: Home Assistant instance.
+        users: Available Home Assistant users.
+        assignees_dict: Mapping of display name to internal ID for association field.
+    """
+    return await _build_user_schema_impl(hass, users, assignees_dict)
+
+
+def map_user_form_errors(errors: dict[str, str]) -> dict[str, str]:
+    """Public wrapper for section-aware USER-form error mapping."""
+    return _map_user_form_errors_impl(errors)
+
+
+def validate_users_inputs(
+    user_input: dict[str, Any],
+    existing_users: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
+    *,
+    current_user_id: str | None = None,
+) -> dict[str, str]:
+    """Public wrapper for sectioned USER-form validation rules."""
+    return _validate_users_inputs_impl(
+        user_input,
+        existing_users,
+        existing_assignees,
+        current_user_id=current_user_id,
     )
 
 
@@ -519,7 +601,7 @@ CHORE_ROOT_FORM_FIELDS = (
     const.CFOF_CHORES_INPUT_DESCRIPTION,
     const.CFOF_CHORES_INPUT_ICON,
     const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
-    const.CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
 )
 
@@ -584,7 +666,7 @@ def map_chore_form_errors(errors: dict[str, str]) -> dict[str, str]:
     """Map chore validation errors to form field keys for sectioned UI rendering.
 
     Preserves original keys and adds aliases for current form field keys.
-    For sectioned forms, also maps field errors to the parent section key.
+    For sectioned forms, also maps field errors to the approver section key.
 
     Home Assistant's expandable form renderer binds error records at the
     section container level, so nested child keys are not always displayed.
@@ -625,11 +707,11 @@ def map_chore_form_errors(errors: dict[str, str]) -> dict[str, str]:
 
 
 def build_chore_schema(
-    kids_dict: dict[str, str],
+    assignees_dict: dict[str, str],
     default: dict[str, Any] | None = None,
     frequency_options: list[str] | None = None,
 ) -> vol.Schema:
-    """Build a schema for chores, referencing existing kids by name.
+    """Build a schema for chores, referencing existing assignees by name.
 
     Uses internal_id for entity management.
     Dynamically adds "clear due date" checkbox when editing with existing date.
@@ -638,7 +720,7 @@ def build_chore_schema(
     For edit forms, use add_suggested_values_to_schema() to show current values.
 
     Args:
-        kids_dict: Mapping of kid names to internal IDs.
+        assignees_dict: Mapping of assignee names to internal IDs.
         default: Default values for form fields (edit mode).
         frequency_options: List of frequency options to show. Defaults to
             const.CHORE_FREQUENCY_OPTIONS (all frequencies). Config flow should pass
@@ -647,7 +729,7 @@ def build_chore_schema(
     default = default or {}
     frequency_options = frequency_options or const.CHORE_FREQUENCY_OPTIONS
 
-    kid_choices = {k: k for k in kids_dict}
+    assignee_choices = {k: k for k in assignees_dict}
 
     # Build schema fields in approved UX order grouped by sections
     root_form_fields: dict[Any, Any] = {
@@ -673,14 +755,14 @@ def build_chore_schema(
             )
         ),
         vol.Required(
-            const.CFOF_CHORES_INPUT_ASSIGNED_KIDS,
-            default=default.get(const.CFOF_CHORES_INPUT_ASSIGNED_KIDS, []),
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+            default=default.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []),
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
-                options=list(kid_choices.keys()),
+                options=list(assignee_choices.keys()),
                 multiple=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
-                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_KIDS,
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
             )
         ),
         vol.Required(
@@ -724,7 +806,7 @@ def build_chore_schema(
         vol.Optional(
             const.CFOF_CHORES_INPUT_APPLICABLE_DAYS,
             # Explicitly check for None to preserve empty list [] (when user clears all days)
-            # Storage may have null when per_kid_applicable_days is source of truth
+            # Storage may have null when per_assignee_applicable_days is source of truth
             default=(
                 default.get(const.CFOF_CHORES_INPUT_APPLICABLE_DAYS)
                 if default.get(const.CFOF_CHORES_INPUT_APPLICABLE_DAYS) is not None
@@ -894,7 +976,7 @@ def build_chore_schema(
 
 def validate_chores_inputs(
     user_input: dict[str, Any],
-    kids_dict: dict[str, Any],
+    assignees_dict: dict[str, Any],
     existing_chores: dict[str, Any] | None = None,
     *,
     current_chore_id: str | None = None,
@@ -904,15 +986,15 @@ def validate_chores_inputs(
     This is a UI-specific wrapper that:
     1. Extracts DATA_* values from user_input (most keys are aligned: CFOF_* = DATA_*)
     2. Calls data_builders.validate_chore_data() (single source of truth)
-    3. Handles UI-specific concerns (clear_due_date checkbox, kids_dict mapping)
+    3. Handles UI-specific concerns (clear_due_date checkbox, assignees_dict mapping)
 
     Note: Since Phase 6 CFOF Key Alignment, simple fields like name, description,
     points are aligned. Chores still require transform_chore_cfof_to_data() for
-    complex fields (daily_multi_times parsing, per_kid_due_dates, notification mapping).
+    complex fields (daily_multi_times parsing, per_assignee_due_dates, notification mapping).
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        kids_dict: Dictionary mapping kid names to kid internal_ids (UUIDs).
+        assignees_dict: Dictionary mapping assignee names to assignee internal_ids (UUIDs).
         existing_chores: Optional dictionary of existing chores for duplicate checking.
         current_chore_id: ID of chore being edited (to exclude from duplicate check).
 
@@ -926,10 +1008,12 @@ def validate_chores_inputs(
     errors: dict[str, str] = {}
 
     # === Transform CFOF_* keys to DATA_* keys for shared validation ===
-    # Resolve assigned kids from names to IDs
-    assigned_kids_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_KIDS, [])
-    assigned_kids_ids = [
-        kids_dict[kid_name] for kid_name in assigned_kids_names if kid_name in kids_dict
+    # Form field key uses *_IDS for legacy compatibility, but selector values are names.
+    assigned_user_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, [])
+    assigned_user_ids = [
+        assignees_dict[assignee_name]
+        for assignee_name in assigned_user_names
+        if assignee_name in assignees_dict
     ]
 
     # Handle due date (UI-specific: clear_due_date checkbox)
@@ -973,7 +1057,7 @@ def validate_chores_inputs(
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
         const.DATA_CHORE_NAME: user_input.get(const.CFOF_CHORES_INPUT_NAME, ""),
-        const.DATA_CHORE_ASSIGNED_KIDS: assigned_kids_ids,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
         const.DATA_CHORE_RECURRING_FREQUENCY: user_input.get(
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         ),
@@ -1018,9 +1102,9 @@ def validate_chores_inputs(
 
 def transform_chore_cfof_to_data(
     user_input: dict[str, Any],
-    kids_dict: dict[str, Any],
+    assignees_dict: dict[str, Any],
     due_date_str: str | None,
-    existing_per_kid_due_dates: dict[str, str | None] | None = None,
+    existing_per_assignee_due_dates: dict[str, str | None] | None = None,
 ) -> dict[str, Any]:
     """Transform chore form input to storage format for complex fields only.
 
@@ -1028,28 +1112,30 @@ def transform_chore_cfof_to_data(
     use aligned keys and pass through directly. This function handles the complex
     transformations that still require processing:
 
-    - Converts assigned kid names to UUIDs (kid_dict lookup)
-    - Builds per_kid_due_dates dict (INDEPENDENT vs SHARED logic)
+    - Converts assigned assignee names to UUIDs (assignee_dict lookup)
+    - Builds per_assignee_due_dates dict (INDEPENDENT vs SHARED logic)
     - Extracts notification selections from consolidated field
-    - Handles completion_criteria logic for per-kid configuration
+    - Handles completion_criteria logic for per-assignee configuration
 
     Note: Simple field keys are now aligned (CFOF_CHORES_INPUT_NAME = \"name\" = DATA_CHORE_NAME),
     so no key renaming is needed for those fields.
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        kids_dict: Dictionary mapping kid names to kid internal_ids (UUIDs).
+        assignees_dict: Dictionary mapping assignee names to assignee internal_ids (UUIDs).
         due_date_str: Validated due date as ISO string (from validate_chores_inputs).
-        existing_per_kid_due_dates: Optional dictionary of existing per-kid due dates
+        existing_per_assignee_due_dates: Optional dictionary of existing per-assignee due dates
             to preserve when editing INDEPENDENT chores.
 
     Returns:
         Dictionary with DATA_* keys ready for data_builders.build_chore().
     """
-    # Convert assigned kid names to UUIDs
-    assigned_kids_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_KIDS, [])
-    assigned_kids_ids = [
-        kids_dict[kid_name] for kid_name in assigned_kids_names if kid_name in kids_dict
+    # Form field key uses *_IDS for legacy compatibility, but selector values are names.
+    assigned_user_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, [])
+    assigned_user_ids = [
+        assignees_dict[assignee_name]
+        for assignee_name in assigned_user_names
+        if assignee_name in assignees_dict
     ]
 
     # Get completion criteria
@@ -1061,18 +1147,20 @@ def transform_chore_cfof_to_data(
     # Check if user explicitly wants to clear the date
     clear_due_date = user_input.get(const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE, False)
 
-    # Build per_kid_due_dates for ALL chores (SHARED + INDEPENDENT)
-    per_kid_due_dates: dict[str, str | None] = {}
-    for kid_id in assigned_kids_ids:
+    # Build per_assignee_due_dates for ALL chores (SHARED + INDEPENDENT)
+    per_assignee_due_dates: dict[str, str | None] = {}
+    for assignee_id in assigned_user_ids:
         if (
-            existing_per_kid_due_dates
+            existing_per_assignee_due_dates
             and completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            and kid_id in existing_per_kid_due_dates
+            and assignee_id in existing_per_assignee_due_dates
             and not clear_due_date
         ):
-            per_kid_due_dates[kid_id] = existing_per_kid_due_dates[kid_id]
+            per_assignee_due_dates[assignee_id] = existing_per_assignee_due_dates[
+                assignee_id
+            ]
         else:
-            per_kid_due_dates[kid_id] = due_date_str
+            per_assignee_due_dates[assignee_id] = due_date_str
 
     # Clean up custom interval fields if not using custom frequency
     recurring_freq = user_input.get(const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY)
@@ -1098,7 +1186,7 @@ def transform_chore_cfof_to_data(
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS, const.DEFAULT_POINTS
         ),
         const.DATA_CHORE_COMPLETION_CRITERIA: completion_criteria,
-        const.DATA_CHORE_PER_KID_DUE_DATES: per_kid_due_dates,
+        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: per_assignee_due_dates,
         const.DATA_CHORE_APPROVAL_RESET_TYPE: user_input.get(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
             const.DEFAULT_APPROVAL_RESET_TYPE,
@@ -1111,7 +1199,7 @@ def transform_chore_cfof_to_data(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
             const.DEFAULT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
         ),
-        const.DATA_CHORE_ASSIGNED_KIDS: assigned_kids_ids,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
         const.DATA_CHORE_DESCRIPTION: user_input.get(
             const.CFOF_CHORES_INPUT_DESCRIPTION, const.SENTINEL_EMPTY
         ),
@@ -1223,67 +1311,70 @@ def validate_chore_frequency_reset_combination(
     return errors
 
 
-def validate_daily_multi_kids(
+def validate_daily_multi_assignees(
     recurring_frequency: str,
     completion_criteria: str,
-    assigned_kids: list[str],
-    per_kid_times: dict[str, str] | None = None,
+    assigned_assignees: list[str],
+    per_assignee_times: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    """Validate DAILY_MULTI kid assignment rules.
+    """Validate DAILY_MULTI assignee assignment rules.
 
     Args:
         recurring_frequency: The chore's recurring frequency.
         completion_criteria: The chore's completion criteria.
-        assigned_kids: List of assigned kid IDs or names.
-        per_kid_times: Per-kid times dict (if provided, allows multi-kids).
+        assigned_assignees: List of assigned assignee IDs or names.
+        per_assignee_times: Per-assignee times dict (if provided, allows multi-assignees).
 
     Returns:
         Dictionary of errors (empty if validation passes).
         Key is error field (CFOP_ERROR_*), value is translation key.
 
-    PKAD-2026-001: Now allows DAILY_MULTI + INDEPENDENT + multi-kids
-    when per_kid_times is provided (each kid has own time slots).
+    PKAD-2026-001: Now allows DAILY_MULTI + INDEPENDENT + multi-assignees
+    when per_assignee_times is provided (each assignee has own time slots).
     """
     errors: dict[str, str] = {}
 
     if recurring_frequency == const.FREQUENCY_DAILY_MULTI:
-        # DAILY_MULTI + INDEPENDENT: allowed if per_kid_times exists
-        # (each kid gets their own time slots)
+        # DAILY_MULTI + INDEPENDENT: allowed if per_assignee_times exists
+        # (each assignee gets their own time slots)
         if (
             completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            and len(assigned_kids) > 1
-            and not per_kid_times
+            and len(assigned_assignees) > 1
+            and not per_assignee_times
         ):
-            errors[const.CFOP_ERROR_DAILY_MULTI_KIDS] = (
-                const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_KIDS
+            errors[const.CFOP_ERROR_DAILY_MULTI_USER_IDS] = (
+                const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_ASSIGNEES
             )
 
     return errors
 
 
-def validate_per_kid_applicable_days(
-    per_kid_days: dict[str, list[int]],
+def validate_per_assignee_applicable_days(
+    per_assignee_days: dict[str, list[int]],
 ) -> tuple[bool, str | None]:
-    """Validate per-kid applicable days structure.
+    """Validate per-assignee applicable days structure.
 
     Args:
-        per_kid_days: {kid_id: [0, 3], ...} where 0=Mon, 6=Sun
+        per_assignee_days: {assignee_id: [0, 3], ...} where 0=Mon, 6=Sun
 
     Returns:
         Tuple of (is_valid, error_key_or_none)
 
     Validation Rules (PKAD-2026-001):
     - Empty dict allowed (use chore-level defaults)
-    - Each kid value must be list of integers (0-6)
+    - Each assignee value must be list of integers (0-6)
     - Empty list = all days applicable (valid)
-    - No duplicate days in single kid's list
+    - No duplicate days in single assignee's list
     """
-    if not per_kid_days:
+    if not per_assignee_days:
         return (True, None)  # Empty = use defaults
 
-    for _kid_id, days in per_kid_days.items():
+    for _assignee_id, days in per_assignee_days.items():
         if not isinstance(days, list):
-            return (False, const.TRANS_KEY_CFOF_ERROR_PER_KID_APPLICABLE_DAYS_INVALID)
+            return (
+                False,
+                const.TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_APPLICABLE_DAYS_INVALID,
+            )
 
         if not days:
             continue  # Empty list = all days (valid)
@@ -1292,24 +1383,27 @@ def validate_per_kid_applicable_days(
             if not isinstance(day, int) or day < 0 or day > 6:
                 return (
                     False,
-                    const.TRANS_KEY_CFOF_ERROR_PER_KID_APPLICABLE_DAYS_INVALID,
+                    const.TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_APPLICABLE_DAYS_INVALID,
                 )
 
         # Check for duplicates
         if len(days) != len(set(days)):
-            return (False, const.TRANS_KEY_CFOF_ERROR_PER_KID_APPLICABLE_DAYS_INVALID)
+            return (
+                False,
+                const.TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_APPLICABLE_DAYS_INVALID,
+            )
 
     return (True, None)
 
 
-def validate_per_kid_daily_multi_times(
-    per_kid_times: dict[str, str],
+def validate_per_assignee_daily_multi_times(
+    per_assignee_times: dict[str, str],
     frequency: str,
 ) -> tuple[bool, str | None]:
-    """Validate per-kid daily multi-times (only for DAILY_MULTI frequency).
+    """Validate per-assignee daily multi-times (only for DAILY_MULTI frequency).
 
     Args:
-        per_kid_times: {kid_id: "08:00|17:00", ...}
+        per_assignee_times: {assignee_id: "08:00|17:00", ...}
         frequency: Chore recurring frequency
 
     Returns:
@@ -1320,10 +1414,10 @@ def validate_per_kid_daily_multi_times(
     if frequency != const.FREQUENCY_DAILY_MULTI:
         return (True, None)  # Not applicable
 
-    if not per_kid_times:
+    if not per_assignee_times:
         return (True, None)  # Empty = use chore-level times
 
-    for _kid_id, times_str in per_kid_times.items():
+    for _assignee_id, times_str in per_assignee_times.items():
         if not times_str or not times_str.strip():
             continue  # Empty = use chore-level default
 
@@ -1332,7 +1426,7 @@ def validate_per_kid_daily_multi_times(
         if errors:
             return (
                 False,
-                const.TRANS_KEY_CFOF_ERROR_PER_KID_DAILY_MULTI_TIMES_INVALID,
+                const.TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_DAILY_MULTI_TIMES_INVALID,
             )
 
     return (True, None)
@@ -1397,7 +1491,7 @@ def validate_daily_multi_times(times_str: str) -> dict[str, str]:
 # --- Consolidated Schema Function ---
 def build_badge_common_schema(
     default: dict[str, Any] | None = None,
-    kids_dict: dict[str, Any] | None = None,
+    assignees_dict: dict[str, Any] | None = None,
     chores_dict: dict[str, Any] | None = None,
     rewards_dict: dict[str, Any] | None = None,
     challenges_dict: dict[str, Any] | None = None,
@@ -1416,7 +1510,7 @@ def build_badge_common_schema(
     Args:
         default: Optional dict for backwards compatibility. When None (recommended),
                  the schema uses static defaults suitable for new badges.
-        kids_dict: Dictionary of available kids for the assigned_to selector.
+        assignees_dict: Dictionary of available assignees for the assigned_user_ids selector.
         chores_dict: Dictionary of available chores for the tracked selector.
         rewards_dict: Dictionary of available rewards for the awards selector.
         challenges_dict: Dictionary of available challenges for linked badges.
@@ -1434,7 +1528,7 @@ def build_badge_common_schema(
         parameter is maintained for backwards compatibility with existing code.
     """
     default = default or {}
-    kids_dict = kids_dict or {}
+    assignees_dict = assignees_dict or {}
     chores_dict = chores_dict or {}
     rewards_dict = rewards_dict or {}
     challenges_dict = challenges_dict or {}
@@ -1452,7 +1546,9 @@ def build_badge_common_schema(
     )
     include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-    include_assigned_to = badge_type in const.INCLUDE_ASSIGNED_TO_BADGE_TYPES
+    include_assigned_user_ids = (
+        badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
+    )
     include_awards = badge_type in const.INCLUDE_AWARDS_BADGE_TYPES
     include_penalties = badge_type in const.INCLUDE_PENALTIES_BADGE_TYPES
     include_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
@@ -1676,26 +1772,28 @@ def build_badge_common_schema(
         )
 
     # --- Assigned To Component Schema ---
-    if include_assigned_to:
-        kid_options = [{"value": const.SENTINEL_EMPTY, "label": const.LABEL_NONE}]
-        kid_options += [
+    if include_assigned_user_ids:
+        assignee_options = [{"value": const.SENTINEL_EMPTY, "label": const.LABEL_NONE}]
+        assignee_options += [
             {
-                "value": kid_id,
-                "label": kid.get(const.DATA_KID_NAME, const.SENTINEL_NONE_TEXT),
+                "value": assignee_id,
+                "label": assignee.get(const.DATA_USER_NAME, const.SENTINEL_NONE_TEXT),
             }
-            for kid_id, kid in kids_dict.items()
+            for assignee_id, assignee in assignees_dict.items()
         ]
         schema_fields.update(
             {
                 vol.Optional(
-                    const.CFOF_BADGES_INPUT_ASSIGNED_TO,
+                    const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
                     default=[],
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=cast("list[selector.SelectOptionDict]", kid_options),
+                        options=cast(
+                            "list[selector.SelectOptionDict]", assignee_options
+                        ),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
-                        translation_key=const.TRANS_KEY_CFOF_BADGE_ASSIGNED_TO,
+                        translation_key=const.TRANS_KEY_CFOF_BADGE_ASSIGNED_USER_IDS,
                     )
                 )
             }
@@ -1944,7 +2042,9 @@ def validate_badge_common_inputs(
     )
     include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-    include_assigned_to = badge_type in const.INCLUDE_ASSIGNED_TO_BADGE_TYPES
+    include_assigned_user_ids = (
+        badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
+    )
     include_awards = badge_type in const.INCLUDE_AWARDS_BADGE_TYPES
     include_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
 
@@ -1956,11 +2056,13 @@ def validate_badge_common_inputs(
     # --- Start Common Validation ---
     badge_name = user_input.get(const.CFOF_BADGES_INPUT_NAME, "").strip()
 
-    # Feature Change v4.2: Validate assigned_to is not empty for badge types that support it
-    if include_assigned_to:
-        assigned_to = user_input.get(const.CFOF_BADGES_INPUT_ASSIGNED_TO, [])
-        if not assigned_to or len(assigned_to) == 0:
-            errors[const.CFOF_BADGES_INPUT_ASSIGNED_TO] = (
+    # Feature Change v4.2: Validate assigned_user_ids for badge types that support it
+    if include_assigned_user_ids:
+        assigned_user_ids = user_input.get(
+            const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS, []
+        )
+        if not assigned_user_ids or len(assigned_user_ids) == 0:
+            errors[const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS] = (
                 const.TRANS_KEY_CFOF_BADGE_REQUIRES_ASSIGNMENT
             )
 
@@ -2094,13 +2196,13 @@ def validate_badge_common_inputs(
             )
 
     # --- Assigned To Component Validation ---
-    if include_assigned_to:
-        assigned = user_input.get(const.CFOF_BADGES_INPUT_ASSIGNED_TO, [])
+    if include_assigned_user_ids:
+        assigned = user_input.get(const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS, [])
         if not isinstance(assigned, list):
-            errors[const.CFOF_BADGES_INPUT_ASSIGNED_TO] = (
+            errors[const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS] = (
                 "invalid_format_list_expected"  # Use translation keys
             )
-        # Optional: Check existence of kid IDs here if needed
+        # Optional: Check existence of assignee IDs here if needed
 
     # --- Awards Component Validation ---
     award_items_valid_values = None
@@ -2532,15 +2634,16 @@ def process_penalty_form_input(user_input: dict) -> dict:
 # ----------------------------------------------------------------------------------
 
 
-def build_achievement_schema(kids_dict, chores_dict, default=None):
+def build_achievement_schema(assignees_dict, chores_dict, default=None):
     """Build a schema for achievements, keyed by internal_id.
 
     Note: default parameter is kept for backwards compatibility but should NOT
     be used. Instead, use add_suggested_values_to_schema() after schema creation.
     This allows users to clear optional fields (suggested values vs defaults).
     """
-    kid_options = [
-        {"value": kid_id, "label": kid_name} for kid_name, kid_id in kids_dict.items()
+    assignee_options = [
+        {"value": assignee_id, "label": assignee_name}
+        for assignee_name, assignee_id in assignees_dict.items()
     ]
 
     chore_options = [{"value": const.SENTINEL_EMPTY, "label": const.LABEL_NONE}]
@@ -2561,12 +2664,12 @@ def build_achievement_schema(kids_dict, chores_dict, default=None):
             ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
             vol.Optional(const.CFOF_ACHIEVEMENTS_INPUT_ICON): selector.IconSelector(),
             vol.Required(
-                const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS,
+                const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS,
                 default=[],
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", kid_options),
-                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_KIDS,
+                    options=cast("list[selector.SelectOptionDict]", assignee_options),
+                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
                     multiple=True,
                 )
             ),
@@ -2648,9 +2751,11 @@ def validate_achievements_inputs(
     from .. import data_builders as db
 
     # Transform CFOF_* keys to DATA_* keys
-    assigned_kids = user_input.get(const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS, [])
-    if not isinstance(assigned_kids, list):
-        assigned_kids = [assigned_kids] if assigned_kids else []
+    assigned_assignees = user_input.get(
+        const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS, []
+    )
+    if not isinstance(assigned_assignees, list):
+        assigned_assignees = [assigned_assignees] if assigned_assignees else []
 
     data = {
         const.DATA_ACHIEVEMENT_NAME: user_input.get(
@@ -2662,7 +2767,7 @@ def validate_achievements_inputs(
         const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID: user_input.get(
             const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID, const.SENTINEL_EMPTY
         ),
-        const.DATA_ACHIEVEMENT_ASSIGNED_KIDS: assigned_kids,
+        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: assigned_assignees,
     }
 
     return db.validate_achievement_data(
@@ -2677,11 +2782,11 @@ def validate_achievements_inputs(
 # ----------------------------------------------------------------------------------
 
 
-def build_challenge_schema(kids_dict, chores_dict, default=None):
-    """Build a schema for challenges, referencing kids by name (like chores).
+def build_challenge_schema(assignees_dict, chores_dict, default=None):
+    """Build a schema for challenges, referencing assignees by name (like chores).
 
     Args:
-        kids_dict: Mapping of kid names to internal IDs (same as chores).
+        assignees_dict: Mapping of assignee names to internal IDs (same as chores).
         chores_dict: Mapping of chore IDs to chore data for selection.
         default: Optional dict with default/suggested values for the form.
                  For DateTimeSelector fields, values must be in "%Y-%m-%d %H:%M:%S"
@@ -2689,7 +2794,7 @@ def build_challenge_schema(kids_dict, chores_dict, default=None):
     """
     default = default or {}
     # Use names as values (same pattern as chores)
-    kid_choices = list(kids_dict.keys())
+    assignee_choices = list(assignees_dict.keys())
 
     chore_options = [{"value": const.SENTINEL_EMPTY, "label": const.LABEL_NONE}]
     for chore_id, chore_data in chores_dict.items():
@@ -2709,12 +2814,12 @@ def build_challenge_schema(kids_dict, chores_dict, default=None):
             ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
             vol.Optional(const.CFOF_CHALLENGES_INPUT_ICON): selector.IconSelector(),
             vol.Required(
-                const.CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS,
+                const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS,
                 default=[],
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
-                    options=kid_choices,
-                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_KIDS,
+                    options=assignee_choices,
+                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
                     multiple=True,
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
@@ -2804,13 +2909,15 @@ def validate_challenges_inputs(
     from .. import data_builders as db
 
     # Transform CFOF_* keys to DATA_* keys
-    assigned_kids = user_input.get(const.CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS, [])
-    if not isinstance(assigned_kids, list):
-        assigned_kids = [assigned_kids] if assigned_kids else []
+    assigned_assignees = user_input.get(
+        const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS, []
+    )
+    if not isinstance(assigned_assignees, list):
+        assigned_assignees = [assigned_assignees] if assigned_assignees else []
 
     data = {
         const.DATA_CHALLENGE_NAME: user_input.get(const.CFOF_CHALLENGES_INPUT_NAME, ""),
-        const.DATA_CHALLENGE_ASSIGNED_KIDS: assigned_kids,
+        const.DATA_CHALLENGE_ASSIGNED_USER_IDS: assigned_assignees,
         const.DATA_CHALLENGE_START_DATE: user_input.get(
             const.CFOF_CHALLENGES_INPUT_START_DATE
         ),

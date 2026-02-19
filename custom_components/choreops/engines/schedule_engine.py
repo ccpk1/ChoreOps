@@ -1,4 +1,4 @@
-"""Schedule Engine for KidsChores.
+"""Schedule Engine for ChoreOps.
 
 Unified scheduling engine using a hybrid approach:
 - `dateutil.rrule` for standard patterns (DAILY, WEEKLY, period-ends)
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 
 
 class RecurrenceEngine:
-    """Unified scheduling engine using dateutil.rrule with KidsChores extensions.
+    """Unified scheduling engine using dateutil.rrule with ChoreOps extensions.
 
     Handles all frequency types:
     - Standard: DAILY, WEEKLY, BIWEEKLY, MONTHLY, QUARTERLY, YEARLY
@@ -59,7 +59,7 @@ class RecurrenceEngine:
     (e.g., Jan 31 + 1 month = Feb 28, not skipped).
     """
 
-    # Mapping from KidsChores frequency constants to rrule frequencies
+    # Mapping from ChoreOps frequency constants to rrule frequencies
     FREQUENCY_TO_RRULE: ClassVar[dict[str, int]] = {
         const.FREQUENCY_DAILY: DAILY,
         const.FREQUENCY_WEEKLY: WEEKLY,
@@ -1090,7 +1090,7 @@ def calculate_next_due_date_from_chore_info(
 ) -> datetime | None:
     """Calculate next due date for a chore based on frequency (pure calculation helper).
 
-    Consolidated scheduling logic used by both chore-level and per-kid rescheduling.
+    Consolidated scheduling logic used by both chore-level and per-assignee rescheduling.
 
     Args:
         current_due_utc: Current due date (UTC datetime, can be None)

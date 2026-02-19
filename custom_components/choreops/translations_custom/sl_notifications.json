@@ -1,105 +1,105 @@
 {
-  "_comment_kid_section": "══════════════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "OBVESTILA ZA OTROKE: Igrificiran, drugoosebni, spodbuden ton z emojiji. BREZ predpone »KidsChores:«.",
-  "_comment_kid_footer": "══════════════════════════════════════════════════════════════════════════",
-  "chore_approved_kid": {
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "OBVESTILA ZA OTROKE: Igrificiran, drugoosebni, spodbuden ton z emojiji. BREZ predpone »ChoreOps:«.",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "🎉 Opravilo odobreno!",
     "message": "{chore_name} odobreno! Zaslužili ste si {points} točk"
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Opravilo vrnjeno",
     "message": "{chore_name} potrebuje več dela."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Opravilo je zamujeno",
     "message": "{chore_name} je že v zamudi! Izpolnite ga zdaj in si prislužite {points} točk"
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Opravilo je poteklo",
     "message": "{chore_name} je potekel brez dokončanja."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Opomnik za opravila",
     "message": "{chore_name} je zapadlo čez {minutes} minut! Vredno {points} točk"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Rok za opravilo",
     "message": "Rok za oddajo {chore_name} je zdaj! Izpolnite v {hours} urah in zaslužite {points} točk"
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 Nagrada odobrena!",
     "message": "{reward_name} odobreno!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "💭 Zahteva za nagrado vrnjena",
     "message": "{reward_name} tokrat ni bil odobren."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "🥇 Prislužena značka!",
     "message": "Pridobili ste značko {badge_name}!"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "🏆 Dosežek dosežen!",
     "message": "Zaslužili ste si {achievement_name}! Nadaljujte z odličnim delom."
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 Izziv zaključen!",
     "message": "Končali ste {challenge_name}! Nadaljujte z odličnim delom"
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Izrečena kazen",
     "message": "{penalty_name}: {points} odbitih točk. Gremo nazaj na pravo pot!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ Bonus je bil uporabljen!",
     "message": "{bonus_name}: Prislužili ste si {points} bonus točk! Odlično opravljeno"
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Množitelj posodobljen",
     "message": "Vaš množitelj točk se je spremenil iz {old_multiplier}x na {new_multiplier}x"
   },
-  "_comment_parent_section": "══════════════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "OBVESTILA ZA STARŠE: Informativna, v tretji osebi, z možnostjo ukrepanja. Oblika: '{kid_name}: Dejanje'. BREZ predpone 'KidsChores:'.",
-  "_comment_parent_footer": "══════════════════════════════════════════════════════════════════════════",
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Opravilo prevzeto",
-    "message": "{kid_name} je zahteval {chore_name} in zdaj dela na tem"
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "OBVESTILA ZA STARŠE: Informativna, v tretji osebi, z možnostjo ukrepanja. Oblika: '{assignee_name}: Dejanje'. BREZ predpone 'ChoreOps:'.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Opravilo prevzeto",
+    "message": "{assignee_name} je zahteval {chore_name} in zdaj dela na tem"
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Potrebna je odobritev",
-    "message": "Opomnik: {chore_name} , ki ga je zahteval {kid_name} , čaka na vaš pregled"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Potrebna je odobritev",
+    "message": "Opomnik: {chore_name} , ki ga je zahteval {assignee_name} , čaka na vaš pregled"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Opravilo je zamudilo",
-    "message": "Naloga uporabnika {kid_name} {chore_name} je že v zamudi (rok: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Opravilo je zamudilo",
+    "message": "Naloga uporabnika {assignee_name} {chore_name} je že v zamudi (rok: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} V teku",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} V teku",
     "message": "{count} opravil, ki čakajo na pregled. Zadnja: {latest_chore} (+{points} točk)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Zahteva za nagrado",
-    "message": "{kid_name} je zahteval {reward_name} za {points} točk"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Zahteva za nagrado",
+    "message": "{assignee_name} je zahteval {reward_name} za {points} točk"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Nagrada čaka",
-    "message": "Opomnik: {reward_name} , ki ga je zahteval {kid_name} , čaka na vašo odobritev"
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Nagrada čaka",
+    "message": "Opomnik: {reward_name} , ki ga je zahteval {assignee_name} , čaka na vašo odobritev"
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Značka prislužena",
-    "message": "{kid_name} si je prislužil/a značko {badge_name}!"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Značka prislužena",
+    "message": "{assignee_name} si je prislužil/a značko {badge_name}!"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Dosežek",
-    "message": "{kid_name} zaslužil {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Dosežek",
+    "message": "{assignee_name} zaslužil {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Izziv opravljen",
-    "message": "{kid_name} končano {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Izziv opravljen",
+    "message": "{assignee_name} končano {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Množitelj posodobljen",
-    "message": "Množitelj točk igralca {kid_name}se je spremenil iz {old_multiplier}x na {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Množitelj posodobljen",
+    "message": "Množitelj točk igralca {assignee_name}se je spremenil iz {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "OBVESTILA SISTEMA/ADMINIRANJA: Postopki upravljanja podatkov",
@@ -112,9 +112,9 @@
     "title": "🔄 Otroška opravila: Popolna ponastavitev",
     "message": "Vsi sistemski podatki so bili ponastavljeni na privzete vrednosti"
   },
-  "data_reset_kid": {
+  "data_reset_assignee": {
     "title": "🔄 Otroška opravila: Ponastavitev otrok",
-    "message": "Ponastavitev podatkov za {kid_name}"
+    "message": "Ponastavitev podatkov za {assignee_name}"
   },
   "data_reset_item_type": {
     "title": "🔄 Otroška opravila: {item_type} Ponastavi",

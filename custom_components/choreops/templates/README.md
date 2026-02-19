@@ -1,6 +1,6 @@
-# KidsChores Dashboard Templates
+# ChoreOps Dashboard Templates
 
-This folder contains Jinja2/YAML templates for auto-generating Lovelace dashboards via the KidsChores integration.
+This folder contains Jinja2/YAML templates for auto-generating Lovelace dashboards via the ChoreOps integration.
 
 ## Template Schema Version
 
@@ -15,18 +15,18 @@ Templates use **two different Jinja2 syntaxes**:
 
 | Syntax | Processed By | When Evaluated | Example |
 |--------|--------------|----------------|---------|
-| `<< variable >>` | Python (integration) | Dashboard generation time | `<< kid.name >>`, `<< kid.slug >>` |
+| `<< variable >>` | Python (integration) | Dashboard generation time | `<< assignee.name >>`, `<< assignee.slug >>` |
 | `{{ expression }}` | Home Assistant | Dashboard runtime | `{{ states('sensor.x') }}` |
 
 This separation prevents conflicts. The Python Jinja2 environment uses custom delimiters:
 - Variable: `<<` and `>>`
 - Block: `<%` and `%>` (if needed)
 
-**Kid-specific templates** (`full`, `minimal`, `compact`) only need two injection points:
-- `<< kid.name >>` - Child's display name (used in `{%- set name = '...' -%}`)
-- `<< kid.slug >>` - URL-safe slug (used in `path:` only)
+**Assignee-specific templates** (`full`, `minimal`, `compact`) only need two injection points:
+- `<< assignee.name >>` - Child's display name (used in `{%- set name = '...' -%}`)
+- `<< assignee.slug >>` - URL-safe slug (used in `path:` only)
 
-**Admin template** needs NO injection - it's fully dynamic using HA Jinja2 to discover all kids.
+**Admin template** needs NO injection - it's fully dynamic using HA Jinja2 to discover all assignees.
 
 ## Available Styles
 
@@ -35,17 +35,17 @@ This separation prevents conflicts. The Python Jinja2 environment uses custom de
 | `full`    | `dashboard_full.yaml`    | Full-featured dashboard with all cards (welcome, chores, rewards, badges, achievements, challenges, approvals) |
 | `minimal` | `dashboard_minimal.yaml` | Essentials only: welcome card, chores, and rewards                                                             |
 | `compact` | `dashboard_compact.yaml` | Same as full but with denser 3-column layout and smaller cards                                                 |
-| `admin`   | `dashboard_admin.yaml`   | Parent administration dashboard with kid dropdown selector                                                     |
+| `admin`   | `dashboard_admin.yaml`   | Approver administration dashboard with assignee dropdown selector                                                     |
 
 ## Template Variables (Simplified)
 
-For kid dashboards, the integration passes just:
+For assignee dashboards, the integration passes just:
 
 ```python
 {
-    "kid": {
-        "name": str,   # e.g., "Alice" - injected as << kid.name >>
-        "slug": str,   # e.g., "alice" - injected as << kid.slug >>
+    "assignee": {
+        "name": str,   # e.g., "Alice" - injected as << assignee.name >>
+        "slug": str,   # e.g., "alice" - injected as << assignee.slug >>
     }
 }
 ```

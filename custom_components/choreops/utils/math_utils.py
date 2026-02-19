@@ -1,5 +1,5 @@
 # File: utils/math_utils.py
-"""Math and calculation utilities for KidsChores.
+"""Math and calculation utilities for ChoreOps.
 
 Pure Python math functions with ZERO Home Assistant dependencies.
 All functions here can be unit tested without Home Assistant mocking.

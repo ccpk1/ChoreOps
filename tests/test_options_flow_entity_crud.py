@@ -25,14 +25,14 @@ from tests.helpers import (
     APPROVAL_RESET_AT_MIDNIGHT_ONCE,
     APPROVAL_RESET_UPON_COMPLETION,
     BADGE_TYPE_CUMULATIVE,
-    CFOF_BADGES_INPUT_ASSIGNED_TO,
+    CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
     CFOF_BADGES_INPUT_AWARD_POINTS,
     CFOF_BADGES_INPUT_ICON,
     CFOF_BADGES_INPUT_NAME,
     CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE,
     CFOF_BADGES_INPUT_TYPE,
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
-    CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_DESCRIPTION,
@@ -41,13 +41,12 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_NAME,
     CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE,
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
-    CFOF_KIDS_INPUT_KID_NAME,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_ROTATION_SIMPLE,
     CONF_POINTS_ICON,
     CONF_POINTS_LABEL,
     CONF_UPDATE_INTERVAL,
-    DATA_KID_NAME,
+    DATA_ASSIGNEE_NAME,
     DOMAIN,
     FREQUENCY_DAILY,
     FREQUENCY_DAILY_MULTI,
@@ -60,20 +59,18 @@ from tests.helpers import (
     OPTIONS_FLOW_CHORES,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
-    OPTIONS_FLOW_KIDS,
-    OPTIONS_FLOW_PARENTS,
     OPTIONS_FLOW_PENALTIES,
     OPTIONS_FLOW_REWARDS,
     OPTIONS_FLOW_STEP_ADD_ACHIEVEMENT,
     OPTIONS_FLOW_STEP_ADD_BONUS,
     OPTIONS_FLOW_STEP_ADD_CHALLENGE,
     OPTIONS_FLOW_STEP_ADD_CHORE,
-    OPTIONS_FLOW_STEP_ADD_KID,
-    OPTIONS_FLOW_STEP_ADD_PARENT,
     OPTIONS_FLOW_STEP_ADD_PENALTY,
     OPTIONS_FLOW_STEP_ADD_REWARD,
+    OPTIONS_FLOW_STEP_ADD_USER,
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
+    OPTIONS_FLOW_USERS,
     OVERDUE_HANDLING_AT_DUE_DATE,
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET,
     SCHEMA_VERSION_STORAGE_ONLY,
@@ -97,7 +94,7 @@ async def init_integration(
     """
     config_entry = MockConfigEntry(
         domain=DOMAIN,
-        title="KidsChores",
+        title="ChoreOps",
         data={"schema_version": SCHEMA_VERSION_STORAGE_ONLY},
         options={
             CONF_POINTS_LABEL: "Points",
@@ -123,7 +120,7 @@ async def init_integration_with_coordinator(
 ) -> SetupResult:
     """Initialize integration with a real coordinator for entity CRUD tests.
 
-    Uses a minimal scenario with 1 kid and 1 parent so coordinator is properly
+    Uses a minimal scenario with 1 assignee and 1 approver so coordinator is properly
     initialized. Tests can then add more entities via options flow.
     """
     from tests.helpers.setup import setup_from_yaml
@@ -151,13 +148,13 @@ async def test_options_flow_init_shows_menu(
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
 
-async def test_options_flow_navigate_to_kids_menu(
+async def test_options_flow_navigate_to_assignees_menu(
     hass: HomeAssistant,
     init_integration: MockConfigEntry,
 ) -> None:
-    """Test navigating to kids management menu."""
+    """Test navigating to users management menu."""
     result = await FlowTestHelper.navigate_to_entity_menu(
-        hass, init_integration.entry_id, OPTIONS_FLOW_KIDS
+        hass, init_integration.entry_id, OPTIONS_FLOW_USERS
     )
 
     assert result.get("type") == FlowResultType.FORM
@@ -195,9 +192,9 @@ async def test_options_flow_back_to_menu(
     init_integration: MockConfigEntry,
 ) -> None:
     """Test back navigation returns to main menu."""
-    # Navigate to kids menu
+    # Navigate to users menu
     result = await FlowTestHelper.navigate_to_entity_menu(
-        hass, init_integration.entry_id, OPTIONS_FLOW_KIDS
+        hass, init_integration.entry_id, OPTIONS_FLOW_USERS
     )
 
     # Go back
@@ -215,27 +212,28 @@ async def test_options_flow_back_to_menu(
 # =========================================================================
 
 
-async def test_add_kid_via_options_flow(
+async def test_add_assignee_via_options_flow(
     hass: HomeAssistant,
     init_integration_with_coordinator: SetupResult,
 ) -> None:
-    """Test adding a kid via options flow using YAML-style data."""
+    """Test adding a user via options flow using YAML-style data."""
     config_entry = init_integration_with_coordinator.config_entry
 
-    yaml_kid = {
-        "name": "Test Kid",
-        "icon": "mdi:human-child",
+    yaml_approver = {
+        "name": "Test User",
+        "icon": "mdi:account-tie",
         "ha_user_name": "",
         "dashboard_language": "en",
+        "can_be_assigned": True,
     }
 
-    form_data = FlowTestHelper.build_kid_form_data(yaml_kid)
+    form_data = FlowTestHelper.build_approver_form_data(yaml_approver)
 
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
@@ -243,33 +241,34 @@ async def test_add_kid_via_options_flow(
     assert result.get("type") == FlowResultType.FORM
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    # Verify kid was created via coordinator
+    # Verify user was created via coordinator
     coordinator = init_integration_with_coordinator.coordinator
-    kid_names = [k["name"] for k in coordinator.kids_data.values()]
-    assert "Test Kid" in kid_names
+    assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
+    assert "Test User" in assignee_names
 
 
-async def test_add_parent_via_options_flow(
+async def test_add_approver_via_options_flow(
     hass: HomeAssistant,
     init_integration_with_coordinator: SetupResult,
 ) -> None:
-    """Test adding a parent via options flow."""
+    """Test adding a approver via options flow."""
     config_entry = init_integration_with_coordinator.config_entry
 
-    yaml_parent = {
-        "name": "Test Parent",
+    yaml_approver = {
+        "name": "Test Approver",
         "icon": "mdi:account-tie",
         "ha_user_name": "",
         "enable_notifications": False,
+        "can_be_assigned": True,
     }
 
-    form_data = FlowTestHelper.build_parent_form_data(yaml_parent)
+    form_data = FlowTestHelper.build_approver_form_data(yaml_approver)
 
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_PARENTS,
-        OPTIONS_FLOW_STEP_ADD_PARENT,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
@@ -277,10 +276,10 @@ async def test_add_parent_via_options_flow(
     assert result.get("type") == FlowResultType.FORM
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    # Verify parent was created via coordinator
+    # Verify user was created via coordinator
     coordinator = init_integration_with_coordinator.coordinator
-    parent_names = [p["name"] for p in coordinator.parents_data.values()]
-    assert "Test Parent" in parent_names
+    assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
+    assert "Test Approver" in assignee_names
 
 
 async def test_add_chore_via_options_flow(
@@ -291,18 +290,20 @@ async def test_add_chore_via_options_flow(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    # Use an existing kid from the scenario
-    existing_kid_names = [k["name"] for k in coordinator.kids_data.values()]
-    assert len(existing_kid_names) > 0, "Scenario should have at least one kid"
-    kid_name = existing_kid_names[0]  # Use first kid from scenario
+    # Use an existing assignee from the scenario
+    existing_assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+    assert len(existing_assignee_names) > 0, (
+        "Scenario should have at least one assignee"
+    )
+    assignee_name = existing_assignee_names[0]  # Use first assignee from scenario
 
-    # Now add a chore assigned to existing kid
+    # Now add a chore assigned to existing assignee
     yaml_chore = {
         "name": "Test Chore",
         "points": 15,
         "icon": "mdi:broom",
         "type": "daily",
-        "assigned_to": [kid_name],
+        "assigned_to": [assignee_name],
         "auto_approve": False,
         "completion_criteria": "independent",
     }
@@ -434,8 +435,8 @@ async def test_add_badge_via_options_flow(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    # Get existing kid ID for assignment
-    kid_id = next(iter(coordinator.kids_data.keys()))
+    # Get existing assignee ID for assignment
+    assignee_id = next(iter(coordinator.assignees_data.keys()))
 
     # Badge flow requires 2 steps: type selection, then details
     # Step 1: Navigate to badges menu
@@ -463,7 +464,7 @@ async def test_add_badge_via_options_flow(
     badge_data = {
         CFOF_BADGES_INPUT_NAME: "Chore Champion",
         CFOF_BADGES_INPUT_ICON: "mdi:medal",
-        CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+        CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
         CFOF_BADGES_INPUT_AWARD_POINTS: 25,
         CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
     }
@@ -489,8 +490,8 @@ async def test_add_achievement_via_options_flow(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    # Get existing kid ID for assignment
-    kid_id = next(iter(coordinator.kids_data.keys()))
+    # Get existing assignee ID for assignment
+    assignee_id = next(iter(coordinator.assignees_data.keys()))
 
     yaml_achievement = {
         "name": "First Ten Chores",
@@ -499,7 +500,7 @@ async def test_add_achievement_via_options_flow(
         "type": "chore_total",  # Valid types: chore_total, chore_streak, daily_minimum
         "target_value": 10,
         "reward_points": 50,
-        "assigned_to": [kid_id],
+        "assigned_to": [assignee_id],
     }
 
     form_data = FlowTestHelper.build_achievement_form_data(yaml_achievement)
@@ -531,9 +532,9 @@ async def test_add_challenge_via_options_flow(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    # Get existing kid NAME for assignment (options flow schema uses names as values)
-    kid_id = next(iter(coordinator.kids_data.keys()))
-    kid_name = coordinator.kids_data[kid_id][DATA_KID_NAME]
+    # Get existing assignee NAME for assignment (options flow schema uses names as values)
+    assignee_id = next(iter(coordinator.assignees_data.keys()))
+    assignee_name = coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_NAME]
 
     # Calculate future dates (options flow validates dates must be in future)
     now = dt_util.utcnow()
@@ -550,8 +551,8 @@ async def test_add_challenge_via_options_flow(
         "start_date": start_date,
         "end_date": end_date,
         "assigned_to": [
-            kid_name
-        ],  # Options flow schema expects kid NAMES as selector values
+            assignee_name
+        ],  # Options flow schema expects assignee NAMES as selector values
     }
 
     form_data = FlowTestHelper.build_challenge_form_data(yaml_challenge)
@@ -590,14 +591,14 @@ async def test_add_entities_from_minimal_scenario(
     """
     config_entry = init_integration_with_coordinator.config_entry
 
-    # Add a NEW kid (not from scenario - that would be duplicate)
-    new_kid_data = {"name": "New Scenario Kid"}
-    form_data = FlowTestHelper.build_kid_form_data(new_kid_data)
+    # Add a NEW user (not from scenario - that would be duplicate)
+    new_approver_data = {"name": "New Scenario User", "can_be_assigned": True}
+    form_data = FlowTestHelper.build_approver_form_data(new_approver_data)
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
     # Verify flow succeeded (returns to init)
@@ -605,8 +606,8 @@ async def test_add_entities_from_minimal_scenario(
 
     # After options flow add, integration reloads - get fresh coordinator
     coordinator = config_entry.runtime_data
-    kid_names = [k["name"] for k in coordinator.kids_data.values()]
-    assert "New Scenario Kid" in kid_names
+    assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
+    assert "New Scenario User" in assignee_names
 
     # Add a NEW reward (not the existing "Ice Créam!")
     new_reward_data = {"name": "New Scenario Reward", "cost": 50}
@@ -632,36 +633,38 @@ async def test_add_entities_from_minimal_scenario(
 # =========================================================================
 
 
-async def test_add_duplicate_kid_name_error(
+async def test_add_duplicate_assignee_name_error(
     hass: HomeAssistant,
     init_integration_with_coordinator: SetupResult,
 ) -> None:
-    """Test error when adding kid with duplicate name."""
+    """Test error when adding user with duplicate name."""
     config_entry = init_integration_with_coordinator.config_entry
 
-    # Add first kid
-    form_data = FlowTestHelper.build_kid_form_data({"name": "Duplicate Kid"})
+    # Add first user
+    form_data = FlowTestHelper.build_approver_form_data(
+        {"name": "Duplicate User", "can_be_assigned": True}
+    )
     await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
-    # Try to add kid with same name
+    # Try to add user with same name
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
     # Should stay on form with error
     assert result.get("type") == FlowResultType.FORM
     errors = result.get("errors") or {}
-    assert "base" in errors or CFOF_KIDS_INPUT_KID_NAME in errors
+    assert "base" in errors or "name" in errors
 
 
 async def test_add_duplicate_chore_name_error(
@@ -672,13 +675,13 @@ async def test_add_duplicate_chore_name_error(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    # Get existing kid name to assign chore
-    kid_name = next(iter(coordinator.kids_data.values()))["name"]
+    # Get existing assignee name to assign chore
+    assignee_name = next(iter(coordinator.assignees_data.values()))["name"]
 
     # Build chore data in YAML format (assigned_to, type)
     yaml_chore = {
         "name": "Unique Test Chore",
-        "assigned_to": [kid_name],
+        "assigned_to": [assignee_name],
         "type": "daily",
         "points": 10,
     }
@@ -728,9 +731,9 @@ async def _navigate_to_add_chore_form(
     ("overrides", "expected_field", "expected_error"),
     [
         (
-            {CFOF_CHORES_INPUT_ASSIGNED_KIDS: []},
-            CFOF_CHORES_INPUT_ASSIGNED_KIDS,
-            "no_kids_assigned",
+            {CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: []},
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+            "no_assignees_assigned",
         ),
         (
             {CFOF_CHORES_INPUT_DEFAULT_POINTS: -1},
@@ -781,10 +784,10 @@ async def _navigate_to_add_chore_form(
         (
             {
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_ROTATION_SIMPLE,
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: ["__single_kid__"],
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["__single_assignee__"],
             },
-            CFOF_CHORES_INPUT_ASSIGNED_KIDS,
-            "rotation_min_kids",
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+            "rotation_min_assignees",
         ),
         (
             {
@@ -797,14 +800,14 @@ async def _navigate_to_add_chore_form(
         ),
     ],
     ids=[
-        "no_kids_assigned",
+        "no_assignees_assigned",
         "invalid_points",
         "due_date_in_past",
         "daily_multi_reset_combo",
         "overdue_reset_combo",
         "daily_multi_requires_due_date",
         "at_due_date_reset_requires_due_date",
-        "rotation_min_kids",
+        "rotation_min_assignees",
         "allow_steal_incompatible",
     ],
 )
@@ -819,8 +822,10 @@ async def test_chore_validation_error_matrix_field_level_and_translated(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    kid_names = [kid[DATA_KID_NAME] for kid in coordinator.kids_data.values()]
-    assert kid_names
+    assignee_names = [
+        assignee[DATA_ASSIGNEE_NAME] for assignee in coordinator.assignees_data.values()
+    ]
+    assert assignee_names
 
     add_form = await _navigate_to_add_chore_form(hass, config_entry.entry_id)
 
@@ -829,7 +834,7 @@ async def test_chore_validation_error_matrix_field_level_and_translated(
         CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
         CFOF_CHORES_INPUT_ICON: "mdi:check",
         CFOF_CHORES_INPUT_DESCRIPTION: "",
-        CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names,
+        CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
         CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
         CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
         CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -838,12 +843,12 @@ async def test_chore_validation_error_matrix_field_level_and_translated(
         + datetime.timedelta(days=1),
     }
 
-    # Replace single-kid sentinel with the first real kid name for the
-    # rotation-min-kids case.
-    if overrides.get(CFOF_CHORES_INPUT_ASSIGNED_KIDS) == ["__single_kid__"]:
+    # Replace single-assignee sentinel with the first real assignee name for the
+    # rotation-min-assignees case.
+    if overrides.get(CFOF_CHORES_INPUT_ASSIGNED_USER_IDS) == ["__single_assignee__"]:
         overrides = {
             **overrides,
-            CFOF_CHORES_INPUT_ASSIGNED_KIDS: [kid_names[0]],
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
         }
 
     form_input.update(overrides)
@@ -871,8 +876,10 @@ async def test_chore_validation_duplicate_name_field_level_and_translated(
     config_entry = init_integration_with_coordinator.config_entry
     coordinator = init_integration_with_coordinator.coordinator
 
-    kid_names = [kid[DATA_KID_NAME] for kid in coordinator.kids_data.values()]
-    assert kid_names
+    assignee_names = [
+        assignee[DATA_ASSIGNEE_NAME] for assignee in coordinator.assignees_data.values()
+    ]
+    assert assignee_names
 
     # Create initial chore.
     first_add = await _navigate_to_add_chore_form(hass, config_entry.entry_id)
@@ -881,7 +888,7 @@ async def test_chore_validation_duplicate_name_field_level_and_translated(
         CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
         CFOF_CHORES_INPUT_ICON: "mdi:check",
         CFOF_CHORES_INPUT_DESCRIPTION: "",
-        CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names,
+        CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
         CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
         CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
         CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -907,22 +914,22 @@ async def test_chore_validation_duplicate_name_field_level_and_translated(
     assert errors[CFOF_CHORES_INPUT_NAME] == "duplicate_chore"
 
 
-async def test_chore_validation_no_kids_surfaces_section_error_with_section_payload(
+async def test_chore_validation_no_assignees_surfaces_section_error_with_section_payload(
     hass: HomeAssistant,
     init_integration_with_coordinator: SetupResult,
 ) -> None:
-    """Validate no-kids error is visible for sectioned chore form submissions."""
+    """Validate no-assignees error is visible for sectioned chore form submissions."""
     config_entry = init_integration_with_coordinator.config_entry
 
     add_form = await _navigate_to_add_chore_form(hass, config_entry.entry_id)
 
     sectioned_input: dict[str, Any] = {
         CHORE_SECTION_ROOT_FORM: {
-            CFOF_CHORES_INPUT_NAME: "Section Payload No Kids",
+            CFOF_CHORES_INPUT_NAME: "Section Payload No Assignees",
             CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
             CFOF_CHORES_INPUT_ICON: "mdi:check",
             CFOF_CHORES_INPUT_DESCRIPTION: "",
-            CFOF_CHORES_INPUT_ASSIGNED_KIDS: [],
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [],
             CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
         },
         CHORE_SECTION_SCHEDULE: {
@@ -943,4 +950,4 @@ async def test_chore_validation_no_kids_surfaces_section_error_with_section_payl
 
     assert result.get("step_id") == OPTIONS_FLOW_STEP_ADD_CHORE
     errors = result.get("errors") or {}
-    assert errors.get(CHORE_SECTION_ROOT_FORM) == "no_kids_assigned"
+    assert errors.get(CHORE_SECTION_ROOT_FORM) == "no_assignees_assigned"

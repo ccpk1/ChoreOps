@@ -3,8 +3,8 @@
 # Focused on testing all chore-related services across all completion criteria.
 #
 # Contents:
-#   - 1 parent: Mom
-#   - 2 kids: Alice, Bob
+#   - 1 approver: Mom
+#   - 2 assignees: Alice, Bob
 #   - 6 chores: 2 each of independent, shared_all, shared_first (all recurring)
 #
 # Use case: Testing services: claim_chore, approve_chore, disapprove_chore,
@@ -16,29 +16,29 @@ system:
   points_label: "Points"
   points_icon: "mdi:star"
 
-# Kids (2 kids for easier verification)
-kids:
+# Assignees (2 assignees for easier verification)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (1 parent can approve all)
-parents:
+# Approvers (1 approver can approve all)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Max!"]
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!"]
     mobile_notify_service: ""
 
 # Chores (6 chores covering all completion criteria)
 chores:
   # ==========================================================================
-  # INDEPENDENT CHORES (each kid has their own due date)
+  # INDEPENDENT CHORES (each assignee has their own due date)
   # ==========================================================================
 
   - name: "Independent Daily Task"
@@ -60,7 +60,7 @@ chores:
     due_date: "+7d17:00"
 
   # ==========================================================================
-  # SHARED_ALL CHORES (all kids must complete, single due date)
+  # SHARED_ALL CHORES (all assignees must complete, single due date)
   # ==========================================================================
 
   - name: "Shared All Daily Task"

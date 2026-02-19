@@ -160,10 +160,10 @@ async def test_create_reward_appears_in_dashboard_helper(
     # Wait for coordinator update
     await hass.async_block_till_done()
 
-    # Verify appears in dashboard helper for all kids
-    for kid_name in ["Zoë", "Max!", "Lila"]:
-        kid_slug = kid_name.lower().replace("!", "").replace("ë", "e")
-        helper_eid = f"sensor.kc_{kid_slug}_ui_dashboard_helper"
+    # Verify appears in dashboard helper for all assignees
+    for assignee_name in ["Zoë", "Max!", "Lila"]:
+        assignee_slug = assignee_name.lower().replace("!", "").replace("ë", "e")
+        helper_eid = f"sensor.kc_{assignee_slug}_ui_dashboard_helper"
 
         helper_state = hass.states.get(helper_eid)
         assert helper_state is not None
@@ -271,7 +271,7 @@ class TestCreateRewardSchemaValidation:
         """Test service accepts documented field names."""
         # Use literal strings from services.yaml
         response = await hass.services.async_call(
-            "kidschores",
+            "assigneeschores",
             "create_reward",
             {
                 "reward_name": "Schema Test",
@@ -286,7 +286,7 @@ class TestCreateRewardSchemaValidation:
         """Test service rejects undocumented field names."""
         with pytest.raises(vol.Invalid):
             await hass.services.async_call(
-                "kidschores",
+                "assigneeschores",
                 "create_reward",
                 {
                     "name": "Test",  # Old field name
@@ -299,7 +299,7 @@ class TestCreateRewardSchemaValidation:
         """Test service requires reward_name."""
         with pytest.raises(vol.Invalid):
             await hass.services.async_call(
-                "kidschores",
+                "assigneeschores",
                 "create_reward",
                 {"reward_cost": 75.0},  # Missing reward_name
                 blocking=True,

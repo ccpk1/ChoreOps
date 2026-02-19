@@ -1,6 +1,6 @@
 # Agent Test Creation Instructions
 
-**Purpose**: Technical guide for writing new KidsChores tests using YAML scenarios and modern test patterns.
+**Purpose**: Technical guide for writing new ChoreOps tests using YAML scenarios and modern test patterns.
 
 > **⚠️ Terminal Requirement**: Run test commands in actual terminal sessions for proper output capture.
 
@@ -20,7 +20,7 @@
 
 - **Check existing tests**: Search for similar tests to see established patterns before inventing your own
 - **Coordinator access**: Use `config_entry.runtime_data` (NOT `hass.data[DOMAIN][entry.entry_id][COORDINATOR]`)
-- **Field names**: Check `flow_helpers.py` for exact field names expected by schema builders (e.g., `type` not `recurring_frequency`, `assigned_to` not `assigned_kids`)
+- **Field names**: Check `flow_helpers.py` for exact field names expected by schema builders (e.g., `type` not `recurring_frequency`, `assigned_to` not `assigned_assignees`)
 
 ### 3. Pre-Implementation Checklist
 
@@ -42,16 +42,16 @@ Before writing each test file:
 
 ## The Stårblüm Family Test Universe
 
-All tests follow the magical **Stårblüm Family**. Unless specifically testing edge cases (like stress scenarios with 25 parents and 100s of chores), all test data **must** come from the existing scenario files.
+All tests follow the magical **Stårblüm Family**. Unless specifically testing edge cases (like stress scenarios with 25 approvers and 100s of chores), all test data **must** come from the existing scenario files.
 
 ### Meet the Family
 
-**Parents**:
+**Approvers**:
 
 - **Môm Astrid Stårblüm** (`@Astrid`) - The family organizer who approves chores and rewards
-- **Dad Leo Stårblüm** (`@Leo`) - The fun parent who creates bonus opportunities
+- **Dad Leo Stårblüm** (`@Leo`) - The fun approver who creates bonus opportunities
 
-**Kids**:
+**Assignees**:
 
 - **Zoë Stårblüm** (Age 8, avatar: `mdi:star-face`) - The responsible oldest, loves earning badges
 - **Max! Stårblüm** (Age 6, avatar: `mdi:rocket`) - The energetic middle child, always claiming chores
@@ -65,8 +65,8 @@ All names include special characters (`å`, `ï`, `ë`, `ø`, `@`, `!`) to ensur
 
 | Scenario                      | Description                                      | Use Case                    |
 | ----------------------------- | ------------------------------------------------ | --------------------------- |
-| `scenario_minimal.yaml`       | Zoë's first week (1 kid, 5 chores)               | Simple tests, basic flows   |
-| `scenario_shared.yaml`        | Multi-kid coordination (3 kids, 8 shared chores) | Shared chore testing        |
+| `scenario_minimal.yaml`       | Zoë's first week (1 assignee, 5 chores)               | Simple tests, basic flows   |
+| `scenario_shared.yaml`        | Multi-assignee coordination (3 assignees, 8 shared chores) | Shared chore testing        |
 | `scenario_full.yaml`          | Complete family with all features                | Complex integration tests   |
 | `scenario_notifications.yaml` | Notification-focused setup                       | Notification workflow tests |
 | `scenario_scheduling.yaml`    | Recurring chore patterns                         | Scheduling tests            |
@@ -95,14 +95,14 @@ tests/
 ├── conftest.py              # Core fixtures (mock_hass_users, auto_enable_custom_integrations)
 ├── helpers/
 │   ├── __init__.py          # Re-exports everything for convenient imports
-│   ├── constants.py         # All KidsChores constants (from const.py)
+│   ├── constants.py         # All ChoreOps constants (from const.py)
 │   ├── setup.py             # setup_from_yaml(), SetupResult dataclass
 │   ├── workflows.py         # Chore/reward workflow helpers
 │   └── validation.py        # Entity state validation helpers
 ├── scenarios/
-│   ├── scenario_minimal.yaml    # 1 kid, 5 chores
-│   ├── scenario_shared.yaml     # 3 kids, 8 shared chores
-│   ├── scenario_full.yaml       # 3 kids, everything
+│   ├── scenario_minimal.yaml    # 1 assignee, 5 chores
+│   ├── scenario_shared.yaml     # 3 assignees, 8 shared chores
+│   ├── scenario_full.yaml       # 3 assignees, everything
 │   └── scenario_notifications.yaml  # Notification testing
 ├── test_workflow_chores.py      # Chore workflow tests
 ├── test_workflow_notifications.py  # Notification workflow tests
@@ -212,7 +212,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid, 1 parent, 5 chores."""
+    """Load minimal scenario: 1 assignee, 1 approver, 5 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -229,9 +229,9 @@ result = await setup_from_yaml(hass, mock_hass_users, "tests/scenarios/scenario_
 coordinator = result.coordinator
 
 # Get internal IDs by name
-kid_id = result.kid_ids["Zoë"]           # UUID for Zoë
+assignee_id = result.assignee_ids["Zoë"]           # UUID for Zoë
 chore_id = result.chore_ids["Make bed"]  # UUID for Make bed chore
-parent_id = result.parent_ids["Mom"]     # UUID for Mom
+approver_id = result.approver_ids["Mom"]     # UUID for Mom
 
 # Config entry
 config_entry = result.config_entry
@@ -245,8 +245,8 @@ config_entry = result.config_entry
 
 | Priority                       | Method                                               | User Context        | Use Case                                           |
 | ------------------------------ | ---------------------------------------------------- | ------------------- | -------------------------------------------------- |
-| **1. REQUIRED**                | Button press with `Context(user_id=...)`             | ✅ Kid/Parent/Admin | E2E workflow tests with authorization              |
-| **2. ACCEPTABLE**              | Service call to `kidschores.*` services              | ❌ Always admin     | Service layer tests (no auth testing)              |
+| **1. REQUIRED**                | Button press with `Context(user_id=...)`             | ✅ Assignee/Approver/Admin | E2E workflow tests with authorization              |
+| **2. ACCEPTABLE**              | Service call to `assigneeschores.*` services              | ❌ Always admin     | Service layer tests (no auth testing)              |
 | **3. FORBIDDEN for workflows** | Direct coordinator API (`coordinator.claim_chore()`) | N/A                 | Internal logic only - requires explicit permission |
 
 ### Why Button Presses Are Required (Not Just Preferred)
@@ -254,27 +254,27 @@ config_entry = result.config_entry
 **Button presses can mock user privileges**:
 
 ```python
-# Test as a kid - can verify kids CANNOT approve their own chores
-kid_context = Context(user_id=mock_hass_users["kid1"].id)
-await hass.services.async_call("button", "press", {"entity_id": claim_btn}, context=kid_context)
+# Test as a assignee - can verify assignees CANNOT approve their own chores
+assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+await hass.services.async_call("button", "press", {"entity_id": claim_btn}, context=assignee_context)
 
-# Test as a parent - can verify parents CAN approve chores
-parent_context = Context(user_id=mock_hass_users["parent1"].id)
-await hass.services.async_call("button", "press", {"entity_id": approve_btn}, context=parent_context)
+# Test as a approver - can verify approvers CAN approve chores
+approver_context = Context(user_id=mock_hass_users["approver1"].id)
+await hass.services.async_call("button", "press", {"entity_id": approve_btn}, context=approver_context)
 ```
 
 **Service calls ALWAYS run as admin**:
 
 ```python
 # ⚠️ This ALWAYS runs with admin privileges - cannot test authorization
-await hass.services.async_call("kidschores", "approve_chore", {...})
+await hass.services.async_call("assigneeschores", "approve_chore", {...})
 ```
 
 **Direct coordinator API BYPASSES all security and UI layers**:
 
 ```python
 # ❌ FORBIDDEN for workflow tests - bypasses everything
-coordinator.claim_chore(kid_id, chore_id, "Zoë")  # No user context, no button, no security
+coordinator.claim_chore(assignee_id, chore_id, "Zoë")  # No user context, no button, no security
 ```
 
 ### Approach A: Button Press with User Context (REQUIRED for workflow tests)
@@ -298,11 +298,11 @@ async def test_claim_via_button(hass, scenario_minimal, mock_hass_users):
     claim_button_eid = chore_state.attributes[ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID]
 
     # Press button with user context (simulates real user action)
-    kid_context = Context(user_id=mock_hass_users["kid1"].id)
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
     await hass.services.async_call(
         "button", "press",
         {"entity_id": claim_button_eid},
-        blocking=True, context=kid_context,
+        blocking=True, context=assignee_context,
     )
     await hass.async_block_till_done()
 
@@ -314,12 +314,12 @@ async def test_claim_via_button(hass, scenario_minimal, mock_hass_users):
 **Why preferred:**
 
 - Tests the full integration path from UI to coordinator to entity state
-- **Tests authorization** - can verify kids can't approve their own chores, etc.
+- **Tests authorization** - can verify assignees can't approve their own chores, etc.
 - Validates that sensors, buttons, and states work together correctly
 - Catches integration issues that direct API calls would miss
 - Mirrors actual user experience
 
-### Approach A.1: Service Calls to `kidschores.*` Services (Acceptable for non-auth tests)
+### Approach A.1: Service Calls to `assigneeschores.*` Services (Acceptable for non-auth tests)
 
 When a button entity doesn't exist for an action, use defined services from `services.py`:
 
@@ -327,11 +327,11 @@ When a button entity doesn't exist for an action, use defined services from `ser
 async def test_approve_via_service(hass, scenario_minimal):
     # Service calls always run as admin - cannot test authorization
     await hass.services.async_call(
-        "kidschores", "approve_chore",
+        "assigneeschores", "approve_chore",
         {
             "config_entry_id": scenario_minimal.entry.entry_id,
             "chore_name": "Make bed",
-            "kid_name": "Zoë",
+            "assignee_name": "Zoë",
         },
         blocking=True,
     )
@@ -344,9 +344,9 @@ async def test_approve_via_service(hass, scenario_minimal):
 
 **Available services** (see `services.py`):
 
-- `kidschores.claim_chore` - Claim a chore for a kid
-- `kidschores.approve_chore` - Approve a claimed chore
-- `kidschores.disapprove_chore` - Disapprove a claimed chore
+- `assigneeschores.claim_chore` - Claim a chore for a assignee
+- `assigneeschores.approve_chore` - Approve a claimed chore
+- `assigneeschores.disapprove_chore` - Disapprove a claimed chore
 
 **When to use:**
 
@@ -368,12 +368,12 @@ Use **only** when testing:
 ```python
 async def test_internal_calculation(hass, scenario_minimal):
     coordinator = scenario_minimal.coordinator
-    kid_id = scenario_minimal.kid_ids["Zoë"]
+    assignee_id = scenario_minimal.assignee_ids["Zoë"]
     chore_id = scenario_minimal.chore_ids["Make bed"]
 
     # ⚠️ REQUIRES PERMISSION - bypasses UI layer
     # Only for internal logic tests, not workflow tests
-    result = coordinator._calculate_streak_multiplier(kid_id, chore_id)
+    result = coordinator._calculate_streak_multiplier(assignee_id, chore_id)
 
     assert result == 1.5
 ```
@@ -390,8 +390,8 @@ async def test_internal_calculation(hass, scenario_minimal):
 
 ```python
 # ❌ FORBIDDEN - bypasses user context, security, and UI layers
-coordinator.claim_chore(kid_id, chore_id, "Zoë")
-coordinator.approve_chore(kid_id, chore_id, ...)
+coordinator.claim_chore(assignee_id, chore_id, "Zoë")
+coordinator.approve_chore(assignee_id, chore_id, ...)
 await coordinator.apply_bonus(...)
 await coordinator.claim_reward(...)
 
@@ -413,11 +413,11 @@ await coordinator.claim_reward(...)
 claim_button_eid = chore_state.attributes[ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID]
 
 # Press button WITH user context to test real user flow
-kid_context = Context(user_id=mock_hass_users["kid1"].id)
+assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
 await hass.services.async_call(
     "button", "press",
     {"entity_id": claim_button_eid},
-    blocking=True, context=kid_context,
+    blocking=True, context=assignee_context,
 )
 ```
 
@@ -426,8 +426,8 @@ await hass.services.async_call(
 ```python
 # Service calls are acceptable but cannot test authorization
 await hass.services.async_call(
-    "kidschores", "approve_chore",
-    {"config_entry_id": entry.entry_id, "chore_name": "Make bed", "kid_name": "Zoë"},
+    "assigneeschores", "approve_chore",
+    {"config_entry_id": entry.entry_id, "chore_name": "Make bed", "assignee_name": "Zoë"},
     blocking=True,
 )
 ```
@@ -479,7 +479,7 @@ Data injection can use **different formats** than real user input, causing tests
 
 ## Rule 3: Dashboard Helper Is Single Source of Truth for Entity IDs
 
-The dashboard helper sensor (`sensor.kc_{kid}_ui_dashboard_helper`) contains ALL entity IDs:
+The dashboard helper sensor (`sensor.kc_{assignee}_ui_dashboard_helper`) contains ALL entity IDs:
 
 ```python
 helper_state = hass.states.get("sensor.kc_zoe_ui_dashboard_helper")
@@ -541,29 +541,29 @@ Always pass `context=` with the appropriate user for authorization:
 ```python
 from homeassistant.core import Context
 
-# Kid claims chore
-kid_context = Context(user_id=mock_hass_users["kid1"].id)
+# Assignee claims chore
+assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
 await hass.services.async_call(
     "button", "press",
     {"entity_id": claim_button_eid},
-    blocking=True, context=kid_context,
+    blocking=True, context=assignee_context,
 )
 
-# Parent approves chore
-parent_context = Context(user_id=mock_hass_users["parent1"].id)
+# Approver approves chore
+approver_context = Context(user_id=mock_hass_users["approver1"].id)
 await hass.services.async_call(
     "button", "press",
     {"entity_id": approve_button_eid},
-    blocking=True, context=parent_context,
+    blocking=True, context=approver_context,
 )
 ```
 
 ### Available mock_hass_users Keys
 
-- `mock_hass_users["kid1"]` - First kid (Zoë in most scenarios)
-- `mock_hass_users["kid2"]` - Second kid (Max)
-- `mock_hass_users["kid3"]` - Third kid (Lila)
-- `mock_hass_users["parent1"]` - First parent (Mom)
+- `mock_hass_users["assignee1"]` - First assignee (Zoë in most scenarios)
+- `mock_hass_users["assignee2"]` - Second assignee (Max)
+- `mock_hass_users["assignee3"]` - Third assignee (Lila)
+- `mock_hass_users["approver1"]` - First approver (Mom)
 - `mock_hass_users["admin"]` - Admin user
 
 ---
@@ -575,13 +575,13 @@ For direct data access, use coordinator properties:
 ```python
 coordinator = scenario_minimal.coordinator
 
-# Kid data
-kid_data = coordinator.kids_data.get(kid_id, {})
-points = kid_data.get(DATA_KID_POINTS, 0.0)
-name = kid_data.get(DATA_KID_NAME, "")
+# Assignee data
+assignee_data = coordinator.assignees_data.get(assignee_id, {})
+points = assignee_data.get(DATA_KID_POINTS, 0.0)
+name = assignee_data.get(DATA_KID_NAME, "")
 
-# Per-kid chore state
-chore_data = kid_data.get(DATA_KID_CHORE_DATA, {})
+# Per-assignee chore state
+chore_data = assignee_data.get(DATA_KID_CHORE_DATA, {})
 per_chore = chore_data.get(chore_id, {})
 state = per_chore.get(DATA_KID_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 due_date = per_chore.get(DATA_KID_CHORE_DATA_DUE_DATE)
@@ -605,23 +605,23 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-kids:
+assignees:
   - name: "Zoë"
-    ha_user: "kid1" # Maps to mock_hass_users["kid1"]
+    ha_user: "assignee1" # Maps to mock_hass_users["assignee1"]
     dashboard_language: "en"
     enable_mobile_notifications: false
     mobile_notify_service: ""
 
-parents:
+approvers:
   - name: "Mom"
-    ha_user: "parent1" # Maps to mock_hass_users["parent1"]
-    kids: ["Zoë"] # Associate with kids by name
+    ha_user: "approver1" # Maps to mock_hass_users["approver1"]
+    assignees: ["Zoë"] # Associate with assignees by name
     enable_mobile_notifications: false
     mobile_notify_service: ""
 
 chores:
   - name: "Make bed"
-    assigned_to: ["Zoë"] # Assign by kid name
+    assigned_to: ["Zoë"] # Assign by assignee name
     points: 5.0
     icon: "mdi:bed"
     completion_criteria: "independent" # or "shared_all", "shared_first"
@@ -665,10 +665,10 @@ async def scenario_minimal(
     )
 
 
-def get_kid_chore_state(coordinator, kid_id: str, chore_id: str) -> str:
-    """Get chore state for a kid."""
-    kid_data = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_data.get(DATA_KID_CHORE_DATA, {})
+def get_assignee_chore_state(coordinator, assignee_id: str, chore_id: str) -> str:
+    """Get chore state for a assignee."""
+    assignee_data = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_data.get(DATA_KID_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
     return per_chore.get(DATA_KID_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
@@ -684,22 +684,22 @@ class TestChoreWorkflow:
     ) -> None:
         """Claiming and approving a chore grants points."""
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]  # 5 points
 
-        initial_points = coordinator.kids_data[kid_id].get(DATA_KID_POINTS, 0.0)
+        initial_points = coordinator.assignees_data[assignee_id].get(DATA_KID_POINTS, 0.0)
 
-        with patch.object(coordinator.notification_manager, "notify_kid", new=AsyncMock()):
+        with patch.object(coordinator.notification_manager, "notify_assignee", new=AsyncMock()):
             # Claim
-            coordinator.claim_chore(kid_id, chore_id, "Zoë")
-            assert get_kid_chore_state(coordinator, kid_id, chore_id) == CHORE_STATE_CLAIMED
+            coordinator.claim_chore(assignee_id, chore_id, "Zoë")
+            assert get_assignee_chore_state(coordinator, assignee_id, chore_id) == CHORE_STATE_CLAIMED
 
             # Approve
-            coordinator.approve_chore("Mom", kid_id, chore_id)
-            assert get_kid_chore_state(coordinator, kid_id, chore_id) == CHORE_STATE_APPROVED
+            coordinator.approve_chore("Mom", assignee_id, chore_id)
+            assert get_assignee_chore_state(coordinator, assignee_id, chore_id) == CHORE_STATE_APPROVED
 
         # Verify points
-        final_points = coordinator.kids_data[kid_id].get(DATA_KID_POINTS, 0.0)
+        final_points = coordinator.assignees_data[assignee_id].get(DATA_KID_POINTS, 0.0)
         assert final_points == initial_points + 5.0
 ```
 
@@ -715,17 +715,17 @@ class TestChoreWorkflow:
 | `CHORE_STATE_CLAIMED`            | "claimed"            | Claimed, awaiting approval        |
 | `CHORE_STATE_APPROVED`           | "approved"           | Completed and approved            |
 | `CHORE_STATE_OVERDUE`            | "overdue"            | Past due date                     |
-| `CHORE_STATE_COMPLETED_BY_OTHER` | "completed_by_other" | Another kid did it (shared_first) |
-| `CHORE_STATE_CLAIMED_IN_PART`    | "claimed_in_part"    | Some kids claimed (shared_all)    |
-| `CHORE_STATE_APPROVED_IN_PART`   | "approved_in_part"   | Some kids approved (shared_all)   |
+| `CHORE_STATE_COMPLETED_BY_OTHER` | "completed_by_other" | Another assignee did it (shared_first) |
+| `CHORE_STATE_CLAIMED_IN_PART`    | "claimed_in_part"    | Some assignees claimed (shared_all)    |
+| `CHORE_STATE_APPROVED_IN_PART`   | "approved_in_part"   | Some assignees approved (shared_all)   |
 
 ### Completion Criteria
 
 | Constant                           | Behavior                              |
 | ---------------------------------- | ------------------------------------- |
-| `COMPLETION_CRITERIA_INDEPENDENT`  | Each kid has their own chore instance |
+| `COMPLETION_CRITERIA_INDEPENDENT`  | Each assignee has their own chore instance |
 | `COMPLETION_CRITERIA_SHARED_FIRST` | First to claim wins, others blocked   |
-| `COMPLETION_CRITERIA_SHARED`       | All assigned kids must complete       |
+| `COMPLETION_CRITERIA_SHARED`       | All assigned assignees must complete       |
 
 ---
 
@@ -795,7 +795,7 @@ _For family background, see `README.md`._
 | `ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID`      | Button to claim chore            |
 | `ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID`    | Button to approve chore          |
 | `ATTR_CHORE_DISAPPROVE_BUTTON_ENTITY_ID` | Button to disapprove chore       |
-| `ATTR_GLOBAL_STATE`                      | Aggregated state across all kids |
+| `ATTR_GLOBAL_STATE`                      | Aggregated state across all assignees |
 | `ATTR_CAN_CLAIM`                         | Whether chore can be claimed     |
 | `ATTR_CAN_APPROVE`                       | Whether chore can be approved    |
 | `ATTR_DUE_DATE`                          | Chore due date                   |
@@ -810,7 +810,7 @@ _For family background, see `README.md`._
 3. **Import from `tests.helpers`** - never from `const.py` directly
 4. **Use Stårblüm Family scenarios** - reusable test data via `setup_from_yaml()`, don't invent new names
 5. **Get entity IDs from dashboard helper** - never construct them manually
-6. **Use SetupResult** - access `coordinator`, `kid_ids`, `chore_ids` by name
-7. **Mock notifications** - `patch.object(coordinator.notification_manager, "notify_kid", new=AsyncMock())`
+6. **Use SetupResult** - access `coordinator`, `assignee_ids`, `chore_ids` by name
+7. **Mock notifications** - `patch.object(coordinator.notification_manager, "notify_assignee", new=AsyncMock())`
 8. **Pass user context** - service calls need `context=Context(user_id=...)`
 9. **Get fresh coordinator after reload** - use `config_entry.runtime_data` pattern

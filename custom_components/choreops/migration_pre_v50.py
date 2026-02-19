@@ -22,6 +22,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import entity_registry as er
 
 from . import const, data_builders as db
+from .coordinator import ChoreOpsDataCoordinator
 from .helpers import backup_helpers as bh, entity_helpers as eh
 from .helpers.entity_helpers import get_item_id_by_name
 from .utils.dt_utils import (
@@ -34,18 +35,20 @@ from .utils.dt_utils import (
 from .utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
-    from .coordinator import KidsChoresDataCoordinator
-    from .store import KidsChoresStore
+    from .store import ChoreOpsStore
 
 
 LEGACY_STORAGE_KEY = "kidschores_data"
 LEGACY_STORAGE_PREFIX = "kidschores_"
+LEGACY_STORAGE_KEY_TRANSITIONAL = "choreops_data"
+LEGACY_STORAGE_PREFIX_TRANSITIONAL = "choreops_"
 LEGACY_MIGRATION_PERFORMED_KEY = "migration_performed"
 LEGACY_MIGRATION_KEY_VERSION_KEY = "migration_key_version"
 LEGACY_MIGRATION_ORPHAN_PREFIX = "legacy_orphan"
 LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS = "_points_adjust_"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY = "notify_on_reminder"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT = True
+LEGACY_APPROVER_LINKED_PROFILE_KEY = "linked_shadow_assignee_id"
 
 
 def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
@@ -53,10 +56,330 @@ def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
     return LEGACY_MIGRATION_PERFORMED_KEY in data
 
 
+def _remap_legacy_key_in_record(
+    record: dict[str, Any],
+    legacy_key: str,
+    canonical_key: str,
+) -> int:
+    """Remap one legacy key in a record to canonical key.
+
+    Returns:
+        1 when a remap occurred, otherwise 0.
+    """
+    if legacy_key not in record:
+        return 0
+
+    legacy_value = record.pop(legacy_key)
+    if canonical_key not in record:
+        record[canonical_key] = legacy_value
+    return 1
+
+
+def _normalize_legacy_kid_keys(data: dict[str, Any]) -> int:
+    """Normalize legacy `*kid*` keys to canonical `*assignee*` keys.
+
+    This migration-only shim protects schema45+ bootstraps that bypass the
+    full pre-v50 migration pipeline and still contain legacy key names.
+
+    Returns:
+        Total number of remapped keys.
+    """
+    remap_count = 0
+
+    chores = data.get(const.DATA_CHORES, {})
+    if isinstance(chores, dict):
+        for chore_raw in chores.values():
+            if not isinstance(chore_raw, dict):
+                continue
+            chore = cast("dict[str, Any]", chore_raw)
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                const.CONF_ASSIGNED_ASSIGNEES_LEGACY,
+                const.DATA_CHORE_ASSIGNED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "assigned_assignees",
+                const.DATA_CHORE_ASSIGNED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "per_kid_due_dates",
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "per_kid_applicable_days",
+                const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "per_kid_daily_multi_times",
+                const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "rotation_current_kid_id",
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
+            )
+
+    achievements = data.get(const.DATA_ACHIEVEMENTS, {})
+    if isinstance(achievements, dict):
+        for achievement_raw in achievements.values():
+            if not isinstance(achievement_raw, dict):
+                continue
+            achievement = cast("dict[str, Any]", achievement_raw)
+            remap_count += _remap_legacy_key_in_record(
+                achievement,
+                const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY,
+                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                achievement,
+                "assigned_assignees",
+                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
+            )
+
+    challenges = data.get(const.DATA_CHALLENGES, {})
+    if isinstance(challenges, dict):
+        for challenge_raw in challenges.values():
+            if not isinstance(challenge_raw, dict):
+                continue
+            challenge = cast("dict[str, Any]", challenge_raw)
+            remap_count += _remap_legacy_key_in_record(
+                challenge,
+                const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY,
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                challenge,
+                "assigned_assignees",
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
+            )
+
+    badges = data.get(const.DATA_BADGES, {})
+    if isinstance(badges, dict):
+        for badge_raw in badges.values():
+            if not isinstance(badge_raw, dict):
+                continue
+            badge = cast("dict[str, Any]", badge_raw)
+            remap_count += _remap_legacy_key_in_record(
+                badge,
+                const.DATA_BADGE_ASSIGNED_TO_LEGACY,
+                const.DATA_BADGE_ASSIGNED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                badge,
+                const.CFOF_BADGES_INPUT_ASSIGNED_TO_LEGACY,
+                const.DATA_BADGE_ASSIGNED_USER_IDS,
+            )
+
+    approvers = data.get(const.DATA_APPROVERS, {})
+    if isinstance(approvers, dict):
+        for approver_raw in approvers.values():
+            if not isinstance(approver_raw, dict):
+                continue
+            approver = cast("dict[str, Any]", approver_raw)
+            remap_count += _remap_legacy_key_in_record(
+                approver,
+                const.CONF_ASSOCIATED_ASSIGNEES_LEGACY,
+                const.DATA_USER_ASSOCIATED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                approver,
+                "associated_assignees",
+                const.DATA_USER_ASSOCIATED_USER_IDS,
+            )
+
+    return remap_count
+
+
+async def async_apply_schema45_user_contract(
+    coordinator: ChoreOpsDataCoordinator,
+) -> dict[str, int]:
+    """Apply schema 45 contract hook before DATA_READY emission.
+
+    Phase 1 contract checkpoint:
+    - Executes in SystemManager.ensure_data_integrity() before DATA_READY.
+    - Idempotently stamps migration metadata for schema-45 contract readiness.
+    - Does not perform structural migration yet (handled in Phase 2).
+
+    Args:
+        coordinator: Integration coordinator instance.
+    """
+    data = coordinator._data
+    meta = data.setdefault(const.DATA_META, {})
+    applied = meta.setdefault(const.DATA_META_MIGRATIONS_APPLIED, [])
+    if not isinstance(applied, list):
+        applied = []
+        meta[const.DATA_META_MIGRATIONS_APPLIED] = applied
+
+    legacy_assignees_keys = (
+        "assignees",
+        const.CONF_ASSIGNEES_LEGACY,
+    )
+    legacy_approvers_key = const.CONF_APPROVERS_LEGACY
+
+    canonical_assignees_raw = data.get(const.DATA_USERS)
+    canonical_assignees: dict[str, Any] = (
+        canonical_assignees_raw if isinstance(canonical_assignees_raw, dict) else {}
+    )
+
+    for legacy_assignees_key in legacy_assignees_keys:
+        legacy_assignees = data.get(legacy_assignees_key)
+        if isinstance(legacy_assignees, dict):
+            for assignee_id, assignee_data in legacy_assignees.items():
+                canonical_assignees.setdefault(assignee_id, assignee_data)
+        if legacy_assignees_key != const.DATA_USERS:
+            data.pop(legacy_assignees_key, None)
+
+    data[const.DATA_USERS] = canonical_assignees
+
+    canonical_approvers = data.get(const.DATA_APPROVERS)
+    legacy_approvers = data.get(legacy_approvers_key)
+    if not isinstance(canonical_approvers, dict):
+        if isinstance(legacy_approvers, dict):
+            canonical_approvers = legacy_approvers
+    elif isinstance(legacy_approvers, dict):
+        for approver_id, approver_data in legacy_approvers.items():
+            canonical_approvers.setdefault(approver_id, approver_data)
+
+    if isinstance(canonical_approvers, dict):
+        data[const.DATA_APPROVERS] = canonical_approvers
+
+    if legacy_approvers_key != const.DATA_APPROVERS:
+        data.pop(legacy_approvers_key, None)
+
+    kid_key_remaps = _normalize_legacy_kid_keys(data)
+
+    users_raw = data.get(const.DATA_USERS)
+    users: dict[str, Any] = users_raw if isinstance(users_raw, dict) else {}
+    data[const.DATA_USERS] = users
+
+    approvers_raw = data.get(const.DATA_APPROVERS, {})
+    approvers: dict[str, Any] = approvers_raw if isinstance(approvers_raw, dict) else {}
+
+    remap_key = "schema45_approver_id_remap"
+    remap_raw = meta.get(remap_key, {})
+    remap: dict[str, str] = remap_raw if isinstance(remap_raw, dict) else {}
+    meta[remap_key] = remap
+
+    users_migrated = 0
+    linked_approver_merges = 0
+    standalone_approver_creations = 0
+    approver_id_collisions = 0
+    approver_id_remap_added = 0
+
+    for user_id, user_data_raw in users.items():
+        if not isinstance(user_data_raw, dict):
+            continue
+        user_data = cast("dict[str, Any]", user_data_raw)
+        user_data.setdefault(const.DATA_USER_INTERNAL_ID, user_id)
+        user_data.setdefault(const.DATA_USER_ID, user_id)
+        user_data.setdefault(
+            const.DATA_USER_HA_USER_ID,
+            user_data.get(const.DATA_USER_HA_USER_ID),
+        )
+        user_data.setdefault(const.DATA_USER_CAN_APPROVE, False)
+        user_data.setdefault(const.DATA_USER_CAN_MANAGE, False)
+        user_data.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+        if user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
+            user_data.setdefault(const.DATA_USER_ENABLE_CHORE_WORKFLOW, True)
+            user_data.setdefault(const.DATA_USER_ENABLE_GAMIFICATION, True)
+        users_migrated += 1
+
+    for approver_id, approver_data_raw in approvers.items():
+        if not isinstance(approver_data_raw, dict):
+            continue
+
+        approver_data = cast("dict[str, Any]", approver_data_raw)
+        linked_profile_id = approver_data.get(LEGACY_APPROVER_LINKED_PROFILE_KEY)
+        if isinstance(linked_profile_id, str) and linked_profile_id in users:
+            target_id = linked_profile_id
+            linked_approver_merges += 1
+            target_user = cast("dict[str, Any]", users[target_id])
+            target_user[const.DATA_USER_CAN_APPROVE] = True
+            target_user[const.DATA_USER_CAN_MANAGE] = True
+            target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+            target_user.setdefault(
+                const.DATA_USER_HA_USER_ID,
+                approver_data.get(const.DATA_USER_HA_USER_ID),
+            )
+            continue
+
+        mapped_approver_id = remap.get(approver_id, approver_id)
+        target_id = mapped_approver_id
+        if target_id in users and target_id == approver_id:
+            approver_id_collisions += 1
+            suffix_index = 1
+            while True:
+                candidate_id = f"{approver_id}_approver_{suffix_index}"
+                if candidate_id not in users:
+                    target_id = candidate_id
+                    remap[approver_id] = target_id
+                    approver_id_remap_added += 1
+                    break
+                suffix_index += 1
+
+        if target_id in users:
+            target_user = cast("dict[str, Any]", users[target_id])
+        else:
+            target_user = {
+                const.DATA_USER_INTERNAL_ID: target_id,
+                const.DATA_USER_ID: target_id,
+                const.DATA_USER_NAME: approver_data.get(const.DATA_USER_NAME, ""),
+                const.DATA_USER_HA_USER_ID: approver_data.get(
+                    const.DATA_USER_HA_USER_ID
+                ),
+                const.DATA_USER_CAN_BE_ASSIGNED: False,
+            }
+            users[target_id] = target_user
+            standalone_approver_creations += 1
+
+        target_user[const.DATA_USER_CAN_APPROVE] = True
+        target_user[const.DATA_USER_CAN_MANAGE] = True
+        target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, False)
+        target_user.setdefault(
+            const.DATA_USER_HA_USER_ID,
+            approver_data.get(const.DATA_USER_HA_USER_ID),
+        )
+
+    # Users is the canonical identity container for schema45+.
+    data[const.DATA_USERS] = users
+    data.pop(const.DATA_APPROVERS, None)
+
+    contract_marker = "schema45_user_contract_hook"
+    if contract_marker not in applied:
+        applied.append(contract_marker)
+
+    meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_BETA5
+
+    summary = {
+        "users_migrated": users_migrated,
+        "linked_approver_merges": linked_approver_merges,
+        "standalone_approver_creations": standalone_approver_creations,
+        "approver_id_collisions": approver_id_collisions,
+        "approver_id_remap_entries_total": len(remap),
+        "approver_id_remap_entries_added": approver_id_remap_added,
+        "kid_key_remaps": kid_key_remaps,
+    }
+    meta["schema45_last_summary"] = summary
+    const.LOGGER.debug(
+        "Schema45 migration summary: users=%d linked_merges=%d standalone_approvers=%d collisions=%d remap_total=%d remap_added=%d",
+        summary["users_migrated"],
+        summary["linked_approver_merges"],
+        summary["standalone_approver_creations"],
+        summary["approver_id_collisions"],
+        summary["approver_id_remap_entries_total"],
+        summary["approver_id_remap_entries_added"],
+    )
+    return summary
+
+
 def _discover_legacy_storage_artifacts_sync(
     storage_root: str,
 ) -> dict[str, Any]:
-    """Discover legacy KidsChores storage files and backups.
+    """Discover legacy ChoreOps storage files and backups.
 
     Args:
         storage_root: Absolute path to Home Assistant `.storage` directory.
@@ -70,6 +393,7 @@ def _discover_legacy_storage_artifacts_sync(
 
     candidate_active_paths = [
         storage_dir / LEGACY_STORAGE_KEY,
+        storage_dir / LEGACY_STORAGE_KEY_TRANSITIONAL,
     ]
 
     active_files = [str(path) for path in candidate_active_paths if path.exists()]
@@ -83,7 +407,19 @@ def _discover_legacy_storage_artifacts_sync(
             for path in candidate_dir.glob(f"{LEGACY_STORAGE_PREFIX}*.json")
             if path.is_file()
         )
+        backup_candidates.extend(
+            path
+            for path in candidate_dir.glob(
+                f"{LEGACY_STORAGE_PREFIX_TRANSITIONAL}*.json"
+            )
+            if path.is_file()
+        )
 
+    deduped_candidates: dict[str, Path] = {
+        str(path): path for path in backup_candidates
+    }
+
+    backup_candidates = list(deduped_candidates.values())
     backup_candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
 
     return {
@@ -111,13 +447,13 @@ def _extract_storage_payload(data: dict[str, Any]) -> dict[str, Any] | None:
     return data
 
 
-def _looks_like_kidschores_storage_data(data: dict[str, Any]) -> bool:
-    """Return True if payload appears to be KidsChores storage data."""
+def _looks_like_choreops_storage_data(data: dict[str, Any]) -> bool:
+    """Return True if payload appears to be ChoreOps storage data."""
     return any(
         key in data
         for key in (
             const.DATA_META,
-            const.DATA_KIDS,
+            const.DATA_USERS,
             const.DATA_CHORES,
             const.DATA_BADGES,
             const.DATA_REWARDS,
@@ -125,10 +461,10 @@ def _looks_like_kidschores_storage_data(data: dict[str, Any]) -> bool:
     )
 
 
-async def async_discover_legacy_kidschores_artifacts(
+async def async_discover_legacy_choreops_artifacts(
     hass: HomeAssistant,
 ) -> dict[str, Any]:
-    """Discover legacy KidsChores artifacts that can be migrated.
+    """Discover legacy ChoreOps artifacts that can be migrated.
 
     This checks for legacy active files and legacy backup files under both
     `.storage/` and `.storage/choreops/`.
@@ -168,24 +504,37 @@ async def async_get_data_recovery_capabilities(
     """
     from pathlib import Path
 
-    from .store import KidsChoresStore
+    from .store import ChoreOpsStore
 
-    store = KidsChoresStore(hass)
+    store = ChoreOpsStore(hass)
     storage_path = Path(store.get_storage_path())
     legacy_storage_path = Path(
         hass.config.path(const.STORAGE_PATH_SEGMENT, LEGACY_STORAGE_KEY)
+    )
+    transitional_legacy_storage_path = Path(
+        hass.config.path(
+            const.STORAGE_PATH_SEGMENT,
+            LEGACY_STORAGE_KEY_TRANSITIONAL,
+        )
     )
 
     storage_file_exists = await hass.async_add_executor_job(storage_path.exists)
     legacy_storage_exists = await hass.async_add_executor_job(
         legacy_storage_path.exists
     )
+    transitional_legacy_storage_exists = await hass.async_add_executor_job(
+        transitional_legacy_storage_path.exists
+    )
 
-    legacy_artifacts = await async_discover_legacy_kidschores_artifacts(hass)
+    legacy_artifacts = await async_discover_legacy_choreops_artifacts(hass)
     has_legacy_candidates = bool(legacy_artifacts.get("has_migration_candidate"))
 
     return {
-        "has_current_active_file": bool(storage_file_exists or legacy_storage_exists),
+        "has_current_active_file": bool(
+            storage_file_exists
+            or legacy_storage_exists
+            or transitional_legacy_storage_exists
+        ),
         "has_legacy_candidates": has_legacy_candidates,
     }
 
@@ -210,25 +559,44 @@ async def async_prepare_current_active_storage(
     import json
     from pathlib import Path
 
-    from .store import KidsChoresStore
+    from .store import ChoreOpsStore
 
     try:
-        store = KidsChoresStore(hass)
+        store = ChoreOpsStore(hass)
         destination_path = Path(store.get_storage_path())
         legacy_storage_path = Path(
             hass.config.path(const.STORAGE_PATH_SEGMENT, LEGACY_STORAGE_KEY)
         )
+        transitional_legacy_storage_path = Path(
+            hass.config.path(
+                const.STORAGE_PATH_SEGMENT,
+                LEGACY_STORAGE_KEY_TRANSITIONAL,
+            )
+        )
 
         destination_exists = await hass.async_add_executor_job(destination_path.exists)
         legacy_exists = await hass.async_add_executor_job(legacy_storage_path.exists)
+        transitional_legacy_exists = await hass.async_add_executor_job(
+            transitional_legacy_storage_path.exists
+        )
 
-        if not destination_exists and not legacy_exists:
+        if (
+            not destination_exists
+            and not legacy_exists
+            and not transitional_legacy_exists
+        ):
             return {
                 "prepared": False,
                 "error": "file_not_found",
             }
 
-        source_path = destination_path if destination_exists else legacy_storage_path
+        source_path = destination_path
+        if not destination_exists:
+            source_path = (
+                legacy_storage_path
+                if legacy_exists
+                else transitional_legacy_storage_path
+            )
 
         source_text = await hass.async_add_executor_job(source_path.read_text, "utf-8")
         try:
@@ -294,10 +662,10 @@ async def async_prepare_current_active_storage(
         }
 
 
-async def async_migrate_from_legacy_kidschores_storage(
+async def async_migrate_from_legacy_choreops_storage(
     hass: HomeAssistant,
 ) -> dict[str, Any]:
-    """Migrate legacy KidsChores storage into ChoreOps storage.
+    """Migrate legacy ChoreOps storage into ChoreOps storage.
 
     Migration is non-destructive: source files are never modified or deleted.
     The function reads the best available legacy source and writes a wrapped
@@ -317,7 +685,7 @@ async def async_migrate_from_legacy_kidschores_storage(
     import json
     from pathlib import Path
 
-    artifacts = await async_discover_legacy_kidschores_artifacts(hass)
+    artifacts = await async_discover_legacy_choreops_artifacts(hass)
     active_files = cast("list[str]", artifacts["active_files"])
     backup_files = cast("list[str]", artifacts["backup_files"])
 
@@ -367,7 +735,7 @@ async def async_migrate_from_legacy_kidschores_storage(
         }
 
     payload = _extract_storage_payload(source_data)
-    if payload is None or not _looks_like_kidschores_storage_data(payload):
+    if payload is None or not _looks_like_choreops_storage_data(payload):
         return {
             "migrated": False,
             "source_path": source_path,
@@ -376,9 +744,9 @@ async def async_migrate_from_legacy_kidschores_storage(
             "error": "invalid_structure",
         }
 
-    from .store import KidsChoresStore
+    from .store import ChoreOpsStore
 
-    store = KidsChoresStore(hass)
+    store = ChoreOpsStore(hass)
     destination_path = Path(store.get_storage_path())
     destination_dir = destination_path.parent
 
@@ -427,13 +795,13 @@ async def async_migrate_from_legacy_kidschores_storage(
         }
 
     const.LOGGER.info(
-        "Migrated legacy KidsChores data from %s (%s) into %s",
+        "Migrated legacy ChoreOps data from %s (%s) into %s",
         source_path,
         source_kind,
         destination_path,
     )
     const.LOGGER.info(
-        "Legacy KidsChores files were not removed. You can remove the old KidsChores "
+        "Legacy ChoreOps files were not removed. You can remove the old ChoreOps "
         "integration manually after validating ChoreOps"
     )
 
@@ -452,7 +820,7 @@ async def async_migrate_from_legacy_kidschores_storage(
 
 
 async def migrate_config_to_storage(
-    hass: HomeAssistant, entry: ConfigEntry, store: "KidsChoresStore"
+    hass: HomeAssistant, entry: ConfigEntry, store: "ChoreOpsStore"
 ) -> None:
     """One-time migration: Move entity data from config_entry.options to storage.
 
@@ -460,7 +828,7 @@ async def migrate_config_to_storage(
     architecture to the new KC 4.x "storage as source of truth" architecture.
 
     System settings (points_label, points_icon, update_interval) remain in config.
-    All entity definitions (kids, chores, badges, etc.) move to storage.
+    All entity definitions (assignees, chores, badges, etc.) move to storage.
 
     Args:
         hass: Home Assistant instance
@@ -471,8 +839,8 @@ async def migrate_config_to_storage(
     storage_data = store.data
 
     # Check schema version - support both v41 (top-level) and v42+ (meta section)
-    # v41 format: {"schema_version": 41, "kids": {...}}
-    # v42+ format: {"meta": {"schema_version": 42}, "kids": {...}}
+    # v41 format: {"schema_version": 41, "assignees": {...}}
+    # v42+ format: {"meta": {"schema_version": 42}, "assignees": {...}}
     meta_section = storage_data.get(const.DATA_META, {})
     storage_version = meta_section.get(
         const.DATA_META_SCHEMA_VERSION,
@@ -495,11 +863,13 @@ async def migrate_config_to_storage(
     config_has_entities = any(
         key in entry.options
         for key in [
-            const.CONF_KIDS_LEGACY,
+            const.CONF_ASSIGNEES_LEGACY,
+            "assignees",
             const.CONF_CHORES_LEGACY,
             const.CONF_BADGES_LEGACY,
             const.CONF_REWARDS_LEGACY,
-            const.CONF_PARENTS_LEGACY,
+            const.CONF_APPROVERS_LEGACY,
+            "approvers",
             const.CONF_PENALTIES_LEGACY,
             const.CONF_BONUSES_LEGACY,
             const.CONF_ACHIEVEMENTS_LEGACY,
@@ -511,7 +881,7 @@ async def migrate_config_to_storage(
     storage_has_entities = any(
         len(storage_data.get(key, {})) > 0
         for key in [
-            const.DATA_KIDS,
+            const.DATA_USERS,
             const.DATA_CHORES,
             const.DATA_BADGES,
             const.DATA_REWARDS,
@@ -574,24 +944,24 @@ async def migrate_config_to_storage(
     # By excluding these fields, we preserve the correct data already in storage
     excluded_fields_by_type = {
         const.DATA_CHORES: {
-            "assigned_kids",  # May contain names instead of internal_ids
+            "assigned_assignees",  # May contain names instead of internal_ids
             "state",
             "last_completed",
             "last_claimed",
         },
-        const.DATA_PARENTS: {
-            "associated_kids",  # May contain names instead of internal_ids
+        const.DATA_APPROVERS: {
+            "associated_assignees",  # May contain names instead of internal_ids
         },
         const.DATA_BADGES: {
             "assigned_to",  # May contain names instead of internal_ids
         },
         const.DATA_ACHIEVEMENTS: {
-            "assigned_kids",  # May contain names instead of internal_ids
+            "assigned_assignees",  # May contain names instead of internal_ids
             "selected_chore_id",  # May contain name instead of internal_id
             "progress",  # Runtime data
         },
         const.DATA_CHALLENGES: {
-            "assigned_kids",  # May contain names instead of internal_ids
+            "assigned_assignees",  # May contain names instead of internal_ids
             "selected_chore_id",  # May contain name instead of internal_id
             "progress",  # Runtime data
         },
@@ -599,19 +969,27 @@ async def migrate_config_to_storage(
 
     # Merge entity data from config into storage (preserving existing state)
     entity_sections = [
-        (const.CONF_KIDS_LEGACY, const.DATA_KIDS),
-        (const.CONF_PARENTS_LEGACY, const.DATA_PARENTS),
-        (const.CONF_CHORES_LEGACY, const.DATA_CHORES),
-        (const.CONF_BADGES_LEGACY, const.DATA_BADGES),
-        (const.CONF_REWARDS_LEGACY, const.DATA_REWARDS),
-        (const.CONF_PENALTIES_LEGACY, const.DATA_PENALTIES),
-        (const.CONF_BONUSES_LEGACY, const.DATA_BONUSES),
-        (const.CONF_ACHIEVEMENTS_LEGACY, const.DATA_ACHIEVEMENTS),
-        (const.CONF_CHALLENGES_LEGACY, const.DATA_CHALLENGES),
+        ((const.CONF_ASSIGNEES_LEGACY, "assignees"), const.DATA_USERS),
+        ((const.CONF_APPROVERS_LEGACY, "approvers"), const.DATA_APPROVERS),
+        ((const.CONF_CHORES_LEGACY,), const.DATA_CHORES),
+        ((const.CONF_BADGES_LEGACY,), const.DATA_BADGES),
+        ((const.CONF_REWARDS_LEGACY,), const.DATA_REWARDS),
+        ((const.CONF_PENALTIES_LEGACY,), const.DATA_PENALTIES),
+        ((const.CONF_BONUSES_LEGACY,), const.DATA_BONUSES),
+        ((const.CONF_ACHIEVEMENTS_LEGACY,), const.DATA_ACHIEVEMENTS),
+        ((const.CONF_CHALLENGES_LEGACY,), const.DATA_CHALLENGES),
     ]
 
-    for config_key, data_key in entity_sections:
-        config_entities = entry.options.get(config_key, {})
+    for config_keys, data_key in entity_sections:
+        config_key_used = config_keys[0]
+        config_entities: dict[str, Any] = {}
+        for config_key_candidate in config_keys:
+            candidate = entry.options.get(config_key_candidate, {})
+            if isinstance(candidate, dict) and candidate:
+                config_entities = candidate
+                config_key_used = config_key_candidate
+                break
+
         if config_entities:
             # Merge config entities into storage (config is source of truth for definitions)
             if data_key not in storage_data:
@@ -634,16 +1012,16 @@ async def migrate_config_to_storage(
                     # New entity - add from config
                     storage_data[data_key][entity_id] = config_entity_data
 
-                # For kids, remove dead overdue_notifications field if present
-                if config_key == const.CONF_KIDS_LEGACY:
+                # For assignees, remove dead overdue_notifications field if present
+                if config_key_used in {const.CONF_ASSIGNEES_LEGACY, "assignees"}:
                     storage_data[data_key][entity_id].pop(
-                        const.DATA_KID_OVERDUE_NOTIFICATIONS_LEGACY, None
+                        const.DATA_ASSIGNEE_OVERDUE_NOTIFICATIONS_LEGACY, None
                     )
 
             const.LOGGER.debug(
                 "DEBUG: Migrated %s %s from config to storage",
                 len(config_entities),
-                config_key,
+                config_key_used,
             )
 
     # Set TRANSITIONAL schema version in meta section
@@ -719,16 +1097,16 @@ class PreV50Migrator:
     for users upgrading from older versions.
 
     Attributes:
-        coordinator: Reference to the KidsChoresDataCoordinator instance.
+        coordinator: Reference to the ChoreOpsDataCoordinator instance.
     """
 
     # This migration class intentionally accesses coordinator private methods and data
 
-    def __init__(self, coordinator: "KidsChoresDataCoordinator") -> None:
+    def __init__(self, coordinator: "ChoreOpsDataCoordinator") -> None:
         """Initialize the migrator with coordinator reference.
 
         Args:
-            coordinator: The KidsChoresDataCoordinator instance to migrate data for.
+            coordinator: The ChoreOpsDataCoordinator instance to migrate data for.
         """
         self.coordinator = coordinator
 
@@ -778,26 +1156,26 @@ class PreV50Migrator:
             self._migrate_datetime_wrapper()
             self._migrate_stored_datetimes()
             self._migrate_chore_data()
-            self._migrate_kid_data()
-            self._migrate_legacy_kid_chore_data_and_streaks()
+            self._migrate_assignee_data()
+            self._migrate_legacy_assignee_chore_data_and_streaks()
             self._migrate_badges()
-            self._migrate_kid_legacy_badges_to_cumulative_progress()
-            self._migrate_kid_legacy_badges_to_badges_earned()
+            self._migrate_assignee_legacy_badges_to_cumulative_progress()
+            self._migrate_assignee_legacy_badges_to_badges_earned()
             self._migrate_legacy_point_stats()
 
             # Phase 2: Config sync (KC 3.x entity data from config → storage)
-            # Phase 2: Independent chores migration (populate per-kid due dates)
+            # Phase 2: Independent chores migration (populate per-assignee due dates)
             self._migrate_independent_chores()
 
-            # Phase 2a: Per-kid applicable days migration (PKAD-2026-001)
-            self._migrate_per_kid_applicable_days()
+            # Phase 2a: Per-assignee applicable days migration (PKAD-2026-001)
+            self._migrate_per_assignee_applicable_days()
 
             # Phase 2b: Approval reset type migration (allow_multiple_claims_per_day → approval_reset_type)
             self._migrate_approval_reset_type()
 
             # Phase 2c: Timestamp-based chore tracking migration
             # - Initialize approval_period_start for chores
-            # - Delete deprecated claimed_chores/approved_chores lists from kids
+            # - Delete deprecated claimed_chores/approved_chores lists from assignees
             self._migrate_to_timestamp_tracking()
 
             # Phase 2d: Reward data migration to period-based structure
@@ -825,13 +1203,13 @@ class PreV50Migrator:
             # Fixes Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
             self._round_float_precision()
 
-            # Phase 7: v50 cleanup - Remove legacy due_date fields from kid-level chore_data
-            # for independent chores (single source of truth is now chore_info[per_kid_due_dates])
+            # Phase 7: v50 cleanup - Remove legacy due_date fields from assignee-level chore_data
+            # for independent chores (single source of truth is now chore_info[per_assignee_due_dates])
             storage_version = self.coordinator._data.get(const.DATA_META, {}).get(
                 const.DATA_META_SCHEMA_VERSION, 42
             )
             if storage_version < 50:
-                self._cleanup_kid_chore_data_due_dates_v50()
+                self._cleanup_assignee_chore_data_due_dates_v50()
 
             # Phase 7a: v50 notification simplification - Migrate 3-field notification config
             # to single service selector (service presence = enabled, empty = disabled)
@@ -851,7 +1229,7 @@ class PreV50Migrator:
             self._strip_temporal_stats()
 
             # Phase 10: Backfill 'completed' metric from 'approved' (v0.5.0-beta4)
-            # New parent-lag-proof statistics track work completion by claim date, not approval date.
+            # New approver-lag-proof statistics track work completion by claim date, not approval date.
             # Historical approvals have no 'completed' tracking - backfill with approved counts.
             self._migrate_completed_metric()
 
@@ -865,13 +1243,13 @@ class PreV50Migrator:
             self._migrate_point_periods_v43()
 
             # Phase 12: Chore periods migration (v43) - "Lean Chore Architecture"
-            # - Create kid-level chore_periods bucket for aggregated history
+            # - Create assignee-level chore_periods bucket for aggregated history
             # - Remove total_points from individual chore items (use periods.all_time.points)
             # - Delete chore_stats dict entirely (now fully ephemeral)
             self._migrate_chore_periods_v43()
 
             # Phase 12b: Reward periods migration (v43) - "Lean Reward Architecture"
-            # - Create kid-level reward_periods bucket for aggregated history
+            # - Create assignee-level reward_periods bucket for aggregated history
             # - Remove total_* fields from reward_data items (use periods.all_time.*)
             # - Remove notification_ids from reward_data items (NotificationManager owns lifecycle)
             # - Delete reward_stats dict entirely (now fully ephemeral)
@@ -879,7 +1257,7 @@ class PreV50Migrator:
 
             # Phase 12c: Bonus/Penalty periods migration (v43) - "Lean Item Period Tracking"
             # - Add periods structure to global bonuses_data[uuid] and penalties_data[uuid]
-            # - No kid-level aggregate buckets needed (unlike chores/rewards)
+            # - No assignee-level aggregate buckets needed (unlike chores/rewards)
             # - Ledger enhancement: item_name field already added in Phase 4C.4
             self._migrate_bonus_penalty_periods_v43()
 
@@ -1044,7 +1422,7 @@ class PreV50Migrator:
 
         # Entity type -> (bucket key, builder callable, extra kwargs)
         bucket_builders: list[tuple[str, str, Any]] = [
-            (const.DATA_KIDS, "kid", None),
+            (const.DATA_USERS, "assignee", None),
             (const.DATA_CHORES, "chore", None),
             (const.DATA_REWARDS, "reward", None),
             (const.DATA_BADGES, "badge", None),
@@ -1052,7 +1430,7 @@ class PreV50Migrator:
             (const.DATA_BONUSES, "bonus", None),
             (const.DATA_ACHIEVEMENTS, "achievement", None),
             (const.DATA_CHALLENGES, "challenge", None),
-            (const.DATA_PARENTS, "parent", None),
+            (const.DATA_APPROVERS, "approver", None),
         ]
 
         try:
@@ -1106,15 +1484,20 @@ class PreV50Migrator:
 
         Args:
             db_module: data_builders module
-            builder_name: One of 'kid', 'chore', 'reward', 'badge', etc.
+            builder_name: One of 'assignee', 'chore', 'reward', 'badge', etc.
             item_data: Existing item data from storage.
 
         Returns:
             Rebuilt item data with correct schema.
         """
         empty: dict[str, Any] = {}
-        if builder_name == "kid":
-            return dict(db_module.build_kid(user_input=empty, existing=item_data))
+        if builder_name == "assignee":
+            return dict(
+                db_module.build_user_assignment_profile(
+                    user_input=empty,
+                    existing=item_data,
+                )
+            )
         if builder_name == "chore":
             return dict(db_module.build_chore(user_input=empty, existing=item_data))
         if builder_name == "reward":
@@ -1143,14 +1526,16 @@ class PreV50Migrator:
             )
         if builder_name == "challenge":
             return dict(db_module.build_challenge(user_input=empty, existing=item_data))
-        if builder_name == "parent":
-            return dict(db_module.build_parent(user_input=empty, existing=item_data))
+        if builder_name == "approver":
+            return dict(
+                db_module.build_user_profile(user_input=empty, existing=item_data)
+            )
 
         msg = f"Unknown builder: {builder_name}"
         raise ValueError(msg)
 
     def _wipe_all_kc_entities(self) -> int:
-        """Remove all KidsChores entities from the entity registry.
+        """Remove all ChoreOps entities from the entity registry.
 
         Platforms will recreate them on next startup with correct structure.
 
@@ -1335,7 +1720,7 @@ class PreV50Migrator:
         - Bug fix: RecurrenceEngine requires integer weekdays (0-6), not strings
         - Legacy data: Some chores have string day names like ["sun", "mon"]
         - This migration: Converts all string day names to integers using WEEKDAY_NAME_TO_INT
-        - Affects: applicable_days (chore-level) and per_kid_applicable_days (independent)
+        - Affects: applicable_days (chore-level) and per_assignee_applicable_days (independent)
 
         After this migration, all applicable_days fields contain only integers,
         eliminating the need for defensive conversions at read-time.
@@ -1346,7 +1731,7 @@ class PreV50Migrator:
 
         chores = self.coordinator._data.get(const.DATA_CHORES, {})
         converted_chores = 0
-        converted_per_kid = 0
+        converted_per_assignee = 0
 
         for _chore_id, chore_data in chores.items():
             chore_name = chore_data.get("name", "unknown")
@@ -1370,10 +1755,12 @@ class PreV50Migrator:
                     chore_data[const.DATA_CHORE_APPLICABLE_DAYS] = converted_days
                     converted_chores += 1
 
-            # Convert per-kid applicable_days (for INDEPENDENT chores)
-            if chore_data.get(const.DATA_CHORE_PER_KID_APPLICABLE_DAYS):
-                per_kid_days = chore_data[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS]
-                for kid_id, days_list in per_kid_days.items():
+            # Convert per-assignee applicable_days (for INDEPENDENT chores)
+            if chore_data.get(const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS):
+                per_assignee_days = chore_data[
+                    const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS
+                ]
+                for assignee_id, days_list in per_assignee_days.items():
                     original_days = days_list
                     converted_days = [
                         const.WEEKDAY_NAME_TO_INT.get(day, day)
@@ -1383,54 +1770,54 @@ class PreV50Migrator:
                     ]
                     if converted_days != original_days:
                         const.LOGGER.debug(
-                            "PreV50Migrator: Converting chore '%s' per-kid days for %s: %s → %s",
+                            "PreV50Migrator: Converting chore '%s' per-assignee days for %s: %s → %s",
                             chore_name,
-                            kid_id,
+                            assignee_id,
                             original_days,
                             converted_days,
                         )
-                        per_kid_days[kid_id] = converted_days
-                        converted_per_kid += 1
+                        per_assignee_days[assignee_id] = converted_days
+                        converted_per_assignee += 1
 
         const.LOGGER.info(
-            "PreV50Migrator: Converted %d chore-level and %d per-kid applicable_days",
+            "PreV50Migrator: Converted %d chore-level and %d per-assignee applicable_days",
             converted_chores,
-            converted_per_kid,
+            converted_per_assignee,
         )
 
-    def _cleanup_legacy_kid_chore_badge_refs(self) -> None:
-        """Remove legacy badge_refs from kid chore records.
+    def _cleanup_legacy_assignee_chore_badge_refs(self) -> None:
+        """Remove legacy badge_refs from assignee chore records.
 
         SCHEMA 44 MIGRATION (v0.5.0-beta4):
-        - Legacy field: kid_chore_data.<chore_id>.badge_refs
+        - Legacy field: assignee_chore_data.<chore_id>.badge_refs
         - Current architecture: badge scope is resolved dynamically from badge
           definitions and assignment, so this denormalized cache is redundant.
 
-        This migration removes `badge_refs` from all kid chore records to reduce
+        This migration removes `badge_refs` from all assignee chore records to reduce
         storage churn and prevent stale reference data.
         """
         const.LOGGER.info(
-            "PreV50Migrator: Removing legacy badge_refs from kid chore records"
+            "PreV50Migrator: Removing legacy badge_refs from assignee chore records"
         )
 
-        kids = self.coordinator._data.get(const.DATA_KIDS, {})
+        assignees = self.coordinator._data.get(const.DATA_USERS, {})
         removed_count = 0
 
-        for kid_data in kids.values():
-            kid_chore_data = kid_data.get(const.DATA_KID_CHORE_DATA, {})
-            if not isinstance(kid_chore_data, dict):
+        for assignee_data in assignees.values():
+            assignee_chore_data = assignee_data.get(const.DATA_USER_CHORE_DATA, {})
+            if not isinstance(assignee_chore_data, dict):
                 continue
 
-            for chore_data in kid_chore_data.values():
+            for chore_data in assignee_chore_data.values():
                 if not isinstance(chore_data, dict):
                     continue
 
-                if const.DATA_KID_CHORE_DATA_BADGE_REFS in chore_data:
-                    del chore_data[const.DATA_KID_CHORE_DATA_BADGE_REFS]
+                if const.DATA_USER_CHORE_DATA_BADGE_REFS in chore_data:
+                    del chore_data[const.DATA_USER_CHORE_DATA_BADGE_REFS]
                     removed_count += 1
 
         const.LOGGER.info(
-            "PreV50Migrator: Removed badge_refs from %d kid chore records",
+            "PreV50Migrator: Removed badge_refs from %d assignee chore records",
             removed_count,
         )
 
@@ -1458,33 +1845,33 @@ class PreV50Migrator:
         # Convert string day names to integers in applicable_days (RecurrenceEngine fix)
         self._convert_applicable_days_to_integers()
 
-        # Remove legacy chore badge_refs from kid chore records
-        self._cleanup_legacy_kid_chore_badge_refs()
+        # Remove legacy chore badge_refs from assignee chore records
+        self._cleanup_legacy_assignee_chore_badge_refs()
 
         # v0.5.0 Chore Logic: Backfill rotation fields for all chores
         self._backfill_rotation_fields()
 
         # Phase 2 (v0.5.0-beta4): Eliminate completed_by_other state
-        # Convert any existing kid chore states from "completed_by_other" to "pending"
-        # and remove completed_by_other_chores lists from kid data
-        kids = self.coordinator._data.get(const.DATA_KIDS, {})
+        # Convert any existing assignee chore states from "completed_by_other" to "pending"
+        # and remove completed_by_other_chores lists from assignee data
+        assignees = self.coordinator._data.get(const.DATA_USERS, {})
         chores_migrated = 0
         lists_removed = 0
 
-        for kid_data in kids.values():
+        for assignee_data in assignees.values():
             # Remove completed_by_other_chores list (no longer used)
             # Note: Using deprecated constant name as string literal since
             # the constant itself was removed in Phase 2
-            if "completed_by_other_chores" in kid_data:
-                del kid_data["completed_by_other_chores"]
+            if "completed_by_other_chores" in assignee_data:
+                del assignee_data["completed_by_other_chores"]
                 lists_removed += 1
 
             # Convert all completed_by_other states to pending
-            chore_data_map = kid_data.get(const.DATA_KID_CHORE_DATA, {})
+            chore_data_map = assignee_data.get(const.DATA_USER_CHORE_DATA, {})
             for chore_data in chore_data_map.values():
-                current_state = chore_data.get(const.DATA_KID_CHORE_DATA_STATE)
+                current_state = chore_data.get(const.DATA_USER_CHORE_DATA_STATE)
                 if current_state == const.CHORE_STATE_COMPLETED_BY_OTHER:
-                    chore_data[const.DATA_KID_CHORE_DATA_STATE] = (
+                    chore_data[const.DATA_USER_CHORE_DATA_STATE] = (
                         const.CHORE_STATE_PENDING
                     )
                     chores_migrated += 1
@@ -1521,8 +1908,8 @@ class PreV50Migrator:
             "next_lower_threshold",
         ]
 
-        for kid_data in kids.values():
-            progress = kid_data.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+        for assignee_data in assignees.values():
+            progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
             if not progress:
                 continue
 
@@ -1542,7 +1929,7 @@ class PreV50Migrator:
             # For migration simplicity, we skip this check - cycle_points will naturally
             # reset to 0 on next maintenance cycle or demotion
             # Original logic kept for reference but disabled:
-            # current_badge_id = progress.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CURRENT_BADGE_ID)
+            # current_badge_id = progress.get(CUMULATIVE_BADGE_PROGRESS_CURRENT_BADGE_ID)
             # This field no longer exists after derived field removal above
 
         if baseline_removed > 0 or derived_removed > 0 or cycle_reset > 0:
@@ -1555,7 +1942,7 @@ class PreV50Migrator:
             )
 
         # --- Cumulative Badge Data Integrity (v0.5.0-beta4 hotfix) ---
-        # Fixes corrupted data where kids have invalid DEMOTED status with null
+        # Fixes corrupted data where assignees have invalid DEMOTED status with null
         # maintenance dates (causes infinite re-promotion loop at runtime).
         # Also deduplicates earned_by lists and initialises missing progress dicts.
         badges = self.coordinator._data.get(const.DATA_BADGES, {})
@@ -1649,7 +2036,7 @@ class PreV50Migrator:
                 dedup_count,
             )
 
-        # Task 2-4: Per-kid progress repair
+        # Task 2-4: Per-assignee progress repair
         status_repaired = 0
         dates_initialised = 0
         progress_created = 0
@@ -1664,17 +2051,17 @@ class PreV50Migrator:
             ),
         )
 
-        for kid_id, kid_data in kids.items():
+        for assignee_id, assignee_data in assignees.items():
             # Task 2: Ensure cumulative_badge_progress exists
-            progress = kid_data.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS)
+            progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS)
             if progress is None:
-                kid_data[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS] = {
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: 0,
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS: (
+                assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS] = {
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: 0,
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS: (
                         const.CUMULATIVE_BADGE_STATE_ACTIVE
                     ),
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE: None,
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE: None,
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE: None,
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE: None,
                 }
                 progress_created += 1
                 continue  # freshly initialised, no further repair needed
@@ -1682,22 +2069,22 @@ class PreV50Migrator:
             if not isinstance(progress, dict):
                 continue
 
-            # Find kid's highest earned cumulative badge
-            badges_earned = kid_data.get(const.DATA_KID_BADGES_EARNED, {})
+            # Find assignee's highest earned cumulative badge
+            badges_earned = assignee_data.get(const.DATA_USER_BADGES_EARNED, {})
             highest_badge_data: dict[str, Any] | None = None
             for bid, bdata in sorted_cumulative:
-                # Check assignment: empty list = all kids
-                assigned = bdata.get(const.DATA_BADGE_ASSIGNED_TO, [])
-                if assigned and kid_id not in assigned:
+                # Check assignment: empty list = all assignees
+                assigned = bdata.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
+                if assigned and assignee_id not in assigned:
                     continue
                 if bid in badges_earned:
                     highest_badge_data = bdata
 
             current_status = progress.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS
             )
             end_date = progress.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
             )
 
             # Task 3: Repair invalid DEMOTED status when maintenance is not enabled
@@ -1706,21 +2093,21 @@ class PreV50Migrator:
                 and highest_badge_data is not None
                 and not _badge_maintenance_enabled(highest_badge_data)
             ):
-                progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+                progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
                     const.CUMULATIVE_BADGE_STATE_ACTIVE
                 )
-                progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0
+                progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0
                 progress[
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
                 ] = None
                 progress[
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
                 ] = None
                 status_repaired += 1
                 const.LOGGER.debug(
-                    "Badge migration: Repaired DEMOTED→ACTIVE for kid %s "
+                    "Badge migration: Repaired DEMOTED→ACTIVE for assignee %s "
                     "(badge has no maintenance)",
-                    kid_id,
+                    assignee_id,
                 )
                 continue  # dates correctly set to None
 
@@ -1733,23 +2120,23 @@ class PreV50Migrator:
             ):
                 new_end, new_grace = _compute_maintenance_dates(highest_badge_data)
                 progress[
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
                 ] = new_end
                 progress[
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
                 ] = new_grace
                 # If status was DEMOTED with null dates, repair to ACTIVE
                 if current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED:
-                    progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+                    progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
                         const.CUMULATIVE_BADGE_STATE_ACTIVE
                     )
-                    progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0
+                    progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0
                     status_repaired += 1
                 dates_initialised += 1
                 const.LOGGER.debug(
-                    "Badge migration: Initialised maintenance dates for kid %s "
+                    "Badge migration: Initialised maintenance dates for assignee %s "
                     "(end=%s, grace=%s)",
-                    kid_id,
+                    assignee_id,
                     new_end,
                     new_grace,
                 )
@@ -1820,9 +2207,9 @@ class PreV50Migrator:
         const.LOGGER.info("PreV50Migrator: Schema 44 migration complete")
 
     def _backfill_rotation_fields(self) -> None:
-        """Add rotation_current_kid_id and rotation_cycle_override to all chores.
+        """Add rotation_current_assignee_id and rotation_cycle_override to all chores.
 
-        For existing rotation_* chores: initialize current_kid_id if not present.
+        For existing rotation_* chores: initialize current_assignee_id if not present.
         For non-rotation chores: add fields as None/False (clean data model).
         """
         const.LOGGER.info(
@@ -1842,20 +2229,20 @@ class PreV50Migrator:
                 const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
                 const.COMPLETION_CRITERIA_ROTATION_SMART,
             )
-            assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
             # Add fields if missing (backward compat)
-            if const.DATA_CHORE_ROTATION_CURRENT_KID_ID not in chore_data:
-                if is_rotation and assigned_kids:
-                    chore_data[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = (
-                        assigned_kids[0]
+            if const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID not in chore_data:
+                if is_rotation and assigned_assignees:
+                    chore_data[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = (
+                        assigned_assignees[0]
                     )
                     initialized_rotation_count += 1
                 else:
-                    chore_data[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = None
+                    chore_data[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = None
                 backfilled_count += 1
 
-            # rotation_order removed - unused field, assigned_kids defines order
+            # rotation_order removed - unused field, assigned_assignees defines order
 
             if const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE not in chore_data:
                 chore_data[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
@@ -1871,19 +2258,19 @@ class PreV50Migrator:
         """Flatten point_data → point_periods and transform field names (v42 → v43).
 
         v42 structure (nested):
-            kid["point_data"]["periods"][period_type][period_key] = {
+            assignee["point_data"]["periods"][period_type][period_key] = {
                 "points_total": 100.0,  # NET value (earned - spent)
                 "by_source": {"chores": 150.0, "manual": -50.0}
             }
-            kid["point_stats"]["highest_balance"] = 2980.0  # Separate bucket
+            assignee["point_stats"]["highest_balance"] = 2980.0  # Separate bucket
 
         v43 structure (flat):
-            kid["point_periods"][period_type][period_key] = {
+            assignee["point_periods"][period_type][period_key] = {
                 "points_earned": 150.0,  # Sum of positive by_source values
                 "points_spent": -50.0,    # Sum of negative by_source values
                 "by_source": {"chores": 150.0, "manual": -50.0}
             }
-            kid["point_periods"]["all_time"]["all_time"]["highest_balance"] = 2980.0
+            assignee["point_periods"]["all_time"]["all_time"]["highest_balance"] = 2980.0
 
         Transformations:
         1. Flatten: point_data.periods → point_periods
@@ -1896,25 +2283,25 @@ class PreV50Migrator:
         """
         const.LOGGER.info("Starting v42 → v43 migration: point_data → point_periods")
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
         migrated_count = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Skip if already migrated to v43 structure
-            if const.DATA_KID_POINT_PERIODS in kid_info:
+            if const.DATA_USER_POINT_PERIODS in assignee_info:
                 const.LOGGER.debug(
-                    "Kid '%s' (%s) already has point_periods - skipping",
-                    kid_name,
-                    kid_id,
+                    "Assignee '%s' (%s) already has point_periods - skipping",
+                    assignee_name,
+                    assignee_id,
                 )
                 continue
 
             # Extract v42 structures
-            point_data = kid_info.pop(const.DATA_KID_POINT_DATA_LEGACY, {})
-            point_stats = kid_info.pop(const.DATA_KID_POINT_STATS_LEGACY, {})
-            periods = point_data.get(const.DATA_KID_POINT_DATA_PERIODS_LEGACY, {})
+            point_data = assignee_info.pop(const.DATA_ASSIGNEE_POINT_DATA_LEGACY, {})
+            point_stats = assignee_info.pop(const.DATA_ASSIGNEE_POINT_STATS_LEGACY, {})
+            periods = point_data.get(const.DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY, {})
 
             # Initialize flat v43 structure
             point_periods: dict[str, Any] = {}
@@ -1923,7 +2310,7 @@ class PreV50Migrator:
             for period_type, entries in periods.items():
                 point_periods[period_type] = {}
 
-                if period_type == const.DATA_KID_POINT_PERIODS_ALL_TIME:
+                if period_type == const.DATA_USER_POINT_PERIODS_ALL_TIME:
                     # all_time is single dict: {"all_time": {data}}
                     # Special handling: points_earned = highest_balance
                     for period_key, data in entries.items():
@@ -1941,61 +2328,61 @@ class PreV50Migrator:
 
             # Extract highest_balance from point_stats → all_time bucket
             if highest_balance := point_stats.get(
-                const.DATA_KID_POINT_PERIOD_HIGHEST_BALANCE
+                const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE
             ):
                 point_periods.setdefault(
-                    const.DATA_KID_POINT_PERIODS_ALL_TIME, {}
+                    const.DATA_USER_POINT_PERIODS_ALL_TIME, {}
                 ).setdefault(const.PERIOD_ALL_TIME, {})[
-                    const.DATA_KID_POINT_PERIOD_HIGHEST_BALANCE
+                    const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE
                 ] = highest_balance
 
                 # For all_time: points_earned should equal highest_balance
                 # points_spent = (sum of by_source) - highest_balance
-                all_time_entry = point_periods[const.DATA_KID_POINT_PERIODS_ALL_TIME][
+                all_time_entry = point_periods[const.DATA_USER_POINT_PERIODS_ALL_TIME][
                     const.PERIOD_ALL_TIME
                 ]
                 by_source = all_time_entry.get(
-                    const.DATA_KID_POINT_PERIOD_BY_SOURCE, {}
+                    const.DATA_USER_POINT_PERIOD_BY_SOURCE, {}
                 )
                 current_balance = sum(by_source.values())
-                all_time_entry[const.DATA_KID_POINT_PERIOD_POINTS_EARNED] = (
+                all_time_entry[const.DATA_USER_POINT_PERIOD_POINTS_EARNED] = (
                     highest_balance
                 )
-                all_time_entry[const.DATA_KID_POINT_PERIOD_POINTS_SPENT] = (
+                all_time_entry[const.DATA_USER_POINT_PERIOD_POINTS_SPENT] = (
                     current_balance - highest_balance
                 )
 
             # Set new structure
-            kid_info[const.DATA_KID_POINT_PERIODS] = point_periods
+            assignee_info[const.DATA_USER_POINT_PERIODS] = point_periods
             migrated_count += 1
 
             const.LOGGER.debug(
-                "Migrated kid '%s' (%s): point_data → point_periods",
-                kid_name,
-                kid_id,
+                "Migrated assignee '%s' (%s): point_data → point_periods",
+                assignee_name,
+                assignee_id,
             )
 
         const.LOGGER.info(
-            "Completed v42 → v43 migration: %d kids migrated to point_periods",
+            "Completed v42 → v43 migration: %d assignees migrated to point_periods",
             migrated_count,
         )
 
     def _migrate_chore_periods_v43(self) -> None:
-        """Create kid-level chore_periods bucket and remove deprecated fields (v43).
+        """Create assignee-level chore_periods bucket and remove deprecated fields (v43).
 
         v42 structure:
-            kid["chore_stats"] = {...}  # Aggregated dict (to be deleted)
-            kid["chore_data"][uuid]["total_points"] = 150.0  # Redundant field
-            kid["chore_data"][uuid]["periods"]["all_time"]["all_time"]["points"] = 150.0  # Canonical
+            assignee["chore_stats"] = {...}  # Aggregated dict (to be deleted)
+            assignee["chore_data"][uuid]["total_points"] = 150.0  # Redundant field
+            assignee["chore_data"][uuid]["periods"]["all_time"]["all_time"]["points"] = 150.0  # Canonical
 
         v43 structure:
-            kid["chore_periods"] = {}  # New: Aggregated across ALL chores, survives deletion
-            kid["chore_data"][uuid]["periods"]...  # Keep per-chore periods
-            # REMOVED: kid["chore_stats"] (now fully ephemeral - generated on-demand)
-            # REMOVED: kid["chore_data"][uuid]["total_points"] (use periods.all_time.points)
+            assignee["chore_periods"] = {}  # New: Aggregated across ALL chores, survives deletion
+            assignee["chore_data"][uuid]["periods"]...  # Keep per-chore periods
+            # REMOVED: assignee["chore_stats"] (now fully ephemeral - generated on-demand)
+            # REMOVED: assignee["chore_data"][uuid]["total_points"] (use periods.all_time.points)
 
         This migration (Phase 12 - Lean Chore Architecture):
-        1. Creates empty chore_periods bucket at kid level (StatisticsEngine populates on-demand)
+        1. Creates empty chore_periods bucket at assignee level (StatisticsEngine populates on-demand)
         2. Removes total_points from each chore item (periods.all_time.points is canonical)
         3. Deletes chore_stats dict entirely (now fully ephemeral - generate_chore_stats())
 
@@ -2005,66 +2392,66 @@ class PreV50Migrator:
             "Starting v43 migration: Create chore_periods, remove total_points, delete chore_stats"
         )
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        kids_migrated = 0
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        assignees_migrated = 0
         items_cleaned = 0
         stats_deleted = 0
         backfilled_count = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Step 1: Create chore_periods bucket if missing (Landlord genesis)
             # AND backfill all_time from per-chore periods to preserve historical totals
-            if const.DATA_KID_CHORE_PERIODS not in kid_info:
-                kid_info[const.DATA_KID_CHORE_PERIODS] = {}
-                kids_migrated += 1
+            if const.DATA_USER_CHORE_PERIODS not in assignee_info:
+                assignee_info[const.DATA_USER_CHORE_PERIODS] = {}
+                assignees_migrated += 1
                 const.LOGGER.debug(
-                    "Created chore_periods bucket for kid '%s' (%s)",
-                    kid_name,
-                    kid_id,
+                    "Created chore_periods bucket for assignee '%s' (%s)",
+                    assignee_name,
+                    assignee_id,
                 )
 
             # Step 1b: Backfill chore_periods from per-chore periods
             # This aggregates all chore_data[uuid].periods into global buckets
-            chore_periods = kid_info[const.DATA_KID_CHORE_PERIODS]
+            chore_periods = assignee_info[const.DATA_USER_CHORE_PERIODS]
 
             # Check if backfill is needed: either all_time doesn't exist,
             # OR all_time exists but has zeros while per-chore data has real values
             needs_backfill = (
-                const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME not in chore_periods
+                const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME not in chore_periods
             )
             if not needs_backfill:
                 # Check if existing all_time is empty/zero
                 existing_all_time = chore_periods.get(
-                    const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+                    const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
                 ).get(const.PERIOD_ALL_TIME, {})
                 existing_approved = existing_all_time.get(
-                    const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                 )
                 existing_completed = existing_all_time.get(
-                    const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED, 0
+                    const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
                 )
                 # If both are zero, check if per-chore data has non-zero values
                 if existing_approved == 0 and existing_completed == 0:
-                    chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+                    chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
                     for _cid, chore_item in chore_data.items():
                         per_chore_all_time = (
-                            chore_item.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
-                            .get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
+                            chore_item.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
+                            .get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {})
                             .get(const.PERIOD_ALL_TIME, {})
                         )
                         if (
                             per_chore_all_time.get(
-                                const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                             )
                             > 0
                         ):
                             needs_backfill = True
                             const.LOGGER.info(
-                                "Re-aggregating chore_periods for kid '%s' - "
-                                "found per-chore data but kid-level was zero",
-                                kid_name,
+                                "Re-aggregating chore_periods for assignee '%s' - "
+                                "found per-chore data but assignee-level was zero",
+                                assignee_name,
                             )
                             break
 
@@ -2090,29 +2477,29 @@ class PreV50Migrator:
                     lambda: defaultdict(int)
                 )
 
-                chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+                chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
                 for _chore_id, chore_item in chore_data.items():
-                    periods = chore_item.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
+                    periods = chore_item.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
 
                     # All-time aggregation (nested: periods["all_time"]["all_time"])
                     all_time = periods.get(
-                        const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+                        const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
                     ).get(const.PERIOD_ALL_TIME, {})
                     total_approved += all_time.get(
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                     )
                     total_completed += all_time.get(
-                        const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED, 0
+                        const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
                     )
                     total_claimed += all_time.get(
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED, 0
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
                     )
                     total_points += all_time.get(
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS, 0.0
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0
                     )
                     # Track MAX longest_streak (not SUM)
                     chore_streak = all_time.get(
-                        const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK, 0
+                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK, 0
                     )
                     max_longest_streak = max(max_longest_streak, chore_streak)
 
@@ -2121,35 +2508,39 @@ class PreV50Migrator:
                         const.PERIOD_DAILY, {}
                     ).items():
                         daily_totals[date_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
                         ] += daily_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                         )
                         daily_totals[date_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED
-                        ] += daily_data.get(const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED, 0)
-                        daily_totals[date_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED
                         ] += daily_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS, 0.0
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
                         )
                         daily_totals[date_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE
-                        ] += daily_data.get(const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE, 0)
-                        daily_totals[date_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS
                         ] += daily_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0
+                        )
+                        daily_totals[date_key][
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE
+                        ] += daily_data.get(
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE, 0
+                        )
+                        daily_totals[date_key][
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED
+                        ] += daily_data.get(
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED, 0
                         )
                         # streak_tally: Take MAX per date (highest streak on that day)
                         current_tally = daily_totals[date_key].get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0
                         )
                         chore_tally = daily_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0
                         )
                         daily_totals[date_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY
+                            const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY
                         ] = max(current_tally, chore_tally)
 
                     # Aggregate weekly periods
@@ -2157,29 +2548,29 @@ class PreV50Migrator:
                         const.PERIOD_WEEKLY, {}
                     ).items():
                         weekly_totals[week_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
                         ] += weekly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                         )
                         weekly_totals[week_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED
                         ] += weekly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
                         )
                         weekly_totals[week_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS
                         ] += weekly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS, 0.0
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0
                         )
                         weekly_totals[week_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE
                         ] += weekly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE, 0
                         )
                         weekly_totals[week_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED
                         ] += weekly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED, 0
                         )
 
                     # Aggregate monthly periods
@@ -2187,29 +2578,29 @@ class PreV50Migrator:
                         const.PERIOD_MONTHLY, {}
                     ).items():
                         monthly_totals[month_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
                         ] += monthly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                         )
                         monthly_totals[month_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED
                         ] += monthly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
                         )
                         monthly_totals[month_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS
                         ] += monthly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS, 0.0
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0
                         )
                         monthly_totals[month_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE
                         ] += monthly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE, 0
                         )
                         monthly_totals[month_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED
                         ] += monthly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED, 0
                         )
 
                     # Aggregate yearly periods
@@ -2217,41 +2608,41 @@ class PreV50Migrator:
                         const.PERIOD_YEARLY, {}
                     ).items():
                         yearly_totals[year_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
                         ] += yearly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                         )
                         yearly_totals[year_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED
                         ] += yearly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
                         )
                         yearly_totals[year_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS
                         ] += yearly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS, 0.0
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0
                         )
                         yearly_totals[year_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE
                         ] += yearly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE, 0
                         )
                         yearly_totals[year_key][
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED
                         ] += yearly_data.get(
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED, 0
                         )
 
                 # Store aggregated all_time bucket (nested: all_time.all_time for consistency)
-                chore_periods[const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME] = {
+                chore_periods[const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME] = {
                     const.PERIOD_ALL_TIME: {
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: total_approved,
-                        const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED: total_completed,
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: total_claimed,
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS: round(
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: total_approved,
+                        const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED: total_completed,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: total_claimed,
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS: round(
                             total_points, const.DATA_FLOAT_PRECISION
                         ),
-                        const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK: max_longest_streak,
+                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK: max_longest_streak,
                     }
                 }
 
@@ -2275,10 +2666,10 @@ class PreV50Migrator:
 
                 backfilled_count += 1
                 const.LOGGER.debug(
-                    "Backfilled chore_periods for kid '%s': "
+                    "Backfilled chore_periods for assignee '%s': "
                     "all_time(approved=%d, completed=%d, points=%.2f, longest_streak=%d), "
                     "daily=%d, weekly=%d, monthly=%d, yearly=%d",
-                    kid_name,
+                    assignee_name,
                     total_approved,
                     total_completed,
                     total_points,
@@ -2290,37 +2681,38 @@ class PreV50Migrator:
                 )
 
             # Step 2: Remove total_points from each chore item
-            chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+            chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             for _chore_id, chore_item in chore_data.items():
                 if const.DATA_CHORE_TOTAL_POINTS_LEGACY in chore_item:
                     chore_item.pop(const.DATA_CHORE_TOTAL_POINTS_LEGACY)
                     items_cleaned += 1
 
             # Step 3: Delete chore_stats dict (now fully ephemeral)
-            if const.DATA_KID_CHORE_STATS_LEGACY in kid_info:
-                kid_info.pop(const.DATA_KID_CHORE_STATS_LEGACY)
+            if const.DATA_ASSIGNEE_CHORE_STATS_LEGACY in assignee_info:
+                assignee_info.pop(const.DATA_ASSIGNEE_CHORE_STATS_LEGACY)
                 stats_deleted += 1
                 const.LOGGER.debug(
-                    "Deleted chore_stats for kid '%s' (now ephemeral)", kid_name
+                    "Deleted chore_stats for assignee '%s' (now ephemeral)",
+                    assignee_name,
                 )
 
             # Step 4: Remove unused dead fields (never referenced in codebase)
-            if "overall_chore_streak" in kid_info:
-                kid_info.pop("overall_chore_streak")
-            if "last_chore_date" in kid_info:
-                kid_info.pop("last_chore_date")
+            if "overall_chore_streak" in assignee_info:
+                assignee_info.pop("overall_chore_streak")
+            if "last_chore_date" in assignee_info:
+                assignee_info.pop("last_chore_date")
 
             # Step 5: Clean up per-chore period bucket structure
             # Remove longest_streak from daily/weekly/monthly/yearly (should only be in all_time)
             # Remove streak_tally from weekly/monthly/yearly/all_time (should only be in daily)
-            chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+            chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             for chore_item in chore_data.values():
-                periods = chore_item.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
+                periods = chore_item.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
 
                 # Clean daily: remove longest_streak (keep streak_tally)
                 for daily_bucket in periods.get(const.PERIOD_DAILY, {}).values():
                     daily_bucket.pop(
-                        const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK, None
+                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK, None
                     )
 
                 # Clean weekly/monthly/yearly: remove both longest_streak and streak_tally
@@ -2331,25 +2723,25 @@ class PreV50Migrator:
                 ):
                     for period_bucket in periods.get(period_type, {}).values():
                         period_bucket.pop(
-                            const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK, None
+                            const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK, None
                         )
                         period_bucket.pop(
-                            const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY, None
+                            const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, None
                         )
 
                 # Clean all_time: remove streak_tally (keep longest_streak)
-                all_time = periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
+                all_time = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {})
                 if isinstance(all_time, dict):
-                    all_time.pop(const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY, None)
+                    all_time.pop(const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, None)
 
             # Step 6: Clear broken per-chore temporal periods
             # Earlier migrations incorrectly populated yearly/monthly/weekly/daily
             # with cumulative all_time values instead of period-specific values.
             # CRITICAL FIX: Only clear if data appears broken (single bucket with all-time key)
             # Preserve legitimate period data from beta2+ installations.
-            chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+            chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             for chore_item in chore_data.values():
-                periods = chore_item.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
+                periods = chore_item.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
 
                 # Clear temporal period buckets ONLY if broken (single "all_time" key)
                 for period_type in (
@@ -2369,44 +2761,44 @@ class PreV50Migrator:
                             # Broken format detected - clear it
                             periods[period_type] = {}
                             const.LOGGER.debug(
-                                "Cleared broken %s period data for chore '%s' (kid '%s')",
+                                "Cleared broken %s period data for chore '%s' (assignee '%s')",
                                 period_type,
                                 chore_item.get(const.DATA_CHORE_NAME, "unknown"),
-                                kid_name,
+                                assignee_name,
                             )
                         # Otherwise preserve existing valid period data
 
         const.LOGGER.info(
             "Completed v43 chore_periods migration: "
-            "%d kids got chore_periods bucket, %d backfilled all_time, "
+            "%d assignees got chore_periods bucket, %d backfilled all_time, "
             "%d items had total_points removed, %d chore_stats deleted",
-            kids_migrated,
+            assignees_migrated,
             backfilled_count,
             items_cleaned,
             stats_deleted,
         )
 
     def _migrate_reward_periods_v43(self) -> None:
-        """Create kid-level reward_periods bucket and remove deprecated fields (v43).
+        """Create assignee-level reward_periods bucket and remove deprecated fields (v43).
 
         v42 structure:
-            kid["reward_stats"] = {...}  # Aggregated dict (to be deleted)
-            kid["reward_data"][uuid]["total_claims"] = 40  # Redundant field
-            kid["reward_data"][uuid]["total_approved"] = 10  # Redundant field
-            kid["reward_data"][uuid]["total_disapproved"] = 0  # Redundant field
-            kid["reward_data"][uuid]["total_points_spent"] = 1000.0  # Redundant field
-            kid["reward_data"][uuid]["notification_ids"] = [...]  # NotificationManager owns
-            kid["reward_data"][uuid]["periods"]["all_time"]["all_time"]["claimed"] = 40  # Canonical
+            assignee["reward_stats"] = {...}  # Aggregated dict (to be deleted)
+            assignee["reward_data"][uuid]["total_claims"] = 40  # Redundant field
+            assignee["reward_data"][uuid]["total_approved"] = 10  # Redundant field
+            assignee["reward_data"][uuid]["total_disapproved"] = 0  # Redundant field
+            assignee["reward_data"][uuid]["total_points_spent"] = 1000.0  # Redundant field
+            assignee["reward_data"][uuid]["notification_ids"] = [...]  # NotificationManager owns
+            assignee["reward_data"][uuid]["periods"]["all_time"]["all_time"]["claimed"] = 40  # Canonical
 
         v43 structure:
-            kid["reward_periods"] = {}  # New: Aggregated across ALL rewards, survives deletion
-            kid["reward_data"][uuid]["periods"]...  # Keep per-reward periods
-            # REMOVED: kid["reward_stats"] (now fully ephemeral - generate_reward_stats())
-            # REMOVED: kid["reward_data"][uuid]["total_*"] (use periods.all_time.*)
-            # REMOVED: kid["reward_data"][uuid]["notification_ids"] (NotificationManager owns)
+            assignee["reward_periods"] = {}  # New: Aggregated across ALL rewards, survives deletion
+            assignee["reward_data"][uuid]["periods"]...  # Keep per-reward periods
+            # REMOVED: assignee["reward_stats"] (now fully ephemeral - generate_reward_stats())
+            # REMOVED: assignee["reward_data"][uuid]["total_*"] (use periods.all_time.*)
+            # REMOVED: assignee["reward_data"][uuid]["notification_ids"] (NotificationManager owns)
 
         This migration (Phase 12b - Lean Reward Architecture):
-        1. Creates empty reward_periods bucket at kid level (StatisticsEngine populates on-demand)
+        1. Creates empty reward_periods bucket at assignee level (StatisticsEngine populates on-demand)
         2. Removes total_* fields from each reward item (periods.all_time.* is canonical)
         3. Removes notification_ids from each reward item (NotificationManager owns lifecycle)
         4. Deletes reward_stats dict entirely (now fully ephemeral)
@@ -2418,56 +2810,56 @@ class PreV50Migrator:
             "remove total_*/notification_ids, delete reward_stats"
         )
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        kids_migrated = 0
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        assignees_migrated = 0
         items_cleaned = 0
         stats_deleted = 0
         backfilled_count = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Step 1: Create reward_periods bucket if missing (Landlord genesis)
             # AND backfill all_time from per-reward periods to preserve historical totals
-            if const.DATA_KID_REWARD_PERIODS not in kid_info:
-                kid_info[const.DATA_KID_REWARD_PERIODS] = {}
-                kids_migrated += 1
+            if const.DATA_USER_REWARD_PERIODS not in assignee_info:
+                assignee_info[const.DATA_USER_REWARD_PERIODS] = {}
+                assignees_migrated += 1
                 const.LOGGER.debug(
-                    "Created reward_periods bucket for kid '%s' (%s)",
-                    kid_name,
-                    kid_id,
+                    "Created reward_periods bucket for assignee '%s' (%s)",
+                    assignee_name,
+                    assignee_id,
                 )
 
             # Step 1b: Backfill reward_periods from per-reward periods
             # This aggregates all reward_data[uuid].periods into global buckets
-            reward_periods = kid_info[const.DATA_KID_REWARD_PERIODS]
+            reward_periods = assignee_info[const.DATA_USER_REWARD_PERIODS]
 
             # Check if backfill is needed
             needs_backfill = (
-                const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME not in reward_periods
+                const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME not in reward_periods
             )
             if not needs_backfill:
                 # Check if existing all_time is empty/zero
                 existing_all_time = reward_periods.get(
-                    const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME, {}
+                    const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME, {}
                 ).get(const.PERIOD_ALL_TIME, {})
                 existing_approved = existing_all_time.get("approved", 0)
                 existing_claimed = existing_all_time.get("claimed", 0)
                 # If both are zero, check if per-reward data has non-zero values
                 if existing_approved == 0 and existing_claimed == 0:
-                    reward_data = kid_info.get(const.DATA_KID_REWARD_DATA, {})
+                    reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
                     for _rid, reward_item in reward_data.items():
                         per_reward_all_time = (
-                            reward_item.get(const.DATA_KID_REWARD_DATA_PERIODS, {})
-                            .get(const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME, {})
+                            reward_item.get(const.DATA_USER_REWARD_DATA_PERIODS, {})
+                            .get(const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME, {})
                             .get(const.PERIOD_ALL_TIME, {})
                         )
                         if per_reward_all_time.get("approved", 0) > 0:
                             needs_backfill = True
                             const.LOGGER.info(
-                                "Re-aggregating reward_periods for kid '%s' - "
-                                "found per-reward data but kid-level was zero",
-                                kid_name,
+                                "Re-aggregating reward_periods for assignee '%s' - "
+                                "found per-reward data but assignee-level was zero",
+                                assignee_name,
                             )
                             break
 
@@ -2492,45 +2884,45 @@ class PreV50Migrator:
                     lambda: defaultdict(int)
                 )
 
-                reward_data = kid_info.get(const.DATA_KID_REWARD_DATA, {})
+                reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
                 for _reward_id, reward_item in reward_data.items():
-                    periods = reward_item.get(const.DATA_KID_REWARD_DATA_PERIODS, {})
+                    periods = reward_item.get(const.DATA_USER_REWARD_DATA_PERIODS, {})
 
                     # Aggregate all_time totals from periods (preferred source)
                     all_time_data = periods.get(
-                        const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME, {}
+                        const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME, {}
                     ).get(const.PERIOD_ALL_TIME, {})
 
                     # Fallback: If periods.all_time doesn't exist, read from total_* fields
                     # (for data migrated from v40 → v42 but not yet to period structure)
                     if not all_time_data:
                         claimed_from_total = reward_item.get(
-                            const.DATA_KID_REWARD_DATA_TOTAL_CLAIMS, 0
+                            const.DATA_USER_REWARD_DATA_TOTAL_CLAIMS, 0
                         )
                         approved_from_total = reward_item.get(
-                            const.DATA_KID_REWARD_DATA_TOTAL_APPROVED, 0
+                            const.DATA_USER_REWARD_DATA_TOTAL_APPROVED, 0
                         )
                         disapproved_from_total = reward_item.get(
-                            const.DATA_KID_REWARD_DATA_TOTAL_DISAPPROVED, 0
+                            const.DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED, 0
                         )
                         points_from_total = reward_item.get(
-                            const.DATA_KID_REWARD_DATA_TOTAL_POINTS_SPENT, 0.0
+                            const.DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT, 0.0
                         )
 
                         # Populate per-reward periods.all_time.all_time from total_* fields
                         if not periods:
                             periods = reward_item[
-                                const.DATA_KID_REWARD_DATA_PERIODS
+                                const.DATA_USER_REWARD_DATA_PERIODS
                             ] = {
-                                const.DATA_KID_REWARD_DATA_PERIODS_DAILY: {},
-                                const.DATA_KID_REWARD_DATA_PERIODS_WEEKLY: {},
-                                const.DATA_KID_REWARD_DATA_PERIODS_MONTHLY: {},
-                                const.DATA_KID_REWARD_DATA_PERIODS_YEARLY: {},
-                                const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME: {},
+                                const.DATA_USER_REWARD_DATA_PERIODS_DAILY: {},
+                                const.DATA_USER_REWARD_DATA_PERIODS_WEEKLY: {},
+                                const.DATA_USER_REWARD_DATA_PERIODS_MONTHLY: {},
+                                const.DATA_USER_REWARD_DATA_PERIODS_YEARLY: {},
+                                const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME: {},
                             }
 
                         all_time_bucket = periods.setdefault(
-                            const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME, {}
+                            const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME, {}
                         )
                         all_time_bucket[const.PERIOD_ALL_TIME] = {
                             "claimed": claimed_from_total,
@@ -2615,7 +3007,7 @@ class PreV50Migrator:
                         )
 
                 # Store aggregated all_time bucket (nested: all_time.all_time for consistency)
-                reward_periods[const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME] = {
+                reward_periods[const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME] = {
                     const.PERIOD_ALL_TIME: {
                         "claimed": total_claimed,
                         "approved": total_approved,
@@ -2644,10 +3036,10 @@ class PreV50Migrator:
 
                 backfilled_count += 1
                 const.LOGGER.debug(
-                    "Backfilled reward_periods for kid '%s': "
+                    "Backfilled reward_periods for assignee '%s': "
                     "all_time(claimed=%d, approved=%d, disapproved=%d, points=%.2f), "
                     "daily=%d, weekly=%d, monthly=%d, yearly=%d",
-                    kid_name,
+                    assignee_name,
                     total_claimed,
                     total_approved,
                     total_disapproved,
@@ -2681,25 +3073,25 @@ class PreV50Migrator:
                             period_bucket[period_key] = nested_data
                             flattened_count += 1
                             const.LOGGER.debug(
-                                "Flattened nested key '%s' in %s reward_periods for kid '%s'",
+                                "Flattened nested key '%s' in %s reward_periods for assignee '%s'",
                                 period_key,
                                 period_type,
-                                kid_name,
+                                assignee_name,
                             )
 
             if flattened_count > 0:
                 const.LOGGER.info(
-                    "Flattened %d malformed nested keys in reward_periods for kid '%s'",
+                    "Flattened %d malformed nested keys in reward_periods for assignee '%s'",
                     flattened_count,
-                    kid_name,
+                    assignee_name,
                 )
 
             # Step 3: Remove total_* fields from each reward item
-            reward_data = kid_info.get(const.DATA_KID_REWARD_DATA, {})
+            reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
             for _reward_id, reward_item in reward_data.items():
                 # Step 3a: Flatten malformed nested keys in per-reward periods
-                if const.DATA_KID_REWARD_DATA_PERIODS in reward_item:
-                    periods = reward_item[const.DATA_KID_REWARD_DATA_PERIODS]
+                if const.DATA_USER_REWARD_DATA_PERIODS in reward_item:
+                    periods = reward_item[const.DATA_USER_REWARD_DATA_PERIODS]
                     per_reward_flattened = 0
                     for period_type in [
                         const.PERIOD_DAILY,
@@ -2725,28 +3117,28 @@ class PreV50Migrator:
 
                     if per_reward_flattened > 0:
                         const.LOGGER.debug(
-                            "Flattened %d malformed nested keys in per-reward periods for reward %s, kid '%s'",
+                            "Flattened %d malformed nested keys in per-reward periods for reward %s, assignee '%s'",
                             per_reward_flattened,
                             _reward_id,
-                            kid_name,
+                            assignee_name,
                         )
 
                 # Step 3b: Remove total_* fields
                 removed_fields = []
-                if const.DATA_KID_REWARD_DATA_TOTAL_CLAIMS in reward_item:
-                    del reward_item[const.DATA_KID_REWARD_DATA_TOTAL_CLAIMS]
+                if const.DATA_USER_REWARD_DATA_TOTAL_CLAIMS in reward_item:
+                    del reward_item[const.DATA_USER_REWARD_DATA_TOTAL_CLAIMS]
                     removed_fields.append("total_claims")
                     items_cleaned += 1
-                if const.DATA_KID_REWARD_DATA_TOTAL_APPROVED in reward_item:
-                    del reward_item[const.DATA_KID_REWARD_DATA_TOTAL_APPROVED]
+                if const.DATA_USER_REWARD_DATA_TOTAL_APPROVED in reward_item:
+                    del reward_item[const.DATA_USER_REWARD_DATA_TOTAL_APPROVED]
                     removed_fields.append("total_approved")
                     items_cleaned += 1
-                if const.DATA_KID_REWARD_DATA_TOTAL_DISAPPROVED in reward_item:
-                    del reward_item[const.DATA_KID_REWARD_DATA_TOTAL_DISAPPROVED]
+                if const.DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED in reward_item:
+                    del reward_item[const.DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED]
                     removed_fields.append("total_disapproved")
                     items_cleaned += 1
-                if const.DATA_KID_REWARD_DATA_TOTAL_POINTS_SPENT in reward_item:
-                    del reward_item[const.DATA_KID_REWARD_DATA_TOTAL_POINTS_SPENT]
+                if const.DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT in reward_item:
+                    del reward_item[const.DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT]
                     removed_fields.append("total_points_spent")
                     items_cleaned += 1
 
@@ -2758,63 +3150,65 @@ class PreV50Migrator:
 
                 if removed_fields:
                     const.LOGGER.debug(
-                        "Cleaned reward item for kid '%s': removed %s",
-                        kid_name,
+                        "Cleaned reward item for assignee '%s': removed %s",
+                        assignee_name,
                         ", ".join(removed_fields),
                     )
 
             # Step 4: Delete reward_stats dict (now fully ephemeral)
-            if const.DATA_KID_REWARD_STATS in kid_info:
-                del kid_info[const.DATA_KID_REWARD_STATS]
+            if const.DATA_USER_REWARD_STATS in assignee_info:
+                del assignee_info[const.DATA_USER_REWARD_STATS]
                 stats_deleted += 1
                 const.LOGGER.debug(
-                    "Deleted reward_stats dict for kid '%s' (%s)", kid_name, kid_id
+                    "Deleted reward_stats dict for assignee '%s' (%s)",
+                    assignee_name,
+                    assignee_id,
                 )
 
         const.LOGGER.info(
             "Completed v43 reward_periods migration: "
-            "%d kids got reward_periods bucket, %d backfilled all_time, "
+            "%d assignees got reward_periods bucket, %d backfilled all_time, "
             "%d items cleaned (total_*/notification_ids), %d reward_stats deleted",
-            kids_migrated,
+            assignees_migrated,
             backfilled_count,
             items_cleaned,
             stats_deleted,
         )
 
     def _migrate_bonus_penalty_periods_v43(self) -> None:
-        """Transform kid.bonus_applies and kid.penalty_applies to dicts with periods (v43).
+        """Transform assignee.bonus_applies and assignee.penalty_applies to dicts with periods (v43).
 
         Phase 4C: Bonus/Penalty Period Tracking
-        - Transform kid.bonus_applies from {bonus_id: count} to {bonus_id: {periods: {...}}}
-        - Transform kid.penalty_applies from {penalty_id: count} to {penalty_id: {periods: {...}}}
+        - Transform assignee.bonus_applies from {bonus_id: count} to {bonus_id: {periods: {...}}}
+        - Transform assignee.penalty_applies from {penalty_id: count} to {penalty_id: {periods: {...}}}
         - Backfill all_time.all_time from old integer counters
-        - Periods structure: kid.bonus_applies[bonus_id].periods.daily.2026-02-04
+        - Periods structure: assignee.bonus_applies[bonus_id].periods.daily.2026-02-04
 
         This migration (Phase 12c):
-        1. For each kid, transform bonus_applies counters to dicts with periods
-        2. For each kid, transform penalty_applies counters to dicts with periods
+        1. For each assignee, transform bonus_applies counters to dicts with periods
+        2. For each assignee, transform penalty_applies counters to dicts with periods
         3. Backfill all_time.all_time bucket with historical count × points
 
         This migration is idempotent - safe to run multiple times.
         """
         const.LOGGER.info(
             "Starting v43 bonus/penalty periods migration: "
-            "Transform kid.bonus_applies and kid.penalty_applies from counters to period dicts"
+            "Transform assignee.bonus_applies and assignee.penalty_applies from counters to period dicts"
         )
 
         bonuses_data = self.coordinator._data.get(const.DATA_BONUSES, {})
         penalties_data = self.coordinator._data.get(const.DATA_PENALTIES, {})
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        kids_migrated = 0
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        assignees_migrated = 0
         bonus_entries_transformed = 0
         penalty_entries_transformed = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id[:8])
-            kid_changed = False
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id[:8])
+            assignee_changed = False
 
             # Transform bonus_applies from integer counters to period dicts
-            bonus_applies = kid_info.get(const.DATA_KID_BONUS_APPLIES, {})
+            bonus_applies = assignee_info.get(const.DATA_USER_BONUS_APPLIES, {})
             for bonus_id, value in list(bonus_applies.items()):
                 # Check if already migrated (dict with periods) or needs migration (integer)
                 if isinstance(value, int):
@@ -2823,9 +3217,9 @@ class PreV50Migrator:
                     bonus_info = bonuses_data.get(bonus_id)
                     if not bonus_info:
                         const.LOGGER.warning(
-                            "Bonus %s not found in bonuses_data (kid=%s), skipping",
+                            "Bonus %s not found in bonuses_data (assignee=%s), skipping",
                             bonus_id,
-                            kid_name,
+                            assignee_name,
                         )
                         continue
 
@@ -2834,15 +3228,15 @@ class PreV50Migrator:
 
                     # Create new structure with periods
                     bonus_applies[bonus_id] = {
-                        const.DATA_KID_BONUS_PERIODS: {
+                        const.DATA_USER_BONUS_PERIODS: {
                             const.PERIOD_DAILY: {},
                             const.PERIOD_WEEKLY: {},
                             const.PERIOD_MONTHLY: {},
                             const.PERIOD_YEARLY: {},
                             const.PERIOD_ALL_TIME: {
                                 const.PERIOD_ALL_TIME: {
-                                    const.DATA_KID_BONUS_PERIOD_APPLIES: apply_count,
-                                    const.DATA_KID_BONUS_PERIOD_POINTS: round(
+                                    const.DATA_USER_BONUS_PERIOD_APPLIES: apply_count,
+                                    const.DATA_USER_BONUS_PERIOD_POINTS: round(
                                         bonus_points * apply_count,
                                         const.DATA_FLOAT_PRECISION,
                                     ),
@@ -2851,17 +3245,17 @@ class PreV50Migrator:
                         }
                     }
                     bonus_entries_transformed += 1
-                    kid_changed = True
+                    assignee_changed = True
                     const.LOGGER.debug(
-                        "Transformed bonus '%s' for kid '%s': %d applies → %.2f points",
+                        "Transformed bonus '%s' for assignee '%s': %d applies → %.2f points",
                         bonus_name,
-                        kid_name,
+                        assignee_name,
                         apply_count,
                         bonus_points * apply_count,
                     )
                 elif isinstance(value, dict):
                     # ALREADY MIGRATED: ensure all period types exist
-                    periods = value.get(const.DATA_KID_BONUS_PERIODS, {})
+                    periods = value.get(const.DATA_USER_BONUS_PERIODS, {})
                     for period_type in [
                         const.PERIOD_DAILY,
                         const.PERIOD_WEEKLY,
@@ -2871,10 +3265,10 @@ class PreV50Migrator:
                     ]:
                         if period_type not in periods:
                             periods[period_type] = {}
-                            kid_changed = True
+                            assignee_changed = True
 
             # Transform penalty_applies from integer counters to period dicts
-            penalty_applies = kid_info.get(const.DATA_KID_PENALTY_APPLIES, {})
+            penalty_applies = assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {})
             for penalty_id, value in list(penalty_applies.items()):
                 # Check if already migrated (dict with periods) or needs migration (integer)
                 if isinstance(value, int):
@@ -2883,9 +3277,9 @@ class PreV50Migrator:
                     penalty_info = penalties_data.get(penalty_id)
                     if not penalty_info:
                         const.LOGGER.warning(
-                            "Penalty %s not found in penalties_data (kid=%s), skipping",
+                            "Penalty %s not found in penalties_data (assignee=%s), skipping",
                             penalty_id,
-                            kid_name,
+                            assignee_name,
                         )
                         continue
 
@@ -2894,15 +3288,15 @@ class PreV50Migrator:
 
                     # Create new structure with periods
                     penalty_applies[penalty_id] = {
-                        const.DATA_KID_PENALTY_PERIODS: {
+                        const.DATA_USER_PENALTY_PERIODS: {
                             const.PERIOD_DAILY: {},
                             const.PERIOD_WEEKLY: {},
                             const.PERIOD_MONTHLY: {},
                             const.PERIOD_YEARLY: {},
                             const.PERIOD_ALL_TIME: {
                                 const.PERIOD_ALL_TIME: {
-                                    const.DATA_KID_PENALTY_PERIOD_APPLIES: apply_count,
-                                    const.DATA_KID_PENALTY_PERIOD_POINTS: round(
+                                    const.DATA_USER_PENALTY_PERIOD_APPLIES: apply_count,
+                                    const.DATA_USER_PENALTY_PERIOD_POINTS: round(
                                         penalty_points * apply_count,
                                         const.DATA_FLOAT_PRECISION,
                                     ),
@@ -2911,17 +3305,17 @@ class PreV50Migrator:
                         }
                     }
                     penalty_entries_transformed += 1
-                    kid_changed = True
+                    assignee_changed = True
                     const.LOGGER.debug(
-                        "Transformed penalty '%s' for kid '%s': %d applies → %.2f points",
+                        "Transformed penalty '%s' for assignee '%s': %d applies → %.2f points",
                         penalty_name,
-                        kid_name,
+                        assignee_name,
                         apply_count,
                         penalty_points * apply_count,
                     )
                 elif isinstance(value, dict):
                     # ALREADY MIGRATED: ensure all period types exist
-                    periods = value.get(const.DATA_KID_PENALTY_PERIODS, {})
+                    periods = value.get(const.DATA_USER_PENALTY_PERIODS, {})
                     for period_type in [
                         const.PERIOD_DAILY,
                         const.PERIOD_WEEKLY,
@@ -2931,15 +3325,15 @@ class PreV50Migrator:
                     ]:
                         if period_type not in periods:
                             periods[period_type] = {}
-                            kid_changed = True
+                            assignee_changed = True
 
-            if kid_changed:
-                kids_migrated += 1
+            if assignee_changed:
+                assignees_migrated += 1
 
         const.LOGGER.info(
             "Completed v43 bonus/penalty periods migration: "
-            "%d kids processed, %d bonus entries transformed, %d penalty entries transformed",
-            kids_migrated,
+            "%d assignees processed, %d bonus entries transformed, %d penalty entries transformed",
+            assignees_migrated,
             bonus_entries_transformed,
             penalty_entries_transformed,
         )
@@ -2957,17 +3351,17 @@ class PreV50Migrator:
             v43 period entry with points_earned, points_spent, and by_source
         """
         # Remove deprecated points_total (v42 field)
-        data.pop(const.DATA_KID_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY, None)
+        data.pop(const.DATA_ASSIGNEE_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY, None)
 
         if not is_all_time:
             # For temporal periods: Calculate earned/spent from by_source
-            by_source = data.get(const.DATA_KID_POINT_PERIOD_BY_SOURCE, {})
+            by_source = data.get(const.DATA_USER_POINT_PERIOD_BY_SOURCE, {})
             points_earned = sum(v for v in by_source.values() if v > 0)
             points_spent = sum(v for v in by_source.values() if v < 0)
 
             # Add new fields
-            data[const.DATA_KID_POINT_PERIOD_POINTS_EARNED] = points_earned
-            data[const.DATA_KID_POINT_PERIOD_POINTS_SPENT] = points_spent
+            data[const.DATA_USER_POINT_PERIOD_POINTS_EARNED] = points_earned
+            data[const.DATA_USER_POINT_PERIOD_POINTS_SPENT] = points_spent
         # else: all_time earned/spent set specially based on highest_balance
 
         return data
@@ -2994,6 +3388,10 @@ class PreV50Migrator:
         # Remove old top-level schema_version if present (v42 → v50)
         self.coordinator._data.pop(const.DATA_SCHEMA_VERSION, None)
 
+        # Hard-fork cleanup: approvers bucket is legacy-only and must not persist
+        # beyond migration. User role records are canonical in DATA_USERS.
+        self.coordinator._data.pop(const.DATA_APPROVERS, None)
+
         # Clean up legacy beta keys (KC 4.x beta, schema v41)
         if LEGACY_MIGRATION_PERFORMED_KEY in self.coordinator._data:
             const.LOGGER.debug("Cleaning up legacy key: migration_performed")
@@ -3008,10 +3406,10 @@ class PreV50Migrator:
         )
 
     def _migrate_independent_chores(self) -> None:
-        """Populate per_kid_due_dates for all INDEPENDENT chores (one-time migration).
+        """Populate per_assignee_due_dates for all INDEPENDENT chores (one-time migration).
 
-        For each INDEPENDENT chore, populate per_kid_due_dates with template values
-        for all assigned kids. SHARED chores don't need per-kid structure.
+        For each INDEPENDENT chore, populate per_assignee_due_dates with template values
+        for all assigned assignees. SHARED chores don't need per-assignee structure.
         This is a one-time migration during upgrade to v42+ schema.
         """
         chores_data = self.coordinator._data.get(const.DATA_CHORES, {})
@@ -3046,25 +3444,27 @@ class PreV50Migrator:
                     chore_info.get(const.DATA_CHORE_NAME),
                 )
 
-            # For SHARED chores, no per_kid_due_dates needed
-            # For INDEPENDENT chores, populate per_kid_due_dates if missing
+            # For SHARED chores, no per_assignee_due_dates needed
+            # For INDEPENDENT chores, populate per_assignee_due_dates if missing
             if (
                 chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
                 == const.COMPLETION_CRITERIA_INDEPENDENT
             ):
-                if const.DATA_CHORE_PER_KID_DUE_DATES not in chore_info:
+                if const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES not in chore_info:
                     template_due_date = chore_info.get(const.DATA_CHORE_DUE_DATE)
-                    assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-                    chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = dict.fromkeys(
-                        assigned_kids, template_due_date
+                    assigned_assignees = chore_info.get(
+                        const.DATA_CHORE_ASSIGNED_USER_IDS, []
+                    )
+                    chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = dict.fromkeys(
+                        assigned_assignees, template_due_date
                     )
                     const.LOGGER.debug(
-                        "Migrated INDEPENDENT chore '%s' with per-kid dates",
+                        "Migrated INDEPENDENT chore '%s' with per-assignee dates",
                         chore_info.get(const.DATA_CHORE_NAME),
                     )
 
                 # Clean up legacy chore-level due_date for INDEPENDENT chores
-                # The authoritative due_date is now per-kid in kid_chore_data
+                # The authoritative due_date is now per-assignee in assignee_chore_data
                 if const.DATA_CHORE_DUE_DATE in chore_info:
                     del chore_info[const.DATA_CHORE_DUE_DATE]
                     const.LOGGER.debug(
@@ -3072,41 +3472,41 @@ class PreV50Migrator:
                         chore_info.get(const.DATA_CHORE_NAME),
                     )
 
-    def _migrate_per_kid_applicable_days(self) -> None:
-        """Populate per_kid_applicable_days for INDEPENDENT chores (one-time migration).
+    def _migrate_per_assignee_applicable_days(self) -> None:
+        """Populate per_assignee_applicable_days for INDEPENDENT chores (one-time migration).
 
         For each INDEPENDENT chore with chore-level applicable_days:
-        1. Create per_kid_applicable_days with same value for all assigned kids
+        1. Create per_assignee_applicable_days with same value for all assigned assignees
         2. Clear chore-level applicable_days to None
 
         Empty list means "all days applicable" (not "never scheduled").
         SHARED chores keep chore-level applicable_days unchanged.
 
-        PKAD-2026-001: Per-kid applicable days feature migration.
+        PKAD-2026-001: Per-assignee applicable days feature migration.
         """
         chores_data = self.coordinator._data.get(const.DATA_CHORES, {})
         migrated_count = 0
 
         for _chore_id, chore_info in chores_data.items():
-            # Only INDEPENDENT chores need per-kid migration
+            # Only INDEPENDENT chores need per-assignee migration
             if (
                 chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
                 != const.COMPLETION_CRITERIA_INDEPENDENT
             ):
                 continue
 
-            # Skip if per_kid_applicable_days already exists
-            if const.DATA_CHORE_PER_KID_APPLICABLE_DAYS in chore_info:
+            # Skip if per_assignee_applicable_days already exists
+            if const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS in chore_info:
                 continue
 
             # Get template from chore-level applicable_days
             template_days = chore_info.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
-            assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
-            # Populate per-kid structure (copy list for each kid)
-            chore_info[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = {
-                kid_id: template_days[:] if template_days else []
-                for kid_id in assigned_kids
+            # Populate per-assignee structure (copy list for each assignee)
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS] = {
+                assignee_id: template_days[:] if template_days else []
+                for assignee_id in assigned_assignees
             }
 
             # Clear chore-level applicable_days (single source of truth)
@@ -3115,13 +3515,13 @@ class PreV50Migrator:
 
             migrated_count += 1
             const.LOGGER.debug(
-                "Migrated INDEPENDENT chore '%s' with per-kid applicable_days",
+                "Migrated INDEPENDENT chore '%s' with per-assignee applicable_days",
                 chore_info.get(const.DATA_CHORE_NAME),
             )
 
         if migrated_count > 0:
             const.LOGGER.info(
-                "Migrated %d INDEPENDENT chores to per-kid applicable_days",
+                "Migrated %d INDEPENDENT chores to per-assignee applicable_days",
                 migrated_count,
             )
 
@@ -3179,13 +3579,13 @@ class PreV50Migrator:
         """Migrate from list-based to timestamp-based chore claim/approval tracking.
 
         This migration:
-        1. Initializes approval_period_start for INDEPENDENT chores (per-kid in kid_chore_data)
+        1. Initializes approval_period_start for INDEPENDENT chores (per-assignee in assignee_chore_data)
         2. Initializes approval_period_start for SHARED chores (at chore level)
-        3. DELETES deprecated claimed_chores and approved_chores lists from kid data
+        3. DELETES deprecated claimed_chores and approved_chores lists from assignee data
 
         The new timestamp-based system uses:
-        - last_claimed_time: When kid last claimed the chore
-        - last_approved_time: When kid's claim was last approved
+        - last_claimed_time: When assignee last claimed the chore
+        - last_approved_time: When assignee's claim was last approved
         - approval_period_start: Start of current approval window (reset changes this)
 
         Note: The deprecated lists are deleted because v0.4.0 uses timestamp-only tracking.
@@ -3194,7 +3594,7 @@ class PreV50Migrator:
 
         now_utc_iso = datetime.now(dt_util.UTC).isoformat()
         chores_data = self.coordinator._data.get(const.DATA_CHORES, {})
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
 
         # Phase 1: Initialize approval_period_start for chores
         chores_migrated = 0
@@ -3205,30 +3605,32 @@ class PreV50Migrator:
             )
 
             if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                # INDEPENDENT chores: Initialize per-kid approval_period_start in kid_chore_data
-                assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-                for kid_id in assigned_kids:
-                    kid_info = kids_data.get(kid_id)
-                    if not kid_info:
+                # INDEPENDENT chores: Initialize per-assignee approval_period_start in assignee_chore_data
+                assigned_assignees = chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
+                )
+                for assignee_id in assigned_assignees:
+                    assignee_info = assignees_data.get(assignee_id)
+                    if not assignee_info:
                         continue
 
-                    # Ensure kid_chore_data structure exists
-                    if const.DATA_KID_CHORE_DATA not in kid_info:
-                        kid_info[const.DATA_KID_CHORE_DATA] = {}
-                    kid_chore_data = kid_info[const.DATA_KID_CHORE_DATA]
+                    # Ensure assignee_chore_data structure exists
+                    if const.DATA_USER_CHORE_DATA not in assignee_info:
+                        assignee_info[const.DATA_USER_CHORE_DATA] = {}
+                    assignee_chore_data = assignee_info[const.DATA_USER_CHORE_DATA]
 
                     # Ensure chore_tracking entry exists for this chore
-                    if chore_id not in kid_chore_data:
-                        kid_chore_data[chore_id] = {}
-                    chore_tracking = kid_chore_data[chore_id]
+                    if chore_id not in assignee_chore_data:
+                        assignee_chore_data[chore_id] = {}
+                    chore_tracking = assignee_chore_data[chore_id]
 
                     # Only initialize if not already set
                     if (
-                        const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START
+                        const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START
                         not in chore_tracking
                     ):
                         chore_tracking[
-                            const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START
+                            const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START
                         ] = now_utc_iso
                         chores_migrated += 1
             # SHARED/SHARED_FIRST chores: Initialize approval_period_start at chore level
@@ -3236,34 +3638,34 @@ class PreV50Migrator:
                 chore_info[const.DATA_CHORE_APPROVAL_PERIOD_START] = now_utc_iso
                 chores_migrated += 1
 
-        # Phase 2: DELETE deprecated lists from kid data
-        kids_cleaned = 0
+        # Phase 2: DELETE deprecated lists from assignee data
+        assignees_cleaned = 0
         deprecated_keys = [
-            const.DATA_KID_CLAIMED_CHORES_LEGACY,
-            const.DATA_KID_APPROVED_CHORES_LEGACY,
+            const.DATA_ASSIGNEE_CLAIMED_CHORES_LEGACY,
+            const.DATA_ASSIGNEE_APPROVED_CHORES_LEGACY,
         ]
 
-        for kid_id, kid_info in kids_data.items():
+        for assignee_id, assignee_info in assignees_data.items():
             removed_any = False
             for key in deprecated_keys:
-                if key in kid_info:
-                    del kid_info[key]
+                if key in assignee_info:
+                    del assignee_info[key]
                     removed_any = True
 
             if removed_any:
-                kids_cleaned += 1
+                assignees_cleaned += 1
                 const.LOGGER.debug(
-                    "Removed deprecated claim/approval lists from kid '%s' (%s)",
-                    kid_info.get(const.DATA_KID_NAME),
-                    kid_id,
+                    "Removed deprecated claim/approval lists from assignee '%s' (%s)",
+                    assignee_info.get(const.DATA_USER_NAME),
+                    assignee_id,
                 )
 
-        if chores_migrated > 0 or kids_cleaned > 0:
+        if chores_migrated > 0 or assignees_cleaned > 0:
             const.LOGGER.info(
                 "Timestamp tracking migration: initialized %s chore periods, "
-                "cleaned deprecated lists from %s kids",
+                "cleaned deprecated lists from %s assignees",
                 chores_migrated,
-                kids_cleaned,
+                assignees_cleaned,
             )
 
     def _migrate_datetime(self, dt_str: str) -> str:
@@ -3326,7 +3728,7 @@ class PreV50Migrator:
                     approval[const.DATA_CHORE_TIMESTAMP]
                 )
 
-        # v0.4.0: Remove reward queue - also now computed from per-kid reward_data
+        # v0.4.0: Remove reward queue - also now computed from per-assignee reward_data
         # After migration, delete the legacy key since approvals are computed dynamically
         self.coordinator._data.pop(const.DATA_PENDING_REWARD_APPROVALS_LEGACY, None)
 
@@ -3378,166 +3780,190 @@ class PreV50Migrator:
             chore_info.pop(const.DATA_CHORE_LAST_OVERDUE_NOTIFICATION_LEGACY, None)
         const.LOGGER.info("Chore data migration complete.")
 
-    def _migrate_kid_data(self) -> None:
-        """Migrate each kid's data to include new fields if missing."""
-        kids = self.coordinator._data.get(const.DATA_KIDS, {})
+    def _migrate_assignee_data(self) -> None:
+        """Migrate each assignee's data to include new fields if missing."""
+        assignees = self.coordinator._data.get(const.DATA_USERS, {})
         migrated_count = 0
-        for kid_id, kid_info in kids.items():
+        for assignee_id, assignee_info in assignees.items():
             # Remove dead overdue_notifications field (never populated, superseded by
             # DATA_NOTIFICATIONS bucket with DATA_NOTIF_LAST_OVERDUE for dedup)
-            if const.DATA_KID_OVERDUE_NOTIFICATIONS_LEGACY in kid_info:
-                kid_info.pop(const.DATA_KID_OVERDUE_NOTIFICATIONS_LEGACY)
+            if const.DATA_ASSIGNEE_OVERDUE_NOTIFICATIONS_LEGACY in assignee_info:
+                assignee_info.pop(const.DATA_ASSIGNEE_OVERDUE_NOTIFICATIONS_LEGACY)
                 const.LOGGER.debug(
-                    "DEBUG: Removed dead overdue_notifications field from kid '%s'",
-                    kid_id,
+                    "DEBUG: Removed dead overdue_notifications field from assignee '%s'",
+                    assignee_id,
                 )
             # Ensure cumulative_badge_progress exists (initialized empty, populated later)
-            if const.DATA_KID_CUMULATIVE_BADGE_PROGRESS not in kid_info:
-                kid_info[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS] = {}
+            if const.DATA_USER_CUMULATIVE_BADGE_PROGRESS not in assignee_info:
+                assignee_info[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS] = {}
                 const.LOGGER.debug(
-                    "DEBUG: Added cumulative_badge_progress field to kid '%s'", kid_id
+                    "DEBUG: Added cumulative_badge_progress field to assignee '%s'",
+                    assignee_id,
                 )
         const.LOGGER.info(
-            "INFO: Kid data migration complete. Migrated %s kids.", migrated_count
+            "INFO: Assignee data migration complete. Migrated %s assignees.",
+            migrated_count,
         )
 
-    def _migrate_legacy_kid_chore_data_and_streaks(self) -> None:
-        """Migrate legacy streak and stats data to the new kid chores structure (period-based).
+    def _migrate_legacy_assignee_chore_data_and_streaks(self) -> None:
+        """Migrate legacy streak and stats data to the new assignee chores structure (period-based).
 
-        This function will automatically run through all kids and all assigned chores.
-        Data that only needs to be migrated once per kid is handled separately from per-chore data.
+        This function will automatically run through all assignees and all assigned chores.
+        Data that only needs to be migrated once per assignee is handled separately from per-chore data.
         """
-        for kid_id, kid_info in self.coordinator.kids_data.items():
-            # --- Per-kid migration (run once per kid) ---
-            # Only migrate these once per kid, not per chore
-            chore_stats = kid_info.setdefault(const.DATA_KID_CHORE_STATS_LEGACY, {})
-            legacy_streaks = kid_info.get(const.DATA_KID_CHORE_STREAKS_LEGACY, {})
+        for assignee_id, assignee_info in self.coordinator.assignees_data.items():
+            # --- Per-assignee migration (run once per assignee) ---
+            # Only migrate these once per assignee, not per chore
+            chore_stats = assignee_info.setdefault(
+                const.DATA_ASSIGNEE_CHORE_STATS_LEGACY, {}
+            )
+            legacy_streaks = assignee_info.get(
+                const.DATA_ASSIGNEE_CHORE_STREAKS_LEGACY, {}
+            )
             legacy_max = 0
             last_longest_streak_date = None
 
-            # Find the max streak and last date across all chores for this kid
+            # Find the max streak and last date across all chores for this assignee
             for _chore_id, legacy_streak in legacy_streaks.items():  # type: ignore[attr-defined]
-                max_streak = legacy_streak.get(const.DATA_KID_MAX_STREAK_LEGACY, 0)
+                max_streak = legacy_streak.get(const.DATA_ASSIGNEE_MAX_STREAK_LEGACY, 0)
                 if max_streak > legacy_max:
                     legacy_max = max_streak
                     last_longest_streak_date = legacy_streak.get(
-                        const.DATA_KID_LAST_STREAK_DATE
+                        const.DATA_USER_LAST_STREAK_DATE
                     )
 
             if legacy_max > chore_stats.get(
-                const.DATA_KID_CHORE_STATS_LONGEST_STREAK_ALL_TIME_LEGACY, 0
+                const.DATA_ASSIGNEE_CHORE_STATS_LONGEST_STREAK_ALL_TIME_LEGACY, 0
             ):
                 chore_stats[
-                    const.DATA_KID_CHORE_STATS_LONGEST_STREAK_ALL_TIME_LEGACY
+                    const.DATA_ASSIGNEE_CHORE_STATS_LONGEST_STREAK_ALL_TIME_LEGACY
                 ] = legacy_max
                 # Store the date on any one chore (will be set per-chore below as well)
                 if last_longest_streak_date:
-                    for chore_data in kid_info.get(
-                        const.DATA_KID_CHORE_DATA, {}
+                    for chore_data in assignee_info.get(
+                        const.DATA_USER_CHORE_DATA, {}
                     ).values():
                         chore_data[
-                            const.DATA_KID_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME
+                            const.DATA_USER_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME
                         ] = last_longest_streak_date
 
-            # Migrate all-time completed count from legacy (once per kid)
+            # Migrate all-time completed count from legacy (once per assignee)
             # Note: approved_year is NOT set here - it's derived from period buckets
             # (see line ~1008 where legacy approvals populate periods.yearly.approved)
-            chore_stats[const.DATA_KID_CHORE_STATS_APPROVED_ALL_TIME_LEGACY] = (
-                kid_info.get(const.DATA_KID_COMPLETED_CHORES_TOTAL_LEGACY, 0)
+            chore_stats[const.DATA_ASSIGNEE_CHORE_STATS_APPROVED_ALL_TIME_LEGACY] = (
+                assignee_info.get(const.DATA_ASSIGNEE_COMPLETED_CHORES_TOTAL_LEGACY, 0)
             )
 
             # Migrate all-time claimed count from legacy (use max of any chore's claims or completed_chores_total)
+            legacy_claim_map = cast(
+                "dict[str, int]",
+                assignee_info.get(const.DATA_ASSIGNEE_CHORE_CLAIMS_LEGACY, {}),
+            )
             all_claims = [
-                kid_info.get(const.DATA_KID_CHORE_CLAIMS_LEGACY, {}).get(chore_id, 0)  # type: ignore[attr-defined]
+                legacy_claim_map.get(chore_id, 0)
                 for chore_id in self.coordinator.chores_data
             ]
-            all_claims.append(
-                kid_info.get(const.DATA_KID_COMPLETED_CHORES_TOTAL_LEGACY, 0)
+            completed_total_raw = assignee_info.get(
+                const.DATA_ASSIGNEE_COMPLETED_CHORES_TOTAL_LEGACY,
+                0,
             )
-            chore_stats[const.DATA_KID_CHORE_STATS_CLAIMED_ALL_TIME_LEGACY] = (
+            completed_total = (
+                int(completed_total_raw)
+                if isinstance(completed_total_raw, int | float)
+                else 0
+            )
+            all_claims.append(completed_total)
+            chore_stats[const.DATA_ASSIGNEE_CHORE_STATS_CLAIMED_ALL_TIME_LEGACY] = (
                 max(all_claims) if all_claims else 0
             )
 
             # --- Per-chore migration (run for each assigned chore) ---
             for chore_id, chore_info in self.coordinator.chores_data.items():
-                assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-                if assigned_kids and kid_id not in assigned_kids:
+                assigned_assignees = chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
+                )
+                if assigned_assignees and assignee_id not in assigned_assignees:
                     continue
 
                 # Ensure new structure exists
-                if const.DATA_KID_CHORE_DATA not in kid_info:
-                    kid_info[const.DATA_KID_CHORE_DATA] = {}
+                if const.DATA_USER_CHORE_DATA not in assignee_info:
+                    assignee_info[const.DATA_USER_CHORE_DATA] = {}
 
-                chore_data_dict = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+                chore_data_dict = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
                 if chore_id not in chore_data_dict:
                     chore_name = chore_info.get(const.DATA_CHORE_NAME, chore_id)
                     chore_data_dict[chore_id] = {
-                        const.DATA_KID_CHORE_DATA_NAME: chore_name,
-                        const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
-                        const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT: 0,
-                        const.DATA_KID_CHORE_DATA_LAST_CLAIMED: None,
-                        const.DATA_KID_CHORE_DATA_LAST_APPROVED: None,
-                        const.DATA_KID_CHORE_DATA_LAST_DISAPPROVED: None,
-                        const.DATA_KID_CHORE_DATA_LAST_OVERDUE: None,
-                        const.DATA_KID_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: None,
-                        const.DATA_KID_CHORE_DATA_PERIODS: {
-                            const.DATA_KID_CHORE_DATA_PERIODS_DAILY: {},
-                            const.DATA_KID_CHORE_DATA_PERIODS_WEEKLY: {},
-                            const.DATA_KID_CHORE_DATA_PERIODS_MONTHLY: {},
-                            const.DATA_KID_CHORE_DATA_PERIODS_YEARLY: {},
-                            const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME: {},
+                        const.DATA_USER_CHORE_DATA_NAME: chore_name,
+                        const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                        const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT: 0,
+                        const.DATA_USER_CHORE_DATA_LAST_CLAIMED: None,
+                        const.DATA_USER_CHORE_DATA_LAST_APPROVED: None,
+                        const.DATA_USER_CHORE_DATA_LAST_DISAPPROVED: None,
+                        const.DATA_USER_CHORE_DATA_LAST_OVERDUE: None,
+                        const.DATA_USER_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: None,
+                        const.DATA_USER_CHORE_DATA_PERIODS: {
+                            const.DATA_USER_CHORE_DATA_PERIODS_DAILY: {},
+                            const.DATA_USER_CHORE_DATA_PERIODS_WEEKLY: {},
+                            const.DATA_USER_CHORE_DATA_PERIODS_MONTHLY: {},
+                            const.DATA_USER_CHORE_DATA_PERIODS_YEARLY: {},
+                            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME: {},
                         },
-                        const.DATA_KID_CHORE_DATA_BADGE_REFS: [],
+                        const.DATA_USER_CHORE_DATA_BADGE_REFS: [],
                     }
 
-                kid_chore_data = chore_data_dict[chore_id]
+                assignee_chore_data = chore_data_dict[chore_id]
 
                 # Ensure pending_claim_count exists for existing records (added in v42)
-                if const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT not in kid_chore_data:
-                    kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
+                if (
+                    const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT
+                    not in assignee_chore_data
+                ):
+                    assignee_chore_data[
+                        const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT
+                    ] = 0
 
-                periods = kid_chore_data[const.DATA_KID_CHORE_DATA_PERIODS]
+                periods = assignee_chore_data[const.DATA_USER_CHORE_DATA_PERIODS]
 
                 # --- Migrate legacy current streaks for this chore ---
                 legacy_streak = legacy_streaks.get(chore_id, {})  # type: ignore[attr-defined]
-                last_date = legacy_streak.get(const.DATA_KID_LAST_STREAK_DATE)
+                last_date = legacy_streak.get(const.DATA_USER_LAST_STREAK_DATE)
                 if last_date:
                     # Daily
                     daily_data = periods[
-                        const.DATA_KID_CHORE_DATA_PERIODS_DAILY
+                        const.DATA_USER_CHORE_DATA_PERIODS_DAILY
                     ].setdefault(
                         last_date,
                         {
-                            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                            const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                            const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                            const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                            const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
-                            const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY: 0,
+                            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                            const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                            const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                            const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                            const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                            const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY: 0,
                         },
                     )
-                    daily_data[const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY] = (
-                        legacy_streak.get(const.DATA_KID_CURRENT_STREAK, 0)
+                    daily_data[const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY] = (
+                        legacy_streak.get(const.DATA_USER_CURRENT_STREAK, 0)
                     )
 
                 # Handle all_time separately for longest_streak (not streak_tally)
                 # all_time uses nested structure: periods["all_time"]["all_time"] = {data}
                 all_time_container = periods[
-                    const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME
+                    const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME
                 ].setdefault(const.PERIOD_ALL_TIME, {})
                 if (
-                    const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK
+                    const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK
                     not in all_time_container
                 ):
                     all_time_container[
-                        const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK
-                    ] = legacy_streak.get(const.DATA_KID_MAX_STREAK_LEGACY, 0)
+                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK
+                    ] = legacy_streak.get(const.DATA_ASSIGNEE_MAX_STREAK_LEGACY, 0)
 
                 # Weekly/monthly/yearly DON'T get streak fields
                 for period_key, period_fmt in [
-                    (const.DATA_KID_CHORE_DATA_PERIODS_WEEKLY, "%Y-W%V"),
-                    (const.DATA_KID_CHORE_DATA_PERIODS_MONTHLY, "%Y-%m"),
-                    (const.DATA_KID_CHORE_DATA_PERIODS_YEARLY, "%Y"),
+                    (const.DATA_USER_CHORE_DATA_PERIODS_WEEKLY, "%Y-W%V"),
+                    (const.DATA_USER_CHORE_DATA_PERIODS_MONTHLY, "%Y-%m"),
+                    (const.DATA_USER_CHORE_DATA_PERIODS_YEARLY, "%Y"),
                 ]:
                     if last_date:
                         try:
@@ -3552,19 +3978,23 @@ class PreV50Migrator:
                         periods[period_key].setdefault(
                             period_id,
                             {
-                                const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                                const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                                const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                                const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                                const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                                const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                                const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                                const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                                const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
                             },
                         )
 
                 # --- Migrate claim/approval counts for this chore ---
-                claims = kid_info.get(const.DATA_KID_CHORE_CLAIMS_LEGACY, {}).get(  # type: ignore[attr-defined]
+                claims = assignee_info.get(
+                    const.DATA_ASSIGNEE_CHORE_CLAIMS_LEGACY, {}
+                ).get(  # type: ignore[attr-defined]
                     chore_id, 0
                 )
-                approvals = kid_info.get(const.DATA_KID_CHORE_APPROVALS_LEGACY, {}).get(  # type: ignore[attr-defined]
+                approvals = assignee_info.get(
+                    const.DATA_ASSIGNEE_CHORE_APPROVALS_LEGACY, {}
+                ).get(  # type: ignore[attr-defined]
                     chore_id, 0
                 )
 
@@ -3577,85 +4007,85 @@ class PreV50Migrator:
 
                 # Daily
                 daily_data = periods[
-                    const.DATA_KID_CHORE_DATA_PERIODS_DAILY
+                    const.DATA_USER_CHORE_DATA_PERIODS_DAILY
                 ].setdefault(
                     today_iso,
                     {
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY: 0,
                     },
                 )
                 # No per chore data available for daily period
 
                 # Weekly
                 _weekly_stats = periods[
-                    const.DATA_KID_CHORE_DATA_PERIODS_WEEKLY
+                    const.DATA_USER_CHORE_DATA_PERIODS_WEEKLY
                 ].setdefault(
                     week_iso,
                     {
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
                     },
                 )
                 # No per chore data available for weekly period
 
                 # Monthly
                 _monthly_stats = periods[
-                    const.DATA_KID_CHORE_DATA_PERIODS_MONTHLY
+                    const.DATA_USER_CHORE_DATA_PERIODS_MONTHLY
                 ].setdefault(
                     month_iso,
                     {
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
                     },
                 )
                 # No per chore data available for monthly period
 
                 # Yearly - create empty bucket for current year (legacy totals go to all_time only)
                 # Don't populate yearly with legacy totals - they span multiple years
-                periods[const.DATA_KID_CHORE_DATA_PERIODS_YEARLY].setdefault(
+                periods[const.DATA_USER_CHORE_DATA_PERIODS_YEARLY].setdefault(
                     year_iso,
                     {
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED: 0,
                     },
                 )
 
                 # --- Migrate legacy all-time stats into the new all_time period for this chore ---
                 all_time_data = periods[
-                    const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME
+                    const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME
                 ].setdefault(
                     const.PERIOD_ALL_TIME,
                     {
-                        const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 0.0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_OVERDUE: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK: 0,
-                        const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 0.0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK: 0,
+                        const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED: 0,
                     },
                 )
 
                 # Map legacy totals to all time data
-                all_time_data[const.DATA_KID_CHORE_DATA_PERIOD_APPROVED] = approvals
-                all_time_data[const.DATA_KID_CHORE_DATA_PERIOD_CLAIMED] = claims
+                all_time_data[const.DATA_USER_CHORE_DATA_PERIOD_APPROVED] = approvals
+                all_time_data[const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED] = claims
                 # Backfill completed = approved (wasn't tracked historically)
-                all_time_data[const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED] = approvals
+                all_time_data[const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED] = approvals
 
                 # Calculate points from approvals × default_points
                 chore_info = self.coordinator._data.get(const.DATA_CHORES, {}).get(
@@ -3668,7 +4098,7 @@ class PreV50Migrator:
                     estimated_points = float(approvals) * float(default_points)
                 except (ValueError, TypeError):
                     estimated_points = 0.0
-                all_time_data[const.DATA_KID_CHORE_DATA_PERIOD_POINTS] = round(
+                all_time_data[const.DATA_USER_CHORE_DATA_PERIOD_POINTS] = round(
                     estimated_points, const.DATA_FLOAT_PRECISION
                 )
 
@@ -3756,20 +4186,21 @@ class PreV50Migrator:
 
             # --- Ensure all required fields and nested structures exist using constants ---
 
-            # assigned_to: Historically unassigned badges (missing or empty) applied to ALL kids
+            # assigned_user_ids: Historically unassigned badges (missing or empty)
+            # applied to ALL assignees
             if (
-                const.DATA_BADGE_ASSIGNED_TO not in badge_info
-                or not badge_info[const.DATA_BADGE_ASSIGNED_TO]
+                const.DATA_BADGE_ASSIGNED_USER_IDS not in badge_info
+                or not badge_info[const.DATA_BADGE_ASSIGNED_USER_IDS]
             ):
-                # Get all kid IDs from the kids dictionary
-                all_kid_ids = list(
-                    self.coordinator._data.get(const.DATA_KIDS, {}).keys()
+                # Get all assignee IDs from the assignees dictionary
+                all_assignee_ids = list(
+                    self.coordinator._data.get(const.DATA_USERS, {}).keys()
                 )
-                badge_info[const.DATA_BADGE_ASSIGNED_TO] = all_kid_ids
+                badge_info[const.DATA_BADGE_ASSIGNED_USER_IDS] = all_assignee_ids
                 const.LOGGER.info(
-                    "Badge '%s' had no/empty assigned_to field - assigned to all %d kids",
+                    "Badge '%s' had no/empty assigned_user_ids field - assigned to all %d assignees",
                     badge_info.get(const.DATA_BADGE_NAME, "unknown"),
-                    len(all_kid_ids),
+                    len(all_assignee_ids),
                 )
 
             # reset_schedule
@@ -3870,19 +4301,21 @@ class PreV50Migrator:
             "INFO: Badge Migration - Completed migration of legacy badges to new structure"
         )
 
-    def _migrate_kid_legacy_badges_to_cumulative_progress(self) -> None:
-        """Set cumulative badge progress for each kid based on legacy badges earned.
+    def _migrate_assignee_legacy_badges_to_cumulative_progress(self) -> None:
+        """Set cumulative badge progress for each assignee based on legacy badges earned.
 
-        For each kid, set their current cumulative badge to the highest-value badge
+        For each assignee, set their current cumulative badge to the highest-value badge
         (by points threshold) from their legacy earned badges list.
         Also set their cumulative cycle points to their current points balance to avoid losing progress.
         """
-        for kid_info in self.coordinator.kids_data.values():
-            legacy_badge_names = kid_info.get(const.DATA_KID_BADGES_LEGACY, [])
+        for assignee_info in self.coordinator.assignees_data.values():
+            legacy_badge_names = assignee_info.get(
+                const.DATA_ASSIGNEE_BADGES_LEGACY, []
+            )
             if not legacy_badge_names:
                 continue
 
-            # Find the highest-value cumulative badge earned by this kid
+            # Find the highest-value cumulative badge earned by this assignee
             highest_badge = None
             highest_points = -1
             for badge_name in legacy_badge_names:  # type: ignore[attr-defined]
@@ -3910,49 +4343,51 @@ class PreV50Migrator:
                     highest_points = points
                     highest_badge = badge_info
 
-            # Set the current cumulative badge progress for this kid
+            # Set the current cumulative badge progress for this assignee
             # Phase 3A: Only write state fields - derived fields computed on-read
             if highest_badge:
-                progress = kid_info.setdefault(
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS,
+                progress = assignee_info.setdefault(
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS,
                     {},  # type: ignore[typeddict-item]
                 )
                 # Set cycle points to current points balance to avoid losing progress
-                progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = (
-                    kid_info.get(const.DATA_KID_POINTS, 0.0)
+                progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = (
+                    assignee_info.get(const.DATA_USER_POINTS, 0.0)
                 )
 
-    def _migrate_kid_legacy_badges_to_badges_earned(self) -> None:
-        """One-time migration from legacy 'badges' list to structured 'badges_earned' dict for each kid."""
+    def _migrate_assignee_legacy_badges_to_badges_earned(self) -> None:
+        """One-time migration from legacy 'badges' list to structured 'badges_earned' dict for each assignee."""
         const.LOGGER.info(
             "INFO: Migration - Starting legacy badges to badges_earned migration"
         )
         today_local_iso = dt_today_iso()
 
-        for kid_id, kid_info in self.coordinator.kids_data.items():
-            legacy_badge_names = kid_info.get(const.DATA_KID_BADGES_LEGACY, [])
-            badges_earned = kid_info.setdefault(const.DATA_KID_BADGES_EARNED, {})
+        for assignee_id, assignee_info in self.coordinator.assignees_data.items():
+            legacy_badge_names = assignee_info.get(
+                const.DATA_ASSIGNEE_BADGES_LEGACY, []
+            )
+            badges_earned = assignee_info.setdefault(const.DATA_USER_BADGES_EARNED, {})
 
             for badge_name in legacy_badge_names:  # type: ignore[attr-defined]
                 badge_id = get_item_id_by_name(
-                    self.coordinator, const.ENTITY_TYPE_BADGE, badge_name
+                    self.coordinator, const.ITEM_TYPE_BADGE, badge_name
                 )
 
                 if not badge_id:
                     badge_id = f"{LEGACY_MIGRATION_ORPHAN_PREFIX}_{random.randint(100000, 999999)}"
                     const.LOGGER.warning(
-                        "WARNING: Migrate - Badge '%s' not found in badge data. Assigning legacy orphan ID '%s' for kid '%s'.",
+                        "WARNING: Migrate - Badge '%s' not found in badge data. Assigning legacy orphan ID '%s' for assignee '%s'.",
                         badge_name,
                         badge_id,
-                        kid_info.get(const.DATA_KID_NAME, kid_id),
+                        assignee_info.get(const.DATA_USER_NAME, assignee_id),
                     )
 
                 if badge_id in badges_earned:
                     const.LOGGER.debug(
-                        "DEBUG: Migration - Badge '%s' (%s) already in badges_earned for kid '%s', skipping.",
+                        "DEBUG: Migration - Badge '%s' (%s) already in badges_earned for assignee '%s', skipping.",
                         badge_name,
                         badge_id,
-                        kid_id,
+                        assignee_id,
                     )
                     continue
 
@@ -3960,21 +4395,21 @@ class PreV50Migrator:
                 # award_count will be written to periods.all_time.all_time by StatisticsManager
                 # on next badge award (Tenant handles counter, Landlord creates structure only)
                 badges_earned[badge_id] = {
-                    const.DATA_KID_BADGES_EARNED_NAME: badge_name,
-                    const.DATA_KID_BADGES_EARNED_LAST_AWARDED: today_local_iso,
-                    const.DATA_KID_BADGES_EARNED_PERIODS: {},  # Tenant populates
+                    const.DATA_USER_BADGES_EARNED_NAME: badge_name,
+                    const.DATA_USER_BADGES_EARNED_LAST_AWARDED: today_local_iso,
+                    const.DATA_USER_BADGES_EARNED_PERIODS: {},  # Tenant populates
                 }
 
                 const.LOGGER.info(
-                    "INFO: Migration - Migrated badge '%s' (%s) to badges_earned for kid '%s'.",
+                    "INFO: Migration - Migrated badge '%s' (%s) to badges_earned for assignee '%s'.",
                     badge_name,
                     badge_id,
-                    kid_info.get(const.DATA_KID_NAME, kid_id),
+                    assignee_info.get(const.DATA_USER_NAME, assignee_id),
                 )
 
             # Cleanup: remove the legacy badges list after migration
-            if const.DATA_KID_BADGES_LEGACY in kid_info:
-                del kid_info[const.DATA_KID_BADGES_LEGACY]  # type: ignore[typeddict-item]
+            if const.DATA_ASSIGNEE_BADGES_LEGACY in assignee_info:
+                del assignee_info[const.DATA_ASSIGNEE_BADGES_LEGACY]  # type: ignore[typeddict-item]
 
         self.coordinator._persist(immediate=True)  # Migration must be immediate
         self.coordinator.async_set_updated_data(self.coordinator._data)
@@ -3990,24 +4425,27 @@ class PreV50Migrator:
         The actual migration of max_points_ever → all_time bucket is handled by _consolidate_point_stats
         at Phase 4b (BEFORE legacy fields are deleted). This function just ensures the period structure exists.
         """
-        for kid_info in self.coordinator.kids_data.values():
+        for assignee_info_raw in self.coordinator.assignees_data.values():
+            assignee_info = cast("dict[str, Any]", assignee_info_raw)
             # Get or create point_data periods structure (v42 LEGACY structure)
-            point_data = kid_info.setdefault(const.DATA_KID_POINT_DATA_LEGACY, {})  # type: ignore[typeddict-item]
+            point_data = assignee_info.setdefault(
+                const.DATA_ASSIGNEE_POINT_DATA_LEGACY, {}
+            )
             periods = point_data.setdefault(
-                const.DATA_KID_POINT_DATA_PERIODS_LEGACY, {}
+                const.DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY, {}
             )
 
             # Ensure all_time bucket exists (structure only - values set by _consolidate_point_stats)
             all_time_bucket = periods.setdefault(
-                const.DATA_KID_POINT_PERIODS_ALL_TIME, {}
+                const.DATA_USER_POINT_PERIODS_ALL_TIME, {}
             )
             all_time_bucket.setdefault(
                 const.PERIOD_ALL_TIME,
                 {
-                    const.DATA_KID_POINT_PERIOD_POINTS_EARNED: 0.0,
-                    const.DATA_KID_POINT_PERIOD_POINTS_SPENT: 0.0,
-                    const.DATA_KID_POINT_PERIOD_BY_SOURCE: {},
-                    const.DATA_KID_POINT_PERIOD_HIGHEST_BALANCE: 0.0,
+                    const.DATA_USER_POINT_PERIOD_POINTS_EARNED: 0.0,
+                    const.DATA_USER_POINT_PERIOD_POINTS_SPENT: 0.0,
+                    const.DATA_USER_POINT_PERIOD_BY_SOURCE: {},
+                    const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE: 0.0,
                 },
             )
 
@@ -4016,8 +4454,8 @@ class PreV50Migrator:
     def _migrate_completed_metric(self) -> None:
         """Backfill 'completed' metric from 'approved' in period buckets (v0.5.0-beta4).
 
-        Phase 4 introduces parent-lag-proof statistics: the 'completed' metric tracks
-        work completion by claim date (when kid did the work), not approval date.
+        Phase 4 introduces approver-lag-proof statistics: the 'completed' metric tracks
+        work completion by claim date (when assignee did the work), not approval date.
 
         Historical approvals have no 'completed' tracking because this feature didn't exist.
         Backfill assumption: completed = approved (best estimate for pre-Phase 4 data).
@@ -4028,34 +4466,40 @@ class PreV50Migrator:
             "Starting 'completed' metric backfill migration (v0.5.0-beta4)"
         )
 
-        kids_data: dict[str, Any] = self.coordinator._data.get(const.DATA_KIDS, {})
-        if not kids_data:
-            const.LOGGER.info("No kids data found, skipping completed metric migration")
+        assignees_data: dict[str, Any] = self.coordinator._data.get(
+            const.DATA_USERS, {}
+        )
+        if not assignees_data:
+            const.LOGGER.info(
+                "No assignees data found, skipping completed metric migration"
+            )
             return
 
         buckets_migrated: int = 0
 
-        for _kid_id, kid_info in kids_data.items():
-            chore_data: dict[str, Any] = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+        for _assignee_id, assignee_info in assignees_data.items():
+            chore_data: dict[str, Any] = assignee_info.get(
+                const.DATA_USER_CHORE_DATA, {}
+            )
 
             for _chore_id, chore_info in chore_data.items():
                 periods: dict[str, Any] = chore_info.get(
-                    const.DATA_KID_CHORE_DATA_PERIODS, {}
+                    const.DATA_USER_CHORE_DATA_PERIODS, {}
                 )
 
                 # Iterate all period types using constants
                 for period_type in [
-                    const.DATA_KID_CHORE_DATA_PERIODS_DAILY,
-                    const.DATA_KID_CHORE_DATA_PERIODS_WEEKLY,
-                    const.DATA_KID_CHORE_DATA_PERIODS_MONTHLY,
-                    const.DATA_KID_CHORE_DATA_PERIODS_YEARLY,
+                    const.DATA_USER_CHORE_DATA_PERIODS_DAILY,
+                    const.DATA_USER_CHORE_DATA_PERIODS_WEEKLY,
+                    const.DATA_USER_CHORE_DATA_PERIODS_MONTHLY,
+                    const.DATA_USER_CHORE_DATA_PERIODS_YEARLY,
                 ]:
                     period_buckets: dict[str, Any] = periods.get(period_type, {})
 
                     for _period_key, bucket in period_buckets.items():
                         # Use constants for metric keys
-                        approved_key = const.DATA_KID_CHORE_DATA_PERIOD_APPROVED
-                        completed_key = const.DATA_KID_CHORE_DATA_PERIOD_COMPLETED
+                        approved_key = const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
+                        completed_key = const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED
 
                         # Only backfill if approved exists and completed doesn't
                         if approved_key in bucket and completed_key not in bucket:
@@ -4084,54 +4528,56 @@ class PreV50Migrator:
             "Starting badge award_count migration to periods (Phase 4B, v43)"
         )
 
-        kids_data: dict[str, Any] = self.coordinator._data.get(const.DATA_KIDS, {})
-        if not kids_data:
+        assignees_data: dict[str, Any] = self.coordinator._data.get(
+            const.DATA_USERS, {}
+        )
+        if not assignees_data:
             const.LOGGER.info(
-                "No kids data found, skipping badge award_count migration"
+                "No assignees data found, skipping badge award_count migration"
             )
             return
 
         badges_migrated: int = 0
 
-        for kid_id, kid_info in kids_data.items():
-            badges_earned: dict[str, Any] = kid_info.get(
-                const.DATA_KID_BADGES_EARNED, {}
+        for assignee_id, assignee_info in assignees_data.items():
+            badges_earned: dict[str, Any] = assignee_info.get(
+                const.DATA_USER_BADGES_EARNED, {}
             )
 
             # Handle legacy v41 list format (should already be migrated to dict by _migrate_badges)
             if not isinstance(badges_earned, dict):
                 const.LOGGER.debug(
-                    "Kid '%s' has legacy list format badges_earned, skipping",
-                    kid_info.get(const.DATA_KID_NAME, kid_id),
+                    "Assignee '%s' has legacy list format badges_earned, skipping",
+                    assignee_info.get(const.DATA_USER_NAME, assignee_id),
                 )
                 continue
 
             for badge_id, badge_entry in badges_earned.items():
                 # Skip if award_count not at root (already migrated or never existed)
-                if const.DATA_KID_BADGES_EARNED_AWARD_COUNT not in badge_entry:
+                if const.DATA_USER_BADGES_EARNED_AWARD_COUNT not in badge_entry:
                     continue
 
-                count = badge_entry.pop(const.DATA_KID_BADGES_EARNED_AWARD_COUNT)
+                count = badge_entry.pop(const.DATA_USER_BADGES_EARNED_AWARD_COUNT)
 
                 # Ensure periods structure exists
                 periods = badge_entry.setdefault(
-                    const.DATA_KID_BADGES_EARNED_PERIODS, {}
+                    const.DATA_USER_BADGES_EARNED_PERIODS, {}
                 )
                 all_time_bucket = periods.setdefault(
-                    const.DATA_KID_BADGES_EARNED_PERIODS_ALL_TIME, {}
+                    const.DATA_USER_BADGES_EARNED_PERIODS_ALL_TIME, {}
                 )
                 all_time_data = all_time_bucket.setdefault(const.PERIOD_ALL_TIME, {})
 
                 # Write count to periods (preserve existing value if already present)
-                if const.DATA_KID_BADGES_EARNED_AWARD_COUNT not in all_time_data:
-                    all_time_data[const.DATA_KID_BADGES_EARNED_AWARD_COUNT] = count
+                if const.DATA_USER_BADGES_EARNED_AWARD_COUNT not in all_time_data:
+                    all_time_data[const.DATA_USER_BADGES_EARNED_AWARD_COUNT] = count
                     badges_migrated += 1
 
                     const.LOGGER.debug(
-                        "Migrated badge '%s' award_count=%d to periods for kid '%s'",
-                        badge_entry.get(const.DATA_KID_BADGES_EARNED_NAME, badge_id),
+                        "Migrated badge '%s' award_count=%d to periods for assignee '%s'",
+                        badge_entry.get(const.DATA_USER_BADGES_EARNED_NAME, badge_id),
                         count,
-                        kid_info.get(const.DATA_KID_NAME, kid_id),
+                        assignee_info.get(const.DATA_USER_NAME, assignee_id),
                     )
 
         const.LOGGER.info(
@@ -4142,8 +4588,8 @@ class PreV50Migrator:
     # KC 3.x Config Sync to Storage (v41→v42 Migration Compatibility)
     # -------------------------------------------------------------------------------------
     # These methods handle one-time migration of entity data from config_entry.options
-    # to .storage/kidschores_data when upgrading from KC 3.x (schema <42) to KC 4.x (schema 42+).
-    # NOTE: CRUD methods (_create_kid, _update_chore, etc.) remain in coordinator as they
+    # to .storage/choreops_data when upgrading from KC 3.x (schema <42) to KC 4.x (schema 42+).
+    # NOTE: CRUD methods (_create_assignee, _update_chore, etc.) remain in coordinator as they
     # are actively used by options_flow.py for v4.2+ entity management.
 
     def _initialize_data_from_config(self) -> None:
@@ -4155,7 +4601,7 @@ class PreV50Migrator:
         options = self.coordinator.config_entry.options
 
         # Skip if no KC 3.x config data present (pure storage migration, no config sync needed)
-        if not options or not options.get(const.CONF_KIDS_LEGACY):
+        if not options or not options.get(const.CONF_ASSIGNEES_LEGACY):
             const.LOGGER.info(
                 "No KC 3.x config data - skipping config sync (already using storage-only mode)"
             )
@@ -4163,8 +4609,8 @@ class PreV50Migrator:
 
         # Retrieve configuration dictionaries from config entry options (KC 3.x architecture)
         config_sections = {
-            const.DATA_KIDS: options.get(const.CONF_KIDS_LEGACY, {}),
-            const.DATA_PARENTS: options.get(const.CONF_PARENTS_LEGACY, {}),
+            const.DATA_USERS: options.get(const.CONF_ASSIGNEES_LEGACY, {}),
+            const.DATA_APPROVERS: options.get(const.CONF_APPROVERS_LEGACY, {}),
             const.DATA_CHORES: options.get(const.CONF_CHORES_LEGACY, {}),
             const.DATA_BADGES: options.get(const.CONF_BADGES_LEGACY, {}),
             const.DATA_REWARDS: options.get(const.CONF_REWARDS_LEGACY, {}),
@@ -4188,14 +4634,14 @@ class PreV50Migrator:
                     "WARNING: No initializer found for section '%s'", section_key
                 )
 
-        # Recalculate Badges on reload (marks all kids dirty for evaluation)
+        # Recalculate Badges on reload (marks all assignees dirty for evaluation)
         self.coordinator.gamification_manager.recalculate_all_badges()
 
     def _ensure_minimal_structure(self) -> None:
         """Ensure that all necessary data sections are present in storage."""
         for key in [
-            const.DATA_KIDS,
-            const.DATA_PARENTS,
+            const.DATA_USERS,
+            const.DATA_APPROVERS,
             const.DATA_CHORES,
             const.DATA_BADGES,
             const.DATA_REWARDS,
@@ -4218,22 +4664,22 @@ class PreV50Migrator:
 
     # -- Entity Type Wrappers (delegate to _sync_entities) --
 
-    def _initialize_kids(self, kids_dict: dict[str, Any]) -> None:
-        """Initialize kids from config data."""
+    def _initialize_assignees(self, assignees_dict: dict[str, Any]) -> None:
+        """Initialize assignees from config data."""
         self._sync_entities(
-            const.DATA_KIDS,
-            kids_dict,
-            self._create_kid,
-            self._update_kid,
+            const.DATA_USERS,
+            assignees_dict,
+            self._create_assignee,
+            self._update_assignee,
         )
 
-    def _initialize_parents(self, parents_dict: dict[str, Any]) -> None:
-        """Initialize parents from config data."""
+    def _initialize_approvers(self, approvers_dict: dict[str, Any]) -> None:
+        """Initialize approvers from config data."""
         self._sync_entities(
-            const.DATA_PARENTS,
-            parents_dict,
-            self._create_parent,
-            self._update_parent,
+            const.DATA_APPROVERS,
+            approvers_dict,
+            self._create_approver,
+            self._update_approver,
         )
 
     def _initialize_chores(self, chores_dict: dict[str, Any]) -> None:
@@ -4328,17 +4774,19 @@ class PreV50Migrator:
             )
 
             # Cleanup references to deleted entity
-            if section == const.DATA_KIDS:
-                # Remove deleted kid from parents' kids lists
-                for parent in self.coordinator._data.get(
-                    const.DATA_PARENTS, {}
+            if section == const.DATA_USERS:
+                # Remove deleted assignee from approvers' assignees lists
+                for approver in self.coordinator._data.get(
+                    const.DATA_APPROVERS, {}
                 ).values():
-                    if entity_id in parent.get(const.DATA_PARENT_ASSOCIATED_KIDS, []):
-                        parent[const.DATA_PARENT_ASSOCIATED_KIDS].remove(entity_id)
+                    if entity_id in approver.get(
+                        const.DATA_USER_ASSOCIATED_USER_IDS, []
+                    ):
+                        approver[const.DATA_USER_ASSOCIATED_USER_IDS].remove(entity_id)
 
             if section == const.DATA_REWARDS:
                 # Remove deleted reward from root-level pending approvals (legacy schema)
-                # In KC 3.x, pending_reward_approvals was at data root, not per-kid
+                # In KC 3.x, pending_reward_approvals was at data root, not per-assignee
                 approvals = self.coordinator._data.get(
                     const.DATA_PENDING_REWARD_APPROVALS_LEGACY, []
                 )
@@ -4363,10 +4811,10 @@ class PreV50Migrator:
                 )
             )
             self.coordinator.hass.async_create_task(
-                eh.remove_orphaned_kid_chore_entities(
+                eh.remove_orphaned_assignee_chore_entities(
                     self.coordinator.hass,
                     self.coordinator.config_entry.entry_id,
-                    self.coordinator.kids_data,
+                    self.coordinator.assignees_data,
                     self.coordinator.chores_data,
                 )
             )
@@ -4379,7 +4827,7 @@ class PreV50Migrator:
                 self.coordinator.achievements_data,
                 entity_type="achievement",
                 progress_suffix=const.DATA_ACHIEVEMENT_PROGRESS_SUFFIX,
-                assigned_kids_key=const.DATA_ACHIEVEMENT_ASSIGNED_KIDS,
+                assigned_assignees_key=const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
             )
         )
         self.coordinator.hass.async_create_task(
@@ -4389,7 +4837,7 @@ class PreV50Migrator:
                 self.coordinator.challenges_data,
                 entity_type="challenge",
                 progress_suffix=const.DATA_CHALLENGE_PROGRESS_SUFFIX,
-                assigned_kids_key=const.DATA_CHALLENGE_ASSIGNED_KIDS,
+                assigned_assignees_key=const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
             )
         )
 
@@ -4476,13 +4924,13 @@ class PreV50Migrator:
     def _migrate_reward_data_to_periods(self) -> None:
         """Migrate legacy reward tracking to period-based reward_data structure.
 
-        Legacy fields (per kid):
+        Legacy fields (per assignee):
         - pending_rewards: list[str]  (reward_ids waiting approval)
         - reward_claims: dict[str, int]  (reward_id → claim count)
         - reward_approvals: dict[str, int]  (reward_id → approval count)
         - redeemed_rewards: list[str]  (reward_ids approved, used for "approved today")
 
-        Modern structure (per kid, per reward):
+        Modern structure (per assignee, per reward):
         - reward_data[reward_id].pending_count
         - reward_data[reward_id].total_claims
         - reward_data[reward_id].total_approved
@@ -4492,21 +4940,23 @@ class PreV50Migrator:
         This migration is idempotent - existing reward_data entries are preserved.
         Legacy fields are kept for backward compatibility during transition.
         """
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
         rewards_data = self.coordinator._data.get(const.DATA_REWARDS, {})
-        migrated_kids = 0
+        migrated_assignees = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_migrated = False
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_migrated = False
 
             # Ensure reward_data dict exists
-            if const.DATA_KID_REWARD_DATA not in kid_info:
-                kid_info[const.DATA_KID_REWARD_DATA] = {}
+            if const.DATA_USER_REWARD_DATA not in assignee_info:
+                assignee_info[const.DATA_USER_REWARD_DATA] = {}
 
-            reward_data = kid_info[const.DATA_KID_REWARD_DATA]
+            reward_data = assignee_info[const.DATA_USER_REWARD_DATA]
 
             # Migrate pending_rewards[] → reward_data[id].pending_count
-            pending_rewards = kid_info.get(const.DATA_KID_PENDING_REWARDS_LEGACY, [])
+            pending_rewards = assignee_info.get(
+                const.DATA_ASSIGNEE_PENDING_REWARDS_LEGACY, []
+            )
             if pending_rewards:
                 # Count occurrences of each reward_id
                 pending_counts = Counter(pending_rewards)
@@ -4518,17 +4968,19 @@ class PreV50Migrator:
                     # Only migrate if pending_count is 0 (not already set)
                     if (
                         reward_data[reward_id].get(
-                            const.DATA_KID_REWARD_DATA_PENDING_COUNT, 0
+                            const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0
                         )
                         == 0
                     ):
                         reward_data[reward_id][
-                            const.DATA_KID_REWARD_DATA_PENDING_COUNT
+                            const.DATA_USER_REWARD_DATA_PENDING_COUNT
                         ] = count
-                        kid_migrated = True
+                        assignee_migrated = True
 
             # Migrate reward_claims{} → reward_data[id].total_claims
-            reward_claims = kid_info.get(const.DATA_KID_REWARD_CLAIMS_LEGACY, {})
+            reward_claims = assignee_info.get(
+                const.DATA_ASSIGNEE_REWARD_CLAIMS_LEGACY, {}
+            )
             for reward_id, claim_count in reward_claims.items():
                 if reward_id not in reward_data:
                     reward_data[reward_id] = self._create_empty_reward_entry(
@@ -4537,17 +4989,19 @@ class PreV50Migrator:
                 # Only migrate if total_claims is 0 (not already set)
                 if (
                     reward_data[reward_id].get(
-                        const.DATA_KID_REWARD_DATA_TOTAL_CLAIMS, 0
+                        const.DATA_USER_REWARD_DATA_TOTAL_CLAIMS, 0
                     )
                     == 0
                 ):
-                    reward_data[reward_id][const.DATA_KID_REWARD_DATA_TOTAL_CLAIMS] = (
+                    reward_data[reward_id][const.DATA_USER_REWARD_DATA_TOTAL_CLAIMS] = (
                         claim_count
                     )
-                    kid_migrated = True
+                    assignee_migrated = True
 
             # Migrate reward_approvals{} → reward_data[id].total_approved
-            reward_approvals = kid_info.get(const.DATA_KID_REWARD_APPROVALS_LEGACY, {})
+            reward_approvals = assignee_info.get(
+                const.DATA_ASSIGNEE_REWARD_APPROVALS_LEGACY, {}
+            )
             for reward_id, approval_count in reward_approvals.items():
                 if reward_id not in reward_data:
                     reward_data[reward_id] = self._create_empty_reward_entry(
@@ -4556,34 +5010,34 @@ class PreV50Migrator:
                 # Only migrate if total_approved is 0 (not already set)
                 if (
                     reward_data[reward_id].get(
-                        const.DATA_KID_REWARD_DATA_TOTAL_APPROVED, 0
+                        const.DATA_USER_REWARD_DATA_TOTAL_APPROVED, 0
                     )
                     == 0
                 ):
                     reward_data[reward_id][
-                        const.DATA_KID_REWARD_DATA_TOTAL_APPROVED
+                        const.DATA_USER_REWARD_DATA_TOTAL_APPROVED
                     ] = approval_count
                     # Estimate total_points_spent from approvals * reward cost
                     reward_info = rewards_data.get(reward_id, {})
                     cost = reward_info.get(const.DATA_REWARD_COST, 0)
                     if cost > 0:
                         reward_data[reward_id][
-                            const.DATA_KID_REWARD_DATA_TOTAL_POINTS_SPENT
+                            const.DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT
                         ] = approval_count * cost
-                    kid_migrated = True
+                    assignee_migrated = True
 
-            if kid_migrated:
-                migrated_kids += 1
+            if assignee_migrated:
+                migrated_assignees += 1
                 const.LOGGER.debug(
-                    "Migrated reward data for kid '%s' (%s)",
-                    kid_info.get(const.DATA_KID_NAME, ""),
-                    kid_id,
+                    "Migrated reward data for assignee '%s' (%s)",
+                    assignee_info.get(const.DATA_USER_NAME, ""),
+                    assignee_id,
                 )
 
-        if migrated_kids > 0:
+        if migrated_assignees > 0:
             const.LOGGER.info(
-                "Reward data migration complete. Migrated %d kids to period-based structure.",
-                migrated_kids,
+                "Reward data migration complete. Migrated %d assignees to period-based structure.",
+                migrated_assignees,
             )
 
     def _create_empty_reward_entry(
@@ -4599,24 +5053,24 @@ class PreV50Migrator:
             A new reward_data entry dict with all fields initialized.
         """
         return {
-            const.DATA_KID_REWARD_DATA_NAME: rewards_data.get(reward_id, {}).get(
+            const.DATA_USER_REWARD_DATA_NAME: rewards_data.get(reward_id, {}).get(
                 const.DATA_REWARD_NAME, ""
             ),
-            const.DATA_KID_REWARD_DATA_PENDING_COUNT: 0,
-            const.DATA_KID_REWARD_DATA_NOTIFICATION_IDS: [],
-            const.DATA_KID_REWARD_DATA_LAST_CLAIMED: None,
-            const.DATA_KID_REWARD_DATA_LAST_APPROVED: None,
-            const.DATA_KID_REWARD_DATA_LAST_DISAPPROVED: None,
-            const.DATA_KID_REWARD_DATA_TOTAL_CLAIMS: 0,
-            const.DATA_KID_REWARD_DATA_TOTAL_APPROVED: 0,
-            const.DATA_KID_REWARD_DATA_TOTAL_DISAPPROVED: 0,
-            const.DATA_KID_REWARD_DATA_TOTAL_POINTS_SPENT: 0,
-            const.DATA_KID_REWARD_DATA_PERIODS: {
-                const.DATA_KID_REWARD_DATA_PERIODS_DAILY: {},
-                const.DATA_KID_REWARD_DATA_PERIODS_WEEKLY: {},
-                const.DATA_KID_REWARD_DATA_PERIODS_MONTHLY: {},
-                const.DATA_KID_REWARD_DATA_PERIODS_YEARLY: {},
-                const.DATA_KID_REWARD_DATA_PERIODS_ALL_TIME: {},
+            const.DATA_USER_REWARD_DATA_PENDING_COUNT: 0,
+            const.DATA_USER_REWARD_DATA_NOTIFICATION_IDS: [],
+            const.DATA_USER_REWARD_DATA_LAST_CLAIMED: None,
+            const.DATA_USER_REWARD_DATA_LAST_APPROVED: None,
+            const.DATA_USER_REWARD_DATA_LAST_DISAPPROVED: None,
+            const.DATA_USER_REWARD_DATA_TOTAL_CLAIMS: 0,
+            const.DATA_USER_REWARD_DATA_TOTAL_APPROVED: 0,
+            const.DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED: 0,
+            const.DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT: 0,
+            const.DATA_USER_REWARD_DATA_PERIODS: {
+                const.DATA_USER_REWARD_DATA_PERIODS_DAILY: {},
+                const.DATA_USER_REWARD_DATA_PERIODS_WEEKLY: {},
+                const.DATA_USER_REWARD_DATA_PERIODS_MONTHLY: {},
+                const.DATA_USER_REWARD_DATA_PERIODS_YEARLY: {},
+                const.DATA_USER_REWARD_DATA_PERIODS_ALL_TIME: {},
             },
         }
 
@@ -4634,71 +5088,71 @@ class PreV50Migrator:
         only read during aggregation migrations.
 
         Legacy fields removed:
-        - Kids: chore_claims, chore_streaks, chore_approvals, today_chore_approvals,
+        - Assignees: chore_claims, chore_streaks, chore_approvals, today_chore_approvals,
                 completed_chores_*, points_earned_*, pending_rewards, redeemed_rewards,
                 reward_claims, reward_approvals
         - Top-level: pending_chore_approvals, pending_reward_approvals (if legacy format)
 
         Fields NOT removed (still in use or not fully migrated):
-        - Kids: max_streak (backward compat, used by legacy sensors)
-        - Kids: badges (already removed by _migrate_kid_legacy_badges_to_cumulative_progress)
+        - Assignees: max_streak (backward compat, used by legacy sensors)
+        - Assignees: badges (already removed by _migrate_assignee_legacy_badges_to_cumulative_progress)
         - Chores: shared_chore, allow_multiple_claims_per_day (already removed inline)
         - Badges: threshold_type, threshold_value, etc. (already removed inline)
         """
-        kids_cleaned = 0
+        assignees_cleaned = 0
         fields_removed_count = 0
 
-        # Legacy kid fields to remove after migration
-        kid_legacy_fields = [
+        # Legacy assignee fields to remove after migration
+        assignee_legacy_fields = [
             # Chore tracking (migrated to chore_data and chore_stats)
-            const.DATA_KID_CHORE_CLAIMS_LEGACY,
-            const.DATA_KID_CHORE_STREAKS_LEGACY,
-            const.DATA_KID_CHORE_APPROVALS_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_CLAIMS_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STREAKS_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_APPROVALS_LEGACY,
             # Chore approvals today (migrated to periods structure)
-            const.DATA_KID_TODAY_CHORE_APPROVALS_LEGACY,
+            const.DATA_ASSIGNEE_TODAY_CHORE_APPROVALS_LEGACY,
             # Completed chores counters (migrated to chore_stats)
-            const.DATA_KID_COMPLETED_CHORES_TOTAL_LEGACY,
-            const.DATA_KID_COMPLETED_CHORES_MONTHLY_LEGACY,
-            const.DATA_KID_COMPLETED_CHORES_WEEKLY_LEGACY,
-            const.DATA_KID_COMPLETED_CHORES_TODAY_LEGACY,
-            const.DATA_KID_COMPLETED_CHORES_YEARLY_LEGACY,
+            const.DATA_ASSIGNEE_COMPLETED_CHORES_TOTAL_LEGACY,
+            const.DATA_ASSIGNEE_COMPLETED_CHORES_MONTHLY_LEGACY,
+            const.DATA_ASSIGNEE_COMPLETED_CHORES_WEEKLY_LEGACY,
+            const.DATA_ASSIGNEE_COMPLETED_CHORES_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_COMPLETED_CHORES_YEARLY_LEGACY,
             # Points earned tracking (migrated to point_stats)
-            const.DATA_KID_POINTS_EARNED_TODAY_LEGACY,
-            const.DATA_KID_POINTS_EARNED_WEEKLY_LEGACY,
-            const.DATA_KID_POINTS_EARNED_MONTHLY_LEGACY,
-            const.DATA_KID_POINTS_EARNED_YEARLY_LEGACY,
+            const.DATA_ASSIGNEE_POINTS_EARNED_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_POINTS_EARNED_WEEKLY_LEGACY,
+            const.DATA_ASSIGNEE_POINTS_EARNED_MONTHLY_LEGACY,
+            const.DATA_ASSIGNEE_POINTS_EARNED_YEARLY_LEGACY,
             # Reward tracking (migrated to reward_data)
-            const.DATA_KID_PENDING_REWARDS_LEGACY,
-            const.DATA_KID_REDEEMED_REWARDS_LEGACY,
-            const.DATA_KID_REWARD_CLAIMS_LEGACY,
-            const.DATA_KID_REWARD_APPROVALS_LEGACY,
+            const.DATA_ASSIGNEE_PENDING_REWARDS_LEGACY,
+            const.DATA_ASSIGNEE_REDEEMED_REWARDS_LEGACY,
+            const.DATA_ASSIGNEE_REWARD_CLAIMS_LEGACY,
+            const.DATA_ASSIGNEE_REWARD_APPROVALS_LEGACY,
             # Point statistics (max_points_ever migrated to point_stats.highest_balance_all_time)
-            const.DATA_KID_MAX_POINTS_EVER_LEGACY,
+            const.DATA_ASSIGNEE_MAX_POINTS_EVER_LEGACY,
             # Dead code fields (v0.5.0+ - overdue tracked in chore_data[chore_id].state)
-            const.DATA_KID_OVERDUE_CHORES_LEGACY,
+            const.DATA_ASSIGNEE_OVERDUE_CHORES_LEGACY,
         ]
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        for kid_id, kid_info in kids_data.items():
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        for assignee_id, assignee_info in assignees_data.items():
             removed_any = False
-            for field in kid_legacy_fields:
-                if field in kid_info:
-                    del kid_info[field]
+            for field in assignee_legacy_fields:
+                if field in assignee_info:
+                    del assignee_info[field]
                     removed_any = True
                     fields_removed_count += 1
                     const.LOGGER.debug(
-                        "Removed legacy field '%s' from kid '%s'",
+                        "Removed legacy field '%s' from assignee '%s'",
                         field,
-                        kid_info.get(const.DATA_KID_NAME, kid_id),
+                        assignee_info.get(const.DATA_USER_NAME, assignee_id),
                     )
             if removed_any:
-                kids_cleaned += 1
+                assignees_cleaned += 1
 
-        if kids_cleaned > 0:
+        if assignees_cleaned > 0:
             const.LOGGER.info(
-                "Legacy field cleanup: removed %s fields from %s kids",
+                "Legacy field cleanup: removed %s fields from %s assignees",
                 fields_removed_count,
-                kids_cleaned,
+                assignees_cleaned,
             )
         else:
             const.LOGGER.debug("Legacy field cleanup: no legacy fields found to remove")
@@ -4710,7 +5164,7 @@ class PreV50Migrator:
         instead of 27.5. This migration cleans up any existing drifted values by rounding
         to DATA_FLOAT_PRECISION (2 decimal places) for consistent storage.
 
-        Affected fields per kid:
+        Affected fields per assignee:
         - points: Current point balance
         - points_multiplier: Point earning multiplier
         - point_stats.*: All point statistics
@@ -4720,29 +5174,31 @@ class PreV50Migrator:
         - cumulative_badge_progress.*: baseline, cycle_points, etc.
         """
         precision = const.DATA_FLOAT_PRECISION
-        kids_cleaned = 0
+        assignees_cleaned = 0
         values_rounded = 0
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             rounded_any = False
 
-            # --- Top-level kid float fields ---
+            # --- Top-level assignee float fields ---
             for field in [
-                const.DATA_KID_POINTS,
-                const.DATA_KID_POINTS_MULTIPLIER,
+                const.DATA_USER_POINTS,
+                const.DATA_USER_POINTS_MULTIPLIER,
             ]:
-                if field in kid_info and isinstance(kid_info[field], (int, float)):
-                    old_val = kid_info[field]
+                if field in assignee_info and isinstance(
+                    assignee_info[field], (int, float)
+                ):
+                    old_val = assignee_info[field]
                     new_val = round(float(old_val), precision)
                     if old_val != new_val:
-                        kid_info[field] = new_val
+                        assignee_info[field] = new_val
                         rounded_any = True
                         values_rounded += 1
 
             # --- point_stats fields ---
-            point_stats = kid_info.get(const.DATA_KID_POINT_STATS_LEGACY, {})
+            point_stats = assignee_info.get(const.DATA_ASSIGNEE_POINT_STATS_LEGACY, {})
             for key, val in list(point_stats.items()):
                 if isinstance(val, (int, float)):
                     old_val = val
@@ -4763,8 +5219,8 @@ class PreV50Migrator:
                                 values_rounded += 1
 
             # --- point_data.periods.*.* ---
-            point_data = kid_info.get(const.DATA_KID_POINT_DATA_LEGACY, {})
-            periods = point_data.get(const.DATA_KID_POINT_DATA_PERIODS_LEGACY, {})
+            point_data = assignee_info.get(const.DATA_ASSIGNEE_POINT_DATA_LEGACY, {})
+            periods = point_data.get(const.DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY, {})
             for period_type in list(periods.keys()):
                 period_dict = periods.get(period_type, {})
                 for _, period_data in list(period_dict.items()):
@@ -4789,7 +5245,7 @@ class PreV50Migrator:
                                             values_rounded += 1
 
             # --- chore_stats fields ---
-            chore_stats = kid_info.get(const.DATA_KID_CHORE_STATS_LEGACY, {})
+            chore_stats = assignee_info.get(const.DATA_ASSIGNEE_CHORE_STATS_LEGACY, {})
             for key, val in list(chore_stats.items()):
                 if isinstance(val, (int, float)) and "points" in key.lower():
                     old_val = val
@@ -4800,14 +5256,14 @@ class PreV50Migrator:
                         values_rounded += 1
 
             # --- chore_data.*.periods.*.* points fields ---
-            chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+            chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             for _, chore_info in list(chore_data.items()):
-                chore_periods = chore_info.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
+                chore_periods = chore_info.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
                 for _period_type, period_dict in list(chore_periods.items()):
                     for _, period_values in list(period_dict.items()):
                         if isinstance(period_values, dict):
                             points_val = period_values.get(
-                                const.DATA_KID_CHORE_DATA_PERIOD_POINTS
+                                const.DATA_USER_CHORE_DATA_PERIOD_POINTS
                             )
                             if points_val is not None and isinstance(
                                 points_val, (int, float)
@@ -4816,16 +5272,18 @@ class PreV50Migrator:
                                 new_val = round(float(old_val), precision)
                                 if old_val != new_val:
                                     period_values[
-                                        const.DATA_KID_CHORE_DATA_PERIOD_POINTS
+                                        const.DATA_USER_CHORE_DATA_PERIOD_POINTS
                                     ] = new_val
                                     rounded_any = True
                                     values_rounded += 1
 
             # --- cumulative_badge_progress ---
             # Only cycle_points remains after Phase 3A cleanup (derived fields removed)
-            cumulative = kid_info.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+            cumulative = assignee_info.get(
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
+            )
             for field in [
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS,
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS,
             ]:
                 if field in cumulative and isinstance(cumulative[field], (int, float)):
                     old_val = cumulative[field]
@@ -4836,131 +5294,133 @@ class PreV50Migrator:
                         values_rounded += 1
 
             if rounded_any:
-                kids_cleaned += 1
-                const.LOGGER.debug("Rounded float precision for kid '%s'", kid_name)
+                assignees_cleaned += 1
+                const.LOGGER.debug(
+                    "Rounded float precision for assignee '%s'", assignee_name
+                )
 
         if values_rounded > 0:
             const.LOGGER.info(
-                "Float precision cleanup: rounded %s values across %s kids to %s decimal places",
+                "Float precision cleanup: rounded %s values across %s assignees to %s decimal places",
                 values_rounded,
-                kids_cleaned,
+                assignees_cleaned,
                 precision,
             )
         else:
             const.LOGGER.debug("Float precision cleanup: no values needed rounding")
 
-    def _cleanup_kid_chore_data_due_dates_v50(self) -> None:
-        """Remove legacy due_date fields from kid-level chore_data for independent chores (v50 migration).
+    def _cleanup_assignee_chore_data_due_dates_v50(self) -> None:
+        """Remove legacy due_date fields from assignee-level chore_data for independent chores (v50 migration).
 
         In v50, the single source of truth for independent chore due dates is
-        chore_info[per_kid_due_dates][kid_id]. The kid-level chore_data[chore_id][due_date]
+        chore_info[per_assignee_due_dates][assignee_id]. The assignee-level chore_data[chore_id][due_date]
         field is now deprecated and should be removed during migration.
 
         This migration:
-        1. Iterates all kids and their chore_data entries
+        1. Iterates all assignees and their chore_data entries
         2. Checks if the chore is INDEPENDENT (completion_criteria)
-        3. Removes the due_date field from kid-level chore_data if present
+        3. Removes the due_date field from assignee-level chore_data if present
 
-        SHARED chores don't have per-kid due dates, so they're skipped.
+        SHARED chores don't have per-assignee due dates, so they're skipped.
         """
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
         chores_data = self.coordinator._data.get(const.DATA_CHORES, {})
 
         cleaned_count = 0
-        kids_affected = 0
+        assignees_affected = 0
 
-        for kid_info in kids_data.values():
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
-            kid_chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
-            kid_had_cleanup = False
+        for assignee_info in assignees_data.values():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
+            assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
+            assignee_had_cleanup = False
 
-            for chore_id in list(kid_chore_data.keys()):
+            for chore_id in list(assignee_chore_data.keys()):
                 # Get chore info to check completion criteria
                 chore_info = chores_data.get(chore_id, {})
                 completion_criteria = chore_info.get(
                     const.DATA_CHORE_COMPLETION_CRITERIA
                 )
 
-                # Only clean up INDEPENDENT chores (SHARED chores don't have per-kid dates)
+                # Only clean up INDEPENDENT chores (SHARED chores don't have per-assignee dates)
                 if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                    # Check if legacy due_date field exists in kid-level chore_data
+                    # Check if legacy due_date field exists in assignee-level chore_data
                     if (
-                        const.DATA_KID_CHORE_DATA_DUE_DATE_LEGACY
-                        in kid_chore_data[chore_id]
+                        const.DATA_ASSIGNEE_CHORE_DATA_DUE_DATE_LEGACY
+                        in assignee_chore_data[chore_id]
                     ):
-                        del kid_chore_data[chore_id][
-                            const.DATA_KID_CHORE_DATA_DUE_DATE_LEGACY
+                        del assignee_chore_data[chore_id][
+                            const.DATA_ASSIGNEE_CHORE_DATA_DUE_DATE_LEGACY
                         ]
                         cleaned_count += 1
-                        kid_had_cleanup = True
+                        assignee_had_cleanup = True
                         const.LOGGER.debug(
-                            "Removed legacy due_date from kid '%s' chore_data for chore '%s'",
-                            kid_name,
+                            "Removed legacy due_date from assignee '%s' chore_data for chore '%s'",
+                            assignee_name,
                             chore_info.get(const.DATA_CHORE_NAME, chore_id),
                         )
 
-            if kid_had_cleanup:
-                kids_affected += 1
+            if assignee_had_cleanup:
+                assignees_affected += 1
 
         if cleaned_count > 0:
             const.LOGGER.info(
-                "v50 cleanup: Removed %s legacy due_date fields from kid-level chore_data across %s kids",
+                "v50 cleanup: Removed %s legacy due_date fields from assignee-level chore_data across %s assignees",
                 cleaned_count,
-                kids_affected,
+                assignees_affected,
             )
         else:
             const.LOGGER.debug(
-                "v50 cleanup: No legacy due_date fields found in kid-level chore_data"
+                "v50 cleanup: No legacy due_date fields found in assignee-level chore_data"
             )
 
     def _simplify_notification_config_v50(self) -> None:
-        """Remove redundant enable_notifications field from kid and parent data.
+        """Remove redundant enable_notifications field from assignee and approver data.
 
         The enable_notifications field was always derived from bool(mobile_notify_service),
         making it redundant. This migration removes the field from storage data.
 
         Migration Actions:
         ————————————————————————————————————————————————————————————————————————
-        1. Remove enable_notifications from all kids
-        2. Remove enable_notifications from all parents
+        1. Remove enable_notifications from all assignees
+        2. Remove enable_notifications from all approvers
 
         The notification logic now checks mobile_notify_service directly:
         - If mobile_notify_service has value → send mobile notification
         - Else if use_persistent_notifications → send persistent notification
         - Else → no notification
 
-        Refs: coordinator._notify_kid(), coordinator._notify_parents()
+        Refs: coordinator._notify_assignee(), coordinator._notify_approvers()
         """
         const.LOGGER.info("INFO: ==========================================")
         const.LOGGER.info(
             "INFO: Schema v50: Removing redundant enable_notifications field"
         )
 
-        kids_data = self.coordinator.kids_data
-        parents_data = self.coordinator.parents_data
+        assignees_data = self.coordinator.assignees_data
+        approvers_data = self.coordinator.approvers_data
         changes_made = False
 
-        # Process all kids - just remove the field
-        for _kid_id, kid_info in kids_data.items():
+        # Process all assignees - just remove the field
+        for _assignee_id, assignee_info in assignees_data.items():
             # Cast to Any to bypass TypedDict strict key checking for legacy field removal
-            kid_dict = cast("dict[str, Any]", kid_info)
-            if "enable_notifications" in kid_dict:
-                kid_dict.pop("enable_notifications")
+            assignee_dict = cast("dict[str, Any]", assignee_info)
+            if "enable_notifications" in assignee_dict:
+                assignee_dict.pop("enable_notifications")
                 const.LOGGER.debug(
-                    "DEBUG:   Kid '%s': Removed enable_notifications field",
-                    kid_info.get(const.DATA_KID_NAME, "Unknown"),
+                    "DEBUG:   Assignee '%s': Removed enable_notifications field",
+                    assignee_info.get(const.DATA_USER_NAME, "Unknown"),
                 )
                 changes_made = True
 
-        # Process all parents - just remove the field
-        for _parent_id, parent_info in parents_data.items():
+        # Process all approvers - just remove the field
+        for _approver_id, approver_info in approvers_data.items():
             # Cast to Any to bypass TypedDict strict key checking for legacy field removal
-            parent_dict = cast("dict[str, Any]", parent_info)
-            if "enable_notifications" in parent_dict:
-                parent_dict.pop("enable_notifications")
+            approver_dict = cast("dict[str, Any]", approver_info)
+            if "enable_notifications" in approver_dict:
+                approver_dict.pop("enable_notifications")
                 const.LOGGER.debug(
-                    "DEBUG:   Parent '%s': Removed enable_notifications field",
-                    parent_info.get(const.DATA_PARENT_NAME, "Unknown"),
+                    "DEBUG:   Approver '%s': Removed enable_notifications field",
+                    approver_info.get(const.DATA_USER_NAME, "Unknown"),
                 )
                 changes_made = True
 
@@ -4983,61 +5443,61 @@ class PreV50Migrator:
         directly in the all_time period bucket, eliminating the redundant dict.
 
         MIGRATION STRATEGY:
-        Use kid's CURRENT POINTS BALANCE as the baseline for all_time stats.
+        Use assignee's CURRENT POINTS BALANCE as the baseline for all_time stats.
         This ensures the math works: points_earned + points_spent = current balance.
 
         What this migration does:
-        1. Set all_time.points_earned = current kid points balance
+        1. Set all_time.points_earned = current assignee points balance
         2. Set all_time.points_spent = 0.0 (fresh start)
-        3. Set all_time.by_source.other = current kid points (pre-migration activity)
+        3. Set all_time.by_source.other = current assignee points (pre-migration activity)
         4. Set all_time.highest_balance = max(current balance, old highest if available)
-        5. Delete legacy point_stats key from kid_info
+        5. Delete legacy point_stats key from assignee_info
         6. Convert points_total → points_earned in period buckets
         """
         const.LOGGER.info("Phase 7b: Consolidating point_stats → periods.all_time")
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        if not kids_data:
-            const.LOGGER.info("  No kids found, skipping stats consolidation")
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        if not assignees_data:
+            const.LOGGER.info("  No assignees found, skipping stats consolidation")
             return
 
         stats_migrated = 0
         buckets_converted = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
-            # Get kid's CURRENT points balance - this is the source of truth
-            current_balance = float(kid_info.get(const.DATA_KID_POINTS, 0.0))
+            # Get assignee's CURRENT points balance - this is the source of truth
+            current_balance = float(assignee_info.get(const.DATA_USER_POINTS, 0.0))
 
             # Get point_data container
-            point_data = kid_info.get(const.DATA_KID_POINT_DATA_LEGACY, {})
+            point_data = assignee_info.get(const.DATA_ASSIGNEE_POINT_DATA_LEGACY, {})
             if not point_data:
                 # Create point_data if it doesn't exist
                 point_data = {}
-                kid_info[const.DATA_KID_POINT_DATA_LEGACY] = point_data
+                assignee_info[const.DATA_ASSIGNEE_POINT_DATA_LEGACY] = point_data
 
             # Get or create periods container
             periods = point_data.setdefault(
-                const.DATA_KID_POINT_DATA_PERIODS_LEGACY, {}
+                const.DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY, {}
             )
 
             # --- Step 1: Set up all_time bucket ---
             # Get or create all_time period type
             all_time_periods = periods.setdefault(
-                const.DATA_KID_POINT_PERIODS_ALL_TIME, {}
+                const.DATA_USER_POINT_PERIODS_ALL_TIME, {}
             )
 
             # Get or create the all_time bucket (nested: all_time.all_time)
             all_time_bucket = all_time_periods.setdefault(const.PERIOD_ALL_TIME, {})
 
             # Find highest known historical value from legacy sources:
-            # 1. Legacy max_points_ever (v30/v31/v40 - direct kid field)
+            # 1. Legacy max_points_ever (v30/v31/v40 - direct assignee field)
             # 2. Current balance (fallback minimum)
 
             # Source 1: Legacy max_points_ever (the original field in v30/v31/v40beta1)
             legacy_max_points = float(
-                kid_info.get(const.DATA_KID_MAX_POINTS_EVER_LEGACY, 0.0)
+                assignee_info.get(const.DATA_ASSIGNEE_MAX_POINTS_EVER_LEGACY, 0.0)
             )
 
             # Use max_points_ever if available, otherwise fall back to current balance
@@ -5045,7 +5505,7 @@ class PreV50Migrator:
 
             const.LOGGER.debug(
                 "  %s: max_points_ever=%.2f, current=%.2f, using=%.2f",
-                kid_name,
+                assignee_name,
                 legacy_max_points,
                 current_balance,
                 historical_earned,
@@ -5062,30 +5522,32 @@ class PreV50Migrator:
             calculated_spent = current_balance - historical_earned
 
             # ALWAYS overwrite to ensure clean state
-            all_time_bucket[const.DATA_KID_POINT_PERIOD_POINTS_EARNED] = (
+            all_time_bucket[const.DATA_USER_POINT_PERIOD_POINTS_EARNED] = (
                 historical_earned
             )
-            all_time_bucket[const.DATA_KID_POINT_PERIOD_POINTS_SPENT] = calculated_spent
-            all_time_bucket[const.DATA_KID_POINT_PERIOD_BY_SOURCE] = {
+            all_time_bucket[const.DATA_USER_POINT_PERIOD_POINTS_SPENT] = (
+                calculated_spent
+            )
+            all_time_bucket[const.DATA_USER_POINT_PERIOD_BY_SOURCE] = {
                 const.POINTS_SOURCE_OTHER: current_balance
             }
-            all_time_bucket[const.DATA_KID_POINT_PERIOD_HIGHEST_BALANCE] = (
+            all_time_bucket[const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE] = (
                 historical_earned
             )
 
             stats_migrated += 1
 
             # Delete legacy point_stats if present
-            if const.DATA_KID_POINT_STATS_LEGACY in kid_info:
-                del kid_info[const.DATA_KID_POINT_STATS_LEGACY]
+            if const.DATA_ASSIGNEE_POINT_STATS_LEGACY in assignee_info:
+                del assignee_info[const.DATA_ASSIGNEE_POINT_STATS_LEGACY]
 
             const.LOGGER.debug(
                 "  Set all_time for %s: earned=%.2f, spent=%.2f, net=%.2f, highest=%.2f",
-                kid_name,
+                assignee_name,
                 historical_earned,
                 calculated_spent,
                 current_balance,
-                all_time_bucket[const.DATA_KID_POINT_PERIOD_HIGHEST_BALANCE],
+                all_time_bucket[const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE],
             )
 
             # --- Step 2: Convert points_total → points_earned in all period buckets ---
@@ -5099,29 +5561,32 @@ class PreV50Migrator:
 
                     # Check for legacy points_total field
                     if (
-                        const.DATA_KID_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY
+                        const.DATA_ASSIGNEE_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY
                         in bucket_data
                     ):
                         total = bucket_data.pop(
-                            const.DATA_KID_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY
+                            const.DATA_ASSIGNEE_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY
                         )
 
                         # points_total was net (earned + spent where spent is negative)
                         # For non-all_time buckets, treat positive as earned, negative as spent
-                        if const.DATA_KID_POINT_PERIOD_POINTS_EARNED not in bucket_data:
+                        if (
+                            const.DATA_USER_POINT_PERIOD_POINTS_EARNED
+                            not in bucket_data
+                        ):
                             if total >= 0:
                                 bucket_data[
-                                    const.DATA_KID_POINT_PERIOD_POINTS_EARNED
+                                    const.DATA_USER_POINT_PERIOD_POINTS_EARNED
                                 ] = total
                                 bucket_data[
-                                    const.DATA_KID_POINT_PERIOD_POINTS_SPENT
+                                    const.DATA_USER_POINT_PERIOD_POINTS_SPENT
                                 ] = 0
                             else:
                                 bucket_data[
-                                    const.DATA_KID_POINT_PERIOD_POINTS_EARNED
+                                    const.DATA_USER_POINT_PERIOD_POINTS_EARNED
                                 ] = 0
                                 bucket_data[
-                                    const.DATA_KID_POINT_PERIOD_POINTS_SPENT
+                                    const.DATA_USER_POINT_PERIOD_POINTS_SPENT
                                 ] = total
 
                         buckets_converted += 1
@@ -5159,115 +5624,115 @@ class PreV50Migrator:
         # Note: We use the raw string values to match what's actually in storage
         point_stats_temporal_fields = [
             # Earned (temporal periods - all-time stays)
-            const.DATA_KID_POINT_STATS_EARNED_TODAY_LEGACY,
-            const.DATA_KID_POINT_STATS_EARNED_WEEK_LEGACY,
-            const.DATA_KID_POINT_STATS_EARNED_MONTH_LEGACY,
-            const.DATA_KID_POINT_STATS_EARNED_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_EARNED_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_EARNED_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_EARNED_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_EARNED_YEAR_LEGACY,
             # Spent (temporal periods - all-time stays)
-            const.DATA_KID_POINT_STATS_SPENT_TODAY_LEGACY,
-            const.DATA_KID_POINT_STATS_SPENT_WEEK_LEGACY,
-            const.DATA_KID_POINT_STATS_SPENT_MONTH_LEGACY,
-            const.DATA_KID_POINT_STATS_SPENT_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_SPENT_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_SPENT_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_SPENT_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_SPENT_YEAR_LEGACY,
             # Net (temporal periods - all-time stays)
-            const.DATA_KID_POINT_STATS_NET_TODAY_LEGACY,
-            const.DATA_KID_POINT_STATS_NET_WEEK_LEGACY,
-            const.DATA_KID_POINT_STATS_NET_MONTH_LEGACY,
-            const.DATA_KID_POINT_STATS_NET_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_NET_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_NET_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_NET_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_NET_YEAR_LEGACY,
             # By-source breakdowns (temporal periods)
-            const.DATA_KID_POINT_STATS_BY_SOURCE_TODAY_LEGACY,
-            const.DATA_KID_POINT_STATS_BY_SOURCE_WEEK_LEGACY,
-            const.DATA_KID_POINT_STATS_BY_SOURCE_MONTH_LEGACY,
-            const.DATA_KID_POINT_STATS_BY_SOURCE_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_YEAR_LEGACY,
             # Averages (derived values)
-            const.DATA_KID_POINT_STATS_AVG_PER_DAY_WEEK_LEGACY,
-            const.DATA_KID_POINT_STATS_AVG_PER_DAY_MONTH_LEGACY,
-            const.DATA_KID_POINT_STATS_AVG_PER_CHORE_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_AVG_PER_DAY_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_AVG_PER_DAY_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_POINT_STATS_AVG_PER_CHORE_LEGACY,
         ]
 
         # Define temporal fields to strip from chore_stats (using LEGACY constants)
         chore_stats_temporal_fields = [
             # Approved counts (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_APPROVED_TODAY_LEGACY,
-            const.DATA_KID_CHORE_STATS_APPROVED_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_APPROVED_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_APPROVED_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_APPROVED_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_APPROVED_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_APPROVED_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_APPROVED_YEAR_LEGACY,
             # Claimed counts (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_CLAIMED_TODAY_LEGACY,
-            const.DATA_KID_CHORE_STATS_CLAIMED_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_CLAIMED_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_CLAIMED_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CLAIMED_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CLAIMED_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CLAIMED_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CLAIMED_YEAR_LEGACY,
             # Overdue counts (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_OVERDUE_TODAY_LEGACY,
-            const.DATA_KID_CHORE_STATS_OVERDUE_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_OVERDUE_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_OVERDUE_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_OVERDUE_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_OVERDUE_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_OVERDUE_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_OVERDUE_YEAR_LEGACY,
             # Disapproved counts (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_DISAPPROVED_TODAY_LEGACY,
-            const.DATA_KID_CHORE_STATS_DISAPPROVED_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_DISAPPROVED_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_DISAPPROVED_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_DISAPPROVED_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_DISAPPROVED_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_DISAPPROVED_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_DISAPPROVED_YEAR_LEGACY,
             # Total points from chores (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_TODAY_LEGACY,
-            const.DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_TOTAL_POINTS_FROM_CHORES_YEAR_LEGACY,
             # Most completed chore (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_MOST_COMPLETED_CHORE_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_MOST_COMPLETED_CHORE_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_MOST_COMPLETED_CHORE_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_MOST_COMPLETED_CHORE_YEAR_LEGACY,
             # Longest streaks (temporal periods - all-time stays)
-            const.DATA_KID_CHORE_STATS_LONGEST_STREAK_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_LONGEST_STREAK_MONTH_LEGACY,
-            const.DATA_KID_CHORE_STATS_LONGEST_STREAK_YEAR_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_LONGEST_STREAK_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_LONGEST_STREAK_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_LONGEST_STREAK_YEAR_LEGACY,
             # Averages (derived values)
-            const.DATA_KID_CHORE_STATS_AVG_PER_DAY_WEEK_LEGACY,
-            const.DATA_KID_CHORE_STATS_AVG_PER_DAY_MONTH_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_AVG_PER_DAY_WEEK_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_AVG_PER_DAY_MONTH_LEGACY,
             # Current counts (live state, not historical)
-            const.DATA_KID_CHORE_STATS_CURRENT_DUE_TODAY_LEGACY,
-            const.DATA_KID_CHORE_STATS_CURRENT_OVERDUE_LEGACY,
-            const.DATA_KID_CHORE_STATS_CURRENT_CLAIMED_LEGACY,
-            const.DATA_KID_CHORE_STATS_CURRENT_APPROVED_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CURRENT_DUE_TODAY_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CURRENT_OVERDUE_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CURRENT_CLAIMED_LEGACY,
+            const.DATA_ASSIGNEE_CHORE_STATS_CURRENT_APPROVED_LEGACY,
         ]
 
-        kids_data = self.coordinator._data.get(const.DATA_KIDS, {})
-        kids_processed = 0
+        assignees_data = self.coordinator._data.get(const.DATA_USERS, {})
+        assignees_processed = 0
         point_fields_removed = 0
         chore_fields_removed = 0
 
-        for kid_id, kid_info in kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
-            kid_had_changes = False
+        for assignee_id, assignee_info in assignees_data.items():
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
+            assignee_had_changes = False
 
             # Strip temporal fields from point_stats
-            point_stats = kid_info.get(const.DATA_KID_POINT_STATS_LEGACY, {})
+            point_stats = assignee_info.get(const.DATA_ASSIGNEE_POINT_STATS_LEGACY, {})
             for field in point_stats_temporal_fields:
                 if field in point_stats:
                     del point_stats[field]
                     point_fields_removed += 1
-                    kid_had_changes = True
+                    assignee_had_changes = True
 
             # Strip temporal fields from chore_stats
-            chore_stats = kid_info.get(const.DATA_KID_CHORE_STATS_LEGACY, {})
+            chore_stats = assignee_info.get(const.DATA_ASSIGNEE_CHORE_STATS_LEGACY, {})
             for field in chore_stats_temporal_fields:
                 if field in chore_stats:
                     del chore_stats[field]
                     chore_fields_removed += 1
-                    kid_had_changes = True
+                    assignee_had_changes = True
 
-            if kid_had_changes:
-                kids_processed += 1
+            if assignee_had_changes:
+                assignees_processed += 1
                 const.LOGGER.debug(
-                    "Stripped temporal stats from kid '%s'",
-                    kid_name,
+                    "Stripped temporal stats from assignee '%s'",
+                    assignee_name,
                 )
 
         total_removed = point_fields_removed + chore_fields_removed
         if total_removed > 0:
             const.LOGGER.info(
-                "Phase 9 complete: Removed %s temporal fields from %s kids "
+                "Phase 9 complete: Removed %s temporal fields from %s assignees "
                 "(point_stats: %s, chore_stats: %s)",
                 total_removed,
-                kids_processed,
+                assignees_processed,
                 point_fields_removed,
                 chore_fields_removed,
             )
@@ -5314,33 +5779,33 @@ class PreV50Migrator:
         # --- Chore Buttons ---
         # For each chore, create expected unique IDs for claim, approve, and disapprove buttons
         for chore_id, chore_info in self.coordinator.chores_data.items():
-            for kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
+            for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
                 # Expected unique_id formats:
-                uid_claim = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_CLAIM}"
-                uid_approve = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_APPROVE}"
-                uid_disapprove = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_DISAPPROVE}"
+                uid_claim = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_CLAIM}"
+                uid_approve = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_APPROVE}"
+                uid_disapprove = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{chore_id}{const.BUTTON_KC_UID_SUFFIX_DISAPPROVE}"
                 allowed_uids.update({uid_claim, uid_approve, uid_disapprove})
 
         # --- Reward Buttons ---
-        # For each kid and reward, add expected unique IDs for reward claim, approve, and disapprove buttons.
-        for kid_id in self.coordinator.kids_data:
+        # For each assignee and reward, add expected unique IDs for reward claim, approve, and disapprove buttons.
+        for assignee_id in self.coordinator.assignees_data:
             for reward_id in self.coordinator.rewards_data:
                 # The reward claim button might be built with a dedicated prefix:
-                uid_claim = f"{self.coordinator.config_entry.entry_id}_{const.BUTTON_REWARD_PREFIX}{kid_id}_{reward_id}"
-                uid_approve = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{reward_id}{const.BUTTON_KC_UID_SUFFIX_APPROVE_REWARD}"
-                uid_disapprove = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{reward_id}{const.BUTTON_KC_UID_SUFFIX_DISAPPROVE_REWARD}"
+                uid_claim = f"{self.coordinator.config_entry.entry_id}_{const.BUTTON_REWARD_PREFIX}{assignee_id}_{reward_id}"
+                uid_approve = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{reward_id}{const.BUTTON_KC_UID_SUFFIX_APPROVE_REWARD}"
+                uid_disapprove = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{reward_id}{const.BUTTON_KC_UID_SUFFIX_DISAPPROVE_REWARD}"
                 allowed_uids.update({uid_claim, uid_approve, uid_disapprove})
 
         # --- Penalty Buttons ---
-        for kid_id in self.coordinator.kids_data:
+        for assignee_id in self.coordinator.assignees_data:
             for penalty_id in self.coordinator.penalties_data:
-                uid = f"{self.coordinator.config_entry.entry_id}_{const.BUTTON_PENALTY_PREFIX}{kid_id}_{penalty_id}"
+                uid = f"{self.coordinator.config_entry.entry_id}_{const.BUTTON_PENALTY_PREFIX}{assignee_id}_{penalty_id}"
                 allowed_uids.add(uid)
 
         # --- Bonus Buttons ---
-        for kid_id in self.coordinator.kids_data:
+        for assignee_id in self.coordinator.assignees_data:
             for bonus_id in self.coordinator.bonuses_data:
-                uid = f"{self.coordinator.config_entry.entry_id}_{const.BUTTON_BONUS_PREFIX}{kid_id}_{bonus_id}"
+                uid = f"{self.coordinator.config_entry.entry_id}_{const.BUTTON_BONUS_PREFIX}{assignee_id}_{bonus_id}"
                 allowed_uids.add(uid)
 
         # --- Points Adjust Buttons ---
@@ -5362,14 +5827,14 @@ class PreV50Migrator:
         else:
             points_adjust_values = const.DEFAULT_POINTS_ADJUST_VALUES
 
-        for kid_id in self.coordinator.kids_data:
+        for assignee_id in self.coordinator.assignees_data:
             for delta in points_adjust_values:
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}{LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS}{delta}"
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}{LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS}{delta}"
                 allowed_uids.add(uid)
 
         # --- Now remove any button entity whose unique_id is not in allowed_uids ---
         for entity_entry in list(ent_reg.entities.values()):
-            # Only check buttons from our platform (kidschores)
+            # Only check buttons from our platform (assigneeschores)
             if entity_entry.platform != const.DOMAIN or entity_entry.domain != "button":
                 continue
 
@@ -5393,8 +5858,8 @@ class PreV50Migrator:
         # --- Chore Status Sensors ---
         # For each chore, create expected unique IDs for chore status sensors
         for chore_id, chore_info in self.coordinator.chores_data.items():
-            for kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{chore_id}{const.SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR}"
+            for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{chore_id}{const.SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR}"
                 allowed_uids.add(uid)
 
         # --- Shared Chore Global State Sensors ---
@@ -5408,83 +5873,87 @@ class PreV50Migrator:
 
         # --- Reward Status Sensors ---
         for reward_id in self.coordinator.rewards_data:
-            for kid_id in self.coordinator.kids_data:
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{reward_id}{const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR}"
+            for assignee_id in self.coordinator.assignees_data:
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{reward_id}{const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR}"
                 allowed_uids.add(uid)
 
         # --- Penalty/Bonus Apply Sensors ---
-        for kid_id in self.coordinator.kids_data:
+        for assignee_id in self.coordinator.assignees_data:
             for penalty_id in self.coordinator.penalties_data:
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{penalty_id}{const.SENSOR_KC_UID_SUFFIX_PENALTY_APPLIES_SENSOR}"
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{penalty_id}{const.SENSOR_KC_UID_SUFFIX_PENALTY_APPLIES_SENSOR}"
                 allowed_uids.add(uid)
             for bonus_id in self.coordinator.bonuses_data:
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{bonus_id}{const.SENSOR_KC_UID_SUFFIX_BONUS_APPLIES_SENSOR}"
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{bonus_id}{const.SENSOR_KC_UID_SUFFIX_BONUS_APPLIES_SENSOR}"
                 allowed_uids.add(uid)
 
         # --- Achievement Progress Sensors ---
         for achievement_id, achievement in self.coordinator.achievements_data.items():
-            for kid_id in achievement.get(const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, []):
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{achievement_id}{const.SENSOR_KC_UID_SUFFIX_ACHIEVEMENT_PROGRESS_SENSOR}"
+            for assignee_id in achievement.get(
+                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
+            ):
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{achievement_id}{const.SENSOR_KC_UID_SUFFIX_ACHIEVEMENT_PROGRESS_SENSOR}"
                 allowed_uids.add(uid)
 
         # --- Challenge Progress Sensors ---
         for challenge_id, challenge in self.coordinator.challenges_data.items():
-            for kid_id in challenge.get(const.DATA_CHALLENGE_ASSIGNED_KIDS, []):
-                uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{challenge_id}{const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR}"
+            for assignee_id in challenge.get(
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
+            ):
+                uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{challenge_id}{const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR}"
                 allowed_uids.add(uid)
 
-        # --- Kid-specific sensors (not dynamic based on chores/rewards) ---
-        # These are created once per kid and don't need validation against dynamic data
-        for kid_id in self.coordinator.kids_data:
-            # Standard kid sensors
+        # --- Assignee-specific sensors (not dynamic based on chores/rewards) ---
+        # These are created once per assignee and don't need validation against dynamic data
+        for assignee_id in self.coordinator.assignees_data:
+            # Standard assignee sensors
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_POINTS_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_TOTAL_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_TOTAL_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_DAILY_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_DAILY_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_WEEKLY_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_WEEKLY_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_MONTHLY_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_COMPLETED_MONTHLY_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_BADGES_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_BADGES_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_DAILY_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_WEEKLY_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_MONTHLY_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_MAX_POINTS_EVER_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_MAX_POINTS_EVER_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_KID_HIGHEST_STREAK_SENSOR}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR}"
             )
             allowed_uids.add(
-                f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER}"
+                f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER}"
             )
 
             # Badge progress sensors
-            badge_progress_data = self.coordinator.kids_data[kid_id].get(
-                const.DATA_KID_BADGE_PROGRESS, {}
+            badge_progress_data = self.coordinator.assignees_data[assignee_id].get(
+                const.DATA_USER_BADGE_PROGRESS, {}
             )
             for badge_id, progress_info in badge_progress_data.items():
-                badge_type = progress_info.get(const.DATA_KID_BADGE_PROGRESS_TYPE)
+                badge_type = progress_info.get(const.DATA_USER_BADGE_PROGRESS_TYPE)
                 if badge_type != const.BADGE_TYPE_CUMULATIVE:
-                    uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}_{badge_id}{const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR}"
+                    uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{badge_id}{const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR}"
                     allowed_uids.add(uid)
 
-        # --- Global sensors (not kid-specific) ---
+        # --- Global sensors (not assignee-specific) ---
         allowed_uids.add(
             f"{self.coordinator.config_entry.entry_id}{const.SENSOR_KC_UID_SUFFIX_PENDING_CHORE_APPROVALS_SENSOR}"
         )
@@ -5494,7 +5963,7 @@ class PreV50Migrator:
 
         # --- Now remove any sensor entity whose unique_id is not in allowed_uids ---
         for entity_entry in list(ent_reg.entities.values()):
-            # Only check sensors from our platform (kidschores)
+            # Only check sensors from our platform (assigneeschores)
             if entity_entry.platform != const.DOMAIN or entity_entry.domain != "sensor":
                 continue
 
@@ -5515,14 +5984,14 @@ class PreV50Migrator:
         # Build the set of expected unique_ids ("whitelist")
         allowed_uids = set()
 
-        # --- Kid Calendar Entities ---
-        for kid_id in self.coordinator.kids_data:
-            uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.CALENDAR_KC_UID_SUFFIX_CALENDAR}"
+        # --- Assignee Calendar Entities ---
+        for assignee_id in self.coordinator.assignees_data:
+            uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.CALENDAR_KC_UID_SUFFIX_CALENDAR}"
             allowed_uids.add(uid)
 
         # --- Now remove any calendar entity whose unique_id is not in allowed_uids ---
         for entity_entry in list(ent_reg.entities.values()):
-            # Only check calendars from our platform (kidschores)
+            # Only check calendars from our platform (assigneeschores)
             if (
                 entity_entry.platform != const.DOMAIN
                 or entity_entry.domain != "calendar"
@@ -5545,14 +6014,14 @@ class PreV50Migrator:
         # Build the set of expected unique_ids ("whitelist")
         allowed_uids = set()
 
-        # --- Kid Dashboard Date Helper Entities ---
-        for kid_id in self.coordinator.kids_data:
-            uid = f"{self.coordinator.config_entry.entry_id}_{kid_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
+        # --- Assignee Dashboard Date Helper Entities ---
+        for assignee_id in self.coordinator.assignees_data:
+            uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
             allowed_uids.add(uid)
 
         # --- Now remove any datetime entity whose unique_id is not in allowed_uids ---
         for entity_entry in list(ent_reg.entities.values()):
-            # Only check datetime from our platform (kidschores)
+            # Only check datetime from our platform (assigneeschores)
             if (
                 entity_entry.platform != const.DOMAIN
                 or entity_entry.domain != "datetime"
@@ -5576,7 +6045,7 @@ class PreV50Migrator:
         allowed_uids = set()
 
         # --- Global Select Entities (system-level) ---
-        # These are NOT kid-specific
+        # These are NOT assignee-specific
         allowed_uids.add(
             f"{self.coordinator.config_entry.entry_id}{const.SELECT_KC_UID_SUFFIX_CHORES_SELECT}"
         )
@@ -5590,14 +6059,14 @@ class PreV50Migrator:
             f"{self.coordinator.config_entry.entry_id}{const.SELECT_KC_UID_SUFFIX_BONUSES_SELECT}"
         )
 
-        # --- Kid-specific Dashboard Helper Select Entities ---
-        for kid_id in self.coordinator.kids_data:
-            uid = f"{self.coordinator.config_entry.entry_id}{const.SELECT_KC_UID_MIDFIX_CHORES_SELECT_LEGACY}{kid_id}"
+        # --- Assignee-specific Dashboard Helper Select Entities ---
+        for assignee_id in self.coordinator.assignees_data:
+            uid = f"{self.coordinator.config_entry.entry_id}{const.SELECT_KC_UID_MIDFIX_CHORES_SELECT_LEGACY}{assignee_id}"
             allowed_uids.add(uid)
 
         # --- Now remove any select entity whose unique_id is not in allowed_uids ---
         for entity_entry in list(ent_reg.entities.values()):
-            # Only check selects from our platform (kidschores)
+            # Only check selects from our platform (assigneeschores)
             if entity_entry.platform != const.DOMAIN or entity_entry.domain != "select":
                 continue
 
@@ -5610,200 +6079,197 @@ class PreV50Migrator:
                 )
                 ent_reg.async_remove(entity_entry.entity_id)
 
-    def _create_kid(self, kid_id: str, kid_data: dict[str, Any]) -> None:
-        """Create a new kid entity during migration.
+    def _create_assignee(self, assignee_id: str, assignee_data: dict[str, Any]) -> None:
+        """Create a new assignee entity during migration.
 
         This is a local copy for migration only - production code uses
-        data_builders.build_kid() + direct storage writes.
+        data_builders.build_user_assignment_profile() + direct storage writes.
         """
-        self.coordinator._data[const.DATA_KIDS][kid_id] = {
-            const.DATA_KID_NAME: kid_data.get(
-                const.DATA_KID_NAME, const.SENTINEL_EMPTY
+        self.coordinator._data[const.DATA_USERS][assignee_id] = {
+            const.DATA_USER_NAME: assignee_data.get(
+                const.DATA_USER_NAME, const.SENTINEL_EMPTY
             ),
-            const.DATA_KID_POINTS: kid_data.get(
-                const.DATA_KID_POINTS, const.DEFAULT_ZERO
+            const.DATA_USER_POINTS: assignee_data.get(
+                const.DATA_USER_POINTS, const.DEFAULT_ZERO
             ),
-            const.DATA_KID_BADGES_EARNED: kid_data.get(
-                const.DATA_KID_BADGES_EARNED, {}
+            const.DATA_USER_BADGES_EARNED: assignee_data.get(
+                const.DATA_USER_BADGES_EARNED, {}
             ),
-            const.DATA_KID_HA_USER_ID: kid_data.get(const.DATA_KID_HA_USER_ID),
-            const.DATA_KID_INTERNAL_ID: kid_id,
-            const.DATA_KID_POINTS_MULTIPLIER: kid_data.get(
-                const.DATA_KID_POINTS_MULTIPLIER, const.DEFAULT_KID_POINTS_MULTIPLIER
+            const.DATA_USER_HA_USER_ID: assignee_data.get(const.DATA_USER_HA_USER_ID),
+            const.DATA_USER_INTERNAL_ID: assignee_id,
+            const.DATA_USER_POINTS_MULTIPLIER: assignee_data.get(
+                const.DATA_USER_POINTS_MULTIPLIER,
+                const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
             ),
-            const.DATA_KID_PENALTY_APPLIES: kid_data.get(
-                const.DATA_KID_PENALTY_APPLIES, {}
+            const.DATA_USER_PENALTY_APPLIES: assignee_data.get(
+                const.DATA_USER_PENALTY_APPLIES, {}
             ),
-            const.DATA_KID_BONUS_APPLIES: kid_data.get(
-                const.DATA_KID_BONUS_APPLIES, {}
+            const.DATA_USER_BONUS_APPLIES: assignee_data.get(
+                const.DATA_USER_BONUS_APPLIES, {}
             ),
-            const.DATA_KID_REWARD_DATA: kid_data.get(const.DATA_KID_REWARD_DATA, {}),
-            const.DATA_KID_ENABLE_NOTIFICATIONS_LEGACY: kid_data.get(
-                const.DATA_KID_ENABLE_NOTIFICATIONS_LEGACY, True
+            const.DATA_USER_REWARD_DATA: assignee_data.get(
+                const.DATA_USER_REWARD_DATA, {}
             ),
-            const.DATA_KID_MOBILE_NOTIFY_SERVICE: kid_data.get(
-                const.DATA_KID_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            const.DATA_ASSIGNEE_ENABLE_NOTIFICATIONS_LEGACY: assignee_data.get(
+                const.DATA_ASSIGNEE_ENABLE_NOTIFICATIONS_LEGACY, True
             ),
-            const.DATA_KID_USE_PERSISTENT_NOTIFICATIONS: kid_data.get(
-                const.DATA_KID_USE_PERSISTENT_NOTIFICATIONS, True
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE: assignee_data.get(
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            ),
+            const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS: assignee_data.get(
+                const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS, True
             ),
             # NOTE: DATA_KID_OVERDUE_CHORES removed - dead code, overdue tracked in chore_data[chore_id].state
         }
 
         const.LOGGER.debug(
-            "DEBUG: Kid Added (migration) - '%s', ID '%s'",
-            self.coordinator._data[const.DATA_KIDS][kid_id][const.DATA_KID_NAME],
-            kid_id,
+            "DEBUG: Assignee Added (migration) - '%s', ID '%s'",
+            self.coordinator._data[const.DATA_USERS][assignee_id][const.DATA_USER_NAME],
+            assignee_id,
         )
 
-    def _update_kid(self, kid_id: str, kid_data: dict[str, Any]):
-        """Update an existing kid entity, only updating fields present in kid_data."""
+    def _update_assignee(self, assignee_id: str, assignee_data: dict[str, Any]):
+        """Update an existing assignee entity, only updating fields present in assignee_data."""
 
-        kids = self.coordinator._data.setdefault(const.DATA_KIDS, {})
-        existing = kids.get(kid_id, {})
-        # Only update fields present in kid_data, preserving all others
-        existing.update(kid_data)
-        kids[kid_id] = existing
+        assignees = self.coordinator._data.setdefault(const.DATA_USERS, {})
+        existing = assignees.get(assignee_id, {})
+        # Only update fields present in assignee_data, preserving all others
+        existing.update(assignee_data)
+        assignees[assignee_id] = existing
 
-        kid_name = existing.get(const.DATA_KID_NAME, const.SENTINEL_EMPTY)
+        assignee_name = existing.get(const.DATA_USER_NAME, const.SENTINEL_EMPTY)
         const.LOGGER.debug(
-            "DEBUG: Kid Updated - '%s', ID '%s'",
-            kid_name,
-            kid_id,
+            "DEBUG: Assignee Updated - '%s', ID '%s'",
+            assignee_name,
+            assignee_id,
         )
 
-    def _create_parent(self, parent_id: str, parent_data: dict[str, Any]):
-        associated_kids_ids = []
-        for kid_id in parent_data.get(const.DATA_PARENT_ASSOCIATED_KIDS, []):
-            if kid_id in self.coordinator.kids_data:
-                associated_kids_ids.append(kid_id)
+    def _create_approver(self, approver_id: str, approver_data: dict[str, Any]):
+        associated_assignees_ids = []
+        for assignee_id in approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []):
+            if assignee_id in self.coordinator.assignees_data:
+                associated_assignees_ids.append(assignee_id)
             else:
                 const.LOGGER.warning(
-                    "WARNING: Parent '%s': Kid ID '%s' not found. Skipping assignment to parent",
-                    parent_data.get(const.DATA_PARENT_NAME, parent_id),
-                    kid_id,
+                    "WARNING: Approver '%s': Assignee ID '%s' not found. Skipping assignment to approver",
+                    approver_data.get(const.DATA_USER_NAME, approver_id),
+                    assignee_id,
                 )
 
-        self.coordinator._data[const.DATA_PARENTS][parent_id] = {
-            const.DATA_PARENT_NAME: parent_data.get(
-                const.DATA_PARENT_NAME, const.SENTINEL_EMPTY
+        self.coordinator._data[const.DATA_APPROVERS][approver_id] = {
+            const.DATA_USER_NAME: approver_data.get(
+                const.DATA_USER_NAME, const.SENTINEL_EMPTY
             ),
-            const.DATA_PARENT_HA_USER_ID: parent_data.get(
-                const.DATA_PARENT_HA_USER_ID, const.SENTINEL_EMPTY
+            const.DATA_USER_HA_USER_ID: approver_data.get(
+                const.DATA_USER_HA_USER_ID, const.SENTINEL_EMPTY
             ),
-            const.DATA_PARENT_ASSOCIATED_KIDS: associated_kids_ids,
-            const.DATA_PARENT_ENABLE_NOTIFICATIONS_LEGACY: parent_data.get(
-                const.DATA_PARENT_ENABLE_NOTIFICATIONS_LEGACY, True
+            const.DATA_USER_ASSOCIATED_USER_IDS: associated_assignees_ids,
+            const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY: approver_data.get(
+                const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY, True
             ),
-            const.DATA_PARENT_MOBILE_NOTIFY_SERVICE: parent_data.get(
-                const.DATA_PARENT_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE: approver_data.get(
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
-            const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS: parent_data.get(
-                const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, True
+            const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS: approver_data.get(
+                const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
+                True,
             ),
-            const.DATA_PARENT_INTERNAL_ID: parent_id,
-            # Parent chore capability fields (v0.6.0+)
-            const.DATA_PARENT_DASHBOARD_LANGUAGE: parent_data.get(
-                const.DATA_PARENT_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+            const.DATA_USER_INTERNAL_ID: approver_id,
+            # Approver chore capability fields (v0.6.0+)
+            const.DATA_USER_DASHBOARD_LANGUAGE: approver_data.get(
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
-            const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: parent_data.get(
-                const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
-                const.DEFAULT_PARENT_ALLOW_CHORE_ASSIGNMENT,
+            const.DATA_USER_ENABLE_CHORE_WORKFLOW: approver_data.get(
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+                const.DEFAULT_USER_ENABLE_CHORE_WORKFLOW,
             ),
-            const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: parent_data.get(
-                const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
-                const.DEFAULT_PARENT_ENABLE_CHORE_WORKFLOW,
+            const.DATA_USER_ENABLE_GAMIFICATION: approver_data.get(
+                const.DATA_USER_ENABLE_GAMIFICATION,
+                const.DEFAULT_USER_ENABLE_GAMIFICATION,
             ),
-            const.DATA_PARENT_ENABLE_GAMIFICATION: parent_data.get(
-                const.DATA_PARENT_ENABLE_GAMIFICATION,
-                const.DEFAULT_PARENT_ENABLE_GAMIFICATION,
-            ),
-            const.DATA_PARENT_LINKED_SHADOW_KID_ID: parent_data.get(
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
+            LEGACY_APPROVER_LINKED_PROFILE_KEY: approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY
             ),
         }
         const.LOGGER.debug(
-            "DEBUG: Parent Added - '%s', ID '%s'",
-            self.coordinator._data[const.DATA_PARENTS][parent_id][
-                const.DATA_PARENT_NAME
+            "DEBUG: Approver Added - '%s', ID '%s'",
+            self.coordinator._data[const.DATA_APPROVERS][approver_id][
+                const.DATA_USER_NAME
             ],
-            parent_id,
+            approver_id,
         )
 
-    def _update_parent(self, parent_id: str, parent_data: dict[str, Any]):
-        parent_info = self.coordinator._data[const.DATA_PARENTS][parent_id]
-        parent_info[const.DATA_PARENT_NAME] = parent_data.get(
-            const.DATA_PARENT_NAME, parent_info[const.DATA_PARENT_NAME]
+    def _update_approver(self, approver_id: str, approver_data: dict[str, Any]):
+        approver_info = self.coordinator._data[const.DATA_APPROVERS][approver_id]
+        approver_info[const.DATA_USER_NAME] = approver_data.get(
+            const.DATA_USER_NAME, approver_info[const.DATA_USER_NAME]
         )
-        parent_info[const.DATA_PARENT_HA_USER_ID] = parent_data.get(
-            const.DATA_PARENT_HA_USER_ID, parent_info[const.DATA_PARENT_HA_USER_ID]
+        approver_info[const.DATA_USER_HA_USER_ID] = approver_data.get(
+            const.DATA_USER_HA_USER_ID,
+            approver_info[const.DATA_USER_HA_USER_ID],
         )
 
-        # Update associated_kids
-        updated_kids = []
-        for kid_id in parent_data.get(const.DATA_PARENT_ASSOCIATED_KIDS, []):
-            if kid_id in self.coordinator.kids_data:
-                updated_kids.append(kid_id)
+        # Update associated_assignees
+        updated_assignees = []
+        for assignee_id in approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []):
+            if assignee_id in self.coordinator.assignees_data:
+                updated_assignees.append(assignee_id)
             else:
                 const.LOGGER.warning(
-                    "WARNING: Parent '%s': Kid ID '%s' not found. Skipping assignment to parent",
-                    parent_info[const.DATA_PARENT_NAME],
-                    kid_id,
+                    "WARNING: Approver '%s': Assignee ID '%s' not found. Skipping assignment to approver",
+                    approver_info[const.DATA_USER_NAME],
+                    assignee_id,
                 )
-        parent_info[const.DATA_PARENT_ASSOCIATED_KIDS] = updated_kids
-        parent_info[const.DATA_PARENT_ENABLE_NOTIFICATIONS_LEGACY] = parent_data.get(
-            const.DATA_PARENT_ENABLE_NOTIFICATIONS_LEGACY,
-            parent_info.get(const.DATA_PARENT_ENABLE_NOTIFICATIONS_LEGACY, True),
+        approver_info[const.DATA_USER_ASSOCIATED_USER_IDS] = updated_assignees
+        approver_info[const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY] = (
+            approver_data.get(
+                const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY,
+                approver_info.get(
+                    const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY, True
+                ),
+            )
         )
-        parent_info[const.DATA_PARENT_MOBILE_NOTIFY_SERVICE] = parent_data.get(
-            const.DATA_PARENT_MOBILE_NOTIFY_SERVICE,
-            parent_info.get(
-                const.DATA_PARENT_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+        approver_info[const.DATA_USER_MOBILE_NOTIFY_SERVICE] = approver_data.get(
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE,
+            approver_info.get(
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
         )
-        parent_info[const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS] = parent_data.get(
-            const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS,
-            parent_info.get(const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, True),
+        approver_info[const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS] = approver_data.get(
+            const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
+            approver_info.get(const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS, True),
         )
-        # Parent chore capability fields (v0.6.0+)
-        parent_info[const.DATA_PARENT_DASHBOARD_LANGUAGE] = parent_data.get(
-            const.DATA_PARENT_DASHBOARD_LANGUAGE,
-            parent_info.get(
-                const.DATA_PARENT_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        # Approver chore capability fields (v0.6.0+)
+        approver_info[const.DATA_USER_DASHBOARD_LANGUAGE] = approver_data.get(
+            const.DATA_USER_DASHBOARD_LANGUAGE,
+            approver_info.get(
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
         )
-        parent_info[const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT] = parent_data.get(
-            const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
-            parent_info.get(
-                const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
-                const.DEFAULT_PARENT_ALLOW_CHORE_ASSIGNMENT,
+        approver_info[const.DATA_USER_ENABLE_CHORE_WORKFLOW] = approver_data.get(
+            const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+            approver_info.get(
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+                const.DEFAULT_USER_ENABLE_CHORE_WORKFLOW,
             ),
         )
-        parent_info[const.DATA_PARENT_ENABLE_CHORE_WORKFLOW] = parent_data.get(
-            const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
-            parent_info.get(
-                const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
-                const.DEFAULT_PARENT_ENABLE_CHORE_WORKFLOW,
+        approver_info[const.DATA_USER_ENABLE_GAMIFICATION] = approver_data.get(
+            const.DATA_USER_ENABLE_GAMIFICATION,
+            approver_info.get(
+                const.DATA_USER_ENABLE_GAMIFICATION,
+                const.DEFAULT_USER_ENABLE_GAMIFICATION,
             ),
         )
-        parent_info[const.DATA_PARENT_ENABLE_GAMIFICATION] = parent_data.get(
-            const.DATA_PARENT_ENABLE_GAMIFICATION,
-            parent_info.get(
-                const.DATA_PARENT_ENABLE_GAMIFICATION,
-                const.DEFAULT_PARENT_ENABLE_GAMIFICATION,
-            ),
-        )
-        # Update shadow kid link if provided (set by options_flow when toggling
-        # allow_chore_assignment)
-        if const.DATA_PARENT_LINKED_SHADOW_KID_ID in parent_data:
-            parent_info[const.DATA_PARENT_LINKED_SHADOW_KID_ID] = parent_data.get(
-                const.DATA_PARENT_LINKED_SHADOW_KID_ID
+        # Update shadow assignee link if provided
+        if LEGACY_APPROVER_LINKED_PROFILE_KEY in approver_data:
+            approver_info[LEGACY_APPROVER_LINKED_PROFILE_KEY] = approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY
             )
 
         const.LOGGER.debug(
-            "DEBUG: Parent Updated - '%s', ID '%s'",
-            parent_info[const.DATA_PARENT_NAME],
-            parent_id,
+            "DEBUG: Approver Updated - '%s', ID '%s'",
+            approver_info[const.DATA_USER_NAME],
+            approver_id,
         )
 
     def _create_chore(self, chore_id: str, chore_data: dict[str, Any]):
@@ -5849,11 +6315,11 @@ class PreV50Migrator:
             const.DATA_CHORE_ICON, chore_info[const.DATA_CHORE_ICON]
         )
 
-        # assigned_kids now contains UUIDs directly from flow helpers (no conversion needed)
+        # assigned_assignees now contains UUIDs directly from flow helpers (no conversion needed)
         # Simplified for migration - just update the list directly (no entity cleanup needed)
-        chore_info[const.DATA_CHORE_ASSIGNED_KIDS] = chore_data.get(
-            const.DATA_CHORE_ASSIGNED_KIDS,
-            chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []),
+        chore_info[const.DATA_CHORE_ASSIGNED_USER_IDS] = chore_data.get(
+            const.DATA_CHORE_ASSIGNED_USER_IDS,
+            chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []),
         )
         chore_info[const.DATA_CHORE_RECURRING_FREQUENCY] = chore_data.get(
             const.DATA_CHORE_RECURRING_FREQUENCY,
@@ -5867,7 +6333,7 @@ class PreV50Migrator:
         )
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
             # For INDEPENDENT chores: chore-level due_date should remain None
-            # (per_kid_due_dates are authoritative)
+            # (per_assignee_due_dates are authoritative)
             chore_info[const.DATA_CHORE_DUE_DATE] = None
         else:
             # For SHARED chores: update chore-level due_date normally
@@ -5946,22 +6412,22 @@ class PreV50Migrator:
         # Update completion_criteria
         chore_info[const.DATA_CHORE_COMPLETION_CRITERIA] = new_criteria
 
-        # Update per_kid_due_dates if provided in chore_data (from flow)
-        if const.DATA_CHORE_PER_KID_DUE_DATES in chore_data:
-            chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = chore_data[
-                const.DATA_CHORE_PER_KID_DUE_DATES
+        # Update per_assignee_due_dates if provided in chore_data (from flow)
+        if const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES in chore_data:
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = chore_data[
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES
             ]
 
-        # PKAD-2026-001: Update per_kid_applicable_days if provided (from flow)
-        if const.DATA_CHORE_PER_KID_APPLICABLE_DAYS in chore_data:
-            chore_info[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = chore_data[
-                const.DATA_CHORE_PER_KID_APPLICABLE_DAYS
+        # PKAD-2026-001: Update per_assignee_applicable_days if provided (from flow)
+        if const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS in chore_data:
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS] = chore_data[
+                const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS
             ]
 
-        # PKAD-2026-001: Update per_kid_daily_multi_times if provided (from flow)
-        if const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES in chore_data:
-            chore_info[const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES] = chore_data[
-                const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES
+        # PKAD-2026-001: Update per_assignee_daily_multi_times if provided (from flow)
+        if const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES in chore_data:
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES] = chore_data[
+                const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES
             ]
 
         const.LOGGER.debug(
@@ -6149,8 +6615,8 @@ class PreV50Migrator:
             const.DATA_ACHIEVEMENT_ICON: achievement_data.get(
                 const.DATA_ACHIEVEMENT_ICON, const.SENTINEL_EMPTY
             ),
-            const.DATA_ACHIEVEMENT_ASSIGNED_KIDS: achievement_data.get(
-                const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, []
+            const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: achievement_data.get(
+                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
             ),
             const.DATA_ACHIEVEMENT_TYPE: achievement_data.get(
                 const.DATA_ACHIEVEMENT_TYPE, const.ACHIEVEMENT_TYPE_STREAK
@@ -6201,9 +6667,11 @@ class PreV50Migrator:
         achievement_info[const.DATA_ACHIEVEMENT_ICON] = achievement_data.get(
             const.DATA_ACHIEVEMENT_ICON, achievement_info[const.DATA_ACHIEVEMENT_ICON]
         )
-        achievement_info[const.DATA_ACHIEVEMENT_ASSIGNED_KIDS] = achievement_data.get(
-            const.DATA_ACHIEVEMENT_ASSIGNED_KIDS,
-            achievement_info[const.DATA_ACHIEVEMENT_ASSIGNED_KIDS],
+        achievement_info[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = (
+            achievement_data.get(
+                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
+                achievement_info[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS],
+            )
         )
         achievement_info[const.DATA_ACHIEVEMENT_TYPE] = achievement_data.get(
             const.DATA_ACHIEVEMENT_TYPE, achievement_info[const.DATA_ACHIEVEMENT_TYPE]
@@ -6248,8 +6716,8 @@ class PreV50Migrator:
             const.DATA_CHALLENGE_ICON: challenge_data.get(
                 const.DATA_CHALLENGE_ICON, const.SENTINEL_EMPTY
             ),
-            const.DATA_CHALLENGE_ASSIGNED_KIDS: challenge_data.get(
-                const.DATA_CHALLENGE_ASSIGNED_KIDS, []
+            const.DATA_CHALLENGE_ASSIGNED_USER_IDS: challenge_data.get(
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
             ),
             const.DATA_CHALLENGE_TYPE: challenge_data.get(
                 const.DATA_CHALLENGE_TYPE, const.CHALLENGE_TYPE_DAILY_MIN
@@ -6306,9 +6774,9 @@ class PreV50Migrator:
         challenge_info[const.DATA_CHALLENGE_ICON] = challenge_data.get(
             const.DATA_CHALLENGE_ICON, challenge_info[const.DATA_CHALLENGE_ICON]
         )
-        challenge_info[const.DATA_CHALLENGE_ASSIGNED_KIDS] = challenge_data.get(
-            const.DATA_CHALLENGE_ASSIGNED_KIDS,
-            challenge_info[const.DATA_CHALLENGE_ASSIGNED_KIDS],
+        challenge_info[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] = challenge_data.get(
+            const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
+            challenge_info[const.DATA_CHALLENGE_ASSIGNED_USER_IDS],
         )
         challenge_info[const.DATA_CHALLENGE_TYPE] = challenge_data.get(
             const.DATA_CHALLENGE_TYPE, challenge_info[const.DATA_CHALLENGE_TYPE]
@@ -6361,14 +6829,14 @@ def async_migrate_uid_suffixes_v0_5_0(
 
     This one-time migration updates entity unique_ids to use entity-type-scoped
     suffixes (e.g., '_status' → '_chore_status') to enable reliable pattern matching
-    for shadow kid entity gating logic.
+    for shadow assignee entity gating logic.
 
     The migration is idempotent - entities with new suffixes are skipped.
     Gated by schema version check in __init__.py (only runs if schema < 43).
 
     Args:
         hass: Home Assistant instance
-        config_entry: KidsChores config entry
+        config_entry: ChoreOps config entry
 
     """
     # Mapping of old UID suffixes → new UID suffixes (all hardcoded for migration)
@@ -6381,8 +6849,8 @@ def async_migrate_uid_suffixes_v0_5_0(
         "_claim": "_chore_claim",
         "_unclaim": "_chore_unclaim",
         "_approve_reward": "_reward_approve",
-        "_approve_all_rewards": "_kid_approve_all_rewards",
-        "_remove_kid_rewards": "_kid_remove_all_rewards",
+        "_approve_all_rewards": "_assignee_approve_all_rewards",
+        "_remove_assignee_rewards": "_assignee_remove_all_rewards",
         "_claim_partial_reward": "_reward_claim_partial",
         "_delete_chore": "_chore_delete",
         "_delete_reward": "_reward_delete",
@@ -6400,17 +6868,17 @@ def async_migrate_uid_suffixes_v0_5_0(
         "_achievement_status": "_achievement_status",
         "_badge_status": "_badge_status",
         "_challenge_status": "_challenge_status",
-        # SENSORS - Kid aggregations
-        "_chores": "_kid_chores_summary",
-        "_points": "_kid_points",
-        "_dashboard_helper": "_kid_dashboard_helper",
+        # SENSORS - Assignee aggregations
+        "_chores": "_assignee_chores_summary",
+        "_points": "_assignee_points",
+        "_dashboard_helper": "_assignee_dashboard_helper",
         # SELECTS
         "_chores_select": "_select_chores",
         "_rewards_select": "_select_rewards",
         # DATETIME
         "_date_helper": "_dashboard_datetime_picker",
         # CALENDAR
-        "_calendar": "_kid_calendar",
+        "_calendar": "_assignee_calendar",
     }
 
     # Build set of NEW suffixes (migration targets) for idempotency check

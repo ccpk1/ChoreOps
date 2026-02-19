@@ -1,1 +1,1 @@
-"""Tests for KidsChores Home Assistant integration."""
+"""Tests for ChoreOps Home Assistant integration."""

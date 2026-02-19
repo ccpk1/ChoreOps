@@ -1,13 +1,13 @@
 # Test Scenario: SHARED (Modern Config-Flow Format)
 # =============================================================================
-# Focused on shared chore testing. 3 kids, 1 parent, all shared chores.
+# Focused on shared chore testing. 3 assignees, 1 approver, all shared chores.
 #
 # Contents:
-#   - 1 parent: Mom
-#   - 3 kids: Zoë, Max, Lila
+#   - 1 approver: Mom
+#   - 3 assignees: Zoë, Max, Lila
 #   - 8 chores: mix of shared_all and shared_first
 #
-# Use case: Testing shared chore completion logic, multi-kid coordination
+# Use case: Testing shared chore completion logic, multi-assignee coordination
 # =============================================================================
 
 # System settings
@@ -15,37 +15,37 @@ system:
   points_label: "Points"
   points_icon: "mdi:star"
 
-# Kids (3 kids for shared chore testing)
-kids:
+# Assignees (3 assignees for shared chore testing)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Lila"
-    ha_user: "kid3"
+    ha_user: "assignee3"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (1 parent can approve all)
-parents:
+# Approvers (1 approver can approve all)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Max!", "Lila"]
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!", "Lila"]
     mobile_notify_service: ""
 
 # Chores (8 shared chores)
 chores:
   # ==========================================================================
-  # SHARED_ALL CHORES (all kids must complete)
+  # SHARED_ALL CHORES (all assignees must complete)
   # ==========================================================================
 
-  # Test: 3-kid shared_all daily
+  # Test: 3-assignee shared_all daily
   - name: "Family dinner cleanup"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 10.0
@@ -54,7 +54,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
 
-  # Test: 2-kid shared_all daily (subset)
+  # Test: 2-assignee shared_all daily (subset)
   - name: "Walk the dog"
     assigned_to: ["Zoë", "Max!"]
     points: 8.0
@@ -63,7 +63,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
 
-  # Test: 3-kid shared_all weekly
+  # Test: 3-assignee shared_all weekly
   - name: "Weekend yard work"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 20.0
@@ -72,7 +72,7 @@ chores:
     recurring_frequency: "weekly"
     auto_approve: false
 
-  # Test: 2-kid shared_all weekly (different pair)
+  # Test: 2-assignee shared_all weekly (different pair)
   - name: "Clean bathroom"
     assigned_to: ["Max!", "Lila"]
     points: 15.0
@@ -85,7 +85,7 @@ chores:
   # SHARED_FIRST CHORES (first to complete wins)
   # ==========================================================================
 
-  # Test: 3-kid shared_first daily (race condition)
+  # Test: 3-assignee shared_first daily (race condition)
   - name: "Take out trash"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 5.0
@@ -94,7 +94,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
 
-  # Test: 2-kid shared_first daily
+  # Test: 2-assignee shared_first daily
   - name: "Get the mail"
     assigned_to: ["Zoë", "Lila"]
     points: 3.0
@@ -103,7 +103,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
 
-  # Test: 3-kid shared_first weekly
+  # Test: 3-assignee shared_first weekly
   - name: "Wash the car"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 25.0
@@ -112,7 +112,7 @@ chores:
     recurring_frequency: "weekly"
     auto_approve: false
 
-  # Test: 2-kid shared_first weekly (different pair)
+  # Test: 2-assignee shared_first weekly (different pair)
   - name: "Organize garage"
     assigned_to: ["Zoë", "Max!"]
     points: 30.0
@@ -231,7 +231,7 @@ chores:
   # ROTATION_SIMPLE CHORES (3+ chores for Builder 2 rotation testing)
   # ==========================================================================
 
-  # Test: 3-kid rotation_simple daily
+  # Test: 3-assignee rotation_simple daily
   - name: "Dishes Rotation"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 15.0
@@ -240,7 +240,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
 
-  # Test: 2-kid rotation_simple weekly
+  # Test: 2-assignee rotation_simple weekly
   - name: "Vacuum Living Room"
     assigned_to: ["Zoë", "Max!"]
     points: 12.0
@@ -249,7 +249,7 @@ chores:
     recurring_frequency: "weekly"
     auto_approve: false
 
-  # Test: 3-kid rotation_simple with auto_approve
+  # Test: 3-assignee rotation_simple with auto_approve
   - name: "Feed Pet Fish"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 5.0
@@ -258,7 +258,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: true
 
-  # Test: 2-kid rotation_simple (different pair)
+  # Test: 2-assignee rotation_simple (different pair)
   - name: "Water Plants"
     assigned_to: ["Max!", "Lila"]
     points: 8.0
@@ -271,7 +271,7 @@ chores:
   # ROTATION_SMART CHORES (3+ chores for Builder 2 rotation testing)
   # ==========================================================================
 
-  # Test: 3-kid rotation_smart daily (fairness-weighted)
+  # Test: 3-assignee rotation_smart daily (fairness-weighted)
   - name: "Laundry Rotation"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 20.0
@@ -280,7 +280,7 @@ chores:
     recurring_frequency: "daily"
     auto_approve: false
 
-  # Test: 2-kid rotation_smart weekly
+  # Test: 2-assignee rotation_smart weekly
   - name: "Clean Bathroom Mirror"
     assigned_to: ["Zoë", "Lila"]
     points: 10.0
@@ -289,7 +289,7 @@ chores:
     recurring_frequency: "weekly"
     auto_approve: false
 
-  # Test: 3-kid rotation_smart with overdue handling
+  # Test: 3-assignee rotation_smart with overdue handling
   - name: "Organize Bookshelf"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 18.0
@@ -299,7 +299,7 @@ chores:
     auto_approve: false
     due_date: "+7d14:00"
 
-  # Test: 2-kid rotation_smart (different pair)
+  # Test: 2-assignee rotation_smart (different pair)
   - name: "Clean Computer Desk"
     assigned_to: ["Max!", "Lila"]
     points: 12.0
@@ -312,42 +312,42 @@ chores:
 # CHORE COVERAGE MATRIX
 # =============================================================================
 # SHARED_ALL (4 chores):
-#   - Daily, 3 kids: Family dinner cleanup (10pts)
-#   - Daily, 2 kids: Walk the dog (8pts) - Zoë, Max
-#   - Weekly, 3 kids: Weekend yard work (20pts)
-#   - Weekly, 2 kids: Clean bathroom (15pts) - Max, Lila
+#   - Daily, 3 assignees: Family dinner cleanup (10pts)
+#   - Daily, 2 assignees: Walk the dog (8pts) - Zoë, Max
+#   - Weekly, 3 assignees: Weekend yard work (20pts)
+#   - Weekly, 2 assignees: Clean bathroom (15pts) - Max, Lila
 #
 # SHARED_FIRST (4 chores):
-#   - Daily, 3 kids: Take out trash (5pts)
-#   - Daily, 2 kids: Get the mail (3pts) - Zoë, Lila
-#   - Weekly, 3 kids: Wash the car (25pts)
-#   - Weekly, 2 kids: Organize garage (30pts) - Zoë, Max
+#   - Daily, 3 assignees: Take out trash (5pts)
+#   - Daily, 2 assignees: Get the mail (3pts) - Zoë, Lila
+#   - Weekly, 3 assignees: Wash the car (25pts)
+#   - Weekly, 2 assignees: Organize garage (30pts) - Zoë, Max
 #
 # SHARED_ALL AUTO-APPROVE & PENDING CLAIM (4 chores):
-#   - Auto Approve, 3 kids: Shared All Auto Approve (12pts)
-#   - Pending Hold, 2 kids: Shared All Pending Hold (10pts) - Zoë, Max
-#   - Pending Clear, 2 kids: Shared All Pending Clear (10pts) - Zoë, Max
-#   - Pending Auto Approve, 2 kids: Shared All Pending Auto Approve (10pts) - Zoë, Max
+#   - Auto Approve, 3 assignees: Shared All Auto Approve (12pts)
+#   - Pending Hold, 2 assignees: Shared All Pending Hold (10pts) - Zoë, Max
+#   - Pending Clear, 2 assignees: Shared All Pending Clear (10pts) - Zoë, Max
+#   - Pending Auto Approve, 2 assignees: Shared All Pending Auto Approve (10pts) - Zoë, Max
 #
 # SHARED_FIRST AUTO-APPROVE & PENDING CLAIM (4 chores):
-#   - Auto Approve, 3 kids: Shared First Auto Approve (15pts)
-#   - Pending Hold, 2 kids: Shared First Pending Hold (10pts) - Zoë, Max
-#   - Pending Clear, 2 kids: Shared First Pending Clear (10pts) - Zoë, Max
-#   - Pending Auto Approve, 2 kids: Shared First Pending Auto Approve (10pts) - Zoë, Max
+#   - Auto Approve, 3 assignees: Shared First Auto Approve (15pts)
+#   - Pending Hold, 2 assignees: Shared First Pending Hold (10pts) - Zoë, Max
+#   - Pending Clear, 2 assignees: Shared First Pending Clear (10pts) - Zoë, Max
+#   - Pending Auto Approve, 2 assignees: Shared First Pending Auto Approve (10pts) - Zoë, Max
 #
 # ROTATION_SIMPLE (4 chores):
-#   - Daily, 3 kids: Dishes Rotation (15pts)
-#   - Weekly, 2 kids: Vacuum Living Room (12pts) - Zoë, Max
-#   - Daily Auto-Approve, 3 kids: Feed Pet Fish (5pts)
-#   - Daily, 2 kids: Water Plants (8pts) - Max, Lila
+#   - Daily, 3 assignees: Dishes Rotation (15pts)
+#   - Weekly, 2 assignees: Vacuum Living Room (12pts) - Zoë, Max
+#   - Daily Auto-Approve, 3 assignees: Feed Pet Fish (5pts)
+#   - Daily, 2 assignees: Water Plants (8pts) - Max, Lila
 #
 # ROTATION_SMART (4 chores):
-#   - Daily, 3 kids: Laundry Rotation (20pts)
-#   - Weekly, 2 kids: Clean Bathroom Mirror (10pts) - Zoë, Lila
-#   - Weekly with Due Date, 3 kids: Organize Bookshelf (18pts)
-#   - Daily, 2 kids: Clean Computer Desk (12pts) - Max, Lila
+#   - Daily, 3 assignees: Laundry Rotation (20pts)
+#   - Weekly, 2 assignees: Clean Bathroom Mirror (10pts) - Zoë, Lila
+#   - Weekly with Due Date, 3 assignees: Organize Bookshelf (18pts)
+#   - Daily, 2 assignees: Clean Computer Desk (12pts) - Max, Lila
 #
-# Kid Assignment Coverage (Updated with Rotation Chores):
+# Assignee Assignment Coverage (Updated with Rotation Chores):
 #   - Zoë: 13 chores (7 shared + 6 rotation)
 #   - Max: 13 chores (7 shared + 6 rotation)
 #   - Lila: 12 chores (6 shared + 6 rotation)

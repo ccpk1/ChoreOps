@@ -4,23 +4,23 @@
     "step": {
       "intro": {
         "title": "Dobrodošli v Otroških opravilih",
-        "description": "Ta čarovnik vas bo vodil skozi nastavitev aplikacije KidsChores.\n\n[📖 Vodnik za hiter začetek]({documentation_url})"
+        "description": "Ta čarovnik vas bo vodil skozi nastavitev aplikacije ChoreOps.\n\n[📖 Vodnik za hiter začetek]({documentation_url})"
       },
       "data_recovery": {
         "title": "Možnosti obnovitve podatkov",
-        "description": "Obstoječi podatki KidsChores najdeni v:\n{storage_path}\n\nNajdenih {backup_count} varnostnih kopij datotek.\n\nKaj želite storiti?\n\n[📖 Več o varnostnem kopiranju in obnavljanju]({documentation_url})",
+        "description": "Obstoječi podatki ChoreOps najdeni v:\n{storage_path}\n\nNajdenih {backup_count} varnostnih kopij datotek.\n\nKaj želite storiti?\n\n[📖 Več o varnostnem kopiranju in obnavljanju]({documentation_url})",
         "data": {
           "backup_selection": "Izberite možnost"
         }
       },
       "paste_json_input": {
         "title": "Uvozi podatke JSON",
-        "description": "Prilepite celotno vsebino JSON iz:\n\n• Podatkovne datoteke KidsChores (kidschores_data)\n• Prenosa diagnostičnih podatkov\n\nSistem bo samodejno zaznal in po potrebi razpakiral format. Podprti so tako formati surovih podatkov za shranjevanje kot tudi formati izvoza diagnostičnih podatkov.",
+        "description": "Prilepite celotno vsebino JSON iz:\n\n• Podatkovne datoteke ChoreOps (choreops_data)\n• Prenosa diagnostičnih podatkov\n\nSistem bo samodejno zaznal in po potrebi razpakiral format. Podprti so tako formati surovih podatkov za shranjevanje kot tudi formati izvoza diagnostičnih podatkov.",
         "data": {
           "json_data": "Podatki JSON"
         },
         "data_description": {
-          "json_data": "Prilepite celotno vsebino JSON sem. Sprejema podatke iz datoteke kidschores_data ali izvoza diagnostike (samodejno odvije dodatno strukturo)."
+          "json_data": "Prilepite celotno vsebino JSON sem. Sprejema podatke iz datoteke choreops_data ali izvoza diagnostike (samodejno odvije dodatno strukturo)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Vrednosti točk, ločenih s cevmi, za gumbe za ročno nastavitev (npr. +1,0|-1,0|+10,0|-10,0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Število otrok",
         "description": "Koliko otrok želite upravljati?",
         "data": {
-          "kid_count": "Število otrok"
+          "assignee_count": "Število otrok"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Definiraj otroka",
         "description": "Vpišite ime za vsakega otroka.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "Jezik, ki se uporablja za nadzorno ploščo opravil in obvestila."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Število staršev",
         "description": "Koliko staršev želite na začetku opredeliti?",
         "data": {
-          "parent_count": "Število staršev"
+          "approver_count": "Število staršev"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Definiraj starša",
         "description": "Vnesite podatke za vsakega starša.",
         "data": {
           "name": "Ime starša",
           "ha_user_id": "Home Assistant uporabnik",
-          "associated_kids": "Povezani otroci",
+          "associated_assignees": "Povezani otroci",
           "mobile_notify_service": "Obvestila",
           "dashboard_language": "Jezik"
         },
         "data_description": {
           "name": "Edinstveno ime za tega nadrejenega, ki se uporablja v celotnem sistemu.",
           "ha_user_id": "Izbirno: Povežite tega starša z uporabnikom Home Assistant za obvestila in dostop do nadzorne plošče.",
-          "associated_kids": "Izberite, katere otroke bo ta starš nadzoroval glede obvestil in dejanj odobritve.",
+          "associated_assignees": "Izberite, katere otroke bo ta starš nadzoroval glede obvestil in dejanj odobritve.",
           "mobile_notify_service": "Izberite storitev obveščanja, da omogočite obvestila za tega starša, ali pustite prazno, da onemogočite obvestila.",
           "dashboard_language": "Jezik, ki se uporablja za nadzorno ploščo opravil in obvestila."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Opis (neobvezno)",
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Dodeljene točke",
-              "assigned_kids": "👥 Dodeljeni otroci",
+              "assigned_assignees": "👥 Dodeljeni otroci",
               "completion_criteria": "👥 Merila za dokončanje"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Neobvezna navodila ali podrobnosti o tem, kako opraviti to opravilo.",
               "icon": "Ikona materialnega oblikovanja (npr. mdi:metla, mdi:pomivalni stroj).",
               "default_points": "Točke, pridobljene ob zaključku.",
-              "assigned_kids": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
+              "assigned_assignees": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
               "completion_criteria": "Nadzira, kako se opravilo opravi, ko je dodeljenih več otrok: individualno sledenje, skupno dokončanje ali rotacija po vrsti."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "Ikona 📋 (mdi:xxx)",
           "chore_labels": "📋 Oznake (neobvezno)",
           "default_points": "💰 Dodeljene točke",
-          "assigned_kids": "👥 Dodeljeni otroci",
+          "assigned_assignees": "👥 Dodeljeni otroci",
           "completion_criteria": "👥 Merila za dokončanje",
           "approval_reset_type": "➡️ Dovoljena dokončanja in čas ponastavitve odobritve",
           "approval_reset_pending_claim_action": "➡️ Obravnava zahtevkov v teku ob ponastavitvi odobritve",
@@ -212,7 +212,7 @@
           "icon": "Ikona materialnega oblikovanja (npr. mdi:metla, mdi:pomivalni stroj).",
           "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno.",
           "default_points": "Točke, pridobljene ob zaključku.",
-          "assigned_kids": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
+          "assigned_assignees": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
           "completion_criteria": "Nadzira, kako se opravilo opravi, ko je dodeljenih več otrok: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
           "approval_reset_type": "Določa, kdaj se sproži meja cikla odobritve opravila (polnoč, datum zapadlosti, ob zaključku ali ročno sprožitev).",
           "approval_reset_pending_claim_action": "To se zgodi z zahtevki, ki še čakajo na odobritev, ko pride do ponastavitve odobritve.",
@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Povezan dosežek",
           "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "points_multiplier": "🎁 NAGRADE: Množitelj točk (privzeto 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "points_multiplier": "Če je množitelj izbrana nagrada, nastavite množitelj za točke, pridobljene, ko je ta značka aktivna (npr. 1,5x).",
@@ -359,7 +359,7 @@
           "description": "Opis (neobvezno)",
           "achievement_labels": "Oznake dosežkov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Dodeljeni otroci",
+          "assigned_assignees": "Dodeljeni otroci",
           "type": "Vrsta dosežka",
           "selected_chore_id": "Izberite povezano opravilo",
           "criteria": "Merila (neobvezno)",
@@ -383,7 +383,7 @@
           "description": "Opis (neobvezno)",
           "challenge_labels": "Oznake izzivov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Dodeljeni otroci",
+          "assigned_assignees": "Dodeljeni otroci",
           "type": "Vrsta izziva",
           "selected_chore_id": "Izberite opravilo, povezano z izzivom (neobvezno)",
           "criteria": "Merila (neobvezno)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Značka s tem imenom že obstaja",
       "duplicate_challenge": "Izziv s tem imenom že obstaja",
       "duplicate_chore": "Opravilo s tem imenom že obstaja",
-      "duplicate_kid": "Otrok s tem imenom že obstaja",
-      "duplicate_parent": "Starš s tem imenom že obstaja",
+      "duplicate_assignee": "Otrok s tem imenom že obstaja",
+      "duplicate_approver": "Starš s tem imenom že obstaja",
       "duplicate_penalty": "Kazen s tem imenom že obstaja",
       "duplicate_reward": "Nagrada s tem imenom že obstaja",
       "duplicate_bonus": "Bonus s tem imenom že obstaja",
-      "shadow_kid_name_conflict": "Dodelitve opravila ni mogoče omogočiti: otrok z vašim imenom že obstaja. Najprej preimenujte obstoječega otroka.",
+      "shadow_assignee_name_conflict": "Dodelitve opravila ni mogoče omogočiti: otrok z vašim imenom že obstaja. Najprej preimenujte obstoječega otroka.",
       "due_date_in_past": "Rok mora biti v prihodnosti.",
       "end_date_in_past": "Končni datum mora biti v prihodnosti.",
       "end_date_not_after_start_date": "Končni datum mora biti poznejši od začetnega datuma",
       "err_end_before_start": "Končni datum mora biti po začetnem datumu",
       "err_name_duplicate": "Izziv s tem imenom že obstaja",
-      "achievement_no_kids_assigned": "Dosežku mora biti dodeljen vsaj en otrok",
-      "challenge_no_kids_assigned": "V izziv mora biti dodeljen vsaj en otrok",
+      "achievement_no_assignees_assigned": "Dosežku mora biti dodeljen vsaj en otrok",
+      "challenge_no_assignees_assigned": "V izziv mora biti dodeljen vsaj en otrok",
       "invalid_achievement_count": "Neveljavno število dosežkov",
       "invalid_achievement_name": "Neveljavno ime dosežka",
       "invalid_badge": "Neveljavna značka",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Neveljavno ime izziva",
       "invalid_chore": "Neveljavna naloga",
       "invalid_chore_count": "Neveljavno število opravil",
-      "rotation_min_kids": "Za rotacijska opravila sta potrebna vsaj dva dodeljena otroka",
+      "rotation_min_assignees": "Za rotacijska opravila sta potrebna vsaj dva dodeljena otroka",
       "invalid_chore_name": "Neveljavno ime opravila",
       "invalid_points": "Točke morajo biti nič ali večje",
       "invalid_overdue_reset_combination": "Obravnava zamud »Ob datumu zapadlosti, nato ponastavitev« deluje samo pri vrstah ponastavitve ob polnoči. Za vrsto ponastavitve odobritve izberite »Ob polnoči (enkrat)« ali »Ob polnoči (ponavljajoče se)«.",
       "invalid_due_date": "Neveljaven rok",
       "date_required_for_frequency": "Za to ponavljajočo se frekvenco je potreben rok. Počisti datume deluje samo s frekvenco Brez, Dnevno ali Tedensko.",
       "invalid_end_date": "Neveljaven končni datum.",
-      "invalid_kid_count": "Neveljavno število otrok",
-      "invalid_kid_name": "Neveljavno ime otroka",
-      "invalid_parent_count": "Neveljavno število staršev",
-      "invalid_parent_name": "Neveljavno ime starša",
-      "no_kids_assigned": "Vsaj en otrok mora biti dodeljen opravilu",
+      "invalid_assignee_count": "Neveljavno število otrok",
+      "invalid_assignee_name": "Neveljavno ime otroka",
+      "invalid_user_count": "Neveljavno število staršev",
+      "invalid_approver_name": "Neveljavno ime starša",
+      "no_assignees_assigned": "Vsaj en otrok mora biti dodeljen opravilu",
       "invalid_penalty": "Neveljavna kazen",
       "invalid_penalty_count": "Neveljavno štetje kazni",
       "invalid_penalty_name": "Neveljavno ime kazni",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Neveljavne vrednosti prilagoditve točk. Mora biti seznam."
     },
     "abort": {
-      "single_instance_allowed": "Konfigurirati je mogoče samo en primerek KidsChores.",
-      "already_configured": "Podatki KidsChores so bili uspešno obnovljeni. Zdaj lahko ponovno naložite integracijo.",
+      "single_instance_allowed": "Konfigurirati je mogoče samo en primerek ChoreOps.",
+      "already_configured": "Podatki ChoreOps so bili uspešno obnovljeni. Zdaj lahko ponovno naložite integracijo.",
       "file_not_found": "Izbrane varnostne kopije ni bilo mogoče najti.",
       "corrupt_file": "Izbrana datoteka vsebuje neveljaven JSON in je ni mogoče prebrati.",
-      "invalid_structure": "Izbrani datoteki manjka zahtevana podatkovna struktura KidsChores.",
+      "invalid_structure": "Izbrani datoteki manjka zahtevana podatkovna struktura ChoreOps.",
       "reconfigure_failed": "Ponovna konfiguracija ni uspela. Poskusite znova.",
       "reconfigure_successful": "Sistemske nastavitve so bile uspešno posodobljene."
     }
@@ -509,7 +509,7 @@
           "points_icon": "Ikona točk"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Dodaj otroka",
         "description": "Navedite podrobnosti za novega otroka.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "Jezik, ki se uporablja za nadzorno ploščo opravil in obvestila."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Dodaj starša",
         "description": "Navedite podrobnosti za novega starša.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime starša",
           "ha_user_id": "Uporabnik domačega pomočnika",
-          "associated_kids": "Povezani otroci",
+          "associated_assignees": "Povezani otroci",
           "mobile_notify_service": "Obvestila",
           "dashboard_language": "Jezik",
           "allow_chore_assignment": "Dovoli, da mi dodelijo opravila",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Edinstveno ime za tega nadrejenega, ki se uporablja v celotnem sistemu.",
           "ha_user_id": "Izbirno: Povežite tega starša z uporabnikom Home Assistant za obvestila in dostop do nadzorne plošče.",
-          "associated_kids": "Izberite, katere otroke bo ta starš nadzoroval glede obvestil in dejanj odobritve.",
+          "associated_assignees": "Izberite, katere otroke bo ta starš nadzoroval glede obvestil in dejanj odobritve.",
           "mobile_notify_service": "Izberite storitev obveščanja, da omogočite obvestila za tega starša, ali pustite prazno, da onemogočite obvestila.",
           "allow_chore_assignment": "Ustvari profil, da vam je mogoče dodeliti naloge. Privzeto je za dokončanje z enim klikom prikazan samo gumb »Odobri«. Opomba: Če počistite polje, se profil otroka ohrani s pripono »_unlinked« za ročno čiščenje.",
           "enable_chore_workflow": "Doda gumba Zahtevaj in Zavrni za celoten potek dela (zahtevaj → odobri/zavrni).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Opis (neobvezno)",
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Dodeljene točke",
-              "assigned_kids": "👥 Dodeljeni otroci",
+              "assigned_assignees": "👥 Dodeljeni otroci",
               "completion_criteria": "👥 Merila za dokončanje"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Neobvezna navodila ali podrobnosti o tem, kako opraviti to opravilo.",
               "icon": "Ikona materialnega oblikovanja (npr. mdi:metla, mdi:pomivalni stroj).",
               "default_points": "Točke, pridobljene ob zaključku.",
-              "assigned_kids": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
+              "assigned_assignees": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
               "completion_criteria": "Nadzira, kako se opravilo opravi, ko je dodeljenih več otrok: individualno sledenje, skupno dokončanje ali rotacija po vrsti."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "Ikona 📋 (mdi:xxx)",
           "chore_labels": "📋 Oznake (neobvezno)",
           "default_points": "💰 Dodeljene točke",
-          "assigned_kids": "👥 Dodeljeni otroci",
+          "assigned_assignees": "👥 Dodeljeni otroci",
           "completion_criteria": "👥 Merila za dokončanje",
           "approval_reset_type": "➡️ Dovoljena dokončanja in čas ponastavitve odobritve",
           "approval_reset_pending_claim_action": "➡️ Obravnava zahtevkov v teku ob ponastavitvi odobritve",
@@ -654,7 +654,7 @@
           "icon": "Ikona materialnega oblikovanja (npr. mdi:metla, mdi:pomivalni stroj).",
           "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno.",
           "default_points": "Točke, pridobljene ob zaključku.",
-          "assigned_kids": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
+          "assigned_assignees": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
           "completion_criteria": "Nadzira, kako se opravilo opravi, ko je dodeljenih več otrok: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
           "approval_reset_type": "Določa, kdaj se sproži meja cikla odobritve opravila (polnoč, datum zapadlosti, ob zaključku ali ročno sprožitev).",
           "approval_reset_pending_claim_action": "Nadzira, kaj se zgodi z neodobrenimi zahtevki, ko se sproži meja ponastavitve odobritve.",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "points_multiplier": "🎁 NAGRADE: Množitelj točk (privzeto 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Pustite prazno, če želite spremljati vsa dodeljena opravila (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "points_multiplier": "Če je množitelj izbrana nagrada, nastavite množitelj za točke, pridobljene, ko je ta značka aktivna (npr. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DNEVNI CILJ: Vrsta cilja",
           "threshold_value": "🎯 DNEVNI CILJ: Mejna vrednost",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Izberite vrsto dnevnega cilja za to značko (npr. točke, število opravil ali dnevi).",
           "threshold_value": "Nastavite dnevne točke, število opravil ali število dni, potrebnih za pridobitev te značke. Za ciljne vrste »Dnevi« vnesite 1, ker se značka ocenjuje dnevno (npr. 1 za enodnevno dokončanje vseh izbranih opravil).",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "recurring_frequency": "🔄 CIKEL PONASTAVITVE: Frekvenca",
@@ -794,7 +794,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "recurring_frequency": "Določite urnik ponastavitve za to značko (npr. tedensko, mesečno).",
@@ -813,7 +813,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_achievement": "🏆 Povezani dosežek",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_achievement": "Povežite to značko z določenim dosežkom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_challenge": "🏁 Povezani izziv",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_challenge": "Povežite to značko z določenim izzivom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 PONAVLJANJE: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 PONAVLJANJE: Začetni datum (neobvezno)",
           "grace_period_days": "🔄 PONAVLJANJE: Obdobje odloga v dnevih (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
           "grace_period_days": "Določite število dodatnih dni po koncu cikla, da otroci izpolnijo zahtevane točke pred degradacijo (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -932,7 +932,7 @@
           "description": "Opis (neobvezno)",
           "achievement_labels": "Oznake dosežkov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Dodeljeni otroci",
+          "assigned_assignees": "Dodeljeni otroci",
           "type": "Vrsta dosežka",
           "selected_chore_id": "Izberite povezano opravilo",
           "criteria": "Merila (neobvezno)",
@@ -949,7 +949,7 @@
           "description": "Opis (neobvezno)",
           "challenge_labels": "Oznake izzivov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Dodeljeni otroci",
+          "assigned_assignees": "Dodeljeni otroci",
           "type": "Vrsta izziva",
           "selected_chore_id": "Izberite opravilo, povezano z izzivom (neobvezno)",
           "criteria": "Merila (neobvezno)",
@@ -960,7 +960,7 @@
           "internal_id": "Notranja identifikacija"
         }
       },
-      "edit_kid": {
+      "edit_assignee": {
         "title": "Uredi otroka",
         "description": "Spremenite podrobnosti izbranega otroka.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
@@ -977,8 +977,8 @@
           "dashboard_language": "Jezik, ki se uporablja za nadzorno ploščo opravil in obvestila."
         }
       },
-      "edit_kid_shadow": {
-        "title": "Uredi Shadow Kida",
+      "edit_assignee_shadow": {
+        "title": "Uredi Shadow Assigneea",
         "description": "Spremenite podrobnosti izbranega otroka v senci. ⚠️ Ta otrok je povezan s staršem. Sprememba imena bo prekršila zahtevo po ujemanju imen za prekinitev povezave prek storitve.",
         "data": {
           "name": "Ime otroka",
@@ -994,13 +994,13 @@
           "dashboard_language": "Jezik, ki se uporablja za nadzorno ploščo opravil in obvestila."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Uredi nadrejenega",
         "description": "Spremenite podrobnosti izbranega starša.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime starša",
           "ha_user_id": "Uporabnik domačega pomočnika",
-          "associated_kids": "Povezani otroci",
+          "associated_assignees": "Povezani otroci",
           "mobile_notify_service": "Obvestila",
           "dashboard_language": "Jezik",
           "allow_chore_assignment": "Dovoli, da mi dodelijo opravila",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Edinstveno ime za tega nadrejenega elementa, ki se uporablja v celotnem sistemu.",
           "ha_user_id": "Izbirno: Povežite tega starša z uporabnikom Home Assistant za obvestila in dostop do nadzorne plošče.",
-          "associated_kids": "Izberite, katere otroke bo ta starš nadzoroval glede obvestil in dejanj odobritve.",
+          "associated_assignees": "Izberite, katere otroke bo ta starš nadzoroval glede obvestil in dejanj odobritve.",
           "mobile_notify_service": "Izberite storitev obveščanja, da omogočite obvestila za tega starša, ali pustite prazno, da jih onemogočite.",
           "allow_chore_assignment": "Ustvari profil, da vam je mogoče dodeliti naloge. Privzeto je za dokončanje z enim klikom prikazan samo gumb »Odobri«. Opomba: Če počistite polje, se profil otroka ohrani s pripono »_unlinked« za ročno čiščenje.",
           "enable_chore_workflow": "Doda gumba Zahtevaj in Zavrni za celoten potek dela (zahtevaj → odobri/zavrni).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Opis (neobvezno)",
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Dodeljene točke",
-              "assigned_kids": "👥 Dodeljeni otroci",
+              "assigned_assignees": "👥 Dodeljeni otroci",
               "completion_criteria": "👥 Merila za dokončanje"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Neobvezna navodila ali podrobnosti o tem, kako opraviti to opravilo.",
               "icon": "Ikona materialnega oblikovanja (npr. mdi:metla, mdi:pomivalni stroj).",
               "default_points": "Točke, pridobljene ob zaključku.",
-              "assigned_kids": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
+              "assigned_assignees": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
               "completion_criteria": "Nadzira, kako se opravilo opravi, ko je dodeljenih več otrok: individualno sledenje, skupno dokončanje ali rotacija po vrsti."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋 Oznake (neobvezno)",
           "internal_id": "Notranja identifikacija",
           "default_points": "💰 Dodeljene točke",
-          "assigned_kids": "👥 Dodeljeni otroci",
+          "assigned_assignees": "👥 Dodeljeni otroci",
           "completion_criteria": "👥 Merila za dokončanje",
           "approval_reset_type": "➡️ Dovoljena dokončanja in čas ponastavitve odobritve",
           "approval_reset_pending_claim_action": "➡️ Obravnava zahtevkov v teku ob ponastavitvi odobritve",
@@ -1123,7 +1123,7 @@
           "icon": "Ikona materialnega oblikovanja (npr. mdi:metla, mdi:pomivalni stroj).",
           "chore_labels": "Oznake za organizacijo opravil (npr. »kuhinja«, »na prostem«). Če niso potrebne, pustite prazno.",
           "default_points": "Točke, pridobljene ob zaključku.",
-          "assigned_kids": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
+          "assigned_assignees": "Otroci, ki lahko vidijo in prevzamejo to opravilo.",
           "completion_criteria": "Nadzira, kako se opravilo opravi, ko je dodeljenih več otrok: individualno sledenje, skupno dokončanje ali rotacija po vrsti.",
           "approval_reset_type": "Določa, kdaj se sproži meja cikla odobritve opravila (polnoč, datum zapadlosti, ob zaključku ali ročno sprožitev).",
           "approval_reset_pending_claim_action": "Nadzira, kaj se zgodi z neodobrenimi zahtevki, ko se sproži meja ponastavitve odobritve.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "Kdaj poslati obvestila: Ob zahtevku, ob odobritvi, ob zavrnitvi ali kateri koli kombinaciji."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Urejanje rokov za vsakega otroka: {chore_name}",
-        "description": "Za vsakega dodeljenega otroka nastavite posamezne roke. Polje z datumom na glavnem obrazcu za urejanje služi kot **predloga** za udobje – uporabite ga za hitro uporabo istega datuma za vse otroke prek spodnjega potrditvenega polja ali pa ga pustite prazno in tukaj nastavite datume posamično.\n\nPolja so prikazana za: {kid_names}. Pustite prazno, če roka ni.{template_date}\n\n📖 [Napredni vodnik]({documentation_url})",
+        "description": "Za vsakega dodeljenega otroka nastavite posamezne roke. Polje z datumom na glavnem obrazcu za urejanje služi kot **predloga** za udobje – uporabite ga za hitro uporabo istega datuma za vse otroke prek spodnjega potrditvenega polja ali pa ga pustite prazno in tukaj nastavite datume posamično.\n\nPolja so prikazana za: {assignee_names}. Pustite prazno, če roka ni.{template_date}\n\n📖 [Napredni vodnik]({documentation_url})",
         "data": {
           "apply_template_to_all": "Uporabi datum predloge za vse otroke"
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Vnesite 2–6-krat v 24-urnem formatu, ločeno z | (navpično črto). Primer: 08:00|17:00 za jutro in večer."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Razpored na otroka: {chore_name}",
-        "description": "Konfigurirajte individualne nastavitve urnika za vsakega otroka, ki mu je dodeljena ta naloga. Glavne vrednosti obrazca delujejo kot **predloge** – uporabite potrditvena polja, da jih uporabite za vse otroke, ali pa prilagodite nastavitve za vsakega otroka posebej.\n\n**Opomba:** Vsa spodnja polja ne veljajo za vsako nalogo. Obrazec dinamično prikazuje ustrezne možnosti glede na način dokončanja, pogostost in ali so nastavljeni roki.\n\n**Oblika dnevnih (več) časov:** Če je prikazano, vnesite 2–6 časov v 24-urni obliki, ločenih z | (navpično črto). Primer: 08:00|17:00\n\nOtroci: {kid_names}{template_info}\n\n📖 [Napredni vodnik]({documentation_url})",
+        "description": "Konfigurirajte individualne nastavitve urnika za vsakega otroka, ki mu je dodeljena ta naloga. Glavne vrednosti obrazca delujejo kot **predloge** – uporabite potrditvena polja, da jih uporabite za vse otroke, ali pa prilagodite nastavitve za vsakega otroka posebej.\n\n**Opomba:** Vsa spodnja polja ne veljajo za vsako nalogo. Obrazec dinamično prikazuje ustrezne možnosti glede na način dokončanja, pogostost in ali so nastavljeni roki.\n\n**Oblika dnevnih (več) časov:** Če je prikazano, vnesite 2–6 časov v 24-urni obliki, ločenih z | (navpično črto). Primer: 08:00|17:00\n\nOtroci: {assignee_names}{template_info}\n\n📖 [Napredni vodnik]({documentation_url})",
         "data": {
           "apply_days_to_all": "Uporabite predloge dni za vse otroke",
           "apply_times_to_all": "Uporabite predloge časov za vse otroke",
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "points_multiplier": "🎁 NAGRADE: Množitelj točk (privzeto 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "points_multiplier": "Če je množitelj izbrana nagrada, nastavite množitelj za točke, pridobljene, ko je ta značka aktivna (npr. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DNEVNI CILJ: Vrsta cilja",
           "threshold_value": "🎯 DNEVNI CILJ: Mejna vrednost",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Izberite vrsto dnevnega cilja za to značko (npr. točke, število opravil ali dnevi).",
           "threshold_value": "Nastavite dnevne točke, število opravil ali število dni, potrebnih za pridobitev te značke. Za ciljne vrste »Dnevi« vnesite 1, ker se značka ocenjuje dnevno (npr. 1 za enodnevno dokončanje vseh izbranih opravil).",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "recurring_frequency": "🔄 CIKEL PONASTAVITVE: Frekvenca",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "recurring_frequency": "Določite urnik ponastavitve za to značko (npr. tedensko, mesečno).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_achievement": "🏆 Povezani dosežek",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_achievement": "Povežite to značko z določenim dosežkom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_challenge": "🏁 Povezani izziv",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_challenge": "Povežite to značko z določenim izzivom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 PONAVLJANJE: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 PONAVLJANJE: Začetni datum (neobvezno)",
           "grace_period_days": "🔄 PONAVLJANJE: Obdobje odloga v dnevih (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
           "grace_period_days": "Določite število dodatnih dni po koncu cikla, da otroci izpolnijo zahtevane točke pred degradacijo (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1428,7 +1428,7 @@
           "description": "Opis (neobvezno)",
           "achievement_labels": "Oznake dosežkov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Dodeljeni otroci",
+          "assigned_assignees": "Dodeljeni otroci",
           "type": "Vrsta dosežka",
           "selected_chore_id": "Izberite povezano opravilo",
           "criteria": "Merila (neobvezno)",
@@ -1445,7 +1445,7 @@
           "description": "Opis (neobvezno)",
           "challenge_labels": "Oznake izzivov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Dodeljeni otroci",
+          "assigned_assignees": "Dodeljeni otroci",
           "type": "Vrsta izziva",
           "selected_chore_id": "Izberite opravilo, povezano z izzivom (neobvezno)",
           "criteria": "Merila (neobvezno)",
@@ -1456,14 +1456,14 @@
           "internal_id": "Notranja identifikacija"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Izbriši otroka",
-        "description": "Ali ste prepričani, da želite izbrisati otroka {kid_name}?",
+        "description": "Ali ste prepričani, da želite izbrisati otroka {assignee_name}?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Izbriši nadrejenega",
-        "description": "Ali ste prepričani, da želite izbrisati nadrejenega {parent_name}?",
+        "description": "Ali ste prepričani, da želite izbrisati nadrejenega {approver_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Upravljanje nadzorne plošče",
-        "description": "Ustvarjanje, posodabljanje ali brisanje nadzornih plošč KidsChores Lovelace.\n\n**Obvezne kartice po meri** (namestitev prek vmesnika HACS):\n- Kartice z gobami (custom:mushroom-template-card)\n- Samodejne entitete (custom:auto-entities)\n- Kartica mini grafa (custom:mini-graph-card)\n\nBrez teh kartic bodo nadzorne plošče prikazovale napake. Najprej jih namestite iz HACS, preden ustvarite nadzorne plošče.",
+        "description": "Ustvarjanje, posodabljanje ali brisanje nadzornih plošč ChoreOps Lovelace.\n\n**Obvezne kartice po meri** (namestitev prek vmesnika HACS):\n- Kartice z gobami (custom:mushroom-template-card)\n- Samodejne entitete (custom:auto-entities)\n- Kartica mini grafa (custom:mini-graph-card)\n\nBrez teh kartic bodo nadzorne plošče prikazovale napake. Najprej jih namestite iz HACS, preden ustvarite nadzorne plošče.",
         "data": {
           "dashboard_action": "Dejanje",
           "dashboard_check_cards": "Preverite namestitev kartice"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Ustvari/posodobi nadzorno ploščo",
-        "description": "Ustvarite nadzorno ploščo KidsChores z zavihki za vsakega otroka.\n\nIzberite ime za nadzorno ploščo, izberite otroke, ki jih želite vključiti, in po želji dodajte zavihek Skrbnik za starševsko upravljanje.\n\n[📖 Vodnik za ustvarjanje nadzornih plošč]({documentation_url})",
+        "description": "Ustvarite nadzorno ploščo ChoreOps z zavihki za vsakega otroka.\n\nIzberite ime za nadzorno ploščo, izberite otroke, ki jih želite vključiti, in po želji dodajte zavihek Skrbnik za starševsko upravljanje.\n\n[📖 Vodnik za ustvarjanje nadzornih plošč]({documentation_url})",
         "data": {
           "dashboard_name": "Ime nadzorne plošče",
           "dashboard_style": "Slog nadzorne plošče",
-          "dashboard_kid_selection": "Otroci (ena tableta na otroka)",
+          "dashboard_assignee_selection": "Otroci (ena tableta na otroka)",
           "dashboard_include_admin": "Vključi zavihek »Skrbnik«",
           "dashboard_force_rebuild": "Vsiljena ponovna izgradnja (prepis obstoječega)"
         },
         "data_description": {
           "dashboard_name": "Ime za nadzorno ploščo (prikaže se v stranski vrstici). Predlagano: Opravila",
           "dashboard_style": "Izberite postavitev nadzorne plošče: Polna (vse funkcije), Minimalna (samo bistvene funkcije) ali Kompaktna (gosta postavitev).",
-          "dashboard_kid_selection": "Izberite, za katere otroke želite ustvariti zavihke. Vsak otrok dobi svoj pogled/zavihek.",
+          "dashboard_assignee_selection": "Izberite, za katere otroke želite ustvariti zavihke. Vsak otrok dobi svoj pogled/zavihek.",
           "dashboard_include_admin": "Dodajte zavihek Skrbnik s starševskimi kontrolami za odobritve in upravljanje.",
           "dashboard_force_rebuild": "Če je omogočeno, bo obstoječa nadzorna plošča prepisana. V nasprotnem primeru generiranje ne uspe, če nadzorna plošča obstaja."
         }
       },
       "dashboard_delete": {
         "title": "Izbriši nadzorno ploščo",
-        "description": "Izberite nadzorne plošče KidsChores, ki jih želite izbrisati.\n\n⚠️ Tega dejanja ni mogoče razveljaviti.",
+        "description": "Izberite nadzorne plošče ChoreOps, ki jih želite izbrisati.\n\n⚠️ Tega dejanja ni mogoče razveljaviti.",
         "data": {
           "dashboard_delete_selection": "Nadzorne plošče za brisanje"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Splošne možnosti",
-        "description": "Upravljajte splošne nastavitve za integracijo KidsChores.\n\n[📖 Več o varnostnem kopiranju in obnavljanju]({documentation_url})",
+        "description": "Upravljajte splošne nastavitve za integracijo ChoreOps.\n\n[📖 Več o varnostnem kopiranju in obnavljanju]({documentation_url})",
         "data": {
           "points_adjust_values": "Vrednosti gumba za ročno prilagajanje točk",
           "update_interval": "Interval posodobitve",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Seznam vrednosti za gumbe za ročno prilagajanje točk. Vsaka vrednost je ločena z '|'.",
-          "update_interval": "Interval v minutah za posodabljanje notranjega stanja aplikacije KidsChores.",
+          "update_interval": "Interval v minutah za posodabljanje notranjega stanja aplikacije ChoreOps.",
           "calendar_show_period": "Število dni v prihodnosti za prikaz načrtovanih opravil in izzivov v koledarju.",
           "retention_periods": "Obdobja hrambe podatkov v obliki Dnevno|Tedensko|Mesečno|Letno (npr. '7|4|12|3'). Vsaka vrednost mora biti pozitivno celo število.",
           "retention_daily": "Število dni dnevnih zgodovinskih podatkov, ki jih je treba hraniti pred čiščenjem. Najmanj 1, največ 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Upravljanje varnostnih kopij",
-        "description": "Upravljajte varnostne kopije podatkov KidsChores. Trenutno stanje: {backup_count} varnostnih kopij uporablja {storage_size} MB.",
+        "description": "Upravljajte varnostne kopije podatkov ChoreOps. Trenutno stanje: {backup_count} varnostnih kopij uporablja {storage_size} MB.",
         "data": {
           "backup_action_selection": "Izberite dejanje"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Varnostna dejanja",
-        "description": "Upravljajte varnostne kopije podatkov KidsChores.",
+        "description": "Upravljajte varnostne kopije podatkov ChoreOps.",
         "data": {
           "backup_action_selection": "Izberite dejanje"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Ustvari ročno varnostno kopijo",
-        "description": "Ustvarite novo varnostno kopijo podatkov KidsChores.\n\nTrenutne varnostne kopije: {backup_count}\nNastavitev hranjenja: {retention} varnostnih kopij",
+        "description": "Ustvarite novo varnostno kopijo podatkov ChoreOps.\n\nTrenutne varnostne kopije: {backup_count}\nNastavitev hranjenja: {retention} varnostnih kopij",
         "data": {
           "confirm": "Potrdi ustvarjanje varnostne kopije"
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Možnosti obnovitve podatkov",
-        "description": "Obstoječi podatki KidsChores so bili najdeni v:\n{storage_path}\n\nNajdenih {backup_count} varnostnih kopij datotek.\n\nKaj želite storiti?",
+        "description": "Obstoječi podatki ChoreOps so bili najdeni v:\n{storage_path}\n\nNajdenih {backup_count} varnostnih kopij datotek.\n\nKaj želite storiti?",
         "data": {
           "backup_selection": "Izberite možnost"
         }
       },
       "paste_json_restore": {
         "title": "Uvozi podatke JSON",
-        "description": "Prilepite celotno vsebino JSON iz:\n\n• Podatkovne datoteke KidsChores (kidschores_data)\n• Prenosa diagnostičnih podatkov\n\nSistem bo samodejno zaznal in po potrebi razpakiral obliko zapisa. Podprti so tako formati surovih podatkov za shranjevanje kot tudi izvoz diagnostičnih podatkov.",
+        "description": "Prilepite celotno vsebino JSON iz:\n\n• Podatkovne datoteke ChoreOps (choreops_data)\n• Prenosa diagnostičnih podatkov\n\nSistem bo samodejno zaznal in po potrebi razpakiral obliko zapisa. Podprti so tako formati surovih podatkov za shranjevanje kot tudi izvoz diagnostičnih podatkov.",
         "data": {
           "json_data": "Podatki JSON"
         },
         "data_description": {
-          "json_data": "Prilepite celotno vsebino JSON sem. Sprejema podatke iz datoteke kidschores_data ali izvoza diagnostike (samodejno odvije dodatno strukturo)."
+          "json_data": "Prilepite celotno vsebino JSON sem. Sprejema podatke iz datoteke choreops_data ali izvoza diagnostike (samodejno odvije dodatno strukturo)."
         }
       },
       "create_backup_confirm": {
         "title": "Ustvari ročno varnostno kopijo",
-        "description": "Želite ročno ustvariti varnostno kopijo trenutnih podatkov KidsChores?",
+        "description": "Želite ročno ustvariti varnostno kopijo trenutnih podatkov ChoreOps?",
         "data": {
           "confirm": "Potrdi"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Značka s tem imenom že obstaja",
       "duplicate_challenge": "Izziv s tem imenom že obstaja",
       "duplicate_chore": "Opravilo s tem imenom že obstaja",
-      "duplicate_kid": "Otrok s tem imenom že obstaja",
-      "duplicate_parent": "Starš s tem imenom že obstaja",
+      "duplicate_assignee": "Otrok s tem imenom že obstaja",
+      "duplicate_approver": "Starš s tem imenom že obstaja",
       "duplicate_penalty": "Kazen s tem imenom že obstaja",
       "duplicate_reward": "Nagrada s tem imenom že obstaja",
       "duplicate_bonus": "Bonus s tem imenom že obstaja",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Neveljaven rok",
       "date_required_for_frequency": "Za to ponavljajočo se frekvenco je potreben rok. Počisti datume deluje samo s frekvenco Brez, Dnevno ali Tedensko.",
       "invalid_end_date": "Neveljaven končni datum.",
-      "invalid_kid_count": "Neveljavno število otrok",
-      "invalid_kid_name": "Neveljavno ime otroka",
-      "no_kids_assigned": "Vsaj enemu otroku mora biti dodeljeno opravilo",
-      "achievement_no_kids_assigned": "Dosežku mora biti dodeljen vsaj en otrok",
-      "challenge_no_kids_assigned": "V izziv mora biti dodeljen vsaj en otrok",
+      "invalid_assignee_count": "Neveljavno število otrok",
+      "invalid_assignee_name": "Neveljavno ime otroka",
+      "no_assignees_assigned": "Vsaj enemu otroku mora biti dodeljeno opravilo",
+      "achievement_no_assignees_assigned": "Dosežku mora biti dodeljen vsaj en otrok",
+      "challenge_no_assignees_assigned": "V izziv mora biti dodeljen vsaj en otrok",
       "invalid_penalty": "Neveljavna kazen",
       "invalid_penalty_count": "Neveljavno štetje kazni",
       "invalid_bonus": "Neveljaven bonus",
@@ -1721,23 +1721,23 @@
       "file_not_found": "Izbrane datoteke ni bilo mogoče najti.",
       "invalid_selection": "Izberite veljavno možnost.",
       "error_daily_multi_requires_compatible_reset": "Pogostost »Večkrat na dan« ni združljiva s tipi ponastavitve ob polnoči, ker odobritve ponastavijo le enkrat ob polnoči.",
-      "error_daily_multi_independent_multi_kids": "Pogostost »Večkrat na dan« z dokončanjem NEODVISNO zahteva natanko enega otroka, razen če so konfigurirani časi za vsakega otroka. V nastavitvah za vsakega otroka konfigurirajte različne čase.",
+      "error_daily_multi_independent_multi_assignees": "Pogostost »Večkrat na dan« z dokončanjem NEODVISNO zahteva natanko enega otroka, razen če so konfigurirani časi za vsakega otroka. V nastavitvah za vsakega otroka konfigurirajte različne čase.",
       "error_daily_multi_times_required": "Za pogostost »Večkrat na dan« je potreben seznam časov.",
       "error_daily_multi_times_invalid_format": "Neveljavna oblika zapisa časa. Uporabite 24-urno obliko (HH:MM), ločeno z znakom | (npr. 08:00|17:00).",
       "error_daily_multi_times_too_few": "Za pogostost »Večkrat na dan« sta potrebna vsaj dvakrat. Za enkratni čas uporabite redno pogostost »Dnevno«.",
       "error_daily_multi_times_too_many": "Za frekvenco »Večkrat na dan« je dovoljenih največ 6-krat na dan.",
       "error_daily_multi_due_date_required": "Za pogostost »Večkrat na dan« je treba nastaviti rok. Datum določa začetek razporejanja, časi pa določajo okna razpoložljivosti za vsak dan.",
-      "rotation_min_kids": "Za rotacijska opravila sta potrebna vsaj dva dodeljena otroka",
+      "rotation_min_assignees": "Za rotacijska opravila sta potrebna vsaj dva dodeljena otroka",
       "error_allow_steal_incompatible": "Obravnava zamud pri kraji je združljiva samo z opravili rotacije (rotation_simple ali rotation_smart), vrsto ponastavitve »Enkrat na dan« in zahteva rok, ki določa, kdaj se odpre okno za krajo.",
       "error_at_due_date_reset_requires_due_date": "Za vrste ponastavitve odobritve »Ob roku« (enkrat ali večkrat) je treba nastaviti rok. Brez roka se ponastavitev odobritve ne bo nikoli sprožila in opravilo bo ostalo odobreno za nedoločen čas.",
-      "error_per_kid_applicable_days_invalid": "Neveljavna veljavna oblika dni za enega ali več otrok. Dnevi morajo biti cela števila od 0 do 6 (ponedeljek–nedelja) brez dvojnikov.",
-      "error_per_kid_daily_multi_times_invalid": "Neveljavna oblika dnevnega časa za enega ali več otrok. Uporabite 24-urno obliko, ločeno z znakom | (npr. 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Neveljavna veljavna oblika dni za enega ali več otrok. Dnevi morajo biti cela števila od 0 do 6 (ponedeljek–nedelja) brez dvojnikov.",
+      "error_per_assignee_daily_multi_times_invalid": "Neveljavna oblika dnevnega časa za enega ali več otrok. Uporabite 24-urno obliko, ločeno z znakom | (npr. 08:00|17:00).",
       "dashboard_exists": "Nadzorna plošča s to potjo URL-ja že obstaja. Omogočite »Vsilno obnovitev«, da prepišete.",
       "dashboard_template_error": "Predloge nadzorne plošče ni bilo mogoče pridobiti. Preverite omrežno povezavo ali poskusite znova pozneje.",
       "dashboard_render_error": "Predloge nadzorne plošče ni bilo mogoče upodobiti. To lahko kaže na napako v predlogi.",
       "dashboard_save_error": "Nadzorne plošče ni bilo mogoče shraniti v Home Assistant. Za podrobnosti preverite sistemske dnevnike.",
       "dashboard_no_name": "Vnesite ime za nadzorno ploščo.",
-      "dashboard_no_kids": "Izberite vsaj enega otroka ali omogočite možnost »Vključi zavihek za skrbnike«.",
+      "dashboard_no_assignees": "Izberite vsaj enega otroka ali omogočite možnost »Vključi zavihek za skrbnike«.",
       "dashboard_no_dashboards": "Izberite vsaj eno nadzorno ploščo za brisanje."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Neveljaven izziv",
       "invalid_chore": "Neveljavno opravilo",
       "invalid_entity": "Neveljavna entiteta",
-      "invalid_kid": "Neveljaven otrok",
-      "invalid_parent": "Neveljaven starš",
+      "invalid_assignee": "Neveljaven otrok",
+      "invalid_approver": "Neveljaven starš",
       "invalid_penalty": "Neveljavna kazen",
       "invalid_reward": "Neveljavna nagrada",
       "invalid_bonus": "Neveljaven bonus",
-      "no_kid": "Noben otrok ni nastavljen za urejanje. Najprej dodajte en vnos.",
-      "no_parent": "Noben starš ni nastavljen za urejanje. Najprej dodajte en vnos.",
+      "no_assignee": "Noben otrok ni nastavljen za urejanje. Najprej dodajte en vnos.",
+      "no_approver": "Noben starš ni nastavljen za urejanje. Najprej dodajte en vnos.",
       "no_chore": "Ni opravil za urejanje. Najprej dodajte en vnos.",
       "no_badge": "Za urejanje ni nastavljenih značk. Najprej dodajte en vnos.",
       "no_reward": "Ni nastavljenih nagrad za urejanje. Najprej dodajte en vnos.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "Ni izzivov, ki bi jih bilo mogoče urejati. Najprej dodajte en vnos.",
       "setup_complete": "Nastavitev končana",
       "backup_restored": "Varnostna kopija je bila uspešno obnovljena. Integracija je bila ponovno naložena z obnovljenimi podatki.",
-      "no_dashboards_to_delete": "Nadzornih plošč KidsChores ni bilo mogoče najti. Najprej ustvarite eno z možnostjo Upravljanje nadzorne plošče."
+      "no_dashboards_to_delete": "Nadzornih plošč ChoreOps ni bilo mogoče najti. Najprej ustvarite eno z možnostjo Upravljanje nadzorne plošče."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Upravljanje točk",
-        "manage_kid": "Upravljanje otroka",
-        "manage_parent": "Upravljanje starševskega",
+        "manage_assignee": "Upravljanje otroka",
+        "manage_approver": "Upravljanje starševskega",
         "manage_chore": "Upravljanje opravil",
         "manage_badge": "Upravljanje značke",
         "manage_reward": "Upravljanje nagrade",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Skrbnik (nadrejena nadzorna plošča)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2021,7 +2021,7 @@
       "name": "Zahtevek opravila",
       "description": "Otrok prevzame opravilo in ga označi kot »prevzeto« za odobritev staršev.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Ime otroka, ki prevzame opravilo.",
           "example": "Alice"
@@ -2037,12 +2037,12 @@
       "name": "Odobritev opravila",
       "description": "Starš odobri opravilo in podeli točke.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš odobri opravilo.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Ime otroka, ki je opravil opravilo.",
           "example": "Alice"
@@ -2063,12 +2063,12 @@
       "name": "Neodobri opravilo",
       "description": "Starš ne odobri opravila za otroka in mu spremeni status.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš ne odobrava opravila.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Ime otroka, čigar opravilo je zavrnjeno.",
           "example": "Alice"
@@ -2084,12 +2084,12 @@
       "name": "Unovči nagrado",
       "description": "Starš unovči nagrado za otroka in mu odšteje točke.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš, ki odobri unovčenje nagrade.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otrok unovčuje nagrado.",
           "example": "Alice"
@@ -2105,12 +2105,12 @@
       "name": "Odobritev nagrade",
       "description": "Starš odobri nagrado, ki jo je zahteval otrok.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš odobri nagrado.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otrok, ki unovčuje nagrado.",
           "example": "Alice"
@@ -2130,12 +2130,12 @@
       "name": "Zavrni nagrado",
       "description": "Starš ne odobrava unovčenja nagrade za otroka.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš ne odobrava nagrade.",
           "example": "Oče"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otrok, čigar unovčenje nagrade ni odobreno.",
           "example": "Alice"
@@ -2151,12 +2151,12 @@
       "name": "Uporabi kazen",
       "description": "Starš uporabi kazen za odvzem točk.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš, ki uporabi kazen.",
           "example": "Oče"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otrok, ki prejme kazen.",
           "example": "Alice"
@@ -2172,12 +2172,12 @@
       "name": "Uporabi bonus",
       "description": "Starš otroku dodeli bonus in mu podeli točke.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Ime starša",
           "description": "Starš, ki uveljavlja bonus.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otrok, ki prejme bonus.",
           "example": "Alice"
@@ -2281,7 +2281,7 @@
           "description": "Ime opravila, ki ga želite ustvariti.",
           "example": "Čista soba"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Dodeljeni otroci",
           "description": "Seznam imen otrok, ki jih je treba dodeliti tej opravilni nalogi.",
           "example": "['Emma', 'Jack']"
@@ -2377,7 +2377,7 @@
           "description": "Ime opravila, ki ga je treba posodobiti (alternativa id-ju). Uporabniku prijaznejše kot id.",
           "example": "Čista soba"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Dodeljeni otroci",
           "description": "Nov seznam imen otrok, ki jih je treba dodeliti tej opravilni nalogi.",
           "example": "['Emma', 'Jack']"
@@ -2484,14 +2484,14 @@
           "description": "Ime rotacijskega opravila. Neobvezno, če je naveden chore_id.",
           "example": "Čista spalnica"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Otroška identifikacija",
           "description": "Notranji ID otroka, ki mu želite dodeliti nalogo. Mora biti dodeljen temu opravilu. Neobvezno, če je navedeno ime otroka.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
-          "description": "Ime otroka, ki mu želite dodeliti nalogo. Mora biti dodeljen tej nalogi. Neobvezno, če je naveden kid_id.",
+          "description": "Ime otroka, ki mu želite dodeliti nalogo. Mora biti dodeljen tej nalogi. Neobvezno, če je naveden assignee_id.",
           "example": "Alice"
         }
       }
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Ponastavi transakcijske podatke",
-      "description": "Ponastavi podatke o izvajanju/transakcijah, hkrati pa ohrani konfiguracijo (otroci, opravila, nagrade itd.). Pred ponastavitvijo se v imeniku .storage ustvari samodejna varnostna kopija kot kidschores_data_timestamp_reset. Za ciljanje določenih otrok ali domen uporabite obseg. Zaradi varnostnega mehanizma je parameter confirm_destructive nastavljen na true.",
+      "description": "Ponastavi podatke o izvajanju/transakcijah, hkrati pa ohrani konfiguracijo (otroci, opravila, nagrade itd.). Pred ponastavitvijo se v imeniku .storage ustvari samodejna varnostna kopija kot choreops_data_timestamp_reset. Za ciljanje določenih otrok ali domen uporabite obseg. Zaradi varnostnega mehanizma je parameter confirm_destructive nastavljen na true.",
       "fields": {
         "confirm_destructive": {
           "name": "Potrdi uničujoče",
@@ -2542,9 +2542,9 @@
         },
         "scope": {
           "name": "Obseg",
-          "description": "Ponastavi obseg: »global« ponastavi vse podatke, »kid« pa ponastavi podatke samo za določenega otroka."
+          "description": "Ponastavi obseg: »global« ponastavi vse podatke, »assignee« pa ponastavi podatke samo za določenega otroka."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Obvezno, če je obseg »otrok«. Ime otroka, katerega podatke je treba ponastaviti."
         },
@@ -2560,7 +2560,7 @@
     },
     "reset_overdue_chores": {
       "name": "Ponastavi zamujena opravila",
-      "description": "Ponastavite zamujena opravila nazaj v stanje »V teku« in jih prerazporedite glede na njihovo pogostost ponavljanja in prejšnji datum zapadlosti. Po želji lahko navedete chore_id (ali chore_name), da ponastavite določeno opravilo, in po želji kid_name, da ponastavite opravilo samo za tega otroka.",
+      "description": "Ponastavite zamujena opravila nazaj v stanje »V teku« in jih prerazporedite glede na njihovo pogostost ponavljanja in prejšnji datum zapadlosti. Po želji lahko navedete chore_id (ali chore_name), da ponastavite določeno opravilo, in po želji assignee_name, da ponastavite opravilo samo za tega otroka.",
       "fields": {
         "chore_id": {
           "name": "ID opravila",
@@ -2572,7 +2572,7 @@
           "description": "Ime opravila, ki ga želite ponastaviti (neobvezno, če je naveden chore_id).",
           "example": "Pomij posodo"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otrok, ki prejme kazen.",
           "example": "Alice"
@@ -2581,7 +2581,7 @@
     },
     "set_chore_due_date": {
       "name": "Nastavi/ponastavi rok za opravilo",
-      "description": "Nastavite (ali počistite) rok za opravilo. Navedite ime opravila in po želji nov rok. Če rok ni naveden, bo obstoječi rok počiščen. Storitev bo zavrnila roke, nastavljene v preteklosti. Za neodvisna opravila po želji navedite ime_otroka (kid_name), da nastavite rok samo za tega otroka.",
+      "description": "Nastavite (ali počistite) rok za opravilo. Navedite ime opravila in po želji nov rok. Če rok ni naveden, bo obstoječi rok počiščen. Storitev bo zavrnila roke, nastavljene v preteklosti. Za neodvisna opravila po želji navedite ime_otroka (assignee_name), da nastavite rok samo za tega otroka.",
       "fields": {
         "chore_name": {
           "name": "Ime opravila",
@@ -2593,12 +2593,12 @@
           "description": "Nov rok za opravilo. Z izbirnikom datuma/ure izberite veljaven datum in uro (v vašem lokalnem časovnem pasu). Pustite prazno, da počistite rok.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Za samostojna opravila določite otroka, za katerega želite nastaviti rok. Če izpustite ta podatek, določi rok za vse dodeljene otroke.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Otroška identifikacija",
           "description": "Notranji ID otroka. Samo za napredne uporabnike – namesto tega uporabite ime_otroka.",
           "example": "abc123-def456"
@@ -2607,7 +2607,7 @@
     },
     "skip_chore_due_date": {
       "name": "Preskoči rok za opravilo",
-      "description": "Preskoči trenutni rok ponavljajočega se opravila. Ta storitev takoj prestavi rok opravila glede na njegovo pogostost ponavljanja in ponastavi njegovo stanje na čakajoče. Vsi čakajoči zahtevki ali odobritve bodo odstranjeni. Za neodvisna opravila lahko po želji navedete ime otroka (kid_name), ki ga želite preskočiti samo za tega otroka.",
+      "description": "Preskoči trenutni rok ponavljajočega se opravila. Ta storitev takoj prestavi rok opravila glede na njegovo pogostost ponavljanja in ponastavi njegovo stanje na čakajoče. Vsi čakajoči zahtevki ali odobritve bodo odstranjeni. Za neodvisna opravila lahko po želji navedete ime otroka (assignee_name), ki ga želite preskočiti samo za tega otroka.",
       "fields": {
         "chore_id": {
           "name": "ID opravila",
@@ -2619,12 +2619,12 @@
           "description": "Ime opravila, ki ga želite ponastaviti (neobvezno, če je naveden chore_id).",
           "example": "Pomij posodo"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Za samostojna opravila določite otroka, za katerega želite preskočiti rok. Če ga izpustite, se rok za vse dodeljene otroke preskoči.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Otroška identifikacija",
           "description": "Notranji ID otroka. Samo za napredne uporabnike – namesto tega uporabite ime_otroka.",
           "example": "abc123-def456"
@@ -2639,7 +2639,7 @@
       "name": "Odstrani podeljene značke",
       "description": "Odstranite vse podeljene značke za vse otroke. Po želji navedite ime značke, da ponastavite določeno značko za vse otroke. Uporabite ime otroka, da ponastavite vse značke za določenega otroka. Združite oboje, da ponastavite določeno značko za določenega otroka.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Ime otroka",
           "description": "Otroku, ki mu bodo značke podeljene, bodo odvzete.",
           "example": "Bob"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Stanje opravila - {chore_name}",
         "state": {
           "pending": "V teku",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Stanja življenjskega cikla opravil, specifičnih za otroka, statistika uspešnosti in metapodatki konfiguracije"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Opis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Dodeljeni otroci"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Zamujeno"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Ime otroka"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Trenutno stanje točk s podrobno statistiko zaslužka in porabe"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Največ {points} kdajkoli"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Opravljena opravila - mesečno"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Opravila",
         "unit_of_measurement": "Opravila",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Skupno število opravljenih opravil vseh časov s podrobno statistiko"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Značke",
         "state_attributes": {
           "purpose": {
             "name": "Namen",
             "state": {
-              "purpose_kid_badges": "Najvišje osvojena značka in kumulativni napredek v realnem času, vključno z aktivnimi cikli in zgodovino nagrad za vse vrste značk"
+              "purpose_assignee_badges": "Najvišje osvojena značka in kumulativni napredek v realnem času, vključno z aktivnimi cikli in zgodovino nagrad za vse vrste značk"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Oznake"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Otroci so zaslužili"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Dodeljeni otroci"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Napredek značke - {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Odstotek napredka pri pridobivanju značke (0–100) spremlja dokončanje poti do pridobitve te značke, s statusom meril, datumi in zgodovino nagrajevanja"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Opis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Dodeljeni otroci"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Status nagrade - {reward_name}",
         "state": {
           "locked": "Zaklenjeno",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Stanje unovčenja nagrade z zgodovino zahtevkov in gumbi za dejanja"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Uporabljene kazni - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "Bonus velja - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Zbrane točke - dnevno"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Zbrane točke - tedensko"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Zbrane točke - mesečno"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Opis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Dodeljeni otroci"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Nagradne točke"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Zaslužil/a"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Opis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Dodeljeni otroci"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Končni datum"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Zaslužil/a"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Napredek - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Odstotek napredka posameznega otroka (0–100) pri doseganju tega dosežka, s trenutnim številom surovih napredkov in statusom nagrade"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Opis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Dodeljeni otroci"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Napredek - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Odstotek napredka posameznega otroka (0–100) pri dokončanju tega izziva v določenem časovnem okviru, s trenutnim številom surovih napredkov in statusom nagrad"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Opis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Dodeljeni otroci"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Najvišji niz opravil",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "Pomočnik za nadzorno ploščo uporabniškega vmesnika",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Opravila po založbi"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Izberite bonus"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Izbirnik otrok na skrbniški nadzorni plošči",
         "state_attributes": {
           "purpose": {
             "name": "Namen",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Izbirnik otrok na ravni sistema za kartice skrbniške nadzorne plošče"
+              "purpose_system_dashboard_admin_assignee": "Izbirnik otrok na ravni sistema za kartice skrbniške nadzorne plošče"
             }
           },
           "dashboard_helper_eid": {
             "name": "ID entitete pomočnika nadzorne plošče"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Izbrani otroški polž"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Izbrano ime otroka"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "Pomočnik za seznam opravil na nadzorni plošči uporabniškega vmesnika",
         "state_attributes": {
           "purpose": {
             "name": "Namen",
             "state": {
-              "purpose_select_kid_chores": "Izbor otroških opravil za filtriranje na nadzorni plošči"
+              "purpose_select_assignee_chores": "Izbor otroških opravil za filtriranje na nadzorni plošči"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Koledar",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Koledar, ki prikazuje otrokov urnik opravil in datume izvedbe"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "Pomočnik za datum nadzorne plošče uporabniškega vmesnika",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Pomočnik za izbiro datuma za filtriranje in navigacijo v uporabniškem vmesniku nadzorne plošče"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Zahtevaj opravilo - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "Otrok trdi, da je opravil dodeljeno opravilo"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Odobri opravilo - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "Starš odobri zahtevano opravilo"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Zavrnitev opravila - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "Starš ne odobri zahtevane opravke"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Zahtevaj nagrado - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "Otrok unovči nagrado s točkami"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Odobri nagrado - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "Starš odobri unovčeno nagrado"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Zavrnitev nagrade - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "Starš zavrne unovčeno nagrado"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Uporabi kazen - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "Starš uporabi kazen (odšteje točke)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Uporabi bonus - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "Starš uporabi bonus (doda točke)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Prilagodi {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "Starš ročno prilagodi otrokove točke"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Ime otroka"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Prirastek {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Zmanjšanje {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "Ni najdenega otroka z imenom {name}"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "Ni najdenega starša z imenom {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "Otrok {name} je že povezan s staršem"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "Otrok {name} ni povezan z nobenim staršem"
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "Starš {name} je že povezan z drugim otrokom"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} ni bilo najdeno"
     },
     "not_assigned": {
-      "message": "{entity} ni dodeljeno {kid}"
+      "message": "{entity} ni dodeljeno {assignee}"
     },
     "rotation_no_turn_holder": {
       "message": "Za rotacijska opravila mora biti dodeljen nosilec izmene"
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Vsi otroci v vrstnem redu rotacije morajo biti dodeljeni opravilu"
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Za rotacijska opravila sta potrebna vsaj dva dodeljena otroka"
     },
     "not_rotation": {
       "message": "To opravilo ni v načinu rotacije"
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "Otrok ni dodeljen tej nalogi"
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "Noben otrok ni dodeljen tej nalogi"
     },
     "insufficient_points": {
-      "message": "{kid} ima {current} točk, vendar potrebuje {required} točk"
+      "message": "{assignee} ima {current} točk, vendar potrebuje {required} točk"
     },
     "already_claimed": {
       "message": "{entity} je že zahtevan"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "Ponavljajoča se frekvenca {frequency} ni veljavna"
     },
-    "chore_overdue_for_kid": {
-      "message": "Opravilo {chore_name} je zamujalo za {kid_name}"
+    "chore_overdue_for_assignee": {
+      "message": "Opravilo {chore_name} je zamujalo za {assignee_name}"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "Otrok {kid_name} ni dodeljen opravilu {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "Otrok {assignee_name} ni dodeljen opravilu {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "Za skupno opravilo {chore_name}ni mogoče določiti otroka. Skupna opravila imajo en rok za vse otroke."
     },
     "reward_not_found": {
@@ -4471,8 +4471,8 @@
     "data_reset_confirmation_required": {
       "message": "Za nadaljevanje ponastavitve podatkov morate nastaviti confirm_destructive: true"
     },
-    "data_reset_kid_not_found": {
-      "message": "Otrok {kid_name} ni bil najden"
+    "data_reset_assignee_not_found": {
+      "message": "Otrok {assignee_name} ni bil najden"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} ni bilo najdeno"
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "Vsi podatki o izvajanju so bili ponastavljeni. Konfiguracija je ohranjena."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Ponastavitev podatkov za {kid_name}je končana. Točke, statistika in napredek so izbrisani."
+    "notif_message_data_reset_assignee": {
+      "message": "Ponastavitev podatkov za {assignee_name}je končana. Točke, statistika in napredek so izbrisani."
     },
     "notif_message_data_reset_item_type": {
       "message": "Ponastavitev podatkov za vse {item_type}je končana. Podatki o izvajanju so izbrisani."
@@ -4502,7 +4502,7 @@
       "message": "Zamujeno opravilo"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} zamudil opravilo: {chore_name}"
+      "message": "{assignee_name} zamudil opravilo: {chore_name}"
     }
   }
 }

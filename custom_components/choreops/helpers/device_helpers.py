@@ -1,5 +1,5 @@
 # File: helpers/device_helpers.py
-"""Device registry helper functions for KidsChores.
+"""Device registry helper functions for ChoreOps.
 
 Functions that construct DeviceInfo objects for Home Assistant's device registry.
 All functions here use HA-specific DeviceInfo/DeviceEntryType types.
@@ -16,8 +16,7 @@ from .. import const
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from ..coordinator import KidsChoresDataCoordinator
-    from ..type_defs import KidData
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 # ==============================================================================
@@ -25,60 +24,60 @@ if TYPE_CHECKING:
 # ==============================================================================
 
 
-def create_kid_device_info(
-    kid_id: str,
-    kid_name: str,
+def create_assignee_device_info(
+    assignee_id: str,
+    assignee_name: str,
     config_entry: ConfigEntry,
     *,
-    is_shadow_kid: bool = False,
+    is_feature_gated_profile: bool = False,
 ) -> DeviceInfo:
-    """Create device info for a kid profile.
+    """Create device info for an assignee profile.
 
     Args:
-        kid_id: Internal ID (UUID) of the kid
-        kid_name: Display name of the kid
+        assignee_id: Internal ID (UUID) of the assignee
+        assignee_name: Display name of the assignee
         config_entry: Config entry for this integration instance
-        is_shadow_kid: If True, this is a shadow kid (parent with chore assignment)
+        is_feature_gated_profile: If True, this profile follows conditional
+            feature gating behavior during migration.
 
     Returns:
-        DeviceInfo dict for the kid device
+        DeviceInfo dict for the assignee device
     """
-    # Use different model text for shadow kids vs regular kids
-    model = "Parent Profile" if is_shadow_kid else "Kid Profile"
+    # Keep legacy parameter for compatibility; all profiles now use unified model label.
+    _ = is_feature_gated_profile
 
     return DeviceInfo(
-        identifiers={(const.DOMAIN, kid_id)},
-        name=f"{kid_name} ({config_entry.title})",
-        manufacturer="KidsChores",
-        model=model,
+        identifiers={(const.DOMAIN, assignee_id)},
+        name=f"{assignee_name} ({config_entry.title})",
+        manufacturer=const.DEVICE_MANUFACTURER,
+        model=const.DEVICE_MODEL_USER_PROFILE,
         entry_type=DeviceEntryType.SERVICE,
     )
 
 
-def create_kid_device_info_from_coordinator(
-    coordinator: KidsChoresDataCoordinator,
-    kid_id: str,
-    kid_name: str,
+def create_assignee_device_info_from_coordinator(
+    coordinator: ChoreOpsDataCoordinator,
+    assignee_id: str,
+    assignee_name: str,
     config_entry: ConfigEntry,
 ) -> DeviceInfo:
-    """Create device info for a kid profile, auto-detecting shadow kid status.
+    """Create device info for an assignee profile.
 
-    This is a convenience wrapper around create_kid_device_info that looks up
-    the shadow kid status from the coordinator's kids_data.
+    This is a convenience wrapper around create_assignee_device_info.
 
     Args:
-        coordinator: The KidsChoresCoordinator instance
-        kid_id: Internal ID (UUID) of the kid
-        kid_name: Display name of the kid
+        coordinator: The ChoreOpsCoordinator instance
+        assignee_id: Internal ID (UUID) of the assignee
+        assignee_name: Display name of the assignee
         config_entry: Config entry for this integration instance
 
     Returns:
-        DeviceInfo dict for the kid device with correct model (Kid/Parent Profile)
+        DeviceInfo dict for the assignee device
     """
-    kid_data: KidData | None = coordinator.kids_data.get(kid_id)
-    is_shadow_kid = kid_data.get(const.DATA_KID_IS_SHADOW, False) if kid_data else False
-    return create_kid_device_info(
-        kid_id, kid_name, config_entry, is_shadow_kid=is_shadow_kid
+    return create_assignee_device_info(
+        assignee_id,
+        assignee_name,
+        config_entry,
     )
 
 
@@ -94,7 +93,7 @@ def create_system_device_info(config_entry: ConfigEntry) -> DeviceInfo:
     return DeviceInfo(
         identifiers={(const.DOMAIN, f"{config_entry.entry_id}_system")},
         name=f"System ({config_entry.title})",
-        manufacturer="KidsChores",
-        model="System Controls",
+        manufacturer=const.DEVICE_MANUFACTURER,
+        model=const.DEVICE_MODEL_SYSTEM_CONTROLS,
         entry_type=DeviceEntryType.SERVICE,
     )

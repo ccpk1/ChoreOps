@@ -1,5 +1,5 @@
 # File: utils/dt_utils.py
-"""Date and time utilities for KidsChores.
+"""Date and time utilities for ChoreOps.
 
 Pure Python date/time functions with ZERO Home Assistant dependencies.
 All functions here can be unit tested without Home Assistant mocking.

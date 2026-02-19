@@ -1,4 +1,4 @@
-"""Setup helpers for KidsChores test configuration.
+"""Setup helpers for ChoreOps test configuration.
 
 This module provides declarative test setup that navigates the config flow
 based on scenario dictionaries, allowing tests to focus on behavior rather
@@ -8,11 +8,11 @@ Example:
     # Instead of 50+ lines of config flow navigation:
     result = await setup_scenario(hass, mock_hass_users, {
         "points": {"label": "Stars", "icon": "mdi:star"},
-        "kids": [{"name": "Zoë", "ha_user": "kid1"}],
-        "parents": [{"name": "Mom", "ha_user": "parent1", "kids": ["Zoë"]}],
+        "assignees": [{"name": "Zoë", "ha_user": "assignee1"}],
+        "approvers": [{"name": "Mom", "ha_user": "approver1", "assignees": ["Zoë"]}],
         "chores": [{"name": "Clean Room", "assigned_to": ["Zoë"], "points": 10}],
     })
-    # Access: result.config_entry, result.coordinator, result.kid_ids["Zoë"]
+    # Access: result.config_entry, result.coordinator, result.assignee_ids["Zoë"]
 
 YAML-based setup:
     # Load scenario from YAML file:
@@ -37,13 +37,13 @@ from homeassistant.data_entry_flow import FlowResultType
 import yaml
 
 from custom_components.choreops import const
-from custom_components.choreops.coordinator import KidsChoresDataCoordinator
+from custom_components.choreops.coordinator import ChoreOpsDataCoordinator
 from tests.helpers.flow_test_helpers import FlowTestHelper
 
 _LOGGER = logging.getLogger(__name__)
 
-# Valid ha_user patterns: kid1-kid999, parent1-parent999
-_VALID_HA_USER_PATTERN = re.compile(r"^(kid|parent)\d+$")
+# Valid ha_user patterns: assignee1-assignee999, approver1-approver999
+_VALID_HA_USER_PATTERN = re.compile(r"^(assignee|approver)\d+$")
 
 # =============================================================================
 # DATACLASSES
@@ -56,17 +56,19 @@ class SetupResult:
 
     Attributes:
         config_entry: The created ConfigEntry
-        coordinator: The KidsChoresCoordinator instance
-        kid_ids: Map of kid names to their internal UUIDs
-        parent_ids: Map of parent names to their internal UUIDs
+        coordinator: The ChoreOpsCoordinator instance
+        assignee_ids: Canonical map of assignee display names to internal UUIDs
+        approver_ids: Canonical map of approver display names to internal UUIDs
+        assignee_ids: Compatibility alias for assignee_ids
+        approver_ids: Compatibility alias for approver_ids
         chore_ids: Map of chore names to their internal UUIDs
         final_result: The final config flow result
     """
 
     config_entry: ConfigEntry
-    coordinator: KidsChoresDataCoordinator
-    kid_ids: dict[str, str] = field(default_factory=dict)
-    parent_ids: dict[str, str] = field(default_factory=dict)
+    coordinator: ChoreOpsDataCoordinator
+    assignee_ids: dict[str, str] = field(default_factory=dict)
+    approver_ids: dict[str, str] = field(default_factory=dict)
     chore_ids: dict[str, str] = field(default_factory=dict)
     reward_ids: dict[str, str] = field(default_factory=dict)
     penalty_ids: dict[str, str] = field(default_factory=dict)
@@ -89,48 +91,80 @@ def _require_data_schema(result: ConfigFlowResult) -> Any:
     return data_schema
 
 
-def _extract_kid_ids_from_schema(result: ConfigFlowResult) -> list[str]:
-    """Extract kid IDs from the parent step schema.
+def _find_field_in_schema(data_schema: Any, field_key: str) -> Any | None:
+    """Find a schema field in flat or sectioned voluptuous schemas."""
 
-    When on parent configuration step, the associated_kids field contains
-    the options with kid UUIDs that were created in previous steps.
+    def _match_field(schema_map: Any, key: str) -> Any | None:
+        for schema_key, schema_value in schema_map.items():
+            normalized_key = getattr(schema_key, "schema", schema_key)
+            if normalized_key == key:
+                return schema_value
+        return None
+
+    field = _match_field(data_schema.schema, field_key)
+    if field is not None:
+        return field
+
+    for section_obj in data_schema.schema.values():
+        nested_schema = getattr(section_obj, "schema", None)
+        nested_map = getattr(nested_schema, "schema", None)
+        if nested_map is None:
+            continue
+        field = _match_field(nested_map, field_key)
+        if field is not None:
+            return field
+
+    return None
+
+
+def _extract_assignee_ids_from_schema(result: ConfigFlowResult) -> list[str]:
+    """Extract assignee IDs from the approver step schema.
+
+    When on approver configuration step, the associated_assignees field contains
+    the options with assignee UUIDs that were created in previous steps.
 
     Args:
-        result: Config flow result on parent_count or parents step
+        result: Config flow result on approver_count or approvers step
 
     Returns:
-        List of kid internal UUIDs available in the form
+        List of assignee internal UUIDs available in the form
     """
     data_schema = _require_data_schema(result)
-    associated_kids_field = data_schema.schema.get(
-        const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS
+    associated_assignees_field = _find_field_in_schema(
+        data_schema,
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
     )
-    assert associated_kids_field is not None, (
-        "associated_kids field not found in schema"
+    assert associated_assignees_field is not None, (
+        "associated_assignees field not found in schema"
     )
 
-    kid_options = associated_kids_field.config["options"]
-    return [option["value"] for option in kid_options]
+    assignee_options = associated_assignees_field.config["options"]
+    return [option["value"] for option in assignee_options]
 
 
-def _extract_kid_names_from_schema(result: ConfigFlowResult) -> list[str]:
-    """Extract kid names from the chore step schema.
+def _extract_assignee_names_from_schema(result: ConfigFlowResult) -> list[str]:
+    """Extract assignee names from the chore step schema.
 
-    When on chore configuration step, the assigned_kids field contains
-    the options with kid names for assignment.
+    When on chore configuration step, the assigned_assignees field contains
+    the options with assignee names for assignment.
 
     Args:
         result: Config flow result on chores step
 
     Returns:
-        List of kid names available in the form
+        List of assignee names available in the form
     """
     data_schema = _require_data_schema(result)
-    assigned_kids_field = data_schema.schema.get(const.CFOF_CHORES_INPUT_ASSIGNED_KIDS)
-    assert assigned_kids_field is not None, "assigned_kids field not found in schema"
+    assigned_assignees_field = _find_field_in_schema(
+        data_schema,
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+    )
+    assert assigned_assignees_field is not None, (
+        "assigned_assignees field not found in schema"
+    )
 
-    kid_options = assigned_kids_field.config["options"]
-    return [option["value"] for option in kid_options]
+    assignee_options = assigned_assignees_field.config["options"]
+    return [option["value"] for option in assignee_options]
 
 
 # =============================================================================
@@ -153,7 +187,7 @@ async def _configure_points_step(
             - icon: Points icon (default: "mdi:star-outline")
 
     Returns:
-        Updated flow result at KID_COUNT step
+        Updated flow result at USER_COUNT step
     """
     assert result.get("step_id") == const.CONFIG_FLOW_STEP_POINTS
 
@@ -167,27 +201,30 @@ async def _configure_points_step(
         },
     )
 
-    assert result.get("step_id") == const.CONFIG_FLOW_STEP_KID_COUNT
+    assert result.get("step_id") == const.CONFIG_FLOW_STEP_USER_COUNT
     return result
 
 
-async def _configure_kid_step(
+async def _configure_assignee_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     mock_hass_users: dict[str, Any],
-    kid_config: dict[str, Any],
+    assignee_config: dict[str, Any],
 ) -> ConfigFlowResult:
-    """Configure a single kid step.
+    """Configure a single assignable user step.
 
     Args:
         hass: Home Assistant instance
-        result: Current flow result on KIDS step
+        result: Current flow result on USERS step
         mock_hass_users: Mock users dict from fixture
-        kid_config: Dict with keys:
-            - name: Kid name (required)
+        assignee_config: Dict with keys:
+            - name: Assignee name (required)
             - ha_user: Key in mock_hass_users (required)
             - dashboard_language: Language code (default: "en")
             - mobile_notify_service: str (default: "") - set to enable notifications
+            - can_be_assigned: bool (default: True)
+            - enable_chore_workflow: bool (default: True)
+            - enable_gamification: bool (default: True)
 
     Returns:
         Updated flow result
@@ -195,75 +232,97 @@ async def _configure_kid_step(
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_KIDS_INPUT_KID_NAME: kid_config["name"],
-            const.CFOF_KIDS_INPUT_HA_USER: mock_hass_users[kid_config["ha_user"]].id,
-            const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: kid_config.get(
+            const.CFOF_USERS_INPUT_NAME: assignee_config["name"],
+            const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[
+                assignee_config["ha_user"]
+            ].id,
+            const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: assignee_config.get(
                 "dashboard_language", "en"
             ),
-            const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: kid_config.get(
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: assignee_config.get(
                 "mobile_notify_service"
             )
             or const.SENTINEL_NO_SELECTION,
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: assignee_config.get(
+                "can_be_assigned", True
+            ),
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: assignee_config.get(
+                "enable_chore_workflow", True
+            ),
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: assignee_config.get(
+                "enable_gamification", True
+            ),
         },
     )
 
 
-async def _configure_parent_step(
+async def _configure_approver_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     mock_hass_users: dict[str, Any],
-    parent_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    approver_config: dict[str, Any],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
-    """Configure a single parent step.
+    """Configure a single approver step.
 
     Args:
         hass: Home Assistant instance
         result: Current flow result on PARENTS step
         mock_hass_users: Mock users dict from fixture
-        parent_config: Dict with keys:
-            - name: Parent name (required)
+        approver_config: Dict with keys:
+            - name: Approver name (required)
             - ha_user: Key in mock_hass_users (required)
-            - kids: List of kid names to associate (default: all)
+            - assignees: List of assignee names to associate (default: all)
             - mobile_notify_service: str (default: "") - set to enable notifications
-            - allow_chore_assignment: bool (default: False) - creates shadow kid
-            - enable_chore_workflow: bool (default: False) - shadow kid claim/disapprove
-            - enable_gamification: bool (default: False) - shadow kid points/badges
-        kid_name_to_id: Map of kid names to their UUIDs
+            - allow_chore_assignment: bool (default: False) - creates shadow assignee
+            - enable_chore_workflow: bool (default: False) - shadow assignee claim/disapprove
+            - enable_gamification: bool (default: False) - shadow assignee points/badges
+        assignee_name_to_id: Map of assignee names to their UUIDs
 
     Returns:
         Updated flow result
     """
-    # Determine associated kid IDs
-    associated_kid_names = parent_config.get("kids", list(kid_name_to_id.keys()))
-    associated_kid_ids = [
-        kid_name_to_id[name] for name in associated_kid_names if name in kid_name_to_id
+    # Determine associated assignee IDs
+    associated_assignee_names = approver_config.get(
+        "assignees", list(assignee_name_to_id.keys())
+    )
+    associated_assignee_ids = [
+        assignee_name_to_id[name]
+        for name in associated_assignee_names
+        if name in assignee_name_to_id
     ]
 
     # Mobile notify service handling - service presence enables notifications
     mobile_service = (
-        parent_config.get("mobile_notify_service") or const.SENTINEL_NO_SELECTION
+        approver_config.get("mobile_notify_service") or const.SENTINEL_NO_SELECTION
     )
 
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_PARENTS_INPUT_NAME: parent_config["name"],
-            const.CFOF_PARENTS_INPUT_HA_USER: mock_hass_users[
-                parent_config["ha_user"]
+            const.CFOF_USERS_INPUT_NAME: approver_config["name"],
+            const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[
+                approver_config["ha_user"]
             ].id,
-            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: associated_kid_ids,
-            const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_service,
-            # Parent chore assignment fields (shadow kid support)
-            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: parent_config.get(
-                "allow_chore_assignment", False
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignee_ids,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_service,
+            # Approver chore assignment fields (shadow assignee support)
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: approver_config.get(
+                "can_be_assigned",
+                approver_config.get("allow_chore_assignment", False),
             ),
-            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: parent_config.get(
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: approver_config.get(
                 "enable_chore_workflow", False
             ),
-            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: parent_config.get(
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: approver_config.get(
                 "enable_gamification", False
             ),
+            # Hard-fork role model: scenario "approvers" represent approver/admin users
+            # unless explicitly overridden per scenario.
+            const.CFOF_USERS_INPUT_CAN_APPROVE: approver_config.get(
+                "can_approve", True
+            ),
+            const.CFOF_USERS_INPUT_CAN_MANAGE: approver_config.get("can_manage", True),
         },
     )
 
@@ -303,7 +362,7 @@ async def _configure_chore_step(
         result: Current flow result on CHORES step
         chore_config: Dict with keys:
             - name: Chore name (required)
-            - assigned_to: List of kid names (required)
+            - assigned_to: List of assignee names (required)
             - points: Points value (default: 10.0)
             - description: Chore description (default: "")
             - icon: MDI icon (default: "mdi:check")
@@ -337,7 +396,7 @@ async def _configure_chore_step(
 
     user_input = {
         const.CFOF_CHORES_INPUT_NAME: chore_config["name"],
-        const.CFOF_CHORES_INPUT_ASSIGNED_KIDS: chore_config["assigned_to"],
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: chore_config["assigned_to"],
         const.CFOF_CHORES_INPUT_DEFAULT_POINTS: chore_config.get("points", 10.0),
         const.CFOF_CHORES_INPUT_DESCRIPTION: chore_config.get("description", ""),
         const.CFOF_CHORES_INPUT_ICON: chore_config.get("icon", "mdi:check"),
@@ -451,7 +510,7 @@ async def _configure_reward_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     reward_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
     """Configure reward step using FlowTestHelper converter.
 
@@ -459,17 +518,17 @@ async def _configure_reward_step(
         hass: Home Assistant instance
         result: Current flow result on REWARDS step
         reward_config: Dict with reward fields (name, cost, icon, etc)
-        kid_name_to_id: Mapping from kid names to internal_ids
+        assignee_name_to_id: Mapping from assignee names to internal_ids
 
     Returns:
         Updated flow result
     """
-    # Translate kid names to IDs in assigned_to field
+    # Translate assignee names to IDs in assigned_to field
     reward_config = reward_config.copy()
     if "assigned_to" in reward_config:
         names = reward_config["assigned_to"]
         reward_config["assigned_to"] = [
-            kid_name_to_id[name] for name in names if name in kid_name_to_id
+            assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
     form_data = FlowTestHelper.build_reward_form_data(reward_config)
@@ -482,7 +541,7 @@ async def _configure_penalty_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     penalty_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
     """Configure penalty step using FlowTestHelper converter.
 
@@ -490,17 +549,17 @@ async def _configure_penalty_step(
         hass: Home Assistant instance
         result: Current flow result on PENALTIES step
         penalty_config: Dict with penalty fields (name, points, icon, etc)
-        kid_name_to_id: Mapping from kid names to internal_ids
+        assignee_name_to_id: Mapping from assignee names to internal_ids
 
     Returns:
         Updated flow result
     """
-    # Translate kid names to IDs in assigned_to field
+    # Translate assignee names to IDs in assigned_to field
     penalty_config = penalty_config.copy()
     if "assigned_to" in penalty_config:
         names = penalty_config["assigned_to"]
         penalty_config["assigned_to"] = [
-            kid_name_to_id[name] for name in names if name in kid_name_to_id
+            assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
     form_data = FlowTestHelper.build_penalty_form_data(penalty_config)
@@ -513,7 +572,7 @@ async def _configure_bonus_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     bonus_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
     """Configure bonus step using FlowTestHelper converter.
 
@@ -521,17 +580,17 @@ async def _configure_bonus_step(
         hass: Home Assistant instance
         result: Current flow result on BONUSES step
         bonus_config: Dict with bonus fields (name, points, icon, etc)
-        kid_name_to_id: Mapping from kid names to internal_ids
+        assignee_name_to_id: Mapping from assignee names to internal_ids
 
     Returns:
         Updated flow result
     """
-    # Translate kid names to IDs in assigned_to field
+    # Translate assignee names to IDs in assigned_to field
     bonus_config = bonus_config.copy()
     if "assigned_to" in bonus_config:
         names = bonus_config["assigned_to"]
         bonus_config["assigned_to"] = [
-            kid_name_to_id[name] for name in names if name in kid_name_to_id
+            assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
     form_data = FlowTestHelper.build_bonus_form_data(bonus_config)
@@ -544,7 +603,7 @@ async def _configure_badge_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     badge_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
     """Configure badge step using FlowTestHelper converter.
 
@@ -552,17 +611,17 @@ async def _configure_badge_step(
         hass: Home Assistant instance
         result: Current flow result on BADGES step
         badge_config: Dict with badge fields (name, type, assigned_to, etc)
-        kid_name_to_id: Mapping of kid names to UUIDs for translation
+        assignee_name_to_id: Mapping of assignee names to UUIDs for translation
 
     Returns:
         Updated flow result
     """
-    # Translate kid names to IDs in assigned_to field
+    # Translate assignee names to IDs and normalize to assigned_user_ids
     badge_config = badge_config.copy()
     if "assigned_to" in badge_config:
         names = badge_config["assigned_to"]
-        badge_config["assigned_to"] = [
-            kid_name_to_id[name] for name in names if name in kid_name_to_id
+        badge_config["assigned_user_ids"] = [
+            assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
     form_data = FlowTestHelper.build_badge_form_data(badge_config)
@@ -575,7 +634,7 @@ async def _add_badge_via_options_flow(
     hass: HomeAssistant,
     entry_id: str,
     badge_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> None:
     """Add a badge via options flow (supports all badge types).
 
@@ -589,16 +648,16 @@ async def _add_badge_via_options_flow(
         hass: Home Assistant instance
         entry_id: Config entry ID
         badge_config: Dict with badge fields (name, type, assigned_to, etc)
-        kid_name_to_id: Mapping of kid names to UUIDs for translation
+        assignee_name_to_id: Mapping of assignee names to UUIDs for translation
     """
     from homeassistant.data_entry_flow import FlowResultType
 
-    # Translate kid names to IDs in assigned_to field
+    # Translate assignee names to IDs and normalize to assigned_user_ids
     badge_config = badge_config.copy()
     if "assigned_to" in badge_config:
         names = badge_config["assigned_to"]
-        badge_config["assigned_to"] = [
-            kid_name_to_id[name] for name in names if name in kid_name_to_id
+        badge_config["assigned_user_ids"] = [
+            assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
     badge_type = badge_config.get("type", const.BADGE_TYPE_CUMULATIVE)
@@ -657,25 +716,25 @@ async def _configure_achievement_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     achievement_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
     """Configure achievement step using FlowTestHelper converter.
 
     Args:
         hass: Home Assistant instance
         result: Current flow result on ACHIEVEMENTS step
-        achievement_config: Dict with achievement fields (name, type, assigned_kids, etc)
-        kid_name_to_id: Mapping from kid names to internal_ids
+        achievement_config: Dict with achievement fields (name, type, assigned_assignees, etc)
+        assignee_name_to_id: Mapping from assignee names to internal_ids
 
     Returns:
         Updated flow result
     """
-    # Translate kid names to IDs in assigned_to field
+    # Translate assignee names to IDs in assigned_to field
     achievement_config = achievement_config.copy()
     if "assigned_to" in achievement_config:
         names = achievement_config["assigned_to"]
         achievement_config["assigned_to"] = [
-            kid_name_to_id[name] for name in names if name in kid_name_to_id
+            assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
     form_data = FlowTestHelper.build_achievement_form_data(achievement_config)
@@ -688,21 +747,21 @@ async def _configure_challenge_step(
     hass: HomeAssistant,
     result: ConfigFlowResult,
     challenge_config: dict[str, Any],
-    kid_name_to_id: dict[str, str],
+    assignee_name_to_id: dict[str, str],
 ) -> ConfigFlowResult:
     """Configure challenge step using FlowTestHelper converter.
 
     Args:
         hass: Home Assistant instance
         result: Current flow result on CHALLENGES step
-        challenge_config: Dict with challenge fields (name, type, assigned_kids, etc)
-        kid_name_to_id: Mapping from kid names to internal_ids (unused for challenges)
+        challenge_config: Dict with challenge fields (name, type, assigned_assignees, etc)
+        assignee_name_to_id: Mapping from assignee names to internal_ids (unused for challenges)
 
     Returns:
         Updated flow result
     """
-    # NOTE: Unlike chores, challenges expect kid NAMES (not UUIDs) in the form
-    # because the challenge form's SelectSelector uses kid names as options.
+    # NOTE: Unlike chores, challenges expect assignee NAMES (not UUIDs) in the form
+    # because the challenge form's SelectSelector uses assignee names as options.
     # Do NOT convert names to IDs here.
     challenge_config = challenge_config.copy()
 
@@ -815,18 +874,18 @@ async def setup_scenario(
     mock_hass_users: dict[str, Any],
     scenario: dict[str, Any],
 ) -> SetupResult:
-    """Set up a complete KidsChores scenario via config flow.
+    """Set up a complete ChoreOps scenario via config flow.
 
     This function navigates the entire config flow based on a declarative
-    scenario dictionary, creating the specified kids, parents, and chores.
+    scenario dictionary, creating the specified assignees, approvers, and chores.
 
     Args:
         hass: Home Assistant instance
         mock_hass_users: Mock users dictionary from fixture
         scenario: Configuration dict with optional keys:
             - points: {"label": str, "icon": str}
-            - kids: List of kid configs (see _configure_kid_step)
-            - parents: List of parent configs (see _configure_parent_step)
+            - assignees: List of assignee configs (see _configure_assignee_step)
+            - approvers: List of approver configs (see _configure_approver_step)
             - chores: List of chore configs (see _configure_chore_step)
 
     Returns:
@@ -835,12 +894,12 @@ async def setup_scenario(
     Example:
         result = await setup_scenario(hass, mock_hass_users, {
             "points": {"label": "Stars", "icon": "mdi:star"},
-            "kids": [
-                {"name": "Zoë", "ha_user": "kid1"},
-                {"name": "Max", "ha_user": "kid2"},
+            "assignees": [
+                {"name": "Zoë", "ha_user": "assignee1"},
+                {"name": "Max", "ha_user": "assignee2"},
             ],
-            "parents": [
-                {"name": "Mom", "ha_user": "parent1", "kids": ["Zoë", "Max"]},
+            "approvers": [
+                {"name": "Mom", "ha_user": "approver1", "assignees": ["Zoë", "Max"]},
             ],
             "chores": [
                 {"name": "Clean Room", "assigned_to": ["Zoë"], "points": 15},
@@ -849,12 +908,12 @@ async def setup_scenario(
         })
 
         # Access created entities:
-        kid_id = result.kid_ids["Zoë"]
+        assignee_id = result.assignee_ids["Zoë"]
         chore_id = result.chore_ids["Clean Room"]
         coordinator = result.coordinator
     """
-    kids_config = scenario.get("kids", [])
-    parents_config = scenario.get("parents", [])
+    assignees_config = scenario.get("assignees", [])
+    approvers_config = scenario.get("approvers", [])
     chores_config = scenario.get("chores", [])
     badges_config = scenario.get("badges", [])
     rewards_config = scenario.get("rewards", [])
@@ -864,8 +923,8 @@ async def setup_scenario(
     challenges_config = scenario.get("challenges", [])
     points_config = scenario.get("points", {})
 
-    kid_name_to_id: dict[str, str] = {}
-    parent_name_to_id: dict[str, str] = {}
+    assignee_name_to_id: dict[str, str] = {}
+    approver_name_to_id: dict[str, str] = {}
     chore_name_to_id: dict[str, str] = {}
     badge_name_to_id: dict[str, str] = {}
     reward_name_to_id: dict[str, str] = {}
@@ -903,64 +962,60 @@ async def setup_scenario(
     result = await _configure_points_step(hass, result, points_config)
 
     # -----------------------------------------------------------------
-    # Configure kids
+    # Configure users (single count step for assignable + approver users)
     # -----------------------------------------------------------------
-    kid_count = len(kids_config)
+    assignee_count = len(assignees_config)
+    approver_count = len(approvers_config)
+    total_user_count = assignee_count + approver_count
+
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={const.CFOF_KIDS_INPUT_KID_COUNT: kid_count},
+        user_input={const.CFOF_USERS_INPUT_COUNT: total_user_count},
     )
 
-    if kid_count > 0:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_KIDS
+    if total_user_count > 0:
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
 
-        for i, kid_config in enumerate(kids_config):
-            result = await _configure_kid_step(
-                hass, result, mock_hass_users, kid_config
+        for i, assignee_config in enumerate(assignees_config):
+            result = await _configure_assignee_step(
+                hass, result, mock_hass_users, assignee_config
             )
 
-            if i < kid_count - 1:
-                # More kids to configure
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_KIDS
+            if i < assignee_count - 1 or approver_count > 0:
+                # More users to configure
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
             else:
-                # Last kid - should advance to parent count
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENT_COUNT
+                # Last user - should advance to chore count
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT
 
-        # Note: kid IDs will be extracted after we enter the PARENTS step
-        # (they're embedded in the associated_kids selector, not available here)
-    else:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        # Note: assignee IDs will be extracted after we enter the PARENTS step
+        # (they're embedded in the associated_assignees selector, not available here)
+    elif total_user_count == 0:
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT
 
-    # -----------------------------------------------------------------
-    # Configure parents
-    # -----------------------------------------------------------------
-    parent_count = len(parents_config)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: parent_count},
-    )
+    if approver_count > 0:
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
 
-    if parent_count > 0:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENTS
+        # NOW extract assignee IDs from the PARENTS step schema
+        # (only available when on actual approvers form, not approver_count form)
+        if assignee_count > 0:
+            actual_assignee_ids = _extract_assignee_ids_from_schema(result)
+            for j, assignee_config in enumerate(assignees_config):
+                if j < len(actual_assignee_ids):
+                    assignee_name_to_id[assignee_config["name"]] = actual_assignee_ids[
+                        j
+                    ]
 
-        # NOW extract kid IDs from the PARENTS step schema
-        # (only available when on actual parents form, not parent_count form)
-        if kid_count > 0:
-            actual_kid_ids = _extract_kid_ids_from_schema(result)
-            for j, kid_config in enumerate(kids_config):
-                if j < len(actual_kid_ids):
-                    kid_name_to_id[kid_config["name"]] = actual_kid_ids[j]
-
-        for i, parent_config in enumerate(parents_config):
-            result = await _configure_parent_step(
-                hass, result, mock_hass_users, parent_config, kid_name_to_id
+        for i, approver_config in enumerate(approvers_config):
+            result = await _configure_approver_step(
+                hass, result, mock_hass_users, approver_config, assignee_name_to_id
             )
 
-            if i < parent_count - 1:
-                # More parents to configure
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENTS
+            if i < approver_count - 1:
+                # More approvers to configure
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
             else:
-                # Last parent - should advance to chore count
+                # Last approver - should advance to chore count
                 assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT
     else:
         assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT
@@ -1013,7 +1068,7 @@ async def setup_scenario(
 
         for i, reward_config in enumerate(rewards_config):
             result = await _configure_reward_step(
-                hass, result, reward_config, kid_name_to_id
+                hass, result, reward_config, assignee_name_to_id
             )
 
             if i < reward_count - 1:
@@ -1039,7 +1094,7 @@ async def setup_scenario(
 
         for i, penalty_config in enumerate(penalties_config):
             result = await _configure_penalty_step(
-                hass, result, penalty_config, kid_name_to_id
+                hass, result, penalty_config, assignee_name_to_id
             )
 
             if i < penalty_count - 1:
@@ -1065,7 +1120,7 @@ async def setup_scenario(
 
         for i, bonus_config in enumerate(bonuses_config):
             result = await _configure_bonus_step(
-                hass, result, bonus_config, kid_name_to_id
+                hass, result, bonus_config, assignee_name_to_id
             )
 
             if i < bonus_count - 1:
@@ -1091,7 +1146,7 @@ async def setup_scenario(
 
         for i, achievement_config in enumerate(achievements_config):
             result = await _configure_achievement_step(
-                hass, result, achievement_config, kid_name_to_id
+                hass, result, achievement_config, assignee_name_to_id
             )
 
             if i < achievement_count - 1:
@@ -1117,7 +1172,7 @@ async def setup_scenario(
 
         for i, challenge_config in enumerate(challenges_config):
             result = await _configure_challenge_step(
-                hass, result, challenge_config, kid_name_to_id
+                hass, result, challenge_config, assignee_name_to_id
             )
 
             if i < challenge_count - 1:
@@ -1156,7 +1211,7 @@ async def setup_scenario(
     if badges_config:
         for badge_config in badges_config:
             await _add_badge_via_options_flow(
-                hass, config_entry.entry_id, badge_config, kid_name_to_id
+                hass, config_entry.entry_id, badge_config, assignee_name_to_id
             )
             await hass.async_block_till_done()
         await hass.async_block_till_done()
@@ -1169,17 +1224,17 @@ async def setup_scenario(
     # -------------------------------------------------------------------------
     # Map names to IDs from coordinator data
     # -------------------------------------------------------------------------
-    # Update kid IDs from coordinator (they should match but let's be sure)
-    for kid_id, kid_data in coordinator.kids_data.items():
-        kid_name = kid_data.get(const.DATA_KID_NAME)
-        if kid_name:
-            kid_name_to_id[kid_name] = kid_id
+    # Update assignee IDs from coordinator (they should match but let's be sure)
+    for assignee_id, assignee_data in coordinator.assignees_data.items():
+        assignee_name = assignee_data.get(const.DATA_USER_NAME)
+        if assignee_name:
+            assignee_name_to_id[assignee_name] = assignee_id
 
-    # Map parent names to IDs
-    for parent_id, parent_data in coordinator.parents_data.items():
-        parent_name = parent_data.get(const.DATA_PARENT_NAME)
-        if parent_name:
-            parent_name_to_id[parent_name] = parent_id
+    # Map approver names to IDs
+    for approver_id, approver_data in coordinator.approvers_data.items():
+        approver_name = approver_data.get(const.DATA_USER_NAME)
+        if approver_name:
+            approver_name_to_id[approver_name] = approver_id
 
     # Map chore names to IDs
     for chore_id, chore_data in coordinator.chores_data.items():
@@ -1270,8 +1325,8 @@ async def setup_scenario(
     return SetupResult(
         config_entry=config_entry,
         coordinator=coordinator,
-        kid_ids=kid_name_to_id,
-        parent_ids=parent_name_to_id,
+        assignee_ids=assignee_name_to_id,
+        approver_ids=approver_name_to_id,
         chore_ids=chore_name_to_id,
         badge_ids=badge_name_to_id,
         reward_ids=reward_name_to_id,
@@ -1291,20 +1346,20 @@ async def setup_scenario(
 async def setup_minimal_scenario(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
-    kid_name: str = "Zoë",
-    parent_name: str = "Mom",
+    assignee_name: str = "Zoë",
+    approver_name: str = "Mom",
     chore_name: str = "Clean Room",
     chore_points: float = 10.0,
 ) -> SetupResult:
-    """Set up a minimal scenario with 1 kid, 1 parent, 1 chore.
+    """Set up a minimal scenario with 1 assignee, 1 approver, 1 chore.
 
     This is a convenience wrapper around setup_scenario for simple test cases.
 
     Args:
         hass: Home Assistant instance
         mock_hass_users: Mock users dictionary from fixture
-        kid_name: Name for the kid (default: "Zoë")
-        parent_name: Name for the parent (default: "Mom")
+        assignee_name: Name for the assignee (default: "Zoë")
+        approver_name: Name for the approver (default: "Mom")
         chore_name: Name for the chore (default: "Clean Room")
         chore_points: Points for the chore (default: 10.0)
 
@@ -1315,12 +1370,12 @@ async def setup_minimal_scenario(
         hass,
         mock_hass_users,
         {
-            "kids": [{"name": kid_name, "ha_user": "kid1"}],
-            "parents": [{"name": parent_name, "ha_user": "parent1"}],
+            "assignees": [{"name": assignee_name, "ha_user": "assignee1"}],
+            "approvers": [{"name": approver_name, "ha_user": "approver1"}],
             "chores": [
                 {
                     "name": chore_name,
-                    "assigned_to": [kid_name],
+                    "assigned_to": [assignee_name],
                     "points": chore_points,
                 }
             ],
@@ -1328,42 +1383,43 @@ async def setup_minimal_scenario(
     )
 
 
-async def setup_multi_kid_scenario(
+async def setup_multi_assignee_scenario(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
-    kid_names: list[str] | None = None,
-    parent_name: str = "Mom",
+    assignee_names: list[str] | None = None,
+    approver_name: str = "Mom",
     shared_chore_name: str = "Shared Chore",
 ) -> SetupResult:
-    """Set up a scenario with multiple kids sharing chores.
+    """Set up a scenario with multiple assignees sharing chores.
 
     Args:
         hass: Home Assistant instance
         mock_hass_users: Mock users dictionary from fixture
-        kid_names: List of kid names (default: ["Zoë", "Max"])
-        parent_name: Name for the parent (default: "Mom")
+        assignee_names: List of assignee names (default: ["Zoë", "Max"])
+        approver_name: Name for the approver (default: "Mom")
         shared_chore_name: Name for the shared chore (default: "Shared Chore")
 
     Returns:
         SetupResult with created entities
     """
-    if kid_names is None:
-        kid_names = ["Zoë", "Max"]
+    if assignee_names is None:
+        assignee_names = ["Zoë", "Max"]
 
-    kids = [
-        {"name": name, "ha_user": f"kid{i + 1}"} for i, name in enumerate(kid_names)
+    assignees = [
+        {"name": name, "ha_user": f"assignee{i + 1}"}
+        for i, name in enumerate(assignee_names)
     ]
 
     return await setup_scenario(
         hass,
         mock_hass_users,
         {
-            "kids": kids,
-            "parents": [{"name": parent_name, "ha_user": "parent1"}],
+            "assignees": assignees,
+            "approvers": [{"name": approver_name, "ha_user": "approver1"}],
             "chores": [
                 {
                     "name": shared_chore_name,
-                    "assigned_to": kid_names,
+                    "assigned_to": assignee_names,
                     "points": 15.0,
                     "completion_criteria": "shared_all",
                 }
@@ -1380,7 +1436,7 @@ async def setup_multi_kid_scenario(
 def _validate_ha_user_fields(scenario: dict[str, Any]) -> None:
     """Validate that ha_user fields use standardized keys.
 
-    ha_user must match pattern: kid1, kid2, ..., parent1, parent2, ...
+    ha_user must match pattern: assignee1, assignee2, ..., approver1, approver2, ...
     These keys correspond to entries in the mock_hass_users fixture.
 
     The 'name' field can contain any Unicode characters - only ha_user is restricted.
@@ -1390,26 +1446,26 @@ def _validate_ha_user_fields(scenario: dict[str, Any]) -> None:
     """
     invalid_entries: list[str] = []
 
-    # Check kids
-    for kid in scenario.get("kids", []):
-        ha_user = kid.get("ha_user", "")
+    # Check assignees
+    for assignee in scenario.get("assignees", []):
+        ha_user = assignee.get("ha_user", "")
         if not _VALID_HA_USER_PATTERN.match(ha_user):
             invalid_entries.append(
-                f"Kid '{kid.get('name', 'unknown')}' has invalid ha_user: '{ha_user}'"
+                f"Assignee '{assignee.get('name', 'unknown')}' has invalid ha_user: '{ha_user}'"
             )
 
-    # Check parents
-    for parent in scenario.get("parents", []):
-        ha_user = parent.get("ha_user", "")
+    # Check approvers
+    for approver in scenario.get("approvers", []):
+        ha_user = approver.get("ha_user", "")
         if not _VALID_HA_USER_PATTERN.match(ha_user):
             invalid_entries.append(
-                f"Parent '{parent.get('name', 'unknown')}' has invalid ha_user: '{ha_user}'"
+                f"Approver '{approver.get('name', 'unknown')}' has invalid ha_user: '{ha_user}'"
             )
 
     if invalid_entries:
         error_msg = (
             "Scenario YAML has invalid ha_user values. "
-            "ha_user must use standardized keys like 'kid1', 'kid2', 'parent1', 'parent2' "
+            "ha_user must use standardized keys like 'assignee1', 'assignee2', 'approver1', 'approver2' "
             "(matching mock_hass_users fixture keys). "
             "The 'name' field can contain any characters.\n\n"
             "Invalid entries:\n" + "\n".join(f"  - {e}" for e in invalid_entries)
@@ -1428,14 +1484,14 @@ def _transform_yaml_to_scenario(yaml_data: dict[str, Any]) -> dict[str, Any]:
         system:
           points_label: "Star Points"
           points_icon: "mdi:star"
-        kids:
+        assignees:
           - name: "Zoë"
-            ha_user: "kid1"
+            ha_user: "assignee1"
             dashboard_language: "en"
-        parents:
+        approvers:
           - name: "Mom"
-            ha_user: "parent1"
-            kids: ["Zoë"]
+            ha_user: "approver1"
+            assignees: ["Zoë"]
         chores:
           - name: "Clean Room"
             assigned_to: ["Zoë"]
@@ -1443,8 +1499,8 @@ def _transform_yaml_to_scenario(yaml_data: dict[str, Any]) -> dict[str, Any]:
 
     setup_scenario format:
         points: {"label": "Star Points", "icon": "mdi:star"}
-        kids: [{"name": "Zoë", "ha_user": "kid1", ...}]
-        parents: [{"name": "Mom", "ha_user": "parent1", "kids": ["Zoë"]}]
+        assignees: [{"name": "Zoë", "ha_user": "assignee1", ...}]
+        approvers: [{"name": "Mom", "ha_user": "approver1", "assignees": ["Zoë"]}]
         chores: [{"name": "Clean Room", "assigned_to": ["Zoë"], "points": 10.0}]
 
     Args:
@@ -1463,15 +1519,15 @@ def _transform_yaml_to_scenario(yaml_data: dict[str, Any]) -> dict[str, Any]:
             "icon": system.get("points_icon", "mdi:star-outline"),
         }
 
-    # Kids: direct passthrough (keys already match)
-    kids = yaml_data.get("kids", [])
-    if kids:
-        scenario["kids"] = kids
+    # Assignees: direct passthrough (keys already match)
+    assignees = yaml_data.get("assignees", [])
+    if assignees:
+        scenario["assignees"] = assignees
 
-    # Parents: direct passthrough (keys already match)
-    parents = yaml_data.get("parents", [])
-    if parents:
-        scenario["parents"] = parents
+    # Approvers: direct passthrough (keys already match)
+    approvers = yaml_data.get("approvers", [])
+    if approvers:
+        scenario["approvers"] = approvers
 
     # Chores: direct passthrough (keys already match)
     chores = yaml_data.get("chores", [])
@@ -1519,7 +1575,7 @@ async def setup_from_yaml(
     mock_hass_users: dict[str, Any],
     yaml_path: str | Path,
 ) -> SetupResult:
-    """Set up a KidsChores scenario from a YAML file.
+    """Set up a ChoreOps scenario from a YAML file.
 
     This function loads a scenario definition from YAML and passes it to
     setup_scenario() for config flow navigation.
@@ -1540,7 +1596,7 @@ async def setup_from_yaml(
         )
 
         # Access created entities:
-        kid_id = result.kid_ids["Zoë"]
+        assignee_id = result.assignee_ids["Zoë"]
         chore_id = result.chore_ids["Feed the cåts"]
         coordinator = result.coordinator
 
@@ -1548,23 +1604,23 @@ async def setup_from_yaml(
         system:
           points_label: "Star Points"
           points_icon: "mdi:star"
-        kids:
+        assignees:
           - name: "Zoë"
-            ha_user: "kid1"  # Key in mock_hass_users fixture
-        parents:
+            ha_user: "assignee1"  # Key in mock_hass_users fixture
+        approvers:
           - name: "Mom"
-            ha_user: "parent1"  # Key in mock_hass_users fixture
-            kids: ["Zoë"]  # List of kid names to associate
+            ha_user: "approver1"  # Key in mock_hass_users fixture
+            assignees: ["Zoë"]  # List of assignee names to associate
         chores:
           - name: "Clean Room"
-            assigned_to: ["Zoë"]  # List of kid names
+            assigned_to: ["Zoë"]  # List of assignee names
             points: 10.0
             completion_criteria: "independent"  # or "shared_all", "shared_first"
     """
     # Resolve path
     path = Path(yaml_path)
     if not path.is_absolute():
-        # Relative paths are resolved from the kidschores-ha workspace root
+        # Relative paths are resolved from the assigneeschores-ha workspace root
         workspace_root = Path(__file__).parent.parent.parent
         path = workspace_root / path
 

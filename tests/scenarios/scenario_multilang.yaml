@@ -3,8 +3,8 @@
 # Multi-language setup for translation sensor testing.
 #
 # Contents:
-#   - 1 parent: Môm Astrid Stârblüm (English)
-#   - 2 kids: Zoë (English), Lila (Spanish) - Different languages!
+#   - 1 approver: Môm Astrid Stârblüm (English)
+#   - 2 assignees: Zoë (English), Lila (Spanish) - Different languages!
 #   - 5 chores: Basic mix for size validation
 #
 # Use case: Translation sensor architecture, multi-language support
@@ -15,26 +15,26 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-# Kids (2 kids - different languages)
-kids:
+# Assignees (2 assignees - different languages)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en" # English
     mobile_notify_service: ""
 
   - name: "Lila"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "es" # Spanish!
     mobile_notify_service: ""
 
-# Parents (1 parent)
-parents:
+# Approvers (1 approver)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Lila"]
+    ha_user: "approver1"
+    assignees: ["Zoë", "Lila"]
     mobile_notify_service: ""
 
-# Chores (5 chores - assigned to both kids)
+# Chores (5 chores - assigned to both assignees)
 chores:
   # Test: Basic daily chore (shared)
   - name: "Make bed"

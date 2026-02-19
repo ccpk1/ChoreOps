@@ -33,7 +33,7 @@ class InsufficientFundsError(Exception):
     """Raised when a withdrawal would result in negative balance.
 
     Attributes:
-        kid_id: The kid attempting the withdrawal
+        assignee_id: The assignee attempting the withdrawal
         current_balance: Current point balance
         requested_amount: Amount attempted to withdraw
         shortfall: How much more is needed (requested - current)
@@ -41,23 +41,23 @@ class InsufficientFundsError(Exception):
 
     def __init__(
         self,
-        kid_id: str,
+        assignee_id: str,
         current_balance: float,
         requested_amount: float,
     ) -> None:
         """Initialize InsufficientFundsError.
 
         Args:
-            kid_id: The kid attempting the withdrawal
+            assignee_id: The assignee attempting the withdrawal
             current_balance: Current point balance
             requested_amount: Amount attempted to withdraw
         """
-        self.kid_id = kid_id
+        self.assignee_id = assignee_id
         self.current_balance = current_balance
         self.requested_amount = requested_amount
         self.shortfall = requested_amount - current_balance
         super().__init__(
-            f"Insufficient funds for kid {kid_id}: "
+            f"Insufficient funds for assignee {assignee_id}: "
             f"balance={current_balance}, requested={requested_amount}, "
             f"shortfall={self.shortfall}"
         )
@@ -75,7 +75,7 @@ class EconomyEngine:
         - POINTS_SOURCE_REWARDS: Points spent on a reward (negative delta)
         - POINTS_SOURCE_PENALTIES: Points deducted as penalty
         - POINTS_SOURCE_BONUSES: Points added as bonus
-        - POINTS_SOURCE_MANUAL: Manual point adjustment by parent
+        - POINTS_SOURCE_MANUAL: Manual point adjustment by approver
         - POINTS_SOURCE_BADGES/ACHIEVEMENTS/CHALLENGES: Gamification rewards
 
     Reference IDs provide additional context (chore_id, reward_id, etc.).

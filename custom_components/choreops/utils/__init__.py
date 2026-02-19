@@ -1,5 +1,5 @@
 # File: utils/__init__.py
-"""Pure Python utilities for KidsChores.
+"""Pure Python utilities for ChoreOps.
 
 This module contains pure Python functions with ZERO Home Assistant dependencies.
 All functions here can be unit tested without Home Assistant mocking.

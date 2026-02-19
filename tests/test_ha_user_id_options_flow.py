@@ -1,6 +1,6 @@
 """Test HA User ID clearing functionality via options flow.
 
-Validates that users can properly clear HA user links for kids and parents
+Validates that users can properly clear HA user links for assignees and approvers
 through the options flow interface, following the established Stårblüm family patterns.
 """
 
@@ -8,39 +8,34 @@ from typing import Any
 from unittest.mock import patch
 
 from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.data_entry_flow import FlowResultType, InvalidData
 import pytest
 
+from custom_components.choreops import const
 from tests.helpers import (
-    # Kid form constants
-    CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE,
-    CFOF_KIDS_INPUT_HA_USER,
-    CFOF_KIDS_INPUT_KID_NAME,
-    CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE,
-    # Parent form constants
-    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-    CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
-    CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
-    CFOF_PARENTS_INPUT_HA_USER,
-    CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
-    CFOF_PARENTS_INPUT_NAME,
+    CFOF_APPROVERS_INPUT_HA_USER,
+    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+    CFOF_APPROVERS_INPUT_NAME,
+    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+    CFOF_USERS_INPUT_CAN_APPROVE,
+    # Approver form constants
+    CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    CFOF_USERS_INPUT_CAN_MANAGE,
+    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
     # Common constants
-    DATA_KID_HA_USER_ID,
-    DATA_PARENT_HA_USER_ID,
+    DATA_APPROVER_HA_USER_ID,
     OPTIONS_FLOW_ACTIONS_EDIT,
     OPTIONS_FLOW_INPUT_ENTITY_NAME,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
-    OPTIONS_FLOW_KIDS,
-    OPTIONS_FLOW_PARENTS,
-    OPTIONS_FLOW_STEP_EDIT_KID,
     OPTIONS_FLOW_STEP_INIT,
-    OPTIONS_FLOW_STEP_MANAGE_ENTITY,
-    OPTIONS_FLOW_STEP_SELECT_ENTITY,
+    OPTIONS_FLOW_USERS,
     SENTINEL_NO_SELECTION,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
+
+REMOVED_OPTIONS_FLOW_MENU_MANAGE_ASSIGNEE = "manage_assignee"
 
 
 @pytest.fixture
@@ -59,127 +54,59 @@ async def scenario_minimal(
 class TestHaUserIdClearing:
     """Test HA User ID clearing via options flow."""
 
-    async def test_kid_ha_user_id_can_be_cleared(
+    async def test_assignee_management_not_exposed_in_options_menu(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Test that assignee management route is not available in hard-fork options menu."""
+        config_entry = scenario_minimal.config_entry
+
+        # Step 1: Open options flow and verify init step
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        # Step 2: Attempt removed assignee management route and assert validation error
+        with pytest.raises(InvalidData):
+            await hass.config_entries.options.async_configure(
+                result.get("flow_id"),
+                user_input={
+                    OPTIONS_FLOW_INPUT_MENU_SELECTION: REMOVED_OPTIONS_FLOW_MENU_MANAGE_ASSIGNEE
+                },
+            )
+
+    async def test_approver_ha_user_id_can_be_cleared(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test that kid HA user ID can be set and then cleared through options flow."""
+        """Test that approver HA user ID can be set and then cleared through options flow."""
         config_entry = scenario_minimal.config_entry
-        kid_name = "Zoë"
-        kid_id = scenario_minimal.kid_ids[kid_name]
-
-        # Step 1: Navigate to kids management (init -> select entity type)
-        result = await hass.config_entries.options.async_init(config_entry.entry_id)
-        assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
-
-        result = await hass.config_entries.options.async_configure(
-            result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_KIDS},
-        )
-        assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_MANAGE_ENTITY
-
-        # Step 2: Select edit kid action (manage_entity -> select action)
-        result = await hass.config_entries.options.async_configure(
-            result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
-        )
-        assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_SELECT_ENTITY
-
-        # Step 3: Select the kid to edit by name (select_entity -> choose kid)
-        result = await hass.config_entries.options.async_configure(
-            result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: kid_name},
-        )
-        assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_KID
-
-        # Step 4: Set a HA user ID first - provide ALL required form fields
-        # Use a real HA user ID from the mock_hass_users fixture
-        test_ha_user = mock_hass_users["kid2"]  # Different user to avoid original
-        with patch(
-            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
-            return_value=["en"],
-        ):
-            result = await hass.config_entries.options.async_configure(
-                result.get("flow_id"),
-                user_input={
-                    CFOF_KIDS_INPUT_KID_NAME: "Zoë",
-                    CFOF_KIDS_INPUT_HA_USER: test_ha_user.id,  # Set a user ID
-                    CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: "en",
-                    CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                },
-            )
-        assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
-
-        # Verify user ID was set
         coordinator = config_entry.runtime_data
-        kid_data = coordinator.kids_data.get(kid_id, {})
-        assert kid_data.get(DATA_KID_HA_USER_ID) == test_ha_user.id
 
-        # Step 5: Edit again to clear the HA user ID
-        result = await hass.config_entries.options.async_configure(
-            result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_KIDS},
-        )
+        if not coordinator.approvers_data:
+            pytest.skip("Scenario has no user-role profiles to edit")
 
-        result = await hass.config_entries.options.async_configure(
-            result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
-        )
+        approver_candidates = [
+            (user_id, user_data)
+            for user_id, user_data in coordinator.approvers_data.items()
+            if user_data.get("can_approve", False) or user_data.get("can_manage", False)
+        ]
+        if not approver_candidates:
+            approver_candidates = list(coordinator.approvers_data.items())
+        assert approver_candidates, "Expected at least one editable managed user"
+        approver_id, approver_data = approver_candidates[0]
+        approver_name = str(approver_data.get(CFOF_APPROVERS_INPUT_NAME, ""))
 
-        result = await hass.config_entries.options.async_configure(
-            result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: kid_name},
-        )
+        assert approver_name
 
-        # Step 6: Submit with SENTINEL_NO_SELECTION (None option selected) - ALL required fields
-        with patch(
-            "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
-            return_value=["en"],
-        ):
-            result = await hass.config_entries.options.async_configure(
-                result.get("flow_id"),
-                user_input={
-                    CFOF_KIDS_INPUT_KID_NAME: "Zoë",
-                    CFOF_KIDS_INPUT_HA_USER: SENTINEL_NO_SELECTION,  # Clear the user ID
-                    CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: "en",
-                    CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                },
-            )
-        assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
-
-        # Step 7: Verify user ID was cleared
-        coordinator_after = config_entry.runtime_data
-        kid_data_after = coordinator_after.kids_data.get(kid_id, {})
-        ha_user_id_after = kid_data_after.get(DATA_KID_HA_USER_ID, "NOT_FOUND")
-
-        assert ha_user_id_after == "", (
-            f"Expected empty string, got '{ha_user_id_after}'"
-        )
-
-    async def test_parent_ha_user_id_can_be_cleared(
-        self,
-        hass: HomeAssistant,
-        scenario_minimal: SetupResult,
-        mock_hass_users: dict[str, Any],
-    ) -> None:
-        """Test that parent HA user ID can be set and then cleared through options flow."""
-        config_entry = scenario_minimal.config_entry
-        parent_name = "Môm Astrid Stârblüm"
-        parent_id = scenario_minimal.parent_ids[parent_name]
-
-        # Step 1: Navigate to parents management (init -> select entity type)
+        # Step 1: Navigate to approvers management (init -> select entity type)
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
         result = await hass.config_entries.options.async_configure(
             result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_PARENTS},
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
         )
 
         # Step 2: Select edit action
@@ -188,15 +115,20 @@ class TestHaUserIdClearing:
             user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
         )
 
-        # Step 3: Select the parent to edit by name
+        # Step 3: Select the approver to edit by name
         result = await hass.config_entries.options.async_configure(
             result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: parent_name},
+            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: approver_name},
         )
 
         # Step 4: Set a HA user ID first - provide ALL required form fields
         # Use a real HA user ID from the mock_hass_users fixture
-        test_ha_user = mock_hass_users["parent2"]  # Different user to avoid original
+        test_ha_user = mock_hass_users["approver2"]  # Different user to avoid original
+        associated_assignees = [
+            assignee_id
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
+            if assignee_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True)
+        ][:1]
         with patch(
             "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
@@ -204,25 +136,29 @@ class TestHaUserIdClearing:
             result = await hass.config_entries.options.async_configure(
                 result.get("flow_id"),
                 user_input={
-                    CFOF_PARENTS_INPUT_NAME: parent_name,
-                    CFOF_PARENTS_INPUT_HA_USER: test_ha_user.id,  # Set a user ID
-                    CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: [],
-                    CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: False,
-                    CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: False,
-                    CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: False,
+                    CFOF_APPROVERS_INPUT_NAME: approver_name,
+                    CFOF_APPROVERS_INPUT_HA_USER: test_ha_user.id,  # Set a user ID
+                    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
+                    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
+                    CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+                    CFOF_USERS_INPUT_CAN_APPROVE: True,
+                    CFOF_USERS_INPUT_CAN_MANAGE: False,
+                    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
+                    CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
                 },
             )
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
         # Verify user ID was set
         coordinator = config_entry.runtime_data
-        parent_data = coordinator.parents_data.get(parent_id, {})
-        assert parent_data.get(DATA_PARENT_HA_USER_ID) == test_ha_user.id
+        approver_data = coordinator.approvers_data.get(approver_id, {})
+        assert approver_data.get(DATA_APPROVER_HA_USER_ID) == test_ha_user.id
 
         # Step 5: Edit again to clear the HA user ID
         result = await hass.config_entries.options.async_configure(
             result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_PARENTS},
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
         )
 
         result = await hass.config_entries.options.async_configure(
@@ -232,7 +168,7 @@ class TestHaUserIdClearing:
 
         result = await hass.config_entries.options.async_configure(
             result.get("flow_id"),
-            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: parent_name},
+            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: approver_name},
         )
 
         # Step 6: Submit with SENTINEL_NO_SELECTION (None option selected) - ALL required fields
@@ -243,21 +179,106 @@ class TestHaUserIdClearing:
             result = await hass.config_entries.options.async_configure(
                 result.get("flow_id"),
                 user_input={
-                    CFOF_PARENTS_INPUT_NAME: parent_name,
-                    CFOF_PARENTS_INPUT_HA_USER: SENTINEL_NO_SELECTION,  # Clear the user ID
-                    CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: [],
-                    CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: False,
-                    CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: False,
-                    CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: False,
+                    CFOF_APPROVERS_INPUT_NAME: approver_name,
+                    CFOF_APPROVERS_INPUT_HA_USER: SENTINEL_NO_SELECTION,  # Clear the user ID
+                    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
+                    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
+                    CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+                    CFOF_USERS_INPUT_CAN_APPROVE: True,
+                    CFOF_USERS_INPUT_CAN_MANAGE: False,
+                    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
+                    CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
                 },
             )
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
         # Step 7: Verify user ID was cleared
         coordinator_after = config_entry.runtime_data
-        parent_data_after = coordinator_after.parents_data.get(parent_id, {})
-        ha_user_id_after = parent_data_after.get(DATA_PARENT_HA_USER_ID, "NOT_FOUND")
+        approver_data_after = coordinator_after.approvers_data.get(approver_id, {})
+        ha_user_id_after = approver_data_after.get(
+            DATA_APPROVER_HA_USER_ID, "NOT_FOUND"
+        )
 
         assert ha_user_id_after == "", (
             f"Expected empty string, got '{ha_user_id_after}'"
         )
+
+    async def test_edit_user_allows_reopen_with_empty_mobile_notify_service(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Editing a user with empty stored notification service should remain valid."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = config_entry.runtime_data
+
+        if not coordinator.approvers_data:
+            pytest.skip("Scenario has no user-role profiles to edit")
+
+        approver_id, approver_data = next(iter(coordinator.approvers_data.items()))
+        approver_name = str(approver_data.get(CFOF_APPROVERS_INPUT_NAME, ""))
+        assert approver_name
+
+        coordinator.user_manager.update_user(
+            approver_id,
+            {const.DATA_USER_MOBILE_NOTIFY_SERVICE: ""},
+            immediate_persist=True,
+        )
+
+        # Open edit form for the same user.
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: approver_name},
+        )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_EDIT_USER
+
+    async def test_edit_user_ignores_stale_associated_user_ids_from_migration(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Edit user form should load when stored associated_user_ids contains stale IDs."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = config_entry.runtime_data
+
+        if not coordinator.approvers_data:
+            pytest.skip("Scenario has no user-role profiles to edit")
+
+        approver_id, approver_data = next(iter(coordinator.approvers_data.items()))
+        approver_name = str(approver_data.get(CFOF_APPROVERS_INPUT_NAME, ""))
+        assert approver_name
+
+        coordinator.user_manager.update_user(
+            approver_id,
+            {const.DATA_USER_ASSOCIATED_USER_IDS: ["legacy-missing-user-id"]},
+            immediate_persist=True,
+        )
+
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: approver_name},
+        )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_EDIT_USER

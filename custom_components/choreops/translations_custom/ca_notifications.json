@@ -1,120 +1,120 @@
 {
-  "_comment_kid_section": "══════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "NOTIFICACIONS PER A NENS: To encoratjador, en segona persona i gamificat amb emojis. SENSE el prefix \"KidsChores:\".",
-  "_comment_kid_footer": "══════════════════════════════════════════════════════════════",
-  "chore_approved_kid": {
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "NOTIFICACIONS PER A NENS: To encoratjador, en segona persona i gamificat amb emojis. SENSE el prefix \"ChoreOps:\".",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "🎉 Tasques aprovades!",
     "message": "{chore_name} aprovat! Has guanyat {points} punts"
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Tasca retornada",
     "message": "{chore_name} necessita més feina."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Tasca pendent",
     "message": "{chore_name} està pendent! Completa-ho ara per guanyar {points} punts"
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Tasca caducada",
     "message": "{chore_name} ha caducat sense completar-se."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Recordatori de tasques domèstiques",
     "message": "{chore_name} s'ha de lliurar en {minutes} minuts! Val {points} punts"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Tasca pendent",
     "message": "{chore_name} ja ha de ser entregat! Completa-ho en {hours} hora(es) per guanyar {points} punts"
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 Recompensa aprovada!",
     "message": "{reward_name} aprovat!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "💭 Sol·licitud de recompensa retornada",
     "message": "{reward_name} no ha estat aprovat aquesta vegada."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "🥇 Insígnia guanyada!",
     "message": "Has guanyat la insígnia {badge_name} !"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "🏆 Assoliment aconseguit!",
     "message": "T'has guanyat {achievement_name}! Segueix amb la bona feina."
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 Repte completat!",
     "message": "Has completat {challenge_name}! Continua amb la bona feina."
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Penalització aplicada",
     "message": "{penalty_name}: S'han deduït {points} punts. Tornem a la normalitat!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ Bonificació aplicada!",
     "message": "{bonus_name}: Has guanyat {points} punts extra! Bona feina."
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Multiplicador actualitzat",
     "message": "El multiplicador de punts ha canviat de {old_multiplier}x a {new_multiplier}x"
   },
-  "_comment_parent_section": "══════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "NOTIFICACIONS ALS PARES: Informatives, en tercera persona, accionables. Format: '{kid_name}: Acció'. SENSE el prefix 'KidsChores:'.",
-  "_comment_parent_footer": "══════════════════════════════════════════════════════════════",
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Tasca reclamada",
-    "message": "{kid_name} ha reclamat {chore_name} i hi està treballant ara mateix"
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "NOTIFICACIONS ALS PARES: Informatives, en tercera persona, accionables. Format: '{assignee_name}: Acció'. SENSE el prefix 'ChoreOps:'.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Tasca reclamada",
+    "message": "{assignee_name} ha reclamat {chore_name} i hi està treballant ara mateix"
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Cal aprovació",
-    "message": "Recordatori: {chore_name} reclamat per {kid_name} està esperant la teva revisió"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Cal aprovació",
+    "message": "Recordatori: {chore_name} reclamat per {assignee_name} està esperant la teva revisió"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Tasca pendent",
-    "message": "La tasca {kid_name}de {chore_name} està endarrerida (vençuda: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Tasca pendent",
+    "message": "La tasca {assignee_name}de {chore_name} està endarrerida (vençuda: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} Pendent",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Pendent",
     "message": "{count} tasques pendents de revisió. Últimes: {latest_chore} (+{points} pts)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Sol·licitud de recompensa",
-    "message": "{kid_name} ha sol·licitat {reward_name} per a {points} punts"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Sol·licitud de recompensa",
+    "message": "{assignee_name} ha sol·licitat {reward_name} per a {points} punts"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Recompensa pendent",
-    "message": "Recordatori: {reward_name} sol·licitat per {kid_name} està esperant la vostra aprovació."
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Recompensa pendent",
+    "message": "Recordatori: {reward_name} sol·licitat per {assignee_name} està esperant la vostra aprovació."
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Insígnia guanyada",
-    "message": "{kid_name} ha guanyat la insígnia {badge_name} !"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Insígnia guanyada",
+    "message": "{assignee_name} ha guanyat la insígnia {badge_name} !"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Assoliment",
-    "message": "{kid_name} guanyat {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Assoliment",
+    "message": "{assignee_name} guanyat {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Repte superat",
-    "message": "{kid_name} completat {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Repte superat",
+    "message": "{assignee_name} completat {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Multiplicador actualitzat",
-    "message": "El multiplicador de punts de {kid_name}ha canviat de {old_multiplier}x a {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Multiplicador actualitzat",
+    "message": "El multiplicador de punts de {assignee_name}ha canviat de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════",
   "_comment_system_desc": "NOTIFICACIONS DEL SISTEMA/ADMINISTRADOR: Operacions de gestió de dades",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 KidsChores: Restabliment de dades",
+    "title": "🔄 ChoreOps: Restabliment de dades",
     "message": "Les dades del sistema s'han restablert"
   },
   "data_reset_global": {
     "title": "🔄 Tasques de la llar dels nens: Restabliment complet",
     "message": "Totes les dades del sistema s'han restablert als valors predeterminats"
   },
-  "data_reset_kid": {
-    "title": "🔄 KidsChores: Restabliment infantil",
-    "message": "Restabliment de dades per a {kid_name}"
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Restabliment infantil",
+    "message": "Restabliment de dades per a {assignee_name}"
   },
   "data_reset_item_type": {
     "title": "🔄 Tasques infantils: {item_type} Restablir",

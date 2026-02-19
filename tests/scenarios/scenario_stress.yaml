@@ -1,68 +1,68 @@
 system:
   points_label: Stress Points
   points_icon: mdi:star-circle
-kids:
+assignees:
   - name: Elias Thor
-    ha_user: kid1
+    ha_user: assignee1
     dashboard_language: en
   - name: Kejsarin Vol
-    ha_user: kid2
+    ha_user: assignee2
     dashboard_language: en
   - name: Marcos Cor
-    ha_user: kid3
+    ha_user: assignee3
     dashboard_language: en
   - name: Sophie And
-    ha_user: kid4
+    ha_user: assignee4
     dashboard_language: en
   - name: Yasin Mul
-    ha_user: kid5
+    ha_user: assignee5
     dashboard_language: en
   - name: Carlotta Sor
-    ha_user: kid6
+    ha_user: assignee6
     dashboard_language: en
   - name: Nicolas Pon
-    ha_user: kid7
+    ha_user: assignee7
     dashboard_language: en
   - name: Alexis Vor
-    ha_user: kid8
+    ha_user: assignee8
     dashboard_language: en
   - name: Emilien Bea
-    ha_user: kid9
+    ha_user: assignee9
     dashboard_language: en
   - name: Anastasia Pet
-    ha_user: kid10
+    ha_user: assignee10
     dashboard_language: en
   - name: Jurgen Hof
-    ha_user: kid11
+    ha_user: assignee11
     dashboard_language: en
   - name: Isabel Gar
-    ha_user: kid12
+    ha_user: assignee12
     dashboard_language: en
   - name: Bjorn Eri
-    ha_user: kid13
+    ha_user: assignee13
     dashboard_language: en
   - name: Francoise Du
-    ha_user: kid14
+    ha_user: assignee14
     dashboard_language: en
   - name: Viktoria Sm
-    ha_user: kid15
+    ha_user: assignee15
     dashboard_language: en
   - name: Liam Chen
-    ha_user: kid16
+    ha_user: assignee16
     dashboard_language: en
   - name: Maya Patel
-    ha_user: kid17
+    ha_user: assignee17
     dashboard_language: en
   - name: Oscar Berg
-    ha_user: kid18
+    ha_user: assignee18
     dashboard_language: en
   - name: Zara Khan
-    ha_user: kid19
+    ha_user: assignee19
     dashboard_language: en
-parents:
+approvers:
   - name: Mom Astrid
-    ha_user: parent1
-    kids:
+    ha_user: approver1
+    assignees:
       - Elias Thor
       - Kejsarin Vol
       - Marcos Cor
@@ -83,8 +83,8 @@ parents:
       - Oscar Berg
       - Zara Khan
   - name: Dad Leo
-    ha_user: parent2
-    kids:
+    ha_user: approver2
+    assignees:
       - Elias Thor
       - Kejsarin Vol
       - Marcos Cor
@@ -105,8 +105,8 @@ parents:
       - Oscar Berg
       - Zara Khan
   - name: Tante Ingrid
-    ha_user: parent3
-    kids:
+    ha_user: approver3
+    assignees:
       - Elias Thor
       - Kejsarin Vol
       - Marcos Cor
@@ -127,8 +127,8 @@ parents:
       - Oscar Berg
       - Zara Khan
   - name: Uncle Pierre
-    ha_user: parent4
-    kids:
+    ha_user: approver4
+    assignees:
       - Elias Thor
       - Kejsarin Vol
       - Marcos Cor
@@ -149,8 +149,8 @@ parents:
       - Oscar Berg
       - Zara Khan
   - name: Aunt Marie
-    ha_user: parent5
-    kids:
+    ha_user: approver5
+    assignees:
       - Elias Thor
       - Kejsarin Vol
       - Marcos Cor

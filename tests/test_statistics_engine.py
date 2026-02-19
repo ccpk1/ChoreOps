@@ -141,8 +141,8 @@ class TestRecordTransaction:
 
         The 'completed' metric tracks work completion by work date (claim time),
         separate from 'approved' which tracks approval date. This enables
-        parent-lag-proof statistics where kids get credit for the day they
-        did the work, not the day the parent approved it.
+        approver-lag-proof statistics where assignees get credit for the day they
+        did the work, not the day the approver approved it.
         """
         stats.record_transaction(
             sample_period_data,
@@ -161,18 +161,18 @@ class TestRecordTransaction:
     ) -> None:
         """Completed and approved metrics should track independently.
 
-        Scenario: Kid claims Monday, parent approves Wednesday.
+        Scenario: Assignee claims Monday, approver approves Wednesday.
         - completed +1 in Monday bucket (work date)
         - approved +1 in Wednesday bucket (approval date)
         """
-        # Record completed for Monday (when kid did the work)
+        # Record completed for Monday (when assignee did the work)
         stats.record_transaction(
             sample_period_data,
             increments={"completed": 1},
             reference_date=date(2026, 1, 19),  # Monday
         )
 
-        # Record approved for Wednesday (when parent approved)
+        # Record approved for Wednesday (when approver approved)
         stats.record_transaction(
             sample_period_data,
             increments={"approved": 1},

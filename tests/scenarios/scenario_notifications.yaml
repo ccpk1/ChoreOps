@@ -1,17 +1,17 @@
 # Scenario: Notification Testing
-# Purpose: Test notifications with different kid language preferences
+# Purpose: Test notifications with different assignee language preferences
 #
-# Kids:
+# Assignees:
 #   - Zoë (English language)
 #   - Max (Slovak language)
 #
-# Parents:
-#   - Mom (notifications enabled, associated with both kids)
+# Approvers:
+#   - Mom (notifications enabled, associated with both assignees)
 #
 # Chores:
 #   - Feed the cat (Zoë only, NOT auto-approve, notify_on_claim=true)
 #   - Clean room (Max only, NOT auto-approve, notify_on_claim=true)
-#   - Walk the dog (both kids, shared_first, notify_on_claim=true)
+#   - Walk the dog (both assignees, shared_first, notify_on_claim=true)
 #
 # NOTE: The test fixture registers mock notify services (notify.mobile_app_mom, etc.)
 # BEFORE running the config flow, so these service names are valid during setup.
@@ -20,20 +20,20 @@ system:
   points_label: "Stars"
   points_icon: "mdi:star"
 
-kids:
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "sk"
 
-parents:
+approvers:
   # Notifications enabled through config flow - mock services registered by fixture
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    associated_kids: ["Zoë", "Max!"]
+    ha_user: "approver1"
+    associated_assignees: ["Zoë", "Max!"]
     mobile_notify_service: "notify.mobile_app_mom_astrid_starblum"
 
 chores:

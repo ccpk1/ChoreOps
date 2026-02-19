@@ -13,8 +13,7 @@ name: Translation Sync
 on:
   push:
     branches:
-      - main
-      - release/v0.5.0-beta4
+      - xmain
     paths:
       - "custom_components/choreops/translations/en.json"
       - "custom_components/choreops/translations_custom/en_*.json"
