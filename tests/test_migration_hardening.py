@@ -14,6 +14,7 @@ All cascade, fallback, and schema-44 logic lives in migration_pre_v50.py
 import copy
 from datetime import UTC, datetime
 import json
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -106,6 +107,20 @@ def system_manager(hass: HomeAssistant, mock_coordinator):
     return SystemManager(hass, mock_coordinator)
 
 
+@pytest.fixture
+def migrate_payload_to_schema45_users() -> Any:
+    """Return helper that applies the real schema45 users-contract migration hook."""
+
+    async def _apply(payload: dict[str, Any]) -> dict[str, Any]:
+        coordinator = SimpleNamespace(_data=copy.deepcopy(payload))
+        await mp50.async_apply_schema45_user_contract(coordinator)
+        data = coordinator._data
+        assert isinstance(data, dict)
+        return data
+
+    return _apply
+
+
 # =============================================================================
 # PHASE 1: Schema Stamp Fix
 # =============================================================================
@@ -133,6 +148,26 @@ class TestSchemaStampFix:
             < const.SCHEMA_VERSION_STORAGE_ONLY
             < const.SCHEMA_VERSION_BETA4
         )
+
+    async def test_schema45_wrapper_promotes_legacy_kids_to_users(
+        self,
+        base_storage_data: dict[str, Any],
+        migrate_payload_to_schema45_users: Any,
+    ) -> None:
+        """Schema45 contract wrapper promotes legacy payload to users identity map."""
+        migrated_data = await migrate_payload_to_schema45_users(base_storage_data)
+
+        users = migrated_data.get(const.DATA_USERS)
+        assert isinstance(users, dict)
+        assert "kid-uuid-1" in users
+        assert const.DATA_KIDS not in migrated_data
+
+        alice = users["kid-uuid-1"]
+        assert alice[const.DATA_USER_CAN_APPROVE] is False
+        assert alice[const.DATA_USER_CAN_MANAGE] is False
+        assert alice[const.DATA_USER_CAN_BE_ASSIGNED] is True
+        assert alice[const.DATA_PARENT_ENABLE_CHORE_WORKFLOW] is True
+        assert alice[const.DATA_PARENT_ENABLE_GAMIFICATION] is True
 
 
 # =============================================================================

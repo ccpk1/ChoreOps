@@ -65,14 +65,14 @@ async def test_direct_storage_creates_one_parent_one_kid_one_chore(
     # Verify parent from storyline
     parents = coordinator.parents_data
     assert len(parents) >= 1
-    parent_id = scenario_minimal.parent_ids["Môm Astrid Stârblüm"]
+    parent_id = scenario_minimal.approver_ids["Môm Astrid Stârblüm"]
     assert parent_id in parents
     assert parents[parent_id]["name"] == "Môm Astrid Stârblüm"
 
     # Verify kid from storyline
     kids = coordinator.kids_data
     assert len(kids) >= 1
-    kid_id = scenario_minimal.kid_ids["Zoë"]
+    kid_id = scenario_minimal.assignee_ids["Zoë"]
     assert kid_id in kids
     assert kids[kid_id]["name"] == "Zoë"
 

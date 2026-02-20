@@ -48,9 +48,9 @@ async def test_toggle_show_legacy_entities_removes_immediately(
     config_entry = init_integration_with_legacy.config_entry
 
     # Find legacy entity for Zoë (from scenario_minimal.yaml)
-    # Entity ID pattern: sensor.zoe_kidschores_chores_completed_total
+    # Entity ID pattern: sensor.zoe_choreops_chores_completed_total
     # This is the KidChoreCompletionSensor from sensor_legacy.py
-    legacy_entity_id = "sensor.zoe_kidschores_chores_completed_total"
+    legacy_entity_id = "sensor.zoe_choreops_chores_completed_total"
 
     # Verify legacy entity exists with show_legacy_entities=True
     entity_before = entity_registry.async_get(legacy_entity_id)

@@ -38,6 +38,11 @@ LEGACY_DOMAIN: Final = "kidschores"
 DOMAIN_ALIASES: Final[tuple[str, str]] = (DOMAIN, LEGACY_DOMAIN)
 LOGGER: Final = logging.getLogger(__package__)
 
+# Device metadata labels
+DEVICE_MANUFACTURER: Final = CHOREOPS_TITLE
+DEVICE_MODEL_USER_PROFILE: Final = "User Profile"
+DEVICE_MODEL_SYSTEM_CONTROLS: Final = "System Controls"
+
 # Debug Mode (for development - enables invariant assertions)
 DEBUG_PIPELINE_GUARDS: Final = False  # Set True to enable guard rail assertions
 
@@ -496,8 +501,8 @@ CONFIG_FLOW_STEP_DATA_RECOVERY: Final = "data_recovery"
 CONFIG_FLOW_STEP_INTRO: Final = "intro"
 CONFIG_FLOW_STEP_KID_COUNT: Final = "kid_count"
 CONFIG_FLOW_STEP_KIDS: Final = "kids"
-CONFIG_FLOW_STEP_PARENT_COUNT: Final = "parent_count"
-CONFIG_FLOW_STEP_PARENTS: Final = "parents"
+CONFIG_FLOW_STEP_USER_COUNT: Final = "user_count"
+CONFIG_FLOW_STEP_USERS: Final = "users"
 CONFIG_FLOW_STEP_PENALTY_COUNT: Final = "penalty_count"
 CONFIG_FLOW_STEP_PENALTIES: Final = "penalties"
 CONFIG_FLOW_STEP_POINTS: Final = "points_label"
@@ -516,7 +521,7 @@ OPTIONS_FLOW_DIC_BONUS: Final = "bonus"
 OPTIONS_FLOW_DIC_CHALLENGE: Final = "challenge"
 OPTIONS_FLOW_DIC_CHORE: Final = "chore"
 OPTIONS_FLOW_DIC_KID: Final = "kid"
-OPTIONS_FLOW_DIC_PARENT: Final = "parent"
+OPTIONS_FLOW_DIC_USER: Final = "user"
 OPTIONS_FLOW_DIC_PENALTY: Final = "penalty"
 OPTIONS_FLOW_DIC_REWARD: Final = "reward"
 
@@ -539,7 +544,7 @@ OPTIONS_FLOW_DASHBOARD_GENERATOR: Final = "dashboard_generator"
 OPTIONS_FLOW_FINISH: Final = "done"
 OPTIONS_FLOW_GENERAL_OPTIONS: Final = "general_options"
 OPTIONS_FLOW_KIDS: Final = "manage_kid"
-OPTIONS_FLOW_PARENTS: Final = "manage_parent"
+OPTIONS_FLOW_USERS: Final = "manage_user"
 OPTIONS_FLOW_PENALTIES: Final = "manage_penalty"
 OPTIONS_FLOW_POINTS: Final = "manage_points"
 OPTIONS_FLOW_REWARDS: Final = "manage_reward"
@@ -582,7 +587,7 @@ OPTIONS_FLOW_STEP_ADD_BONUS: Final = "add_bonus"
 OPTIONS_FLOW_STEP_ADD_CHALLENGE: Final = "add_challenge"
 OPTIONS_FLOW_STEP_ADD_CHORE: Final = "add_chore"
 OPTIONS_FLOW_STEP_ADD_KID: Final = "add_kid"
-OPTIONS_FLOW_STEP_ADD_PARENT: Final = "add_parent"
+OPTIONS_FLOW_STEP_ADD_USER: Final = "add_user"
 OPTIONS_FLOW_STEP_ADD_PENALTY: Final = "add_penalty"
 OPTIONS_FLOW_STEP_ADD_REWARD: Final = "add_reward"
 
@@ -602,7 +607,7 @@ OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS: Final = (
 )
 OPTIONS_FLOW_STEP_EDIT_KID: Final = "edit_kid"
 OPTIONS_FLOW_STEP_EDIT_KID_SHADOW: Final = "edit_kid_shadow"
-OPTIONS_FLOW_STEP_EDIT_PARENT: Final = "edit_parent"
+OPTIONS_FLOW_STEP_EDIT_USER: Final = "edit_user"
 OPTIONS_FLOW_STEP_EDIT_PENALTY: Final = "edit_penalty"
 OPTIONS_FLOW_STEP_EDIT_REWARD: Final = "edit_reward"
 
@@ -612,7 +617,7 @@ OPTIONS_FLOW_STEP_DELETE_BONUS: Final = "delete_bonus"
 OPTIONS_FLOW_STEP_DELETE_CHALLENGE: Final = "delete_challenge"
 OPTIONS_FLOW_STEP_DELETE_CHORE: Final = "delete_chore"
 OPTIONS_FLOW_STEP_DELETE_KID: Final = "delete_kid"
-OPTIONS_FLOW_STEP_DELETE_PARENT: Final = "delete_parent"
+OPTIONS_FLOW_STEP_DELETE_USER: Final = "delete_user"
 OPTIONS_FLOW_STEP_DELETE_PENALTY: Final = "delete_penalty"
 OPTIONS_FLOW_STEP_DELETE_REWARD: Final = "delete_reward"
 
@@ -660,6 +665,8 @@ CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
 CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
 CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: Final = "enable_gamification"
 CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+CFOF_PARENTS_INPUT_CAN_APPROVE: Final = "can_approve"
+CFOF_PARENTS_INPUT_CAN_MANAGE: Final = "can_manage"
 
 # CHORES
 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -812,6 +819,7 @@ OPTIONS_FLOW_PLACEHOLDER_CHORE_NAME: Final = "chore_name"
 OPTIONS_FLOW_PLACEHOLDER_ENTITY_TYPE: Final = "entity_type"
 OPTIONS_FLOW_PLACEHOLDER_KID_NAME: Final = "kid_name"
 OPTIONS_FLOW_PLACEHOLDER_PARENT_NAME: Final = "parent_name"
+OPTIONS_FLOW_PLACEHOLDER_USER_NAME: Final = "user_name"
 OPTIONS_FLOW_PLACEHOLDER_PENALTY_NAME: Final = "penalty_name"
 OPTIONS_FLOW_PLACEHOLDER_REWARD_NAME: Final = "reward_name"
 OPTIONS_FLOW_PLACEHOLDER_SUMMARY: Final = "summary"
@@ -1279,7 +1287,6 @@ DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
 # Legacy payload compatibility window (Phase 1 contract)
 COMPAT_PAYLOAD_KEY_KID_ID: Final = "kid_id"
 COMPAT_PAYLOAD_KEY_USER_ID: Final = "user_id"
-COMPAT_LEGACY_ID_WINDOW_END_SCHEMA: Final = 46
 
 # ——————————————————————————————————————————————
 # Custom Translation Settings (Dashboard & Notifications)
@@ -2985,14 +2992,19 @@ DATA_RESET_ITEM_TYPE_PENALTIES: Final = "penalties"
 DATA_RESET_ITEM_TYPE_BONUSES: Final = "bonuses"
 #
 # Pattern: SERVICE_FIELD_{ENTITY}_{FIELD} for entity-specific fields
-#          SERVICE_FIELD_{FIELD} for cross-entity fields (kid_name, parent_name)
+#          SERVICE_FIELD_{FIELD} for cross-entity actor fields
 # ------------------------------------------------------------------------------------------------
 
 # Cross-entity service fields (used by multiple services)
-SERVICE_FIELD_KID_NAME: Final = "kid_name"
-SERVICE_FIELD_KID_ID: Final = "kid_id"
-SERVICE_FIELD_PARENT_NAME: Final = "parent_name"
+SERVICE_FIELD_ASSIGNEE_NAME: Final = "assignee_name"
+SERVICE_FIELD_ASSIGNEE_ID: Final = "assignee_id"
+SERVICE_FIELD_APPROVER_NAME: Final = "approver_name"
 SERVICE_FIELD_ACTION: Final = "action"
+
+# Transitional symbol aliases (remove after constant-rename phase)
+SERVICE_FIELD_KID_NAME: Final = SERVICE_FIELD_ASSIGNEE_NAME
+SERVICE_FIELD_KID_ID: Final = SERVICE_FIELD_ASSIGNEE_ID
+SERVICE_FIELD_PARENT_NAME: Final = SERVICE_FIELD_APPROVER_NAME
 
 # Chore service fields (workflow)
 SERVICE_FIELD_CHORE_NAME: Final = "chore_name"
@@ -3098,9 +3110,12 @@ FIELD_CHORE_ID = SERVICE_FIELD_CHORE_ID
 FIELD_CHORE_NAME = SERVICE_FIELD_CHORE_NAME
 FIELD_COST_OVERRIDE = SERVICE_FIELD_REWARD_COST_OVERRIDE
 FIELD_DUE_DATE = SERVICE_FIELD_CHORE_DUE_DATE
-FIELD_KID_ID = SERVICE_FIELD_KID_ID
-FIELD_KID_NAME = SERVICE_FIELD_KID_NAME
-FIELD_PARENT_NAME = SERVICE_FIELD_PARENT_NAME
+FIELD_ASSIGNEE_ID = SERVICE_FIELD_ASSIGNEE_ID
+FIELD_ASSIGNEE_NAME = SERVICE_FIELD_ASSIGNEE_NAME
+FIELD_APPROVER_NAME = SERVICE_FIELD_APPROVER_NAME
+FIELD_KID_ID = SERVICE_FIELD_ASSIGNEE_ID
+FIELD_KID_NAME = SERVICE_FIELD_ASSIGNEE_NAME
+FIELD_PARENT_NAME = SERVICE_FIELD_APPROVER_NAME
 FIELD_PENALTY_NAME = SERVICE_FIELD_PENALTY_NAME
 FIELD_POINTS_AWARDED = SERVICE_FIELD_CHORE_POINTS_AWARDED
 FIELD_REWARD_NAME = SERVICE_FIELD_REWARD_NAME
@@ -3439,6 +3454,12 @@ TRANS_KEY_CFOF_MISSING_REQUIRED: Final = "missing_required"  # Required field mi
 TRANS_KEY_CFOF_INVALID_FORMAT: Final = "invalid_format"  # Format validation failure
 TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT: Final = (
     "chore_options_require_assignment"  # Workflow/gamification need chore_assignment
+)
+TRANS_KEY_CFOF_USAGE_REQUIRES_ASSIGNMENT_OR_APPROVAL: Final = (
+    "usage_requires_assignment_or_approval"
+)
+TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS: Final = (
+    "approval_requires_associated_users"
 )
 
 
@@ -3975,11 +3996,13 @@ NOTIFY_ACTION = "action"
 NOTIFY_ACTIONS = "actions"
 NOTIFY_CREATE = "create"
 NOTIFY_DATA = "data"
-NOTIFY_DEFAULT_PARENT_NAME = "Parent"
+NOTIFY_DEFAULT_APPROVER_NAME = "Approver"
+NOTIFY_DEFAULT_PARENT_NAME = NOTIFY_DEFAULT_APPROVER_NAME
 NOTIFY_DOMAIN = "notify"
 NOTIFY_MESSAGE = "message"
 NOTIFY_NOTIFICATION_ID = "notification_id"
-NOTIFY_PARENT_NAME = "parent_name"
+NOTIFY_APPROVER_NAME = "approver_name"
+NOTIFY_PARENT_NAME = NOTIFY_APPROVER_NAME
 NOTIFY_PERSISTENT_NOTIFICATION = "persistent_notification"
 NOTIFY_TITLE = "title"
 

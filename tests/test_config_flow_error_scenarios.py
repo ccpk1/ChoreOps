@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
+from custom_components.choreops.const import CHOREOPS_TITLE
 from tests.helpers import DOMAIN
 
 
@@ -133,7 +134,7 @@ async def test_paste_json_flow_happy_path(
             result["flow_id"], user_input={"json_data": json.dumps(valid_data)}
         )
         assert result.get("type") == FlowResultType.CREATE_ENTRY
-        assert result.get("title") == "KidsChores"
+        assert result.get("title") == CHOREOPS_TITLE
 
 
 async def test_paste_json_invalid_json(
@@ -304,4 +305,4 @@ async def test_diagnostic_format_handling(
             result["flow_id"], user_input={"json_data": json.dumps(diagnostic_data)}
         )
         assert result.get("type") == FlowResultType.CREATE_ENTRY
-        assert result.get("title") == "KidsChores"
+        assert result.get("title") == CHOREOPS_TITLE

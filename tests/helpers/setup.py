@@ -12,7 +12,7 @@ Example:
         "parents": [{"name": "Mom", "ha_user": "parent1", "kids": ["Zoë"]}],
         "chores": [{"name": "Clean Room", "assigned_to": ["Zoë"], "points": 10}],
     })
-    # Access: result.config_entry, result.coordinator, result.kid_ids["Zoë"]
+    # Access: result.config_entry, result.coordinator, result.assignee_ids["Zoë"]
 
 YAML-based setup:
     # Load scenario from YAML file:
@@ -57,8 +57,10 @@ class SetupResult:
     Attributes:
         config_entry: The created ConfigEntry
         coordinator: The KidsChoresCoordinator instance
-        kid_ids: Map of kid names to their internal UUIDs
-        parent_ids: Map of parent names to their internal UUIDs
+        assignee_ids: Canonical map of assignee display names to internal UUIDs
+        approver_ids: Canonical map of approver display names to internal UUIDs
+        kid_ids: Compatibility alias for assignee_ids
+        parent_ids: Compatibility alias for approver_ids
         chore_ids: Map of chore names to their internal UUIDs
         final_result: The final config flow result
     """
@@ -76,6 +78,16 @@ class SetupResult:
     challenge_ids: dict[str, str] = field(default_factory=dict)
     final_result: ConfigFlowResult | None = None
 
+    @property
+    def assignee_ids(self) -> dict[str, str]:
+        """Return assignee display name to internal ID mapping."""
+        return self.kid_ids
+
+    @property
+    def approver_ids(self) -> dict[str, str]:
+        """Return approver display name to internal ID mapping."""
+        return self.parent_ids
+
 
 # =============================================================================
 # INTERNAL HELPERS
@@ -87,6 +99,32 @@ def _require_data_schema(result: ConfigFlowResult) -> Any:
     data_schema = result.get("data_schema")
     assert data_schema is not None, f"data_schema missing from result: {result}"
     return data_schema
+
+
+def _find_field_in_schema(data_schema: Any, field_key: str) -> Any | None:
+    """Find a schema field in flat or sectioned voluptuous schemas."""
+
+    def _match_field(schema_map: Any, key: str) -> Any | None:
+        for schema_key, schema_value in schema_map.items():
+            normalized_key = getattr(schema_key, "schema", schema_key)
+            if normalized_key == key:
+                return schema_value
+        return None
+
+    field = _match_field(data_schema.schema, field_key)
+    if field is not None:
+        return field
+
+    for section_obj in data_schema.schema.values():
+        nested_schema = getattr(section_obj, "schema", None)
+        nested_map = getattr(nested_schema, "schema", None)
+        if nested_map is None:
+            continue
+        field = _match_field(nested_map, field_key)
+        if field is not None:
+            return field
+
+    return None
 
 
 def _extract_kid_ids_from_schema(result: ConfigFlowResult) -> list[str]:
@@ -102,8 +140,9 @@ def _extract_kid_ids_from_schema(result: ConfigFlowResult) -> list[str]:
         List of kid internal UUIDs available in the form
     """
     data_schema = _require_data_schema(result)
-    associated_kids_field = data_schema.schema.get(
-        const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS
+    associated_kids_field = _find_field_in_schema(
+        data_schema,
+        const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
     )
     assert associated_kids_field is not None, (
         "associated_kids field not found in schema"
@@ -126,7 +165,10 @@ def _extract_kid_names_from_schema(result: ConfigFlowResult) -> list[str]:
         List of kid names available in the form
     """
     data_schema = _require_data_schema(result)
-    assigned_kids_field = data_schema.schema.get(const.CFOF_CHORES_INPUT_ASSIGNED_KIDS)
+    assigned_kids_field = _find_field_in_schema(
+        data_schema,
+        const.CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    )
     assert assigned_kids_field is not None, "assigned_kids field not found in schema"
 
     kid_options = assigned_kids_field.config["options"]
@@ -264,6 +306,12 @@ async def _configure_parent_step(
             const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: parent_config.get(
                 "enable_gamification", False
             ),
+            # Hard-fork role model: scenario "parents" represent approver/admin users
+            # unless explicitly overridden per scenario.
+            const.CFOF_PARENTS_INPUT_CAN_APPROVE: parent_config.get(
+                "can_approve", True
+            ),
+            const.CFOF_PARENTS_INPUT_CAN_MANAGE: parent_config.get("can_manage", True),
         },
     )
 
@@ -924,12 +972,12 @@ async def setup_scenario(
                 assert result.get("step_id") == const.CONFIG_FLOW_STEP_KIDS
             else:
                 # Last kid - should advance to parent count
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENT_COUNT
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Note: kid IDs will be extracted after we enter the PARENTS step
         # (they're embedded in the associated_kids selector, not available here)
     else:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_USER_COUNT
 
     # -----------------------------------------------------------------
     # Configure parents
@@ -941,7 +989,7 @@ async def setup_scenario(
     )
 
     if parent_count > 0:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENTS
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
 
         # NOW extract kid IDs from the PARENTS step schema
         # (only available when on actual parents form, not parent_count form)
@@ -958,7 +1006,7 @@ async def setup_scenario(
 
             if i < parent_count - 1:
                 # More parents to configure
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_PARENTS
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
             else:
                 # Last parent - should advance to chore count
                 assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT

@@ -924,6 +924,8 @@ def validate_parent_data(
         2. Name not duplicate among parents
         3. Name not conflict with kids (only when assignment is enabled)
         4. Workflow/gamification require assignment enablement
+        5. At least one of assignment or approval must be enabled
+        6. Approval requires non-empty associated users list
     """
     errors: dict[str, str] = {}
 
@@ -962,12 +964,43 @@ def validate_parent_data(
                 )
                 return errors
 
+    has_usage_context = any(
+        key in data
+        for key in (
+            const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
+            const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
+            const.DATA_PARENT_ENABLE_GAMIFICATION,
+            const.DATA_USER_CAN_APPROVE,
+            const.DATA_PARENT_ASSOCIATED_KIDS,
+        )
+    )
+
+    if not has_usage_context:
+        return errors
+
     # === 4. Workflow/gamification require assignment enablement ===
     enable_chore_workflow = data.get(const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False)
     enable_gamification = data.get(const.DATA_PARENT_ENABLE_GAMIFICATION, False)
     if (enable_chore_workflow or enable_gamification) and not assignment_enabled:
         errors[const.CFOP_ERROR_CHORE_OPTIONS] = (
             const.TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT
+        )
+        return errors
+
+    associated_users = data.get(const.DATA_PARENT_ASSOCIATED_KIDS, [])
+
+    # === 5. At least one of assignment or approval must be enabled ===
+    can_approve = bool(data.get(const.DATA_USER_CAN_APPROVE, False))
+    if not assignment_enabled and not can_approve:
+        errors[const.CFOP_ERROR_CHORE_OPTIONS] = (
+            const.TRANS_KEY_CFOF_USAGE_REQUIRES_ASSIGNMENT_OR_APPROVAL
+        )
+        return errors
+
+    # === 6. Approval requires non-empty associated users list ===
+    if can_approve and not associated_users:
+        errors[const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS] = (
+            const.TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS
         )
         return errors
 
@@ -1056,56 +1089,73 @@ def build_parent(
     if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         notify_service = ""
 
+    associated_kids = list(
+        get_field(
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
+            const.DATA_PARENT_ASSOCIATED_KIDS,
+            [],
+        )
+    )
+
     # --- Build complete parent structure ---
-    return ParentData(
-        internal_id=internal_id,
-        name=name,
-        ha_user_id=ha_user_id,
-        associated_kids=list(
-            get_field(
-                const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-                const.DATA_PARENT_ASSOCIATED_KIDS,
-                [],
-            )
-        ),
-        mobile_notify_service=notify_service,
-        use_persistent_notifications=(
+    parent_data: dict[str, Any] = {
+        const.DATA_PARENT_INTERNAL_ID: internal_id,
+        const.DATA_PARENT_NAME: name,
+        const.DATA_PARENT_HA_USER_ID: ha_user_id,
+        const.DATA_PARENT_ASSOCIATED_KIDS: associated_kids,
+        const.DATA_PARENT_MOBILE_NOTIFY_SERVICE: notify_service,
+        const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS: (
             existing.get(const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
             else False
         ),
-        dashboard_language=str(
+        const.DATA_PARENT_DASHBOARD_LANGUAGE: str(
             get_field(
                 const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE,
                 const.DATA_PARENT_DASHBOARD_LANGUAGE,
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
-        allow_chore_assignment=bool(
+        const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: bool(
             get_field(
                 const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
                 const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
                 False,
             )
         ),
-        enable_chore_workflow=bool(
+        const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: bool(
             get_field(
                 const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
                 const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
                 False,
             )
         ),
-        enable_gamification=bool(
+        const.DATA_PARENT_ENABLE_GAMIFICATION: bool(
             get_field(
                 const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
                 const.DATA_PARENT_ENABLE_GAMIFICATION,
                 False,
             )
         ),
-        linked_shadow_kid_id=(
-            existing.get(const.DATA_PARENT_LINKED_PROFILE_ID) if existing else None
+        const.DATA_USER_CAN_APPROVE: bool(
+            get_field(
+                const.CFOF_PARENTS_INPUT_CAN_APPROVE,
+                const.DATA_USER_CAN_APPROVE,
+                False,
+            )
         ),
+        const.DATA_USER_CAN_MANAGE: bool(
+            get_field(
+                const.CFOF_PARENTS_INPUT_CAN_MANAGE,
+                const.DATA_USER_CAN_MANAGE,
+                False,
+            )
+        ),
+    }
+    parent_data[const.DATA_PARENT_LINKED_PROFILE_ID] = (
+        existing.get(const.DATA_PARENT_LINKED_PROFILE_ID) if existing else None
     )
+    return cast("ParentData", parent_data)
 
 
 # ==============================================================================

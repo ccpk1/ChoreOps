@@ -27,16 +27,16 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
+from homeassistant.core import Context
+from homeassistant.exceptions import HomeAssistantError
 import pytest
 
 from custom_components.choreops import const
 from tests.helpers import (
     ACTION_APPROVE_CHORE,
     DATA_KID_DASHBOARD_LANGUAGE,
-    DATA_KIDS,
     DATA_PARENT_DASHBOARD_LANGUAGE,
     DATA_PARENT_MOBILE_NOTIFY_SERVICE,
-    DATA_PARENTS,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -150,12 +150,32 @@ def enable_parent_notifications(
         parent_id: Internal ID of the parent to enable notifications for
     """
     # Set a mock notify service (presence of service enables notifications)
-    coordinator._data[DATA_PARENTS][parent_id][DATA_PARENT_MOBILE_NOTIFY_SERVICE] = (
+    coordinator.parents_data[parent_id][DATA_PARENT_MOBILE_NOTIFY_SERVICE] = (
         "notify.notify"
     )
 
     # Persist changes
     coordinator._persist()
+
+
+def set_ha_user_capabilities(
+    coordinator: KidsChoresDataCoordinator,
+    ha_user_id: str,
+    *,
+    can_approve: bool,
+    can_manage: bool,
+) -> None:
+    """Set capability flags for a user record linked to a Home Assistant user ID."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for user_data_raw in users.values():
+        if not isinstance(user_data_raw, dict):
+            continue
+        if user_data_raw.get(const.DATA_USER_HA_USER_ID) == ha_user_id:
+            user_data_raw[const.DATA_USER_CAN_APPROVE] = can_approve
+            user_data_raw[const.DATA_USER_CAN_MANAGE] = can_manage
+            return
+
+    raise AssertionError(f"No user record found for HA user ID: {ha_user_id}")
 
 
 class NotificationCapture:
@@ -226,7 +246,7 @@ class TestChoreClaimNotifications:
         parent_id = scenario_notifications.parent_ids["Môm Astrid Stârblüm"]
 
         # Get parent data from coordinator
-        parent_data = coordinator._data[DATA_PARENTS][parent_id]
+        parent_data = coordinator.parents_data[parent_id]
 
         # Verify notifications were enabled through config flow (via mobile service)
         assert parent_data.get(DATA_PARENT_MOBILE_NOTIFY_SERVICE), (
@@ -299,6 +319,48 @@ class TestChoreClaimNotifications:
             f"Expected at least 2 action buttons, got: {action_titles}"
         )
 
+
+class TestAuthorizationAcceptance:
+    """Test authorization outcomes for notification-related chore approvals."""
+
+    @pytest.mark.asyncio
+    async def test_non_approver_denied_approve_from_notification_flow(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Assigned/linked user without can_approve is denied approve service."""
+        coordinator = scenario_notifications.coordinator
+        kid_id = scenario_notifications.kid_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+
+        actor_user = mock_hass_users["kid2"]
+        set_ha_user_capabilities(
+            coordinator,
+            actor_user.id,
+            can_approve=False,
+            can_manage=False,
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPROVE_CHORE,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Max!",
+                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_CHORE_NAME: "Feed the cat",
+                },
+                blocking=True,
+                context=Context(user_id=actor_user.id),
+            )
+
     @pytest.mark.asyncio
     async def test_auto_approve_chore_no_parent_notification(
         self,
@@ -349,7 +411,7 @@ class TestNotificationLanguage:
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Verify kid is configured for English
-        kid_lang = coordinator._data[DATA_KIDS][kid_id].get(DATA_KID_DASHBOARD_LANGUAGE)
+        kid_lang = coordinator.kids_data[kid_id].get(DATA_KID_DASHBOARD_LANGUAGE)
         assert kid_lang == "en", f"Expected kid language 'en', got '{kid_lang}'"
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -387,12 +449,12 @@ class TestNotificationLanguage:
         chore_id = scenario_notifications.chore_ids["Clean room"]
 
         # Verify kid is configured for Slovak
-        kid_lang = coordinator._data[DATA_KIDS][kid_id].get(DATA_KID_DASHBOARD_LANGUAGE)
+        kid_lang = coordinator.kids_data[kid_id].get(DATA_KID_DASHBOARD_LANGUAGE)
         assert kid_lang == "sk", f"Expected kid language 'sk', got '{kid_lang}'"
 
         # Verify parent is configured for English
-        parent_id = list(coordinator._data[DATA_PARENTS].keys())[0]  # Get first parent
-        parent_lang = coordinator._data[DATA_PARENTS][parent_id].get(
+        parent_id = next(iter(coordinator.parents_data.keys()))
+        parent_lang = coordinator.parents_data[parent_id].get(
             DATA_PARENT_DASHBOARD_LANGUAGE
         )
         assert parent_lang == "en", (
@@ -442,8 +504,8 @@ class TestNotificationLanguage:
         chore_id = scenario_notifications.chore_ids["Clean room"]
 
         # Verify parent is configured for English (same as system in this case)
-        parent_id = list(coordinator._data[DATA_PARENTS].keys())[0]  # Get first parent
-        parent_lang = coordinator._data[DATA_PARENTS][parent_id].get(
+        parent_id = next(iter(coordinator.parents_data.keys()))
+        parent_lang = coordinator.parents_data[parent_id].get(
             DATA_PARENT_DASHBOARD_LANGUAGE
         )
         assert parent_lang == "en", (
@@ -1230,12 +1292,13 @@ class TestConcurrentNotifications:
 
         # Add a second parent with notifications enabled
         parent_id_2 = "test_parent_2"
-        coordinator._data[DATA_PARENTS][parent_id_2] = {
+        coordinator._data[const.DATA_USERS][parent_id_2] = {
             "name": "Test Dad",
-            "associated_kids": [kid_id],
+            const.DATA_PARENT_ASSOCIATED_KIDS: [kid_id],
             "enable_notifications": True,
-            "mobile_notify_service": "notify.mobile_app_dad",
-            "dashboard_language": "en",
+            const.DATA_PARENT_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_dad",
+            const.DATA_PARENT_DASHBOARD_LANGUAGE: "en",
+            const.DATA_USER_CAN_APPROVE: True,
         }
 
         # Track successful notifications

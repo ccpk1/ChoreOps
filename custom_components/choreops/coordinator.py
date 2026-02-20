@@ -368,6 +368,51 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         }
 
     @property
+    def users_for_management(self) -> UsersCollection:
+        """Return records visible in the role-based Manage Users flow.
+
+        Inclusion contract:
+        - assignee-only users (`can_be_assigned=true`) are included
+        - approver-only users (`can_approve=true`, `can_be_assigned=false`) are included
+        - dual-role users are included
+        - linked-profile users are included
+
+        Phase 1 lock: this list is authoritative for user-management UX and must
+        not be narrowed to a legacy parent-only bucket.
+        """
+        canonical_users = self._data.get(const.DATA_USERS)
+        if isinstance(canonical_users, dict):
+            merged_users: dict[str, object] = {
+                user_id: dict(user_data)
+                for user_id, user_data in canonical_users.items()
+                if isinstance(user_data, dict)
+            }
+        else:
+            merged_users = {}
+
+            legacy_kids = self._data.get(const.DATA_KIDS, {})
+            if isinstance(legacy_kids, dict):
+                for user_id, user_data in legacy_kids.items():
+                    if isinstance(user_data, dict):
+                        existing_user = merged_users.get(user_id)
+                        if isinstance(existing_user, dict):
+                            merged_users[user_id] = {**existing_user, **user_data}
+                        else:
+                            merged_users[user_id] = dict(user_data)
+
+        def _sort_key(item: tuple[str, object]) -> tuple[str, str]:
+            user_id, user_data_raw = item
+            user_data = user_data_raw if isinstance(user_data_raw, dict) else {}
+            user_name = str(user_data.get(const.DATA_USER_NAME, "")).casefold()
+            return (user_name, user_id)
+
+        sorted_users: dict[str, object] = dict(
+            sorted(merged_users.items(), key=_sort_key)
+        )
+
+        return cast("UsersCollection", sorted_users)
+
+    @property
     def kids_data(self) -> KidsCollection:
         """Return kid-compatible data view.
 
@@ -378,20 +423,15 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
             user_id: user_data
             for user_id, user_data in self.users_data.items()
             if isinstance(user_data, dict)
-            and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True)
+            and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
         }
 
     @property
     def parents_data(self) -> ParentsCollection:
         """Return parent-compatible data view.
 
-        During schema45 migration window, preserve legacy parent view when
-        available, otherwise derive from canonical `users`.
+        Parent role records are derived from canonical `users`.
         """
-        parents = self._data.get(const.DATA_PARENTS, {})
-        if isinstance(parents, dict) and parents:
-            return parents
-
         users = self.users_data
         if users:
             return {
@@ -401,6 +441,9 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
                 and (
                     user_data.get(const.DATA_USER_CAN_APPROVE, False)
                     or user_data.get(const.DATA_USER_CAN_MANAGE, False)
+                    or const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT in user_data
+                    or const.DATA_PARENT_ASSOCIATED_KIDS in user_data
+                    or const.DATA_PARENT_LINKED_PROFILE_ID in user_data
                 )
             }
 

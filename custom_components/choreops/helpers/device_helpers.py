@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from .. import const
+from .entity_helpers import is_linked_profile
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
     from ..coordinator import KidsChoresDataCoordinator
-    from ..type_defs import KidData
 
 
 # ==============================================================================
@@ -44,14 +44,14 @@ def create_kid_device_info(
     Returns:
         DeviceInfo dict for the kid device
     """
-    # Use different model text for gated vs default profiles
-    model = "Parent Profile" if is_feature_gated_profile else "Kid Profile"
+    # Keep legacy parameter for compatibility; all profiles now use unified model label.
+    _ = is_feature_gated_profile
 
     return DeviceInfo(
         identifiers={(const.DOMAIN, kid_id)},
         name=f"{kid_name} ({config_entry.title})",
-        manufacturer="KidsChores",
-        model=model,
+        manufacturer=const.DEVICE_MANUFACTURER,
+        model=const.DEVICE_MODEL_USER_PROFILE,
         entry_type=DeviceEntryType.SERVICE,
     )
 
@@ -76,10 +76,7 @@ def create_kid_device_info_from_coordinator(
     Returns:
         DeviceInfo dict for the kid device with correct model (Kid/Parent Profile)
     """
-    kid_data: KidData | None = coordinator.kids_data.get(kid_id)
-    is_feature_gated_profile = (
-        kid_data.get(const.DATA_KID_IS_SHADOW, False) if kid_data else False
-    )
+    is_feature_gated_profile = is_linked_profile(coordinator, kid_id)
     return create_kid_device_info(
         kid_id,
         kid_name,
@@ -100,7 +97,7 @@ def create_system_device_info(config_entry: ConfigEntry) -> DeviceInfo:
     return DeviceInfo(
         identifiers={(const.DOMAIN, f"{config_entry.entry_id}_system")},
         name=f"System ({config_entry.title})",
-        manufacturer="KidsChores",
-        model="System Controls",
+        manufacturer=const.DEVICE_MANUFACTURER,
+        model=const.DEVICE_MODEL_SYSTEM_CONTROLS,
         entry_type=DeviceEntryType.SERVICE,
     )

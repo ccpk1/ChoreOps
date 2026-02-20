@@ -69,8 +69,9 @@ def find_reward_in_dashboard_helper(
     Returns:
         Reward dict if found, None otherwise
     """
-    helper_eid = f"sensor.{kid_slug}_kidschores_ui_dashboard_helper"
-    helper_state = hass.states.get(helper_eid)
+    helper_state = hass.states.get(
+        f"sensor.{kid_slug}_choreops_ui_dashboard_helper"
+    ) or hass.states.get(f"sensor.{kid_slug}_kidschores_ui_dashboard_helper")
 
     if helper_state is None:
         return None

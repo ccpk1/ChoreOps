@@ -41,7 +41,6 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_NAME,
     CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE,
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
-    CFOF_KIDS_INPUT_KID_NAME,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_ROTATION_SIMPLE,
     CONF_POINTS_ICON,
@@ -60,20 +59,18 @@ from tests.helpers import (
     OPTIONS_FLOW_CHORES,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
-    OPTIONS_FLOW_KIDS,
-    OPTIONS_FLOW_PARENTS,
     OPTIONS_FLOW_PENALTIES,
     OPTIONS_FLOW_REWARDS,
     OPTIONS_FLOW_STEP_ADD_ACHIEVEMENT,
     OPTIONS_FLOW_STEP_ADD_BONUS,
     OPTIONS_FLOW_STEP_ADD_CHALLENGE,
     OPTIONS_FLOW_STEP_ADD_CHORE,
-    OPTIONS_FLOW_STEP_ADD_KID,
-    OPTIONS_FLOW_STEP_ADD_PARENT,
     OPTIONS_FLOW_STEP_ADD_PENALTY,
     OPTIONS_FLOW_STEP_ADD_REWARD,
+    OPTIONS_FLOW_STEP_ADD_USER,
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
+    OPTIONS_FLOW_USERS,
     OVERDUE_HANDLING_AT_DUE_DATE,
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET,
     SCHEMA_VERSION_STORAGE_ONLY,
@@ -155,9 +152,9 @@ async def test_options_flow_navigate_to_kids_menu(
     hass: HomeAssistant,
     init_integration: MockConfigEntry,
 ) -> None:
-    """Test navigating to kids management menu."""
+    """Test navigating to users management menu."""
     result = await FlowTestHelper.navigate_to_entity_menu(
-        hass, init_integration.entry_id, OPTIONS_FLOW_KIDS
+        hass, init_integration.entry_id, OPTIONS_FLOW_USERS
     )
 
     assert result.get("type") == FlowResultType.FORM
@@ -195,9 +192,9 @@ async def test_options_flow_back_to_menu(
     init_integration: MockConfigEntry,
 ) -> None:
     """Test back navigation returns to main menu."""
-    # Navigate to kids menu
+    # Navigate to users menu
     result = await FlowTestHelper.navigate_to_entity_menu(
-        hass, init_integration.entry_id, OPTIONS_FLOW_KIDS
+        hass, init_integration.entry_id, OPTIONS_FLOW_USERS
     )
 
     # Go back
@@ -219,23 +216,24 @@ async def test_add_kid_via_options_flow(
     hass: HomeAssistant,
     init_integration_with_coordinator: SetupResult,
 ) -> None:
-    """Test adding a kid via options flow using YAML-style data."""
+    """Test adding a user via options flow using YAML-style data."""
     config_entry = init_integration_with_coordinator.config_entry
 
-    yaml_kid = {
-        "name": "Test Kid",
-        "icon": "mdi:human-child",
+    yaml_parent = {
+        "name": "Test User",
+        "icon": "mdi:account-tie",
         "ha_user_name": "",
         "dashboard_language": "en",
+        "allow_chore_assignment": True,
     }
 
-    form_data = FlowTestHelper.build_kid_form_data(yaml_kid)
+    form_data = FlowTestHelper.build_parent_form_data(yaml_parent)
 
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
@@ -243,10 +241,10 @@ async def test_add_kid_via_options_flow(
     assert result.get("type") == FlowResultType.FORM
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    # Verify kid was created via coordinator
+    # Verify user was created via coordinator
     coordinator = init_integration_with_coordinator.coordinator
-    kid_names = [k["name"] for k in coordinator.kids_data.values()]
-    assert "Test Kid" in kid_names
+    parent_names = [p["name"] for p in coordinator.parents_data.values()]
+    assert "Test User" in parent_names
 
 
 async def test_add_parent_via_options_flow(
@@ -261,6 +259,7 @@ async def test_add_parent_via_options_flow(
         "icon": "mdi:account-tie",
         "ha_user_name": "",
         "enable_notifications": False,
+        "allow_chore_assignment": True,
     }
 
     form_data = FlowTestHelper.build_parent_form_data(yaml_parent)
@@ -268,8 +267,8 @@ async def test_add_parent_via_options_flow(
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_PARENTS,
-        OPTIONS_FLOW_STEP_ADD_PARENT,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
@@ -590,14 +589,14 @@ async def test_add_entities_from_minimal_scenario(
     """
     config_entry = init_integration_with_coordinator.config_entry
 
-    # Add a NEW kid (not from scenario - that would be duplicate)
-    new_kid_data = {"name": "New Scenario Kid"}
-    form_data = FlowTestHelper.build_kid_form_data(new_kid_data)
+    # Add a NEW user (not from scenario - that would be duplicate)
+    new_parent_data = {"name": "New Scenario User", "allow_chore_assignment": True}
+    form_data = FlowTestHelper.build_parent_form_data(new_parent_data)
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
     # Verify flow succeeded (returns to init)
@@ -605,8 +604,8 @@ async def test_add_entities_from_minimal_scenario(
 
     # After options flow add, integration reloads - get fresh coordinator
     coordinator = config_entry.runtime_data
-    kid_names = [k["name"] for k in coordinator.kids_data.values()]
-    assert "New Scenario Kid" in kid_names
+    parent_names = [p["name"] for p in coordinator.parents_data.values()]
+    assert "New Scenario User" in parent_names
 
     # Add a NEW reward (not the existing "Ice Créam!")
     new_reward_data = {"name": "New Scenario Reward", "cost": 50}
@@ -636,32 +635,34 @@ async def test_add_duplicate_kid_name_error(
     hass: HomeAssistant,
     init_integration_with_coordinator: SetupResult,
 ) -> None:
-    """Test error when adding kid with duplicate name."""
+    """Test error when adding user with duplicate name."""
     config_entry = init_integration_with_coordinator.config_entry
 
-    # Add first kid
-    form_data = FlowTestHelper.build_kid_form_data({"name": "Duplicate Kid"})
+    # Add first user
+    form_data = FlowTestHelper.build_parent_form_data(
+        {"name": "Duplicate User", "allow_chore_assignment": True}
+    )
     await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
-    # Try to add kid with same name
+    # Try to add user with same name
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
         config_entry.entry_id,
-        OPTIONS_FLOW_KIDS,
-        OPTIONS_FLOW_STEP_ADD_KID,
+        OPTIONS_FLOW_USERS,
+        OPTIONS_FLOW_STEP_ADD_USER,
         form_data,
     )
 
     # Should stay on form with error
     assert result.get("type") == FlowResultType.FORM
     errors = result.get("errors") or {}
-    assert "base" in errors or CFOF_KIDS_INPUT_KID_NAME in errors
+    assert "base" in errors or "name" in errors
 
 
 async def test_add_duplicate_chore_name_error(

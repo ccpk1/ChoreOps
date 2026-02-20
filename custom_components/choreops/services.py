@@ -56,77 +56,77 @@ def _get_coordinator_by_entry_id(
 # --- Service Schemas ---
 
 # Common schema base patterns for DRY principle
-_KID_CHORE_BASE = {
-    vol.Required(const.FIELD_KID_NAME): cv.string,
+_ASSIGNEE_CHORE_BASE = {
+    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Required(const.FIELD_CHORE_NAME): cv.string,
 }
 
-_PARENT_KID_CHORE_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
+_APPROVER_ASSIGNEE_CHORE_BASE = {
+    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Required(const.FIELD_CHORE_NAME): cv.string,
 }
 
-_PARENT_KID_REWARD_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
+_APPROVER_ASSIGNEE_REWARD_BASE = {
+    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Required(const.FIELD_REWARD_NAME): cv.string,
 }
 
-_PARENT_KID_PENALTY_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
+_APPROVER_ASSIGNEE_PENALTY_BASE = {
+    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Required(const.FIELD_PENALTY_NAME): cv.string,
 }
 
-_PARENT_KID_BONUS_BASE = {
-    vol.Required(const.FIELD_PARENT_NAME): cv.string,
-    vol.Required(const.FIELD_KID_NAME): cv.string,
+_APPROVER_ASSIGNEE_BONUS_BASE = {
+    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Required(const.FIELD_BONUS_NAME): cv.string,
 }
 
 # Service schemas using base patterns
-CLAIM_CHORE_SCHEMA = vol.Schema(_KID_CHORE_BASE)
+CLAIM_CHORE_SCHEMA = vol.Schema(_ASSIGNEE_CHORE_BASE)
 
 APPROVE_CHORE_SCHEMA = vol.Schema(
     {
-        **_PARENT_KID_CHORE_BASE,  # type: ignore[misc]
+        **_APPROVER_ASSIGNEE_CHORE_BASE,  # type: ignore[misc]
         vol.Optional(const.FIELD_POINTS_AWARDED): vol.Coerce(float),
     }
 )
 
-DISAPPROVE_CHORE_SCHEMA = vol.Schema(_PARENT_KID_CHORE_BASE)
+DISAPPROVE_CHORE_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_CHORE_BASE)
 
-REDEEM_REWARD_SCHEMA = vol.Schema(_PARENT_KID_REWARD_BASE)
+REDEEM_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
 
 APPROVE_REWARD_SCHEMA = vol.Schema(
     {
-        **_PARENT_KID_REWARD_BASE,  # type: ignore[misc]
+        **_APPROVER_ASSIGNEE_REWARD_BASE,  # type: ignore[misc]
         vol.Optional(const.FIELD_COST_OVERRIDE): vol.Coerce(float),
     }
 )
 
-DISAPPROVE_REWARD_SCHEMA = vol.Schema(_PARENT_KID_REWARD_BASE)
+DISAPPROVE_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
 
-APPLY_PENALTY_SCHEMA = vol.Schema(_PARENT_KID_PENALTY_BASE)
+APPLY_PENALTY_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_PENALTY_BASE)
 
-APPLY_BONUS_SCHEMA = vol.Schema(_PARENT_KID_BONUS_BASE)
+APPLY_BONUS_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_BONUS_BASE)
 
 # Optional filter base patterns for reset operations
-_OPTIONAL_KID_FILTER = {vol.Optional(const.FIELD_KID_NAME): cv.string}
+_OPTIONAL_ASSIGNEE_FILTER = {vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string}
 
-_OPTIONAL_KID_PENALTY_FILTER = {
-    vol.Optional(const.FIELD_KID_NAME): cv.string,
+_OPTIONAL_ASSIGNEE_PENALTY_FILTER = {
+    vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Optional(const.FIELD_PENALTY_NAME): cv.string,
 }
 
-_OPTIONAL_KID_BONUS_FILTER = {
-    vol.Optional(const.FIELD_KID_NAME): cv.string,
+_OPTIONAL_ASSIGNEE_BONUS_FILTER = {
+    vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Optional(const.FIELD_BONUS_NAME): cv.string,
 }
 
-_OPTIONAL_KID_REWARD_FILTER = {
-    vol.Optional(const.FIELD_KID_NAME): cv.string,
+_OPTIONAL_ASSIGNEE_REWARD_FILTER = {
+    vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
     vol.Optional(const.FIELD_REWARD_NAME): cv.string,
 }
 
@@ -134,13 +134,13 @@ RESET_OVERDUE_CHORES_SCHEMA = vol.Schema(
     {
         vol.Optional(const.FIELD_CHORE_ID): cv.string,
         vol.Optional(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_NAME): cv.string,
+        vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
     }
 )
 
 REMOVE_AWARDED_BADGES_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_KID_NAME): vol.Any(cv.string, None),
+        vol.Optional(const.FIELD_ASSIGNEE_NAME): vol.Any(cv.string, None),
         vol.Optional(const.FIELD_BADGE_NAME): vol.Any(cv.string, None),
     }
 )
@@ -156,7 +156,7 @@ RESET_TRANSACTIONAL_DATA_SCHEMA = vol.Schema(
         vol.Optional(const.SERVICE_FIELD_SCOPE): vol.In(
             [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_KID]
         ),
-        vol.Optional(const.SERVICE_FIELD_KID_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_NAME): cv.string,
         vol.Optional(const.SERVICE_FIELD_ITEM_TYPE): vol.In(
             [
                 const.DATA_RESET_ITEM_TYPE_POINTS,
@@ -177,8 +177,8 @@ SET_CHORE_DUE_DATE_SCHEMA = vol.Schema(
     {
         vol.Required(const.FIELD_CHORE_NAME): cv.string,
         vol.Optional(const.FIELD_DUE_DATE): vol.Any(cv.string, None),
-        vol.Optional(const.FIELD_KID_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_ID): cv.string,
+        vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
+        vol.Optional(const.FIELD_ASSIGNEE_ID): cv.string,
     }
 )
 
@@ -186,15 +186,15 @@ SKIP_CHORE_DUE_DATE_SCHEMA = vol.Schema(
     {
         vol.Optional(const.FIELD_CHORE_ID): cv.string,
         vol.Optional(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_NAME): cv.string,
-        vol.Optional(const.FIELD_KID_ID): cv.string,
+        vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
+        vol.Optional(const.FIELD_ASSIGNEE_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
     }
 )
 
 GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.SERVICE_FIELD_KID_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_NAME): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_LANGUAGE): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_NOTIFY_SERVICE): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_TITLE): cv.string,
@@ -455,15 +455,15 @@ _SERVICE_TO_REWARD_DATA_MAPPING: dict[str, str] = {
 # ROTATION MANAGEMENT SCHEMAS (Phase 3 Step 7 - v0.5.0)
 # ==============================================================================
 
-# Set rotation turn to specific kid
+# Set rotation turn to specific assignee
 SET_ROTATION_TURN_SCHEMA = vol.Schema(
     {
         # Either chore_id OR chore_name required
         vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-        # Either kid_id OR kid_name required
-        vol.Optional(const.SERVICE_FIELD_KID_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_KID_NAME): cv.string,
+        # Either assignee_id OR assignee_name required
+        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_NAME): cv.string,
     }
 )
 
@@ -476,7 +476,7 @@ RESET_ROTATION_SCHEMA = vol.Schema(
     }
 )
 
-# Open rotation cycle (allow any kid to claim once)
+# Open rotation cycle (allow any assignee to claim once)
 OPEN_ROTATION_CYCLE_SCHEMA = vol.Schema(
     {
         # Either chore_id OR chore_name required
@@ -971,7 +971,8 @@ def async_setup_services(hass: HomeAssistant):
         if user_id and not await is_user_authorized_for_action(
             hass,
             user_id,
-            AUTH_ACTION_MANAGEMENT,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
         ):
             const.LOGGER.warning(
                 "Approve Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1038,7 +1039,8 @@ def async_setup_services(hass: HomeAssistant):
         if user_id and not await is_user_authorized_for_action(
             hass,
             user_id,
-            AUTH_ACTION_MANAGEMENT,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
         ):
             const.LOGGER.warning(
                 "Disapprove Chore: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1720,7 +1722,8 @@ def async_setup_services(hass: HomeAssistant):
         if user_id and not await is_user_authorized_for_action(
             hass,
             user_id,
-            AUTH_ACTION_MANAGEMENT,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
         ):
             const.LOGGER.warning(
                 "Approve Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION
@@ -1792,7 +1795,8 @@ def async_setup_services(hass: HomeAssistant):
         if user_id and not await is_user_authorized_for_action(
             hass,
             user_id,
-            AUTH_ACTION_MANAGEMENT,
+            AUTH_ACTION_APPROVAL,
+            target_user_id=kid_id,
         ):
             const.LOGGER.warning(
                 "Disapprove Reward: %s", const.TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION

@@ -105,13 +105,17 @@ def get_dashboard_helper(hass: HomeAssistant, kid_slug: str) -> dict[str, Any]:
     Raises:
         ValueError: If dashboard helper doesn't exist
     """
-    helper_id = f"sensor.{kid_slug}_kidschores_ui_dashboard_helper"
-    state = hass.states.get(helper_id)
+    helper_ids = [
+        f"sensor.{kid_slug}_choreops_ui_dashboard_helper",
+        f"sensor.{kid_slug}_kidschores_ui_dashboard_helper",
+    ]
 
-    if state is None:
-        raise ValueError(f"Dashboard helper not found: {helper_id}")
+    for helper_id in helper_ids:
+        state = hass.states.get(helper_id)
+        if state is not None:
+            return dict(state.attributes)
 
-    return dict(state.attributes)
+    raise ValueError(f"Dashboard helper not found: {helper_ids[0]}")
 
 
 def get_kid_points(hass: HomeAssistant, kid_slug: str) -> float:

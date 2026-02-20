@@ -185,13 +185,14 @@ def get_dashboard_helper_eid(hass: HomeAssistant, kid_name: str) -> str:
         .replace("å", "a")
         .replace("ü", "u")
     )
-    eid = f"sensor.{slug}_kidschores_ui_dashboard_helper"
-    state = hass.states.get(eid)
-    if state:
-        return eid
-    raise ValueError(
-        f"Dashboard helper not found for kid: {kid_name} (expected: {eid})"
-    )
+    for eid in (
+        f"sensor.{slug}_choreops_ui_dashboard_helper",
+        f"sensor.{slug}_kidschores_ui_dashboard_helper",
+    ):
+        state = hass.states.get(eid)
+        if state:
+            return eid
+    raise ValueError(f"Dashboard helper not found for kid: {kid_name}")
 
 
 def find_chore_in_dashboard(

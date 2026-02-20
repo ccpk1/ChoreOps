@@ -80,7 +80,9 @@ class ParentData(TypedDict):
     allow_chore_assignment: bool
     enable_chore_workflow: bool
     enable_gamification: bool
-    linked_shadow_kid_id: NotRequired[str | None]  # Only set if shadow kid created
+    linked_shadow_kid_id: NotRequired[
+        str | None
+    ]  # Legacy persisted key retained until dedicated schema migration
 
 
 # =============================================================================

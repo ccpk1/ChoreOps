@@ -35,7 +35,7 @@ from .helpers.device_helpers import create_kid_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_friendly_label,
     get_kid_name_by_id,
-    is_user_feature_gated_profile,
+    is_linked_profile,
     should_create_entity,
     should_create_gamification_entities,
     should_create_workflow_buttons,
@@ -82,9 +82,7 @@ async def async_setup_entry(
             )
 
             # Get flag states for unified entity creation decisions
-            is_feature_gated_profile = is_user_feature_gated_profile(
-                coordinator, kid_id
-            )
+            is_linked_profile_user = is_linked_profile(coordinator, kid_id)
             workflow_enabled = should_create_workflow_buttons(coordinator, kid_id)
             gamification_enabled = should_create_gamification_entities(
                 coordinator, kid_id
@@ -93,7 +91,7 @@ async def async_setup_entry(
             # Claim Button - WORKFLOW requirement
             if should_create_entity(
                 const.BUTTON_KC_UID_SUFFIX_CLAIM,
-                is_feature_gated_profile=is_feature_gated_profile,
+                is_feature_gated_profile=is_linked_profile_user,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
             ):
@@ -112,7 +110,7 @@ async def async_setup_entry(
             # Approve Button - ALWAYS requirement
             if should_create_entity(
                 const.BUTTON_KC_UID_SUFFIX_APPROVE,
-                is_feature_gated_profile=is_feature_gated_profile,
+                is_feature_gated_profile=is_linked_profile_user,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
             ):
@@ -131,7 +129,7 @@ async def async_setup_entry(
             # Disapprove Button - WORKFLOW requirement
             if should_create_entity(
                 const.BUTTON_KC_UID_SUFFIX_DISAPPROVE,
-                is_feature_gated_profile=is_feature_gated_profile,
+                is_feature_gated_profile=is_linked_profile_user,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
             ):
@@ -147,9 +145,9 @@ async def async_setup_entry(
                 )
 
     # Create reward buttons (Redeem, Approve & Disapprove)
-    # Only for regular kids or shadow kids with gamification enabled
+    # Only for default participants or linked profiles with gamification enabled
     for kid_id, kid_info in coordinator.kids_data.items():
-        # Skip shadow kids without gamification
+        # Skip linked profiles without gamification
         if not should_create_gamification_entities(coordinator, kid_id):
             continue
 
@@ -205,9 +203,9 @@ async def async_setup_entry(
             )
 
     # Create penalty buttons
-    # Only for regular kids or shadow kids with gamification enabled
+    # Only for default participants or linked profiles with gamification enabled
     for kid_id, kid_info in coordinator.kids_data.items():
-        # Skip shadow kids without gamification
+        # Skip linked profiles without gamification
         if not should_create_gamification_entities(coordinator, kid_id):
             continue
 
@@ -235,9 +233,9 @@ async def async_setup_entry(
             )
 
     # Create bonus buttons
-    # Only for regular kids or shadow kids with gamification enabled
+    # Only for default participants or linked profiles with gamification enabled
     for kid_id, kid_info in coordinator.kids_data.items():
-        # Skip shadow kids without gamification
+        # Skip linked profiles without gamification
         if not should_create_gamification_entities(coordinator, kid_id):
             continue
 
@@ -271,9 +269,9 @@ async def async_setup_entry(
     )
 
     # Create a points adjust button for each kid and each delta value
-    # Only for regular kids or shadow kids with gamification enabled
+    # Only for default participants or linked profiles with gamification enabled
     for kid_id, kid_info in coordinator.kids_data.items():
-        # Skip shadow kids without gamification
+        # Skip linked profiles without gamification
         if not should_create_gamification_entities(coordinator, kid_id):
             continue
 

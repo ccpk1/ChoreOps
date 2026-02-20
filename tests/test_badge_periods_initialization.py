@@ -49,7 +49,7 @@ class TestBadgePeriodStructureCreation:
 
         # Get Zoë (has cumulative badges in scenario_full)
         zoe_id = get_kid_by_name(coordinator, "Zoë")
-        zoe_data = coordinator._data[const.DATA_KIDS][zoe_id]
+        zoe_data = coordinator.kids_data[zoe_id]
 
         # Get Chore Stär Champion badge ID
         champion_id = get_badge_by_name(coordinator, "Chore Stär Champion")

@@ -230,7 +230,7 @@ async def test_reset_rotation_service(
     # Get first kid's name
     first_kid_id = assigned_kid_ids[0]
     first_kid_name = None
-    for kid_data in coordinator._data["kids"].values():
+    for kid_data in coordinator.kids_data.values():
         if kid_data.get("internal_id") == first_kid_id:
             first_kid_name = kid_data.get("name")
             break
@@ -376,7 +376,7 @@ async def test_rotation_advancement_with_skipped_kids(
     # Get kid names for verification
     assigned_names = []
     for kid_id in assigned_kids:
-        kid_info = coordinator._data["kids"].get(kid_id, {})
+        kid_info = coordinator.kids_data.get(kid_id, {})
         kid_name = kid_info.get("name")
         if kid_name:
             assigned_names.append(kid_name)

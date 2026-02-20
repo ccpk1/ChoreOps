@@ -72,13 +72,17 @@ class UserManager(BaseManager):
         return self._data[const.DATA_USERS]
 
     def _parent_records(self) -> dict[str, Any]:
-        """Return mutable parent record bucket during migration window."""
-        parents = self._data.get(const.DATA_PARENTS)
-        if isinstance(parents, dict):
-            return parents
+        """Return mutable parent-role records backed by canonical users bucket."""
+        return self._user_records()
 
-        self._data[const.DATA_PARENTS] = {}
-        return self._data[const.DATA_PARENTS]
+    def _user_records(self) -> dict[str, Any]:
+        """Return mutable canonical user record bucket."""
+        users = self._data.get(const.DATA_USERS)
+        if isinstance(users, dict):
+            return users
+
+        self._data[const.DATA_USERS] = {}
+        return self._data[const.DATA_USERS]
 
     async def async_setup(self) -> None:
         """Set up the user manager.
@@ -377,7 +381,12 @@ class UserManager(BaseManager):
 
         # Ensure parents dict exists and store parent data
         parent_records = self._parent_records()
+        user_records = self._user_records()
         parent_records[parent_id] = parent_data
+        user_records[parent_id] = {
+            **dict(parent_data),
+            const.DATA_USER_CAN_BE_ASSIGNED: False,
+        }
 
         # Create shadow kid if chore assignment is enabled
         shadow_kid_id: str | None = None
@@ -386,6 +395,7 @@ class UserManager(BaseManager):
             parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = (
                 shadow_kid_id
             )
+            user_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = shadow_kid_id
 
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
@@ -422,6 +432,7 @@ class UserManager(BaseManager):
             HomeAssistantError: If parent not found
         """
         parent_records = self._parent_records()
+        user_records = self._user_records()
         if parent_id not in parent_records:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -443,6 +454,15 @@ class UserManager(BaseManager):
 
         # Merge updates into existing parent data
         parent_records[parent_id].update(updates)
+        existing_user = user_records.get(parent_id)
+        if isinstance(existing_user, dict):
+            existing_user.update(updates)
+            existing_user[const.DATA_USER_CAN_BE_ASSIGNED] = False
+        else:
+            user_records[parent_id] = {
+                **dict(parent_records[parent_id]),
+                const.DATA_USER_CAN_BE_ASSIGNED: False,
+            }
 
         # Handle shadow kid creation/deletion
         if allow_chore_assignment and not was_enabled and not existing_shadow_kid_id:
@@ -453,10 +473,12 @@ class UserManager(BaseManager):
             parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = (
                 shadow_kid_id
             )
+            user_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = shadow_kid_id
         elif not allow_chore_assignment and was_enabled and existing_shadow_kid_id:
             # Disabling chore assignment - unlink shadow kid (preserves data)
             self._unlink_shadow_kid(existing_shadow_kid_id)
             parent_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = None
+            user_records[parent_id][const.DATA_PARENT_LINKED_PROFILE_ID] = None
 
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
@@ -484,6 +506,7 @@ class UserManager(BaseManager):
             HomeAssistantError: If parent not found
         """
         parent_records = self._parent_records()
+        user_records = self._user_records()
         if parent_id not in parent_records:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -506,6 +529,7 @@ class UserManager(BaseManager):
             )
 
         del parent_records[parent_id]
+        user_records.pop(parent_id, None)
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self.coordinator._persist(immediate=immediate_persist)
@@ -520,6 +544,36 @@ class UserManager(BaseManager):
 
         self.coordinator.async_update_listeners()
         const.LOGGER.info("Deleted parent '%s' (ID: %s)", parent_name, parent_id)
+
+    def create_user(
+        self,
+        user_input: dict[str, Any],
+        *,
+        internal_id: str | None = None,
+        prebuilt: bool = False,
+        immediate_persist: bool = False,
+    ) -> str:
+        """Create a role-based user record using the parent-model implementation."""
+        return self.create_parent(
+            user_input,
+            internal_id=internal_id,
+            prebuilt=prebuilt,
+            immediate_persist=immediate_persist,
+        )
+
+    def update_user(
+        self,
+        user_id: str,
+        updates: dict[str, Any],
+        *,
+        immediate_persist: bool = False,
+    ) -> None:
+        """Update a role-based user record using the parent-model implementation."""
+        self.update_parent(user_id, updates, immediate_persist=immediate_persist)
+
+    def delete_user(self, user_id: str, *, immediate_persist: bool = False) -> None:
+        """Delete a role-based user record using the parent-model implementation."""
+        self.delete_parent(user_id, immediate_persist=immediate_persist)
 
     # -------------------------------------------------------------------------
     # SHADOW KID HELPERS

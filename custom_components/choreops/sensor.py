@@ -79,10 +79,10 @@ from .helpers.entity_helpers import (
     get_friendly_label,
     get_item_name_or_log_error,
     get_kid_name_by_id,
-    get_parent_for_shadow_kid,
-    is_user_feature_gated_profile,
+    is_linked_profile,
     should_create_entity,
     should_create_gamification_entities,
+    should_create_workflow_buttons,
 )
 from .helpers.translation_helpers import load_dashboard_translation
 from .sensor_legacy import (
@@ -163,7 +163,7 @@ async def async_setup_entry(
             continue
 
         # Determine profile context flags for should_create_entity()
-        is_feature_gated_profile = is_user_feature_gated_profile(coordinator, kid_id)
+        is_feature_gated_profile = is_linked_profile(coordinator, kid_id)
         gamification_enabled = should_create_gamification_entities(coordinator, kid_id)
 
         # Points counter sensor (GAMIFICATION requirement)
@@ -450,13 +450,11 @@ async def async_setup_entry(
 
         # For each kid with gamification enabled, create the reward status sensor
         for kid_id, kid_info in coordinator.kids_data.items():
-            is_feature_gated_profile = is_user_feature_gated_profile(
-                coordinator, kid_id
-            )
+            is_feature_gated_profile = is_linked_profile(coordinator, kid_id)
             gamification_enabled = should_create_gamification_entities(
                 coordinator, kid_id
             )
-            # Skip shadow kids without gamification using unified check
+            # Skip linked profiles without gamification using unified check
             if not should_create_entity(
                 const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR,
                 is_feature_gated_profile=is_feature_gated_profile,
@@ -659,7 +657,7 @@ def create_reward_entities(
     entities = []
 
     for kid_id, kid_info in coordinator.kids_data.items():
-        # Skip shadow kids without gamification
+        # Skip linked profiles without gamification
         if not should_create_gamification_entities(coordinator, kid_id):
             continue
 
@@ -4387,25 +4385,14 @@ class KidDashboardHelperSensor(KidsChoresCoordinatorEntity, SensorEntity):
         except (KeyError, ValueError, AttributeError):
             entity_registry = None
 
-        # Feature-gated profile check - determine early to filter lists
-        is_feature_gated_profile = kid_info.get(const.DATA_KID_IS_SHADOW, False)
-        gamification_enabled = True
-        chore_workflow_enabled = True
-
-        if is_feature_gated_profile:
-            # Get parent data to check capability flags
-            parent_data = get_parent_for_shadow_kid(self.coordinator, self._kid_id)
-            if parent_data:
-                gamification_enabled = parent_data.get(
-                    const.DATA_PARENT_ENABLE_GAMIFICATION, False
-                )
-                chore_workflow_enabled = parent_data.get(
-                    const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False
-                )
-            else:
-                # Defensive: shadow kid without parent data - disable extras
-                gamification_enabled = False
-                chore_workflow_enabled = False
+        # Capability-aware gating (schema45 contract + legacy-compatible fallback)
+        is_feature_gated_profile = is_linked_profile(self.coordinator, self._kid_id)
+        gamification_enabled = should_create_gamification_entities(
+            self.coordinator, self._kid_id
+        )
+        chore_workflow_enabled = should_create_workflow_buttons(
+            self.coordinator, self._kid_id
+        )
 
         chores_attr = []
 

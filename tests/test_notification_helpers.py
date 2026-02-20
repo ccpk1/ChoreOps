@@ -249,26 +249,28 @@ class TestParseNotificationAction:
     """Tests for parse_notification_action() function."""
 
     def test_parse_valid_chore_action_three_parts(self) -> None:
-        """Test parsing valid chore action: ACTION|kid_id|chore_id."""
-        action_string = f"{ACTION_APPROVE_CHORE}|kid-123|chore-456"
+        """Test parsing valid chore action: ACTION|entry_id|assignee_id|chore_id."""
+        action_string = f"{ACTION_APPROVE_CHORE}|entry123|kid-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert isinstance(parsed, ParsedAction)
         assert parsed.action_type == ACTION_APPROVE_CHORE
-        assert parsed.kid_id == "kid-123"
+        assert parsed.entry_id == "entry123"
+        assert parsed.assignee_id == "kid-123"
         assert parsed.entity_id == "chore-456"
         assert parsed.notif_id is None
 
     def test_parse_valid_reward_action_four_parts(self) -> None:
-        """Test parsing valid reward action: ACTION|kid_id|reward_id|notif_id."""
-        action_string = f"{ACTION_APPROVE_REWARD}|kid-123|reward-456|notif-789"
+        """Test parsing valid reward action: ACTION|entry_id|assignee_id|reward_id|notif_id."""
+        action_string = f"{ACTION_APPROVE_REWARD}|entry123|kid-123|reward-456|notif-789"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert isinstance(parsed, ParsedAction)
         assert parsed.action_type == ACTION_APPROVE_REWARD
-        assert parsed.kid_id == "kid-123"
+        assert parsed.entry_id == "entry123"
+        assert parsed.assignee_id == "kid-123"
         assert parsed.entity_id == "reward-456"
         assert parsed.notif_id == "notif-789"
 
@@ -280,14 +282,14 @@ class TestParseNotificationAction:
 
     def test_parse_too_few_parts_returns_none(self) -> None:
         """Test that malformed string with <3 parts returns None."""
-        action_string = "approve_chore|kid-123"  # Missing chore_id
+        action_string = "approve_chore|entry123"  # Missing assignee_id/chore_id
         parsed = parse_notification_action(action_string)
 
         assert parsed is None
 
     def test_parse_unknown_action_type_returns_none(self) -> None:
         """Test that unrecognized action type returns None."""
-        action_string = "unknown_action|kid-123|chore-456"
+        action_string = "unknown_action|entry123|kid-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is None
@@ -295,40 +297,43 @@ class TestParseNotificationAction:
     def test_parse_reward_without_notif_id_returns_none(self) -> None:
         """Test that reward action without notif_id returns None (invalid)."""
         # Reward actions require 4 parts (with notif_id)
-        action_string = f"{ACTION_APPROVE_REWARD}|kid-123|reward-456"
+        action_string = f"{ACTION_APPROVE_REWARD}|entry123|kid-123|reward-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is None
 
     def test_parse_disapprove_chore_action(self) -> None:
         """Test parsing disapprove chore action."""
-        action_string = f"{ACTION_DISAPPROVE_CHORE}|kid-123|chore-456"
+        action_string = f"{ACTION_DISAPPROVE_CHORE}|entry123|kid-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert parsed.action_type == ACTION_DISAPPROVE_CHORE
-        assert parsed.kid_id == "kid-123"
+        assert parsed.entry_id == "entry123"
+        assert parsed.assignee_id == "kid-123"
         assert parsed.entity_id == "chore-456"
 
     def test_parse_remind_action_chore_three_parts(self) -> None:
-        """Test parsing remind action for chore (3 parts)."""
-        action_string = f"{ACTION_REMIND_30}|kid-123|chore-456"
+        """Test parsing remind action for chore (4 parts)."""
+        action_string = f"{ACTION_REMIND_30}|entry123|kid-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert parsed.action_type == ACTION_REMIND_30
-        assert parsed.kid_id == "kid-123"
+        assert parsed.entry_id == "entry123"
+        assert parsed.assignee_id == "kid-123"
         assert parsed.entity_id == "chore-456"
         assert parsed.notif_id is None
 
     def test_parse_remind_action_reward_four_parts(self) -> None:
-        """Test parsing remind action for reward (4 parts)."""
-        action_string = f"{ACTION_REMIND_30}|kid-123|reward-456|notif-789"
+        """Test parsing remind action for reward (5 parts)."""
+        action_string = f"{ACTION_REMIND_30}|entry123|kid-123|reward-456|notif-789"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert parsed.action_type == ACTION_REMIND_30
-        assert parsed.kid_id == "kid-123"
+        assert parsed.entry_id == "entry123"
+        assert parsed.assignee_id == "kid-123"
         assert parsed.entity_id == "reward-456"
         assert parsed.notif_id == "notif-789"
 
@@ -346,7 +351,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="chore-456",
         )
 
@@ -359,7 +364,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_DISAPPROVE_CHORE,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="chore-456",
         )
 
@@ -372,7 +377,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -386,7 +391,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_DISAPPROVE_REWARD,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -400,7 +405,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="chore-456",
         )
 
@@ -413,7 +418,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="chore-456",
         )
 
@@ -425,7 +430,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="chore-456",
             notif_id=None,
         )
@@ -438,7 +443,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -451,7 +456,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -464,7 +469,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -476,7 +481,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            kid_id="kid-123",
+            assignee_id="kid-123",
             entity_id="chore-456",
         )
 

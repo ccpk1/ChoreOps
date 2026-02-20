@@ -45,13 +45,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, _config_entry: config_entries.ConfigEntry):
         """Initialize the options flow."""
         self._entry_options: dict[str, Any] = {}
-        self._action = None
-        self._entity_type = None
+        self._action: str | None = None
+        self._entity_type: str | None = None
         self._reload_needed = False  # Track if reload is needed
         self._delete_confirmed = False  # Track backup deletion confirmation
         self._restore_confirmed = False  # Track backup restoration confirmation
-        self._backup_to_delete: str | None = None  # Track backup filename to delete
+        self._backup_to_delete: str | None = None  # Track backup file path to delete
         self._backup_to_restore: str | None = None  # Track backup filename to restore
+        self._backup_delete_selection_map: dict[str, str] = {}
         self._chore_being_edited: dict[str, Any] | None = (
             None  # For per-kid date editing
         )
@@ -128,15 +129,17 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_dashboard_generator()
 
             if selection.startswith(const.OPTIONS_FLOW_MENU_MANAGE_PREFIX):
-                self._entity_type = selection.replace(
+                selected_entity_type = selection.replace(
                     const.OPTIONS_FLOW_MENU_MANAGE_PREFIX, const.SENTINEL_EMPTY
+                )
+                self._entity_type = (
+                    selected_entity_type  # Directly assign selected entity type
                 )
                 return await self.async_step_manage_entity()
 
         main_menu = [
             const.OPTIONS_FLOW_POINTS,
-            const.OPTIONS_FLOW_KIDS,
-            const.OPTIONS_FLOW_PARENTS,
+            const.OPTIONS_FLOW_USERS,
             const.OPTIONS_FLOW_CHORES,
             const.OPTIONS_FLOW_BADGES,
             const.OPTIONS_FLOW_REWARDS,
@@ -175,6 +178,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """
         if user_input is not None:
             self._action = user_input[const.OPTIONS_FLOW_INPUT_MANAGE_ACTION]
+            # Removed normalization for entity type during selection
             # Route to the corresponding step based on action
             if self._action == const.OPTIONS_FLOW_ACTIONS_ADD:
                 return await getattr(
@@ -237,9 +241,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 const.TRANS_KEY_DISPLAY_UNKNOWN_ENTITY,
             )
             # Add linked-profile marker for clarity in dropdown
-            if self._entity_type == const.OPTIONS_FLOW_DIC_KID and data.get(
-                const.DATA_KID_IS_SHADOW, False
-            ):
+            if self._entity_type in (
+                const.OPTIONS_FLOW_DIC_KID,
+                const.OPTIONS_FLOW_DIC_USER,
+            ) and data.get(const.DATA_KID_IS_SHADOW, False):
                 name = f"{name}{linked_profile_marker}"
             entity_names.append(name)
 
@@ -251,14 +256,37 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             )
             # Strip marker when matching back to internal_id
             match_name = selected_name.replace(linked_profile_marker, "")
-            internal_id = next(
-                (
-                    eid
-                    for eid, data in entity_dict.items()
-                    if data[const.OPTIONS_FLOW_DATA_ENTITY_NAME] == match_name
-                ),
-                None,
-            )
+            matched_entities: list[tuple[str, dict[str, Any]]] = [
+                (eid, data)
+                for eid, data in entity_dict.items()
+                if data.get(const.OPTIONS_FLOW_DATA_ENTITY_NAME) == match_name
+            ]
+
+            internal_id: str | None = None
+            if self._entity_type == const.OPTIONS_FLOW_DIC_USER and matched_entities:
+                parent_ids = set(self._get_coordinator().parents_data)
+                preferred_parent_match = next(
+                    (entity for entity in matched_entities if entity[0] in parent_ids),
+                    None,
+                )
+                if preferred_parent_match is not None:
+                    internal_id = preferred_parent_match[0]
+
+                preferred_match = next(
+                    (
+                        entity
+                        for entity in matched_entities
+                        if entity[1].get(const.DATA_USER_CAN_APPROVE, False)
+                        or entity[1].get(const.DATA_USER_CAN_MANAGE, False)
+                    ),
+                    None,
+                )
+                if internal_id is None and preferred_match is not None:
+                    internal_id = preferred_match[0]
+
+            if internal_id is None and matched_entities:
+                internal_id = matched_entities[0][0]
+
             if not internal_id:
                 const.LOGGER.error("Selected entity '%s' not found", selected_name)
                 return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_ENTITY)
@@ -583,25 +611,27 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     # ----------------------------------------------------------------------------------
-    # PARENTS MANAGEMENT
+    # USERS MANAGEMENT
     # ----------------------------------------------------------------------------------
 
-    async def async_step_add_parent(self, user_input=None):
-        """Add a new parent."""
+    async def async_step_add_user(self, user_input=None):
+        """Add a new user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
         parents_dict = coordinator.parents_data
 
         if user_input is not None:
+            user_input = fh.normalize_user_form_input(user_input)
+
             # Validate inputs (check against both existing parents and kids)
             kids_dict = coordinator.kids_data
-            errors = fh.validate_parents_inputs(user_input, parents_dict, kids_dict)
+            errors = fh.validate_users_inputs(user_input, parents_dict, kids_dict)
 
             if not errors:
                 try:
                     # Use UserManager for parent creation (handles linked profile internally)
                     # Immediate persist for reload
-                    internal_id = coordinator.user_manager.create_parent(
+                    internal_id = coordinator.user_manager.create_user(
                         user_input, immediate_persist=True
                     )
                     parent_name = user_input.get(
@@ -611,7 +641,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     self._mark_reload_needed()
 
                     const.LOGGER.debug(
-                        "Added Parent '%s' with ID: %s", parent_name, internal_id
+                        "Added User '%s' with ID: %s", parent_name, internal_id
                     )
                     return await self.async_step_init()
 
@@ -627,27 +657,29 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             if not kid_data.get(const.DATA_KID_IS_SHADOW, False)
         }
 
-        parent_schema = await fh.build_parent_schema(
+        parent_schema = await fh.build_user_schema(
             self.hass, users=users, kids_dict=kids_dict
         )
 
         # On validation error, preserve user's attempted input
         if user_input:
             parent_schema = self.add_suggested_values_to_schema(
-                parent_schema, user_input
+                parent_schema,
+                fh.build_user_section_suggested_values(user_input),
             )
+            parent_schema = vol.Schema(parent_schema.schema, extra=vol.ALLOW_EXTRA)
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_ADD_PARENT,
+            step_id=const.OPTIONS_FLOW_STEP_ADD_USER,
             data_schema=parent_schema,
-            errors=errors,
+            errors=fh.map_user_form_errors(errors),
             description_placeholders={
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
             },
         )
 
-    async def async_step_edit_parent(self, user_input=None):
-        """Edit an existing parent."""
+    async def async_step_edit_user(self, user_input=None):
+        """Edit an existing user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
         parents_dict = coordinator.parents_data
@@ -660,6 +692,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         parent_data = parents_dict[internal_id]
 
         if user_input is not None:
+            user_input = fh.normalize_user_form_input(user_input)
+
             # Layer 2: UI validation (excludes current parent from duplicate check)
             # Note: internal_id is already validated as str above
             # For parent-linkage conflict checks: only check non-linked kids
@@ -668,11 +702,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 for kid_id, data in coordinator.kids_data.items()
                 if not data.get(const.DATA_KID_IS_SHADOW, False)
             }
-            errors = fh.validate_parents_inputs(
+            errors = fh.validate_users_inputs(
                 user_input,
                 parents_dict,
                 non_feature_gated_kids,
-                current_parent_id=str(internal_id),
+                current_user_id=str(internal_id),
             )
 
             if not errors:
@@ -716,12 +750,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
                     # Use UserManager for parent update (handles linked profile create/unlink)
                     # Immediate persist for reload
-                    coordinator.user_manager.update_parent(
+                    coordinator.user_manager.update_user(
                         str(internal_id), dict(updated_parent), immediate_persist=True
                     )
 
                     const.LOGGER.debug(
-                        "Edited Parent '%s' with ID: %s",
+                        "Edited User '%s' with ID: %s",
                         updated_parent[const.DATA_PARENT_NAME],
                         internal_id,
                     )
@@ -765,6 +799,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: parent_data.get(
                 const.DATA_PARENT_ENABLE_GAMIFICATION, False
             ),
+            const.CFOF_PARENTS_INPUT_CAN_APPROVE: parent_data.get(
+                const.DATA_USER_CAN_APPROVE, False
+            ),
+            const.CFOF_PARENTS_INPUT_CAN_MANAGE: parent_data.get(
+                const.DATA_USER_CAN_MANAGE, False
+            ),
         }
 
         # On validation error, merge user's attempted input with existing data
@@ -772,27 +812,29 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             suggested_values.update(user_input)
 
         # Build schema with static defaults
-        parent_schema = await fh.build_parent_schema(
+        parent_schema = await fh.build_user_schema(
             self.hass,
             users=users,
             kids_dict=kids_dict,
         )
         # Apply values as suggestions
         parent_schema = self.add_suggested_values_to_schema(
-            parent_schema, suggested_values
+            parent_schema,
+            fh.build_user_section_suggested_values(suggested_values),
         )
+        parent_schema = vol.Schema(parent_schema.schema, extra=vol.ALLOW_EXTRA)
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_EDIT_PARENT,
+            step_id=const.OPTIONS_FLOW_STEP_EDIT_USER,
             data_schema=parent_schema,
-            errors=errors,
+            errors=fh.map_user_form_errors(errors),
             description_placeholders={
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
             },
         )
 
-    async def async_step_delete_parent(self, user_input=None):
-        """Delete a parent."""
+    async def async_step_delete_user(self, user_input=None):
+        """Delete a user."""
         coordinator = self._get_coordinator()
         parents_dict = coordinator.parents_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
@@ -805,20 +847,20 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             # Use UserManager for parent deletion (immediate persist for reload)
-            coordinator.user_manager.delete_parent(
+            coordinator.user_manager.delete_user(
                 str(internal_id), immediate_persist=True
             )
 
             const.LOGGER.debug(
-                "Deleted Parent '%s' with ID: %s", parent_name, internal_id
+                "Deleted User '%s' with ID: %s", parent_name, internal_id
             )
             return await self.async_step_init()
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_DELETE_PARENT,
+            step_id=const.OPTIONS_FLOW_STEP_DELETE_USER,
             data_schema=vol.Schema({}),
             description_placeholders={
-                const.OPTIONS_FLOW_PLACEHOLDER_PARENT_NAME: parent_name
+                const.OPTIONS_FLOW_PLACEHOLDER_USER_NAME: parent_name
             },
         )
 
@@ -4498,7 +4540,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 if action == "delete_backup":
                     return await self.async_step_select_backup_to_delete()
                 if action == "restore_backup":
-                    return await self.async_step_select_backup_to_restore()
+                    return await self.async_step_restore_from_options()
 
         if user_input is not None:
             # Get the raw text from the multiline text area.
@@ -4958,7 +5000,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             if action == "delete_backup":
                 return await self.async_step_select_backup_to_delete()
             if action == "restore_backup":
-                return await self.async_step_select_backup_to_restore()
+                return await self.async_step_restore_from_options()
             if action == "return_to_menu":
                 return await self.async_step_init()
 
@@ -5001,6 +5043,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_select_backup_to_delete(self, user_input=None):
         """Select a backup file to delete."""
+        from pathlib import Path
+
+        from . import migration_pre_v50 as mp50
         from .store import KidsChoresStore
 
         store = KidsChoresStore(self.hass)
@@ -5010,6 +5055,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             if selection == "cancel":
                 return await self.async_step_backup_actions_menu()
+
+            selected_path = self._backup_delete_selection_map.get(selection)
+            if selected_path:
+                self._backup_to_delete = selected_path
+                return await self.async_step_delete_backup_confirm()
 
             # Extract backup filename from emoji-prefixed selection
             if selection and selection.startswith("🗑️"):
@@ -5023,10 +5073,51 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Discover all backups
         backups = await bh.discover_backups(self.hass, store)
+        storage_path = Path(store.get_storage_path())
+        scoped_storage_dir = storage_path.parent
+        root_storage_dir = scoped_storage_dir.parent
+
+        def _discover_legacy_root_files() -> list[dict[str, Any]]:
+            """Return legacy root kidschores_data* files from .storage/."""
+            candidates: list[dict[str, Any]] = []
+
+            if not root_storage_dir.exists():
+                return candidates
+
+            for path in root_storage_dir.iterdir():
+                if not path.is_file():
+                    continue
+                if not path.name.startswith(mp50.LEGACY_STORAGE_KEY):
+                    continue
+
+                stat_info = path.stat()
+                age_hours = max(
+                    0.0,
+                    (dt_util.utcnow().timestamp() - stat_info.st_mtime) / 3600,
+                )
+                candidates.append(
+                    {
+                        "filename": path.name,
+                        "full_path": str(path),
+                        "size_bytes": stat_info.st_size,
+                        "age_hours": age_hours,
+                    }
+                )
+
+            candidates.sort(
+                key=lambda item: cast("float", item["age_hours"]),
+                reverse=False,
+            )
+            return candidates
+
+        legacy_root_files = await self.hass.async_add_executor_job(
+            _discover_legacy_root_files
+        )
 
         # Build backup options - EMOJI ONLY for files (no hardcoded action text)
         # All backups can be deleted (no protected backups concept)
         backup_options = []
+        self._backup_delete_selection_map = {}
 
         for backup in backups:
             age_str = bh.format_backup_age(backup["age_hours"])
@@ -5038,6 +5129,19 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 f"🗑️ [{tag_display}] {backup['filename']} ({age_str}, {size_kb:.1f} KB)"
             )
             backup_options.append(option)
+            self._backup_delete_selection_map[option] = str(
+                scoped_storage_dir / backup["filename"]
+            )
+
+        for legacy_file in legacy_root_files:
+            age_str = bh.format_backup_age(cast("float", legacy_file["age_hours"]))
+            size_kb = cast("float", legacy_file["size_bytes"]) / 1024
+            filename = cast("str", legacy_file["filename"])
+            full_path = cast("str", legacy_file["full_path"])
+
+            option = f"🗑️ [Legacy Root] {filename} ({age_str}, {size_kb:.1f} KB)"
+            backup_options.append(option)
+            self._backup_delete_selection_map[option] = full_path
 
         # Add cancel option (translated via translation_key)
         backup_options.append("cancel")
@@ -5057,7 +5161,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 }
             ),
             description_placeholders={
-                "backup_count": str(len(backups)),
+                "backup_count": str(len(backups) + len(legacy_root_files)),
             },
         )
 
@@ -5199,35 +5303,59 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         from .store import KidsChoresStore
 
-        # Get backup filename from context (set by select_backup_to_delete step)
-        backup_filename = getattr(self, "_backup_to_delete", None)
+        # Get backup target path from context (set by select_backup_to_delete step)
+        backup_target = getattr(self, "_backup_to_delete", None)
 
         if user_input is not None:
             if user_input.get("confirm"):
                 store = KidsChoresStore(self.hass)
                 storage_path = Path(store.get_storage_path())
-                # Type guard: ensure backup_filename is a string before using in Path operation
-                if isinstance(backup_filename, str):
-                    backup_path = storage_path.parent / backup_filename
+                # Type guard: ensure backup_target is a string before using in Path operation
+                if isinstance(backup_target, str):
+                    backup_path = Path(backup_target)
+                    if not backup_path.is_absolute():
+                        backup_path = storage_path.parent / backup_target
+
+                    scoped_storage_dir = storage_path.parent.resolve()
+                    root_storage_dir = scoped_storage_dir.parent.resolve()
+                    resolved_backup_path = backup_path.resolve()
+
+                    is_allowed_path = resolved_backup_path.parent in {
+                        scoped_storage_dir,
+                        root_storage_dir,
+                    }
+
+                    if not is_allowed_path:
+                        const.LOGGER.error(
+                            "Refusing to delete file outside allowed storage directories: %s",
+                            resolved_backup_path,
+                        )
+                        self._backup_to_delete = None
+                        self._backup_delete_selection_map = {}
+                        return await self.async_step_backup_actions_menu()
 
                     if backup_path.exists():
                         try:
                             await self.hass.async_add_executor_job(backup_path.unlink)
-                            const.LOGGER.info("Deleted backup: %s", backup_filename)
+                            const.LOGGER.info("Deleted backup: %s", backup_path.name)
                         except Exception as err:
                             const.LOGGER.error(
-                                "Failed to delete backup %s: %s", backup_filename, err
+                                "Failed to delete backup %s: %s", backup_path.name, err
                             )
                     else:
-                        const.LOGGER.error("Backup file not found: %s", backup_filename)
+                        const.LOGGER.error("Backup file not found: %s", backup_path)
                 else:
-                    const.LOGGER.error("Invalid backup filename: %s", backup_filename)
+                    const.LOGGER.error("Invalid backup filename: %s", backup_target)
 
             # Clear the backup filename and return to backup menu
             self._backup_to_delete = None
+            self._backup_delete_selection_map = {}
             return await self.async_step_backup_actions_menu()
 
         # Show confirmation form
+        backup_display_name = (
+            Path(backup_target).name if isinstance(backup_target, str) else "unknown"
+        )
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_DELETE_BACKUP_CONFIRM,
             data_schema=vol.Schema(
@@ -5235,7 +5363,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     vol.Required("confirm", default=False): selector.BooleanSelector(),
                 }
             ),
-            description_placeholders={"backup_filename": backup_filename or "unknown"},
+            description_placeholders={"backup_filename": backup_display_name},
         )
 
     async def async_step_restore_backup_confirm(self, user_input=None):
@@ -5375,9 +5503,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Retrieve appropriate entity dict based on entity_type."""
         coordinator = self._get_coordinator()
 
+        if self._entity_type == const.OPTIONS_FLOW_DIC_USER:
+            return coordinator.users_for_management
+
         entity_type_to_data = {
             const.OPTIONS_FLOW_DIC_KID: const.DATA_KIDS,
-            const.OPTIONS_FLOW_DIC_PARENT: const.DATA_PARENTS,
             const.OPTIONS_FLOW_DIC_CHORE: const.DATA_CHORES,
             const.OPTIONS_FLOW_DIC_BADGE: const.DATA_BADGES,
             const.OPTIONS_FLOW_DIC_REWARD: const.DATA_REWARDS,

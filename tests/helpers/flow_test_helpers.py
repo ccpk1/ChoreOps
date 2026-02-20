@@ -77,6 +77,8 @@ from tests.helpers import (
     # Config/Options flow field names - Parents
     CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
     CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
+    CFOF_PARENTS_INPUT_CAN_APPROVE,
+    CFOF_PARENTS_INPUT_CAN_MANAGE,
     CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
     CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
     CFOF_PARENTS_INPUT_HA_USER,
@@ -165,6 +167,8 @@ class FlowTestHelper:
             CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: yaml_parent.get(
                 "allow_chore_assignment", False
             ),
+            CFOF_PARENTS_INPUT_CAN_APPROVE: yaml_parent.get("can_approve", False),
+            CFOF_PARENTS_INPUT_CAN_MANAGE: yaml_parent.get("can_manage", False),
             CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: yaml_parent.get(
                 "enable_chore_workflow", False
             ),
@@ -555,7 +559,7 @@ class FlowTestHelper:
         Args:
             hass: Home Assistant instance
             entry_id: Config entry ID
-            menu_type: Menu type constant (OPTIONS_FLOW_PARENTS, etc.)
+            menu_type: Menu type constant (OPTIONS_FLOW_USERS, etc.)
             entity_name: Name of the entity to edit
             form_data: Updated form data for the entity
 

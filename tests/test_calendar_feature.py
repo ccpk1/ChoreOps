@@ -72,7 +72,7 @@ async def test_show_on_calendar_true_chore_appears(
     coordinator.async_update_listeners()
 
     # Get calendar entity
-    calendar_entity_id = "calendar.zoe_kidschores_calendar"
+    calendar_entity_id = "calendar.zoe_choreops_calendar"
     state = hass.states.get(calendar_entity_id)
     assert state is not None, f"Calendar entity {calendar_entity_id} not found"
 

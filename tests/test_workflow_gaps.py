@@ -967,7 +967,7 @@ class TestRewardClaimingWorkflow:
 
         # First, give Zoë enough points to claim "Extra Screen Time" (50 pts)
         kid_id = scenario_full.kid_ids["Zoë"]
-        coordinator._data["kids"][kid_id][DATA_KID_POINTS] = 100.0
+        coordinator.users_data[kid_id][DATA_KID_POINTS] = 100.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1000,7 +1000,7 @@ class TestRewardClaimingWorkflow:
 
         # Ensure Zoë has few points (less than reward cost)
         kid_id = scenario_full.kid_ids["Zoë"]
-        coordinator._data["kids"][kid_id][DATA_KID_POINTS] = 10.0  # Less than 50
+        coordinator.users_data[kid_id][DATA_KID_POINTS] = 10.0  # Less than 50
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1046,7 +1046,7 @@ class TestPenaltyApplicationWorkflow:
 
         # Give Zoë some starting points
         kid_id = scenario_full.kid_ids["Zoë"]
-        coordinator._data["kids"][kid_id][DATA_KID_POINTS] = 50.0
+        coordinator.users_data[kid_id][DATA_KID_POINTS] = 50.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1100,7 +1100,7 @@ class TestBonusApplicationWorkflow:
 
         # Give Zoë some starting points
         kid_id = scenario_full.kid_ids["Zoë"]
-        coordinator._data["kids"][kid_id][DATA_KID_POINTS] = 50.0
+        coordinator.users_data[kid_id][DATA_KID_POINTS] = 50.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1163,7 +1163,7 @@ class TestRewardApprovalWorkflow:
 
         # Give Zoë enough points for reward
         kid_id = scenario_full.kid_ids["Zoë"]
-        coordinator._data["kids"][kid_id][DATA_KID_POINTS] = 100.0
+        coordinator.users_data[kid_id][DATA_KID_POINTS] = 100.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")

@@ -355,6 +355,64 @@ def validate_kids_inputs(
 # PARENTS SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
 # ----------------------------------------------------------------------------------
 
+USER_SECTION_IDENTITY_PROFILE = "section_identity_profile"
+USER_SECTION_SYSTEM_USAGE = "section_system_usage"
+USER_SECTION_ADMIN_APPROVAL = "section_admin_approval"
+
+USER_IDENTITY_FIELDS = (
+    const.CFOF_PARENTS_INPUT_NAME,
+    const.CFOF_PARENTS_INPUT_HA_USER,
+    const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE,
+    const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
+)
+
+USER_SYSTEM_USAGE_FIELDS = (
+    const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+    const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
+    const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
+)
+
+USER_ADMIN_APPROVAL_FIELDS = (
+    const.CFOF_PARENTS_INPUT_CAN_APPROVE,
+    const.CFOF_PARENTS_INPUT_CAN_MANAGE,
+    const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
+)
+
+
+def build_parent_section_suggested_values(
+    flat_values: dict[str, Any],
+) -> dict[str, Any]:
+    """Build sectioned suggested values from a flat parent/user form dictionary."""
+    return {
+        USER_SECTION_IDENTITY_PROFILE: {
+            key: flat_values[key] for key in USER_IDENTITY_FIELDS if key in flat_values
+        },
+        USER_SECTION_SYSTEM_USAGE: {
+            key: flat_values[key]
+            for key in USER_SYSTEM_USAGE_FIELDS
+            if key in flat_values
+        },
+        USER_SECTION_ADMIN_APPROVAL: {
+            key: flat_values[key]
+            for key in USER_ADMIN_APPROVAL_FIELDS
+            if key in flat_values
+        },
+    }
+
+
+def normalize_parent_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Normalize parent form input for sectioned and non-sectioned payloads."""
+    normalized: dict[str, Any] = dict(user_input)
+    for section_key in (
+        USER_SECTION_IDENTITY_PROFILE,
+        USER_SECTION_SYSTEM_USAGE,
+        USER_SECTION_ADMIN_APPROVAL,
+    ):
+        section_data = normalized.pop(section_key, None)
+        if isinstance(section_data, dict):
+            normalized.update(section_data)
+    return normalized
+
 
 async def build_parent_schema(
     hass,
@@ -385,67 +443,118 @@ async def build_parent_schema(
     # Get available dashboard languages
     language_options = await th.get_available_dashboard_languages(hass)
 
+    identity_fields: dict[Any, Any] = {
+        vol.Required(const.CFOF_PARENTS_INPUT_NAME, default=const.SENTINEL_EMPTY): str,
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_HA_USER,
+            default=const.SENTINEL_NO_SELECTION,
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=user_options,
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                multiple=False,
+            )
+        ),
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE,
+            default=const.DEFAULT_DASHBOARD_LANGUAGE,
+        ): selector.LanguageSelector(
+            selector.LanguageSelectorConfig(
+                languages=language_options,
+                native_name=True,
+            )
+        ),
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
+            default=const.SENTINEL_NO_SELECTION,
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=cast("list[selector.SelectOptionDict]", notify_options),
+                mode=selector.SelectSelectorMode.DROPDOWN,
+                multiple=False,
+            )
+        ),
+    }
+
+    usage_fields: dict[Any, Any] = {
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
+            default=False,
+        ): selector.BooleanSelector(),
+    }
+
+    admin_fields: dict[Any, Any] = {
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_CAN_APPROVE,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_CAN_MANAGE,
+            default=False,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
+            default=[],
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=cast("list[selector.SelectOptionDict]", kid_options),
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSOCIATED_KIDS,
+                multiple=True,
+            )
+        ),
+    }
+
     return vol.Schema(
         {
-            vol.Required(
-                const.CFOF_PARENTS_INPUT_NAME, default=const.SENTINEL_EMPTY
-            ): str,
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_HA_USER,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=user_options,
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
+            vol.Optional(USER_SECTION_IDENTITY_PROFILE): section(
+                vol.Schema(identity_fields)
             ),
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-                default=[],  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", kid_options),
-                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSOCIATED_KIDS,
-                    multiple=True,
-                )
+            vol.Optional(USER_SECTION_SYSTEM_USAGE): section(vol.Schema(usage_fields)),
+            vol.Optional(USER_SECTION_ADMIN_APPROVAL): section(
+                vol.Schema(admin_fields),
+                {"collapsed": True},
             ),
-            # Single notification service selector (None = disabled, service = enabled)
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", notify_options),
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
-            ),
-            # Dashboard language
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE,
-                default=const.DEFAULT_DASHBOARD_LANGUAGE,  # Static default
-            ): selector.LanguageSelector(
-                selector.LanguageSelectorConfig(
-                    languages=language_options,
-                    native_name=True,
-                )
-            ),
-            # Parent capability toggles (assignment + feature gates)
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-                default=False,  # Static default
-            ): selector.BooleanSelector(),
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
-                default=False,  # Static default
-            ): selector.BooleanSelector(),
-            vol.Optional(
-                const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
-                default=False,  # Static default
-            ): selector.BooleanSelector(),
-        }
+        },
+        extra=vol.ALLOW_EXTRA,
     )
+
+
+def map_parent_form_errors(errors: dict[str, str]) -> dict[str, str]:
+    """Map parent form errors to section-level aliases for sectioned UI."""
+    mapped_errors: dict[str, str] = {}
+
+    field_to_section: dict[str, str] = {
+        **dict.fromkeys(USER_IDENTITY_FIELDS, USER_SECTION_IDENTITY_PROFILE),
+        **dict.fromkeys(USER_SYSTEM_USAGE_FIELDS, USER_SECTION_SYSTEM_USAGE),
+        **dict.fromkeys(USER_ADMIN_APPROVAL_FIELDS, USER_SECTION_ADMIN_APPROVAL),
+    }
+
+    field_aliases = {
+        const.CFOP_ERROR_CHORE_OPTIONS: const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+    }
+
+    for error_field, translation_key in errors.items():
+        mapped_errors[error_field] = translation_key
+
+        normalized_field = field_aliases.get(error_field, error_field)
+        mapped_errors[normalized_field] = translation_key
+
+        if normalized_field == const.CFOP_ERROR_BASE:
+            continue
+
+        if section_key := field_to_section.get(normalized_field):
+            mapped_errors[section_key] = translation_key
+            mapped_errors[f"{section_key}.{normalized_field}"] = translation_key
+
+    return mapped_errors
 
 
 def validate_parents_inputs(
@@ -478,16 +587,38 @@ def validate_parents_inputs(
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
         const.DATA_PARENT_NAME: user_input.get(const.CFOF_PARENTS_INPUT_NAME, ""),
-        const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: user_input.get(
-            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT, False
-        ),
-        const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: user_input.get(
-            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW, False
-        ),
-        const.DATA_PARENT_ENABLE_GAMIFICATION: user_input.get(
-            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION, False
-        ),
     }
+
+    if const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS in user_input:
+        data_dict[const.DATA_PARENT_ASSOCIATED_KIDS] = user_input.get(
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
+            [],
+        )
+    if const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT in user_input:
+        data_dict[const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT] = user_input.get(
+            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+            False,
+        )
+    if const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW in user_input:
+        data_dict[const.DATA_PARENT_ENABLE_CHORE_WORKFLOW] = user_input.get(
+            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
+            False,
+        )
+    if const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION in user_input:
+        data_dict[const.DATA_PARENT_ENABLE_GAMIFICATION] = user_input.get(
+            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
+            False,
+        )
+    if const.CFOF_PARENTS_INPUT_CAN_APPROVE in user_input:
+        data_dict[const.DATA_USER_CAN_APPROVE] = user_input.get(
+            const.CFOF_PARENTS_INPUT_CAN_APPROVE,
+            False,
+        )
+    if const.CFOF_PARENTS_INPUT_CAN_MANAGE in user_input:
+        data_dict[const.DATA_USER_CAN_MANAGE] = user_input.get(
+            const.CFOF_PARENTS_INPUT_CAN_MANAGE,
+            False,
+        )
 
     # Call shared validation (single source of truth)
     is_update = current_parent_id is not None
@@ -497,6 +628,48 @@ def validate_parents_inputs(
         existing_kids,
         is_update=is_update,
         current_parent_id=current_parent_id,
+    )
+
+
+def build_user_section_suggested_values(flat_values: dict[str, Any]) -> dict[str, Any]:
+    """Build sectioned suggested values for the role-based user form."""
+    return build_parent_section_suggested_values(flat_values)
+
+
+def normalize_user_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Normalize role-based user form input for sectioned payloads."""
+    return normalize_parent_form_input(user_input)
+
+
+async def build_user_schema(hass, users, kids_dict):
+    """Build role-based user form schema.
+
+    Args:
+        hass: Home Assistant instance.
+        users: Available Home Assistant users.
+        kids_dict: Mapping of display name to internal ID for association field.
+    """
+    return await build_parent_schema(hass, users, kids_dict)
+
+
+def map_user_form_errors(errors: dict[str, str]) -> dict[str, str]:
+    """Map role-based user form errors to section-level aliases."""
+    return map_parent_form_errors(errors)
+
+
+def validate_users_inputs(
+    user_input: dict[str, Any],
+    existing_users: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
+    *,
+    current_user_id: str | None = None,
+) -> dict[str, str]:
+    """Validate role-based user form input using shared parent-model rules."""
+    return validate_parents_inputs(
+        user_input,
+        existing_users,
+        existing_assignees,
+        current_parent_id=current_user_id,
     )
 
 

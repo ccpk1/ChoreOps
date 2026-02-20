@@ -349,8 +349,11 @@ class TestDailyMultiUponCompletionReset:
         lila_ctx = Context(user_id=mock_hass_users["kid3"].id)
 
         # Get starting points from sensor state
-        lila_points_sensor = "sensor.lila_kidschores_points"
-        points_start = float(hass.states.get(lila_points_sensor).state)
+        lila_points_state = hass.states.get(
+            "sensor.lila_choreops_points"
+        ) or hass.states.get("sensor.lila_kidschores_points")
+        assert lila_points_state is not None
+        points_start = float(lila_points_state.state)
 
         # =====================================================================
         # Slot 1: Claim → Auto-approve → Should reschedule to slot 2
@@ -380,7 +383,11 @@ class TestDailyMultiUponCompletionReset:
         # ASSERT: Points awarded correctly (3 points × 2 slots = 6 points)
         # =====================================================================
 
-        points_end = float(hass.states.get(lila_points_sensor).state)
+        lila_points_end_state = hass.states.get(
+            "sensor.lila_choreops_points"
+        ) or hass.states.get("sensor.lila_kidschores_points")
+        assert lila_points_end_state is not None
+        points_end = float(lila_points_end_state.state)
         points_delta = points_end - points_start
 
         assert points_delta == 6.0, (
@@ -618,8 +625,11 @@ class TestDailyMultiUponCompletionResetShared:
         lila_ctx = Context(user_id=mock_hass_users["kid3"].id)
 
         # Get starting points from sensor state
-        lila_points_sensor = "sensor.lila_kidschores_points"
-        points_start = float(hass.states.get(lila_points_sensor).state)
+        lila_points_state = hass.states.get(
+            "sensor.lila_choreops_points"
+        ) or hass.states.get("sensor.lila_kidschores_points")
+        assert lila_points_state is not None
+        points_start = float(lila_points_state.state)
 
         # =====================================================================
         # Slot 1: Claim → Auto-approve → Should reschedule to slot 2
@@ -647,7 +657,11 @@ class TestDailyMultiUponCompletionResetShared:
         # ASSERT: Points awarded correctly (3 points × 2 slots = 6 points)
         # =====================================================================
 
-        points_end = float(hass.states.get(lila_points_sensor).state)
+        lila_points_end_state = hass.states.get(
+            "sensor.lila_choreops_points"
+        ) or hass.states.get("sensor.lila_kidschores_points")
+        assert lila_points_end_state is not None
+        points_end = float(lila_points_end_state.state)
         points_delta = points_end - points_start
 
         assert points_delta == 6.0, (

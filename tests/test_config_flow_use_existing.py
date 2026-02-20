@@ -2,8 +2,11 @@
 
 # pylint: disable=redefined-outer-name  # Pytest fixture pattern
 
+from collections.abc import Awaitable, Callable
+import copy
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from homeassistant import config_entries
@@ -11,6 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
+from custom_components.choreops import const, migration_pre_v50 as mp50
 from tests.helpers import (
     CFOF_DATA_RECOVERY_INPUT_SELECTION,
     CONFIG_FLOW_STEP_DATA_RECOVERY,
@@ -28,9 +32,30 @@ def mock_setup_entry() -> AsyncMock:
         yield mock_setup
 
 
+@pytest.fixture
+def migrate_legacy_payload_to_users() -> Callable[
+    [dict[str, object]], Awaitable[dict[str, object]]
+]:
+    """Return helper that applies schema45 user contract migration to payloads."""
+
+    async def _apply(payload: dict[str, object]) -> dict[str, object]:
+        data_payload = payload.get("data") if "data" in payload else payload
+        assert isinstance(data_payload, dict)
+        coordinator = SimpleNamespace(_data=copy.deepcopy(data_payload))
+        await mp50.async_apply_schema45_user_contract(coordinator)
+        migrated = coordinator._data
+        assert isinstance(migrated, dict)
+        return migrated
+
+    return _apply
+
+
 async def test_config_flow_use_existing_v40beta1(
     hass: HomeAssistant,
     mock_setup_entry: AsyncMock,
+    migrate_legacy_payload_to_users: Callable[
+        [dict[str, object]], Awaitable[dict[str, object]]
+    ],
 ) -> None:
     """Test config flow with existing v40beta1 kidschores_data file (already wrapped format)."""
     # Place v40beta1 sample as active kidschores_data file (already has wrapper)
@@ -69,7 +94,7 @@ async def test_config_flow_use_existing_v40beta1(
 
     # Should create entry successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["title"] == "KidsChores"
+    assert result["title"] == const.CHOREOPS_TITLE
     assert result["data"] == {}
 
     # Verify setup was called
@@ -85,14 +110,18 @@ async def test_config_flow_use_existing_v40beta1(
     assert "data" in stored_data
     assert stored_data["version"] == 1
 
-    # Verify the actual data is preserved
-    assert "kids" in stored_data["data"]
-    assert len(stored_data["data"]["kids"]) > 0
+    # Verify schema45 users contract from legacy payload via real migration hook
+    migrated_data = await migrate_legacy_payload_to_users(stored_data)
+    assert const.DATA_USERS in migrated_data
+    assert len(migrated_data[const.DATA_USERS]) > 0
 
 
 async def test_config_flow_use_existing_v30(
     hass: HomeAssistant,
     mock_setup_entry: AsyncMock,
+    migrate_legacy_payload_to_users: Callable[
+        [dict[str, object]], Awaitable[dict[str, object]]
+    ],
 ) -> None:
     """Test config flow with existing v30 kidschores_data file (raw format with legacy schema)."""
     # Place v30 sample as active kidschores_data file (raw format, no version wrapper)
@@ -129,7 +158,7 @@ async def test_config_flow_use_existing_v30(
 
     # Should create entry successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["title"] == "KidsChores"
+    assert result["title"] == const.CHOREOPS_TITLE
     assert result["data"] == {}
 
     # Verify setup was called
@@ -145,10 +174,18 @@ async def test_config_flow_use_existing_v30(
     assert "data" in stored_data
     assert stored_data["version"] == 1
 
+    # Verify schema45 users contract from legacy payload via real migration hook
+    migrated_data = await migrate_legacy_payload_to_users(stored_data)
+    assert const.DATA_USERS in migrated_data
+    assert len(migrated_data[const.DATA_USERS]) > 0
+
 
 async def test_config_flow_use_existing_already_wrapped(
     hass: HomeAssistant,
     mock_setup_entry: AsyncMock,
+    migrate_legacy_payload_to_users: Callable[
+        [dict[str, object]], Awaitable[dict[str, object]]
+    ],
 ) -> None:
     """Test config flow with existing file that already has version wrapper."""
     # Place file with proper HA storage format
@@ -187,7 +224,7 @@ async def test_config_flow_use_existing_already_wrapped(
 
     # Should create entry successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["title"] == "KidsChores"
+    assert result["title"] == const.CHOREOPS_TITLE
     assert result["data"] == {}
 
     # Verify setup was called
@@ -200,3 +237,7 @@ async def test_config_flow_use_existing_already_wrapped(
     )
     stored_data = json.loads(stored_data_str)
     assert stored_data == wrapped_data
+
+    # Verify wrapped legacy payload still migrates cleanly to users contract
+    migrated_data = await migrate_legacy_payload_to_users(stored_data)
+    assert const.DATA_USERS in migrated_data

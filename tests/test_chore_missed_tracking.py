@@ -433,7 +433,7 @@ class TestSkipChoreWithMissMarking:
             SERVICE_SKIP_CHORE_DUE_DATE,
             {
                 "chore_id": chore_id,
-                "kid_id": zoe_id,
+                "assignee_id": zoe_id,
                 "mark_as_missed": True,
             },
             blocking=True,
@@ -542,7 +542,7 @@ class TestSkipChoreWithMissMarking:
             SERVICE_SKIP_CHORE_DUE_DATE,
             {
                 "chore_id": chore_id,
-                "kid_id": zoe_id,
+                "assignee_id": zoe_id,
                 "mark_as_missed": False,
             },
             blocking=True,

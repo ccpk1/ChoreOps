@@ -151,11 +151,11 @@ async def test_fresh_start_points_only(hass: HomeAssistant) -> None:
 
         # Verify completion
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "KidsChores"
+        assert result["title"] == const.CHOREOPS_TITLE
 
         # Verify config entry was created with Star Points settings
         config_entry = result["result"]
-        assert config_entry.title == "KidsChores"
+        assert config_entry.title == const.CHOREOPS_TITLE
         assert config_entry.domain == const.DOMAIN
 
         # Verify system settings in options (storage-only mode v0.5.0+)
@@ -231,7 +231,7 @@ async def test_fresh_start_points_and_kid(hass: HomeAssistant, mock_hass_users) 
             mobile_notify_service=const.SENTINEL_NO_SELECTION,  # No real notify services in test
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 7: Parent count = 0
         result = await hass.config_entries.flow.async_configure(
@@ -305,11 +305,11 @@ async def test_fresh_start_points_and_kid(hass: HomeAssistant, mock_hass_users) 
 
         # Verify completion
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "KidsChores"
+        assert result["title"] == const.CHOREOPS_TITLE
 
         # Verify config entry created correctly
         config_entry = result["result"]
-        assert config_entry.title == "KidsChores"
+        assert config_entry.title == const.CHOREOPS_TITLE
         assert config_entry.domain == const.DOMAIN
 
         # Verify Star Points theme in system settings
@@ -408,7 +408,7 @@ async def test_fresh_start_kid_with_notify_services(
             mobile_notify_service="notify.mobile_app_test_phone",
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 7-14: Set all other entity counts to 0 (same as basic test)
         result = await hass.config_entries.flow.async_configure(
@@ -467,7 +467,7 @@ async def test_fresh_start_kid_with_notify_services(
 
         # Verify completion
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "KidsChores"
+        assert result["title"] == const.CHOREOPS_TITLE
 
         # Verify config entry created correctly with Star Points
         config_entry = result["result"]
@@ -527,7 +527,7 @@ async def test_fresh_start_with_parent_no_notifications(
             kid_ha_user_key="kid1",
             dashboard_language="en",
         )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 6: Set parent count = 1
         result = await hass.config_entries.flow.async_configure(
@@ -535,13 +535,14 @@ async def test_fresh_start_with_parent_no_notifications(
             user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1},
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Step 7: Configure parent with HA user but no notifications
         # Extract the kid ID using the working pattern from test_fresh_start_with_parents
         data_schema = _require_data_schema(result)
-        associated_kids_field = data_schema.schema.get(
-            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS
+        associated_kids_field = _find_field_in_schema(
+            data_schema,
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
         )
         assert associated_kids_field is not None, (
             "associated_kids field not found in schema"
@@ -616,7 +617,7 @@ async def test_fresh_start_with_parent_no_notifications(
 
         # Verify completion
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "KidsChores"
+        assert result["title"] == const.CHOREOPS_TITLE
         config_entry = result["result"]
         assert config_entry.options[const.CONF_POINTS_LABEL] == "Star Points"
 
@@ -671,14 +672,14 @@ async def test_fresh_start_with_parent_with_notifications(
             kid_ha_user_key="kid2",
             dashboard_language="en",
         )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 6: Set parent count = 1
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1},
         )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Step 7: Configure parent with notifications enabled using helper
         kid_ids = _extract_kid_ids_from_schema(result)
@@ -761,14 +762,14 @@ async def test_fresh_start_two_parents_mixed_notifications(
             dashboard_language="en",
             mobile_notify_service=const.SENTINEL_NO_SELECTION,
         )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 6: Set parent count = 2
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2},
         )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Step 7: Configure first parent (no notifications) using helper
         kid_ids = _extract_kid_ids_from_schema(result)
@@ -782,7 +783,7 @@ async def test_fresh_start_two_parents_mixed_notifications(
         )
         assert result["type"] == FlowResultType.FORM
         assert (
-            result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+            result["step_id"] == const.CONFIG_FLOW_STEP_USERS
         )  # Still on parents step
 
         # Step 8: Configure second parent (with notifications) using helper
@@ -823,6 +824,32 @@ def _require_data_schema(result: Any) -> Any:
     data_schema = result.get("data_schema")
     assert data_schema is not None
     return data_schema
+
+
+def _find_field_in_schema(data_schema: Any, field_key: str) -> Any | None:
+    """Find a schema field in flat or sectioned voluptuous schemas."""
+
+    def _match_field(schema_map: Any, key: str) -> Any | None:
+        for schema_key, schema_value in schema_map.items():
+            normalized_key = getattr(schema_key, "schema", schema_key)
+            if normalized_key == key:
+                return schema_value
+        return None
+
+    field = _match_field(data_schema.schema, field_key)
+    if field is not None:
+        return field
+
+    for section_obj in data_schema.schema.values():
+        nested_schema = getattr(section_obj, "schema", None)
+        nested_map = getattr(nested_schema, "schema", None)
+        if nested_map is None:
+            continue
+        field = _match_field(nested_map, field_key)
+        if field is not None:
+            return field
+
+    return None
 
 
 async def _configure_kid_step(
@@ -960,7 +987,7 @@ async def _configure_multiple_kids_step(
         else:
             # Last kid - result should advance to parent count step
             assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+            assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
             # Extract all real kid IDs from parent step schema and map to names
             actual_kid_ids = _extract_kid_ids_from_schema(result)
@@ -1038,7 +1065,7 @@ async def _configure_multiple_parents_step(
         if i < len(parent_configs) - 1:
             # Still more parents to configure
             assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+            assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
         else:
             # Last parent - result should advance to chore count step
             assert result["type"] == FlowResultType.FORM
@@ -1119,13 +1146,13 @@ async def _setup_full_family_scenario(
         kid_ha_user_key="kid3",
         dashboard_language="en",
     )
-    assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+    assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
     # Step 4: Set parent count = 2
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2}
     )
-    assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+    assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
     # Step 5: Extract kid IDs from schema (proven working pattern)
     kid_ids = _extract_kid_ids_from_schema(result)
@@ -1232,8 +1259,9 @@ def _extract_kid_ids_from_schema(result: Any) -> list[str]:
         List of kid internal IDs available in the form
     """
     data_schema = _require_data_schema(result)
-    associated_kids_field = data_schema.schema.get(
-        const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS
+    associated_kids_field = _find_field_in_schema(
+        data_schema,
+        const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
     )
     assert associated_kids_field is not None, (
         "associated_kids field not found in schema"
@@ -1307,21 +1335,22 @@ async def test_fresh_start_with_parents(hass: HomeAssistant, mock_hass_users):
             dashboard_language="en",
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENT_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Configure 1 parent
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1}
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_PARENTS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Extract the kid ID from the parent form schema options for associated_kids field
         data_schema = _require_data_schema(result)
 
-        # Find the associated_kids field schema - the key is the string constant
-        associated_kids_field = data_schema.schema.get(
-            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS
+        # Find the associated_kids field schema in flat or sectioned form payloads
+        associated_kids_field = _find_field_in_schema(
+            data_schema,
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
         )
         assert associated_kids_field is not None, (
             "associated_kids field not found in schema"
@@ -1403,11 +1432,11 @@ async def test_fresh_start_with_parents(hass: HomeAssistant, mock_hass_users):
 
         # Verify completion
         assert result["type"] == FlowResultType.CREATE_ENTRY
-        assert result["title"] == "KidsChores"
+        assert result["title"] == const.CHOREOPS_TITLE
 
         # Verify config entry created correctly
         config_entry = result["result"]
-        assert config_entry.title == "KidsChores"
+        assert config_entry.title == const.CHOREOPS_TITLE
         assert config_entry.domain == const.DOMAIN
 
         # Verify Star Points theme in system settings
@@ -1852,7 +1881,7 @@ async def test_fresh_start_with_single_chore(
 
     # Should complete successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["title"] == "KidsChores"
+    assert result["title"] == const.CHOREOPS_TITLE
 
     # Verify the config entry was created
     config_entry = result["result"]
@@ -2127,7 +2156,7 @@ async def test_fresh_start_with_all_scenario_chores(
 
     # Should complete successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["title"] == "KidsChores"
+    assert result["title"] == const.CHOREOPS_TITLE
 
     # Verify the config entry was created with correct settings
     config_entry = result["result"]

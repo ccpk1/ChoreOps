@@ -122,8 +122,8 @@ from custom_components.choreops.const import (
     CONFIG_FLOW_STEP_INTRO,
     CONFIG_FLOW_STEP_KID_COUNT,
     CONFIG_FLOW_STEP_KIDS,
-    CONFIG_FLOW_STEP_PARENT_COUNT,
-    CONFIG_FLOW_STEP_PARENTS,
+    CONFIG_FLOW_STEP_USER_COUNT,
+    CONFIG_FLOW_STEP_USERS,
     CONFIG_FLOW_STEP_PENALTY_COUNT,
     CONFIG_FLOW_STEP_PENALTIES,
     CONFIG_FLOW_STEP_POINTS,
@@ -147,6 +147,8 @@ from custom_components.choreops.const import (
     CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
     CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
     CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+    CFOF_PARENTS_INPUT_CAN_APPROVE,
+    CFOF_PARENTS_INPUT_CAN_MANAGE,
     CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
     CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
     # =========================================================================
@@ -269,8 +271,8 @@ from custom_components.choreops.const import (
     OPTIONS_FLOW_STEP_SELECT_ENTITY,
     OPTIONS_FLOW_STEP_ADD_KID,
     OPTIONS_FLOW_STEP_EDIT_KID,
-    OPTIONS_FLOW_STEP_ADD_PARENT,
-    OPTIONS_FLOW_STEP_EDIT_PARENT,
+    OPTIONS_FLOW_STEP_ADD_USER,
+    OPTIONS_FLOW_STEP_EDIT_USER,
     OPTIONS_FLOW_STEP_ADD_CHORE,
     OPTIONS_FLOW_STEP_ADD_REWARD,
     OPTIONS_FLOW_STEP_ADD_PENALTY,
@@ -286,7 +288,7 @@ from custom_components.choreops.const import (
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_KIDS,
-    OPTIONS_FLOW_PARENTS,
+    OPTIONS_FLOW_USERS,
     OPTIONS_FLOW_CHORES,
     OPTIONS_FLOW_REWARDS,
     OPTIONS_FLOW_PENALTIES,
@@ -458,7 +460,7 @@ from custom_components.choreops.const import (
     DATA_PARENT_ENABLE_GAMIFICATION,
     DATA_PARENT_MOBILE_NOTIFY_SERVICE,
     DATA_PARENT_HA_USER_ID,
-    DATA_PARENT_LINKED_SHADOW_KID_ID,
+    DATA_PARENT_LINKED_PROFILE_ID,
     DATA_PARENT_NAME,
     DATA_PARENTS,
     DATA_PENALTIES,
@@ -567,6 +569,8 @@ from custom_components.choreops.const import (
     # =========================================================================
     # SERVICE FIELD NAMES (for service call payloads)
     # =========================================================================
+    SERVICE_FIELD_ASSIGNEE_NAME,
+    SERVICE_FIELD_APPROVER_NAME,
     SERVICE_FIELD_KID_NAME,
     SERVICE_FIELD_KID_ID,
     SERVICE_FIELD_PARENT_NAME,
@@ -601,16 +605,16 @@ def construct_entity_id(platform: str, kid_name: str, suffix: str) -> str:
         suffix: Entity suffix constant
 
     Returns:
-        Full entity ID string like "sensor.sarah_kidschores_points"
+        Full entity ID string like "sensor.sarah_choreops_points"
 
     Example:
         construct_entity_id("sensor", "Sarah", SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER)
-        # Returns: "sensor.sarah_kidschores_ui_dashboard_helper"
+        # Returns: "sensor.sarah_choreops_ui_dashboard_helper"
     """
     from homeassistant.util import slugify
 
     kid_slug = slugify(kid_name)
-    return f"{platform}.{kid_slug}_kidschores{suffix}"
+    return f"{platform}.{kid_slug}_choreops{suffix}"
 
 
 # =============================================================================

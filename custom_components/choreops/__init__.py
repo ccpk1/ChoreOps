@@ -99,10 +99,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -
     # DEBUG: Check what was loaded from storage
     loaded_data = store.data
     const.LOGGER.debug(
-        "DEBUG: __init__ after storage load: %d users, %d kids, %d parents, %d chores, %d badges",
+        "DEBUG: __init__ after storage load: %d users, %d kids, %d chores, %d badges",
         len(loaded_data.get(const.DATA_USERS, {})),
         len(loaded_data.get(const.DATA_KIDS, {})),
-        len(loaded_data.get(const.DATA_PARENTS, {})),
         len(loaded_data.get(const.DATA_CHORES, {})),
         len(loaded_data.get(const.DATA_BADGES, {})),
     )

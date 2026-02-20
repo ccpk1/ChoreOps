@@ -282,6 +282,8 @@ Schema 45 introduces a contract-first migration checkpoint for unified user mode
 - No canonical shadow-link model (`linked_shadow_kid_id` is removed from target architecture).
 - No canonical parent dictionary in coordinator runtime state.
 - Any temporary legacy adapters are transitional read/input aliases only and must not become source-of-truth data structures.
+- Parent linkage uses canonical runtime key `DATA_PARENT_LINKED_PROFILE_ID`; persisted storage key remains `"linked_shadow_kid_id"` for schema45 scope.
+- Current development target is schema 45 contract behavior; avoid adding migration complexity beyond what schema 45 requires.
 
 #### Authorization precedence contract
 
@@ -292,6 +294,52 @@ Permission checks follow strict precedence:
 3. Deny
 
 Capabilities are explicit; they are not inferred from assignment/linking relationships.
+
+#### Manage Users inclusion contract
+
+The options/config user-management surfaces are role-based and must use one
+canonical inclusion model.
+
+- Include assignee-only users (`can_be_assigned=true`)
+- Include approver-only users (`can_approve=true`, `can_be_assigned=false`)
+- Include dual-role users (`can_be_assigned=true`, `can_approve=true`)
+- Include linked-profile users that remain valid user records
+
+This contract explicitly forbids parent-only filtering for the user-management
+display list.
+
+Compatibility policy for options/config flow surfaces:
+
+- No label-only compatibility aliases (`Manage Users` label with `manage_parent`
+  routing) are allowed
+- Menu selector value, entity type token, step IDs, and translation namespace
+  must represent the same canonical user contract
+- Legacy parent/kid terms may exist only in migration code paths, not as active
+  runtime UX contracts
+
+#### Capability-first entity gating matrix
+
+Entity creation follows two gates in order:
+
+1. **Eligibility gate**: only assignment-participant profiles (`can_be_assigned=true`) can receive kid-scoped entities.
+2. **Requirement gate**: entity suffix requirement class (`ALWAYS`, `WORKFLOW`, `GAMIFICATION`, `EXTRA`) determines visibility under feature toggles.
+
+| Eligibility (`can_be_assigned`) | Requirement class | Workflow toggle | Gamification toggle | Extra toggle (`show_legacy_entities`) | Outcome     |
+| ------------------------------- | ----------------- | --------------- | ------------------- | ------------------------------------- | ----------- |
+| `false`                         | Any               | Any             | Any                 | Any                                   | Not created |
+| `true`                          | `ALWAYS`          | Any             | Any                 | Any                                   | Created     |
+| `true`                          | `WORKFLOW`        | `true`          | Any                 | Any                                   | Created     |
+| `true`                          | `WORKFLOW`        | `false`         | Any                 | Any                                   | Not created |
+| `true`                          | `GAMIFICATION`    | Any             | `true`              | Any                                   | Created     |
+| `true`                          | `GAMIFICATION`    | Any             | `false`             | Any                                   | Not created |
+| `true`                          | `EXTRA`           | Any             | `true`              | `true`                                | Created     |
+| `true`                          | `EXTRA`           | Any             | `false`             | `true`                                | Not created |
+| `true`                          | `EXTRA`           | Any             | Any                 | `false`                               | Not created |
+
+Implementation references:
+
+- `helpers/entity_helpers.py`: `should_create_workflow_buttons`, `should_create_gamification_entities`, `should_create_entity`
+- `const.py`: `EntityRequirement`, `ENTITY_REGISTRY`, `EXTRA_ENTITY_SUFFIXES`
 
 #### Compatibility window contract
 
@@ -775,6 +823,49 @@ The ChoreOps integration utilizes a **Direct-to-Storage** architecture that deco
 - **Direct Storage Writing**: User input is written directly to persistent storage at `.storage/choreops/choreops_data` using **Schema 42**. This approach treats storage as the immediate source of truth, bypassing intermediate configuration entry merging.
 - **Lightweight System Settings**: The `config_entry.options` object is reserved exclusively for system-level settings and feature flags, such as `points_label`, `update_interval`, and `kiosk_mode`. This keeps the core configuration entry lightweight and easy to validate.
 
+### Unified user form contract (hard-fork)
+
+The unified user form uses Home Assistant `section()` containers (same pattern as chores)
+with explicit ordering and collapse behavior.
+
+#### Section order and collapse defaults
+
+1. **Identity and profile** (expanded)
+   - `name`
+   - `ha_user_id`
+   - `dashboard_language`
+   - `mobile_notify_service`
+2. **System usage** (expanded)
+   - `can_be_assigned`
+   - `enable_chore_workflow`
+   - `enable_gamification`
+3. **Admin and approval options** (collapsed)
+   - `can_approve`
+   - `can_manage`
+   - `associated_users` (assignees/users scope)
+
+#### Translation hierarchy requirements
+
+- Translation keys must be section-scoped, matching the chores pattern:
+  - `config.step.<user_step>.sections.<section_key>.name`
+  - `config.step.<user_step>.sections.<section_key>.description`
+  - `config.step.<user_step>.sections.<section_key>.data.<field_key>`
+  - `config.step.<user_step>.sections.<section_key>.data_description.<field_key>`
+  - `options.step.<user_step>.sections.<section_key>...` (same structure)
+- Keep flat `data`/`data_description` compatibility keys only when required for
+  legacy tests; section keys are canonical for UI rendering.
+
+#### Validation invariants for unified users
+
+- Existing dependency remains: `enable_chore_workflow` or `enable_gamification`
+  requires `can_be_assigned = true`.
+- New minimum-usage rule: at least one of `can_be_assigned` or `can_approve`
+  must be true.
+- New approval-scope rule: `can_approve = true` requires at least one entry in
+  `associated_users`.
+- Validation mapping for sectioned forms must emit both field-level and section-level
+  error keys so collapsed sections still surface actionable errors.
+
 ### Operational Workflows
 
 #### Config Flow (Initial Setup)
@@ -893,55 +984,17 @@ The integration maintains backward compatibility for legacy installations:
 - **Dual Version Detection**: Code reads from both `meta.schema_version` (v42+) and top-level `schema_version` (legacy)
 - **Safety Net**: If storage is corrupted or deleted, clean install creates v42 meta section
 - **Migration Testing**: Comprehensive test suite validates all migration paths (see MIGRATION_TESTING_PLAN.md)
+- **Linked profile key compatibility**: Runtime/model code uses canonical `DATA_PARENT_LINKED_PROFILE_ID` while persisted records keep legacy key name `linked_shadow_kid_id` in schema45 scope.
 
 ---
 
-## Shadow Kid Linking
+## Legacy shadow-link retirement
 
-The `choreops.manage_shadow_link` service provides programmatic control over shadow kid relationships, enabling data-preserving workflows for existing kid profiles.
+The legacy `choreops.manage_shadow_link` service has been retired from runtime registration and service metadata.
 
-### Core Concept
-
-**Shadow Kids** are special kid entities created when a parent enables `allow_chore_assignment`. They share the parent's name and serve as a chore assignment target while preserving separate point tracking. The linking service allows converting existing regular kids into shadow kids without losing data.
-
-### Service Operations
-
-**Link Operation** (`action: link`):
-
-- Requires exact name match between existing parent and kid (case-insensitive)
-- Validates neither entity is already in a shadow relationship
-- Converts kid to shadow profile: sets `is_shadow_kid: true`, `linked_parent_id`, updates parent's `linked_shadow_kid_id`
-- Preserves all kid data: points, history, chores, badges, achievements
-- Inherits parent's workflow/gamification settings
-
-**Unlink Operation** (`action: unlink`):
-
-- Removes shadow relationship markers from both entities
-- Renames kid with `_unlinked` suffix to prevent name conflicts
-- Preserves all kid data as regular kid profile
-- Updates device registry immediately (no reload required)
-- Parent's `allow_chore_assignment` remains enabled but `linked_shadow_kid_id` cleared
-
-### Notification Behavior
-
-Shadow kids are created with `enable_notifications: false` by default to avoid duplicate notifications (parent receives supervised chore notifications). This setting is configurable via "Manage Kids" options flow to enable features like 30-minute due date reminders or separate notification services.
-
-### Usage Pattern
-
-```yaml
-# Convert existing kid "Sarah" to shadow kid for parent "Sarah"
-service: choreops.manage_shadow_link
-data:
-  name: "Sarah"
-  action: "link"
-
-# Unlink shadow kid (creates regular kid "Sarah_unlinked")
-service: choreops.manage_shadow_link
-data:
-  name: "Sarah"
-  action: "unlink"
-```
-
-**Implementation**: `services.py` lines 1169-1309, `coordinator.py` lines 1238-1310
+- Existing shadow-profile behavior is controlled by parent capability flags in config/options flows.
+- Parent ↔ linked-profile references remain compatibility-managed through canonical key `DATA_PARENT_LINKED_PROFILE_ID`.
+- Any remaining storage-level `linked_shadow_kid_id` usage is migration compatibility, not canonical runtime architecture.
+- Shadow-link relationship validity is simple and strict: parent and kid names must match.
 
 ---

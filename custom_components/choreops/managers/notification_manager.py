@@ -450,15 +450,15 @@ class NotificationManager(BaseManager):
 
     @staticmethod
     def build_claim_action(
-        kid_id: str, chore_id: str, entry_id: str
+        assignee_id: str, chore_id: str, entry_id: str
     ) -> list[dict[str, str]]:
-        """Build a claim action button for kid notifications.
+        """Build a claim action button for assignee notifications.
 
-        Returns a single action button for kids to claim a chore directly from
+        Returns a single action button for assignees to claim a chore directly from
         a notification (e.g., overdue or due-soon reminders).
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             chore_id: The internal ID of the chore
             entry_id: The config entry ID (will be truncated to 8 chars)
 
@@ -468,76 +468,85 @@ class NotificationManager(BaseManager):
         truncated_entry_id = entry_id[:8]
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_CLAIM_CHORE}|{truncated_entry_id}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_CLAIM_CHORE}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_CLAIM,
             },
         ]
 
     @staticmethod
-    def build_skip_action(kid_id: str, chore_id: str) -> list[dict[str, str]]:
+    def build_skip_action(
+        assignee_id: str, chore_id: str, entry_id: str
+    ) -> list[dict[str, str]]:
         """Build skip action button for overdue chores.
 
         Skip action resets the chore to PENDING state and reschedules it to the
         next due date.
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             chore_id: The internal ID of the chore
 
         Returns:
             List with single action dict for Skip button
         """
+        truncated_entry_id = entry_id[:8]
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_SKIP_CHORE}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_SKIP_CHORE}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_SKIP,
             },
         ]
 
     @staticmethod
-    def build_complete_action(kid_id: str, chore_id: str) -> list[dict[str, str]]:
+    def build_complete_action(
+        assignee_id: str, chore_id: str, entry_id: str
+    ) -> list[dict[str, str]]:
         """Build complete action button for overdue chores.
 
-        Complete action directly approves the chore for the kid without requiring
+        Complete action directly approves the chore for the assignee without requiring
         a claim step first.
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             chore_id: The internal ID of the chore
 
         Returns:
             List with single action dict for Complete button
         """
+        truncated_entry_id = entry_id[:8]
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_COMPLETE_FOR_KID}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_COMPLETE_FOR_KID}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_COMPLETE,
             },
         ]
 
     @staticmethod
-    def build_remind_action(kid_id: str, chore_id: str) -> list[dict[str, str]]:
+    def build_remind_action(
+        assignee_id: str, chore_id: str, entry_id: str
+    ) -> list[dict[str, str]]:
         """Build remind action button for chore notifications.
 
         Remind action schedules a follow-up reminder notification in 30 minutes.
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             chore_id: The internal ID of the chore
 
         Returns:
             List with single action dict for Remind button
         """
+        truncated_entry_id = entry_id[:8]
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_REMIND_30}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_REMIND_30}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_REMIND_30,
             },
         ]
 
     @staticmethod
     def build_chore_actions(
-        kid_id: str, chore_id: str, entry_id: str
+        assignee_id: str, chore_id: str, entry_id: str
     ) -> list[dict[str, str]]:
         """Build standard notification actions for chore workflows.
 
@@ -547,7 +556,7 @@ class NotificationManager(BaseManager):
         - Remind in 30: Schedules a follow-up reminder notification
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             chore_id: The internal ID of the chore
             entry_id: The config entry ID (will be truncated to 8 chars)
 
@@ -557,22 +566,25 @@ class NotificationManager(BaseManager):
         truncated_entry_id = entry_id[:8]
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_APPROVE_CHORE}|{truncated_entry_id}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_APPROVE_CHORE}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_APPROVE,
             },
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_DISAPPROVE_CHORE}|{truncated_entry_id}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_DISAPPROVE_CHORE}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_DISAPPROVE,
             },
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_REMIND_30}|{truncated_entry_id}|{kid_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_REMIND_30}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_REMIND_30,
             },
         ]
 
     @staticmethod
     def build_reward_actions(
-        kid_id: str, reward_id: str, entry_id: str, notif_id: str | None = None
+        assignee_id: str,
+        reward_id: str,
+        entry_id: str,
+        notif_id: str | None = None,
     ) -> list[dict[str, str]]:
         """Build standard notification actions for reward workflows.
 
@@ -582,7 +594,7 @@ class NotificationManager(BaseManager):
         - Remind in 30: Schedules a follow-up reminder notification
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             reward_id: The internal ID of the reward
             entry_id: The config entry ID (will be truncated to 8 chars)
             notif_id: Optional notification tracking ID for deduplication.
@@ -595,15 +607,15 @@ class NotificationManager(BaseManager):
 
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_APPROVE_REWARD}|{truncated_entry_id}|{kid_id}|{reward_id}{suffix}",
+                const.NOTIFY_ACTION: f"{const.ACTION_APPROVE_REWARD}|{truncated_entry_id}|{assignee_id}|{reward_id}{suffix}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_APPROVE,
             },
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_DISAPPROVE_REWARD}|{truncated_entry_id}|{kid_id}|{reward_id}{suffix}",
+                const.NOTIFY_ACTION: f"{const.ACTION_DISAPPROVE_REWARD}|{truncated_entry_id}|{assignee_id}|{reward_id}{suffix}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_DISAPPROVE,
             },
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_REMIND_30}|{truncated_entry_id}|{kid_id}|{reward_id}{suffix}",
+                const.NOTIFY_ACTION: f"{const.ACTION_REMIND_30}|{truncated_entry_id}|{assignee_id}|{reward_id}{suffix}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_REMIND_30,
             },
         ]
@@ -2596,9 +2608,15 @@ class NotificationManager(BaseManager):
 
         # Build parent actions
         parent_actions: list[dict[str, str]] = []
-        parent_actions.extend(self.build_complete_action(target_kid_id, chore_id))
-        parent_actions.extend(self.build_skip_action(target_kid_id, chore_id))
-        parent_actions.extend(self.build_remind_action(target_kid_id, chore_id))
+        parent_actions.extend(
+            self.build_complete_action(target_kid_id, chore_id, self.entry_id)
+        )
+        parent_actions.extend(
+            self.build_skip_action(target_kid_id, chore_id, self.entry_id)
+        )
+        parent_actions.extend(
+            self.build_remind_action(target_kid_id, chore_id, self.entry_id)
+        )
 
         # Get kid name from payload (ChoreManager always provides it)
         original_kid_name = payload.get("kid_name", "")
@@ -2716,8 +2734,10 @@ class NotificationManager(BaseManager):
 
         # Build parent actions (complete/skip still available for parents)
         parent_actions: list[dict[str, str]] = []
-        parent_actions.extend(self.build_complete_action(kid_id, chore_id))
-        parent_actions.extend(self.build_skip_action(kid_id, chore_id))
+        parent_actions.extend(
+            self.build_complete_action(kid_id, chore_id, self.entry_id)
+        )
+        parent_actions.extend(self.build_skip_action(kid_id, chore_id, self.entry_id))
 
         # Get kid name from payload (ChoreManager always provides it)
         kid_name_payload = payload.get("kid_name", "")

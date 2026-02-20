@@ -79,27 +79,144 @@
         }
       },
       "parent_count": {
-        "title": "Number of Parents",
-        "description": "How many parents do you want to define initially?",
+        "title": "Number of Users",
+        "description": "How many users do you want to define initially?",
         "data": {
-          "parent_count": "Number of Parents"
+          "parent_count": "Number of Users"
+        }
+      },
+      "user_count": {
+        "title": "Number of Users",
+        "description": "How many users do you want to define initially?",
+        "data": {
+          "parent_count": "Number of Users"
         }
       },
       "parents": {
-        "title": "Define Parent",
-        "description": "Enter details for each parent.",
+        "title": "Define User",
+        "description": "Enter details for each user profile.",
+        "sections": {
+          "section_identity_profile": {
+            "name": "Identity and profile",
+            "description": "Core identity, account linkage, and personalization settings.",
+            "data": {
+              "name": "Name",
+              "ha_user_id": "Home Assistant User",
+              "dashboard_language": "Language",
+              "mobile_notify_service": "Notifications"
+            },
+            "data_description": {
+              "name": "Unique name for this user profile.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "dashboard_language": "Language used for dashboard content and notifications.",
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+            }
+          },
+          "section_system_usage": {
+            "name": "System usage",
+            "description": "Controls for normal usage in chores and gamification.",
+            "data": {
+              "allow_chore_assignment": "Can be assigned",
+              "enable_chore_workflow": "Workflow enabled",
+              "enable_gamification": "Gamification enabled"
+            },
+            "data_description": {
+              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
+              "enable_gamification": "Enables points, badges, and rewards participation."
+            }
+          },
+          "section_admin_approval": {
+            "name": "Admin and approval options",
+            "description": "Higher-privilege approval and management controls.",
+            "data": {
+              "can_approve": "Can approve",
+              "can_manage": "Can manage",
+              "associated_kids": "Associated assignees/users"
+            },
+            "data_description": {
+              "can_approve": "Allows approval and disapproval actions.",
+              "can_manage": "Allows management actions that require elevated permissions.",
+              "associated_kids": "Users this approver/admin supervises for approval actions."
+            }
+          }
+        },
         "data": {
-          "name": "Parent Name",
+          "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_kids": "Associated Kids",
+          "associated_kids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language"
         },
         "data_description": {
-          "name": "Unique name for this parent, used throughout the system.",
-          "ha_user_id": "Optional: Link this parent to a Home Assistant user for notifications and dashboard access.",
-          "associated_kids": "Select which kids this parent supervises for notifications and approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this parent, or leave empty to disable.",
+          "name": "Unique name for this user profile, used throughout the system.",
+          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
+          "associated_kids": "Select which users this approver/admin supervises for notifications and approval actions.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
+          "dashboard_language": "Language used for your chore dashboard and notifications."
+        }
+      },
+      "users": {
+        "title": "Define User",
+        "description": "Enter details for each user profile.",
+        "sections": {
+          "section_identity_profile": {
+            "name": "Identity and profile",
+            "description": "Core identity, account linkage, and personalization settings.",
+            "data": {
+              "name": "Name",
+              "ha_user_id": "Home Assistant User",
+              "dashboard_language": "Language",
+              "mobile_notify_service": "Notifications"
+            },
+            "data_description": {
+              "name": "Unique name for this user profile.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "dashboard_language": "Language used for dashboard content and notifications.",
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+            }
+          },
+          "section_system_usage": {
+            "name": "System usage",
+            "description": "Controls for normal usage in chores and gamification.",
+            "data": {
+              "allow_chore_assignment": "Can be assigned",
+              "enable_chore_workflow": "Workflow enabled",
+              "enable_gamification": "Gamification enabled"
+            },
+            "data_description": {
+              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
+              "enable_gamification": "Enables points, badges, and rewards participation."
+            }
+          },
+          "section_admin_approval": {
+            "name": "Admin and approval options",
+            "description": "Higher-privilege approval and management controls.",
+            "data": {
+              "can_approve": "Can approve",
+              "can_manage": "Can manage",
+              "associated_kids": "Associated assignees/users"
+            },
+            "data_description": {
+              "can_approve": "Allows approval and disapproval actions.",
+              "can_manage": "Allows management actions that require elevated permissions.",
+              "associated_kids": "Users this approver/admin supervises for approval actions."
+            }
+          }
+        },
+        "data": {
+          "name": "User Name",
+          "ha_user_id": "Home Assistant User",
+          "associated_kids": "Associated Users",
+          "mobile_notify_service": "Notifications",
+          "dashboard_language": "Language"
+        },
+        "data_description": {
+          "name": "Unique name for this user profile, used throughout the system.",
+          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
+          "associated_kids": "Select which users this approver/admin supervises for notifications and approval actions.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -408,6 +525,7 @@
       "duplicate_chore": "A chore with this name already exists",
       "duplicate_kid": "A kid with this name already exists",
       "duplicate_parent": "A parent with this name already exists",
+      "duplicate_parent": "A user with this name already exists",
       "duplicate_penalty": "A penalty with this name already exists",
       "duplicate_reward": "A reward with this name already exists",
       "duplicate_bonus": "A bonus with this name already exists",
@@ -437,8 +555,8 @@
       "invalid_end_date": "Invalid end date.",
       "invalid_kid_count": "Invalid kid count",
       "invalid_kid_name": "Invalid kid name",
-      "invalid_parent_count": "Invalid parent count",
-      "invalid_parent_name": "Invalid parent name",
+      "invalid_parent_count": "Invalid user count",
+      "invalid_parent_name": "Invalid user name",
       "no_kids_assigned": "At least one kid must be assigned to the chore",
       "invalid_penalty": "Invalid penalty",
       "invalid_penalty_count": "Invalid penalty count",
@@ -462,6 +580,8 @@
       "invalid_date_range": "The date range is invalid. End date must be after start date.",
       "missing_required": "Required field is missing. Please provide all required information.",
       "invalid_format": "The format is invalid. Please check your input and try again.",
+      "usage_requires_assignment_or_approval": "Enable either 'Can be assigned' or 'Can approve'.",
+      "approval_requires_associated_users": "At least one associated assignee/user is required when 'Can approve' is enabled.",
       "chore_options_require_assignment": "Chore workflow and gamification options require 'Allow Chores to be Assigned to Me' to be enabled first.",
       "invalid_update_interval": "Invalid update interval. Must be a positive integer.",
       "invalid_calendar_show_period": "Invalid calendar show period. Must be a positive integer.",
@@ -482,7 +602,7 @@
     "step": {
       "init": {
         "title": "ChoreOps Options",
-        "description": "Manage kids, chores, badges, rewards, penalties, bonuses, or finish.\n\n[📖 View Documentation]({documentation_url})",
+        "description": "Manage users, chores, badges, rewards, penalties, bonuses, or finish.\n\n[📖 View Documentation]({documentation_url})",
         "data": {
           "menu_selection": "Select an Option"
         }
@@ -527,27 +647,148 @@
         }
       },
       "add_parent": {
-        "title": "Add Parent",
-        "description": "Provide the details for the new parent.\n\n📖 [Configuration Guide]({documentation_url})",
+        "title": "Add User",
+        "description": "Provide the details for the new user profile.\n\n📖 [Configuration Guide]({documentation_url})",
+        "sections": {
+          "section_identity_profile": {
+            "name": "Identity and profile",
+            "description": "Core identity, account linkage, and personalization settings.",
+            "data": {
+              "name": "Name",
+              "ha_user_id": "Home Assistant User",
+              "dashboard_language": "Language",
+              "mobile_notify_service": "Notifications"
+            },
+            "data_description": {
+              "name": "Unique name for this user profile.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "dashboard_language": "Language used for dashboard content and notifications.",
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+            }
+          },
+          "section_system_usage": {
+            "name": "System usage",
+            "description": "Controls for normal usage in chores and gamification.",
+            "data": {
+              "allow_chore_assignment": "Can be assigned",
+              "enable_chore_workflow": "Workflow enabled",
+              "enable_gamification": "Gamification enabled"
+            },
+            "data_description": {
+              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
+              "enable_gamification": "Enables points, badges, and rewards participation."
+            }
+          },
+          "section_admin_approval": {
+            "name": "Admin and approval options",
+            "description": "Higher-privilege approval and management controls.",
+            "data": {
+              "can_approve": "Can approve",
+              "can_manage": "Can manage",
+              "associated_kids": "Associated assignees/users"
+            },
+            "data_description": {
+              "can_approve": "Allows approval and disapproval actions.",
+              "can_manage": "Allows management actions that require elevated permissions.",
+              "associated_kids": "Users this approver/admin supervises for approval actions."
+            }
+          }
+        },
         "data": {
-          "name": "Parent Name",
+          "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_kids": "Associated Kids",
+          "associated_kids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
-          "allow_chore_assignment": "Allow Chores to be Assigned to Me",
+          "allow_chore_assignment": "Allow Chores to be Assigned",
           "enable_chore_workflow": "Enable Chore Workflow",
           "enable_gamification": "Enable Gamification",
+          "can_approve": "Can approve",
+          "can_manage": "Can manage",
           "internal_id": "Internal ID"
         },
         "data_description": {
-          "name": "Unique name for this parent, used throughout the system.",
-          "ha_user_id": "Optional: Link this parent to a Home Assistant user for notifications and dashboard access.",
-          "associated_kids": "Select which kids this parent supervises for notifications and approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this parent, or leave empty to disable.",
+          "name": "Unique name for this user profile, used throughout the system.",
+          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
+          "associated_kids": "Select which users this approver/admin supervises for approval actions.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the kid profile with '_unlinked' suffix for manual cleanup.",
           "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
           "enable_gamification": "Track points, badges, and rewards for your completed chores.",
+          "dashboard_language": "Language used for your chore dashboard and notifications."
+        }
+      },
+      "add_user": {
+        "title": "Add User",
+        "description": "Provide the details for the new user profile.\n\n📖 [Configuration Guide]({documentation_url})",
+        "sections": {
+          "section_identity_profile": {
+            "name": "Identity and profile",
+            "description": "Core identity, account linkage, and personalization settings.",
+            "data": {
+              "name": "Name",
+              "ha_user_id": "Home Assistant User",
+              "dashboard_language": "Language",
+              "mobile_notify_service": "Notifications"
+            },
+            "data_description": {
+              "name": "Unique name for this user profile.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "dashboard_language": "Language used for dashboard content and notifications.",
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+            }
+          },
+          "section_system_usage": {
+            "name": "System usage",
+            "description": "Controls for normal usage in chores and gamification.",
+            "data": {
+              "allow_chore_assignment": "Can be assigned",
+              "enable_chore_workflow": "Workflow enabled",
+              "enable_gamification": "Gamification enabled"
+            },
+            "data_description": {
+              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
+              "enable_gamification": "Enables points, badges, and rewards participation."
+            }
+          },
+          "section_admin_approval": {
+            "name": "Admin and approval options",
+            "description": "Higher-privilege approval and management controls.",
+            "data": {
+              "can_approve": "Can approve",
+              "can_manage": "Can manage",
+              "associated_kids": "Associated assignees/users"
+            },
+            "data_description": {
+              "can_approve": "Allows approval and disapproval actions.",
+              "can_manage": "Allows management actions that require elevated permissions.",
+              "associated_kids": "Users this approver/admin supervises for approval actions."
+            }
+          }
+        },
+        "data": {
+          "name": "User Name",
+          "ha_user_id": "Home Assistant User",
+          "associated_kids": "Associated Users",
+          "mobile_notify_service": "Notifications",
+          "dashboard_language": "Language",
+          "allow_chore_assignment": "Allow Chores to be Assigned",
+          "enable_chore_workflow": "Enable Chore Workflow",
+          "enable_gamification": "Enable Gamification",
+          "can_approve": "Can approve",
+          "can_manage": "Can manage",
+          "internal_id": "Internal ID"
+        },
+        "data_description": {
+          "name": "Unique name for this user profile, used throughout the system.",
+          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
+          "associated_kids": "Select which users this approver/admin supervises for approval actions.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
+          "allow_chore_assignment": "Allows this profile to receive chore assignments.",
+          "enable_chore_workflow": "Enables claim and disapprove workflow actions for assigned chores.",
+          "enable_gamification": "Track points, badges, and rewards for completed chores.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -995,27 +1236,148 @@
         }
       },
       "edit_parent": {
-        "title": "Edit Parent",
-        "description": "Modify the details of the selected parent.\n\n📖 [Configuration Guide]({documentation_url})",
+        "title": "Edit User",
+        "description": "Modify the details of the selected user profile.\n\n📖 [Configuration Guide]({documentation_url})",
+        "sections": {
+          "section_identity_profile": {
+            "name": "Identity and profile",
+            "description": "Core identity, account linkage, and personalization settings.",
+            "data": {
+              "name": "Name",
+              "ha_user_id": "Home Assistant User",
+              "dashboard_language": "Language",
+              "mobile_notify_service": "Notifications"
+            },
+            "data_description": {
+              "name": "Unique name for this user profile.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "dashboard_language": "Language used for dashboard content and notifications.",
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+            }
+          },
+          "section_system_usage": {
+            "name": "System usage",
+            "description": "Controls for normal usage in chores and gamification.",
+            "data": {
+              "allow_chore_assignment": "Can be assigned",
+              "enable_chore_workflow": "Workflow enabled",
+              "enable_gamification": "Gamification enabled"
+            },
+            "data_description": {
+              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
+              "enable_gamification": "Enables points, badges, and rewards participation."
+            }
+          },
+          "section_admin_approval": {
+            "name": "Admin and approval options",
+            "description": "Higher-privilege approval and management controls.",
+            "data": {
+              "can_approve": "Can approve",
+              "can_manage": "Can manage",
+              "associated_kids": "Associated assignees/users"
+            },
+            "data_description": {
+              "can_approve": "Allows approval and disapproval actions.",
+              "can_manage": "Allows management actions that require elevated permissions.",
+              "associated_kids": "Users this approver/admin supervises for approval actions."
+            }
+          }
+        },
         "data": {
-          "name": "Parent Name",
+          "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_kids": "Associated Kids",
+          "associated_kids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
-          "allow_chore_assignment": "Allow Chores to be Assigned to Me",
+          "allow_chore_assignment": "Allow Chores to be Assigned",
           "enable_chore_workflow": "Enable Chore Workflow",
           "enable_gamification": "Enable Gamification",
+          "can_approve": "Can approve",
+          "can_manage": "Can manage",
           "internal_id": "Internal ID"
         },
         "data_description": {
-          "name": "Unique name for this parent, used throughout the system.",
-          "ha_user_id": "Optional: Link this parent to a Home Assistant user for notifications and dashboard access.",
-          "associated_kids": "Select which kids this parent supervises for notifications and approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this parent, or leave empty to disable.",
+          "name": "Unique name for this user profile, used throughout the system.",
+          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
+          "associated_kids": "Select which users this approver/admin supervises for approval actions.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the kid profile with '_unlinked' suffix for manual cleanup.",
           "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
           "enable_gamification": "Track points, badges, and rewards for your completed chores.",
+          "dashboard_language": "Language used for your chore dashboard and notifications."
+        }
+      },
+      "edit_user": {
+        "title": "Edit User",
+        "description": "Modify the details of the selected user profile.\n\n📖 [Configuration Guide]({documentation_url})",
+        "sections": {
+          "section_identity_profile": {
+            "name": "Identity and profile",
+            "description": "Core identity, account linkage, and personalization settings.",
+            "data": {
+              "name": "Name",
+              "ha_user_id": "Home Assistant User",
+              "dashboard_language": "Language",
+              "mobile_notify_service": "Notifications"
+            },
+            "data_description": {
+              "name": "Unique name for this user profile.",
+              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
+              "dashboard_language": "Language used for dashboard content and notifications.",
+              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
+            }
+          },
+          "section_system_usage": {
+            "name": "System usage",
+            "description": "Controls for normal usage in chores and gamification.",
+            "data": {
+              "allow_chore_assignment": "Can be assigned",
+              "enable_chore_workflow": "Workflow enabled",
+              "enable_gamification": "Gamification enabled"
+            },
+            "data_description": {
+              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
+              "enable_gamification": "Enables points, badges, and rewards participation."
+            }
+          },
+          "section_admin_approval": {
+            "name": "Admin and approval options",
+            "description": "Higher-privilege approval and management controls.",
+            "data": {
+              "can_approve": "Can approve",
+              "can_manage": "Can manage",
+              "associated_kids": "Associated assignees/users"
+            },
+            "data_description": {
+              "can_approve": "Allows approval and disapproval actions.",
+              "can_manage": "Allows management actions that require elevated permissions.",
+              "associated_kids": "Users this approver/admin supervises for approval actions."
+            }
+          }
+        },
+        "data": {
+          "name": "User Name",
+          "ha_user_id": "Home Assistant User",
+          "associated_kids": "Associated Users",
+          "mobile_notify_service": "Notifications",
+          "dashboard_language": "Language",
+          "allow_chore_assignment": "Allow Chores to be Assigned",
+          "enable_chore_workflow": "Enable Chore Workflow",
+          "enable_gamification": "Enable Gamification",
+          "can_approve": "Can approve",
+          "can_manage": "Can manage",
+          "internal_id": "Internal ID"
+        },
+        "data_description": {
+          "name": "Unique name for this user profile, used throughout the system.",
+          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
+          "associated_kids": "Select which users this approver/admin supervises for approval actions.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this user.",
+          "allow_chore_assignment": "Allows this profile to receive chore assignments.",
+          "enable_chore_workflow": "Enables claim and disapprove workflow actions for assigned chores.",
+          "enable_gamification": "Track points, badges, and rewards for completed chores.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -1462,8 +1824,13 @@
         "data": {}
       },
       "delete_parent": {
-        "title": "Delete Parent",
-        "description": "Are you sure you want to delete the parent {parent_name}?",
+        "title": "Delete User",
+        "description": "Are you sure you want to delete the user {user_name}?",
+        "data": {}
+      },
+      "delete_user": {
+        "title": "Delete User",
+        "description": "Are you sure you want to delete the user {user_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1761,10 +2128,12 @@
       "duplicate_challenge": "A challenge with this name already exists",
       "duplicate_chore": "A chore with this name already exists",
       "duplicate_kid": "A kid with this name already exists",
-      "duplicate_parent": "A parent with this name already exists",
+      "duplicate_parent": "A user with this name already exists",
       "duplicate_penalty": "A penalty with this name already exists",
       "duplicate_reward": "A reward with this name already exists",
       "duplicate_bonus": "A bonus with this name already exists",
+      "usage_requires_assignment_or_approval": "Enable either 'Can be assigned' or 'Can approve'.",
+      "approval_requires_associated_users": "At least one associated assignee/user is required when 'Can approve' is enabled.",
       "due_date_in_past": "Due date must be in the future.",
       "end_date_in_past": "End Date must be in the future.",
       "end_date_not_after_start_date": "End date must be later than start date",
@@ -1853,8 +2222,8 @@
     "main_menu": {
       "options": {
         "manage_points": "Manage Points",
-        "manage_kid": "Manage Kid",
-        "manage_parent": "Manage Parent",
+        "manage_user": "Manage Users",
+        "manage_parent": "Manage Users",
         "manage_chore": "Manage Chore",
         "manage_badge": "Manage Badge",
         "manage_reward": "Manage Reward",
@@ -2109,11 +2478,11 @@
   "services": {
     "claim_chore": {
       "name": "Claim Chore",
-      "description": "A kid claims a chore, marking it as 'claimed' for parental approval.",
+      "description": "An assignee claims a chore, marking it as 'claimed' for approver review.",
       "fields": {
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The name of the kid claiming the chore.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The name of the assignee claiming the chore.",
           "example": "Alice"
         },
         "chore_name": {
@@ -2125,16 +2494,16 @@
     },
     "approve_chore": {
       "name": "Approve Chore",
-      "description": "Parent approves the chore, awarding points.",
+      "description": "Approver approves the chore, awarding points.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent approving the chore.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver approving the chore.",
           "example": "Mom"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The name of the kid who performed the chore.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The name of the assignee who performed the chore.",
           "example": "Alice"
         },
         "chore_name": {
@@ -2151,16 +2520,16 @@
     },
     "disapprove_chore": {
       "name": "Disapprove Chore",
-      "description": "Parent disapproves a chore for a kid, reverting its status.",
+      "description": "Approver disapproves a chore for an assignee, reverting its status.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent disapproving the chore.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver disapproving the chore.",
           "example": "Mom"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The name of the kid whose chore is being disapproved.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The name of the assignee whose chore is being disapproved.",
           "example": "Alice"
         },
         "chore_name": {
@@ -2172,16 +2541,16 @@
     },
     "redeem_reward": {
       "name": "Redeem Reward",
-      "description": "A parent redeems a reward for a kid, deducting points.",
+      "description": "An approver redeems a reward for an assignee, deducting points.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent authorizing the reward redemption.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver authorizing the reward redemption.",
           "example": "Mom"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid redeeming the reward.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee redeeming the reward.",
           "example": "Alice"
         },
         "reward_name": {
@@ -2193,16 +2562,16 @@
     },
     "approve_reward": {
       "name": "Approve Reward",
-      "description": "Parent approves a reward claimed by a kid.",
+      "description": "Approver approves a reward claimed by an assignee.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent approving the reward.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver approving the reward.",
           "example": "Mom"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid who is redeeming the reward.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee who is redeeming the reward.",
           "example": "Alice"
         },
         "reward_name": {
@@ -2218,16 +2587,16 @@
     },
     "disapprove_reward": {
       "name": "Disapprove Reward",
-      "description": "Parent disapproves a reward redemption for a kid.",
+      "description": "Approver disapproves a reward redemption for an assignee.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent disapproving the reward.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver disapproving the reward.",
           "example": "Dad"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid whose reward redemption is being disapproved.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee whose reward redemption is being disapproved.",
           "example": "Alice"
         },
         "reward_name": {
@@ -2239,16 +2608,16 @@
     },
     "apply_penalty": {
       "name": "Apply Penalty",
-      "description": "A parent applies a penalty to deduct points.",
+      "description": "An approver applies a penalty to deduct points.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent applying the penalty.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver applying the penalty.",
           "example": "Dad"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid receiving the penalty.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee receiving the penalty.",
           "example": "Alice"
         },
         "penalty_name": {
@@ -2260,16 +2629,16 @@
     },
     "apply_bonus": {
       "name": "Apply Bonus",
-      "description": "A parent applies a bonus to a kid, awarding points.",
+      "description": "An approver applies a bonus to an assignee, awarding points.",
       "fields": {
-        "parent_name": {
-          "name": "Parent Name",
-          "description": "The parent applying the bonus.",
+        "approver_name": {
+          "name": "Approver Name",
+          "description": "The approver applying the bonus.",
           "example": "Mom"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid receiving the bonus.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee receiving the bonus.",
           "example": "Alice"
         },
         "bonus_name": {
@@ -2562,7 +2931,7 @@
     },
     "set_rotation_turn": {
       "name": "Set Rotation Turn",
-      "description": "Manually assign the current turn to a specific kid in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification.",
+      "description": "Manually assign the current turn to a specific assignee in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -2574,14 +2943,14 @@
           "description": "Name of the rotation chore. Optional if chore_id is provided.",
           "example": "Clean Bedroom"
         },
-        "kid_id": {
-          "name": "Kid ID",
-          "description": "Internal ID of the kid to assign the turn to. Must be assigned to this chore. Optional if kid_name is provided.",
+        "assignee_id": {
+          "name": "Assignee ID",
+          "description": "Internal ID of the assignee to assign the turn to. Must be assigned to this chore. Optional if assignee_name is provided.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "Name of the kid to assign the turn to. Must be assigned to this chore. Optional if kid_id is provided.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "Name of the assignee to assign the turn to. Must be assigned to this chore. Optional if assignee_id is provided.",
           "example": "Alice"
         }
       }
@@ -2620,15 +2989,15 @@
     },
     "generate_activity_report": {
       "name": "Generate Activity Report",
-      "description": "Generate a 7-day activity report from ledger history. Supports optional kid filtering, optional notify delivery, and optional HTML conversion while still returning a structured response payload.",
+      "description": "Generate a 7-day activity report from ledger history. Supports optional assignee filtering, optional notify delivery, and optional HTML conversion while still returning a structured response payload.",
       "fields": {
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "Optional filter to generate the report for one kid only."
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "Optional filter to generate the report for one assignee only."
         },
         "report_language": {
           "name": "Report Language",
-          "description": "Optional language code for report text. Falls back to selected kid language (when kid_name is set) and then English."
+          "description": "Optional language code for report text. Falls back to selected assignee language (when assignee_name is set) and then English."
         },
         "report_title": {
           "name": "Report Title",
@@ -2650,7 +3019,7 @@
     },
     "reset_transactional_data": {
       "name": "Reset Transactional Data",
-      "description": "Reset runtime/transactional data while preserving configuration (kids, chores, rewards, etc.). An automatic backup is created before reset as kidschores_data_timestamp_reset in the .storage directory. Use scope to target specific kids or domains. Requires confirm_destructive parameter set to true as a safety mechanism.",
+      "description": "Reset runtime/transactional data while preserving configuration (assignees, chores, rewards, etc.). An automatic backup is created before reset as kidschores_data_timestamp_reset in the .storage directory. Use scope to target specific assignees or domains. Requires confirm_destructive parameter set to true as a safety mechanism.",
       "fields": {
         "confirm_destructive": {
           "name": "Confirm Destructive",
@@ -2658,11 +3027,11 @@
         },
         "scope": {
           "name": "Scope",
-          "description": "Reset scope: 'global' resets all data, 'kid' resets data for a specific kid only."
+          "description": "Reset scope: 'global' resets all data, 'kid' resets data for a specific assignee only."
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "Required if scope is 'kid'. The name of the kid whose data should be reset."
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "Required if scope is 'kid'. The name of the assignee whose data should be reset."
         },
         "item_type": {
           "name": "Item Type",
@@ -2676,7 +3045,7 @@
     },
     "reset_overdue_chores": {
       "name": "Reset Overdue Chores",
-      "description": "Reset overdue chore(s) back to the Pending state and reschedule them based on their recurring frequency and previous due date. You may optionally provide a chore_id (or chore_name) to reset a specific chore and optionally a kid_name to reset the chore only for that kid.",
+      "description": "Reset overdue chore(s) back to the Pending state and reschedule them based on their recurring frequency and previous due date. You may optionally provide a chore_id (or chore_name) to reset a specific chore and optionally an assignee_name to reset the chore only for that assignee.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -2688,16 +3057,16 @@
           "description": "The name of the chore to reset (optional if chore_id is provided).",
           "example": "Wash Dishes"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid receiving the penalty.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee to target for the reset.",
           "example": "Alice"
         }
       }
     },
     "set_chore_due_date": {
       "name": "Set/Reset Chore Due Date",
-      "description": "Set (or clear) the due date for a chore. Provide the chore name and, if desired, a new due date. If no due date is provided the existing due date will be cleared. The service will reject due dates set in the past. For independent chores, optionally provide a kid_name to set the due date only for that kid.",
+      "description": "Set (or clear) the due date for a chore. Provide the chore name and, if desired, a new due date. If no due date is provided the existing due date will be cleared. The service will reject due dates set in the past. For independent chores, optionally provide an assignee_name to set the due date only for that assignee.",
       "fields": {
         "chore_name": {
           "name": "Chore Name",
@@ -2709,21 +3078,21 @@
           "description": "The new due date for the chore. Use the date/time selector to choose a valid date and time (in your local timezone). Leave empty to clear the due date.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "For independent chores, specify the kid to set the due date for. If omitted, sets the due date for all assigned kids.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "For independent chores, specify the assignee to set the due date for. If omitted, sets the due date for all assigned assignees.",
           "example": "Alice"
         },
-        "kid_id": {
-          "name": "Kid ID",
-          "description": "The internal ID of the kid. Advanced users only - use kid_name instead.",
+        "assignee_id": {
+          "name": "Assignee ID",
+          "description": "The internal ID of the assignee. Advanced users only - use assignee_name instead.",
           "example": "abc123-def456"
         }
       }
     },
     "skip_chore_due_date": {
       "name": "Skip Chore Due Date",
-      "description": "Skip the current due date of a recurring chore. This service immediately reschedules the chore's due date based on its recurring frequency and resets its state to pending. Any pending claims or approvals will be removed. For independent chores, optionally provide a kid_name to skip only for that kid.",
+      "description": "Skip the current due date of a recurring chore. This service immediately reschedules the chore's due date based on its recurring frequency and resets its state to pending. Any pending claims or approvals will be removed. For independent chores, optionally provide an assignee_name to skip only for that assignee.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -2735,29 +3104,29 @@
           "description": "The name of the chore to reset (optional if chore_id is provided).",
           "example": "Wash Dishes"
         },
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "For independent chores, specify the kid to skip the due date for. If omitted, skips the due date for all assigned kids.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "For independent chores, specify the assignee to skip the due date for. If omitted, skips the due date for all assigned assignees.",
           "example": "Alice"
         },
-        "kid_id": {
-          "name": "Kid ID",
-          "description": "The internal ID of the kid. Advanced users only - use kid_name instead.",
+        "assignee_id": {
+          "name": "Assignee ID",
+          "description": "The internal ID of the assignee. Advanced users only - use assignee_name instead.",
           "example": "abc123-def456"
         },
         "mark_as_missed": {
           "name": "Mark as Missed",
-          "description": "When true, records this skip as a missed chore in the kid's statistics. Useful for tracking intentional skips separately from automated overdue resets."
+          "description": "When true, records this skip as a missed chore in the assignee's statistics. Useful for tracking intentional skips separately from automated overdue resets."
         }
       }
     },
     "remove_awarded_badges": {
       "name": "Remove Awarded Badges",
-      "description": "Remove all awarded badges for all kids. Optionally, provide badge name to reset a specific badge across all kids. Use kid name to reset all badges for a specific kid. Combine both to reset a specific badge for a specific kid.",
+      "description": "Remove all awarded badges for all assignees. Optionally, provide badge name to reset a specific badge across all assignees. Use assignee name to reset all badges for a specific assignee. Combine both to reset a specific badge for a specific assignee.",
       "fields": {
-        "kid_name": {
-          "name": "Kid Name",
-          "description": "The kid awarded badges will be removed from.",
+        "assignee_name": {
+          "name": "Assignee Name",
+          "description": "The assignee awarded badges will be removed from.",
           "example": "Bob"
         },
         "badge_name": {

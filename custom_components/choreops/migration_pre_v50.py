@@ -106,6 +106,9 @@ async def async_apply_schema45_user_contract(
         user_data.setdefault(const.DATA_USER_CAN_APPROVE, False)
         user_data.setdefault(const.DATA_USER_CAN_MANAGE, False)
         user_data.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+        if user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
+            user_data.setdefault(const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, True)
+            user_data.setdefault(const.DATA_PARENT_ENABLE_GAMIFICATION, True)
         users_migrated += 1
 
     for parent_id, parent_data_raw in parents.items():
@@ -113,9 +116,9 @@ async def async_apply_schema45_user_contract(
             continue
 
         parent_data = cast("dict[str, Any]", parent_data_raw)
-        linked_shadow_kid_id = parent_data.get(const.DATA_PARENT_LINKED_PROFILE_ID)
-        if isinstance(linked_shadow_kid_id, str) and linked_shadow_kid_id in users:
-            target_id = linked_shadow_kid_id
+        linked_profile_id = parent_data.get(const.DATA_PARENT_LINKED_PROFILE_ID)
+        if isinstance(linked_profile_id, str) and linked_profile_id in users:
+            target_id = linked_profile_id
             linked_parent_merges += 1
             target_user = cast("dict[str, Any]", users[target_id])
             target_user[const.DATA_USER_CAN_APPROVE] = True
@@ -165,6 +168,7 @@ async def async_apply_schema45_user_contract(
 
     # Users is the canonical identity container for schema45+.
     data[const.DATA_USERS] = users
+    data.pop(const.DATA_PARENTS, None)
 
     contract_marker = "schema45_user_contract_hook"
     if contract_marker not in applied:
@@ -3128,6 +3132,10 @@ class PreV50Migrator:
 
         # Remove old top-level schema_version if present (v42 → v50)
         self.coordinator._data.pop(const.DATA_SCHEMA_VERSION, None)
+
+        # Hard-fork cleanup: parents bucket is legacy-only and must not persist
+        # beyond migration. User role records are canonical in DATA_USERS.
+        self.coordinator._data.pop(const.DATA_PARENTS, None)
 
         # Clean up legacy beta keys (KC 4.x beta, schema v41)
         if LEGACY_MIGRATION_PERFORMED_KEY in self.coordinator._data:

@@ -15,8 +15,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
+from homeassistant.core import Context
+from homeassistant.exceptions import HomeAssistantError
 import pytest
 
+from custom_components.choreops import const
 from custom_components.choreops.const import (
     DATA_KID_POINTS,
     DATA_KID_REWARD_DATA,
@@ -64,6 +67,26 @@ def get_pending_reward_count(coordinator: Any, kid_id: str, reward_id: str) -> i
     reward_data = kid_info.get(DATA_KID_REWARD_DATA, {})
     reward_entry = reward_data.get(reward_id, {})
     return reward_entry.get(DATA_KID_REWARD_DATA_PENDING_COUNT, 0)
+
+
+def set_ha_user_capabilities(
+    coordinator: Any,
+    ha_user_id: str,
+    *,
+    can_approve: bool,
+    can_manage: bool,
+) -> None:
+    """Set capability flags for a user record linked to a Home Assistant user ID."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for user_data_raw in users.values():
+        if not isinstance(user_data_raw, dict):
+            continue
+        if user_data_raw.get(const.DATA_USER_HA_USER_ID) == ha_user_id:
+            user_data_raw[const.DATA_USER_CAN_APPROVE] = can_approve
+            user_data_raw[const.DATA_USER_CAN_MANAGE] = can_manage
+            return
+
+    raise AssertionError(f"No user record found for HA user ID: {ha_user_id}")
 
 
 # ============================================================================
@@ -142,3 +165,70 @@ class TestApproveRewardCostOverride:
         # Verify: Pending count is cleared
         pending_after = get_pending_reward_count(coordinator, kid_id, reward_id)
         assert pending_after == 0, "Pending count should be 0 after approval"
+
+
+class TestAuthorizationAcceptance:
+    """Test approval capability vs management capability boundaries."""
+
+    @pytest.mark.asyncio
+    async def test_approver_only_can_approve_reward_but_cannot_manage(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """User with can_approve only can approve reward but is denied management service."""
+        coordinator = scenario_full.coordinator
+        kid_id = scenario_full.kid_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        coordinator.kids_data[kid_id][DATA_KID_POINTS] = 100.0
+
+        actor_user = mock_hass_users["kid3"]
+        actor_context = Context(user_id=actor_user.id)
+        set_ha_user_capabilities(
+            coordinator,
+            actor_user.id,
+            can_approve=True,
+            can_manage=False,
+        )
+
+        with patch.object(
+            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+        ):
+            with patch.object(
+                coordinator.notification_manager,
+                "notify_parents_translated",
+                new=AsyncMock(),
+            ):
+                await coordinator.reward_manager.redeem(
+                    parent_name="Môm Astrid Stârblüm",
+                    kid_id=kid_id,
+                    reward_id=reward_id,
+                )
+
+        await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_APPROVE_REWARD,
+            {
+                const.SERVICE_FIELD_APPROVER_NAME: "Lila",
+                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
+            },
+            blocking=True,
+            context=actor_context,
+        )
+
+        assert get_pending_reward_count(coordinator, kid_id, reward_id) == 0
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPLY_BONUS,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Lila",
+                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
+                },
+                blocking=True,
+                context=actor_context,
+            )

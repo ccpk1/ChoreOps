@@ -23,6 +23,7 @@ from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,  # type: ignore[import-untyped]
 )
 
+from custom_components.choreops import const
 from tests.helpers import (
     CONF_POINTS_ICON,
     CONF_POINTS_LABEL,
@@ -139,6 +140,20 @@ def verify_points_sensor_attributes_complete(
     return attrs
 
 
+def get_assignable_users(migrated_data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Return assignable user records from migrated storage payload."""
+    users = migrated_data.get(const.DATA_USERS, {})
+    if not isinstance(users, dict):
+        return {}
+
+    return {
+        user_id: user_data
+        for user_id, user_data in users.items()
+        if isinstance(user_data, dict)
+        and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
+    }
+
+
 def verify_by_source_structure(by_source: dict[str, float] | str) -> None:
     """Verify by_source dict has expected structure.
 
@@ -224,7 +239,7 @@ class TestPointsMigrationFromV40:
 
         # Verify migration transformed structure
         migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
-        kids = migrated_data["kids"]
+        kids = get_assignable_users(migrated_data)
 
         for kid_id, kid_data in kids.items():
             # Verify new v43 structure exists
@@ -315,7 +330,7 @@ class TestPointsMigrationFromV40:
 
         # Verify historical periods preserved
         migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
-        migrated_kid = migrated_data["kids"][first_kid_id]
+        migrated_kid = get_assignable_users(migrated_data)[first_kid_id]
         migrated_monthly = migrated_kid["point_periods"].get("monthly", {})
 
         # Should have same number of monthly periods
@@ -375,7 +390,7 @@ class TestPointsMigrationFromV40:
 
         # Verify all_time calculation
         migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
-        migrated_kid = migrated_data["kids"][first_kid_id]
+        migrated_kid = get_assignable_users(migrated_data)[first_kid_id]
         all_time_entry = migrated_kid["point_periods"]["all_time"]["all_time"]
 
         earned = all_time_entry["points_earned"]

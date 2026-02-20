@@ -35,6 +35,7 @@
 - Phase 5: Added dedicated supporting plan for wiki branding cleanup and link normalization: `docs/in-process/CHOREOPS_WIKI_REBRAND_IN-PROCESS.md`.
 - Phase 5: Wiki supporting plan now includes owner-approved Phase 1 decisions and explicit pre-phase gate approvals for Phases 2-4.
 - Phase 5: Wiki rebrand supporting plan Phase 1 is complete (style guide + baseline/permission inventory documented) and Phase 2 is ready pending Gate 2.1 approval.
+- Phase 5: Phase 2 of wiki rebrand is now underway with Batch A first-pass updates completed for Home/sidebar/install/troubleshooting/FAQ pages.
 - Scope guardrails captured: domain/storage-key rename required; internal Python variable names remain unchanged to reduce regression risk.
 
 3. **Next steps (short term)**

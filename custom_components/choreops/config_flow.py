@@ -260,7 +260,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         # File is valid - create config entry immediately with existing data
         # No need to collect kids/chores/points since they're already defined
         return self.async_create_entry(
-            title="KidsChores",
+            title=const.CHOREOPS_TITLE,
             data={},  # Empty - integration will load from storage file
         )
 
@@ -285,7 +285,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 options = {}
 
             return self.async_create_entry(
-                title="KidsChores",
+                title=const.CHOREOPS_TITLE,
                 data={},
                 options=options,
             )
@@ -396,7 +396,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             # Backup successfully restored - create config entry with settings
             # No need to collect kids/chores/points since they were in the backup
             return self.async_create_entry(
-                title="KidsChores",
+                title=const.CHOREOPS_TITLE,
                 data={},  # Empty - integration will load from restored storage file
                 options=options,  # Apply restored settings (or defaults)
             )
@@ -488,7 +488,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                         # Create config entry - integration will load from storage
                         return self.async_create_entry(
-                            title="KidsChores",
+                            title=const.CHOREOPS_TITLE,
                             data={},
                         )
 
@@ -589,7 +589,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
             self._kid_index += 1
             if self._kid_index >= self._kid_count:
-                return await self.async_step_parent_count()
+                return await self.async_step_user_count()
             return await self.async_step_kids()
 
         # Retrieve HA users for linking
@@ -602,8 +602,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
     # --------------------------------------------------------------------------
     # PARENTS
     # --------------------------------------------------------------------------
-    async def async_step_parent_count(self, user_input: dict[str, Any] | None = None):
-        """Ask how many parents to define initially."""
+    async def async_step_user_count(self, user_input: dict[str, Any] | None = None):
+        """Ask how many users to define initially."""
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
@@ -615,7 +615,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 if self._parents_count == 0:
                     return await self.async_step_chore_count()
                 self._parents_index = 0
-                return await self.async_step_parents()
+                return await self.async_step_users()
             except ValueError:
                 errors[const.CFOP_ERROR_BASE] = (
                     const.TRANS_KEY_CFOF_INVALID_PARENT_COUNT
@@ -629,20 +629,22 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             }
         )
         return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_PARENT_COUNT,
+            step_id=const.CONFIG_FLOW_STEP_USER_COUNT,
             data_schema=schema,
             errors=errors,
         )
 
-    async def async_step_parents(self, user_input: dict[str, Any] | None = None):
-        """Collect each parent's info using internal_id as the primary key.
+    async def async_step_users(self, user_input: dict[str, Any] | None = None):
+        """Collect each user profile using internal_id as the primary key.
 
         Store in self._parents_temp as a dict keyed by internal_id.
         """
         errors: dict[str, str] = {}
         if user_input is not None:
+            user_input = fh.normalize_user_form_input(user_input)
+
             # Validate inputs (check against both existing parents and kids)
-            errors = fh.validate_parents_inputs(
+            errors = fh.validate_users_inputs(
                 user_input, self._parents_temp, self._kids_temp
             )
 
@@ -696,7 +698,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             self._parents_index += 1
             if self._parents_index >= self._parents_count:
                 return await self.async_step_chore_count()
-            return await self.async_step_parents()
+            return await self.async_step_users()
 
         # Retrieve kids for association from _kids_temp
         kids_dict = {
@@ -706,13 +708,13 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         users = await self.hass.auth.async_get_users()
 
-        parent_schema = await fh.build_parent_schema(
+        parent_schema = await fh.build_user_schema(
             self.hass, users=users, kids_dict=kids_dict
         )
         return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_PARENTS,
+            step_id=const.CONFIG_FLOW_STEP_USERS,
             data_schema=parent_schema,
-            errors=errors,
+            errors=fh.map_user_form_errors(errors),
         )
 
     # --------------------------------------------------------------------------
@@ -1530,7 +1532,17 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         # Populate with user-configured entities from config flow
         storage_data[const.DATA_KIDS] = self._kids_temp
-        storage_data[const.DATA_PARENTS] = self._parents_temp
+        parent_users = {
+            parent_id: {
+                **dict(parent_data),
+                const.DATA_USER_CAN_BE_ASSIGNED: False,
+            }
+            for parent_id, parent_data in self._parents_temp.items()
+        }
+        storage_data[const.DATA_USERS] = {
+            **self._kids_temp,
+            **parent_users,
+        }
         storage_data[const.DATA_CHORES] = self._chores_temp
         storage_data[const.DATA_BADGES] = self._badges_temp
         storage_data[const.DATA_REWARDS] = self._rewards_temp
@@ -1574,7 +1586,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             entry_options,
         )
         return self.async_create_entry(
-            title="KidsChores", data=entry_data, options=entry_options
+            title=const.CHOREOPS_TITLE, data=entry_data, options=entry_options
         )
 
     async def async_step_reconfigure(

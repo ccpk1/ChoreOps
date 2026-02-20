@@ -439,7 +439,7 @@ def validate_backup_json(json_str: str) -> bool:
                 "integration_manifest": {...},
                 "data": {
                     "kids": dict,
-                    "parents": dict,
+                    "users": dict,
                     ...
                 }
             }
@@ -448,14 +448,14 @@ def validate_backup_json(json_str: str) -> bool:
             {
                 "schema_version": 42,
                 "kids": dict,
-                "parents": dict,
+                "users": dict,
                 ...
             }
 
         3. Legacy format (no schema_version - KC 3.0/3.1/early 4.0beta):
             {
                 "kids": dict,
-                "parents": dict,
+                "users": dict,
                 ...
             }
 
@@ -466,7 +466,7 @@ def validate_backup_json(json_str: str) -> bool:
                 "key": "kidschores_data",
                 "data": {
                     "kids": dict,
-                    "parents": dict,
+                    "users": dict,
                     ...
                 }
             }
@@ -475,7 +475,7 @@ def validate_backup_json(json_str: str) -> bool:
         - Valid JSON syntax
         - Top-level object (dict)
         - If Store format, version must be 1 (only version supported)
-        - Contains at least one entity type key (kids, parents, chores, rewards)
+        - Contains at least one entity type key (kids, users, chores, rewards)
     """
     try:
         data = json.loads(json_str)
@@ -514,7 +514,7 @@ def validate_backup_json(json_str: str) -> bool:
         # Must have at least one entity type
         entity_keys = {
             "kids",
-            "parents",
+            "users",
             "chores",
             "rewards",
             "bonuses",

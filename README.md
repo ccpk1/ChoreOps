@@ -51,10 +51,6 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 **The best of both worlds.** Configure some profiles with full gamification to drive engagement, while keeping other profiles strictly utilitarian.
 
-<p align="center">
-  <b>No subscription. No cloud lock-in. 100% local on your Home Assistant instance.</b>
-</p>
-
 ---
 
 > **Attribution & Legacy**<br>
@@ -67,7 +63,8 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 ## Key capabilities
 
-- 🧠 **Intelligent logic**: sophisticated recurring schedules, first-come-first-served pools, per-kid schedules, and complex rotation algorithms
+- ⚡ **Native data access**: rich state is exposed as Home Assistant sensors and actions are exposed as button entities, so you can build automations, scripts, and dashboards with standard HA tools—no lock-in custom app UI
+- 🧠 **Intelligent logic**: sophisticated recurring schedules, first-come-first-served pools, per-assignee schedules, and complex rotation algorithms
 - 🎨 **Easy Dashboards:** Quickly set up full featured dashboards for any user easily-no YAML required
 - 🔔 **Advanced notifications**: actionable alerts with approval workflows and reminder controls
 - 🎮 **Optional gamification**: robust progression systems you can enable or minimize as needed

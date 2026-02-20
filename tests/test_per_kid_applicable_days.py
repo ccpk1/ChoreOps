@@ -275,11 +275,11 @@ class TestPerKidDashboardDisplay:
         await hass.async_block_till_done()
 
         # Get Zoë's dashboard helper
-        zoe_helper = hass.states.get("sensor.zoe_kidschores_ui_dashboard_helper")
+        zoe_helper = hass.states.get("sensor.zoe_choreops_ui_dashboard_helper")
         assert zoe_helper is not None, "Zoë's dashboard helper not found"
 
         # Get Max's dashboard helper
-        max_helper = hass.states.get("sensor.max_kidschores_ui_dashboard_helper")
+        max_helper = hass.states.get("sensor.max_choreops_ui_dashboard_helper")
         assert max_helper is not None, "Max's dashboard helper not found"
 
         zoe_chores = zoe_helper.attributes.get("chores", [])

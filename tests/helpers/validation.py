@@ -461,10 +461,20 @@ def verify_kid_entities(
         "entities": {},
     }
 
+    def resolve_entity_id(platform: str, suffix: str) -> str:
+        candidates = [
+            f"{platform}.{kid_slug}_choreops_{suffix}",
+            f"{platform}.{kid_slug}_kidschores_{suffix}",
+        ]
+        for entity_id in candidates:
+            if hass.states.get(entity_id) is not None:
+                return entity_id
+        return candidates[0]
+
     # Check sensors
     if expected_sensors:
         for suffix in expected_sensors:
-            entity_id = f"sensor.{kid_slug}_kidschores_{suffix}"
+            entity_id = resolve_entity_id("sensor", suffix)
             state = hass.states.get(entity_id)
 
             if state is None:
@@ -479,7 +489,7 @@ def verify_kid_entities(
     # Check buttons
     if expected_buttons:
         for suffix in expected_buttons:
-            entity_id = f"button.{kid_slug}_kidschores_{suffix}"
+            entity_id = resolve_entity_id("button", suffix)
             state = hass.states.get(entity_id)
 
             if state is None:

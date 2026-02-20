@@ -115,7 +115,7 @@ def get_translation_sensor_eid(hass: HomeAssistant, kid_name: str = "Zoë") -> s
         kid_name: Any kid name to get dashboard helper from (default: Zoë)
 
     Returns:
-        Translation sensor entity ID (e.g., sensor.system_kidschores_dashboard_translations_en)
+        Translation sensor entity ID (e.g., sensor.system_choreops_dashboard_translations_en)
     """
     # Slugify the kid name (lowercase, replace special chars)
     slug = (
@@ -125,9 +125,12 @@ def get_translation_sensor_eid(hass: HomeAssistant, kid_name: str = "Zoë") -> s
         .replace("å", "a")
         .replace("ü", "u")
     )
-    helper_eid = f"sensor.{slug}_kidschores_ui_dashboard_helper"
-    helper_state = hass.states.get(helper_eid)
-    assert helper_state is not None, f"Dashboard helper not found: {helper_eid}"
+    helper_state = hass.states.get(
+        f"sensor.{slug}_choreops_ui_dashboard_helper"
+    ) or hass.states.get(f"sensor.{slug}_kidschores_ui_dashboard_helper")
+    assert helper_state is not None, (
+        f"Dashboard helper not found: sensor.{slug}_choreops_ui_dashboard_helper"
+    )
 
     translation_sensor = helper_state.attributes.get(ATTR_TRANSLATION_SENSOR)
     assert translation_sensor is not None, "Missing translation_sensor attribute"
@@ -379,9 +382,9 @@ class TestMinimalChoreAttributes:
         chores = helper_state.attributes.get(ATTR_DASHBOARD_CHORES, [])
         for chore in chores:
             # eid should be a sensor entity ID with correct format
-            # Format: sensor.{kid_slug}_kidschores_chore_status_{chore_name}
+            # Format: sensor.{kid_slug}_choreops_chore_status_{chore_name}
             assert chore["eid"].startswith("sensor."), f"Invalid eid: {chore['eid']}"
-            assert "_kidschores_chore_status_" in chore["eid"], (
+            assert "_choreops_chore_status_" in chore["eid"], (
                 f"Entity ID missing expected pattern: {chore['eid']}"
             )
 

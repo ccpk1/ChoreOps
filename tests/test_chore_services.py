@@ -22,9 +22,12 @@ from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
+from homeassistant.core import Context
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.util import dt as dt_util
 import pytest
 
+from custom_components.choreops import const
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import (
     CHORE_STATE_APPROVED,
@@ -146,6 +149,26 @@ def get_kid_points(coordinator: Any, kid_id: str) -> float:
     """Get kid's current points."""
     kid_info = coordinator.kids_data.get(kid_id, {})
     return kid_info.get(DATA_KID_POINTS, 0.0)
+
+
+def set_ha_user_capabilities(
+    coordinator: Any,
+    ha_user_id: str,
+    *,
+    can_approve: bool,
+    can_manage: bool,
+) -> None:
+    """Set capability flags for a user record linked to a Home Assistant user ID."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for user_data_raw in users.values():
+        if not isinstance(user_data_raw, dict):
+            continue
+        if user_data_raw.get(const.DATA_USER_HA_USER_ID) == ha_user_id:
+            user_data_raw[const.DATA_USER_CAN_APPROVE] = can_approve
+            user_data_raw[const.DATA_USER_CAN_MANAGE] = can_manage
+            return
+
+    raise AssertionError(f"No user record found for HA user ID: {ha_user_id}")
 
 
 def set_chore_due_date_to_past(
@@ -904,6 +927,88 @@ class TestServiceHandlerValidation:
 
         new_due = get_chore_due_date(coordinator, chore_id)
         assert new_due != original_due, "Shared chore should be rescheduled"
+
+
+class TestAuthorizationAcceptance:
+    """Test authorization precedence for approval services."""
+
+    @pytest.mark.asyncio
+    async def test_admin_override_can_approve_without_designated_approver(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Admin context can approve even when no user has approve/manage flags."""
+        coordinator = setup_chore_services_scenario.coordinator
+        kid_id = setup_chore_services_scenario.kid_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Independent Daily Task"]
+
+        for user_data_raw in coordinator._data.get(const.DATA_USERS, {}).values():
+            if isinstance(user_data_raw, dict):
+                user_data_raw[const.DATA_USER_CAN_APPROVE] = False
+                user_data_raw[const.DATA_USER_CAN_MANAGE] = False
+
+        with patch.object(
+            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+
+        admin_context = Context(user_id=mock_hass_users["admin"].id)
+        await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_APPROVE_CHORE,
+            {
+                const.SERVICE_FIELD_APPROVER_NAME: "Admin User",
+                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_CHORE_NAME: "Independent Daily Task",
+            },
+            blocking=True,
+            context=admin_context,
+        )
+
+        assert (
+            get_kid_state_for_chore(coordinator, kid_id, chore_id)
+            == CHORE_STATE_APPROVED
+        )
+
+    @pytest.mark.asyncio
+    async def test_non_approver_denied_approve_action(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Linked assignee without approve capability is denied approval service."""
+        coordinator = setup_chore_services_scenario.coordinator
+        kid_id = setup_chore_services_scenario.kid_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Independent Daily Task"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+
+        non_approver_context = Context(user_id=mock_hass_users["kid2"].id)
+        set_ha_user_capabilities(
+            coordinator,
+            mock_hass_users["kid2"].id,
+            can_approve=False,
+            can_manage=False,
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPROVE_CHORE,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Max!",
+                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_CHORE_NAME: "Independent Daily Task",
+                },
+                blocking=True,
+                context=non_approver_context,
+            )
 
 
 # ============================================================================

@@ -39,7 +39,7 @@ SERVICE_RESET_TRANSACTIONAL_DATA = "reset_transactional_data"
 # Service field names (literal strings as documented in services.yaml)
 FIELD_CONFIRM_DESTRUCTIVE = "confirm_destructive"
 FIELD_SCOPE = "scope"
-FIELD_KID_NAME = "kid_name"
+FIELD_ASSIGNEE_NAME = "assignee_name"
 FIELD_ITEM_TYPE = "item_type"
 FIELD_ITEM_NAME = "item_name"
 
@@ -337,7 +337,7 @@ class TestDataResetKidScope:
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
                     FIELD_SCOPE: SCOPE_KID,
-                    FIELD_KID_NAME: "Zoë",
+                    FIELD_ASSIGNEE_NAME: "Zoë",
                 },
                 blocking=True,
             )
@@ -349,12 +349,12 @@ class TestDataResetKidScope:
         assert get_kid_points(scenario_full, "Lila") == 300
 
     @pytest.mark.asyncio
-    async def test_kid_scope_requires_kid_name(
+    async def test_kid_scope_requires_assignee_name(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test kid scope fails without kid_name."""
+        """Test kid scope fails without assignee_name."""
         with pytest.raises(HomeAssistantError):
             await hass.services.async_call(
                 DOMAIN,
@@ -362,7 +362,7 @@ class TestDataResetKidScope:
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
                     FIELD_SCOPE: SCOPE_KID,
-                    # kid_name missing!
+                    # assignee_name missing!
                 },
                 blocking=True,
             )
@@ -453,12 +453,12 @@ class TestDataResetValidationErrors:
             )
 
     @pytest.mark.asyncio
-    async def test_unknown_kid_name_raises_error(
+    async def test_unknown_assignee_name_raises_error(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test unknown kid_name raises translated error."""
+        """Test unknown assignee_name raises translated error."""
         with pytest.raises(HomeAssistantError):
             await hass.services.async_call(
                 DOMAIN,
@@ -466,7 +466,7 @@ class TestDataResetValidationErrors:
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
                     FIELD_SCOPE: SCOPE_KID,
-                    FIELD_KID_NAME: "NonexistentKid",
+                    FIELD_ASSIGNEE_NAME: "NonexistentKid",
                 },
                 blocking=True,
             )

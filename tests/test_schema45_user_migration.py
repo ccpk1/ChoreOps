@@ -49,6 +49,8 @@ async def test_schema45_migration_moves_kids_to_users_and_sets_defaults() -> Non
     assert user_data[const.DATA_USER_CAN_APPROVE] is False
     assert user_data[const.DATA_USER_CAN_MANAGE] is False
     assert user_data[const.DATA_USER_CAN_BE_ASSIGNED] is True
+    assert user_data[const.DATA_PARENT_ENABLE_CHORE_WORKFLOW] is True
+    assert user_data[const.DATA_PARENT_ENABLE_GAMIFICATION] is True
     assert user_data[const.DATA_USER_HA_USER_ID] == "ha-kid-1"
 
     meta = coordinator._data[const.DATA_META]
@@ -74,7 +76,7 @@ async def test_schema45_migration_merges_linked_parent_into_existing_user() -> N
                 "parent-1": {
                     const.DATA_PARENT_NAME: "Sam",
                     const.DATA_PARENT_HA_USER_ID: "ha-parent-1",
-                    const.DATA_PARENT_LINKED_SHADOW_KID_ID: "kid-1",
+                    const.DATA_PARENT_LINKED_PROFILE_ID: "kid-1",
                 }
             },
         }
@@ -87,6 +89,8 @@ async def test_schema45_migration_merges_linked_parent_into_existing_user() -> N
     assert user_data[const.DATA_USER_CAN_APPROVE] is True
     assert user_data[const.DATA_USER_CAN_MANAGE] is True
     assert user_data[const.DATA_USER_CAN_BE_ASSIGNED] is True
+    assert user_data[const.DATA_PARENT_ENABLE_CHORE_WORKFLOW] is True
+    assert user_data[const.DATA_PARENT_ENABLE_GAMIFICATION] is True
 
 
 async def test_schema45_migration_handles_collision_and_is_idempotent() -> None:

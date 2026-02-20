@@ -869,6 +869,15 @@ def is_shadow_kid(coordinator: KidsChoresDataCoordinator, kid_id: str) -> bool:
     return bool(kid_info.get(const.DATA_KID_IS_SHADOW, False))
 
 
+def is_linked_profile(coordinator: KidsChoresDataCoordinator, kid_id: str) -> bool:
+    """Return whether this user record follows linked-profile gating semantics.
+
+    During schema45 migration, linked-profile behavior maps to the legacy
+    marker used by existing storage and compatibility tests.
+    """
+    return is_shadow_kid(coordinator, kid_id)
+
+
 def is_user_approval_profile(
     coordinator: KidsChoresDataCoordinator, kid_id: str
 ) -> bool:
@@ -890,7 +899,7 @@ def is_user_feature_gated_profile(
     and is intentionally behavior-compatible while runtime naming migrates
     to capability-oriented terminology.
     """
-    return is_shadow_kid(coordinator, kid_id)
+    return is_linked_profile(coordinator, kid_id)
 
 
 def is_user_assignment_participant(
@@ -922,10 +931,10 @@ def is_user_assignment_participant(
     return True
 
 
-def get_parent_for_shadow_kid(
+def get_parent_for_linked_profile(
     coordinator: KidsChoresDataCoordinator, kid_id: str
 ) -> dict[str, Any] | None:
-    """Get linked parent data for a legacy shadow-profile record.
+    """Get linked parent data for a linked-profile user record.
 
     Args:
         coordinator: The KidsChores data coordinator.
@@ -939,6 +948,13 @@ def get_parent_for_shadow_kid(
     if parent_id:
         return cast("dict[str, Any] | None", coordinator.parents_data.get(parent_id))
     return None
+
+
+def get_parent_for_shadow_kid(
+    coordinator: KidsChoresDataCoordinator, kid_id: str
+) -> dict[str, Any] | None:
+    """Backward-compatible alias for linked-profile parent lookup."""
+    return get_parent_for_linked_profile(coordinator, kid_id)
 
 
 def should_create_workflow_buttons(
@@ -966,7 +982,7 @@ def should_create_workflow_buttons(
     if not is_user_feature_gated_profile(coordinator, kid_id):
         return True  # Default assignment participants always get workflow buttons
 
-    parent_data = get_parent_for_shadow_kid(coordinator, kid_id)
+    parent_data = get_parent_for_linked_profile(coordinator, kid_id)
     if parent_data:
         return parent_data.get(const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False)
     return False
@@ -998,7 +1014,7 @@ def should_create_gamification_entities(
     if not is_user_feature_gated_profile(coordinator, kid_id):
         return True  # Default assignment participants always get gamification
 
-    parent_data = get_parent_for_shadow_kid(coordinator, kid_id)
+    parent_data = get_parent_for_linked_profile(coordinator, kid_id)
     if parent_data:
         return parent_data.get(const.DATA_PARENT_ENABLE_GAMIFICATION, False)
     return False
