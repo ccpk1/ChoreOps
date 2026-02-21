@@ -14,6 +14,7 @@ not transitional mapping details.
   - Service payload field rename contract (legacy -> hard-fork)
   - Event/notification action naming cutover points
   - Approval checklist before runtime implementation
+  - Translation contract parity and orphan-key cleanup requirements for service/event surfaces
 - Out of scope:
   - Backward-compatible runtime alias parsing
   - Migration internals not directly tied to request/event contracts
@@ -24,9 +25,11 @@ not transitional mapping details.
 - Legacy mapping is documented here for migration communication and review only.
 - Migration code paths may transform persisted legacy payloads where needed.
 - Service docs and release notes must include before/after examples.
+- Translation updates must ship in the same wave as runtime contract changes.
 - `linked_*` runtime terminology should be removed by plan completion; keep any
   linked/shadow legacy names only in migration compatibility handling.
 - Migration-only constants belong in `custom_components/choreops/migration_pre_v50_constants.py`.
+- Locale files in both `custom_components/choreops/translations/` and `custom_components/choreops/translations_custom/` must not retain stale references to removed runtime keys.
 
 ## Service field mapping matrix (approved direction)
 
@@ -52,6 +55,98 @@ not transitional mapping details.
 Based on current `services.py` and `services.yaml` references, the rename scope
 includes, at minimum, service schemas still using `kid_name` and `parent_name`
 for chore/reward approval and reporting workflows.
+
+## Service-by-service field mapping (implementation matrix)
+
+This matrix is the implementation checklist for `services.yaml` + runtime handler parity.
+
+| Service                    | Legacy request fields     | Hard-fork request fields         |
+| -------------------------- | ------------------------- | -------------------------------- |
+| `claim_chore`              | `kid_name`                | `assignee_name`                  |
+| `approve_chore`            | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `disapprove_chore`         | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `redeem_reward`            | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `approve_reward`           | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `disapprove_reward`        | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `apply_bonus`              | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `apply_penalty`            | `parent_name`, `kid_name` | `approver_name`, `assignee_name` |
+| `set_chore_due_date`       | `kid_name`                | `assignee_name`                  |
+| `skip_chore_due_date`      | `kid_name`                | `assignee_name`                  |
+| `reset_overdue_chores`     | `kid_name`                | `assignee_name`                  |
+| `remove_awarded_badges`    | `kid_name`                | `assignee_name`                  |
+| `generate_activity_report` | `kid_name`                | `assignee_name`                  |
+
+## Script/automation migration examples
+
+### Example 1: claim chore
+
+Before (legacy):
+
+```yaml
+action: choreops.claim_chore
+data:
+  kid_name: "Henry"
+  chore_name: "Brush teeth PM"
+```
+
+After (hard-fork):
+
+```yaml
+action: choreops.claim_chore
+data:
+  assignee_name: "Henry"
+  chore_name: "Brush teeth PM"
+```
+
+### Example 2: approve chore
+
+Before (legacy):
+
+```yaml
+action: choreops.approve_chore
+data:
+  parent_name: "Mom"
+  kid_name: "Henry"
+  chore_name: "Brush teeth PM"
+```
+
+After (hard-fork):
+
+```yaml
+action: choreops.approve_chore
+data:
+  approver_name: "Mom"
+  assignee_name: "Henry"
+  chore_name: "Brush teeth PM"
+```
+
+### Example 3: reward flow
+
+Before (legacy):
+
+```yaml
+action: choreops.approve_reward
+data:
+  parent_name: "Dad"
+  kid_name: "Henry"
+  reward_name: "Movie Night"
+```
+
+After (hard-fork):
+
+```yaml
+action: choreops.approve_reward
+data:
+  approver_name: "Dad"
+  assignee_name: "Henry"
+  reward_name: "Movie Night"
+```
+
+## Runtime compatibility policy (explicit)
+
+Runtime compatibility aliases are not supported in hard-fork mode. Legacy
+fields (`kid_name`, `parent_name`) are migration-communication only and must not
+be parsed by runtime service/event handlers outside migration modules.
 
 ## Notification/event contract cutover matrix (approved direction)
 
@@ -90,6 +185,7 @@ for chore/reward approval and reporting workflows.
 - [ ] Event/notification payload parity approved
 - [ ] Release-note migration examples drafted and reviewed
 - [ ] Contract-lint rule targets approved (`kid_name`, `parent_name`, legacy dual parsing)
+- [ ] Translation cleanup scope approved (`translations/en.json` + `translations_custom/en_*.json` orphan-key cleanup + locale stale-key cleanup across both trees)
 
 ## Owner decisions captured (2026-02-19)
 
@@ -105,6 +201,12 @@ for chore/reward approval and reporting workflows.
 - Update notification action parsing in one batch (same cutover wave as service contract).
 - Update `translations/en.json` keys/texts and service docs in same wave to keep
   naming parity with runtime contract changes.
+- Run translation hygiene audit for service/event surfaces:
+  - remove orphaned keys in `translations/en.json`
+  - remove orphaned keys in `translations_custom/en_dashboard.json`, `translations_custom/en_notifications.json`, and `translations_custom/en_report.json`
+  - remove or reconcile stale locale references across `custom_components/choreops/translations/*.json`
+  - remove or reconcile stale locale references across `custom_components/choreops/translations_custom/*.json`
+  - attach audit artifact to in-process plan before sign-off
 - Add/adjust tests for mixed-role scenarios in the same PR wave.
 - Reject runtime reintroduction of legacy alias parsing outside migration modules.
 

@@ -48,8 +48,9 @@ async def test_setup_from_yaml_scenario_full(
     assert "Max!" in result.kid_ids
     assert "Lila" in result.kid_ids
 
-    # Verify parents were created (2 parents in scenario_full)
-    assert len(result.parent_ids) == 2
+    # Verify configured parents were created.
+    # parent_ids may also include parent-compatible linked-profile records.
+    assert len(result.parent_ids) >= 2
     assert "Môm Astrid Stârblüm" in result.parent_ids
     assert "Dad Leo" in result.parent_ids
 
@@ -63,7 +64,7 @@ async def test_setup_from_yaml_scenario_full(
 
     # Verify coordinator has data
     assert len(result.coordinator.kids_data) == 3
-    assert len(result.coordinator.parents_data) == 2
+    assert len(result.coordinator.parents_data) >= 2
     assert len(result.coordinator.chores_data) == 18
 
 

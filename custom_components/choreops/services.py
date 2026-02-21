@@ -19,6 +19,7 @@ from .helpers import flow_helpers, report_helpers, translation_helpers
 from .helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
     AUTH_ACTION_MANAGEMENT,
+    AUTH_ACTION_PARTICIPATION,
     is_user_authorized_for_action,
 )
 from .helpers.entity_helpers import get_first_kidschores_entry, get_item_id_or_raise
@@ -523,7 +524,7 @@ def async_setup_services(hass: HomeAssistant):
         field handling with the Options Flow UI.
 
         Args:
-            call: Service call with name, assigned_kids, and optional fields
+            call: Service call with name, assigned assignees, and optional fields
 
         Returns:
             Dict with chore_id of the created chore
@@ -546,25 +547,25 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        # Resolve kid names to UUIDs
-        kid_names = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS, [])
-        kid_ids = []
-        for kid_name in kid_names:
+        # Resolve assignee names to UUIDs
+        assignee_names = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS, [])
+        assignee_ids = []
+        for assignee_name in assignee_names:
             try:
-                kid_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_KID, kid_name
+                assignee_id = get_item_id_or_raise(
+                    coordinator, const.ENTITY_TYPE_KID, assignee_name
                 )
-                kid_ids.append(kid_id)
+                assignee_ids.append(assignee_id)
             except HomeAssistantError as err:
-                const.LOGGER.warning("Create Chore - kid lookup failed: %s", err)
+                const.LOGGER.warning("Create Chore - assignee lookup failed: %s", err)
                 raise
 
         # Map service fields to DATA_* keys
         data_input = _map_service_to_data_keys(
             dict(call.data), _SERVICE_TO_CHORE_DATA_MAPPING
         )
-        # Override assigned_kids with resolved UUIDs
-        data_input[const.DATA_CHORE_ASSIGNED_KIDS] = kid_ids
+        # Override assigned assignees with resolved UUIDs
+        data_input[const.DATA_CHORE_ASSIGNED_KIDS] = assignee_ids
 
         # Extract due_date for special handling (not passed to build_chore)
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE)
@@ -600,7 +601,7 @@ def async_setup_services(hass: HomeAssistant):
                     internal_id, due_date_input, kid_id=None
                 )
 
-            # Create chore status sensor entities for all assigned kids
+            # Create chore status sensor entities for all assigned assignees
             from .sensor import create_chore_entities
 
             create_chore_entities(coordinator, internal_id)
@@ -698,20 +699,22 @@ def async_setup_services(hass: HomeAssistant):
             # name was used for lookup, not for renaming
             service_data.pop(const.SERVICE_FIELD_CHORE_CRUD_NAME, None)
 
-        # Resolve kid names to UUIDs if assigned_kids is being updated
+        # Resolve assignee names to UUIDs if assignees are being updated
         if const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS in service_data:
-            kid_names = service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS]
-            kid_ids = []
-            for kid_name in kid_names:
+            assignee_names = service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS]
+            assignee_ids = []
+            for assignee_name in assignee_names:
                 try:
-                    kid_id = get_item_id_or_raise(
-                        coordinator, const.ENTITY_TYPE_KID, kid_name
+                    assignee_id = get_item_id_or_raise(
+                        coordinator, const.ENTITY_TYPE_KID, assignee_name
                     )
-                    kid_ids.append(kid_id)
+                    assignee_ids.append(assignee_id)
                 except HomeAssistantError as err:
-                    const.LOGGER.warning("Update Chore - kid lookup failed: %s", err)
+                    const.LOGGER.warning(
+                        "Update Chore - assignee lookup failed: %s", err
+                    )
                     raise
-            service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS] = kid_ids
+            service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS] = assignee_ids
 
         # Map service fields to DATA_* keys
         data_input = _map_service_to_data_keys(
@@ -882,7 +885,7 @@ def async_setup_services(hass: HomeAssistant):
         if user_id and not await is_user_authorized_for_action(
             hass,
             user_id,
-            AUTH_ACTION_APPROVAL,
+            AUTH_ACTION_PARTICIPATION,
             target_user_id=kid_id,
         ):
             const.LOGGER.warning(

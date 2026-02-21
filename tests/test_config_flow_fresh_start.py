@@ -76,13 +76,13 @@ async def test_fresh_start_points_only(hass: HomeAssistant) -> None:
             },
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KID_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 5-13: Set all entity counts to 0
         # Kid count = 0 (skips parent_count, goes to chore_count)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 0},
+            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 0},
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_CHORE_COUNT
@@ -210,15 +210,15 @@ async def test_fresh_start_points_and_kid(hass: HomeAssistant, mock_hass_users) 
             },
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KID_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 5: Set kid count = 1
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 1},
+            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1},
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KIDS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Step 6: Configure the one kid with HA user and notifications
         result = await _configure_kid_step(
@@ -229,14 +229,6 @@ async def test_fresh_start_points_and_kid(hass: HomeAssistant, mock_hass_users) 
             kid_ha_user_key="kid1",
             dashboard_language="en",
             mobile_notify_service=const.SENTINEL_NO_SELECTION,  # No real notify services in test
-        )
-        assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-        # Step 7: Parent count = 0
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 0},
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_CHORE_COUNT
@@ -387,15 +379,15 @@ async def test_fresh_start_kid_with_notify_services(
             },
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KID_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
         # Step 5: Set kid count = 1
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 1},
+            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1},
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KIDS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Step 6: Configure kid with real mobile notify service
         result = await _configure_kid_step(
@@ -408,13 +400,6 @@ async def test_fresh_start_kid_with_notify_services(
             mobile_notify_service="notify.mobile_app_test_phone",
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-        # Step 7-14: Set all other entity counts to 0 (same as basic test)
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 0},
-        )
         assert result["step_id"] == const.CONFIG_FLOW_STEP_CHORE_COUNT
 
         result = await hass.config_entries.flow.async_configure(
@@ -517,7 +502,7 @@ async def test_fresh_start_with_parent_no_notifications(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 1}
+            result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2}
         )
         result = await _configure_kid_step(
             hass,
@@ -527,14 +512,6 @@ async def test_fresh_start_with_parent_no_notifications(
             kid_ha_user_key="kid1",
             dashboard_language="en",
         )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-        # Step 6: Set parent count = 1
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1},
-        )
-        assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Step 7: Configure parent with HA user but no notifications
@@ -662,7 +639,7 @@ async def test_fresh_start_with_parent_with_notifications(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 1}
+            result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2}
         )
         result = await _configure_kid_step(
             hass,
@@ -671,13 +648,6 @@ async def test_fresh_start_with_parent_with_notifications(
             kid_name="Max!",
             kid_ha_user_key="kid2",
             dashboard_language="en",
-        )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-        # Step 6: Set parent count = 1
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1},
         )
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
@@ -751,7 +721,7 @@ async def test_fresh_start_two_parents_mixed_notifications(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 1}
+            result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 3}
         )
         result = await _configure_kid_step(
             hass,
@@ -761,13 +731,6 @@ async def test_fresh_start_two_parents_mixed_notifications(
             kid_ha_user_key="kid3",
             dashboard_language="en",
             mobile_notify_service=const.SENTINEL_NO_SELECTION,
-        )
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-        # Step 6: Set parent count = 2
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2},
         )
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
@@ -879,10 +842,16 @@ async def _configure_kid_step(
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_KIDS_INPUT_KID_NAME: kid_name,
-            const.CFOF_KIDS_INPUT_HA_USER: mock_hass_users[kid_ha_user_key].id,
-            const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: dashboard_language,
-            const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
+            const.CFOF_PARENTS_INPUT_NAME: kid_name,
+            const.CFOF_PARENTS_INPUT_HA_USER: mock_hass_users[kid_ha_user_key].id,
+            const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: dashboard_language,
+            const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
+            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
+            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: True,
+            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: True,
+            const.CFOF_PARENTS_INPUT_CAN_APPROVE: False,
+            const.CFOF_PARENTS_INPUT_CAN_MANAGE: False,
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: [],
         },
     )
 
@@ -976,18 +945,18 @@ async def _configure_multiple_kids_step(
 
         # Extract the kid's internal ID from the config flow result
         if i < len(kid_configs) - 1:
-            # Still more kids to configure - result should be on KIDS step again
+            # Still more users to configure - result should remain on USERS step
             assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == const.CONFIG_FLOW_STEP_KIDS
+            assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
             # After each kid is configured, the config flow advances to the next kid
             # but we can't easily extract the ID here. Store name mapping for now.
             # The real IDs will be available when we reach the parent step.
             name_to_id_map[kid_config["name"]] = None  # Placeholder
         else:
-            # Last kid - result should advance to parent count step
+            # Last assignable user - result should remain on USERS step
             assert result["type"] == FlowResultType.FORM
-            assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
+            assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
             # Extract all real kid IDs from parent step schema and map to names
             actual_kid_ids = _extract_kid_ids_from_schema(result)
@@ -1113,13 +1082,13 @@ async def _setup_full_family_scenario(
             const.CFOF_SYSTEM_INPUT_POINTS_ICON: points_icon,
         },
     )
-    assert result["step_id"] == const.CONFIG_FLOW_STEP_KID_COUNT
+    assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
-    # Step 2: Set kid count = 3
+    # Step 2: Set total user count = 5 (3 assignable users + 2 approvers)
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 3}
+        result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 5}
     )
-    assert result["step_id"] == const.CONFIG_FLOW_STEP_KIDS
+    assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
     # Step 3: Configure 3 kids individually (proven working pattern)
     result = await _configure_kid_step(
@@ -1146,15 +1115,9 @@ async def _setup_full_family_scenario(
         kid_ha_user_key="kid3",
         dashboard_language="en",
     )
-    assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-    # Step 4: Set parent count = 2
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2}
-    )
     assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
-    # Step 5: Extract kid IDs from schema (proven working pattern)
+    # Step 4: Extract kid IDs from schema (proven working pattern)
     kid_ids = _extract_kid_ids_from_schema(result)
 
     # Configure first parent
@@ -1316,14 +1279,14 @@ async def test_fresh_start_with_parents(hass: HomeAssistant, mock_hass_users):
             },
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KID_COUNT
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
 
-        # Configure 1 kid
+        # Configure total users (1 assignable + 1 approver)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_KIDS_INPUT_KID_COUNT: 1}
+            result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 2}
         )
         assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_KIDS
+        assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
         # Create a kid first
         result = await _configure_kid_step(
@@ -1333,13 +1296,6 @@ async def test_fresh_start_with_parents(hass: HomeAssistant, mock_hass_users):
             kid_name="Alex",
             kid_ha_user_key="kid1",
             dashboard_language="en",
-        )
-        assert result["type"] == FlowResultType.FORM
-        assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
-
-        # Configure 1 parent
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: 1}
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
@@ -1569,7 +1525,7 @@ async def _configure_system_settings_step(
         points_icon: Icon for points (default: "mdi:star-outline")
 
     Returns:
-        Updated config flow result at KID_COUNT step
+        Updated config flow result at USER_COUNT step
     """
     assert result["step_id"] == const.CONFIG_FLOW_STEP_POINTS
 
@@ -1580,7 +1536,7 @@ async def _configure_system_settings_step(
             const.CFOF_SYSTEM_INPUT_POINTS_ICON: points_icon,
         },
     )
-    assert result["step_id"] == const.CONFIG_FLOW_STEP_KID_COUNT
+    assert result["step_id"] == const.CONFIG_FLOW_STEP_USER_COUNT
     return result
 
 

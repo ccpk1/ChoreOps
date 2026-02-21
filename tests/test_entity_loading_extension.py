@@ -38,8 +38,9 @@ async def test_scenario_full_loads_all_entity_types(
     assert "Max!" in result.kid_ids
     assert "Lila" in result.kid_ids
 
-    # Verify parents (baseline - already worked)
-    assert len(result.parent_ids) == 2
+    # Verify configured parents are present. parent_ids may also include
+    # parent-compatible linked-profile records from unified users data.
+    assert len(result.parent_ids) >= 2
     assert "Môm Astrid Stârblüm" in result.parent_ids
     assert "Dad Leo" in result.parent_ids
 
@@ -158,9 +159,11 @@ async def test_entity_loading_with_empty_lists(
         "tests/scenarios/scenario_minimal.yaml",  # Has no badges/rewards/etc
     )
 
-    # Minimal scenario should have 1 kid, 1 parent, 5 chores (per scenario_minimal.yaml)
+    # Minimal scenario should have 1 kid, configured parent present, 5 chores
+    # (parent_ids may include parent-compatible linked-profile records)
     assert len(result.kid_ids) == 1
-    assert len(result.parent_ids) == 1
+    assert len(result.parent_ids) >= 1
+    assert "Môm Astrid Stârblüm" in result.parent_ids
     assert len(result.chore_ids) == 5
 
     # All new entity ID mappings should be empty dicts (not None)

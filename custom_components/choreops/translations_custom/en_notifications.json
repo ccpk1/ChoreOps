@@ -1,114 +1,109 @@
 {
-  "_comment_kid_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "KID NOTIFICATIONS: Gamified, second-person, encouraging tone with emojis. NO 'ChoreOps:' prefix.",
-  "_comment_kid_footer": "══════════════════════════════════════════════════════════════════",
-
-  "chore_approved_kid": {
+  "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "ASSIGNEE NOTIFICATIONS: Gamified, second-person, encouraging tone with emojis. NO 'ChoreOps:' prefix.",
+  "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "🎉 Chore Approved!",
     "message": "{chore_name} approved! You earned {points} points"
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Chore Returned",
     "message": "{chore_name} needs more work."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Chore Overdue",
     "message": "{chore_name} is overdue! Complete it now to earn {points} points"
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Chore Expired",
     "message": "{chore_name} expired without completion."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Chore Reminder",
     "message": "{chore_name} is due in {minutes} minutes! Worth {points} points"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Chore Now Due",
     "message": "{chore_name} is now due! Complete within {hours} hour(s) to earn {points} points"
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 Reward Approved!",
     "message": "{reward_name} approved!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "💭 Reward Request Returned",
     "message": "{reward_name} wasn't approved this time."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "🥇 Badge Earned!",
     "message": "You earned the {badge_name} badge!"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "🏆 Achievement Earned!",
     "message": "You earned {achievement_name}! Keep up the great work"
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 Challenge Complete!",
     "message": "You completed {challenge_name}! Keep up the great work"
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Penalty Applied",
     "message": "{penalty_name}: {points} points deducted. Let's get back on track!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ Bonus Applied!",
     "message": "{bonus_name}: You earned {points} bonus points! Great job"
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Multiplier Updated",
     "message": "Your points multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
-
-  "_comment_parent_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "PARENT NOTIFICATIONS: Informative, third-person, actionable. Format: '{kid_name}: Action'. NO 'ChoreOps:' prefix.",
-  "_comment_parent_footer": "══════════════════════════════════════════════════════════════════",
-
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Chore Claimed",
-    "message": "{kid_name} claimed {chore_name} and is working on it now"
+  "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "APPROVER NOTIFICATIONS: Informative, third-person, actionable. Format: '{assignee_name}: Action'. NO 'ChoreOps:' prefix.",
+  "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Chore Claimed",
+    "message": "{assignee_name} claimed {chore_name} and is working on it now"
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Approval Needed",
-    "message": "Reminder: {chore_name} claimed by {kid_name} is waiting for your review"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Approval Needed",
+    "message": "Reminder: {chore_name} claimed by {assignee_name} is waiting for your review"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Chore Overdue",
-    "message": "{kid_name}'s chore {chore_name} is overdue (due: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Chore Overdue",
+    "message": "{assignee_name}'s chore {chore_name} is overdue (due: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} Pending",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Pending",
     "message": "{count} chores awaiting review. Latest: {latest_chore} (+{points} pts)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Reward Request",
-    "message": "{kid_name} requested {reward_name} for {points} points"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Reward Request",
+    "message": "{assignee_name} requested {reward_name} for {points} points"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Reward Pending",
-    "message": "Reminder: {reward_name} requested by {kid_name} is waiting for your approval"
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Reward Pending",
+    "message": "Reminder: {reward_name} requested by {assignee_name} is waiting for your approval"
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Badge Earned",
-    "message": "{kid_name} earned the {badge_name} badge!"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Badge Earned",
+    "message": "{assignee_name} earned the {badge_name} badge!"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Achievement",
-    "message": "{kid_name} earned {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Achievement",
+    "message": "{assignee_name} earned {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Challenge Done",
-    "message": "{kid_name} completed {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Challenge Done",
+    "message": "{assignee_name} completed {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Multiplier Updated",
-    "message": "{kid_name}'s points multiplier changed from {old_multiplier}x to {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Multiplier Updated",
+    "message": "{assignee_name}'s points multiplier changed from {old_multiplier}x to {new_multiplier}x"
   },
-
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM/ADMIN NOTIFICATIONS: Data management operations",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
-
   "data_reset": {
     "title": "🔄 ChoreOps: Data Reset",
     "message": "System data has been reset"
@@ -117,9 +112,9 @@
     "title": "🔄 ChoreOps: Full Reset",
     "message": "All system data has been reset to defaults"
   },
-  "data_reset_kid": {
-    "title": "🔄 ChoreOps: Kid Reset",
-    "message": "Data reset for {kid_name}"
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Assignee Reset",
+    "message": "Data reset for {assignee_name}"
   },
   "data_reset_item_type": {
     "title": "🔄 ChoreOps: {item_type} Reset",
@@ -129,11 +124,9 @@
     "title": "🔄 ChoreOps: Item Reset",
     "message": "{item_type} '{item_name}' has been reset"
   },
-
   "_comment_actions_section": "══════════════════════════════════════════════════════════════════",
   "_comment_actions_desc": "NOTIFICATION ACTION BUTTONS: Softer, more encouraging language",
   "_comment_actions_footer": "══════════════════════════════════════════════════════════════════",
-
   "actions": {
     "approve": "✅ Approve",
     "claim": "✋ I Did It!",

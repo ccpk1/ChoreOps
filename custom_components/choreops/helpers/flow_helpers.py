@@ -238,15 +238,15 @@ def validate_points_inputs(user_input: dict[str, Any]) -> dict[str, str]:
 
 
 # ----------------------------------------------------------------------------------
-# KIDS SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
+# ASSIGNEE SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
 # ----------------------------------------------------------------------------------
 
 
-async def build_kid_schema(
+async def build_assignee_schema(
     hass,
     users,
 ):
-    """Build a Voluptuous schema for adding/editing a Kid.
+    """Build a Voluptuous schema for adding/editing an assignee profile.
 
     Uses static defaults for optional fields - use suggested_value for edit forms.
 
@@ -308,6 +308,17 @@ async def build_kid_schema(
     )
 
 
+async def build_kid_schema(
+    hass,
+    users,
+):
+    """Compatibility wrapper for legacy kid schema helper.
+
+    Prefer `build_assignee_schema()` for runtime flow surfaces.
+    """
+    return await build_assignee_schema(hass, users)
+
+
 def validate_kids_inputs(
     user_input: dict[str, Any],
     existing_kids: dict[str, Any] | None = None,
@@ -315,20 +326,39 @@ def validate_kids_inputs(
     *,
     current_kid_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate kid configuration inputs for Options Flow.
+    """Compatibility wrapper for legacy kid validation helper.
+
+    Prefer `validate_assignee_inputs()` for runtime flow surfaces.
+    """
+    return validate_assignee_inputs(
+        user_input,
+        existing_kids,
+        existing_parents,
+        current_assignee_id=current_kid_id,
+    )
+
+
+def validate_assignee_inputs(
+    user_input: dict[str, Any],
+    existing_assignees: dict[str, Any] | None = None,
+    existing_users: dict[str, Any] | None = None,
+    *,
+    current_assignee_id: str | None = None,
+) -> dict[str, str]:
+    """Validate assignee-profile inputs for flow surfaces.
 
     This is a UI-specific wrapper that:
     1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
-    2. Calls data_builders.validate_kid_data() (single source of truth)
+    2. Calls data_builders.validate_assignee_profile_data() (single source of truth)
 
     Note: Since Phase 6 CFOF Key Alignment, CFOF_KIDS_INPUT_KID_NAME = "name"
     matches DATA_KID_NAME = "name", so no key transformation is needed.
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        existing_kids: Optional dictionary of existing kids for duplicate checking.
-        existing_parents: Optional dictionary of existing parents for cross-validation.
-        current_kid_id: ID of kid being edited (to exclude from duplicate check).
+        existing_assignees: Optional dictionary of existing assignee profiles for duplicate checking.
+        existing_users: Optional dictionary of existing user profiles for cross-validation.
+        current_assignee_id: ID of assignee profile being edited (to exclude from duplicate check).
 
     Returns:
         Dictionary of errors (empty if validation passes).
@@ -341,13 +371,13 @@ def validate_kids_inputs(
     }
 
     # Call shared validation (single source of truth)
-    is_update = current_kid_id is not None
-    return db.validate_kid_data(
+    is_update = current_assignee_id is not None
+    return db.validate_assignee_profile_data(
         data_dict,
-        existing_kids,
-        existing_parents,
+        existing_assignees,
+        existing_users,
         is_update=is_update,
-        current_kid_id=current_kid_id,
+        current_assignee_id=current_assignee_id,
     )
 
 
@@ -382,7 +412,17 @@ USER_ADMIN_APPROVAL_FIELDS = (
 def build_parent_section_suggested_values(
     flat_values: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build sectioned suggested values from a flat parent/user form dictionary."""
+    """Compatibility wrapper for legacy parent naming.
+
+    Prefer `build_user_section_suggested_values()`.
+    """
+    return build_user_section_suggested_values(flat_values)
+
+
+def _build_user_section_suggested_values_impl(
+    flat_values: dict[str, Any],
+) -> dict[str, Any]:
+    """Build sectioned suggested values from a flat user form dictionary."""
     return {
         USER_SECTION_IDENTITY_PROFILE: {
             key: flat_values[key] for key in USER_IDENTITY_FIELDS if key in flat_values
@@ -401,7 +441,15 @@ def build_parent_section_suggested_values(
 
 
 def normalize_parent_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
-    """Normalize parent form input for sectioned and non-sectioned payloads."""
+    """Compatibility wrapper for legacy parent form naming.
+
+    Prefer `normalize_user_form_input()`.
+    """
+    return normalize_user_form_input(user_input)
+
+
+def _normalize_user_form_input_impl(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Normalize user form input for sectioned and non-sectioned payloads."""
     normalized: dict[str, Any] = dict(user_input)
     for section_key in (
         USER_SECTION_IDENTITY_PROFILE,
@@ -419,7 +467,19 @@ async def build_parent_schema(
     users,
     kids_dict,
 ):
-    """Build a Voluptuous schema for adding/editing a Parent.
+    """Compatibility wrapper for legacy parent schema helper.
+
+    Prefer `build_user_schema()`.
+    """
+    return await build_user_schema(hass, users, kids_dict)
+
+
+async def _build_user_schema_impl(
+    hass,
+    users,
+    kids_dict,
+):
+    """Build a Voluptuous schema for adding/editing a user profile.
 
     Uses static defaults for optional fields - use suggested_value for edit forms.
 
@@ -528,7 +588,15 @@ async def build_parent_schema(
 
 
 def map_parent_form_errors(errors: dict[str, str]) -> dict[str, str]:
-    """Map parent form errors to section-level aliases for sectioned UI."""
+    """Compatibility wrapper for legacy parent error mapper.
+
+    Prefer `map_user_form_errors()`.
+    """
+    return map_user_form_errors(errors)
+
+
+def _map_user_form_errors_impl(errors: dict[str, str]) -> dict[str, str]:
+    """Map user form errors to section-level aliases for sectioned UI."""
     mapped_errors: dict[str, str] = {}
 
     field_to_section: dict[str, str] = {
@@ -564,20 +632,39 @@ def validate_parents_inputs(
     *,
     current_parent_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate parent configuration inputs for Options Flow.
+    """Compatibility wrapper for legacy parent validation helper.
+
+    Prefer `validate_users_inputs()`.
+    """
+    return validate_users_inputs(
+        user_input,
+        existing_parents,
+        existing_kids,
+        current_user_id=current_parent_id,
+    )
+
+
+def _validate_users_inputs_impl(
+    user_input: dict[str, Any],
+    existing_users: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
+    *,
+    current_user_id: str | None = None,
+) -> dict[str, str]:
+    """Validate user configuration inputs for flow surfaces.
 
     This is a UI-specific wrapper that:
     1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
-    2. Calls data_builders.validate_parent_data() (single source of truth)
+    2. Calls data_builders.validate_user_profile_data() (single source of truth)
 
     Note: Since Phase 6 CFOF Key Alignment, CFOF_PARENTS_INPUT_NAME = "name"
     matches DATA_PARENT_NAME = "name", so no key transformation is needed.
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        existing_parents: Optional dictionary of existing parents for duplicate checking.
-        existing_kids: Optional dictionary of existing user/kid records for cross-validation.
-        current_parent_id: ID of parent being edited (to exclude from duplicate check).
+        existing_users: Optional dictionary of existing user profiles for duplicate checking.
+        existing_assignees: Optional dictionary of existing assignee profiles for cross-validation.
+        current_user_id: ID of user profile being edited (to exclude from duplicate check).
 
     Returns:
         Dictionary of errors (empty if validation passes).
@@ -621,24 +708,24 @@ def validate_parents_inputs(
         )
 
     # Call shared validation (single source of truth)
-    is_update = current_parent_id is not None
-    return db.validate_parent_data(
+    is_update = current_user_id is not None
+    return db.validate_user_profile_data(
         data_dict,
-        existing_parents,
-        existing_kids,
+        existing_users,
+        existing_assignees,
         is_update=is_update,
-        current_parent_id=current_parent_id,
+        current_user_id=current_user_id,
     )
 
 
 def build_user_section_suggested_values(flat_values: dict[str, Any]) -> dict[str, Any]:
     """Build sectioned suggested values for the role-based user form."""
-    return build_parent_section_suggested_values(flat_values)
+    return _build_user_section_suggested_values_impl(flat_values)
 
 
 def normalize_user_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
     """Normalize role-based user form input for sectioned payloads."""
-    return normalize_parent_form_input(user_input)
+    return _normalize_user_form_input_impl(user_input)
 
 
 async def build_user_schema(hass, users, kids_dict):
@@ -649,12 +736,12 @@ async def build_user_schema(hass, users, kids_dict):
         users: Available Home Assistant users.
         kids_dict: Mapping of display name to internal ID for association field.
     """
-    return await build_parent_schema(hass, users, kids_dict)
+    return await _build_user_schema_impl(hass, users, kids_dict)
 
 
 def map_user_form_errors(errors: dict[str, str]) -> dict[str, str]:
     """Map role-based user form errors to section-level aliases."""
-    return map_parent_form_errors(errors)
+    return _map_user_form_errors_impl(errors)
 
 
 def validate_users_inputs(
@@ -664,12 +751,12 @@ def validate_users_inputs(
     *,
     current_user_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate role-based user form input using shared parent-model rules."""
-    return validate_parents_inputs(
+    """Validate role-based user form input using shared user-profile rules."""
+    return _validate_users_inputs_impl(
         user_input,
         existing_users,
         existing_assignees,
-        current_parent_id=current_user_id,
+        current_user_id=current_user_id,
     )
 
 

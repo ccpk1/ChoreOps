@@ -24,6 +24,7 @@ from custom_components.choreops import const
 from custom_components.choreops.helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
     AUTH_ACTION_MANAGEMENT,
+    AUTH_ACTION_PARTICIPATION,
     is_kiosk_mode_enabled,
     is_user_authorized_for_action,
 )
@@ -49,6 +50,41 @@ async def scenario_minimal(
         mock_hass_users,
         "tests/scenarios/scenario_minimal.yaml",
     )
+
+
+def _set_user_capabilities(
+    setup_result: SetupResult,
+    ha_user_id: str,
+    *,
+    can_approve: bool,
+    can_manage: bool,
+) -> None:
+    """Set capability flags for the user record linked to an HA user ID."""
+
+    def _record_ha_user_ref(user_data: dict[str, Any]) -> str | None:
+        for key in (
+            const.DATA_USER_HA_USER_ID,
+            const.DATA_PARENT_HA_USER_ID,
+            const.DATA_KID_HA_USER_ID,
+        ):
+            value = user_data.get(key)
+            if isinstance(value, str) and value:
+                return value
+        return None
+
+    users = setup_result.coordinator._data.get(const.DATA_USERS, {})
+    if not isinstance(users, dict):
+        raise TypeError("Users data missing in scenario setup")
+
+    for user_data_raw in users.values():
+        if not isinstance(user_data_raw, dict):
+            continue
+        if _record_ha_user_ref(user_data_raw) == ha_user_id:
+            user_data_raw[const.DATA_USER_CAN_APPROVE] = can_approve
+            user_data_raw[const.DATA_USER_CAN_MANAGE] = can_manage
+            return
+
+    raise AssertionError(f"No user record found for HA user ID: {ha_user_id}")
 
 
 class TestEntityLookupHelpers:
@@ -232,6 +268,12 @@ class TestAuthorizationHelpers:
     ) -> None:
         """Registered parent user should be authorized for global actions."""
         parent_user = mock_hass_users["parent1"]
+        _set_user_capabilities(
+            scenario_minimal,
+            parent_user.id,
+            can_approve=True,
+            can_manage=True,
+        )
 
         is_authorized = await is_user_authorized_for_action(
             hass,
@@ -291,7 +333,7 @@ class TestAuthorizationHelpers:
         is_authorized = await is_user_authorized_for_action(
             hass,
             kid_user.id,
-            AUTH_ACTION_APPROVAL,
+            AUTH_ACTION_PARTICIPATION,
             target_user_id=kid_id,
         )
 

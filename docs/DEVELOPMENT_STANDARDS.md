@@ -50,6 +50,8 @@ To keep editor diagnostics stable across contributors, this repository uses a lo
 - **Lint/format source**: Ruff config is centralized in `pyproject.toml` (Python 3.13 target, formatter + lint rules + per-file ignores).
 - **Type source of truth**: MyPy is authoritative for CI and local validation; Pylance stays low-noise for editor productivity.
 - **Architecture enforcement**: `utils/check_boundaries.py` is a required gate, not optional.
+- **Hard-fork contract lint**: `utils/check_boundaries.py` enforces no new legacy request fields/symbols in runtime hard-fork surfaces (`services.py`, `notification_action_handler.py`, `config_flow.py`, `options_flow.py`, `helpers/flow_helpers.py`, `data_builders.py`).
+- **Baseline policy**: legacy contract findings are tracked in `docs/in-process/CHOREOPS_DATA_MODEL_UNIFICATION_SUP_CONTRACT_LINT_BASELINE.txt`; new findings not in baseline fail the gate.
 - **Test default behavior**: Pytest excludes `performance` and `stress` markers unless explicitly requested.
 - **Definition of done**: Lint gate + zero MyPy errors + relevant pytest pass.
 

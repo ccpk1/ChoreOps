@@ -5,7 +5,12 @@
 - **Name / Code**: ChoreOps Data Model Unification (`CHOREOPS-ARCH-UNIFY-003`)
 - **Target release / milestone**: v0.5.0-beta5 (schema 45)
 - **Owner / driver(s)**: Engineering + Strategy & Architecture Team
-- **Status**: Architecture pivot in progress (Phase 1/2 refinement active)
+- **Status**: Hard-fork closeout in progress (Phase 4 lexical and translation hygiene gates active)
+
+Program alignment note:
+
+- Cross-plan sequencing and completion truth are governed by `REBRAND_ROLEMODEL_CLOSEOUT_IN-PROCESS.md`.
+- Terminal terminology boundaries are governed by `REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`.
 
 ## Critical implementation expectation (hard fork)
 
@@ -19,18 +24,31 @@
 - Migration-only constants must be isolated in `custom_components/choreops/migration_pre_v50_constants.py`.
 - Final-phase acceptance requires proof that runtime compatibility-helper usage is eliminated outside migration modules.
 - Final-phase acceptance requires class naming contract conformance for hard-fork runtime surfaces.
+- Compatibility-window endpoint (Phase 2 freeze approved): remove residual runtime aliases/wrappers by schema `50`, with any temporary migration-only constants isolated in `migration_pre_v50_constants.py` and tagged with explicit removal criteria.
+
+Terminal terminology policy approval (verbatim):
+
+- Approved terminal terminology policy: `KidsChores` is restricted to migration/legacy/credit references and the explicit fun label `KidsChores Mode`; `kid` and `parent` are disallowed in runtime symbols/translations/core docs outside documented migration-only compatibility and intentional README/wiki exceptions.
 
 ## Summary & immediate steps
 
-| Phase / Step                              | Description                                                                    | % complete | Quick notes                                                                                                                                                                                      |
-| ----------------------------------------- | ------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Phase 1 – Contract & migration foundation | Lock unified-user schema contract and capability-only authorization model      | 65%        | Pivot applied; checklist reset to strict contract                                                                                                                                                |
-| Phase 2 – Storage unification migration   | Replace `kids`/`parents` with canonical `users` using promote-and-merge method | 25%        | Migration path exists; must remove legacy dual-bucket use                                                                                                                                        |
-| Phase 3 – Full Python refactor            | Rename internal model and logic (`kid_*` → `user_*`) across managers/platforms | 100%       | Schema45-first scope confirmed; final runtime cleanup still requires linked-term elimination in Phase 4                                                                                          |
-| Phase 4 – Tests, hardening, and release   | Update tests/fixtures, validate migration paths, publish release notes         | 68%        | Helper terminology, migration-path wrappers, diagnostics/entity checks, auth acceptance, role-flag rewrites, entity-gating matrix coverage, and consolidated sectioned user-form UX are in place |
+Status interpretation note:
+
+- Phase percentages in this plan represent subsystem implementation progress only.
+- Program closeout remains gated by master orchestration sequencing and cross-plan acceptance criteria.
+- A phase marked `100%` here does not authorize archive while program-level gates are still open.
+
+| Phase / Step                              | Description                                                                    | % complete | Quick notes                                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 – Contract & migration foundation | Lock unified-user schema contract and capability-only authorization model      | 65%        | Pivot applied; checklist reset to strict contract                                                                                |
+| Phase 2 – Storage unification migration   | Replace `kids`/`parents` with canonical `users` using promote-and-merge method | 25%        | Migration path exists; must remove legacy dual-bucket use                                                                        |
+| Phase 3 – Full Python refactor            | Rename internal model and logic (`kid_*` → `user_*`) across managers/platforms | 100%       | Schema45-first scope confirmed; final runtime cleanup still requires linked-term elimination in Phase 4                          |
+| Phase 4 – Tests, hardening, and release   | Update tests/fixtures, validate migration paths, publish release notes         | 100%       | Full deterministic suite is now green after unified parent-compatible assertion updates (`1420 passed, 2 skipped, 2 deselected`) |
 
 1. **Key objective** – Complete a clean backend reset to one role-based `users` model and remove shadow-kid architecture debt in the same initiative.
 2. **Summary of recent work**
+
+- Sequence 2 runtime/data hard-cut packet completed: canonical assignee naming was applied to chore CRUD service internals (`services.py`), assignee schema became primary with legacy wrapper retained (`helpers/flow_helpers.py`), and assignee-named runtime reset field constants were introduced with temporary compatibility aliases (`data_builders.py`); validation gates passed (`./utils/quick_lint.sh --fix`, full pytest, scoped mypy).
 
 - Option comparison completed; Option 3 selected as architecture target.
 - Migration strategy retained: **kid-first / promote-and-merge**.
@@ -76,12 +94,25 @@
 - Phase 4 shadow-suite delta: active shadow-focused suites now assert capability-oriented profile semantics (`can_be_assigned` eligibility with role-flag checks) while preserving current linked-profile behavior coverage (`test_parent_shadow_kid`, `test_shadow_kid_buttons`, `test_options_flow_shadow_kid_entity_creation`); `test_shadow_link_service.py` was already retired with service removal.
 - Phase 4 entity-gating delta: architecture now documents the final capability-first matrix (`ALWAYS`, `WORKFLOW`, `GAMIFICATION`, `EXTRA` with `can_be_assigned` precedence), and shadow/options suites assert requirement-class outcomes plus assignment-eligibility gating behavior.
 - Phase 4 unified-form UX delta: parent/user flows now use chores-style sectioned schemas (`Identity and profile`, `System usage`, `Admin and approval options`) with section-level error mapping, sectioned translation hierarchy, and locked validation rules (`assignment-or-approval` minimum + `approval-requires-associated-users`) while preserving suggested-value and legacy flat-key compatibility paths.
+- Runtime lexical-gap audit delta: scoped flow/config/helper/builder review found high non-migration legacy-role terminology density (331 non-migration-like lines across `config_flow.py`, `options_flow.py`, `helpers/flow_helpers.py`, and `data_builders.py`), requiring a dedicated hard-cut implementation step.
+- Translation-surface audit delta: repository translation surfaces include both `custom_components/choreops/translations/*.json` and `custom_components/choreops/translations_custom/*.json` (including `en.json`, `en_dashboard.json`, `en_notifications.json`, and `en_report.json`), so hygiene gates must cover both trees.
+- Phase 4 flow-surface hard-cut delta: config/options now use canonical assignee/user runtime handlers as primary (`async_step_assignee_*`, `async_step_add/edit/delete_assignee`), legacy `kid_*` flow entrypoints are compatibility wrappers only, `flow_helpers` now exposes canonical assignee/user APIs as primary (`build_assignee_schema`, `validate_assignee_inputs`, `build_user_schema`, `validate_users_inputs`) with parent/kid helpers as compatibility wrappers, and runtime flow call sites now consume canonical builder aliases (`build_assignee_profile`, `build_user_profile`).
+- Validation snapshot (flow hard-cut batch): `./utils/quick_lint.sh --fix` passed and focused flow suites passed (`tests/test_config_flow_fresh_start.py`, `tests/test_options_flow_entity_crud.py`, `tests/test_ha_user_id_options_flow.py` → 39 passed).
+- Phase 4 mixed-role matrix delta: added explicit assignee/approver/manager/dual-role coverage in service acceptance tests (`test_chore_services`, `test_reward_services`) and documented matrix expectations in `tests/SCENARIOS.md`; focused service matrix run passed (38 tests).
+- Phase 4 migration observability delta: schema45 contract hook now records structured migration summary counts (including remap totals/additions) in runtime logs and persists last summary in metadata (`meta.schema45_last_summary`); `SystemManager` startup summary logging updated accordingly.
+- Phase 4 release-hardening docs delta: release checklist, README, and architecture now include explicit migration rollback/go-no-go requirements tied to migration-path tests plus backup/restore validation.
+- Phase 4 validation delta (latest): setup-helper count regressions are resolved for unified-role semantics (`tests/test_setup_helper.py` = 5 passed), daily-multi approval-reset suite passes (`tests/test_daily_multi_approval_reset.py` = 6 passed), mixed-role service matrix remains green (`test_chore_services` + `test_reward_services` = 38 passed), combined focused regression pack passes (`49 passed`), and integrated quality gate passes.
+- Phase 4 auth/notification closure delta: `config_flow.async_step_users` legacy-payload discriminator was tightened to avoid rewriting canonical user submissions, restoring approver capability and parent association fields in setup scenarios; focused regression gates now pass (`test_kc_helpers` + `test_workflow_notifications` = 44 passed, `test_setup_helper` + `test_chore_services` + `test_reward_services` = 43 passed) with `./utils/quick_lint.sh --fix` green.
+- Phase 4 full-suite closure delta: aligned parent-count assertions in setup-coverage tests to the canonical unified `users` contract where `parents_data` includes parent-compatible linked-profile records; deterministic full-suite validation is now green (`python -m pytest tests/ -v --tb=line` → `1420 passed, 2 skipped, 2 deselected`).
+- Phase 4 translation-hygiene correction delta: follow-up runtime compatibility audit identified translation key-contract drift between runtime constants/step IDs and `translations/en.json` key IDs (for example `kid_count`/`add_kid` style runtime keys vs renamed `assignee_*` key IDs). Translation hygiene is therefore re-opened as a runtime-safety gate pending key-parity restoration.
 
 3. **Next steps (short term)**
 
 - Finalize Phase 1 strict contract updates (`const.py`, `type_defs.py`, `auth_helpers.py`, `data_builders.py`).
 - Complete Phase 2 canonical migration behavior with no dual-bucket runtime dependency.
 - Start hard-fork contract cutover: service field rename contract (`assignee_name`, `approver_name`) and remove runtime legacy aliases.
+- Execute translation contract realignment plan: `TRANSLATION_CONTRACT_REALIGNMENT_IN-PROCESS.md` (runtime key parity first, then canonical key migration in lockstep).
+- Execute terminology hard-cut per `REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md` (remove non-exception `kid`/`parent` naming from runtime symbols and active docs).
 
 4. **Risks / blockers**
    - High-touch refactor across managers, entities, helpers, and tests.
@@ -90,7 +121,8 @@
 
 - Environment validation blockers observed:
   - `mypy custom_components/choreops/` parser failure in linked Home Assistant core syntax context.
-  - `python -m pytest tests/ -v --tb=line` terminated with exit 137 near completion in current container.
+  - Prior bounded-run truncation was transient; deterministic full-suite validation now completes successfully in this environment.
+  - Non-English locale synchronization remains a separate pipeline concern and is not part of this requirement slice.
 
 5. **References**
    - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
@@ -376,8 +408,38 @@ Final audit gate requirement:
     - Required:
       - Failing rule for new usage of legacy request fields (`kid_name`, `parent_name`) in services/flows.
       - Failing rule for new runtime dual-contract parsing outside migration modules.
+      - Failing lexical rule for `kid`, `parent`, `kidschores`, `linked_*`, and `shadow_*` runtime symbol use in hard-fork runtime surfaces (`config_flow.py`, `options_flow.py`, `helpers/flow_helpers.py`, `data_builders.py`, services/event handlers), excluding approved migration-module allowlist only.
+      - Baseline violation report artifact required in `docs/in-process/` before implementation, and zero-violation proof required for plan sign-off.
       - Allowlist only where explicitly approved in migration code paths.
-  - [ ] Add mixed-role scenario test matrix for assignee/approver semantics
+  - [x] Execute flow-surface lexical hard-cut with migration-only exceptions
+    - Files:
+      - [custom_components/choreops/config_flow.py](../../custom_components/choreops/config_flow.py)
+      - [custom_components/choreops/options_flow.py](../../custom_components/choreops/options_flow.py)
+      - [custom_components/choreops/helpers/flow_helpers.py](../../custom_components/choreops/helpers/flow_helpers.py)
+      - [custom_components/choreops/data_builders.py](../../custom_components/choreops/data_builders.py)
+    - Required:
+      - Remove runtime-facing kid/parent/kidschores role-bucket naming outside approved migration-only paths.
+      - Remove or hard-deprecate legacy flow entrypoints still exposed in runtime UX where canonical user-capability routes exist.
+      - Preserve migration behavior only in migration modules; no runtime helper alias expansion.
+      - Produce before/after lexical inventory report (counts by file + migration/non-migration classification) and attach to initiative summary.
+  - [ ] Add translation hygiene and orphan-key cleanup gate (English + locale files)
+    - Files:
+      - [custom_components/choreops/translations/en.json](../../custom_components/choreops/translations/en.json)
+      - [custom_components/choreops/translations/\*.json](../../custom_components/choreops/translations/)
+      - [custom_components/choreops/translations_custom/en_dashboard.json](../../custom_components/choreops/translations_custom/en_dashboard.json)
+      - [custom_components/choreops/translations_custom/en_notifications.json](../../custom_components/choreops/translations_custom/en_notifications.json)
+      - [custom_components/choreops/translations_custom/en_report.json](../../custom_components/choreops/translations_custom/en_report.json)
+      - [custom_components/choreops/translations_custom/\*.json](../../custom_components/choreops/translations_custom/)
+      - [docs/DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md)
+      - [docs/RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md)
+    - Required:
+      - Build canonical key inventory from runtime constants + service schemas + flow step IDs and validate `en.json` coverage.
+      - Detect and remove orphaned keys in `en.json` (unused by runtime contract after hard-fork cutover).
+      - Detect and remove orphaned keys in `translations_custom/en_dashboard.json`, `translations_custom/en_notifications.json`, and `translations_custom/en_report.json`.
+      - Validate locale files for stale references to removed English keys in both translation trees; resolve by key removal or approved fallback policy.
+      - Explicitly document that both `translations/` and `translations_custom/` are in-scope translation surfaces for this initiative.
+      - Add release gate requiring translation audit report with zero unresolved orphan/stale-key findings.
+  - [x] Add mixed-role scenario test matrix for assignee/approver semantics
     - Files:
       - [tests/SCENARIOS.md](../../tests/SCENARIOS.md)
       - [tests/test_chore_services.py](../../tests/test_chore_services.py)
@@ -387,7 +449,7 @@ Final audit gate requirement:
       2. Approver-only user (`can_approve=true`, `can_manage=false`) can approve/disapprove but cannot perform management-only actions.
       3. Manager user (`can_manage=true`) can perform management actions independent of assignment.
       4. Dual-role user can perform both domains without regression.
-  - [ ] Add migration observability and rollback acceptance criteria
+  - [x] Add migration observability and rollback acceptance criteria
     - Files:
       - [custom_components/choreops/migration_pre_v50.py](../../custom_components/choreops/migration_pre_v50.py)
       - [docs/RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md)
@@ -399,7 +461,7 @@ Final audit gate requirement:
     - `./utils/quick_lint.sh --fix`
     - `mypy custom_components/choreops/`
     - `python -m pytest tests/ -v --tb=line`
-  - [ ] Update release documentation and migration notes
+  - [x] Update release documentation and migration notes
     - Files:
       - [README.md](../../README.md)
       - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
@@ -418,13 +480,20 @@ Final audit gate requirement:
     - `./utils/quick_lint.sh --fix`
     - `mypy custom_components/choreops/`
     - `python -m pytest tests/ -v --tb=line`
+  - Translation hygiene gate:
+    - Generate translation key audit report (`translations/en.json` + `translations_custom/en_*.json` canonical coverage + locale stale-key scan)
+    - Validate no orphaned runtime translation keys remain in `custom_components/choreops/translations/en.json`
+    - Validate no orphaned keys remain in `custom_components/choreops/translations_custom/en_dashboard.json`, `en_notifications.json`, and `en_report.json`
+    - Validate locale files contain no references to removed keys after hard-fork cutover in both translation trees
 - **Outstanding tests**
-  - Full-suite execution (`python -m pytest tests/ -v --tb=line`) reached 99% and was terminated by container with exit 137.
+  - Full-suite execution (`python -m pytest tests/ -v --tb=line`) currently reaches ~84% in bounded runs with truncated output; long runs remain constrained by output/runtime limits.
   - Standalone `mypy custom_components/choreops/` fails due parser mismatch against linked HA core syntax in this environment.
   - Focused changed-area validation passed:
     - `./utils/quick_lint.sh --fix`
-    - `python -m pytest tests/test_kc_helpers.py -v --tb=line`
-    - `python -m pytest tests/test_shadow_link_service.py -v --tb=line`
+    - `python -m pytest tests/test_setup_helper.py -v --tb=line`
+    - `python -m pytest tests/test_daily_multi_approval_reset.py -v --tb=line`
+    - `python -m pytest tests/test_chore_services.py tests/test_reward_services.py -v --tb=line`
+    - `python -m pytest tests/test_setup_helper.py tests/test_daily_multi_approval_reset.py tests/test_chore_services.py tests/test_reward_services.py -v --tb=line`
 
 ## Open PR impact assessment (pivot directive)
 

@@ -36,6 +36,8 @@ main in-process plan.
   - Data model symbol renames in constants, TypedDicts, and runtime helpers
   - Translation key and user-facing text renames tied to role-based terminology
   - Helper/method naming alignment away from kid/parent role-bucket assumptions
+  - Config/options/helper/builder runtime lexical cleanup for hard-fork terminology
+  - Translation orphan-key/stale-reference cleanup in both `translations/` and `translations_custom/`
 - Out of scope:
   - Historical migration internals not affecting runtime/API contract
   - Dashboard repository content ownership details (tracked separately in release/migration notes)
@@ -64,6 +66,11 @@ main in-process plan.
    remain only in migration code or persisted legacy-key handling.
 7. If migration is implemented correctly, runtime compatibility helper usage is not
    required; compatibility helper logic should be migration-only.
+8. Runtime flow/config/helper/data-builder surfaces must not carry new or retained
+   role-bucket terminology (`kid`, `parent`, `kidschores`) outside migration-only
+   allowlisted paths.
+9. Translation hygiene is mandatory at plan completion: no orphaned English keys and
+   no stale locale references to removed runtime keys across both translation trees.
 
 ## Class naming expectations (added)
 
@@ -175,6 +182,17 @@ Current recommendation:
 - Option A. Runtime compatibility helper aliases should be eliminated; keep any
   legacy helper behavior only in migration modules.
 
+### Decision D5: Translation orphan-key policy
+
+Choose one:
+
+- Option A: strict removal of orphaned keys in `en.json` and locale files in same wave
+- Option B: keep deprecated keys for one additional milestone
+
+Current recommendation:
+
+- Option A. Hard-fork release should close with zero orphaned/stale translation keys.
+
 ## Implementation sequence (recommended)
 
 1. Finalize and approve service/event mapping contract.
@@ -183,8 +201,10 @@ Current recommendation:
 4. Apply helper/method variable renames in touched modules.
 5. Remove linked-term runtime symbols and aliases outside migration modules.
 6. Add contract-lint guards for legacy request/event field reintroduction.
-7. Schedule deeper data-constant rename pass after contract-surface stabilization.
-8. Run final-phase contract test proving zero runtime compatibility-helper reliance.
+7. Execute flow/config/helper/builder lexical hard-cut and remove runtime role-bucket terms.
+8. Run translation hygiene pass (`en.json` + locale files) and remove orphan/stale keys.
+9. Schedule deeper data-constant rename pass after contract-surface stabilization.
+10. Run final-phase contract test proving zero runtime compatibility-helper reliance.
 
 ## Approval checklist
 
@@ -192,6 +212,7 @@ Current recommendation:
 - [ ] D2 data constant migration depth approved
 - [ ] D3 helper alias removal timing approved
 - [ ] D4 linked-term runtime elimination approved
+- [ ] D5 translation orphan-key policy approved
 - [ ] Service/event mapping contract approved
 - [ ] Translation update scope approved
 - [ ] Method/helper rename scope approved
@@ -210,6 +231,10 @@ Current recommendation:
 - [ ] translations/en.json impacted service/event labels and descriptions
 - [ ] translation keys/texts updated per approved policy and synced with new contract naming
 - [ ] services.yaml and translations/en.json validated for key/text parity with runtime handlers
+- [ ] orphan-key audit completed for `translations/en.json` (runtime key inventory vs actual keys)
+- [ ] orphan-key audit completed for `translations_custom/en_dashboard.json`, `en_notifications.json`, and `en_report.json`
+- [ ] stale-key audit completed for all locale files in `custom_components/choreops/translations/`
+- [ ] stale-key audit completed for all locale files in `custom_components/choreops/translations_custom/`
 - [ ] release notes migration examples
 - [ ] README migration snippets
 
@@ -223,7 +248,14 @@ Current recommendation:
 ### Batch 4: Guardrails and tests
 
 - [ ] contract-lint rules for legacy field patterns
+- [ ] contract-lint rules for legacy runtime lexical patterns in flow/config/helper/builder surfaces
 - [ ] mixed-role scenario matrix tests
 - [ ] hard-fork regression suite updates
 - [ ] final-phase proof: no runtime compatibility-helper usage outside migration modules
 - [ ] final-phase proof: class naming contract satisfied (no new runtime role-bucket class names)
+
+### Batch 5: Final audit evidence
+
+- [ ] lexical inventory artifact attached (before/after counts by file)
+- [ ] translation hygiene artifact attached (English orphan keys + locale stale-key scan)
+- [ ] migration-only allowlist documented and approved

@@ -432,32 +432,38 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     # ----------------------------------------------------------------------------------
-    # KIDS MANAGEMENT
+    # ASSIGNEE PROFILE MANAGEMENT (canonical)
     # ----------------------------------------------------------------------------------
 
-    async def async_step_add_kid(self, user_input=None):
-        """Add a new kid."""
+    async def async_step_add_assignee(self, user_input=None):
+        """Add a new assignee profile."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        kids_dict = coordinator.kids_data
+        assignee_profiles = coordinator.kids_data
 
         if user_input is not None:
-            # Validate inputs (check against both existing kids and parents)
-            parents_dict = coordinator.parents_data
-            errors = fh.validate_kids_inputs(user_input, kids_dict, parents_dict)
+            # Validate inputs (check against existing assignee and user profiles)
+            user_profiles = coordinator.parents_data
+            errors = fh.validate_assignee_inputs(
+                user_input,
+                assignee_profiles,
+                user_profiles,
+            )
 
             if not errors:
                 try:
-                    # Use UserManager for kid creation (immediate persist for reload)
+                    # Use UserManager for assignee profile creation (immediate persist for reload)
                     internal_id = coordinator.user_manager.create_kid(
                         user_input, immediate_persist=True
                     )
-                    kid_name = user_input.get(
+                    assignee_name = user_input.get(
                         const.CFOF_KIDS_INPUT_KID_NAME, internal_id
                     )
 
                     const.LOGGER.debug(
-                        "Added Kid '%s' with ID: %s", kid_name, internal_id
+                        "Added assignee profile '%s' with ID: %s",
+                        assignee_name,
+                        internal_id,
                     )
                     self._mark_reload_needed()
                     return await self.async_step_init()
@@ -467,7 +473,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Retrieve HA users for linking
         users = await self.hass.auth.async_get_users()
-        schema = await fh.build_kid_schema(self.hass, users=users)
+        schema = await fh.build_assignee_schema(self.hass, users=users)
 
         # On validation error, preserve user's attempted input
         if user_input:
@@ -478,44 +484,53 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=schema,
             errors=errors,
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
             },
         )
 
-    async def async_step_edit_kid(self, user_input=None):
-        """Edit an existing kid."""
+    async def async_step_edit_assignee(self, user_input=None):
+        """Edit an existing assignee profile."""
         coordinator = self._get_coordinator()
 
         errors: dict[str, str] = {}
-        kids_dict = coordinator.kids_data
+        assignee_profiles = coordinator.kids_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
-        if not internal_id or internal_id not in kids_dict:
-            const.LOGGER.error("Edit Kid - Invalid Internal ID '%s'", internal_id)
+        if not internal_id or internal_id not in assignee_profiles:
+            const.LOGGER.error(
+                "Edit assignee profile - Invalid Internal ID '%s'", internal_id
+            )
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_KID)
 
-        kid_data = kids_dict[internal_id]
+        assignee_profile = assignee_profiles[internal_id]
 
         if user_input is not None:
-            # Layer 2: UI validation (excludes current kid from duplicate check)
+            # Layer 2: UI validation (excludes current assignee profile from duplicate check)
             # Note: internal_id is already validated as str above
-            errors = fh.validate_kids_inputs(
-                user_input, kids_dict, current_kid_id=str(internal_id)
+            errors = fh.validate_assignee_inputs(
+                user_input,
+                assignee_profiles,
+                current_assignee_id=str(internal_id),
             )
 
             if not errors:
                 try:
-                    # Build merged kid data using data_builders
-                    updated_kid = db.build_kid(user_input, existing=kid_data)
+                    # Build merged assignee data using data_builders
+                    updated_assignee = db.build_assignee_profile(
+                        user_input,
+                        existing=assignee_profile,
+                    )
 
-                    # Use UserManager for kid update (immediate persist for reload)
+                    # Use UserManager for assignee update (immediate persist for reload)
                     coordinator.user_manager.update_kid(
-                        str(internal_id), dict(updated_kid), immediate_persist=True
+                        str(internal_id),
+                        dict(updated_assignee),
+                        immediate_persist=True,
                     )
 
                     const.LOGGER.debug(
-                        "Edited Kid '%s' with ID: %s",
-                        updated_kid[const.DATA_KID_NAME],
+                        "Edited assignee profile '%s' with ID: %s",
+                        updated_assignee[const.DATA_KID_NAME],
                         internal_id,
                     )
                     self._mark_reload_needed()
@@ -528,17 +543,19 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Retrieve HA users for linking
         users = await self.hass.auth.async_get_users()
 
-        # Check if this is a parent-linked profile to show warnings
-        is_linked_profile = kid_data.get(const.DATA_KID_IS_SHADOW, False)
+        # Check if this is a linked profile to show warnings
+        is_linked_profile = assignee_profile.get(const.DATA_KID_IS_SHADOW, False)
 
-        # Prepare suggested values for form (current kid data)
+        # Prepare suggested values for form (current assignee profile data)
         suggested_values = {
-            const.CFOF_KIDS_INPUT_KID_NAME: kid_data[const.DATA_KID_NAME],
-            const.CFOF_KIDS_INPUT_HA_USER: kid_data.get(const.DATA_KID_HA_USER_ID),
-            const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: kid_data.get(
+            const.CFOF_KIDS_INPUT_KID_NAME: assignee_profile[const.DATA_KID_NAME],
+            const.CFOF_KIDS_INPUT_HA_USER: assignee_profile.get(
+                const.DATA_KID_HA_USER_ID
+            ),
+            const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: assignee_profile.get(
                 const.DATA_KID_MOBILE_NOTIFY_SERVICE
             ),
-            const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: kid_data.get(
+            const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: assignee_profile.get(
                 const.DATA_KID_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
         }
@@ -548,7 +565,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             suggested_values.update(user_input)
 
         # Build schema with static defaults
-        schema = await fh.build_kid_schema(self.hass, users=users)
+        schema = await fh.build_assignee_schema(self.hass, users=users)
         # Apply values as suggestions
         schema = self.add_suggested_values_to_schema(schema, suggested_values)
 
@@ -559,56 +576,83 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 data_schema=schema,
                 errors=errors,
                 description_placeholders={
-                    const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
+                    const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
                 },
             )
 
-        # Regular kid (no warnings)
+        # Regular assignee profile (no warnings)
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_EDIT_KID,
             data_schema=schema,
             errors=errors,
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
             },
         )
 
+    async def async_step_add_kid(self, user_input=None):
+        """Compatibility wrapper for legacy add_kid flow step."""
+        const.LOGGER.warning(
+            "Options flow step 'add_kid' is deprecated, routing to 'add_assignee'"
+        )
+        return await self.async_step_add_assignee(user_input)
+
+    async def async_step_edit_kid(self, user_input=None):
+        """Compatibility wrapper for legacy edit_kid flow step."""
+        const.LOGGER.warning(
+            "Options flow step 'edit_kid' is deprecated, routing to 'edit_assignee'"
+        )
+        return await self.async_step_edit_assignee(user_input)
+
     async def async_step_edit_kid_shadow(self, user_input=None):
-        """Edit a parent-linked kid profile - delegates to edit_kid handler.
+        """Edit a linked assignee profile - delegates to compatibility handler.
 
-        Parent-linked profiles use a different translation key to show warnings,
-        but the processing logic is identical to regular kids.
+        Linked assignee profiles use a different translation key to show warnings,
+        but the processing logic is identical to regular assignee profiles.
         """
-        return await self.async_step_edit_kid(user_input)
+        return await self.async_step_edit_assignee(user_input)
 
-    async def async_step_delete_kid(self, user_input=None):
-        """Delete a kid."""
+    async def async_step_delete_assignee(self, user_input=None):
+        """Delete an assignee profile."""
         coordinator = self._get_coordinator()
-        kids_dict = coordinator.kids_data
+        assignee_profiles = coordinator.kids_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
-        if not internal_id or internal_id not in kids_dict:
-            const.LOGGER.error("Delete Kid - Invalid Internal ID '%s'", internal_id)
+        if not internal_id or internal_id not in assignee_profiles:
+            const.LOGGER.error(
+                "Delete assignee profile - Invalid Internal ID '%s'", internal_id
+            )
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_KID)
 
-        kid_name = kids_dict[internal_id][const.DATA_KID_NAME]
+        assignee_name = assignee_profiles[internal_id][const.DATA_KID_NAME]
 
         if user_input is not None:
-            # Use UserManager for kid deletion (immediate persist for reload)
+            # Use UserManager for assignee deletion (immediate persist for reload)
             coordinator.user_manager.delete_kid(
                 str(internal_id), immediate_persist=True
             )
 
-            const.LOGGER.debug("Deleted Kid '%s' with ID: %s", kid_name, internal_id)
+            const.LOGGER.debug(
+                "Deleted assignee profile '%s' with ID: %s",
+                assignee_name,
+                internal_id,
+            )
             return await self.async_step_init()
 
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_DELETE_KID,
             data_schema=vol.Schema({}),
             description_placeholders={
-                const.OPTIONS_FLOW_PLACEHOLDER_KID_NAME: kid_name
+                const.OPTIONS_FLOW_PLACEHOLDER_KID_NAME: assignee_name
             },
         )
+
+    async def async_step_delete_kid(self, user_input=None):
+        """Compatibility wrapper for legacy delete_kid flow step."""
+        const.LOGGER.warning(
+            "Options flow step 'delete_kid' is deprecated, routing to 'delete_assignee'"
+        )
+        return await self.async_step_delete_assignee(user_input)
 
     # ----------------------------------------------------------------------------------
     # USERS MANAGEMENT
@@ -618,30 +662,36 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Add a new user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        parents_dict = coordinator.parents_data
+        user_profiles = coordinator.parents_data
 
         if user_input is not None:
             user_input = fh.normalize_user_form_input(user_input)
 
-            # Validate inputs (check against both existing parents and kids)
-            kids_dict = coordinator.kids_data
-            errors = fh.validate_users_inputs(user_input, parents_dict, kids_dict)
+            # Validate inputs (check against existing user and assignee profiles)
+            assignee_profiles = coordinator.kids_data
+            errors = fh.validate_users_inputs(
+                user_input,
+                user_profiles,
+                assignee_profiles,
+            )
 
             if not errors:
                 try:
-                    # Use UserManager for parent creation (handles linked profile internally)
+                    # Use UserManager for user-profile creation (handles linked profile internally)
                     # Immediate persist for reload
                     internal_id = coordinator.user_manager.create_user(
                         user_input, immediate_persist=True
                     )
-                    parent_name = user_input.get(
+                    user_name = user_input.get(
                         const.CFOF_PARENTS_INPUT_NAME, internal_id
                     )
 
                     self._mark_reload_needed()
 
                     const.LOGGER.debug(
-                        "Added User '%s' with ID: %s", parent_name, internal_id
+                        "Added user profile '%s' with ID: %s",
+                        user_name,
+                        internal_id,
                     )
                     return await self.async_step_init()
 
@@ -657,24 +707,24 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             if not kid_data.get(const.DATA_KID_IS_SHADOW, False)
         }
 
-        parent_schema = await fh.build_user_schema(
+        user_schema = await fh.build_user_schema(
             self.hass, users=users, kids_dict=kids_dict
         )
 
         # On validation error, preserve user's attempted input
         if user_input:
-            parent_schema = self.add_suggested_values_to_schema(
-                parent_schema,
+            user_schema = self.add_suggested_values_to_schema(
+                user_schema,
                 fh.build_user_section_suggested_values(user_input),
             )
-            parent_schema = vol.Schema(parent_schema.schema, extra=vol.ALLOW_EXTRA)
+            user_schema = vol.Schema(user_schema.schema, extra=vol.ALLOW_EXTRA)
 
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_ADD_USER,
-            data_schema=parent_schema,
+            data_schema=user_schema,
             errors=fh.map_user_form_errors(errors),
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
             },
         )
 
@@ -682,19 +732,21 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Edit an existing user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        parents_dict = coordinator.parents_data
+        user_profiles = coordinator.parents_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
-        if not internal_id or internal_id not in parents_dict:
-            const.LOGGER.error("Edit Parent - Invalid Internal ID '%s'", internal_id)
+        if not internal_id or internal_id not in user_profiles:
+            const.LOGGER.error(
+                "Edit user profile - Invalid Internal ID '%s'", internal_id
+            )
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_PARENT)
 
-        parent_data = parents_dict[internal_id]
+        user_profile = user_profiles[internal_id]
 
         if user_input is not None:
             user_input = fh.normalize_user_form_input(user_input)
 
-            # Layer 2: UI validation (excludes current parent from duplicate check)
+            # Layer 2: UI validation (excludes current user from duplicate check)
             # Note: internal_id is already validated as str above
             # For parent-linkage conflict checks: only check non-linked kids
             non_feature_gated_kids = {
@@ -704,19 +756,22 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             }
             errors = fh.validate_users_inputs(
                 user_input,
-                parents_dict,
+                user_profiles,
                 non_feature_gated_kids,
                 current_user_id=str(internal_id),
             )
 
             if not errors:
                 try:
-                    # Build merged parent data using data_builders
-                    updated_parent = db.build_parent(user_input, existing=parent_data)
+                    # Build merged user-profile data using data_builders
+                    updated_parent = db.build_user_profile(
+                        user_input,
+                        existing=user_profile,
+                    )
 
                     # Handle workflow/gamification flag changes for existing linked profile
                     # This must happen BEFORE update_parent because we need old vs new comparison
-                    existing_linked_kid_id = parent_data.get(
+                    existing_linked_kid_id = user_profile.get(
                         const.DATA_PARENT_LINKED_PROFILE_ID
                     )
                     allow_chore_assignment = user_input.get(
@@ -724,13 +779,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     )
 
                     if existing_linked_kid_id and allow_chore_assignment:
-                        old_workflow = parent_data.get(
+                        old_workflow = user_profile.get(
                             const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False
                         )
                         new_workflow = user_input.get(
                             const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW, False
                         )
-                        old_gamification = parent_data.get(
+                        old_gamification = user_profile.get(
                             const.DATA_PARENT_ENABLE_GAMIFICATION, False
                         )
                         new_gamification = user_input.get(
@@ -748,14 +803,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                                 )
                             )
 
-                    # Use UserManager for parent update (handles linked profile create/unlink)
+                    # Use UserManager for user-profile update (handles linked profile create/unlink)
                     # Immediate persist for reload
                     coordinator.user_manager.update_user(
                         str(internal_id), dict(updated_parent), immediate_persist=True
                     )
 
                     const.LOGGER.debug(
-                        "Edited User '%s' with ID: %s",
+                        "Edited user profile '%s' with ID: %s",
                         updated_parent[const.DATA_PARENT_NAME],
                         internal_id,
                     )
@@ -775,34 +830,34 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             if not kid_data.get(const.DATA_KID_IS_SHADOW, False)
         }
 
-        # Prepare suggested values for form (current parent data)
+        # Prepare suggested values for form (current user-profile data)
         suggested_values = {
-            const.CFOF_PARENTS_INPUT_NAME: parent_data[const.DATA_PARENT_NAME],
-            const.CFOF_PARENTS_INPUT_HA_USER: parent_data.get(
+            const.CFOF_PARENTS_INPUT_NAME: user_profile[const.DATA_PARENT_NAME],
+            const.CFOF_PARENTS_INPUT_HA_USER: user_profile.get(
                 const.DATA_PARENT_HA_USER_ID
             ),
-            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: parent_data.get(
+            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: user_profile.get(
                 const.DATA_PARENT_ASSOCIATED_KIDS, []
             ),
-            const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: parent_data.get(
+            const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: user_profile.get(
                 const.DATA_PARENT_MOBILE_NOTIFY_SERVICE
             ),
-            const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: parent_data.get(
+            const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: user_profile.get(
                 const.DATA_PARENT_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
-            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: parent_data.get(
+            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: user_profile.get(
                 const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False
             ),
-            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: parent_data.get(
+            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: user_profile.get(
                 const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False
             ),
-            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: parent_data.get(
+            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: user_profile.get(
                 const.DATA_PARENT_ENABLE_GAMIFICATION, False
             ),
-            const.CFOF_PARENTS_INPUT_CAN_APPROVE: parent_data.get(
+            const.CFOF_PARENTS_INPUT_CAN_APPROVE: user_profile.get(
                 const.DATA_USER_CAN_APPROVE, False
             ),
-            const.CFOF_PARENTS_INPUT_CAN_MANAGE: parent_data.get(
+            const.CFOF_PARENTS_INPUT_CAN_MANAGE: user_profile.get(
                 const.DATA_USER_CAN_MANAGE, False
             ),
         }
@@ -812,47 +867,51 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             suggested_values.update(user_input)
 
         # Build schema with static defaults
-        parent_schema = await fh.build_user_schema(
+        user_schema = await fh.build_user_schema(
             self.hass,
             users=users,
             kids_dict=kids_dict,
         )
         # Apply values as suggestions
-        parent_schema = self.add_suggested_values_to_schema(
-            parent_schema,
+        user_schema = self.add_suggested_values_to_schema(
+            user_schema,
             fh.build_user_section_suggested_values(suggested_values),
         )
-        parent_schema = vol.Schema(parent_schema.schema, extra=vol.ALLOW_EXTRA)
+        user_schema = vol.Schema(user_schema.schema, extra=vol.ALLOW_EXTRA)
 
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_EDIT_USER,
-            data_schema=parent_schema,
+            data_schema=user_schema,
             errors=fh.map_user_form_errors(errors),
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_KIDS_PARENTS
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_USERS
             },
         )
 
     async def async_step_delete_user(self, user_input=None):
         """Delete a user."""
         coordinator = self._get_coordinator()
-        parents_dict = coordinator.parents_data
+        user_profiles = coordinator.parents_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
-        if not internal_id or internal_id not in parents_dict:
-            const.LOGGER.error("Delete Parent - Invalid Internal ID '%s'", internal_id)
+        if not internal_id or internal_id not in user_profiles:
+            const.LOGGER.error(
+                "Delete user profile - Invalid Internal ID '%s'", internal_id
+            )
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_PARENT)
 
-        parent_name = parents_dict[internal_id][const.DATA_PARENT_NAME]
+        user_name = user_profiles[internal_id][const.DATA_PARENT_NAME]
 
         if user_input is not None:
-            # Use UserManager for parent deletion (immediate persist for reload)
+            # Use UserManager for user-profile deletion (immediate persist for reload)
             coordinator.user_manager.delete_user(
                 str(internal_id), immediate_persist=True
             )
 
             const.LOGGER.debug(
-                "Deleted User '%s' with ID: %s", parent_name, internal_id
+                "Deleted user profile '%s' with ID: %s",
+                user_name,
+                internal_id,
             )
             return await self.async_step_init()
 
@@ -860,7 +919,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             step_id=const.OPTIONS_FLOW_STEP_DELETE_USER,
             data_schema=vol.Schema({}),
             description_placeholders={
-                const.OPTIONS_FLOW_PLACEHOLDER_USER_NAME: parent_name
+                const.OPTIONS_FLOW_PLACEHOLDER_USER_NAME: user_name
             },
         )
 
@@ -4348,7 +4407,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 self._dashboard_release_selection = release_selection
                 self._dashboard_include_prereleases = include_prereleases
                 admin_visible_user_ids = (
-                    self._get_parent_ha_user_ids()
+                    self._get_user_ha_user_ids()
                     if admin_view_visibility
                     == const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_PARENTS
                     else None
@@ -5525,8 +5584,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             return {}
         return coordinator.data.get(key, {})
 
-    def _get_parent_ha_user_ids(self) -> list[str]:
-        """Return distinct linked parent Home Assistant user IDs."""
+    def _get_user_ha_user_ids(self) -> list[str]:
+        """Return distinct linked user Home Assistant user IDs."""
         coordinator = self._get_coordinator()
         parents_data = coordinator.parents_data
 
@@ -5545,6 +5604,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             user_ids.append(normalized_user_id)
 
         return user_ids
+
+    def _get_parent_ha_user_ids(self) -> list[str]:
+        """Compatibility wrapper for legacy parent naming.
+
+        Prefer `_get_user_ha_user_ids()` for runtime flow surfaces.
+        """
+        return self._get_user_ha_user_ids()
 
     def _mark_reload_needed(self):
         """Mark that a reload is needed after the current flow completes.

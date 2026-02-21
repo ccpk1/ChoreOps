@@ -15,6 +15,9 @@ Quick reference checklist for preparing and validating releases. Complete ALL it
   - File: `migration_pre_v{VERSION}.py`
   - Verify: All schema versions from previous → current have migration paths
   - Cumulative: Each version should run ALL previous migrations (defensive)
+- [ ] **Migration observability log review**: Verify structured schema migration summary is present in startup logs
+  - Required fields: users migrated, linked merges, standalone parent creations, collisions, remap totals, remap additions
+  - Verify summary persisted in metadata when applicable (`meta.schema45_last_summary`)
 
 ### Code Quality
 
@@ -85,7 +88,19 @@ Quick reference checklist for preparing and validating releases. Complete ALL it
 - [ ] **Config flow works**: Fresh setup creates correct entities
 - [ ] **Options flow works**: Editing entities persists changes
 - [ ] **Migration tested**: Upgrade from previous version succeeds
+- [ ] **Backup/restore validation completed**
+  - Create pre-upgrade backup artifact
+  - Execute upgrade and confirm migration summary counts
+  - Restore backup and confirm prior state is recoverable
 - [ ] **Dashboard compatible**: Kid Dashboard renders correctly with new schema
+
+## Migration go/no-go gate
+
+- [ ] **Go/no-go decision recorded**
+  - GO only when migration-path suites pass:
+    - `python -m pytest tests/test_migration_hardening.py tests/test_config_flow_use_existing.py -v --tb=line`
+  - GO only when rollback validation (backup + restore) has been executed
+  - NO-GO if migration summary logs show unresolved collisions/remaps without documented acceptance
 
 ## Common Release Issues
 

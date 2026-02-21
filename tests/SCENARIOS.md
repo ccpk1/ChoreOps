@@ -71,3 +71,14 @@ All scenarios use the **Stårblüm family** storyline for consistency:
 - Consistent point values and rewards
 
 _See `tests/README.md` for complete family background and testing philosophy._
+
+## Mixed-role authorization matrix
+
+Use these acceptance scenarios for hard-fork capability semantics:
+
+| Scenario      | Capability state                                                | Expected behavior                                                  | Primary tests                                                   |
+| ------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Assignee-only | `can_be_assigned=true`, `can_approve=false`, `can_manage=false` | Can claim/redeem own items, denied approval and management actions | `tests/test_chore_services.py`, `tests/test_reward_services.py` |
+| Approver-only | `can_approve=true`, `can_manage=false`                          | Can approve/disapprove, denied management-only services            | `tests/test_reward_services.py`                                 |
+| Manager-only  | `can_manage=true`, `can_approve=false`                          | Can run management-only services, denied approval actions          | `tests/test_reward_services.py`                                 |
+| Dual-role     | `can_approve=true`, `can_manage=true`                           | Can execute both approval and management domains                   | `tests/test_reward_services.py`                                 |

@@ -315,7 +315,7 @@ def build_reward(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Rewards have no runtime fields on the reward record itself.
-# All runtime state is in kid-side DATA_KID_REWARD_DATA structure.
+# All runtime state is in assignee-side DATA_KID_REWARD_DATA structure.
 
 _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -330,17 +330,20 @@ _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Reward Kid Runtime Fields (for data_reset_rewards) ---
-# These are kid-side structures owned by RewardManager.
-# On data reset: CLEAR these structures for affected kid(s).
+# --- Reward assignee runtime fields (for data_reset_rewards) ---
+# These are assignee-side structures owned by RewardManager.
+# On data reset: CLEAR these structures for affected assignee profile(s).
 # Note: reward_stats will be deleted in v43; reward_periods holds aggregated all-time stats.
 
-_REWARD_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_REWARD_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
         const.DATA_KID_REWARD_DATA,  # Per-reward claim tracking
         const.DATA_KID_REWARD_PERIODS,  # Aggregated reward periods (v43+, all_time bucket)
     }
 )
+
+# Compatibility alias: retained temporarily while runtime references are migrated.
+_REWARD_KID_RUNTIME_FIELDS = _REWARD_ASSIGNEE_RUNTIME_FIELDS
 
 
 # ==============================================================================
@@ -541,7 +544,7 @@ def build_bonus_or_penalty(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Bonuses have no runtime fields on the bonus record itself.
-# All runtime state is in kid-side DATA_KID_BONUS_APPLIES structure.
+# All runtime state is in assignee-side DATA_KID_BONUS_APPLIES structure.
 
 _BONUS_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -556,15 +559,18 @@ _BONUS_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Bonus Kid Runtime Fields (for data_reset_bonuses) ---
-# These are kid-side structures owned by EconomyManager (via bonuses domain).
-# On data reset: CLEAR these structures for affected kid(s).
+# --- Bonus assignee runtime fields (for data_reset_bonuses) ---
+# These are assignee-side structures owned by EconomyManager (via bonuses domain).
+# On data reset: CLEAR these structures for affected assignee profile(s).
 
-_BONUS_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_BONUS_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
         const.DATA_KID_BONUS_APPLIES,  # Active bonus tracking
     }
 )
+
+# Compatibility alias: retained temporarily while runtime references are migrated.
+_BONUS_KID_RUNTIME_FIELDS = _BONUS_ASSIGNEE_RUNTIME_FIELDS
 
 # --- Penalty Data Reset Support ---
 # MAINTENANCE CONTRACT: When adding fields to build_bonus_or_penalty():
@@ -572,7 +578,7 @@ _BONUS_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Penalties have no runtime fields on the penalty record itself.
-# All runtime state is in kid-side DATA_KID_PENALTY_APPLIES structure.
+# All runtime state is in assignee-side DATA_KID_PENALTY_APPLIES structure.
 
 _PENALTY_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -587,15 +593,18 @@ _PENALTY_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Penalty Kid Runtime Fields (for data_reset_penalties) ---
-# These are kid-side structures owned by EconomyManager (via penalties domain).
-# On data reset: CLEAR these structures for affected kid(s).
+# --- Penalty assignee runtime fields (for data_reset_penalties) ---
+# These are assignee-side structures owned by EconomyManager (via penalties domain).
+# On data reset: CLEAR these structures for affected assignee profile(s).
 
-_PENALTY_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_PENALTY_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
         const.DATA_KID_PENALTY_APPLIES,  # Active penalty tracking
     }
 )
+
+# Compatibility alias: retained temporarily while runtime references are migrated.
+_PENALTY_KID_RUNTIME_FIELDS = _PENALTY_ASSIGNEE_RUNTIME_FIELDS
 
 
 # ==============================================================================
@@ -605,6 +614,27 @@ _PENALTY_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
 # Note: CFOF_KIDS_INPUT_* values are now aligned with DATA_KID_* values
 # (Phase 6 CFOF Key Alignment), so no mapping function is needed.
 # build_kid() accepts keys directly from UI forms.
+
+
+def validate_assignee_profile_data(
+    data: dict[str, Any],
+    existing_assignees: dict[str, Any] | None = None,
+    existing_users: dict[str, Any] | None = None,
+    *,
+    is_update: bool = False,
+    current_assignee_id: str | None = None,
+) -> dict[str, str]:
+    """Validate assignee-profile business rules.
+
+    Canonical runtime alias for `validate_kid_data()`.
+    """
+    return validate_kid_data(
+        data,
+        existing_assignees,
+        existing_users,
+        is_update=is_update,
+        current_kid_id=current_assignee_id,
+    )
 
 
 def validate_kid_data(
@@ -845,6 +875,25 @@ def build_kid(
     return kid_data
 
 
+def build_assignee_profile(
+    user_input: dict[str, Any],
+    existing: KidData | None = None,
+    *,
+    is_linked_profile: bool = False,
+    linked_user_id: str | None = None,
+) -> KidData:
+    """Build assignee-profile data for create or update operations.
+
+    Canonical runtime alias for `build_kid()`.
+    """
+    return build_kid(
+        user_input,
+        existing=existing,
+        is_shadow=is_linked_profile,
+        linked_parent_id=linked_user_id,
+    )
+
+
 # --- Kid Data Reset Support ---
 # MAINTENANCE CONTRACT: When adding fields to build_kid():
 # - CONFIG fields: Add to _KID_DATA_RESET_PRESERVE_FIELDS (preserved during data reset)
@@ -890,6 +939,27 @@ _ECONOMY_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
 # Note: CFOF_PARENTS_INPUT_* values are now aligned with DATA_PARENT_* values
 # (Phase 6 CFOF Key Alignment), so no mapping function is needed.
 # build_parent() accepts keys directly from UI forms.
+
+
+def validate_user_profile_data(
+    data: dict[str, Any],
+    existing_users: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
+    *,
+    is_update: bool = False,
+    current_user_id: str | None = None,
+) -> dict[str, str]:
+    """Validate user-profile business rules.
+
+    Canonical runtime alias for `validate_parent_data()`.
+    """
+    return validate_parent_data(
+        data,
+        existing_users,
+        existing_assignees,
+        is_update=is_update,
+        current_parent_id=current_user_id,
+    )
 
 
 def validate_parent_data(
@@ -1156,6 +1226,17 @@ def build_parent(
         existing.get(const.DATA_PARENT_LINKED_PROFILE_ID) if existing else None
     )
     return cast("ParentData", parent_data)
+
+
+def build_user_profile(
+    user_input: dict[str, Any],
+    existing: ParentData | None = None,
+) -> ParentData:
+    """Build user-profile data for create or update operations.
+
+    Canonical runtime alias for `build_parent()`.
+    """
+    return build_parent(user_input, existing=existing)
 
 
 # ==============================================================================

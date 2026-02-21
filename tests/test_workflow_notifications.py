@@ -166,11 +166,23 @@ def set_ha_user_capabilities(
     can_manage: bool,
 ) -> None:
     """Set capability flags for a user record linked to a Home Assistant user ID."""
+
+    def _record_ha_user_ref(user_data: dict[str, Any]) -> str | None:
+        for key in (
+            const.DATA_USER_HA_USER_ID,
+            const.DATA_PARENT_HA_USER_ID,
+            const.DATA_KID_HA_USER_ID,
+        ):
+            value = user_data.get(key)
+            if isinstance(value, str) and value:
+                return value
+        return None
+
     users = coordinator._data.get(const.DATA_USERS, {})
     for user_data_raw in users.values():
         if not isinstance(user_data_raw, dict):
             continue
-        if user_data_raw.get(const.DATA_USER_HA_USER_ID) == ha_user_id:
+        if _record_ha_user_ref(user_data_raw) == ha_user_id:
             user_data_raw[const.DATA_USER_CAN_APPROVE] = can_approve
             user_data_raw[const.DATA_USER_CAN_MANAGE] = can_manage
             return

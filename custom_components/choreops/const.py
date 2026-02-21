@@ -80,7 +80,7 @@ DOC_URL_DASHBOARD_GENERATION: Final = (
     "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Dashboard-Generation"
 )
 DOC_URL_BADGES_OVERVIEW: Final = (
-    "https://github.com/ccpk1/choreops/wiki/Advanced%3A-Badges-Overview"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Overview"
 )
 DOC_URL_BADGES_CUMULATIVE: Final = (
     "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Cumulative"
@@ -94,11 +94,9 @@ DOC_URL_BONUSES_PENALTIES: Final = (
 )
 DOC_URL_CHORES: Final = "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Chores"
 DOC_URL_CHORES_ADVANCED: Final = (
-    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Chores-Advanced"
+    "https://github.com/ccpk1/choreops/wiki/Advanced%3A-Chores"
 )
-DOC_URL_KIDS_PARENTS: Final = (
-    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Kids-Parents"
-)
+DOC_URL_USERS: Final = "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Users"
 DOC_URL_POINTS: Final = "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Points"
 DOC_URL_REWARDS: Final = (
     "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Rewards"

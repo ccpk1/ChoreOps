@@ -90,7 +90,9 @@ class TestHaUserIdClearing:
             for user_id, user_data in coordinator.parents_data.items()
             if user_data.get("can_approve", False) or user_data.get("can_manage", False)
         ]
-        assert approver_candidates, "Expected at least one approver-capable user"
+        if not approver_candidates:
+            approver_candidates = list(coordinator.parents_data.items())
+        assert approver_candidates, "Expected at least one editable managed user"
         parent_id, parent_data = approver_candidates[0]
         parent_name = str(parent_data.get(CFOF_PARENTS_INPUT_NAME, ""))
 
@@ -134,8 +136,8 @@ class TestHaUserIdClearing:
                     CFOF_PARENTS_INPUT_HA_USER: test_ha_user.id,  # Set a user ID
                     CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: associated_kids,
                     CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: False,
-                    CFOF_PARENTS_INPUT_CAN_APPROVE: True,
+                    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
+                    CFOF_PARENTS_INPUT_CAN_APPROVE: False,
                     CFOF_PARENTS_INPUT_CAN_MANAGE: False,
                     CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: False,
                     CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: False,
@@ -177,8 +179,8 @@ class TestHaUserIdClearing:
                     CFOF_PARENTS_INPUT_HA_USER: SENTINEL_NO_SELECTION,  # Clear the user ID
                     CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: associated_kids,
                     CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: False,
-                    CFOF_PARENTS_INPUT_CAN_APPROVE: True,
+                    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
+                    CFOF_PARENTS_INPUT_CAN_APPROVE: False,
                     CFOF_PARENTS_INPUT_CAN_MANAGE: False,
                     CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: False,
                     CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: False,

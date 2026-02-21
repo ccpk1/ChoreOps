@@ -5,20 +5,28 @@
 - **Name / Code**: Role-based User Flow Redesign (`CHOREOPS-UX-ROLEFLOW-001`)
 - **Target release / milestone**: v0.5.0-beta5 follow-up hardening
 - **Owner / driver(s)**: Integration maintainers + architecture owner
-- **Status**: Phase 5 in progress (hard-fork runtime key and compatibility removal completed)
+- **Status**: Phase 5 and Phase 6 complete (all planned phases complete; awaiting owner approval for archive)
+
+Program alignment note:
+
+- Archive decision is gated by cross-plan reconciliation in `REBRAND_ROLEMODEL_CLOSEOUT_IN-PROCESS.md`.
+- Terminal terminology boundaries are governed by `REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`.
 
 ## Summary & immediate steps
 
-| Phase / Step                              | Description                                                      | % complete | Quick notes                                                                                                                                               |
-| ----------------------------------------- | ---------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Phase 1 – Contract lock                   | Freeze role-based user UX/API contract and naming                | 100%       | Canonical user terms, inclusion rules, and compatibility policy are now documented and locked                                                             |
-| Phase 2 – Entry-point rewrite             | Rewire options/config user entry points to canonical user model  | 100%       | Main route now uses `manage_user`, CRUD uses user step IDs, selection source uses canonical user adapter                                                  |
-| Phase 3 – Form/translation unification    | Replace parent-labeled surfaces with role-based user language    | 100%       | User-management translation surfaces now consistently use user-role language and canonical step namespaces                                                |
-| Phase 4 – Validation/data parity          | Align data builders, manager behavior, and user visibility rules | 100%       | Approval inference removed, user-facing helper/manager APIs aligned, and user-management list ordering is deterministic                                   |
-| Phase 5 – Test matrix + release hardening | Migrate tests and verify all flow paths + regressions            | 94%        | Batch 1-3 green (`workflow_chores`, `workflow_gaps`, `badge_cumulative`, `workflow_notifications`, `shared_chore_features`, setup/shadow/migration suite) |
+| Phase / Step                              | Description                                                              | % complete | Quick notes                                                                                                                                    |
+| ----------------------------------------- | ------------------------------------------------------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 – Contract lock                   | Freeze role-based user UX/API contract and naming                        | 100%       | Canonical user terms, inclusion rules, and compatibility policy are now documented and locked                                                  |
+| Phase 2 – Options entry-point rewrite     | Rewire options-flow user entry points to canonical user model            | 100%       | Main route now uses `manage_user`, CRUD uses user step IDs, selection source uses canonical user adapter                                       |
+| Phase 3 – Form/translation unification    | Replace parent-labeled surfaces with role-based user language            | 100%       | User-management translation surfaces now consistently use user-role language and canonical step namespaces                                     |
+| Phase 4 – Validation/data parity          | Align data builders, manager behavior, and user visibility rules         | 100%       | Approval inference removed, user-facing helper/manager APIs aligned, and user-management list ordering is deterministic                        |
+| Phase 5 – Test matrix + release hardening | Migrate tests and verify all flow paths + regressions                    | 100%       | Focused hardening gates green: `test_options_flow_entity_crud`, `test_config_flow_fresh_start`, `test_ha_user_id_options_flow`, lint, and mypy |
+| Phase 6 – Config flow parity rollout      | Replace start-fresh legacy kid/parent count/forms with canonical user UX | 100%       | Start-fresh route now uses canonical `user_count/users`; focused config-flow + options-flow matrix gates are green                             |
 
 1. **Key objective** – Deliver a true role-based user management flow across config/options, removing parent-only routing and legacy UX leakage.
 2. **Summary of recent work**
+
+- Sequence 3 flow-contract packet completed: canonical assignee flow helpers were reinforced (`build_assignee_schema` primary with legacy wrapper retained), config-flow assignee counters/indexes moved to canonical internal naming, options-flow wrapper indirection was reduced (`edit_kid_shadow` now delegates directly to canonical assignee handler), and helper naming shifted to canonical user wording (`_get_user_ha_user_ids` with legacy wrapper retained). Validation gates passed (`./utils/quick_lint.sh --fix`, full pytest, scoped mypy).
 
 - Phase 4 parity completed: validation now enforces explicit `can_approve` behavior (no inferred approval from associated users).
 - Hard-fork runtime storage usage completed: options/config/coordinator/manager paths no longer read/write `DATA_PARENTS`; migration now removes legacy `parents` key after conversion.
@@ -31,6 +39,7 @@
 - Contract-facing manager APIs now include user-named wrappers (`create_user`, `update_user`, `delete_user`) and options-flow user handlers route through them.
 - User-management adapter now returns a deterministic, stable ordering (name then ID) for consistent selection behavior.
 - Validation gates completed: `./utils/quick_lint.sh --fix`, focused flow regression suite (44 passed), and `mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/choreops`.
+- Phase 5 closeout delta: updated HA-user-link options-flow test assumptions to align with current user-capability validation contract and completed focused hardening gates with all-pass results.
 
 - Phase 3 translation unification completed: config/options user-management copy now consistently uses user-role wording.
 - Canonical step namespaces for user flow (`user_count`, `users`, `add_user`, `edit_user`, `delete_user`) are now represented in translations.
@@ -50,13 +59,17 @@
 - Existing selectors and CRUD routing still branch by `kid`/`parent` dictionaries and step handlers.
 
 3. **Next steps (short term)**
-   - Approve this plan as the implementation contract.
-   - Execute Phase 1 and 2 in one PR batch (contract + routing).
-   - Hold Phase 3+ until routing parity tests are green.
+
+- Complete translation contract realignment gate before archive approval: `TRANSLATION_CONTRACT_REALIGNMENT_IN-PROCESS.md`.
+- Complete terminology hard-cut gate before archive approval: `REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`.
+- Owner review of completion evidence and approval to move this plan to completed.
+- Optional broader regression run (`python -m pytest tests/ -v --tb=line`) if environment permits.
+- If broader run is deferred, proceed with documented focused-gate evidence for release hardening sign-off.
+
 4. **Risks / blockers**
-   - Runtime remains dual-bucket (`DATA_USERS` + `DATA_PARENTS`) during migration window, creating selection/visibility drift.
-   - High risk of partial rename (labels only) unless step IDs, selector values, and data-source adapters are changed together.
-   - Test churn is significant because existing tests encode old step names and menu values.
+  - Archive remains blocked until cross-plan terminology and translation gates are closed per master orchestration.
+  - Residual historical references in this plan must remain clearly marked as resolved/non-authoritative context.
+  - Final closeout still depends on program-level evidence consolidation (open-vs-done matrix).
 5. **References**
    - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
    - [docs/DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md)
@@ -69,15 +82,24 @@
    - [custom_components/choreops/translations/en.json](../../custom_components/choreops/translations/en.json)
 
 - [docs/in-process/OPTIONS_FLOW_ROLE_BASED_USERS_SUP_TEST_VALUE_TRIAGE.md](OPTIONS_FLOW_ROLE_BASED_USERS_SUP_TEST_VALUE_TRIAGE.md)
+- [docs/in-process/OPTIONS_FLOW_ROLE_BASED_USERS_SUP_BUILDER_HANDOFF.md](OPTIONS_FLOW_ROLE_BASED_USERS_SUP_BUILDER_HANDOFF.md)
 
 6. **Decisions & completion check**
    - **Decisions captured**:
+  - Approved terminal terminology policy: `KidsChores` is restricted to migration/legacy/credit references and the explicit fun label `KidsChores Mode`; `kid` and `parent` are disallowed in runtime symbols/translations/core docs outside documented migration-only compatibility and intentional README/wiki exceptions.
      - Options/config UX is user-role based; parent/kid wording is non-canonical for user management surfaces.
      - “Manage Users” must enumerate all managed user records intended by the role model, not only legacy parent bucket rows.
      - Step IDs, selector values, and translation namespaces must be coherent (no label-only rename).
    - **Completion confirmation**: `[ ]` All implementation, tests, and docs completed before owner approval.
 
-## Detailed analysis (current-state findings)
+## Detailed analysis (historical baseline and resolved findings)
+
+This section is retained as historical context for completed work and is not the authoritative blocker list. Current gating decisions are tracked in:
+
+- `REBRAND_ROLEMODEL_MASTER_ORCHESTRATION_IN-PROCESS.md`
+- `REBRAND_ROLEMODEL_CLOSEOUT_IN-PROCESS.md`
+
+Any conflict between this historical section and the summary/status sections should be resolved in favor of the program authority plans above.
 
 ### A) Entry-point and routing drift
 
@@ -132,9 +154,9 @@
 - **Key issues**
   - Must prevent new mixed vocabulary (`parent` implementation under `users` label).
 
-### Phase 2 – Entry-point rewrite
+### Phase 2 – Options entry-point rewrite
 
-- **Goal**: Rewire options flow and config flow to canonical user entry points.
+- **Goal**: Rewire options flow to canonical user entry points.
 - **Steps / detailed work items**
   - [x] Replace options menu user route constants and selector values.
     - Files: [custom_components/choreops/const.py](../../custom_components/choreops/const.py), [custom_components/choreops/options_flow.py](../../custom_components/choreops/options_flow.py)
@@ -145,8 +167,6 @@
   - [x] Update selection dictionary source from raw parent bucket to canonical user view adapter.
     - Files: [custom_components/choreops/options_flow.py](../../custom_components/choreops/options_flow.py), [custom_components/choreops/coordinator.py](../../custom_components/choreops/coordinator.py)
     - Remove direct `_get_entity_dict()` dependency on `DATA_PARENTS` for user-management path.
-  - [x] Align config flow onboarding steps from `parent_count`/`parents` to user-oriented step contract.
-    - File: [custom_components/choreops/config_flow.py](../../custom_components/choreops/config_flow.py)
 - **Key issues**
   - This phase is high-impact; partial merge is not acceptable.
 
@@ -185,20 +205,77 @@
 
 - **Goal**: Validate all flow entry points and regression paths before release.
 - **Steps / detailed work items**
-  - [ ] Rewrite options flow CRUD/navigation tests to canonical user flow names and routes.
+  - [x] Rewrite options flow CRUD/navigation tests to canonical user flow names and routes.
     - Files: [tests/test_options_flow_entity_crud.py](../../tests/test_options_flow_entity_crud.py), [tests/test_options_flow_shadow_kid_entity_creation.py](../../tests/test_options_flow_shadow_kid_entity_creation.py)
-  - [ ] Add contract tests for user selection completeness (no parent-bucket subset).
+    - Status note: shadow-focused coverage is represented by active current suites (for example `tests/test_ha_user_id_options_flow.py`) in this branch.
+  - [x] Add contract tests for user selection completeness (no parent-bucket subset).
     - Files: [tests/test_options_flow_entity_crud.py](../../tests/test_options_flow_entity_crud.py), [tests/helpers/setup.py](../../tests/helpers/setup.py)
-  - [ ] Update config fresh-start tests for user-count/user-step progression.
+  - [x] Update config fresh-start tests for user-count/user-step progression.
     - File: [tests/test_config_flow_fresh_start.py](../../tests/test_config_flow_fresh_start.py)
-  - [ ] Validate translation coverage for new step IDs and selector labels.
+  - [x] Validate translation coverage for new step IDs and selector labels.
     - File: [custom_components/choreops/translations/en.json](../../custom_components/choreops/translations/en.json)
-  - [ ] Execute gates:
+    - Status note: targeted translation coverage check for canonical role-flow keys passed.
+  - [x] Execute gates:
     - `./utils/quick_lint.sh --fix`
     - `mypy custom_components/choreops/`
     - `python -m pytest tests/test_options_flow_entity_crud.py tests/test_options_flow_shadow_kid_entity_creation.py tests/test_config_flow_fresh_start.py -v --tb=line`
+    - Executed focused gate set in current branch:
+      - `python -m pytest tests/test_options_flow_entity_crud.py tests/test_config_flow_fresh_start.py tests/test_ha_user_id_options_flow.py -v --tb=line` → 39 passed
+      - `./utils/quick_lint.sh --fix` → passed (ruff + boundary + mypy gate inside script)
+      - `mypy --config-file mypy_quick.ini --explicit-package-bases custom_components/choreops` → 0 errors
 - **Key issues**
   - Existing tests currently encode parent/kid step names and must be migrated atomically with runtime changes.
+
+### Phase 6 – Config flow parity rollout (start-fresh path)
+
+- **Goal**: Bring the start-fresh config flow to the same canonical user-role contract already applied in options flow.
+- **Scope lock (explicit)**
+  - In scope:
+    - Start-fresh onboarding path currently exposing legacy kid/parent count steps and forms.
+    - Canonical user step IDs, user-role forms, and translation alignment for config flow.
+  - Out of scope:
+    - Backup import/migration internals beyond required field/step mapping continuity.
+    - Unrelated service/runtime refactors.
+- **Steps / detailed work items**
+  - [x] Define and freeze canonical start-fresh config step sequence
+    - File: [custom_components/choreops/config_flow.py](../../custom_components/choreops/config_flow.py)
+    - Required:
+      - Replace legacy branching through `kid_count` + `parent_count` with canonical user-oriented onboarding sequence.
+      - Remove reliance on legacy parent/kid step IDs in the primary start-fresh route.
+  - [x] Replace start-fresh legacy forms with canonical user-role form(s)
+    - Files: [custom_components/choreops/config_flow.py](../../custom_components/choreops/config_flow.py), [custom_components/choreops/helpers/flow_helpers.py](../../custom_components/choreops/helpers/flow_helpers.py)
+    - Required:
+      - Use the same capability-first user form contract as options flow (`can_be_assigned`, `can_approve`, `can_manage`, workflow/gamification toggles).
+      - Preserve sectioned UX parity and section-level error mapping.
+  - [x] Align config-flow translation namespaces and labels to user-role contract
+    - File: [custom_components/choreops/translations/en.json](../../custom_components/choreops/translations/en.json)
+    - Required:
+      - Remove legacy kid/parent wording from start-fresh step titles/descriptions.
+      - Ensure canonical step IDs have complete translation coverage.
+  - [x] Add explicit compatibility boundary for legacy wrappers in config flow
+    - Files: [custom_components/choreops/config_flow.py](../../custom_components/choreops/config_flow.py), [docs/in-process/CHOREOPS_DATA_MODEL_UNIFICATION_IN-PROCESS.md](CHOREOPS_DATA_MODEL_UNIFICATION_IN-PROCESS.md)
+    - Required:
+      - Document any temporary wrapper methods and their removal target.
+      - Ensure wrapper use does not define the primary route contract.
+  - [x] Add focused regression matrix for start-fresh role-based onboarding
+    - Files: [tests/test_config_flow_fresh_start.py](../../tests/test_config_flow_fresh_start.py), [tests/helpers/setup.py](../../tests/helpers/setup.py)
+    - Required scenarios:
+      1. User-role onboarding with assignable-only participant.
+      2. User-role onboarding with approver-only participant.
+      3. Mixed-role onboarding with both assignee and approver capabilities.
+      4. Validation failures for capability constraints and section error routing.
+  - [x] Execute dedicated Phase 6 gates before release hardening continuation
+    - `./utils/quick_lint.sh --fix`
+    - `mypy custom_components/choreops/`
+    - `python -m pytest tests/test_config_flow_fresh_start.py tests/test_config_flow_error_scenarios.py tests/test_options_flow_entity_crud.py -v --tb=line`
+- **Acceptance criteria (must all pass)**
+  - Start-fresh no longer presents legacy kid/parent count/forms as the primary onboarding contract.
+  - Config flow and options flow present consistent canonical user-role terminology and step IDs.
+  - Config-flow start-fresh tests assert user-role contract behavior and pass in focused suite.
+  - No label-only compatibility route remains in the primary config-flow path.
+- **Key issues**
+  - Partial rollout risks mixed UX where options flow is canonical but start-fresh remains legacy.
+  - Translation and step-ID drift can reintroduce silent regressions if not validated as one batch.
 
 ## Testing & validation
 

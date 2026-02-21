@@ -1,6 +1,6 @@
 # File: services.yaml
 #
-# Custom services documentation for the KidsChores integration.
+# Custom services documentation for the ChoreOps integration.
 # These services allow direct actions through scripts or automations.
 # Includes UI editor support with selectors for text inputs and numbers.
 

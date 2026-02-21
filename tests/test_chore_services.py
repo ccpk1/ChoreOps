@@ -171,6 +171,30 @@ def set_ha_user_capabilities(
     raise AssertionError(f"No user record found for HA user ID: {ha_user_id}")
 
 
+def get_non_target_linked_user_id(coordinator: Any, target_user_id: str) -> str:
+    """Return a linked Home Assistant user ID for a user other than target."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for internal_id, user_data_raw in users.items():
+        if internal_id == target_user_id or not isinstance(user_data_raw, dict):
+            continue
+        ha_user_id = user_data_raw.get(const.DATA_USER_HA_USER_ID)
+        if isinstance(ha_user_id, str) and ha_user_id:
+            return ha_user_id
+
+    raise AssertionError("No non-target linked user record found")
+
+
+def get_non_target_user_id(coordinator: Any, target_user_id: str) -> str:
+    """Return a user internal_id other than target."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for internal_id, user_data_raw in users.items():
+        if internal_id == target_user_id or not isinstance(user_data_raw, dict):
+            continue
+        return internal_id
+
+    raise AssertionError("No non-target user record found")
+
+
 def set_chore_due_date_to_past(
     coordinator: Any,
     chore_id: str,
@@ -933,6 +957,56 @@ class TestAuthorizationAcceptance:
     """Test authorization precedence for approval services."""
 
     @pytest.mark.asyncio
+    async def test_assignee_only_can_claim_but_cannot_approve_chore(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """Assignee-only user can claim own chore but cannot approve it."""
+        coordinator = setup_chore_services_scenario.coordinator
+        kid_id = setup_chore_services_scenario.kid_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Independent Daily Task"]
+        other_kid_name = next(
+            name for name in setup_chore_services_scenario.kid_ids if name != "Zoë"
+        )
+
+        actor_user = await hass.auth.async_create_user(
+            "Assignee Matrix Actor",
+            group_ids=["system-users"],
+        )
+        actor_user_id = actor_user.id
+        coordinator.kids_data[kid_id][const.DATA_KID_HA_USER_ID] = actor_user_id
+
+        actor_context = Context(user_id=actor_user_id)
+
+        with patch.object(
+            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(
+                kid_id,
+                chore_id,
+                "Zoë",
+            )
+
+        assert (
+            get_kid_state_for_chore(coordinator, kid_id, chore_id)
+            == CHORE_STATE_CLAIMED
+        )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPROVE_CHORE,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Zoë",
+                    const.SERVICE_FIELD_ASSIGNEE_NAME: other_kid_name,
+                    const.SERVICE_FIELD_CHORE_NAME: "Shared All Daily Task",
+                },
+                blocking=True,
+                context=actor_context,
+            )
+
+    @pytest.mark.asyncio
     async def test_admin_override_can_approve_without_designated_approver(
         self,
         hass: HomeAssistant,
@@ -989,13 +1063,17 @@ class TestAuthorizationAcceptance:
         ):
             await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
 
-        non_approver_context = Context(user_id=mock_hass_users["kid2"].id)
-        set_ha_user_capabilities(
-            coordinator,
-            mock_hass_users["kid2"].id,
-            can_approve=False,
-            can_manage=False,
-        )
+        non_approver_internal_id = get_non_target_user_id(coordinator, kid_id)
+        non_approver_user_id = mock_hass_users["kid2"].id
+        non_approver_context = Context(user_id=non_approver_user_id)
+
+        non_approver_data = coordinator._data[const.DATA_USERS][
+            non_approver_internal_id
+        ]
+        assert isinstance(non_approver_data, dict)
+        non_approver_data[const.DATA_USER_HA_USER_ID] = non_approver_user_id
+        non_approver_data[const.DATA_USER_CAN_APPROVE] = False
+        non_approver_data[const.DATA_USER_CAN_MANAGE] = False
 
         with pytest.raises(HomeAssistantError):
             await hass.services.async_call(

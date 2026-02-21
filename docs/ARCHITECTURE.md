@@ -295,6 +295,23 @@ Permission checks follow strict precedence:
 
 Capabilities are explicit; they are not inferred from assignment/linking relationships.
 
+#### Migration observability contract
+
+Schema45 contract migration emits structured summary counts for release validation:
+
+- `users_migrated`
+- `linked_parent_merges`
+- `standalone_parent_creations`
+- `parent_id_collisions`
+- `parent_id_remap_entries_total`
+- `parent_id_remap_entries_added`
+
+Operational requirements:
+
+- Startup logs must include the full summary for upgrade runs.
+- Migration summary is persisted to `meta.schema45_last_summary` for audit visibility.
+- Release go/no-go requires migration-path tests and backup/restore validation before approval.
+
 #### Manage Users inclusion contract
 
 The options/config user-management surfaces are role-based and must use one

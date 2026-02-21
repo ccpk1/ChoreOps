@@ -28,6 +28,7 @@ from .entity import KidsChoresCoordinatorEntity
 from .helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
     AUTH_ACTION_MANAGEMENT,
+    AUTH_ACTION_PARTICIPATION,
     is_kiosk_mode_enabled,
     is_user_authorized_for_action,
 )
@@ -366,7 +367,7 @@ class KidChoreClaimButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 elif not await is_user_authorized_for_action(
                     self.hass,
                     user_id,
-                    AUTH_ACTION_APPROVAL,
+                    AUTH_ACTION_PARTICIPATION,
                     target_user_id=self._kid_id,
                 ):
                     raise HomeAssistantError(
@@ -505,7 +506,8 @@ class ParentChoreApproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
             if user_id and not await is_user_authorized_for_action(
                 self.hass,
                 user_id,
-                AUTH_ACTION_MANAGEMENT,
+                AUTH_ACTION_APPROVAL,
+                target_user_id=self._kid_id,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -650,8 +652,11 @@ class ParentChoreDisapproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
             )
             kid_ha_user_id = kid_info.get(const.DATA_KID_HA_USER_ID)
             is_kid = user_id and kid_ha_user_id and user_id == kid_ha_user_id
+            is_kiosk_anonymous_undo = user_id is None and is_kiosk_mode_enabled(
+                self.hass
+            )
 
-            if is_kid:
+            if is_kid or is_kiosk_anonymous_undo:
                 # Kid undo: Remove own claim without stat tracking
                 await self.coordinator.chore_manager.undo_claim(
                     kid_id=self._kid_id,
@@ -667,7 +672,8 @@ class ParentChoreDisapproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 if user_id and not await is_user_authorized_for_action(
                     self.hass,
                     user_id,
-                    AUTH_ACTION_MANAGEMENT,
+                    AUTH_ACTION_APPROVAL,
+                    target_user_id=self._kid_id,
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -808,7 +814,7 @@ class KidRewardRedeemButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 elif not await is_user_authorized_for_action(
                     self.hass,
                     user_id,
-                    AUTH_ACTION_APPROVAL,
+                    AUTH_ACTION_PARTICIPATION,
                     target_user_id=self._kid_id,
                 ):
                     raise HomeAssistantError(
@@ -944,7 +950,8 @@ class ParentRewardApproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
             if user_id and not await is_user_authorized_for_action(
                 self.hass,
                 user_id,
-                AUTH_ACTION_MANAGEMENT,
+                AUTH_ACTION_APPROVAL,
+                target_user_id=self._kid_id,
             ):
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -1109,7 +1116,8 @@ class ParentRewardDisapproveButton(KidsChoresCoordinatorEntity, ButtonEntity):
                 if user_id and not await is_user_authorized_for_action(
                     self.hass,
                     user_id,
-                    AUTH_ACTION_MANAGEMENT,
+                    AUTH_ACTION_APPROVAL,
+                    target_user_id=self._kid_id,
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,

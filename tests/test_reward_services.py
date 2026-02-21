@@ -89,6 +89,30 @@ def set_ha_user_capabilities(
     raise AssertionError(f"No user record found for HA user ID: {ha_user_id}")
 
 
+def get_non_target_linked_user_id(coordinator: Any, target_user_id: str) -> str:
+    """Return a linked Home Assistant user ID for a user other than target."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for internal_id, user_data_raw in users.items():
+        if internal_id == target_user_id or not isinstance(user_data_raw, dict):
+            continue
+        ha_user_id = user_data_raw.get(const.DATA_USER_HA_USER_ID)
+        if isinstance(ha_user_id, str) and ha_user_id:
+            return ha_user_id
+
+    raise AssertionError("No non-target linked user record found")
+
+
+def get_non_target_user_id(coordinator: Any, target_user_id: str) -> str:
+    """Return a user internal_id other than target."""
+    users = coordinator._data.get(const.DATA_USERS, {})
+    for internal_id, user_data_raw in users.items():
+        if internal_id == target_user_id or not isinstance(user_data_raw, dict):
+            continue
+        return internal_id
+
+    raise AssertionError("No non-target user record found")
+
+
 # ============================================================================
 # COST OVERRIDE TESTS
 # ============================================================================
@@ -171,6 +195,53 @@ class TestAuthorizationAcceptance:
     """Test approval capability vs management capability boundaries."""
 
     @pytest.mark.asyncio
+    async def test_assignee_only_can_redeem_reward_but_cannot_manage(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Assignee-only user can redeem own reward but cannot perform management action."""
+        coordinator = scenario_full.coordinator
+        kid_id = scenario_full.kid_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        coordinator.kids_data[kid_id][DATA_KID_POINTS] = 100.0
+
+        actor_user = await hass.auth.async_create_user(
+            "Reward Matrix Actor",
+            group_ids=["system-users"],
+        )
+        actor_user_id = actor_user.id
+        coordinator.kids_data[kid_id][const.DATA_KID_HA_USER_ID] = actor_user_id
+
+        actor_context = Context(user_id=actor_user_id)
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_parents_translated",
+            new=AsyncMock(),
+        ):
+            await coordinator.reward_manager.redeem(
+                parent_name="Zoë",
+                kid_id=kid_id,
+                reward_id=reward_id,
+            )
+
+        assert get_pending_reward_count(coordinator, kid_id, reward_id) == 1
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPLY_BONUS,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Zoë",
+                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
+                },
+                blocking=True,
+                context=actor_context,
+            )
+
+    @pytest.mark.asyncio
     async def test_approver_only_can_approve_reward_but_cannot_manage(
         self,
         hass: HomeAssistant,
@@ -183,14 +254,14 @@ class TestAuthorizationAcceptance:
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
         coordinator.kids_data[kid_id][DATA_KID_POINTS] = 100.0
 
-        actor_user = mock_hass_users["kid3"]
-        actor_context = Context(user_id=actor_user.id)
-        set_ha_user_capabilities(
-            coordinator,
-            actor_user.id,
-            can_approve=True,
-            can_manage=False,
-        )
+        actor_user_internal_id = get_non_target_user_id(coordinator, kid_id)
+        actor_user_id = mock_hass_users["kid3"].id
+        actor_context = Context(user_id=actor_user_id)
+        actor_user_data = coordinator._data[const.DATA_USERS][actor_user_internal_id]
+        assert isinstance(actor_user_data, dict)
+        actor_user_data[const.DATA_USER_HA_USER_ID] = actor_user_id
+        actor_user_data[const.DATA_USER_CAN_APPROVE] = True
+        actor_user_data[const.DATA_USER_CAN_MANAGE] = False
 
         with patch.object(
             coordinator.notification_manager, "notify_kid", new=AsyncMock()
@@ -232,3 +303,134 @@ class TestAuthorizationAcceptance:
                 blocking=True,
                 context=actor_context,
             )
+
+    @pytest.mark.asyncio
+    async def test_manager_only_can_manage_but_cannot_approve_reward(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Manager-only user can perform management service independent of assignment."""
+        coordinator = scenario_full.coordinator
+        kid_id = scenario_full.kid_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        bonus_id = scenario_full.bonus_ids["Extra Effort"]
+        coordinator.kids_data[kid_id][DATA_KID_POINTS] = 100.0
+
+        actor_user_internal_id = get_non_target_user_id(coordinator, kid_id)
+        actor_user_id = mock_hass_users["kid3"].id
+        actor_context = Context(user_id=actor_user_id)
+        actor_user_data = coordinator._data[const.DATA_USERS][actor_user_internal_id]
+        assert isinstance(actor_user_data, dict)
+        actor_user_data[const.DATA_USER_HA_USER_ID] = actor_user_id
+        actor_user_data[const.DATA_USER_CAN_APPROVE] = False
+        actor_user_data[const.DATA_USER_CAN_MANAGE] = True
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_parents_translated",
+            new=AsyncMock(),
+        ):
+            await coordinator.reward_manager.redeem(
+                parent_name="Môm Astrid Stârblüm",
+                kid_id=kid_id,
+                reward_id=reward_id,
+            )
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_APPROVE_REWARD,
+                {
+                    const.SERVICE_FIELD_APPROVER_NAME: "Lila",
+                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
+                },
+                blocking=True,
+                context=actor_context,
+            )
+
+        points_before_bonus = get_kid_points(coordinator, kid_id)
+
+        await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_APPLY_BONUS,
+            {
+                const.SERVICE_FIELD_APPROVER_NAME: "Lila",
+                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
+            },
+            blocking=True,
+            context=actor_context,
+        )
+
+        points_after_bonus = get_kid_points(coordinator, kid_id)
+        bonus_amount = coordinator.bonuses_data[bonus_id][const.DATA_BONUS_POINTS]
+        assert points_after_bonus == points_before_bonus + bonus_amount
+
+    @pytest.mark.asyncio
+    async def test_dual_role_user_can_approve_and_manage_reward_flows(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Dual-role user can execute both approval and management domains."""
+        coordinator = scenario_full.coordinator
+        kid_id = scenario_full.kid_ids["Zoë"]
+        reward_id = scenario_full.reward_ids["Extra Screen Time"]
+        bonus_id = scenario_full.bonus_ids["Extra Effort"]
+        coordinator.kids_data[kid_id][DATA_KID_POINTS] = 100.0
+
+        actor_user_internal_id = get_non_target_user_id(coordinator, kid_id)
+        actor_user_id = mock_hass_users["kid3"].id
+        actor_context = Context(user_id=actor_user_id)
+        actor_user_data = coordinator._data[const.DATA_USERS][actor_user_internal_id]
+        assert isinstance(actor_user_data, dict)
+        actor_user_data[const.DATA_USER_HA_USER_ID] = actor_user_id
+        actor_user_data[const.DATA_USER_CAN_APPROVE] = True
+        actor_user_data[const.DATA_USER_CAN_MANAGE] = True
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_parents_translated",
+            new=AsyncMock(),
+        ):
+            await coordinator.reward_manager.redeem(
+                parent_name="Môm Astrid Stârblüm",
+                kid_id=kid_id,
+                reward_id=reward_id,
+            )
+
+        await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_APPROVE_REWARD,
+            {
+                const.SERVICE_FIELD_APPROVER_NAME: "Lila",
+                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
+            },
+            blocking=True,
+            context=actor_context,
+        )
+
+        assert get_pending_reward_count(coordinator, kid_id, reward_id) == 0
+
+        points_before_bonus = get_kid_points(coordinator, kid_id)
+
+        await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_APPLY_BONUS,
+            {
+                const.SERVICE_FIELD_APPROVER_NAME: "Lila",
+                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
+            },
+            blocking=True,
+            context=actor_context,
+        )
+
+        points_after_bonus = get_kid_points(coordinator, kid_id)
+        bonus_amount = coordinator.bonuses_data[bonus_id][const.DATA_BONUS_POINTS]
+        assert points_after_bonus == points_before_bonus + bonus_amount

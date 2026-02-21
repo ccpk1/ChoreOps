@@ -229,11 +229,13 @@ class SystemManager(BaseManager):
 
         schema45_summary = await async_apply_schema45_user_contract(self.coordinator)
         const.LOGGER.info(
-            "SystemManager: Schema45 migration summary users=%d linked_merges=%d standalone_parents=%d collisions=%d",
+            "SystemManager: Schema45 migration summary users=%d linked_merges=%d standalone_parents=%d collisions=%d remap_total=%d remap_added=%d",
             schema45_summary["users_migrated"],
             schema45_summary["linked_parent_merges"],
             schema45_summary["standalone_parent_creations"],
             schema45_summary["parent_id_collisions"],
+            schema45_summary["parent_id_remap_entries_total"],
+            schema45_summary["parent_id_remap_entries_added"],
         )
 
         # 2. Startup Safety Net (Registry validation)

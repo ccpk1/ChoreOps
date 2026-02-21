@@ -92,6 +92,7 @@ async def async_apply_schema45_user_contract(
     linked_parent_merges = 0
     standalone_parent_creations = 0
     parent_id_collisions = 0
+    parent_id_remap_added = 0
 
     for user_id, user_data_raw in users.items():
         if not isinstance(user_data_raw, dict):
@@ -140,6 +141,7 @@ async def async_apply_schema45_user_contract(
                 if candidate_id not in users:
                     target_id = candidate_id
                     remap[parent_id] = target_id
+                    parent_id_remap_added += 1
                     break
                 suffix_index += 1
 
@@ -181,13 +183,18 @@ async def async_apply_schema45_user_contract(
         "linked_parent_merges": linked_parent_merges,
         "standalone_parent_creations": standalone_parent_creations,
         "parent_id_collisions": parent_id_collisions,
+        "parent_id_remap_entries_total": len(remap),
+        "parent_id_remap_entries_added": parent_id_remap_added,
     }
+    meta["schema45_last_summary"] = summary
     const.LOGGER.debug(
-        "Schema45 migration summary: users=%d linked_merges=%d standalone_parents=%d collisions=%d",
+        "Schema45 migration summary: users=%d linked_merges=%d standalone_parents=%d collisions=%d remap_total=%d remap_added=%d",
         summary["users_migrated"],
         summary["linked_parent_merges"],
         summary["standalone_parent_creations"],
         summary["parent_id_collisions"],
+        summary["parent_id_remap_entries_total"],
+        summary["parent_id_remap_entries_added"],
     )
     return summary
 

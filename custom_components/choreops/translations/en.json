@@ -58,23 +58,23 @@
         }
       },
       "kid_count": {
-        "title": "Number of Kids",
-        "description": "How many kids do you want to manage?",
+        "title": "Number of Assignees",
+        "description": "How many assignees do you want to manage?",
         "data": {
-          "kid_count": "Number of Kids"
+          "kid_count": "Number of Assignees"
         }
       },
       "kids": {
-        "title": "Define Kid",
-        "description": "Enter the name for each kid.",
+        "title": "Define Assignee",
+        "description": "Enter the name for each assignee.",
         "data": {
-          "name": "Kid Name",
+          "name": "Assignee Name",
           "ha_user": "Home Assistant User",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language"
         },
         "data_description": {
-          "mobile_notify_service": "Select a notification service to enable notifications for this kid, or leave empty to disable.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this assignee, or leave empty to disable.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -239,7 +239,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_kids": "👥 Assigned Kids",
+              "assigned_kids": "👥 Assigned Assignees",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -247,8 +247,8 @@
               "chore_description": "Optional instructions or details about how to complete this chore.",
               "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
               "default_points": "Points earned when completed.",
-              "assigned_kids": "Kids who can see and claim this chore.",
-              "completion_criteria": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation."
+              "assigned_kids": "Assignees who can see and claim this chore.",
+              "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation."
             }
           },
           "section_schedule": {
@@ -270,7 +270,7 @@
               "clear_due_date": "Check this box to remove the due date from this chore.",
               "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
               "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
-              "chore_claim_lock_until_window": "When enabled, kids cannot claim this chore before the due window starts.",
+              "chore_claim_lock_until_window": "When enabled, assignees cannot claim this chore before the due window starts.",
               "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
               "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency."
             }
@@ -291,7 +291,7 @@
             "data_description": {
               "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
               "approval_reset_pending_claim_action": "This is what happens to claims still waiting for approval when the approval reset occurs.",
-              "auto_approve": "When enabled, claims are instantly approved without parent review.",
+              "auto_approve": "When enabled, claims are instantly approved without approver review.",
               "overdue_handling_type": "Action after due date: Hide overdue status, remain overdue until claimed, or reset to pending at next approval cycle.",
               "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
               "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
@@ -306,7 +306,7 @@
           "icon": "📋 Icon (mdi:xxx)",
           "chore_labels": "📋 Labels (optional)",
           "default_points": "💰 Points Awarded",
-          "assigned_kids": "👥 Assigned Kids",
+          "assigned_kids": "👥 Assigned Assignees",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -329,13 +329,13 @@
           "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
           "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed.",
           "default_points": "Points earned when completed.",
-          "assigned_kids": "Kids who can see and claim this chore.",
-          "completion_criteria": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation.",
+          "assigned_kids": "Assignees who can see and claim this chore.",
+          "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
           "approval_reset_pending_claim_action": "This is what happens to claims still waiting for approval when the approval reset occurs.",
           "overdue_handling_type": "Action after due date: Hide overdue status, remain overdue until claimed, or reset to pending at next approval cycle.",
-          "chore_claim_lock_until_window": "When enabled, kids cannot claim this chore before the due window starts.",
-          "auto_approve": "When enabled, claims are instantly approved without parent review.",
+          "chore_claim_lock_until_window": "When enabled, assignees cannot claim this chore before the due window starts.",
+          "auto_approve": "When enabled, claims are instantly approved without approver review.",
           "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None.",
           "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
           "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency.",
@@ -356,7 +356,7 @@
       },
       "badges": {
         "title": "Add Cumulative Badge",
-        "description": "Configure the details for a cumulative badge. These badges reward kids for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n[📖 Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n[📖 Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -369,7 +369,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -392,7 +392,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "points_multiplier": "If multiplier is a selected award, set a multiplier for points earned while this badge is active (e.g., 1.5x).",
@@ -401,7 +401,7 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks). Only applies to Custom Frequency.",
           "start_date": "Set the start date (optional).",
           "end_date": "Select the date for the end of the maintenance cycle. (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle kids to meet required points before demotion. (optional)."
+          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional)."
         }
       },
       "reward_count": {
@@ -476,7 +476,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_kids": "Assigned Kids",
+          "assigned_kids": "Assigned Assignees",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -500,7 +500,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_kids": "Assigned Kids",
+          "assigned_kids": "Assigned Assignees",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -518,25 +518,24 @@
     },
     "error": {
       "a_chore_must_be_selected": "A chore must be selected",
-      "badge_requires_assignment": "At least one kid must be assigned to this badge",
+      "badge_requires_assignment": "At least one assignee must be assigned to this badge",
       "duplicate_achievement": "An achievement with this name already exists",
       "duplicate_badge": "A badge with this name already exists",
       "duplicate_challenge": "A challenge with this name already exists",
       "duplicate_chore": "A chore with this name already exists",
-      "duplicate_kid": "A kid with this name already exists",
-      "duplicate_parent": "A parent with this name already exists",
+      "duplicate_kid": "A assignee with this name already exists",
       "duplicate_parent": "A user with this name already exists",
       "duplicate_penalty": "A penalty with this name already exists",
       "duplicate_reward": "A reward with this name already exists",
       "duplicate_bonus": "A bonus with this name already exists",
-      "shadow_kid_name_conflict": "Cannot enable chore assignment: a kid with your name already exists. Please rename the existing kid first.",
+      "shadow_kid_name_conflict": "Cannot enable chore assignment: a assignee with your name already exists. Please rename the existing assignee first.",
       "due_date_in_past": "Due date must be in the future.",
       "end_date_in_past": "End Date must be in the future.",
       "end_date_not_after_start_date": "End date must be later than start date",
       "err_end_before_start": "End date must be after start date",
       "err_name_duplicate": "A challenge with this name already exists",
-      "achievement_no_kids_assigned": "At least one kid must be assigned to the achievement",
-      "challenge_no_kids_assigned": "At least one kid must be assigned to the challenge",
+      "achievement_no_kids_assigned": "At least one assignee must be assigned to the achievement",
+      "challenge_no_kids_assigned": "At least one assignee must be assigned to the challenge",
       "invalid_achievement_count": "Invalid achievement count",
       "invalid_achievement_name": "Invalid achievement name",
       "invalid_badge": "Invalid badge",
@@ -546,18 +545,18 @@
       "invalid_challenge_name": "Invalid challenge name",
       "invalid_chore": "Invalid chore",
       "invalid_chore_count": "Invalid chore count",
-      "rotation_min_kids": "Rotation chores require at least 2 assigned kids",
+      "rotation_min_kids": "Rotation chores require at least 2 assigned assignees",
       "invalid_chore_name": "Invalid chore name",
       "invalid_points": "Points must be zero or greater",
       "invalid_overdue_reset_combination": "The 'At due date then reset' overdue handling only works with midnight reset types. Please select 'At midnight (once)' or 'At midnight (repeating)' for the approval reset type.",
       "invalid_due_date": "Invalid due date",
       "date_required_for_frequency": "A due date is required for this recurring frequency. Clear dates only works with None, Daily, or Weekly frequency.",
       "invalid_end_date": "Invalid end date.",
-      "invalid_kid_count": "Invalid kid count",
-      "invalid_kid_name": "Invalid kid name",
+      "invalid_kid_count": "Invalid assignee count",
+      "invalid_kid_name": "Invalid assignee name",
       "invalid_parent_count": "Invalid user count",
       "invalid_parent_name": "Invalid user name",
-      "no_kids_assigned": "At least one kid must be assigned to the chore",
+      "no_kids_assigned": "At least one assignee must be assigned to the chore",
       "invalid_penalty": "Invalid penalty",
       "invalid_penalty_count": "Invalid penalty count",
       "invalid_penalty_name": "Invalid penalty name",
@@ -630,19 +629,19 @@
         }
       },
       "add_kid": {
-        "title": "Add Kid",
-        "description": "Provide the details for the new kid.\n\n📖 [Configuration Guide]({documentation_url})",
+        "title": "Add Assignee",
+        "description": "Provide the details for the new assignee.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
-          "name": "Kid Name",
+          "name": "Assignee Name",
           "ha_user": "Home Assistant User",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "internal_id": "Internal ID"
         },
         "data_description": {
-          "name": "Unique name for this kid, used throughout the system.",
-          "ha_user": "Optional: Link this kid to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this kid, or leave empty to disable.",
+          "name": "Unique name for this assignee, used throughout the system.",
+          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this assignee, or leave empty to disable.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -713,7 +712,7 @@
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
           "associated_kids": "Select which users this approver/admin supervises for approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the kid profile with '_unlinked' suffix for manual cleanup.",
+          "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the assignee profile with '_unlinked' suffix for manual cleanup.",
           "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
           "enable_gamification": "Track points, badges, and rewards for your completed chores.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
@@ -804,7 +803,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_kids": "👥 Assigned Kids",
+              "assigned_kids": "👥 Assigned Assignees",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -812,8 +811,8 @@
               "chore_description": "Optional instructions or details about how to complete this chore.",
               "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
               "default_points": "Points earned when completed.",
-              "assigned_kids": "Kids who can see and claim this chore.",
-              "completion_criteria": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation."
+              "assigned_kids": "Assignees who can see and claim this chore.",
+              "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation."
             }
           },
           "section_schedule": {
@@ -831,11 +830,11 @@
             },
             "data_description": {
               "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None. If you select 'Daily - Multiple times per day', an additional screen will appear to configure the specific times.",
-              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per kid.",
+              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
               "clear_due_date": "Check this box to remove the due date from this chore.",
               "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
               "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
-              "chore_claim_lock_until_window": "When enabled, kids cannot claim this chore before the due window starts.",
+              "chore_claim_lock_until_window": "When enabled, assignees cannot claim this chore before the due window starts.",
               "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
               "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency."
             }
@@ -856,7 +855,7 @@
             "data_description": {
               "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
               "approval_reset_pending_claim_action": "Controls what happens to unapproved claims when the approval reset boundary fires.",
-              "auto_approve": "When enabled, claims are instantly approved without parent review.",
+              "auto_approve": "When enabled, claims are instantly approved without approver review.",
               "overdue_handling_type": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
               "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
               "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
@@ -871,7 +870,7 @@
           "icon": "📋 Icon (mdi:xxx)",
           "chore_labels": "📋 Labels (optional)",
           "default_points": "💰 Points Awarded",
-          "assigned_kids": "👥 Assigned Kids",
+          "assigned_kids": "👥 Assigned Assignees",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -895,18 +894,18 @@
           "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
           "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed.",
           "default_points": "Points earned when completed.",
-          "assigned_kids": "Kids who can see and claim this chore.",
-          "completion_criteria": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation.",
+          "assigned_kids": "Assignees who can see and claim this chore.",
+          "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
           "approval_reset_pending_claim_action": "Controls what happens to unapproved claims when the approval reset boundary fires.",
           "overdue_handling_type": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
-          "chore_claim_lock_until_window": "When enabled, kids cannot claim this chore before the due window starts.",
-          "auto_approve": "When enabled, claims are instantly approved without parent review.",
+          "chore_claim_lock_until_window": "When enabled, assignees cannot claim this chore before the due window starts.",
+          "auto_approve": "When enabled, claims are instantly approved without approver review.",
           "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None. If you select 'Daily - Multiple times per day', an additional screen will appear to configure the specific times.",
           "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
           "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency.",
           "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
-          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per kid.",
+          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
           "clear_due_date": "Check this box to remove the due date from this chore.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
@@ -923,7 +922,7 @@
       },
       "add_badge_cumulative": {
         "title": "Add Cumulative Badge",
-        "description": "Configure the details for a cumulative badge. These badges reward kids for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -936,7 +935,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -959,7 +958,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "points_multiplier": "If multiplier is a selected award, set a multiplier for points earned while this badge is active (e.g., 1.5x).",
@@ -968,12 +967,12 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks). Only applies to Custom Frequency.",
           "start_date": "Set the start date (optional).",
           "end_date": "Select the date for the end of the maintenance cycle. (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle kids to meet required points before demotion. (optional)."
+          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional)."
         }
       },
       "add_badge_daily": {
         "title": "Add Daily Badge",
-        "description": "Configure the details for a daily badge. These badges reward kids for completing daily tasks or reaching daily thresholds.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a daily badge. These badges reward assignees for completing daily tasks or reaching daily thresholds.\n\n📖 [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -982,7 +981,7 @@
           "target_type": "🎯 DAILY TARGET: Target Type",
           "threshold_value": "🎯 DAILY TARGET: Threshold Value",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -994,14 +993,14 @@
           "target_type": "Select the type of daily target for this badge (e.g., points, chore count, or days).",
           "threshold_value": "Set the daily points, chore count, or number of days required to earn this badge. For 'Days' target types, enter 1 since the badge is evaluated daily (e.g., 1 for a one-day complete all selected chores).",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
       },
       "add_badge_periodic": {
         "title": "Add Periodic Badge",
-        "description": "Configure the details for a periodic badge. These badges reward kids for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a periodic badge. These badges reward assignees for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1014,7 +1013,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "recurring_frequency": "🔄 RESET CYCLE: Frequency",
@@ -1035,7 +1034,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "recurring_frequency": "Define the reset schedule for this badge (e.g., weekly, monthly).",
@@ -1047,14 +1046,14 @@
       },
       "add_badge_achievement": {
         "title": "Add Achievement-Linked Badge",
-        "description": "Configure the details for a badge linked to an achievement. These badges reward kids for completing specific achievements.\n\n[📖 Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge linked to an achievement. These badges reward assignees for completing specific achievements.\n\n[📖 Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_achievement": "🏆 Associated Achievement",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1064,21 +1063,21 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_achievement": "Link this badge to a specific achievement for tracking.",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
       },
       "add_badge_challenge": {
         "title": "Add Challenge-Linked Badge",
-        "description": "Configure the details for a badge linked to a challenge. These badges reward kids for completing specific challenges.\n\n[📖 Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge linked to a challenge. These badges reward assignees for completing specific challenges.\n\n[📖 Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_challenge": "🏁 Associated Challenge",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1088,14 +1087,14 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_challenge": "Link this badge to a specific challenge for tracking.",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
       },
       "add_badge_special": {
         "title": "Add Special Occasion Badge",
-        "description": "Configure the details for a badge created for special occasions. These badges reward kids for events like birthdays or holidays.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge created for special occasions. These badges reward assignees for events like birthdays or holidays.\n\n📖 [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1108,7 +1107,7 @@
           "custom_interval_unit": "🔄 RECURRENCE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RECURRENCE: Start Date (Optional)",
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1123,8 +1122,8 @@
           "custom_interval": "Specify the NUMBER of days, weeks, months, etc. for Custom Frequency (e.g., 3 if you set 3 weeks).",
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks).",
           "start_date": "Set the start date for the reset cycle (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle for kids to meet required points before demotion (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "grace_period_days": "Specify the number of extra days after the end of the cycle for assignees to meet required points before demotion (optional).",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1173,7 +1172,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_kids": "Assigned Kids",
+          "assigned_kids": "Assigned Assignees",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -1190,7 +1189,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_kids": "Assigned Kids",
+          "assigned_kids": "Assigned Assignees",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -1202,36 +1201,36 @@
         }
       },
       "edit_kid": {
-        "title": "Edit Kid",
-        "description": "Modify the details of the selected kid.\n\n📖 [Configuration Guide]({documentation_url})",
+        "title": "Edit Assignee",
+        "description": "Modify the details of the selected assignee.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
-          "name": "Kid Name",
+          "name": "Assignee Name",
           "ha_user": "Home Assistant User",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "internal_id": "Internal ID"
         },
         "data_description": {
-          "name": "Unique name for this kid, used throughout the system.",
-          "ha_user": "Optional: Link this kid to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this kid.",
+          "name": "Unique name for this assignee, used throughout the system.",
+          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
+          "mobile_notify_service": "Select a notification service to enable notifications for this assignee.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
       "edit_kid_shadow": {
-        "title": "Edit Shadow Kid",
-        "description": "Modify the details of the selected shadow kid. ⚠️ This kid is linked to a parent. Changing the name will break the name-matching requirement for unlinking via service.",
+        "title": "Edit Shadow Assignee",
+        "description": "Modify the details of the selected shadow assignee. ⚠️ This assignee is linked to a approver. Changing the name will break the name-matching requirement for unlinking via service.",
         "data": {
-          "name": "Kid Name",
+          "name": "Assignee Name",
           "ha_user": "Home Assistant User",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "internal_id": "Internal ID"
         },
         "data_description": {
-          "name": "⚠️ This shadow kid is linked to a parent. Changing this name will break the service unlinking feature, which requires matching names.",
-          "ha_user": "Optional: Link this kid to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "⚠️ Shadow kid notifications: The linked parent already receives notifications for supervised chores. Enabling here will create duplicate notifications. Useful for 30-minute due date reminders or if using different notification services.",
+          "name": "⚠️ This shadow assignee is linked to a approver. Changing this name will break the service unlinking feature, which requires matching names.",
+          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
+          "mobile_notify_service": "⚠️ Shadow assignee notifications: The linked approver already receives notifications for supervised chores. Enabling here will create duplicate notifications. Useful for 30-minute due date reminders or if using different notification services.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -1302,7 +1301,7 @@
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
           "associated_kids": "Select which users this approver/admin supervises for approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the kid profile with '_unlinked' suffix for manual cleanup.",
+          "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the assignee profile with '_unlinked' suffix for manual cleanup.",
           "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
           "enable_gamification": "Track points, badges, and rewards for your completed chores.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
@@ -1393,7 +1392,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_kids": "👥 Assigned Kids",
+              "assigned_kids": "👥 Assigned Assignees",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -1401,8 +1400,8 @@
               "chore_description": "Optional instructions or details about how to complete this chore.",
               "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
               "default_points": "Points earned when completed.",
-              "assigned_kids": "Kids who can see and claim this chore.",
-              "completion_criteria": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation."
+              "assigned_kids": "Assignees who can see and claim this chore.",
+              "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation."
             }
           },
           "section_schedule": {
@@ -1420,11 +1419,11 @@
             },
             "data_description": {
               "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None. If you select 'Daily - Multiple times per day', an additional screen will appear to configure the specific times.",
-              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per kid.",
+              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
               "clear_due_date": "Check this box to remove the due date from this chore.",
               "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
               "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
-              "chore_claim_lock_until_window": "When enabled, kids cannot claim this chore before the due window starts.",
+              "chore_claim_lock_until_window": "When enabled, assignees cannot claim this chore before the due window starts.",
               "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
               "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency."
             }
@@ -1445,7 +1444,7 @@
             "data_description": {
               "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
               "approval_reset_pending_claim_action": "Controls what happens to unapproved claims when the approval reset boundary fires.",
-              "auto_approve": "When enabled, claims are instantly approved without parent review.",
+              "auto_approve": "When enabled, claims are instantly approved without approver review.",
               "overdue_handling_type": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
               "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
               "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination.",
@@ -1461,7 +1460,7 @@
           "chore_labels": "📋 Labels (optional)",
           "internal_id": "Internal ID",
           "default_points": "💰 Points Awarded",
-          "assigned_kids": "👥 Assigned Kids",
+          "assigned_kids": "👥 Assigned Assignees",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -1485,18 +1484,18 @@
           "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
           "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed.",
           "default_points": "Points earned when completed.",
-          "assigned_kids": "Kids who can see and claim this chore.",
-          "completion_criteria": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation.",
+          "assigned_kids": "Assignees who can see and claim this chore.",
+          "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
           "approval_reset_pending_claim_action": "Controls what happens to unapproved claims when the approval reset boundary fires.",
           "overdue_handling_type": "Controls what happens when the due date passes and what happens to overdue chores at the approval reset boundary.",
-          "chore_claim_lock_until_window": "When enabled, kids cannot claim this chore before the due window starts.",
-          "auto_approve": "When enabled, claims are instantly approved without parent review.",
+          "chore_claim_lock_until_window": "When enabled, assignees cannot claim this chore before the due window starts.",
+          "auto_approve": "When enabled, claims are instantly approved without approver review.",
           "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None. If you select 'Daily - Multiple times per day', an additional screen will appear to configure the specific times.",
           "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
           "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency.",
           "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
-          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per kid.",
+          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
           "clear_due_date": "Check this box to remove the due date from this chore.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
@@ -1505,13 +1504,13 @@
         }
       },
       "edit_chore_per_kid_dates": {
-        "title": "Edit Per-Kid Due Dates: {chore_name}",
-        "description": "Set individual due dates for each assigned kid. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all kids via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {kid_names}. Leave blank for no deadline.{template_date}\n\n📖 [Advanced Guide]({documentation_url})",
+        "title": "Edit Per-Assignee Due Dates: {chore_name}",
+        "description": "Set individual due dates for each assigned assignee. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all assignees via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {kid_names}. Leave blank for no deadline.{template_date}\n\n📖 [Advanced Guide]({documentation_url})",
         "data": {
-          "apply_template_to_all": "Apply template date to all kids"
+          "apply_template_to_all": "Apply template date to all assignees"
         },
         "data_description": {
-          "apply_template_to_all": "Check this box to apply the date set on the main chore edit page to all assigned kids, overwriting their individual dates."
+          "apply_template_to_all": "Check this box to apply the date set on the main chore edit page to all assigned assignees, overwriting their individual dates."
         }
       },
       "chores_daily_multi": {
@@ -1525,22 +1524,22 @@
         }
       },
       "edit_chore_per_kid_details": {
-        "title": "Per-Kid Schedule: {chore_name}",
-        "description": "Configure individual schedule settings for each kid assigned to this chore. The main form values act as **templates**—use the checkboxes to apply them to all kids, or customize each kid's settings individually.\n\n**Note:** Not all fields below apply to every chore. The form dynamically shows relevant options based on completion mode, frequency, and whether due dates are set.\n\n**Daily (Multi) Times format:** If shown, enter 2-6 times in 24-hour format separated by | (pipe). Example: 08:00|17:00\n\nKids: {kid_names}{template_info}\n\n📖 [Advanced Guide]({documentation_url})",
+        "title": "Per-Assignee Schedule: {chore_name}",
+        "description": "Configure individual schedule settings for each assignee assigned to this chore. The main form values act as **templates**—use the checkboxes to apply them to all assignees, or customize each assignee's settings individually.\n\n**Note:** Not all fields below apply to every chore. The form dynamically shows relevant options based on completion mode, frequency, and whether due dates are set.\n\n**Daily (Multi) Times format:** If shown, enter 2-6 times in 24-hour format separated by | (pipe). Example: 08:00|17:00\n\nAssignees: {kid_names}{template_info}\n\n📖 [Advanced Guide]({documentation_url})",
         "data": {
-          "apply_days_to_all": "Apply template days to all kids",
-          "apply_times_to_all": "Apply template times to all kids",
-          "apply_template_to_all": "Apply template date to all kids"
+          "apply_days_to_all": "Apply template days to all assignees",
+          "apply_times_to_all": "Apply template times to all assignees",
+          "apply_template_to_all": "Apply template date to all assignees"
         },
         "data_description": {
-          "apply_days_to_all": "Check to use the applicable days from the main form for all assigned kids.",
-          "apply_times_to_all": "Check to use the daily times from the main form for all assigned kids.",
-          "apply_template_to_all": "Check to apply the date set on the main chore form to all assigned kids."
+          "apply_days_to_all": "Check to use the applicable days from the main form for all assigned assignees.",
+          "apply_times_to_all": "Check to use the daily times from the main form for all assigned assignees.",
+          "apply_template_to_all": "Check to apply the date set on the main chore form to all assigned assignees."
         }
       },
       "edit_badge_cumulative": {
         "title": "Edit Cumulative Badge",
-        "description": "Configure the details for a cumulative badge. These badges reward kids for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1553,7 +1552,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -1576,7 +1575,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "points_multiplier": "If multiplier is a selected award, set a multiplier for points earned while this badge is active (e.g., 1.5x).",
@@ -1585,12 +1584,12 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks). Only applies to Custom Frequency.",
           "start_date": "Set the start date (optional).",
           "end_date": "Select the date for the end of the maintenance cycle. (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle kids to meet required points before demotion. (optional)."
+          "grace_period_days": "Specify the number of extra days after the end of the cycle assignees to meet required points before demotion. (optional)."
         }
       },
       "edit_badge_daily": {
         "title": "Edit Daily Badge",
-        "description": "Configure the details for a daily badge. These badges reward kids for completing daily tasks or reaching daily thresholds.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a daily badge. These badges reward assignees for completing daily tasks or reaching daily thresholds.\n\n📖 [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1599,7 +1598,7 @@
           "target_type": "🎯 DAILY TARGET: Target Type",
           "threshold_value": "🎯 DAILY TARGET: Threshold Value",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1611,14 +1610,14 @@
           "target_type": "Select the type of daily target for this badge (e.g., points, chore count, or days).",
           "threshold_value": "Set the daily points, chore count, or number of days required to earn this badge. For 'Days' target types, enter 1 since the badge is evaluated daily (e.g., 1 for a one-day complete all selected chores).",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
       },
       "edit_badge_periodic": {
         "title": "Edit Periodic Badge",
-        "description": "Configure the details for a periodic badge. These badges reward kids for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a periodic badge. These badges reward assignees for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1631,7 +1630,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "recurring_frequency": "🔄 RESET CYCLE: Frequency",
@@ -1652,7 +1651,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "recurring_frequency": "Define the reset schedule for this badge (e.g., weekly, monthly).",
@@ -1664,14 +1663,14 @@
       },
       "edit_badge_achievement": {
         "title": "Edit Achievement-Linked Badge",
-        "description": "Configure the details for a badge linked to an achievement. These badges reward kids for completing specific achievements.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge linked to an achievement. These badges reward assignees for completing specific achievements.\n\n📖 [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_achievement": "🏆 Associated Achievement",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1681,21 +1680,21 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_achievement": "Link this badge to a specific achievement for tracking.",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
       },
       "edit_badge_challenge": {
         "title": "Edit Challenge-Linked Badge",
-        "description": "Configure the details for a badge linked to a challenge. These badges reward kids for completing specific challenges.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge linked to a challenge. These badges reward assignees for completing specific challenges.\n\n📖 [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_challenge": "🏁 Associated Challenge",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1705,14 +1704,14 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_challenge": "Link this badge to a specific challenge for tracking.",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
       },
       "edit_badge_special": {
         "title": "Edit Special Occasion Badge",
-        "description": "Configure the details for a badge created for special occasions. These badges reward kids for events like birthdays or holidays.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge created for special occasions. These badges reward assignees for events like birthdays or holidays.\n\n📖 [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1725,7 +1724,7 @@
           "custom_interval_unit": "🔄 RECURRENCE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RECURRENCE: Start Date (Optional)",
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
-          "assigned_to": "🧒 Assigned Kids",
+          "assigned_to": "🧒 Assigned Assignees",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1740,8 +1739,8 @@
           "custom_interval": "Specify the NUMBER of days, weeks, months, etc. for Custom Frequency (e.g., 3 if you set 3 weeks).",
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks).",
           "start_date": "Set the start date for the reset cycle (optional).",
-          "grace_period_days": "Specify the number of extra days after the end of the cycle for kids to meet required points before demotion (optional).",
-          "assigned_to": "Assign this badge to specific kids for tracking.",
+          "grace_period_days": "Specify the number of extra days after the end of the cycle for assignees to meet required points before demotion (optional).",
+          "assigned_to": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1790,7 +1789,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_kids": "Assigned Kids",
+          "assigned_kids": "Assigned Assignees",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -1807,7 +1806,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_kids": "Assigned Kids",
+          "assigned_kids": "Assigned Assignees",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -1819,8 +1818,8 @@
         }
       },
       "delete_kid": {
-        "title": "Delete Kid",
-        "description": "Are you sure you want to delete the kid {kid_name}?",
+        "title": "Delete Assignee",
+        "description": "Are you sure you want to delete the assignee {kid_name}?",
         "data": {}
       },
       "delete_parent": {
@@ -1905,15 +1904,15 @@
         "description": "Configure dashboard sections for **{dashboard}** (mode: {mode}).\n\n[📖 Dashboard Generation Guide]({documentation_url})",
         "sections": {
           "section_kid_views": {
-            "name": "Kid views",
-            "description": "Choose the kid template style and which kids to include.",
+            "name": "Assignee views",
+            "description": "Choose the assignee template style and which assignees to include.",
             "data": {
-              "dashboard_template_profile": "Kid Template Profile",
-              "dashboard_kid_selection": "Kids"
+              "dashboard_template_profile": "Assignee Template Profile",
+              "dashboard_kid_selection": "Assignees"
             },
             "data_description": {
-              "dashboard_template_profile": "Template profile applied to selected kid views.",
-              "dashboard_kid_selection": "Select kids to include in this dashboard."
+              "dashboard_template_profile": "Template profile applied to selected assignee views.",
+              "dashboard_kid_selection": "Select assignees to include in this dashboard."
             }
           },
           "section_admin_views": {
@@ -1922,14 +1921,14 @@
             "data": {
               "dashboard_admin_mode": "Admin Layout",
               "dashboard_admin_template_global": "Shared Admin Template",
-              "dashboard_admin_template_per_kid": "Per-Kid Admin Template",
+              "dashboard_admin_template_per_kid": "Per-Assignee Admin Template",
               "dashboard_admin_view_visibility": "Admin View Visibility"
             },
             "data_description": {
-              "dashboard_admin_mode": "Choose the admin layout: none, shared, per kid, or both.",
+              "dashboard_admin_mode": "Choose the admin layout: none, shared, per assignee, or both.",
               "dashboard_admin_template_global": "Template used when Admin Layout includes Shared.",
-              "dashboard_admin_template_per_kid": "Template used when Admin Layout includes Per Kid.",
-              "dashboard_admin_view_visibility": "Control who can see admin views. Parent-linked visibility uses linked parent HA users."
+              "dashboard_admin_template_per_kid": "Template used when Admin Layout includes Per Assignee.",
+              "dashboard_admin_view_visibility": "Control who can see admin views. Approver-linked visibility uses linked approver HA users."
             }
           },
           "section_access_sidebar": {
@@ -1960,11 +1959,11 @@
           }
         },
         "data": {
-          "dashboard_template_profile": "Kid Template Profile",
-          "dashboard_kid_selection": "Kids",
+          "dashboard_template_profile": "Assignee Template Profile",
+          "dashboard_kid_selection": "Assignees",
           "dashboard_admin_mode": "Admin Layout",
           "dashboard_admin_template_global": "Shared Admin Template",
-          "dashboard_admin_template_per_kid": "Per-Kid Admin Template",
+          "dashboard_admin_template_per_kid": "Per-Assignee Admin Template",
           "dashboard_admin_view_visibility": "Admin View Visibility",
           "dashboard_icon": "Dashboard Icon",
           "dashboard_require_admin": "Admin Only",
@@ -1973,12 +1972,12 @@
           "dashboard_release_selection": "Dashboard Template Version"
         },
         "data_description": {
-          "dashboard_template_profile": "Template profile applied to selected kid views.",
-          "dashboard_kid_selection": "Select kids to include in this dashboard.",
-          "dashboard_admin_mode": "Choose the admin layout: none, shared, per kid, or both.",
+          "dashboard_template_profile": "Template profile applied to selected assignee views.",
+          "dashboard_kid_selection": "Select assignees to include in this dashboard.",
+          "dashboard_admin_mode": "Choose the admin layout: none, shared, per assignee, or both.",
           "dashboard_admin_template_global": "Template used when Admin Layout includes Shared.",
-          "dashboard_admin_template_per_kid": "Template used when Admin Layout includes Per Kid.",
-          "dashboard_admin_view_visibility": "Control who can see admin views. Parent-linked visibility uses linked parent HA users.",
+          "dashboard_admin_template_per_kid": "Template used when Admin Layout includes Per Assignee.",
+          "dashboard_admin_view_visibility": "Control who can see admin views. Approver-linked visibility uses linked approver HA users.",
           "dashboard_icon": "Sidebar icon for this dashboard.",
           "dashboard_require_admin": "Restrict dashboard access to admin users.",
           "dashboard_show_in_sidebar": "Show this dashboard in the Home Assistant sidebar.",
@@ -2014,7 +2013,7 @@
           "retention_monthly": "Monthly Data Retention (Months)",
           "retention_yearly": "Yearly Data Retention (Years)",
           "show_legacy_entities": "Show Extra Entities",
-          "kiosk_mode": "Enable Kiosk Mode for Kid Claims",
+          "kiosk_mode": "Enable Kiosk Mode for Assignee Claims",
           "backups_max_retained": "Maximum Backups to Retain",
           "backup_action_selection": "Backup Actions"
         },
@@ -2028,7 +2027,7 @@
           "retention_monthly": "Number of months of monthly historical data to retain before cleanup. Minimum 1, maximum 24.",
           "retention_yearly": "Number of years of yearly historical data to retain before cleanup. Minimum 1, maximum 10.",
           "show_legacy_entities": "Show extra entities like sensor and selects that are now consolidated into the dashboard helper sensor. These entities are optional for backward compatibility with existing automations.",
-          "kiosk_mode": "Allows kid chore/reward claim buttons to work on shared wall tablets without requiring the dashboard user to match the kid's Home Assistant user link. Security warning: anyone with access to that device can submit kid claims.",
+          "kiosk_mode": "Allows assignee chore/reward claim buttons to work on shared wall tablets without requiring the dashboard user to match the assignee's Home Assistant user link. Security warning: anyone with access to that device can submit assignee claims.",
           "backups_max_retained": "Maximum number of backup files to keep per tag (e.g., 5 manual backups, 5 data_reset backups). Older backups are automatically deleted after each new backup is created. Set to 0 to disable automatic backups completely.",
           "backup_action_selection": "Choose a backup management action: create a manual backup, delete a backup, or restore from a backup."
         }
@@ -2122,12 +2121,12 @@
     },
     "error": {
       "a_chore_must_be_selected": "A chore must be selected",
-      "badge_requires_assignment": "At least one kid must be assigned to this badge",
+      "badge_requires_assignment": "At least one assignee must be assigned to this badge",
       "duplicate_achievement": "An achievement with this name already exists",
       "duplicate_badge": "A badge with this name already exists",
       "duplicate_challenge": "A challenge with this name already exists",
       "duplicate_chore": "A chore with this name already exists",
-      "duplicate_kid": "A kid with this name already exists",
+      "duplicate_kid": "A assignee with this name already exists",
       "duplicate_parent": "A user with this name already exists",
       "duplicate_penalty": "A penalty with this name already exists",
       "duplicate_reward": "A reward with this name already exists",
@@ -2149,11 +2148,11 @@
       "invalid_due_date": "Invalid due date",
       "date_required_for_frequency": "A due date is required for this recurring frequency. Clear dates only works with None, Daily, or Weekly frequency.",
       "invalid_end_date": "Invalid end date.",
-      "invalid_kid_count": "Invalid kid count",
-      "invalid_kid_name": "Invalid kid name",
-      "no_kids_assigned": "At least one kid must be assigned to the chore",
-      "achievement_no_kids_assigned": "At least one kid must be assigned to the achievement",
-      "challenge_no_kids_assigned": "At least one kid must be assigned to the challenge",
+      "invalid_kid_count": "Invalid assignee count",
+      "invalid_kid_name": "Invalid assignee name",
+      "no_kids_assigned": "At least one assignee must be assigned to the chore",
+      "achievement_no_kids_assigned": "At least one assignee must be assigned to the achievement",
+      "challenge_no_kids_assigned": "At least one assignee must be assigned to the challenge",
       "invalid_penalty": "Invalid penalty",
       "invalid_penalty_count": "Invalid penalty count",
       "invalid_bonus": "Invalid bonus",
@@ -2168,29 +2167,29 @@
       "file_not_found": "The selected file could not be found.",
       "invalid_selection": "Please select a valid option.",
       "error_daily_multi_requires_compatible_reset": "'Multiple times per day' frequency incompatible with Midnight reset types because they only reset approvals once at midnight.",
-      "error_daily_multi_independent_multi_kids": "'Multiple times per day' frequency with INDEPENDENT completion requires exactly one kid, unless per-kid times are configured. Configure different times for each kid in the per-kid settings.",
+      "error_daily_multi_independent_multi_kids": "'Multiple times per day' frequency with INDEPENDENT completion requires exactly one assignee, unless per-assignee times are configured. Configure different times for each assignee in the per-assignee settings.",
       "error_daily_multi_times_required": "Times list is required for 'Multiple times per day' frequency.",
       "error_daily_multi_times_invalid_format": "Invalid time format. Use 24-hour format (HH:MM) separated by | (e.g., 08:00|17:00).",
       "error_daily_multi_times_too_few": "At least 2 times are required for 'Multiple times per day' frequency. For a single time, use regular 'Daily' frequency.",
       "error_daily_multi_times_too_many": "Maximum 6 times allowed per day for 'Multiple times per day' frequency.",
       "error_daily_multi_due_date_required": "'Multiple times per day' frequency requires a due date to be set. The date determines when scheduling starts and the times determine availability windows each day.",
-      "rotation_min_kids": "Rotation chores require at least 2 assigned kids",
+      "rotation_min_kids": "Rotation chores require at least 2 assigned assignees",
       "error_allow_steal_incompatible": "Allow Steal overdue handling is only compatible with Rotation chores (rotation_simple or rotation_smart), 'Once per day' reset type, and requires a due date to define when the steal window opens.",
       "error_at_due_date_reset_requires_due_date": "'At Due Date' approval reset types (Once or Multi) require a due date to be set. Without a due date, the approval reset will never trigger and the chore will remain approved indefinitely.",
-      "error_per_kid_applicable_days_invalid": "Invalid applicable days format for one or more kids. Days must be integers 0-6 (Monday-Sunday) with no duplicates.",
-      "error_per_kid_daily_multi_times_invalid": "Invalid daily times format for one or more kids. Use 24-hour format separated by | (e.g., 08:00|17:00).",
+      "error_per_kid_applicable_days_invalid": "Invalid applicable days format for one or more assignees. Days must be integers 0-6 (Monday-Sunday) with no duplicates.",
+      "error_per_kid_daily_multi_times_invalid": "Invalid daily times format for one or more assignees. Use 24-hour format separated by | (e.g., 08:00|17:00).",
       "dashboard_exists": "A dashboard with this URL path already exists. Enable 'Force Rebuild' to overwrite.",
       "dashboard_template_error": "Failed to fetch dashboard template. Check network connection or try again later.",
       "dashboard_render_error": "Failed to render dashboard template. This may indicate a template bug.",
       "dashboard_save_error": "Failed to save dashboard to Home Assistant. Check system logs for details.",
       "dashboard_release_incompatible": "Selected dashboard release is not compatible with your installed ChoreOps version.",
       "dashboard_no_name": "Please enter a name for the dashboard.",
-      "dashboard_no_kids": "Please select at least one kid or enable 'Include Admin Tab'.",
+      "dashboard_no_kids": "Please select at least one assignee or enable 'Include Admin Tab'.",
       "dashboard_no_dashboards": "Please select at least one dashboard to delete.",
-      "dashboard_no_kids_no_admin": "Select at least one kid, or choose an Admin Layout other than 'none'.",
+      "dashboard_no_kids_no_admin": "Select at least one assignee, or choose an Admin Layout other than 'none'.",
       "dashboard_admin_global_template_required": "Shared admin template is required when Admin Layout includes Shared.",
-      "dashboard_admin_per_kid_template_required": "Per-kid admin template is required when Admin Layout includes Per Kid.",
-      "dashboard_admin_per_kid_needs_kids": "Per Kid Admin Layout requires at least one selected kid."
+      "dashboard_admin_per_kid_template_required": "Per-assignee admin template is required when Admin Layout includes Per Assignee.",
+      "dashboard_admin_per_kid_needs_kids": "Per Assignee Admin Layout requires at least one selected assignee."
     },
     "abort": {
       "invalid_action": "Invalid Action",
@@ -2199,13 +2198,13 @@
       "invalid_challenge": "Invalid Challenge",
       "invalid_chore": "Invalid Chore",
       "invalid_entity": "Invalid Entity",
-      "invalid_kid": "Invalid Kid",
-      "invalid_parent": "Invalid Parent",
+      "invalid_kid": "Invalid Assignee",
+      "invalid_parent": "Invalid Approver",
       "invalid_penalty": "Invalid Penalty",
       "invalid_reward": "Invalid Reward",
       "invalid_bonus": "Invalid Bonus",
-      "no_kid": "No Kids are setup for edit. Add one entry first.",
-      "no_parent": "No Parents are setup for edit. Add one entry first.",
+      "no_kid": "No Assignees are setup for edit. Add one entry first.",
+      "no_parent": "No Approvers are setup for edit. Add one entry first.",
       "no_chore": "No Chores are setup for edit. Add one entry first.",
       "no_badge": "No Badges are setup for edit. Add one entry first.",
       "no_reward": "No Rewards are setup for edit. Add one entry first.",
@@ -2222,8 +2221,8 @@
     "main_menu": {
       "options": {
         "manage_points": "Manage Points",
-        "manage_user": "Manage Users",
-        "manage_parent": "Manage Users",
+        "manage_user": "Manage User",
+        "manage_parent": "Manage User",
         "manage_chore": "Manage Chore",
         "manage_badge": "Manage Badge",
         "manage_reward": "Manage Reward",
@@ -2261,14 +2260,14 @@
       "options": {
         "none": "None",
         "global": "Shared",
-        "per_kid": "Per Kid",
+        "per_kid": "Per Assignee",
         "both": "Both"
       }
     },
     "dashboard_admin_view_visibility": {
       "options": {
         "all_users": "All users",
-        "linked_parents": "Linked parents only"
+        "linked_parents": "Linked approvers only"
       }
     },
     "dashboard_release_selection": {
@@ -2360,8 +2359,8 @@
     },
     "completion_criteria": {
       "options": {
-        "shared_all": "Shared All (All kids must complete together)",
-        "independent": "Independent (Each kid completes on their own)",
+        "shared_all": "Shared All (All assignees must complete together)",
+        "independent": "Independent (Each assignee completes on their own)",
         "shared_first": "Shared First (First completion counts)",
         "rotation_simple": "Rotation Simple (Turn-holder only, strict order)",
         "rotation_smart": "Rotation Smart (Turn-holder only, fairness-weighted)"
@@ -2470,7 +2469,7 @@
         "cancel": "↩️  Cancel (return to backup menu)",
         "start_fresh": "🆕 Start fresh (creates backup of existing data)",
         "current_active": "📂 Use current active data file",
-        "migrate_from_kidschores": "🔄 Migrate from KidsChores (non-destructive copy)",
+        "migrate_from_kidschores": "🔄 Migrate from ChoreOps (non-destructive copy)",
         "paste_json": "📋 Paste JSON from data file or diagnostics"
       }
     }
@@ -2733,7 +2732,7 @@
     },
     "create_chore": {
       "name": "Create Chore",
-      "description": "Create a new chore that kids can complete to earn points.",
+      "description": "Create a new chore that assignees can complete to earn points.",
       "fields": {
         "name": {
           "name": "Chore Name",
@@ -2741,8 +2740,8 @@
           "example": "Clean Room"
         },
         "assigned_kids": {
-          "name": "Assigned Kids",
-          "description": "List of kid names to assign to this chore.",
+          "name": "Assigned Assignees",
+          "description": "List of assignee names to assign to this chore.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2777,7 +2776,7 @@
         },
         "completion_criteria": {
           "name": "Completion Criteria",
-          "description": "Controls how the chore is completed when multiple kids are assigned: individual tracking, shared completion, or turn-based rotation.",
+          "description": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "example": "independent"
         },
         "approval_reset_type": {
@@ -2797,7 +2796,7 @@
         },
         "chore_claim_lock_until_window": {
           "name": "Lock Claim Until Window Opens",
-          "description": "If true, kids cannot claim this chore before the due window begins.",
+          "description": "If true, assignees cannot claim this chore before the due window begins.",
           "example": "false"
         },
         "auto_approve": {
@@ -2837,8 +2836,8 @@
           "example": "Clean Room"
         },
         "assigned_kids": {
-          "name": "Assigned Kids",
-          "description": "New list of kid names to assign to this chore.",
+          "name": "Assigned Assignees",
+          "description": "New list of assignee names to assign to this chore.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2888,7 +2887,7 @@
         },
         "chore_claim_lock_until_window": {
           "name": "Lock Claim Until Window Opens",
-          "description": "If true, kids cannot claim this chore before the due window begins.",
+          "description": "If true, assignees cannot claim this chore before the due window begins.",
           "example": "true"
         },
         "auto_approve": {
@@ -2915,7 +2914,7 @@
     },
     "delete_chore": {
       "name": "Delete Chore",
-      "description": "Delete a chore by ID or name. All kid-specific statuses and history will be removed.",
+      "description": "Delete a chore by ID or name. All assignee-specific statuses and history will be removed.",
       "fields": {
         "id": {
           "name": "Chore ID",
@@ -2957,7 +2956,7 @@
     },
     "reset_rotation": {
       "name": "Reset Rotation",
-      "description": "Reset rotation turn to the first assigned kid. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification.",
+      "description": "Reset rotation turn to the first assigned assignee. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -2973,7 +2972,7 @@
     },
     "open_rotation_cycle": {
       "name": "Open Rotation Cycle",
-      "description": "Enable rotation cycle override for one cycle, allowing any assigned kid to claim regardless of turn. Override clears after next approval. Use either ID or name for identification.",
+      "description": "Enable rotation cycle override for one cycle, allowing any assigned assignee to claim regardless of turn. Override clears after next approval. Use either ID or name for identification.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -3019,7 +3018,7 @@
     },
     "reset_transactional_data": {
       "name": "Reset Transactional Data",
-      "description": "Reset runtime/transactional data while preserving configuration (assignees, chores, rewards, etc.). An automatic backup is created before reset as kidschores_data_timestamp_reset in the .storage directory. Use scope to target specific assignees or domains. Requires confirm_destructive parameter set to true as a safety mechanism.",
+      "description": "Reset runtime/transactional data while preserving configuration (assignees, chores, rewards, etc.). An automatic backup is created before reset as choreops_data_timestamp_reset in the .storage directory. Use scope to target specific assignees or domains. Requires confirm_destructive parameter set to true as a safety mechanism.",
       "fields": {
         "confirm_destructive": {
           "name": "Confirm Destructive",
@@ -3027,11 +3026,11 @@
         },
         "scope": {
           "name": "Scope",
-          "description": "Reset scope: 'global' resets all data, 'kid' resets data for a specific assignee only."
+          "description": "Reset scope: 'global' resets all data, 'assignee' resets data for a specific assignee only."
         },
         "assignee_name": {
           "name": "Assignee Name",
-          "description": "Required if scope is 'kid'. The name of the assignee whose data should be reset."
+          "description": "Required if scope is 'assignee'. The name of the assignee whose data should be reset."
         },
         "item_type": {
           "name": "Item Type",
@@ -3160,11 +3159,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_chore_status": "Kid-specific chore lifecycle states, performance statistics, and configuration metadata"
+              "purpose_chore_status": "Assignee-specific chore lifecycle states, performance statistics, and configuration metadata"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -3176,7 +3175,7 @@
             "name": "Description"
           },
           "assigned_kids": {
-            "name": "Assigned Kids"
+            "name": "Assigned Assignees"
           },
           "labels": {
             "name": "Labels"
@@ -3362,7 +3361,7 @@
             }
           },
           "turn_kid_name": {
-            "name": "Turn Kid Name"
+            "name": "Turn Assignee Name"
           },
           "available_at": {
             "name": "Available At"
@@ -3379,7 +3378,7 @@
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "points_multiplier": {
             "name": "Points Multiplier"
@@ -3490,7 +3489,7 @@
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "chore_stat_approved_today": {
             "name": "Approved Today"
@@ -3696,7 +3695,7 @@
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "labels": {
             "name": "Labels"
@@ -3779,12 +3778,12 @@
       },
       "system_badge_sensor": {
         "name": "Badge - {badge_name}",
-        "unit_of_measurement": "Kids",
+        "unit_of_measurement": "Assignees",
         "state_attributes": {
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_badge": "Count of kids who earned this badge, with badge configuration including type, target, awards, and assigned kids"
+              "purpose_badge": "Count of assignees who earned this badge, with badge configuration including type, target, awards, and assigned assignees"
             }
           },
           "badge_name": {
@@ -3808,10 +3807,10 @@
             "name": "Labels"
           },
           "kids_earned": {
-            "name": "Kids Earned"
+            "name": "Assignees Earned"
           },
           "kids_assigned": {
-            "name": "Kids Assigned"
+            "name": "Assignees Assigned"
           },
           "target": {
             "name": "Target"
@@ -3846,7 +3845,7 @@
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "badge_name": {
             "name": "Badge Name"
@@ -3947,7 +3946,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_shared_chore": "Global completion state for shared chores with aggregate statistics across all assigned kids"
+              "purpose_shared_chore": "Global completion state for shared chores with aggregate statistics across all assigned assignees"
             }
           },
           "chore_name": {
@@ -3960,7 +3959,7 @@
             "name": "Description"
           },
           "assigned_kids": {
-            "name": "Assigned Kids"
+            "name": "Assigned Assignees"
           },
           "labels": {
             "name": "Labels"
@@ -4027,7 +4026,7 @@
             }
           },
           "chore_approvals_today": {
-            "name": "Approvals Today (All Kids)"
+            "name": "Approvals Today (All Assignees)"
           },
           "last_claimed": {
             "name": "Last Claimed"
@@ -4073,7 +4072,7 @@
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4186,7 +4185,7 @@
         "name": "Penalties applied - {penalty_name}",
         "state_attributes": {
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "penalty_name": {
             "name": "Penalty Name"
@@ -4206,7 +4205,7 @@
         "name": "Bonus Applies - {bonus_name}",
         "state_attributes": {
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "bonus_name": {
             "name": "Bonus Name"
@@ -4237,7 +4236,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_achievement": "Achievement progress percentage (0-100) aggregated across all assigned kids, with achievement configuration including type, target, criteria, and list of kids who earned it"
+              "purpose_achievement": "Achievement progress percentage (0-100) aggregated across all assigned assignees, with achievement configuration including type, target, criteria, and list of assignees who earned it"
             }
           },
           "achievement_name": {
@@ -4247,7 +4246,7 @@
             "name": "Description"
           },
           "assigned_kids": {
-            "name": "Assigned Kids"
+            "name": "Assigned Assignees"
           },
           "type": {
             "name": "Type",
@@ -4283,7 +4282,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_challenge": "Challenge progress percentage (0-100) aggregated across all assigned kids within date window, with challenge configuration including type, target, criteria, dates, and list of kids who earned it"
+              "purpose_challenge": "Challenge progress percentage (0-100) aggregated across all assigned assignees within date window, with challenge configuration including type, target, criteria, dates, and list of assignees who earned it"
             }
           },
           "challenge_name": {
@@ -4293,7 +4292,7 @@
             "name": "Description"
           },
           "assigned_kids": {
-            "name": "Assigned Kids"
+            "name": "Assigned Assignees"
           },
           "type": {
             "name": "Type",
@@ -4334,11 +4333,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_achievement_progress": "Individual kid's progress percentage (0-100) toward earning this achievement, with current raw progress count and award status"
+              "purpose_achievement_progress": "Individual assignee's progress percentage (0-100) toward earning this achievement, with current raw progress count and award status"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "achievement_name": {
             "name": "Achievement Name"
@@ -4347,7 +4346,7 @@
             "name": "Description"
           },
           "assigned_kids": {
-            "name": "Assigned Kids"
+            "name": "Assigned Assignees"
           },
           "type": {
             "name": "Type",
@@ -4390,11 +4389,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_challenge_progress": "Individual kid's progress percentage (0-100) toward completing this challenge within the date window, with current raw progress count and award status"
+              "purpose_challenge_progress": "Individual assignee's progress percentage (0-100) toward completing this challenge within the date window, with current raw progress count and award status"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "challenge_name": {
             "name": "Challenge Name"
@@ -4403,7 +4402,7 @@
             "name": "Description"
           },
           "assigned_kids": {
-            "name": "Assigned Kids"
+            "name": "Assigned Assignees"
           },
           "type": {
             "name": "Type",
@@ -4476,7 +4475,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_dashboard_helper": "Aggregates all kid data for dashboard consumption"
+              "purpose_dashboard_helper": "Aggregates all assignee data for dashboard consumption"
             }
           },
           "chores": {
@@ -4519,7 +4518,7 @@
             "name": "Chores by Label"
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "language": {
             "name": "Language"
@@ -4547,22 +4546,22 @@
         "name": "Select Bonus"
       },
       "system_dashboard_admin_kid_select": {
-        "name": "Admin Dashboard Kid Selector",
+        "name": "Admin Dashboard Assignee Selector",
         "state_attributes": {
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_system_dashboard_admin_kid": "System-level kid selector for admin dashboard cards"
+              "purpose_system_dashboard_admin_kid": "System-level assignee selector for admin dashboard cards"
             }
           },
           "dashboard_helper_eid": {
             "name": "Dashboard Helper Entity ID"
           },
           "selected_kid_slug": {
-            "name": "Selected Kid Slug"
+            "name": "Selected Assignee Slug"
           },
           "selected_kid_name": {
-            "name": "Selected Kid Name"
+            "name": "Selected Assignee Name"
           }
         }
       },
@@ -4572,11 +4571,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_select_kid_chores": "Kid's chore selection for dashboard filtering"
+              "purpose_select_kid_chores": "Assignee's chore selection for dashboard filtering"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           }
         }
       }
@@ -4588,11 +4587,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_calendar_schedule": "Calendar showing kid's chore schedule and due dates"
+              "purpose_calendar_schedule": "Calendar showing assignee's chore schedule and due dates"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           }
         }
       }
@@ -4608,7 +4607,7 @@
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           }
         }
       }
@@ -4620,11 +4619,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_chore_claim": "Kid claims completion of assigned chore"
+              "purpose_button_chore_claim": "Assignee claims completion of assigned chore"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -4640,11 +4639,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_chore_approve": "Parent approves claimed chore"
+              "purpose_button_chore_approve": "Approver approves claimed chore"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -4660,11 +4659,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_chore_disapprove": "Parent disapproves claimed chore"
+              "purpose_button_chore_disapprove": "Approver disapproves claimed chore"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -4680,11 +4679,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_reward_redeem": "Kid redeems reward using points"
+              "purpose_button_reward_redeem": "Assignee redeems reward using points"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4700,11 +4699,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_reward_approve": "Parent approves redeemed reward"
+              "purpose_button_reward_approve": "Approver approves redeemed reward"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4720,11 +4719,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_reward_disapprove": "Parent disapproves redeemed reward"
+              "purpose_button_reward_disapprove": "Approver disapproves redeemed reward"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4740,11 +4739,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_penalty_apply": "Parent applies penalty (deducts points)"
+              "purpose_button_penalty_apply": "Approver applies penalty (deducts points)"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "penalty_name": {
             "name": "Penalty Name"
@@ -4760,11 +4759,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_bonus_apply": "Parent applies bonus (adds points)"
+              "purpose_button_bonus_apply": "Approver applies bonus (adds points)"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "bonus_name": {
             "name": "Bonus Name"
@@ -4780,11 +4779,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_points_adjust": "Parent manually adjusts kid's points"
+              "purpose_button_points_adjust": "Approver manually adjusts assignee's points"
             }
           },
           "kid_name": {
-            "name": "Kid Name"
+            "name": "Assignee Name"
           },
           "delta": {
             "name": "Adjustment Amount"
@@ -4804,25 +4803,25 @@
   },
   "exceptions": {
     "kid_not_found_by_name": {
-      "message": "No kid found with name {name}"
+      "message": "No assignee found with name {name}"
     },
     "parent_not_found_by_name": {
-      "message": "No parent found with name {name}"
+      "message": "No approver found with name {name}"
     },
     "kid_already_shadow": {
-      "message": "Kid {name} is already linked to a parent"
+      "message": "Assignee {name} is already linked to a approver"
     },
     "kid_not_shadow": {
-      "message": "Kid {name} is not linked to any parent"
+      "message": "Assignee {name} is not linked to any approver"
     },
     "parent_has_different_shadow": {
-      "message": "Parent {name} is already linked to a different kid"
+      "message": "Approver {name} is already linked to a different assignee"
     },
     "error_msg_no_entry_found": {
       "message": "No matching entry found in configuration."
     },
     "not_authorized_action": {
-      "message": "You are not authorized to {action} for this kid."
+      "message": "You are not authorized to {action} for this assignee."
     },
     "not_authorized_action_global": {
       "message": "You are not authorized to {action}."
@@ -4846,25 +4845,25 @@
       "message": "Rotation chores must have a turn holder assigned"
     },
     "rotation_invalid_order": {
-      "message": "Rotation order must be a non-empty list of kid IDs"
+      "message": "Rotation order must be a non-empty list of assignee IDs"
     },
     "rotation_duplicate_in_order": {
-      "message": "Rotation order cannot contain duplicate kids"
+      "message": "Rotation order cannot contain duplicate assignees"
     },
     "rotation_unassigned_in_order": {
-      "message": "All kids in rotation order must be assigned to the chore"
+      "message": "All assignees in rotation order must be assigned to the chore"
     },
     "rotation_min_kids": {
-      "message": "Rotation chores require at least 2 assigned kids"
+      "message": "Rotation chores require at least 2 assigned assignees"
     },
     "not_rotation": {
       "message": "This chore is not in rotation mode"
     },
     "kid_not_assigned": {
-      "message": "Kid is not assigned to this chore"
+      "message": "Assignee is not assigned to this chore"
     },
     "no_assigned_kids": {
-      "message": "No kids are assigned to this chore"
+      "message": "No assignees are assigned to this chore"
     },
     "insufficient_points": {
       "message": "{kid} has {current} points but needs {required} points"
@@ -4885,13 +4884,13 @@
       "message": "This chore cannot be claimed yet. The due window has not opened."
     },
     "chore_not_my_turn": {
-      "message": "This chore is rotation-locked. It is currently another kid's turn."
+      "message": "This chore is rotation-locked. It is currently another assignee's turn."
     },
     "chore_missed_locked": {
       "message": "This chore is marked missed and locked for the current cycle."
     },
     "chore_completed_by_other": {
-      "message": "This chore has already been completed by another kid this period"
+      "message": "This chore has already been completed by another assignee this period"
     },
     "invalid_status": {
       "message": "{entity} status is {status}, expected {expected}"
@@ -4906,10 +4905,10 @@
       "message": "Chore {chore_name} is overdue for {kid_name}"
     },
     "kid_not_assigned_to_chore": {
-      "message": "Kid {kid_name} is not assigned to chore {chore_name}"
+      "message": "Assignee {kid_name} is not assigned to chore {chore_name}"
     },
     "shared_chore_cannot_have_kid": {
-      "message": "Cannot specify kid for shared chore {chore_name}. Shared chores have one due date for all kids."
+      "message": "Cannot specify assignee for shared chore {chore_name}. Shared chores have one due date for all assignees."
     },
     "reward_not_found": {
       "message": "Reward with ID {reward_id} not found"
@@ -4957,16 +4956,16 @@
       "message": "You must set confirm_destructive: true to proceed with data reset"
     },
     "data_reset_kid_not_found": {
-      "message": "Kid {kid_name} not found"
+      "message": "Assignee {kid_name} not found"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} not found"
     },
     "data_reset_invalid_scope": {
-      "message": "Invalid scope {scope}. Must be: global, kid, item_type, or item"
+      "message": "Invalid scope {scope}. Must be: global, assignee, item_type, or item"
     },
     "data_reset_invalid_item_type": {
-      "message": "Invalid item_type {item_type}. Must be: kids, chores, rewards, badges, achievements, challenges, penalties, or bonuses"
+      "message": "Invalid item_type {item_type}. Must be: assignees, chores, rewards, badges, achievements, challenges, penalties, or bonuses"
     },
     "notif_title_data_reset": {
       "message": "Transactional Data Reset"

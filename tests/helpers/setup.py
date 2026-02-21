@@ -195,7 +195,7 @@ async def _configure_points_step(
             - icon: Points icon (default: "mdi:star-outline")
 
     Returns:
-        Updated flow result at KID_COUNT step
+        Updated flow result at USER_COUNT step
     """
     assert result.get("step_id") == const.CONFIG_FLOW_STEP_POINTS
 
@@ -209,7 +209,7 @@ async def _configure_points_step(
         },
     )
 
-    assert result.get("step_id") == const.CONFIG_FLOW_STEP_KID_COUNT
+    assert result.get("step_id") == const.CONFIG_FLOW_STEP_USER_COUNT
     return result
 
 
@@ -219,11 +219,11 @@ async def _configure_kid_step(
     mock_hass_users: dict[str, Any],
     kid_config: dict[str, Any],
 ) -> ConfigFlowResult:
-    """Configure a single kid step.
+    """Configure a single assignable user step.
 
     Args:
         hass: Home Assistant instance
-        result: Current flow result on KIDS step
+        result: Current flow result on USERS step
         mock_hass_users: Mock users dict from fixture
         kid_config: Dict with keys:
             - name: Kid name (required)
@@ -951,42 +951,36 @@ async def setup_scenario(
     result = await _configure_points_step(hass, result, points_config)
 
     # -----------------------------------------------------------------
-    # Configure kids
+    # Configure users (single count step for assignable + approver users)
     # -----------------------------------------------------------------
     kid_count = len(kids_config)
+    parent_count = len(parents_config)
+    total_user_count = kid_count + parent_count
+
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={const.CFOF_KIDS_INPUT_KID_COUNT: kid_count},
+        user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: total_user_count},
     )
 
-    if kid_count > 0:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_KIDS
+    if total_user_count > 0:
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
 
         for i, kid_config in enumerate(kids_config):
             result = await _configure_kid_step(
                 hass, result, mock_hass_users, kid_config
             )
 
-            if i < kid_count - 1:
-                # More kids to configure
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_KIDS
+            if i < kid_count - 1 or parent_count > 0:
+                # More users to configure
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
             else:
-                # Last kid - should advance to parent count
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_USER_COUNT
+                # Last user - should advance to chore count
+                assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT
 
         # Note: kid IDs will be extracted after we enter the PARENTS step
         # (they're embedded in the associated_kids selector, not available here)
-    else:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_USER_COUNT
-
-    # -----------------------------------------------------------------
-    # Configure parents
-    # -----------------------------------------------------------------
-    parent_count = len(parents_config)
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"],
-        user_input={const.CFOF_PARENTS_INPUT_PARENT_COUNT: parent_count},
-    )
+    elif total_user_count == 0:
+        assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHORE_COUNT
 
     if parent_count > 0:
         assert result.get("step_id") == const.CONFIG_FLOW_STEP_USERS
