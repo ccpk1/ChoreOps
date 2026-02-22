@@ -5,7 +5,16 @@
 - **Name / Code**: Rebrand Role-Model Master Orchestration (`CHOREOPS-PROGRAM-MASTER-001`)
 - **Target release / milestone**: v0.5.0-beta5 hardening closeout
 - **Owner / driver(s)**: Project manager + builder lead + strategy owner
-- **Status**: Active orchestration guide
+- **Status**: Deferred - execution transferred to `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+## Transfer notice
+
+This plan is superseded for execution.
+All remaining implementation work is tracked in:
+
+- `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+This file remains as historical governance context only.
 
 ## Purpose
 
@@ -54,7 +63,7 @@ Use this table as the PM advancement gate. A sequence is only complete when all 
 | 2 | `CHOREOPS_DATA_MODEL_UNIFICATION`: runtime/model hard-cut phase complete for current batch scope; migration-only exceptions tagged | ☑ Complete | Runtime symbol rename/removal changelog + focused runtime regression results |
 | 3 | `OPTIONS_FLOW_ROLE_BASED_USERS`: flow contract phase complete for current batch scope; wrapper reduction completed per gate | ☑ Complete | Config/options flow matrix + focused flow test evidence |
 | 4 | `TRANSLATION_CONTRACT_REALIGNMENT`: Phase 1-3 completion for active wave (inventory, parity, lockstep mapping) | ☑ Complete | Translation mismatch inventory + zero-missing-runtime-key report + targeted tests |
-| 5 | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 4/5 closeout governance execution | ◐ In progress (audit complete; archive gate pending) | Final open-vs-done matrix + PM and builder lead sign-off |
+| 5 | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 4/5 closeout governance execution | ☑ Complete | Final open-vs-done matrix + PM and builder lead sign-off |
 
 ### Advancement rule
 
@@ -65,10 +74,10 @@ Use this table as the PM advancement gate. A sequence is only complete when all 
 
 ### Current progress snapshot (update daily)
 
-- Active sequence index: `5` in progress
+- Active sequence index: `5` complete
 - Current owner: `Project manager + strategy owner`
-- Blockers: `Archive gate pending: unresolved Phase 3 closeout batches (3A–3D) and missing PM/builder sign-off record`
-- Next evidence checkpoint: `Reconcile remaining closeout checklist items and record final sign-off for archive decision`
+- Blockers: `None (archive-ready patch prepared)`
+- Next evidence checkpoint: `Archive/move decision and completed-plan handoff`
 
 ## PM operating instructions
 
@@ -120,12 +129,12 @@ Use this table as the PM advancement gate. A sequence is only complete when all 
 
 ## Program acceptance checklist
 
-- [ ] Sequence 0 through 5 completed in order
-- [ ] All four plans contain consistent status and completion statements
-- [ ] Terminology policy enforced in runtime, translations, and core docs
-- [ ] Intentional exceptions limited to README/wiki and documented
-- [ ] Runtime/translation lockstep evidence attached
-- [ ] Final open-vs-done matrix approved by PM and builder lead
+- [x] Sequence 0 through 5 completed in order
+- [x] All four plans contain consistent status and completion statements
+- [x] Terminology policy enforced in runtime, translations, and core docs
+- [x] Intentional exceptions limited to README/wiki and documented
+- [x] Runtime/translation lockstep evidence attached
+- [x] Final open-vs-done matrix approved by PM and builder lead
 
 ## References
 

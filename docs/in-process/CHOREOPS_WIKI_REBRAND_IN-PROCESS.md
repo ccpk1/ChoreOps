@@ -5,7 +5,16 @@
 - **Name / Code**: ChoreOps Wiki Rebrand (`CHOREOPS-WIKI-REBRAND-001`)
 - **Target release / milestone**: v0.5.0 documentation hardening window
 - **Owner / driver(s)**: Repo maintainers (`@ccpk1` + contributors)
-- **Status**: In progress (Execution complete; awaiting owner sign-off gates)
+- **Status**: Deferred - execution transferred to `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+## Transfer notice
+
+This plan is superseded for execution.
+All remaining implementation work is tracked in:
+
+- `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+This file remains as historical wiki cleanup evidence only.
 
 ## Summary & immediate steps
 

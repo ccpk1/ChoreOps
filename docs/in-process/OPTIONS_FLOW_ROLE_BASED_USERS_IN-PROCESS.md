@@ -5,7 +5,16 @@
 - **Name / Code**: Role-based User Flow Redesign (`CHOREOPS-UX-ROLEFLOW-001`)
 - **Target release / milestone**: v0.5.0-beta5 follow-up hardening
 - **Owner / driver(s)**: Integration maintainers + architecture owner
-- **Status**: Phase 5 and Phase 6 complete (all planned phases complete; awaiting owner approval for archive)
+- **Status**: Deferred - execution transferred to `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+## Transfer notice
+
+This plan is superseded for execution.
+All remaining implementation work is tracked in:
+
+- `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+This file remains as historical flow-delivery evidence only.
 
 Program alignment note:
 
@@ -67,9 +76,11 @@ Program alignment note:
 - If broader run is deferred, proceed with documented focused-gate evidence for release hardening sign-off.
 
 4. **Risks / blockers**
-  - Archive remains blocked until cross-plan terminology and translation gates are closed per master orchestration.
-  - Residual historical references in this plan must remain clearly marked as resolved/non-authoritative context.
-  - Final closeout still depends on program-level evidence consolidation (open-vs-done matrix).
+
+- Archive remains blocked until cross-plan terminology and translation gates are closed per master orchestration.
+- Residual historical references in this plan must remain clearly marked as resolved/non-authoritative context.
+- Final closeout still depends on program-level evidence consolidation (open-vs-done matrix).
+
 5. **References**
    - [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
    - [docs/DEVELOPMENT_STANDARDS.md](../DEVELOPMENT_STANDARDS.md)
@@ -86,11 +97,12 @@ Program alignment note:
 
 6. **Decisions & completion check**
    - **Decisions captured**:
-  - Approved terminal terminology policy: `KidsChores` is restricted to migration/legacy/credit references and the explicit fun label `KidsChores Mode`; `kid` and `parent` are disallowed in runtime symbols/translations/core docs outside documented migration-only compatibility and intentional README/wiki exceptions.
-     - Options/config UX is user-role based; parent/kid wording is non-canonical for user management surfaces.
-     - “Manage Users” must enumerate all managed user records intended by the role model, not only legacy parent bucket rows.
-     - Step IDs, selector values, and translation namespaces must be coherent (no label-only rename).
-   - **Completion confirmation**: `[ ]` All implementation, tests, and docs completed before owner approval.
+
+- Approved terminal terminology policy: `KidsChores` is restricted to migration/legacy/credit references and the explicit fun label `KidsChores Mode`; `kid` and `parent` are disallowed in runtime symbols/translations/core docs outside documented migration-only compatibility and intentional README/wiki exceptions.
+  - Options/config UX is user-role based; parent/kid wording is non-canonical for user management surfaces.
+  - “Manage Users” must enumerate all managed user records intended by the role model, not only legacy parent bucket rows.
+  - Step IDs, selector values, and translation namespaces must be coherent (no label-only rename).
+- **Completion confirmation**: `[ ]` All implementation, tests, and docs completed before owner approval.
 
 ## Detailed analysis (historical baseline and resolved findings)
 

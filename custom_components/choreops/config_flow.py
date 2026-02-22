@@ -1361,6 +1361,9 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             step_id=const.CONFIG_FLOW_STEP_ACHIEVEMENTS,
             data_schema=achievement_schema,
             errors=errors,
+            description_placeholders={
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_ACHIEVEMENTS_OVERVIEW
+            },
         )
 
     # --------------------------------------------------------------------------
@@ -1494,6 +1497,9 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             step_id=const.CONFIG_FLOW_STEP_CHALLENGES,
             data_schema=challenge_schema,
             errors=errors,
+            description_placeholders={
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHALLENGES_OVERVIEW
+            },
         )
 
     # --------------------------------------------------------------------------

@@ -88,9 +88,14 @@ DOC_URL_BADGES_CUMULATIVE: Final = (
 DOC_URL_BADGES_PERIODIC: Final = (
     "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Periodic"
 )
-DOC_URL_ACHIEVEMENTS_OVERVIEW: Final = "https://github.com/ccpk1/choreops/wiki/Challenges-&-Achievements%3A-Overview-&-Functionality"
+DOC_URL_ACHIEVEMENTS_OVERVIEW: Final = (
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Achievements"
+)
+DOC_URL_CHALLENGES_OVERVIEW: Final = (
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Challenges"
+)
 DOC_URL_BONUSES_PENALTIES: Final = (
-    "https://github.com/ccpk1/choreops/wiki/Bonuses-&-Penalties%3A-Overview-&-Examples"
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Points"
 )
 DOC_URL_CHORES: Final = "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Chores"
 DOC_URL_CHORES_ADVANCED: Final = (

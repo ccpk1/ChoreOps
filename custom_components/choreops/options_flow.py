@@ -3794,7 +3794,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=challenge_schema,
             errors=errors,
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_ACHIEVEMENTS_OVERVIEW
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHALLENGES_OVERVIEW
             },
         )
 
@@ -3997,7 +3997,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=challenge_schema,
             errors=errors,
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_ACHIEVEMENTS_OVERVIEW
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHALLENGES_OVERVIEW
             },
         )
 

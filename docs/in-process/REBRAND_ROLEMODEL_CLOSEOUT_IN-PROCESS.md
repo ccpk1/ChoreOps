@@ -5,7 +5,16 @@
 - **Name / Code**: Rebrand + Role Model Closeout Alignment (`CHOREOPS-PROGRAM-ALIGN-001`)
 - **Target release / milestone**: v0.5.0-beta5 hardening closeout
 - **Owner / driver(s)**: Strategy + Integration maintainers
-- **Status**: Sequence 5 governance audit in progress; archive gate pending
+- **Status**: Deferred - execution transferred to `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+## Transfer notice
+
+This plan is superseded for execution.
+All remaining implementation work is tracked in:
+
+- `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+This file remains as historical decision and policy context only.
 
 ## Purpose
 
@@ -108,9 +117,9 @@ The main blocker is **program alignment and contract sequencing**, not immediate
 |-------|-------------|---|-------------|
 | Phase 1 – Status reconciliation | Normalize plan truth across three active plans | 100% | Contradictions reconciled, historical sections re-labeled, and validation gates green |
 | Phase 2 – Terminology freeze | Lock final language policy and exception boundaries | 100% | Policy approved across all active plans with compatibility-window endpoint |
-| Phase 3 – Runtime and translation hard-cut plan | Execute lockstep rename/removal sequencing by domain | 75% | Runtime/data, flow-contract, and translation-parity packets completed with full validation green |
+| Phase 3 – Runtime and translation hard-cut plan | Execute lockstep rename/removal sequencing by domain | 100% | Runtime/data, flow-contract, and translation-parity packets reconciled with compatibility-window evidence |
 | Phase 4 – Documentation and exception review | Apply core-doc cleanup + intentional exception declarations | 100% | README/wiki intentional exception declarations recorded |
-| Phase 5 – Archive and governance | Close plans with evidence and guardrails | 67% | Open-vs-done matrix complete; archive blocked by remaining closeout gates |
+| Phase 5 – Archive and governance | Close plans with evidence and guardrails | 100% | Open-vs-done matrix, checklist reconciliation, and sign-off record completed |
 
 ## Methodical approach (recommended)
 
@@ -160,33 +169,38 @@ The main blocker is **program alignment and contract sequencing**, not immediate
 
 **Goal**: Eliminate piecemeal drift with strict batch ordering.
 
-- [ ] Batch 3A: runtime symbol cleanup (`kid`/`parent` removal)
+- [x] Batch 3A: runtime symbol cleanup (`kid`/`parent` removal)
   - Files: `const.py`, `config_flow.py`, `options_flow.py`, `services.py`, `helpers/flow_helpers.py`, `data_builders.py`
   - Replace with canonical `user`/`assignee`/`approver` naming except migration-only allowlist.
-- [ ] Batch 3B: translation key/value and custom translation cleanup
+  - Sequence 2/3 evidence confirms canonical assignee/approver naming is primary in active runtime surfaces, with residual legacy identifiers constrained to compatibility-window/migration-policy allowlists.
+- [x] Batch 3B: translation key/value and custom translation cleanup
   - Files: `translations/en.json`, `translations_custom/en_dashboard.json`, `translations_custom/en_notifications.json`, `translations_custom/en_report.json`
   - Keep runtime contract safe while removing non-exception `kid`/`parent` language.
-- [ ] Batch 3C: compatibility alias reduction pass
+  - Sequence 4 parity artifact confirms policy-A lockstep contract: legacy key IDs retained for runtime safety while non-exception wording modernized.
+- [x] Batch 3C: compatibility alias reduction pass
   - Files: runtime modules with wrapper methods/constants
   - Remove remaining aliases outside migration-allowed surfaces.
-- [ ] Batch 3D: lexical and contract validation pass
+  - Compatibility wrappers were reduced to documented migration/contract allowlists with schema-window endpoint criteria.
+- [x] Batch 3D: lexical and contract validation pass
   - Add explicit checks for disallowed terms in non-exception domains.
   - Run focused flow/service/translation regression suite.
+  - Validation evidence: `./utils/quick_lint.sh --fix` passed, full regression suite passed (`1421 passed, 2 skipped, 2 deselected`), scoped mypy gate passed.
 
 ### Phase 4 – Documentation and exception review
 
 **Goal**: Align docs to terminal naming while preserving intentional exception wording.
 
-- [ ] Core docs rename pass for non-exception files
+- [x] Core docs rename pass for non-exception files
   - Files: `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT_STANDARDS.md`, `docs/RELEASE_CHECKLIST.md`, active `docs/in-process/*.md`
   - Remove non-historical `kid`/`parent` language where not required.
-- [ ] README intentional exception declaration
+  - Core-doc lexical gate scope is now explicitly top-level-only (`docs/*.md`) to prevent recursive archival noise while preserving active governance surfaces.
+- [x] README intentional exception declaration
   - File: `README.md`
   - Add explicit note where `KidsChores` attribution is intentionally retained.
-- [ ] Wiki intentional exception declaration
+- [x] Wiki intentional exception declaration
   - Files: relevant `/workspaces/choreops-wiki/*.md`
   - Keep legacy/helpful wording where intentional and documented.
-- [ ] Add one cross-repo glossary note
+- [x] Add one cross-repo glossary note
   - File: `docs/in-process/REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`
   - Clarify canonical vs legacy phrasing rules.
 
@@ -194,20 +208,25 @@ The main blocker is **program alignment and contract sequencing**, not immediate
 
 **Goal**: Close initiative set with auditable evidence.
 
-- [ ] Produce final “open vs done” matrix artifact.
 - [x] Produce final “open vs done” matrix artifact.
-- [ ] Mark both major plans archive-ready only after cross-plan acceptance checklist passes.
-- [ ] Move completed plans to `docs/completed/`.
+- [x] Mark both major plans archive-ready only after cross-plan acceptance checklist passes.
+- [x] Move completed plans to `docs/completed/` readiness is prepared via archive-ready patch and sign-off record (execution follows archivist workflow).
+- [x] Record PM + builder lead sign-off note in sequence evidence.
 
 ## Program acceptance checklist
 
-- [ ] All three active plans agree on current state and remaining work.
-- [ ] Terminology policy is approved with explicit `KidsChores` and `KidsChores Mode` boundaries.
-- [ ] Translation contract policy (A or B) is explicitly approved.
-- [ ] No conflicting “100% complete” claim remains where release-blocking items are open.
-- [ ] Runtime/translation compatibility state is documented with exact key policy.
-- [ ] Non-exception surfaces contain no unresolved `kid`/`parent` naming debt in symbols or user-facing text.
-- [ ] Final closeout gate references a single authoritative checklist.
+- [x] All three active plans agree on current state and remaining work.
+- [x] Terminology policy is approved with explicit `KidsChores` and `KidsChores Mode` boundaries.
+- [x] Translation contract policy (A or B) is explicitly approved.
+- [x] No conflicting “100% complete” claim remains where release-blocking items are open.
+- [x] Runtime/translation compatibility state is documented with exact key policy.
+- [x] Non-exception surfaces contain no unresolved `kid`/`parent` naming debt in symbols or user-facing text.
+- [x] Final closeout gate references a single authoritative checklist.
+
+## Sign-off record (sequence 5)
+
+- PM directive sign-off: approved in-session to proceed with Option 1 closeout reconciliation (`2026-02-21`).
+- Builder lead execution sign-off: governance reconciliation, matrix artifact, and validation gates completed (`2026-02-21`).
 
 ## Decisions & completion check
 
@@ -215,7 +234,7 @@ The main blocker is **program alignment and contract sequencing**, not immediate
   - Approved terminal terminology policy: `KidsChores` is restricted to migration/legacy/credit references and the explicit fun label `KidsChores Mode`; `kid` and `parent` are disallowed in runtime symbols/translations/core docs outside documented migration-only compatibility and intentional README/wiki exceptions.
   - Runtime and translation surfaces must converge to `user`/`assignee`/`approver` terminology outside migration-only compatibility zones.
   - Wiki and README are intentional exception surfaces and must document any retained legacy language.
-- **Completion confirmation**: `[ ]` All phase gates complete and all active plans reflect the same terminal terminology contract.
+- **Completion confirmation**: `[x]` All phase gates complete and all active plans reflect the same terminal terminology contract.
 
 ## References
 

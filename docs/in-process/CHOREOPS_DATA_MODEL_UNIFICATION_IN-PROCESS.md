@@ -5,7 +5,16 @@
 - **Name / Code**: ChoreOps Data Model Unification (`CHOREOPS-ARCH-UNIFY-003`)
 - **Target release / milestone**: v0.5.0-beta5 (schema 45)
 - **Owner / driver(s)**: Engineering + Strategy & Architecture Team
-- **Status**: Hard-fork closeout in progress (Phase 4 lexical and translation hygiene gates active)
+- **Status**: Deferred - execution transferred to `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+## Transfer notice
+
+This plan is superseded for execution.
+All remaining implementation work is tracked in:
+
+- `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+This file remains as historical implementation evidence and decision context only.
 
 Program alignment note:
 

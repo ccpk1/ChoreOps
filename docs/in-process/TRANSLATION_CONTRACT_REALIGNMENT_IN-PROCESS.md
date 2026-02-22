@@ -5,7 +5,16 @@
 - **Name / Code**: Translation Contract Realignment (`CHOREOPS-I18N-CONTRACT-001`)
 - **Target release / milestone**: v0.5.0-beta5 hardening (pre-release gate)
 - **Owner / driver(s)**: Integration maintainers + architecture owner
-- **Status**: Phase 1-3 complete for active wave; Phase 4 gate hardening pending
+- **Status**: Deferred - execution transferred to `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+## Transfer notice
+
+This plan is superseded for execution.
+All remaining implementation work is tracked in:
+
+- `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`
+
+This file remains as historical translation-contract evidence only.
 
 ## Why this plan exists
 
@@ -20,12 +29,12 @@ A compatibility audit found that translation/runtime contract safety must be han
 
 ## Summary table
 
-| Phase                              | Description                                     | %   | Quick notes                               |
-| ---------------------------------- | ----------------------------------------------- | --- | ----------------------------------------- |
-| Phase 1 – Contract inventory       | Build authoritative runtime→translation key map | 100%  | Inventory published with evidence artifact |
-| Phase 2 – Key parity verification  | Verify runtime-consumed keys are retained in `en.json` | 100%  | Priority runtime keys verified present     |
-| Phase 3 – Canonical migration path | Introduce canonical key path safely             | 100%  | Policy-A deferral recorded; no unsynced key-ID migration |
-| Phase 4 – Gate hardening           | Add automated parity checks to CI/local gates   | 0%  | Block recurrence                          |
+| Phase                              | Description                                            | %    | Quick notes                                              |
+| ---------------------------------- | ------------------------------------------------------ | ---- | -------------------------------------------------------- |
+| Phase 1 – Contract inventory       | Build authoritative runtime→translation key map        | 100% | Inventory published with evidence artifact               |
+| Phase 2 – Key parity verification  | Verify runtime-consumed keys are retained in `en.json` | 100% | Priority runtime keys verified present                   |
+| Phase 3 – Canonical migration path | Introduce canonical key path safely                    | 100% | Policy-A deferral recorded; no unsynced key-ID migration |
+| Phase 4 – Gate hardening           | Add automated parity checks to CI/local gates          | 0%   | Block recurrence                                         |
 
 ## Phase details
 

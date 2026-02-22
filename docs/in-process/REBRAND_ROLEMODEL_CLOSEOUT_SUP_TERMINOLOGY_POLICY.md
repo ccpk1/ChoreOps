@@ -24,6 +24,15 @@ Define enforceable, file-scoped terminology rules for the final hard-fork closeo
 - `KidsChores Mode` is the only approved fun-context phrase.
 - Any other new `KidsChores` usage requires explicit plan-level approval before merge.
 
+## Cross-repo glossary note
+
+- Canonical wording for active runtime/docs/translations: `user`, `assignee`, `approver`.
+- Legacy wording (`kid`, `parent`, `KidsChores`) is allowed only in approved exception or compatibility contexts:
+  - migration-compatibility contracts,
+  - legacy attribution/credits,
+  - README/wiki intentional exception language,
+  - compatibility key IDs governed by lockstep translation policy.
+
 ## Execution checklist (builder handoff)
 
 ### Phase A – Inventory
