@@ -1,21 +1,21 @@
-"""Kid undo claim feature tests.
+"""Assignee undo claim feature tests.
 
-These tests verify that kids can undo their own chore/reward claims
-without it counting as a disapproval (no stat tracking), while parent/admin
+These tests verify that assignees can undo their own chore/reward claims
+without it counting as a disapproval (no stat tracking), while approver/admin
 disapproval continues to track stats normally.
 
 Test Organization:
-- TestKidUndoChore: Kid undo for chores
-- TestParentDisapproveChore: Parent disapproval still tracks stats
-- TestKidUndoReward: Kid undo for rewards
+- TestAssigneeUndoChore: Assignee undo for chores
+- TestApproverDisapproveChore: Approver disapproval still tracks stats
+- TestAssigneeUndoReward: Assignee undo for rewards
 - TestSharedFirstUndo: SHARED_FIRST chore undo behavior
 - TestMultipleUndos: Repeated undo operations
 
 Coordinator API Reference:
-- undo_chore_claim(kid_id, chore_id) - Kid removes own claim, no stats
-- undo_reward_claim(kid_id, reward_id) - Kid removes own reward claim, no stats
-- disapprove_chore(parent_name, kid_id, chore_id) - Parent disapproval, tracks stats
-- disapprove_reward(parent_name, kid_id, reward_id) - Parent disapproval, tracks stats
+- undo_chore_claim(assignee_id, chore_id) - Assignee removes own claim, no stats
+- undo_reward_claim(assignee_id, reward_id) - Assignee removes own reward claim, no stats
+- disapprove_chore(approver_name, assignee_id, chore_id) - Approver disapproval, tracks stats
+- disapprove_reward(approver_name, assignee_id, reward_id) - Approver disapproval, tracks stats
 """
 
 # pylint: disable=redefined-outer-name
@@ -31,12 +31,12 @@ from custom_components.choreops import const
 from tests.helpers import (
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,
-    DATA_KID_CHORE_DATA,
-    DATA_KID_CHORE_DATA_LAST_DISAPPROVED,
-    DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT,
-    DATA_KID_CHORE_DATA_STATE,
-    DATA_KID_REWARD_DATA,
-    DATA_KID_REWARD_DATA_PENDING_COUNT,
+    DATA_ASSIGNEE_CHORE_DATA,
+    DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED,
+    DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT,
+    DATA_ASSIGNEE_CHORE_DATA_STATE,
+    DATA_ASSIGNEE_REWARD_DATA,
+    DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -50,7 +50,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid, 1 parent, 5 chores."""
+    """Load minimal scenario: 1 assignee, 1 approver, 5 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -63,7 +63,7 @@ async def scenario_shared(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load shared scenario: 3 kids, 1 parent, 8 shared chores."""
+    """Load shared scenario: 3 assignees, 1 approver, 8 shared chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -89,37 +89,39 @@ async def scenario_full(
 # =============================================================================
 
 
-def get_kid_chore_state(
+def get_assignee_chore_state(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     chore_id: str,
 ) -> str:
-    """Get the current state of a chore for a specific kid."""
-    kid_data = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_data.get(DATA_KID_CHORE_DATA, {})
+    """Get the current state of a chore for a specific assignee."""
+    assignee_data = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
-    return per_chore.get(DATA_KID_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return per_chore.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def get_disapproval_stats(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     chore_id: str,
 ) -> dict[str, Any]:
-    """Get disapproval stats for a kid/chore combination."""
-    kid_data = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_data.get(DATA_KID_CHORE_DATA, {})
+    """Get disapproval stats for a assignee/chore combination."""
+    assignee_data = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
 
     return {
-        "last_disapproved": per_chore.get(DATA_KID_CHORE_DATA_LAST_DISAPPROVED, ""),
-        "pending_count": per_chore.get(DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT, 0),
+        "last_disapproved": per_chore.get(
+            DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED, ""
+        ),
+        "pending_count": per_chore.get(DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0),
     }
 
 
 def get_chore_stats_disapproved(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     chore_id: str,
 ) -> int:
     """Get all-time disapproved count from chore_data periods.
@@ -127,8 +129,8 @@ def get_chore_stats_disapproved(
     Stats are stored per-chore in chore_data[chore_id]["periods"]["all_time"]["all_time"]["disapproved"].
     The all_time structure uses nested all_time keys for consistency with other periods.
     """
-    kid_data = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_data.get(DATA_KID_CHORE_DATA, {})
+    assignee_data = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
     periods = per_chore.get("periods", {})
     all_time_container = periods.get("all_time", {})
@@ -138,14 +140,14 @@ def get_chore_stats_disapproved(
 
 def get_reward_pending_count(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     reward_id: str,
 ) -> int:
     """Get pending count for a reward."""
-    kid_data = coordinator.kids_data.get(kid_id, {})
-    reward_data = kid_data.get(DATA_KID_REWARD_DATA, {})
+    assignee_data = coordinator.assignees_data.get(assignee_id, {})
+    reward_data = assignee_data.get(DATA_ASSIGNEE_REWARD_DATA, {})
     reward_entry = reward_data.get(reward_id, {})
-    return reward_entry.get(DATA_KID_REWARD_DATA_PENDING_COUNT, 0)
+    return reward_entry.get(DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0)
 
 
 # =============================================================================
@@ -153,66 +155,68 @@ def get_reward_pending_count(
 # =============================================================================
 
 
-class TestKidUndoChore:
-    """Tests for kid undo chore claim (no stat tracking)."""
+class TestAssigneeUndoChore:
+    """Tests for assignee undo chore claim (no stat tracking)."""
 
     @pytest.mark.asyncio
-    async def test_kid_undo_removes_claim(
+    async def test_assignee_undo_removes_claim(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Kid undo removes chore claim and resets state to pending."""
+        """Assignee undo removes chore claim and resets state to pending."""
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
-            # Kid claims chore
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            # Assignee claims chore
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             assert (
-                get_kid_chore_state(coordinator, kid_id, chore_id)
+                get_assignee_chore_state(coordinator, assignee_id, chore_id)
                 == CHORE_STATE_CLAIMED
             )
 
-            # Kid undoes claim (no parent_name parameter)
-            await coordinator.chore_manager.undo_claim(kid_id, chore_id)
+            # Assignee undoes claim (no approver_name parameter)
+            await coordinator.chore_manager.undo_claim(assignee_id, chore_id)
 
         # State should be reset to pending
-        state = get_kid_chore_state(coordinator, kid_id, chore_id)
+        state = get_assignee_chore_state(coordinator, assignee_id, chore_id)
         assert state == CHORE_STATE_PENDING
 
     @pytest.mark.asyncio
-    async def test_kid_undo_no_stat_tracking(
+    async def test_assignee_undo_no_stat_tracking(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Kid undo does NOT update last_disapproved or disapproval counters."""
+        """Assignee undo does NOT update last_disapproved or disapproval counters."""
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
-            # Kid claims chore
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            # Assignee claims chore
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
 
             # Get initial stats
-            initial_stats = get_disapproval_stats(coordinator, kid_id, chore_id)
+            initial_stats = get_disapproval_stats(coordinator, assignee_id, chore_id)
             initial_all_time = get_chore_stats_disapproved(
-                coordinator, kid_id, chore_id
+                coordinator, assignee_id, chore_id
             )
 
-            # Kid undoes claim
-            await coordinator.chore_manager.undo_claim(kid_id, chore_id)
+            # Assignee undoes claim
+            await coordinator.chore_manager.undo_claim(assignee_id, chore_id)
 
             # Get final stats
-            final_stats = get_disapproval_stats(coordinator, kid_id, chore_id)
-            final_all_time = get_chore_stats_disapproved(coordinator, kid_id, chore_id)
+            final_stats = get_disapproval_stats(coordinator, assignee_id, chore_id)
+            final_all_time = get_chore_stats_disapproved(
+                coordinator, assignee_id, chore_id
+            )
 
         # last_disapproved should NOT be updated (remains None or empty)
         assert final_stats["last_disapproved"] in ("", None)
@@ -226,27 +230,27 @@ class TestKidUndoChore:
         assert final_stats["pending_count"] == 0
 
     @pytest.mark.asyncio
-    async def test_kid_undo_clears_parent_claim_notification(
+    async def test_assignee_undo_clears_approver_claim_notification(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Kid undo clears parent claim notification for the chore."""
+        """Assignee undo clears approver claim notification for the chore."""
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         with patch.object(
             coordinator.notification_manager,
-            "clear_notification_for_parents",
+            "clear_notification_for_approvers",
             new=AsyncMock(),
         ) as mock_clear:
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
-            await coordinator.chore_manager.undo_claim(kid_id, chore_id)
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
+            await coordinator.chore_manager.undo_claim(assignee_id, chore_id)
             await hass.async_block_till_done()
 
         mock_clear.assert_awaited_once_with(
-            kid_id,
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             chore_id,
         )
@@ -257,37 +261,41 @@ class TestKidUndoChore:
 # =============================================================================
 
 
-class TestParentDisapproveChore:
-    """Tests to verify parent/admin disapproval still tracks stats."""
+class TestApproverDisapproveChore:
+    """Tests to verify approver/admin disapproval still tracks stats."""
 
     @pytest.mark.asyncio
-    async def test_parent_disapprove_tracks_stats(
+    async def test_approver_disapprove_tracks_stats(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Parent disapproval DOES update last_disapproved and counters."""
+        """Approver disapproval DOES update last_disapproved and counters."""
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
-            # Kid claims chore
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            # Assignee claims chore
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
 
             # Get initial stats
             initial_all_time = get_chore_stats_disapproved(
-                coordinator, kid_id, chore_id
+                coordinator, assignee_id, chore_id
             )
 
-            # Parent disapproves
-            await coordinator.chore_manager.disapprove_chore("Mom", kid_id, chore_id)
+            # Approver disapproves
+            await coordinator.chore_manager.disapprove_chore(
+                "Mom", assignee_id, chore_id
+            )
 
             # Get final stats
-            final_stats = get_disapproval_stats(coordinator, kid_id, chore_id)
-            final_all_time = get_chore_stats_disapproved(coordinator, kid_id, chore_id)
+            final_stats = get_disapproval_stats(coordinator, assignee_id, chore_id)
+            final_all_time = get_chore_stats_disapproved(
+                coordinator, assignee_id, chore_id
+            )
 
         # last_disapproved SHOULD be updated (non-empty timestamp)
         assert final_stats["last_disapproved"] != ""
@@ -297,7 +305,7 @@ class TestParentDisapproveChore:
         assert final_all_time == 1
 
         # State should be reset to pending
-        state = get_kid_chore_state(coordinator, kid_id, chore_id)
+        state = get_assignee_chore_state(coordinator, assignee_id, chore_id)
         assert state == CHORE_STATE_PENDING
 
 
@@ -306,38 +314,38 @@ class TestParentDisapproveChore:
 # =============================================================================
 
 
-class TestKidUndoReward:
-    """Tests for kid undo reward claim (no stat tracking)."""
+class TestAssigneeUndoReward:
+    """Tests for assignee undo reward claim (no stat tracking)."""
 
     @pytest.mark.asyncio
-    async def test_kid_undo_reward_clears_parent_claim_notification(
+    async def test_assignee_undo_reward_clears_approver_claim_notification(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Kid undo clears parent claim notification for the reward."""
+        """Assignee undo clears approver claim notification for the reward."""
         coordinator = scenario_full.coordinator
-        kid_id = scenario_full.kid_ids["Zoë"]
+        assignee_id = scenario_full.assignee_ids["Zoë"]
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
 
         # Ensure enough points to claim reward in scenario
-        coordinator.kids_data[kid_id][const.DATA_KID_POINTS] = 100.0
+        coordinator.assignees_data[assignee_id][const.DATA_ASSIGNEE_POINTS] = 100.0
 
         with patch.object(
             coordinator.notification_manager,
-            "clear_notification_for_parents",
+            "clear_notification_for_approvers",
             new=AsyncMock(),
         ) as mock_clear:
             await coordinator.reward_manager.redeem(
-                parent_name="Môm Astrid Stârblüm",
-                kid_id=kid_id,
+                approver_name="Môm Astrid Stârblüm",
+                assignee_id=assignee_id,
                 reward_id=reward_id,
             )
-            await coordinator.reward_manager.undo_claim(kid_id, reward_id)
+            await coordinator.reward_manager.undo_claim(assignee_id, reward_id)
             await hass.async_block_till_done()
 
         mock_clear.assert_awaited_once_with(
-            kid_id,
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             reward_id,
         )
@@ -349,15 +357,15 @@ class TestKidUndoReward:
 
 
 class TestSharedFirstUndo:
-    """Tests for kid undo with SHARED_FIRST chores."""
+    """Tests for assignee undo with SHARED_FIRST chores."""
 
     @pytest.mark.asyncio
-    async def test_shared_first_undo_resets_all_kids(
+    async def test_shared_first_undo_resets_all_assignees(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Kid undo on SHARED_FIRST chore resets ALL kids to pending."""
+        """Assignee undo on SHARED_FIRST chore resets ALL assignees to pending."""
         coordinator = scenario_shared.coordinator
 
         # Get a SHARED_FIRST chore from scenario
@@ -372,38 +380,42 @@ class TestSharedFirstUndo:
         if not shared_first_chore_id:
             pytest.skip("scenario_shared has no shared_first chores")
 
-        kid1_id = scenario_shared.kid_ids["Zoë"]
-        kid2_id = scenario_shared.kid_ids["Max!"]
-        kid3_id = scenario_shared.kid_ids["Lila"]
+        assignee1_id = scenario_shared.assignee_ids["Zoë"]
+        assignee2_id = scenario_shared.assignee_ids["Max!"]
+        assignee3_id = scenario_shared.assignee_ids["Lila"]
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
-            # Kid1 claims the SHARED_FIRST chore
+            # Assignee1 claims the SHARED_FIRST chore
             await coordinator.chore_manager.claim_chore(
-                kid1_id, shared_first_chore_id, "Zoë"
+                assignee1_id, shared_first_chore_id, "Zoë"
             )
 
-            # Verify kid1 is claimed, others are completed_by_other
+            # Verify assignee1 is claimed, others are completed_by_other
             assert (
-                get_kid_chore_state(coordinator, kid1_id, shared_first_chore_id)
+                get_assignee_chore_state(
+                    coordinator, assignee1_id, shared_first_chore_id
+                )
                 == CHORE_STATE_CLAIMED
             )
 
-            # Kid1 undoes the claim
-            await coordinator.chore_manager.undo_claim(kid1_id, shared_first_chore_id)
+            # Assignee1 undoes the claim
+            await coordinator.chore_manager.undo_claim(
+                assignee1_id, shared_first_chore_id
+            )
 
-        # ALL kids should be reset to pending
+        # ALL assignees should be reset to pending
         assert (
-            get_kid_chore_state(coordinator, kid1_id, shared_first_chore_id)
+            get_assignee_chore_state(coordinator, assignee1_id, shared_first_chore_id)
             == CHORE_STATE_PENDING
         )
         assert (
-            get_kid_chore_state(coordinator, kid2_id, shared_first_chore_id)
+            get_assignee_chore_state(coordinator, assignee2_id, shared_first_chore_id)
             == CHORE_STATE_PENDING
         )
         assert (
-            get_kid_chore_state(coordinator, kid3_id, shared_first_chore_id)
+            get_assignee_chore_state(coordinator, assignee3_id, shared_first_chore_id)
             == CHORE_STATE_PENDING
         )
 
@@ -424,31 +436,35 @@ class TestMultipleUndos:
     ) -> None:
         """Multiple undo operations do NOT accumulate disapproval stats."""
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             # Undo 3 times
             for _ in range(3):
-                # Kid claims chore
-                await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+                # Assignee claims chore
+                await coordinator.chore_manager.claim_chore(
+                    assignee_id, chore_id, "Zoë"
+                )
                 assert (
-                    get_kid_chore_state(coordinator, kid_id, chore_id)
+                    get_assignee_chore_state(coordinator, assignee_id, chore_id)
                     == CHORE_STATE_CLAIMED
                 )
 
-                # Kid undoes claim
-                await coordinator.chore_manager.undo_claim(kid_id, chore_id)
+                # Assignee undoes claim
+                await coordinator.chore_manager.undo_claim(assignee_id, chore_id)
                 assert (
-                    get_kid_chore_state(coordinator, kid_id, chore_id)
+                    get_assignee_chore_state(coordinator, assignee_id, chore_id)
                     == CHORE_STATE_PENDING
                 )
 
             # Get final stats
-            final_stats = get_disapproval_stats(coordinator, kid_id, chore_id)
-            final_all_time = get_chore_stats_disapproved(coordinator, kid_id, chore_id)
+            final_stats = get_disapproval_stats(coordinator, assignee_id, chore_id)
+            final_all_time = get_chore_stats_disapproved(
+                coordinator, assignee_id, chore_id
+            )
 
         # last_disapproved should still be None or empty (never set)
         assert final_stats["last_disapproved"] in ("", None)

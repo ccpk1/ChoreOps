@@ -1,6 +1,6 @@
 """Test config flow error scenarios and edge cases.
 
-Modern test coverage for error handling paths in KidsChores config flow,
+Modern test coverage for error handling paths in ChoreOps config flow,
 converted from legacy test_config_flow_data_recovery.py patterns.
 """
 
@@ -37,8 +37,8 @@ def mock_storage_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def storage_file(mock_storage_dir: Path) -> Path:
-    """Path to the kidschores_data storage file."""
-    return mock_storage_dir / "kidschores_data"
+    """Path to the choreops_data storage file."""
+    return mock_storage_dir / "choreops_data"
 
 
 async def test_corrupt_json_validation(
@@ -72,7 +72,7 @@ async def test_invalid_data_structure(
 ) -> None:
     """Test config flow handles invalid data structure."""
     # Valid JSON but invalid structure
-    invalid_structure = {"not": "kidschores_data"}
+    invalid_structure = {"not": "choreops_data"}
     create_temp_storage_file(storage_file, invalid_structure)
 
     with patch.object(
@@ -98,11 +98,11 @@ async def test_paste_json_flow_happy_path(
     valid_data = {
         "version": 1,
         "minor_version": 1,
-        "key": "kidschores_data",
+        "key": "choreops_data",
         "data": {
             "meta": {"schema_version": 42},
-            "kids": {"test_kid": {"name": "Test Kid", "points": 100}},
-            "parents": {},
+            "assignees": {"test_assignee": {"name": "Test Assignee", "points": 100}},
+            "approvers": {},
             "chores": {},
             "badges": {},
             "rewards": {},
@@ -167,7 +167,7 @@ async def test_paste_json_invalid_structure(
     hass: HomeAssistant, mock_storage_dir: Path
 ) -> None:
     """Test paste JSON flow handles invalid structure."""
-    invalid_structure = {"not": "kidschores_data"}
+    invalid_structure = {"not": "choreops_data"}
 
     with patch.object(
         hass.config,
@@ -248,8 +248,8 @@ async def test_storage_file_detection(
     valid_storage = {
         "version": 1,
         "minor_version": 1,
-        "key": "kidschores_data",
-        "data": {"meta": {"schema_version": 42}, "kids": {}},
+        "key": "choreops_data",
+        "data": {"meta": {"schema_version": 42}, "assignees": {}},
     }
     create_temp_storage_file(storage_file, valid_storage)
 
@@ -275,8 +275,8 @@ async def test_diagnostic_format_handling(
         "home_assistant": {"version": "2023.12.0"},
         "data": {
             "meta": {"schema_version": 42},
-            "kids": {"test_kid": {"name": "Test", "points": 50}},
-            "parents": {},
+            "assignees": {"test_assignee": {"name": "Test", "points": 50}},
+            "approvers": {},
             "chores": {},
             "badges": {},
             "rewards": {},

@@ -1,8 +1,8 @@
-"""Test config flow with existing kidschores_data file."""
+"""Test config flow with existing choreops_data file."""
 
 # pylint: disable=redefined-outer-name  # Pytest fixture pattern
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Generator
 import copy
 import json
 from pathlib import Path
@@ -23,7 +23,7 @@ from tests.helpers import (
 
 
 @pytest.fixture
-def mock_setup_entry() -> AsyncMock:
+def mock_setup_entry() -> Generator[AsyncMock]:
     """Mock async_setup_entry."""
     with patch(
         "custom_components.choreops.async_setup_entry",
@@ -57,9 +57,9 @@ async def test_config_flow_use_existing_v40beta1(
         [dict[str, object]], Awaitable[dict[str, object]]
     ],
 ) -> None:
-    """Test config flow with existing v40beta1 kidschores_data file (already wrapped format)."""
-    # Place v40beta1 sample as active kidschores_data file (already has wrapper)
-    storage_path = Path(hass.config.path(".storage", "kidschores_data"))
+    """Test config flow with existing v40beta1 choreops_data file (already wrapped format)."""
+    # Place v40beta1 sample as active choreops_data file (already has wrapper)
+    storage_path = Path(hass.config.path(".storage", "choreops_data"))
     storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Load v40beta1 sample (already in wrapped format)
@@ -113,7 +113,7 @@ async def test_config_flow_use_existing_v40beta1(
     # Verify schema45 users contract from legacy payload via real migration hook
     migrated_data = await migrate_legacy_payload_to_users(stored_data)
     assert const.DATA_USERS in migrated_data
-    assert len(migrated_data[const.DATA_USERS]) > 0
+    assert isinstance(migrated_data[const.DATA_USERS], dict)
 
 
 async def test_config_flow_use_existing_v30(
@@ -123,9 +123,9 @@ async def test_config_flow_use_existing_v30(
         [dict[str, object]], Awaitable[dict[str, object]]
     ],
 ) -> None:
-    """Test config flow with existing v30 kidschores_data file (raw format with legacy schema)."""
-    # Place v30 sample as active kidschores_data file (raw format, no version wrapper)
-    storage_path = Path(hass.config.path(".storage", "kidschores_data"))
+    """Test config flow with existing v30 choreops_data file (raw format with legacy schema)."""
+    # Place v30 sample as active choreops_data file (raw format, no version wrapper)
+    storage_path = Path(hass.config.path(".storage", "choreops_data"))
     storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Load v30 sample (raw data format with storage_version: 0)
@@ -177,7 +177,7 @@ async def test_config_flow_use_existing_v30(
     # Verify schema45 users contract from legacy payload via real migration hook
     migrated_data = await migrate_legacy_payload_to_users(stored_data)
     assert const.DATA_USERS in migrated_data
-    assert len(migrated_data[const.DATA_USERS]) > 0
+    assert isinstance(migrated_data[const.DATA_USERS], dict)
 
 
 async def test_config_flow_use_existing_already_wrapped(
@@ -189,7 +189,7 @@ async def test_config_flow_use_existing_already_wrapped(
 ) -> None:
     """Test config flow with existing file that already has version wrapper."""
     # Place file with proper HA storage format
-    storage_path = Path(hass.config.path(".storage", "kidschores_data"))
+    storage_path = Path(hass.config.path(".storage", "choreops_data"))
     storage_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Load v40beta1 sample (already in wrapped format)

@@ -32,27 +32,27 @@ async def setup_minimal(
 class TestGamificationPendingQueueEvents:
     """Manager integration tests for pending queue + event-driven evaluation."""
 
-    async def test_event_paths_mark_kid_pending_and_batch_drains(
+    async def test_event_paths_mark_assignee_pending_and_batch_drains(
         self,
         hass: HomeAssistant,
         setup_minimal: SetupResult,
     ) -> None:
-        """Approved/disapproved/overdue events queue kid and batch drains queue."""
+        """Approved/disapproved/overdue events queue assignee and batch drains queue."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
-        manager._on_chore_approved({"kid_id": kid_id})
-        manager._on_chore_disapproved({"kid_id": kid_id})
-        manager._on_chore_overdue({"kid_id": kid_id})
+        manager._on_chore_approved({"assignee_id": assignee_id})
+        manager._on_chore_disapproved({"assignee_id": assignee_id})
+        manager._on_chore_overdue({"assignee_id": assignee_id})
         await hass.async_block_till_done()
 
-        assert kid_id in manager._pending_evaluations
+        assert assignee_id in manager._pending_evaluations
 
-        await manager._evaluate_pending_kids()
+        await manager._evaluate_pending_assignees()
         await hass.async_block_till_done()
 
-        assert kid_id not in manager._pending_evaluations
+        assert assignee_id not in manager._pending_evaluations
 
         pending_meta = coordinator._data.get(const.DATA_META, {}).get(
             const.DATA_META_PENDING_EVALUATIONS,
@@ -60,22 +60,22 @@ class TestGamificationPendingQueueEvents:
         )
         assert pending_meta == []
 
-    async def test_midnight_rollover_marks_all_kids_pending(
+    async def test_midnight_rollover_marks_all_assignees_pending(
         self,
         hass: HomeAssistant,
         setup_minimal: SetupResult,
     ) -> None:
-        """Midnight rollover uses recalculate-all path and queues all kids."""
+        """Midnight rollover uses recalculate-all path and queues all assignees."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
 
         await manager._on_midnight_rollover({})
         await hass.async_block_till_done()
 
-        expected_kids = set(coordinator.kids_data.keys())
-        assert manager._pending_evaluations == expected_kids
+        expected_assignees = set(coordinator.assignees_data.keys())
+        assert manager._pending_evaluations == expected_assignees
 
-        await manager._evaluate_pending_kids()
+        await manager._evaluate_pending_assignees()
         await hass.async_block_till_done()
 
         assert manager._pending_evaluations == set()
@@ -88,7 +88,7 @@ class TestGamificationPendingQueueEvents:
         """Manager lifecycle wrapper skips challenge evaluation before start date."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         challenge_id = "challenge-future-window"
         coordinator.challenges_data[challenge_id] = {
@@ -96,9 +96,9 @@ class TestGamificationPendingQueueEvents:
             const.DATA_CHALLENGE_NAME: "Future window challenge",
             const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_DAILY_MIN,
             const.DATA_CHALLENGE_TARGET_VALUE: 1,
-            const.DATA_CHALLENGE_ASSIGNED_KIDS: [kid_id],
+            const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES: [assignee_id],
             const.DATA_CHALLENGE_PROGRESS: {
-                kid_id: {const.DATA_CHALLENGE_AWARDED: False}
+                assignee_id: {const.DATA_CHALLENGE_AWARDED: False}
             },
             const.DATA_CHALLENGE_AWARDED: {},
             const.DATA_CHALLENGE_START_DATE: "2099-01-01",
@@ -110,11 +110,11 @@ class TestGamificationPendingQueueEvents:
             const.DATA_CHALLENGE_LABELS: [],
         }
 
-        context = manager._build_evaluation_context(kid_id)
+        context = manager._build_evaluation_context(assignee_id)
         assert context is not None
 
         manager.award_challenge = AsyncMock()
-        await manager._evaluate_challenge_for_kid(
+        await manager._evaluate_challenge_for_assignee(
             context,
             challenge_id,
             coordinator.challenges_data[challenge_id],
@@ -129,11 +129,11 @@ class TestGamificationPendingQueueEvents:
         """Achievement selected_chore_id maps to canonical tracked scope."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         selected_chore_id = next(iter(coordinator.chores_data.keys()))
 
         mapped = manager._map_achievement_to_canonical_target(
-            kid_id,
+            assignee_id,
             "achievement-scope",
             {
                 const.DATA_ACHIEVEMENT_TYPE: const.ACHIEVEMENT_TYPE_DAILY_MIN,
@@ -152,11 +152,11 @@ class TestGamificationPendingQueueEvents:
         """Challenge selected_chore_id maps to canonical tracked scope."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         selected_chore_id = next(iter(coordinator.chores_data.keys()))
 
         mapped = manager._map_challenge_to_canonical_target(
-            kid_id,
+            assignee_id,
             "challenge-scope",
             {
                 const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_DAILY_MIN,
@@ -174,12 +174,12 @@ class TestGamificationPendingQueueEvents:
         """Explicit empty tracked scope does not fall back to assigned chores."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         captured_tracked: list[list[str]] = []
 
         def _capture_today_stats(
-            _kid_id: str,
+            _assignee_id: str,
             tracked_chores: list[str],
             *,
             today_iso: str,
@@ -194,7 +194,7 @@ class TestGamificationPendingQueueEvents:
             }
 
         def _capture_today_completion(
-            _kid_id: str,
+            _assignee_id: str,
             tracked_chores: list[str],
             *,
             today_iso: str,
@@ -210,12 +210,12 @@ class TestGamificationPendingQueueEvents:
             _capture_today_completion
         )
 
-        context = manager._build_evaluation_context(kid_id)
+        context = manager._build_evaluation_context(assignee_id)
         assert context is not None
 
         manager._build_source_runtime_context(
             context,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             canonical_target={
                 "target_type": const.CANONICAL_TARGET_TYPE_DAILY_MINIMUM,
                 "tracked_chore_ids": [],
@@ -230,15 +230,15 @@ class TestGamificationPendingQueueEvents:
         hass: HomeAssistant,
         setup_minimal: SetupResult,
     ) -> None:
-        """Selected chore outside kid assignment yields zero in-scope progress."""
+        """Selected chore outside assignee assignment yields zero in-scope progress."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         selected_chore_id = next(iter(coordinator.chores_data.keys()))
-        coordinator.chores_data[selected_chore_id][const.DATA_CHORE_ASSIGNED_KIDS] = [
-            "non-existent-kid"
-        ]
+        coordinator.chores_data[selected_chore_id][
+            const.DATA_CHORE_ASSIGNED_ASSIGNEES
+        ] = ["non-existent-assignee"]
 
         achievement_id = "achievement-unassigned-scope"
         achievement_data = {
@@ -248,9 +248,9 @@ class TestGamificationPendingQueueEvents:
             const.DATA_ACHIEVEMENT_TARGET_VALUE: 1,
             const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID: selected_chore_id,
             const.DATA_ACHIEVEMENT_PROGRESS: {
-                kid_id: {const.DATA_ACHIEVEMENT_AWARDED: False}
+                assignee_id: {const.DATA_ACHIEVEMENT_AWARDED: False}
             },
-            const.DATA_ACHIEVEMENT_ASSIGNED_KIDS: [kid_id],
+            const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: [assignee_id],
             const.DATA_ACHIEVEMENT_REWARD_POINTS: 1.0,
             const.DATA_ACHIEVEMENT_CRITERIA: "test",
             const.DATA_ACHIEVEMENT_DESCRIPTION: "test",
@@ -258,11 +258,11 @@ class TestGamificationPendingQueueEvents:
             const.DATA_ACHIEVEMENT_LABELS: [],
         }
 
-        context = manager._build_evaluation_context(kid_id)
+        context = manager._build_evaluation_context(assignee_id)
         assert context is not None
 
         manager.award_achievement = AsyncMock()
-        await manager._evaluate_achievement_for_kid(
+        await manager._evaluate_achievement_for_assignee(
             context,
             achievement_id,
             achievement_data,

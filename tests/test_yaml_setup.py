@@ -27,8 +27,8 @@ async def test_setup_from_yaml_scenario_full(
     Verifies:
     - YAML file loads successfully
     - Config flow completes without errors
-    - All 3 kids are created with correct names
-    - All 2 parents are created
+    - All 3 assignees are created with correct names
+    - All 2 approvers are created
     - All 18 chores are created with correct assignment
     - ID mappings are populated
     """
@@ -42,17 +42,17 @@ async def test_setup_from_yaml_scenario_full(
     assert result.config_entry is not None
     assert result.coordinator is not None
 
-    # Verify kids were created (3 kids in scenario_full)
-    assert len(result.kid_ids) == 3
-    assert "Zoë" in result.kid_ids
-    assert "Max!" in result.kid_ids
-    assert "Lila" in result.kid_ids
+    # Verify assignees were created (3 assignees in scenario_full)
+    assert len(result.assignee_ids) == 3
+    assert "Zoë" in result.assignee_ids
+    assert "Max!" in result.assignee_ids
+    assert "Lila" in result.assignee_ids
 
-    # Verify configured parents were created.
-    # parent_ids may also include parent-compatible linked-profile records.
-    assert len(result.parent_ids) >= 2
-    assert "Môm Astrid Stârblüm" in result.parent_ids
-    assert "Dad Leo" in result.parent_ids
+    # Verify configured approvers were created.
+    # approver_ids may also include approver-compatible linked-profile records.
+    assert len(result.approver_ids) >= 2
+    assert "Môm Astrid Stârblüm" in result.approver_ids
+    assert "Dad Leo" in result.approver_ids
 
     # Verify chores were created (18 chores in scenario_full)
     assert len(result.chore_ids) == 18
@@ -63,19 +63,19 @@ async def test_setup_from_yaml_scenario_full(
     assert "Pick up Lëgo!" in result.chore_ids
 
     # Verify coordinator has data
-    assert len(result.coordinator.kids_data) == 3
-    assert len(result.coordinator.parents_data) >= 2
+    assert len(result.coordinator.assignees_data) == 3
+    assert len(result.coordinator.approvers_data) >= 2
     assert len(result.coordinator.chores_data) == 18
 
 
 @pytest.mark.asyncio
-async def test_setup_from_yaml_kid_chore_assignment(
+async def test_setup_from_yaml_assignee_chore_assignment(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> None:
     """Test that chore assignments are correct after YAML load.
 
-    Verifies that kids are properly assigned to chores based on YAML config.
+    Verifies that assignees are properly assigned to chores based on YAML config.
     """
     result = await setup_from_yaml(
         hass,
@@ -86,21 +86,21 @@ async def test_setup_from_yaml_kid_chore_assignment(
     coordinator = result.coordinator
 
     # Get Zoë's ID
-    zoe_id = result.kid_ids["Zoë"]
+    zoe_id = result.assignee_ids["Zoë"]
 
     # "Feed the cåts" is assigned only to Zoë
     feed_cats_id = result.chore_ids["Feed the cåts"]
     feed_cats_data = coordinator.chores_data[feed_cats_id]
-    assert zoe_id in feed_cats_data.get("assigned_kids", [])
+    assert zoe_id in feed_cats_data.get("assigned_assignees", [])
 
-    # "Stär sweep" is assigned to all 3 kids
+    # "Stär sweep" is assigned to all 3 assignees
     star_sweep_id = result.chore_ids["Stär sweep"]
     star_sweep_data = coordinator.chores_data[star_sweep_id]
-    assigned = star_sweep_data.get("assigned_kids", [])
+    assigned = star_sweep_data.get("assigned_assignees", [])
     assert len(assigned) == 3
-    assert result.kid_ids["Zoë"] in assigned
-    assert result.kid_ids["Max!"] in assigned
-    assert result.kid_ids["Lila"] in assigned
+    assert result.assignee_ids["Zoë"] in assigned
+    assert result.assignee_ids["Max!"] in assigned
+    assert result.assignee_ids["Lila"] in assigned
 
 
 @pytest.mark.asyncio

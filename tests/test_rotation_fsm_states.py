@@ -34,7 +34,7 @@ async def scenario_shared(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load shared scenario: 3 kids, 1 parent, with rotation chores."""
+    """Load shared scenario: 3 assignees, 1 approver, with rotation chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -64,7 +64,7 @@ async def test_rotation_turn_holder_can_claim(
     result = scenario_shared
     await hass.async_block_till_done()
 
-    # Get dashboard helpers for all kids
+    # Get dashboard helpers for all assignees
     zoe_helper = get_dashboard_helper(hass, "zoe")
     max_helper = get_dashboard_helper(hass, "max")
     lila_helper = get_dashboard_helper(hass, "lila")
@@ -109,7 +109,7 @@ async def test_rotation_turn_holder_can_claim(
         f"{turn_name} should be able to claim"
     )
     assert turn_sensor.attributes.get("lock_reason") is None
-    assert turn_sensor.attributes.get("turn_kid_name") == turn_name
+    assert turn_sensor.attributes.get("turn_assignee_name") == turn_name
 
     # Verify non-turn holders are blocked
     for chore, name, slug in non_turn_holders:
@@ -120,7 +120,7 @@ async def test_rotation_turn_holder_can_claim(
             f"{name} should not be able to claim"
         )
         assert sensor.attributes.get("lock_reason") == "not_my_turn"
-        assert sensor.attributes.get("turn_kid_name") == turn_name
+        assert sensor.attributes.get("turn_assignee_name") == turn_name
 
 
 @pytest.mark.asyncio
@@ -133,8 +133,8 @@ async def test_rotation_approved_does_not_advance_immediately(
 
     When a turn holder completes their turn:
     - Turn holder sees status = 'approved'
-    - Other kids continue to see 'not_my_turn' (rotation locked until boundary)
-    - turn_kid_name remains unchanged
+    - Other assignees continue to see 'not_my_turn' (rotation locked until boundary)
+    - turn_assignee_name remains unchanged
     - Rotation advances at the next boundary reset (e.g., midnight)
 
     This is the core behavior difference from shared chores.
@@ -162,9 +162,9 @@ async def test_rotation_approved_does_not_advance_immediately(
 
     # Identify turn holder
     chores: list[tuple[str, dict[str, Any], str, str]] = [
-        ("zoe", zoe_chore, "Zoë", mock_hass_users["kid1"].id),
-        ("max", max_chore, "Max!", mock_hass_users["kid2"].id),
-        ("lila", lila_chore, "Lila", mock_hass_users["kid3"].id),
+        ("zoe", zoe_chore, "Zoë", mock_hass_users["assignee1"].id),
+        ("max", max_chore, "Max!", mock_hass_users["assignee2"].id),
+        ("lila", lila_chore, "Lila", mock_hass_users["assignee3"].id),
     ]
 
     turn_holder: tuple[str, dict[str, Any], str, str] | None = None
@@ -178,13 +178,13 @@ async def test_rotation_approved_does_not_advance_immediately(
     turn_slug, turn_chore_dict, turn_name, turn_user_id = turn_holder
 
     # Step 1: Turn holder claims the chore
-    kid_context = Context(user_id=turn_user_id)
-    await claim_chore(hass, turn_slug, "Dishes Rotation", context=kid_context)
+    assignee_context = Context(user_id=turn_user_id)
+    await claim_chore(hass, turn_slug, "Dishes Rotation", context=assignee_context)
     await hass.async_block_till_done()
 
-    # Step 2: Parent approves the chore
-    parent_context = Context(user_id=mock_hass_users["parent1"].id)
-    await approve_chore(hass, turn_slug, "Dishes Rotation", context=parent_context)
+    # Step 2: Approver approves the chore
+    approver_context = Context(user_id=mock_hass_users["approver1"].id)
+    await approve_chore(hass, turn_slug, "Dishes Rotation", context=approver_context)
     await hass.async_block_till_done()
 
     # Step 3: Verify state after approval - rotation has NOT advanced
@@ -222,8 +222,8 @@ async def test_rotation_approved_does_not_advance_immediately(
             assert sensor.attributes.get("can_claim") is False
             assert sensor.attributes.get("lock_reason") == "not_my_turn"
 
-        # turn_kid_name remains unchanged for all
-        assert sensor.attributes.get("turn_kid_name") == turn_name
+        # turn_assignee_name remains unchanged for all
+        assert sensor.attributes.get("turn_assignee_name") == turn_name
 
 
 @pytest.mark.asyncio
@@ -263,9 +263,9 @@ async def test_rotation_claimed_state(
 
     # Identify turn holder
     chores: list[tuple[str, dict[str, Any], str, str]] = [
-        ("zoe", zoe_chore, "Zoë", mock_hass_users["kid1"].id),
-        ("max", max_chore, "Max!", mock_hass_users["kid2"].id),
-        ("lila", lila_chore, "Lila", mock_hass_users["kid3"].id),
+        ("zoe", zoe_chore, "Zoë", mock_hass_users["assignee1"].id),
+        ("max", max_chore, "Max!", mock_hass_users["assignee2"].id),
+        ("lila", lila_chore, "Lila", mock_hass_users["assignee3"].id),
     ]
 
     turn_holder: tuple[str, dict[str, Any], str, str] | None = None
@@ -279,8 +279,8 @@ async def test_rotation_claimed_state(
     turn_slug, turn_chore_dict, turn_name, turn_user_id = turn_holder
 
     # Turn holder claims the chore
-    kid_context = Context(user_id=turn_user_id)
-    await claim_chore(hass, turn_slug, "Dishes Rotation", context=kid_context)
+    assignee_context = Context(user_id=turn_user_id)
+    await claim_chore(hass, turn_slug, "Dishes Rotation", context=assignee_context)
     await hass.async_block_till_done()
 
     # Re-fetch dashboard helpers after state change
@@ -307,7 +307,7 @@ async def test_rotation_claimed_state(
             assert sensor.state == CHORE_STATE_CLAIMED
             assert sensor.attributes.get("can_claim") is False  # Already claimed
             assert sensor.attributes.get("lock_reason") is None
-            # claimed_by should be set (kid's display name)
+            # claimed_by should be set (assignee's display name)
             claimed_by = sensor.attributes.get("claimed_by")
             assert claimed_by == turn_name, f"Expected claimed_by={turn_name}"
         else:
@@ -319,8 +319,8 @@ async def test_rotation_claimed_state(
             assert sensor.attributes.get("can_claim") is False
             assert sensor.attributes.get("lock_reason") == "not_my_turn"
 
-        # turn_kid_name remains unchanged
-        assert sensor.attributes.get("turn_kid_name") == turn_name
+        # turn_assignee_name remains unchanged
+        assert sensor.attributes.get("turn_assignee_name") == turn_name
 
 
 @pytest.mark.asyncio
@@ -359,9 +359,9 @@ async def test_rotation_non_turn_holder_cannot_claim(
 
     # Identify turn holder and non-turn holders
     chores = [
-        ("zoe", zoe_chore, "Zoë", mock_hass_users["kid1"].id),
-        ("max", max_chore, "Max!", mock_hass_users["kid2"].id),
-        ("lila", lila_chore, "Lila", mock_hass_users["kid3"].id),
+        ("zoe", zoe_chore, "Zoë", mock_hass_users["assignee1"].id),
+        ("max", max_chore, "Max!", mock_hass_users["assignee2"].id),
+        ("lila", lila_chore, "Lila", mock_hass_users["assignee3"].id),
     ]
 
     turn_holder = None
@@ -402,7 +402,7 @@ async def test_rotation_non_turn_holder_cannot_claim(
     )
     assert turn_sensor.state == CHORE_STATE_PENDING
     assert turn_sensor.attributes.get("can_claim") is True
-    assert turn_sensor.attributes.get("turn_kid_name") == turn_name
+    assert turn_sensor.attributes.get("turn_assignee_name") == turn_name
 
     # Non-turn holder should still be blocked
     non_chore = find_chore(get_dashboard_helper(hass, non_slug), "Dishes Rotation")
@@ -430,7 +430,7 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
     - Turn holder can complete and be approved.
     - Midnight reset advances turn exactly once.
     - A second midnight tick without new completion does not double-advance.
-    - Exactly one kid remains claimable (pending), others remain not_my_turn.
+    - Exactly one assignee remains claimable (pending), others remain not_my_turn.
     """
     from homeassistant.core import Context
 
@@ -438,36 +438,36 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
 
     await hass.async_block_till_done()
 
-    kid_profiles = [
-        ("zoe", "Zoë", mock_hass_users["kid1"].id),
-        ("max", "Max!", mock_hass_users["kid2"].id),
-        ("lila", "Lila", mock_hass_users["kid3"].id),
+    assignee_profiles = [
+        ("zoe", "Zoë", mock_hass_users["assignee1"].id),
+        ("max", "Max!", mock_hass_users["assignee2"].id),
+        ("lila", "Lila", mock_hass_users["assignee3"].id),
     ]
 
     initial_turn_slug: str | None = None
-    for kid_slug, _, _ in kid_profiles:
+    for assignee_slug, _, _ in assignee_profiles:
         rotation_chore = find_chore(
-            get_dashboard_helper(hass, kid_slug), "Dishes Rotation"
+            get_dashboard_helper(hass, assignee_slug), "Dishes Rotation"
         )
         assert rotation_chore is not None
         if rotation_chore["status"] == CHORE_STATE_PENDING:
-            initial_turn_slug = kid_slug
+            initial_turn_slug = assignee_slug
             break
 
     assert initial_turn_slug is not None, "Expected one initial turn holder"
 
     initial_turn_user_id = next(
-        user_id for slug, _, user_id in kid_profiles if slug == initial_turn_slug
+        user_id for slug, _, user_id in assignee_profiles if slug == initial_turn_slug
     )
 
-    kid_context = Context(user_id=initial_turn_user_id)
-    parent_context = Context(user_id=mock_hass_users["parent1"].id)
+    assignee_context = Context(user_id=initial_turn_user_id)
+    approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
     claim_result = await claim_chore(
         hass,
         initial_turn_slug,
         "Dishes Rotation",
-        context=kid_context,
+        context=assignee_context,
     )
     assert claim_result.success, f"Claim failed: {claim_result.error}"
 
@@ -475,7 +475,7 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
         hass,
         initial_turn_slug,
         "Dishes Rotation",
-        context=parent_context,
+        context=approver_context,
     )
     assert approve_result.success, f"Approve failed: {approve_result.error}"
     await hass.async_block_till_done()
@@ -489,25 +489,25 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
     first_midnight_not_my_turn: list[str] = []
     first_turn_name: str | None = None
 
-    for kid_slug, kid_name, _ in kid_profiles:
+    for assignee_slug, assignee_name, _ in assignee_profiles:
         rotation_chore = find_chore(
-            get_dashboard_helper(hass, kid_slug), "Dishes Rotation"
+            get_dashboard_helper(hass, assignee_slug), "Dishes Rotation"
         )
         assert rotation_chore is not None
         sensor_state = hass.states.get(rotation_chore["eid"])
         assert sensor_state is not None
 
         if sensor_state.state == CHORE_STATE_PENDING:
-            first_midnight_pending.append(kid_slug)
-            first_turn_name = kid_name
+            first_midnight_pending.append(assignee_slug)
+            first_turn_name = assignee_name
             assert sensor_state.attributes.get("can_claim") is True
         else:
-            first_midnight_not_my_turn.append(kid_slug)
+            first_midnight_not_my_turn.append(assignee_slug)
             assert sensor_state.state == CHORE_STATE_NOT_MY_TURN
             assert sensor_state.attributes.get("can_claim") is False
             assert sensor_state.attributes.get("lock_reason") == "not_my_turn"
 
-    assert len(first_midnight_pending) == 1, "Exactly one kid should be claimable"
+    assert len(first_midnight_pending) == 1, "Exactly one assignee should be claimable"
     assert len(first_midnight_not_my_turn) == 2
     assert first_midnight_pending[0] != initial_turn_slug, (
         "Turn holder should advance after midnight approval reset"
@@ -520,16 +520,16 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
     await hass.async_block_till_done()
 
     second_midnight_pending: list[str] = []
-    for kid_slug, _, _ in kid_profiles:
+    for assignee_slug, _, _ in assignee_profiles:
         rotation_chore = find_chore(
-            get_dashboard_helper(hass, kid_slug), "Dishes Rotation"
+            get_dashboard_helper(hass, assignee_slug), "Dishes Rotation"
         )
         assert rotation_chore is not None
         sensor_state = hass.states.get(rotation_chore["eid"])
         assert sensor_state is not None
         if sensor_state.state == CHORE_STATE_PENDING:
-            second_midnight_pending.append(kid_slug)
-        assert sensor_state.attributes.get("turn_kid_name") == first_turn_name
+            second_midnight_pending.append(assignee_slug)
+        assert sensor_state.attributes.get("turn_assignee_name") == first_turn_name
 
     assert second_midnight_pending == first_midnight_pending, (
         "Turn holder should remain stable on subsequent midnight without new approval"

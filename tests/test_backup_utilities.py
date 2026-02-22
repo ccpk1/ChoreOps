@@ -38,7 +38,7 @@ def mock_storage_manager():
     manager = MagicMock()
     manager.data = {
         "schema_version": 42,
-        "kids": {"kid1": {"name": "Alice", "points": 100}},
+        "assignees": {"assignee1": {"name": "Alice", "points": 100}},
         "chores": {"chore1": {"name": "Dishes", "points": 10}},
         "rewards": {},
     }
@@ -65,7 +65,7 @@ def mock_config_entry():
 
     return MockConfigEntry(
         domain=const.DOMAIN,
-        title="KidsChores",
+        title="ChoreOps",
         data={},
         options={},  # Empty options - tests will pass max_backups parameter
         unique_id=None,
@@ -159,35 +159,35 @@ async def test_cleanup_old_backups_respects_max_limit(
     # Setup: 5 recovery backups (keep newest 3)
     mock_discover.return_value = [
         {
-            "filename": "kidschores_data_2024-12-18_15-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_15-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 15, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 1,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_14-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_14-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 14, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 2,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_13-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_13-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 13, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 3,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_12-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_12-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 12, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 4,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_11-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_11-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 11, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 5,
@@ -204,11 +204,11 @@ async def test_cleanup_old_backups_respects_max_limit(
     assert mock_remove.call_count == 2
     deleted_files = [call.args[0] for call in mock_remove.call_args_list]
     assert (
-        "/mock/.storage/choreops/kidschores_data_2024-12-18_12-00-00_recovery"
+        "/mock/.storage/choreops/choreops_data_2024-12-18_12-00-00_recovery"
         in deleted_files
     )
     assert (
-        "/mock/.storage/choreops/kidschores_data_2024-12-18_11-00-00_recovery"
+        "/mock/.storage/choreops/choreops_data_2024-12-18_11-00-00_recovery"
         in deleted_files
     )
 
@@ -222,28 +222,28 @@ async def test_cleanup_old_backups_never_deletes_permanent_tags(
     # Setup: Mix of tags
     mock_discover.return_value = [
         {
-            "filename": "kidschores_data_2024-12-18_15-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_15-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 15, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 1,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_10-00-00_pre-migration",
+            "filename": "choreops_data_2024-12-18_10-00-00_pre-migration",
             "tag": "pre-migration",
             "timestamp": datetime.datetime(2024, 12, 18, 10, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 6,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_09-00-00_manual",
+            "filename": "choreops_data_2024-12-18_09-00-00_manual",
             "tag": "manual",
             "timestamp": datetime.datetime(2024, 12, 18, 9, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 7,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_08-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_08-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 8, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 8,
@@ -259,7 +259,7 @@ async def test_cleanup_old_backups_never_deletes_permanent_tags(
     # Verify: Only deleted old recovery backup
     assert mock_remove.call_count == 1
     deleted_file = mock_remove.call_args_list[0].args[0]
-    assert "kidschores_data_2024-12-18_08-00-00_recovery" in deleted_file
+    assert "choreops_data_2024-12-18_08-00-00_recovery" in deleted_file
 
 
 @patch("custom_components.choreops.helpers.backup_helpers.discover_backups")
@@ -273,14 +273,14 @@ async def test_cleanup_old_backups_disabled_when_zero(
     """
     mock_discover.return_value = [
         {
-            "filename": "kidschores_data_2024-12-18_15-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_15-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 15, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 1,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_14-00-00_manual",
+            "filename": "choreops_data_2024-12-18_14-00-00_manual",
             "tag": "manual",
             "timestamp": datetime.datetime(2024, 12, 18, 14, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 2,
@@ -306,21 +306,21 @@ async def test_cleanup_old_backups_continues_on_error(
     # Setup: 3 old backups
     mock_discover.return_value = [
         {
-            "filename": "kidschores_data_2024-12-18_15-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_15-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 15, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 1,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_14-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_14-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 14, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 2,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_13-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_13-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 13, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 3,
@@ -351,35 +351,35 @@ async def test_cleanup_old_backups_handles_non_integer_max_backups(
     # Setup: 5 recovery backups
     mock_discover.return_value = [
         {
-            "filename": "kidschores_data_2024-12-18_15-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_15-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 15, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 1,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_14-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_14-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 14, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 2,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_13-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_13-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 13, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 3,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_12-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_12-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 12, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 4,
             "size_bytes": 1000,
         },
         {
-            "filename": "kidschores_data_2024-12-18_11-00-00_recovery",
+            "filename": "choreops_data_2024-12-18_11-00-00_recovery",
             "tag": "recovery",
             "timestamp": datetime.datetime(2024, 12, 18, 11, 0, 0, tzinfo=datetime.UTC),
             "age_hours": 5,
@@ -396,11 +396,11 @@ async def test_cleanup_old_backups_handles_non_integer_max_backups(
     assert mock_remove.call_count == 2
     deleted_files = [call.args[0] for call in mock_remove.call_args_list]
     assert (
-        "/mock/.storage/choreops/kidschores_data_2024-12-18_12-00-00_recovery"
+        "/mock/.storage/choreops/choreops_data_2024-12-18_12-00-00_recovery"
         in deleted_files
     )
     assert (
-        "/mock/.storage/choreops/kidschores_data_2024-12-18_11-00-00_recovery"
+        "/mock/.storage/choreops/choreops_data_2024-12-18_11-00-00_recovery"
         in deleted_files
     )
 
@@ -460,7 +460,7 @@ def test_validate_backup_json_valid_minimal():
     json_str = json.dumps(
         {
             "schema_version": 42,
-            "kids": {"kid1": {"name": "Alice"}},
+            "assignees": {"assignee1": {"name": "Alice"}},
         }
     )
 
@@ -472,8 +472,8 @@ def test_validate_backup_json_valid_complete():
     json_str = json.dumps(
         {
             "schema_version": 42,
-            "kids": {},
-            "parents": {},
+            "assignees": {},
+            "approvers": {},
             "chores": {},
             "rewards": {},
             "bonuses": {},
@@ -489,7 +489,7 @@ def test_validate_backup_json_valid_complete():
 
 def test_validate_backup_json_missing_version():
     """Test validation accepts JSON missing schema_version key (legacy format)."""
-    json_str = json.dumps({"kids": {"kid1": {"name": "Alice"}}})
+    json_str = json.dumps({"assignees": {"assignee1": {"name": "Alice"}}})
 
     # Old backups without schema_version are accepted - they will be migrated
     assert validate_backup_json(json_str) is True
@@ -507,7 +507,7 @@ def test_validate_backup_json_legacy_v3_format():
     # Simulates old KC 3.0 backup with badges as list, no schema_version
     json_str = json.dumps(
         {
-            "kids": [{"name": "Alice", "points": 100, "badges": []}],
+            "assignees": [{"name": "Alice", "points": 100, "badges": []}],
             "chores": [{"name": "Dishes", "points": 10}],
             "rewards": [],
         }
@@ -526,7 +526,7 @@ def test_validate_backup_json_not_dict():
 
 def test_validate_backup_json_invalid_syntax():
     """Test validation rejects malformed JSON."""
-    json_str = '{"schema_version": 42, "kids": {'  # Missing closing braces
+    json_str = '{"schema_version": 42, "assignees": {'  # Missing closing braces
 
     assert validate_backup_json(json_str) is False
 
@@ -548,9 +548,9 @@ def test_validate_backup_json_store_v1_format():
         {
             "version": 1,
             "minor_version": 1,
-            "key": "kidschores_data",
+            "key": "choreops_data",
             "data": {
-                "kids": {"kid1": {"name": "Alice", "points": 100}},
+                "assignees": {"assignee1": {"name": "Alice", "points": 100}},
                 "chores": {"chore1": {"name": "Dishes", "points": 10}},
                 "rewards": {},
             },
@@ -568,9 +568,9 @@ def test_validate_backup_json_store_v2_rejected():
         {
             "version": 2,
             "minor_version": 0,
-            "key": "kidschores_data",
+            "key": "choreops_data",
             "data": {
-                "kids": {"kid1": {"name": "Alice", "points": 100}},
+                "assignees": {"assignee1": {"name": "Alice", "points": 100}},
                 "chores": {},
             },
         }
@@ -586,9 +586,9 @@ def test_validate_backup_json_store_missing_data_wrapper():
         {
             "version": 1,
             "minor_version": 1,
-            "key": "kidschores_data",
+            "key": "choreops_data",
             # Missing "data" key
-            "kids": {"kid1": {"name": "Alice"}},
+            "assignees": {"assignee1": {"name": "Alice"}},
         }
     )
 
@@ -638,11 +638,11 @@ async def test_backup_includes_config_entry_settings(
     }
 
     # Mock storage file path
-    storage_path = "/mock/.storage/kidschores_data"
+    storage_path = "/mock/.storage/choreops_data"
     mock_storage_manager.get_storage_path.return_value = storage_path
 
     # Mock backup file operations
-    backup_content = {"version": 1, "data": {"kids": {}}}
+    backup_content = {"version": 1, "data": {"assignees": {}}}
 
     def mock_read_text(encoding="utf-8"):
         return json.dumps(backup_content)
@@ -717,10 +717,10 @@ async def test_roundtrip_preserves_all_settings(
     mock_config_entry = MagicMock()
     mock_config_entry.options = original_settings
 
-    storage_path = "/mock/.storage/kidschores_data"
+    storage_path = "/mock/.storage/choreops_data"
     mock_storage_manager.get_storage_path.return_value = storage_path
 
-    backup_content = {"version": 1, "data": {"kids": {}}}
+    backup_content = {"version": 1, "data": {"assignees": {}}}
 
     def mock_read_text(encoding="utf-8"):
         return json.dumps(backup_content)

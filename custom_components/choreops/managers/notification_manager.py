@@ -1,8 +1,8 @@
 # File: notification_manager.py
-"""Notification Manager for KidsChores integration.
+"""Notification Manager for ChoreOps integration.
 
 This manager handles all outgoing notification logic:
-- Sending notifications to kids and parents
+- Sending notifications to assignees and approvers
 - Translation and localization
 - Action button building
 - Notification tag management for smart replacement
@@ -33,8 +33,8 @@ from .base_manager import BaseManager
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
-    from ..type_defs import ChoreData, KidData, RewardData
+    from ..coordinator import ChoreOpsDataCoordinator
+    from ..type_defs import AssigneeData, ChoreData, RewardData
 
 
 # =============================================================================
@@ -96,17 +96,17 @@ async def async_send_notification(
 
 
 class NotificationManager(BaseManager):
-    """Manager for sending notifications to kids and parents.
+    """Manager for sending notifications to assignees and approvers.
 
     Responsibilities:
-    - Send translated notifications to kids
-    - Send translated notifications to parents
+    - Send translated notifications to assignees
+    - Send translated notifications to approvers
     - Build notification action buttons
     - Handle notification tag generation for smart replacement
     - Clear notifications via tag
 
     Uses coordinator for:
-    - kids_data, parents_data, chores_data, rewards_data lookups
+    - assignees_data, approvers_data, chores_data, rewards_data lookups
     - Test mode detection (_test_mode flag)
     """
 
@@ -115,13 +115,13 @@ class NotificationManager(BaseManager):
     # =========================================================================
 
     def __init__(
-        self, hass: HomeAssistant, coordinator: KidsChoresDataCoordinator
+        self, hass: HomeAssistant, coordinator: ChoreOpsDataCoordinator
     ) -> None:
         """Initialize notification manager.
 
         Args:
             hass: Home Assistant instance
-            coordinator: Parent coordinator for data access
+            coordinator: Approver coordinator for data access
         """
         super().__init__(hass, coordinator)
         # No additional state needed - manager delegates to coordinator data
@@ -130,19 +130,19 @@ class NotificationManager(BaseManager):
         """Set up the notification manager with event subscriptions.
 
         Subscribes to domain events that require notifications:
-        - Badge earned → notify kid and parents
-        - Achievement unlocked → notify kid and parents
-        - Challenge completed → notify kid and parents
-        - Reward claimed → notify parents (approval needed)
-        - Reward approved → notify kid
-        - Reward disapproved → notify kid
-        - Bonus applied → notify kid
-        - Penalty applied → notify kid
+        - Badge earned → notify assignee and approvers
+        - Achievement unlocked → notify assignee and approvers
+        - Challenge completed → notify assignee and approvers
+        - Reward claimed → notify approvers (approval needed)
+        - Reward approved → notify assignee
+        - Reward disapproved → notify assignee
+        - Bonus applied → notify assignee
+        - Penalty applied → notify assignee
 
         Also subscribes to DELETED events to clear ghost notifications:
         - Chore deleted → clear pending approval notifications
         - Reward deleted → clear pending claim notifications
-        - Kid deleted → clear all notifications for that kid
+        - Assignee deleted → clear all notifications for that assignee
         """
         # Badge events
         self.listen(const.SIGNAL_SUFFIX_BADGE_EARNED, self._handle_badge_earned)
@@ -195,7 +195,7 @@ class NotificationManager(BaseManager):
         # DELETED events - clear ghost notifications (Phase 7.3.7)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DELETED, self._handle_chore_deleted)
         self.listen(const.SIGNAL_SUFFIX_REWARD_DELETED, self._handle_reward_deleted)
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._handle_kid_deleted)
+        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._handle_assignee_deleted)
 
         const.LOGGER.debug(
             "NotificationManager initialized with 17 event subscriptions for entry %s",
@@ -221,26 +221,33 @@ class NotificationManager(BaseManager):
             tag_type: Type of notification (pending, rewards, system, status).
                       Use const.NOTIFY_TAG_TYPE_* constants.
             *identifiers: One or more identifiers to make tag unique.
-                         For per-item tags: (item_id, kid_id)
-                         For per-kid tags: (kid_id,)
+                         For per-item tags: (item_id, assignee_id)
+                         For per-assignee tags: (assignee_id,)
                          Identifiers are truncated to first 8 characters.
 
         Returns:
-            Tag string in format: kidschores-{tag_type}-{id1[:8]}-{id2[:8]}-...
-            or kidschores-{tag_type} if no identifiers provided.
+            Tag string in format: assigneeschores-{tag_type}-{id1[:8]}-{id2[:8]}-...
+            or assigneeschores-{tag_type} if no identifiers provided.
             Maximum length: ~40 bytes (well under Apple's 64-byte limit).
 
         Examples:
-            build_notification_tag(const.NOTIFY_TAG_TYPE_STATUS, chore_id, kid_id)
-            -> "kidschores-status-abc12345-def67890"
+            build_notification_tag(const.NOTIFY_TAG_TYPE_STATUS, chore_id, assignee_id)
+            -> "assigneeschores-status-abc12345-def67890"
 
-            build_notification_tag(const.NOTIFY_TAG_TYPE_SYSTEM, kid_id)
-            -> "kidschores-system-abc12345"
+            build_notification_tag(const.NOTIFY_TAG_TYPE_SYSTEM, assignee_id)
+            -> "assigneeschores-system-abc12345"
         """
         if identifiers:
-            # Truncate each identifier to 8 chars to stay under Apple's 64-byte limit
-            truncated_ids = "-".join(identifier[:8] for identifier in identifiers)
-            return f"{const.NOTIFY_TAG_PREFIX}-{tag_type}-{truncated_ids}"
+            normalized_ids: list[str] = []
+            for identifier in identifiers:
+                if identifier.startswith(("assignee-", "user-")):
+                    normalized_ids.append(identifier)
+                    continue
+
+                # Keep item identifiers short to stay under Apple's 64-byte limit
+                normalized_ids.append(identifier[:8])
+
+            return f"{const.NOTIFY_TAG_PREFIX}-{tag_type}-{'-'.join(normalized_ids)}"
         return f"{const.NOTIFY_TAG_PREFIX}-{tag_type}"
 
     # =========================================================================
@@ -263,7 +270,7 @@ class NotificationManager(BaseManager):
     # 4. CLEANUP VIA SIGNALS: CHORE_DELETED and KID_DELETED signals trigger
     #    cleanup in our notifications bucket (choreographed janitor pattern).
     #
-    # Structure: notifications[kid_id][chore_id] = {
+    # Structure: notifications[assignee_id][chore_id] = {
     #     "last_due_start": ISO timestamp,
     #     "last_due_reminder": ISO timestamp,
     #     "last_overdue": ISO timestamp,
@@ -279,23 +286,23 @@ class NotificationManager(BaseManager):
         return self.coordinator._data.setdefault(const.DATA_NOTIFICATIONS, {})
 
     def _get_chore_notification_record(
-        self, kid_id: str, chore_id: str
+        self, assignee_id: str, chore_id: str
     ) -> dict[str, Any]:
-        """Get or create chore notification record for a kid+chore combination.
+        """Get or create chore notification record for a assignee+chore combination.
 
         Args:
-            kid_id: The kid's internal ID (UUID)
+            assignee_id: The assignee's internal ID (UUID)
             chore_id: The chore's internal ID (UUID)
 
         Returns:
             Mutable dict reference to notification record
         """
         notifications = self._get_chore_notifications_bucket()
-        kid_notifs = notifications.setdefault(kid_id, {})
-        return kid_notifs.setdefault(chore_id, {})
+        assignee_notifs = notifications.setdefault(assignee_id, {})
+        return assignee_notifs.setdefault(chore_id, {})
 
     def _get_chore_approval_period_start(
-        self, kid_id: str, chore_id: str
+        self, assignee_id: str, chore_id: str
     ) -> str | None:
         """Query the approval_period_start from ChoreManager (read-only).
 
@@ -303,14 +310,14 @@ class NotificationManager(BaseManager):
         This follows the "Reads OK" pattern from DEVELOPMENT_STANDARDS.md § 4b.
 
         Args:
-            kid_id: The kid's internal ID (UUID)
+            assignee_id: The assignee's internal ID (UUID)
             chore_id: The chore's internal ID (UUID)
 
         Returns:
             ISO datetime string of approval_period_start, or None if not found
         """
         return self.coordinator.chore_manager.get_approval_period_start(
-            kid_id, chore_id
+            assignee_id, chore_id
         )
 
     def _get_chore_notif_key(self, notif_type: str) -> str:
@@ -330,7 +337,7 @@ class NotificationManager(BaseManager):
         return key_map.get(notif_type, const.DATA_NOTIF_LAST_DUE_START)
 
     def _should_send_chore_notification(
-        self, kid_id: str, chore_id: str, notif_type: str
+        self, assignee_id: str, chore_id: str, notif_type: str
     ) -> bool:
         """Check if chore notification should be sent using Schedule-Lock pattern.
 
@@ -343,7 +350,7 @@ class NotificationManager(BaseManager):
         advances, making old timestamps obsolete (automatic invalidation).
 
         Args:
-            kid_id: The kid's internal ID (UUID)
+            assignee_id: The assignee's internal ID (UUID)
             chore_id: The chore's internal ID (UUID)
             notif_type: "due_start", "due_reminder", or "overdue"
 
@@ -353,13 +360,13 @@ class NotificationManager(BaseManager):
         notif_key = self._get_chore_notif_key(notif_type)
 
         # Get our notification record (from our bucket)
-        notif_record = self._get_chore_notification_record(kid_id, chore_id)
+        notif_record = self._get_chore_notification_record(assignee_id, chore_id)
         last_notified_str = notif_record.get(notif_key)
         if not last_notified_str:
             return True  # Never notified - send it
 
         # Query approval_period_start from ChoreManager (read-only)
-        period_start_str = self._get_chore_approval_period_start(kid_id, chore_id)
+        period_start_str = self._get_chore_approval_period_start(assignee_id, chore_id)
         if not period_start_str:
             return True  # No period defined - send it
 
@@ -373,7 +380,7 @@ class NotificationManager(BaseManager):
         return last_notified < period_start
 
     def _record_chore_notification_sent(
-        self, kid_id: str, chore_id: str, notif_type: str
+        self, assignee_id: str, chore_id: str, notif_type: str
     ) -> None:
         """Record chore notification timestamp in our bucket and persist.
 
@@ -382,19 +389,19 @@ class NotificationManager(BaseManager):
         will be suppressed by _should_send_chore_notification().
 
         Args:
-            kid_id: The kid's internal ID (UUID)
+            assignee_id: The assignee's internal ID (UUID)
             chore_id: The chore's internal ID (UUID)
             notif_type: "due_start", "due_reminder", or "overdue"
         """
         notif_key = self._get_chore_notif_key(notif_type)
 
-        notif_record = self._get_chore_notification_record(kid_id, chore_id)
+        notif_record = self._get_chore_notification_record(assignee_id, chore_id)
         notif_record[notif_key] = dt_now_iso()
         self.coordinator._persist()  # Debounced persist
 
         const.LOGGER.debug(
-            "Recorded chore notification timestamp for kid=%s chore=%s type=%s",
-            kid_id[:8],
+            "Recorded chore notification timestamp for assignee=%s chore=%s type=%s",
+            assignee_id[:8],
             chore_id[:8],
             notif_type,
         )
@@ -410,13 +417,13 @@ class NotificationManager(BaseManager):
         """
         notifications = self._get_chore_notifications_bucket()
         cleaned = 0
-        for kid_id in list(notifications.keys()):
-            if chore_id in notifications.get(kid_id, {}):
-                del notifications[kid_id][chore_id]
+        for assignee_id in list(notifications.keys()):
+            if chore_id in notifications.get(assignee_id, {}):
+                del notifications[assignee_id][chore_id]
                 cleaned += 1
-                # Clean up empty kid dict
-                if not notifications[kid_id]:
-                    del notifications[kid_id]
+                # Clean up empty assignee dict
+                if not notifications[assignee_id]:
+                    del notifications[assignee_id]
 
         if cleaned > 0:
             self.coordinator._persist()
@@ -426,22 +433,22 @@ class NotificationManager(BaseManager):
                 chore_id[:8],
             )
 
-    def _cleanup_kid_chore_notifications(self, kid_id: str) -> None:
-        """Remove all chore notification records for a deleted kid.
+    def _cleanup_assignee_chore_notifications(self, assignee_id: str) -> None:
+        """Remove all chore notification records for a deleted assignee.
 
         Called when KID_DELETED signal is received. Prevents ghost records
-        in our bucket after kid deletion.
+        in our bucket after assignee deletion.
 
         Args:
-            kid_id: The deleted kid's internal ID (UUID)
+            assignee_id: The deleted assignee's internal ID (UUID)
         """
         notifications = self._get_chore_notifications_bucket()
-        if kid_id in notifications:
-            del notifications[kid_id]
+        if assignee_id in notifications:
+            del notifications[assignee_id]
             self.coordinator._persist()
             const.LOGGER.debug(
-                "Cleaned notification records for deleted kid=%s",
-                kid_id[:8],
+                "Cleaned notification records for deleted assignee=%s",
+                assignee_id[:8],
             )
 
     # =========================================================================
@@ -516,7 +523,7 @@ class NotificationManager(BaseManager):
         truncated_entry_id = entry_id[:8]
         return [
             {
-                const.NOTIFY_ACTION: f"{const.ACTION_COMPLETE_FOR_KID}|{truncated_entry_id}|{assignee_id}|{chore_id}",
+                const.NOTIFY_ACTION: f"{const.ACTION_COMPLETE_FOR_ASSIGNEE}|{truncated_entry_id}|{assignee_id}|{chore_id}",
                 const.NOTIFY_TITLE: const.TRANS_KEY_NOTIF_ACTION_COMPLETE,
             },
         ]
@@ -622,7 +629,7 @@ class NotificationManager(BaseManager):
 
     @staticmethod
     def build_extra_data(
-        kid_id: str,
+        assignee_id: str,
         chore_id: str | None = None,
         reward_id: str | None = None,
         notif_id: str | None = None,
@@ -633,7 +640,7 @@ class NotificationManager(BaseManager):
         and context retrieval when processing action callbacks.
 
         Args:
-            kid_id: The internal ID of the kid (always required)
+            assignee_id: The internal ID of the assignee (always required)
             chore_id: Optional chore internal ID (for chore notifications)
             reward_id: Optional reward internal ID (for reward notifications)
             notif_id: Optional notification tracking ID
@@ -641,7 +648,7 @@ class NotificationManager(BaseManager):
         Returns:
             Dictionary with relevant context keys. Only includes non-None values.
         """
-        data: dict[str, str] = {const.DATA_KID_ID: kid_id}
+        data: dict[str, str] = {const.DATA_ASSIGNEE_ID: assignee_id}
 
         if chore_id:
             data[const.DATA_CHORE_ID] = chore_id
@@ -886,12 +893,12 @@ class NotificationManager(BaseManager):
             )
 
     # =========================================================================
-    # Kid Notifications
+    # Assignee Notifications
     # =========================================================================
 
-    async def notify_kid(
+    async def notify_assignee(
         self,
-        kid_id: str,
+        assignee_id: str,
         title: str,
         message: str,
         actions: list[dict[str, str]] | None = None,
@@ -899,9 +906,11 @@ class NotificationManager(BaseManager):
         tag_type: str | None = None,
         tag_identifiers: tuple[str, ...] | None = None,
     ) -> None:
-        """Notify a kid using their configured notification settings."""
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        """Notify a assignee using their configured notification settings."""
+        assignee_info: AssigneeData | None = self.coordinator.assignees_data.get(
+            assignee_id
+        )
+        if not assignee_info:
             return
 
         # Build notification tag if tag_type provided
@@ -912,19 +921,19 @@ class NotificationManager(BaseManager):
             if tag_identifiers:
                 identifiers = (*base_identifiers, *tag_identifiers)
             else:
-                identifiers = (*base_identifiers, kid_id)
+                identifiers = (*base_identifiers, assignee_id)
             notification_tag = self.build_notification_tag(tag_type, *identifiers)
             const.LOGGER.debug(
-                "Using notification tag '%s' for kid %s",
+                "Using notification tag '%s' for assignee %s",
                 notification_tag,
-                kid_id,
+                assignee_id,
             )
 
-        mobile_notify_service = kid_info.get(
-            const.DATA_KID_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+        mobile_notify_service = assignee_info.get(
+            const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
         )
-        persistent_enabled = kid_info.get(
-            const.DATA_KID_USE_PERSISTENT_NOTIFICATIONS, True
+        persistent_enabled = assignee_info.get(
+            const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, True
         )
 
         if mobile_notify_service:
@@ -942,7 +951,7 @@ class NotificationManager(BaseManager):
             )
         elif persistent_enabled:
             # Use tag for notification_id when available for smart replacement
-            notification_id = notification_tag or f"kid_{kid_id}"
+            notification_id = notification_tag or f"assignee_{assignee_id}"
             await self.hass.services.async_call(
                 const.NOTIFY_PERSISTENT_NOTIFICATION,
                 const.NOTIFY_CREATE,
@@ -955,13 +964,13 @@ class NotificationManager(BaseManager):
             )
         else:
             const.LOGGER.debug(
-                "No notification method configured for Kid ID '%s'",
-                kid_id,
+                "No notification method configured for Assignee ID '%s'",
+                assignee_id,
             )
 
-    async def notify_kid_translated(
+    async def notify_assignee_translated(
         self,
-        kid_id: str,
+        assignee_id: str,
         title_key: str,
         message_key: str,
         message_data: dict[str, Any] | None = None,
@@ -970,25 +979,27 @@ class NotificationManager(BaseManager):
         tag_type: str | None = None,
         tag_identifiers: tuple[str, ...] | None = None,
     ) -> None:
-        """Notify a kid using translated title and message.
+        """Notify a assignee using translated title and message.
 
         Args:
-            kid_id: The internal ID of the kid
+            assignee_id: The internal ID of the assignee
             title_key: Translation key for the notification title
             message_key: Translation key for the notification message
             message_data: Dictionary of placeholder values for message formatting
             actions: Optional list of notification actions
             extra_data: Optional extra data for mobile notifications
         """
-        # Get kid's preferred language (or fall back to system language)
-        kid_info: KidData = cast("KidData", self.coordinator.kids_data.get(kid_id, {}))
-        language = kid_info.get(
-            const.DATA_KID_DASHBOARD_LANGUAGE,
+        # Get assignee's preferred language (or fall back to system language)
+        assignee_info: AssigneeData = cast(
+            "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
+        )
+        language = assignee_info.get(
+            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
             self.hass.config.language,
         )
         const.LOGGER.debug(
-            "Notification: kid_id=%s, language=%s, title_key=%s",
-            kid_id,
+            "Notification: assignee_id=%s, language=%s, title_key=%s",
+            assignee_id,
             language,
             title_key,
         )
@@ -1024,7 +1035,8 @@ class NotificationManager(BaseManager):
         # Skip notification if placeholders missing
         if title is None or message is None:
             const.LOGGER.error(
-                "Skipping notification to kid_id=%s due to missing placeholders", kid_id
+                "Skipping notification to assignee_id=%s due to missing placeholders",
+                assignee_id,
             )
             return
 
@@ -1032,8 +1044,8 @@ class NotificationManager(BaseManager):
         translated_actions = self._translate_action_buttons(actions, translations)
 
         # Call notification method
-        await self.notify_kid(
-            kid_id,
+        await self.notify_assignee(
+            assignee_id,
             title,
             message,
             translated_actions,
@@ -1043,34 +1055,37 @@ class NotificationManager(BaseManager):
         )
 
     # =========================================================================
-    # Parent Notifications
+    # Approver Notifications
     # =========================================================================
 
-    async def notify_parents(
+    async def notify_approvers(
         self,
-        kid_id: str,
+        assignee_id: str,
         title: str,
         message: str,
         actions: list[dict[str, str]] | None = None,
         extra_data: dict[str, str] | None = None,
     ) -> None:
-        """Notify all parents associated with a kid using their settings."""
+        """Notify all approvers associated with a assignee using their settings."""
         perf_start = time.perf_counter()
-        parent_count = 0
+        approver_count = 0
 
-        for parent_id, parent_info in self.coordinator.parents_data.items():
-            if kid_id not in parent_info.get(const.DATA_PARENT_ASSOCIATED_KIDS, []):
+        for approver_id, approver_info in self.coordinator.approvers_data.items():
+            if assignee_id not in approver_info.get(
+                const.DATA_APPROVER_ASSOCIATED_USERS, []
+            ):
                 continue
 
-            mobile_notify_service = parent_info.get(
-                const.DATA_PARENT_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            mobile_notify_service = approver_info.get(
+                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
-            persistent_enabled = parent_info.get(
-                const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, True
+            persistent_enabled = approver_info.get(
+                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+                True,
             )
 
             if mobile_notify_service:
-                parent_count += 1
+                approver_count += 1
                 await self._send_notification(
                     mobile_notify_service,
                     title,
@@ -1079,34 +1094,34 @@ class NotificationManager(BaseManager):
                     extra_data=extra_data,
                 )
             elif persistent_enabled:
-                parent_count += 1
+                approver_count += 1
                 await self.hass.services.async_call(
                     const.NOTIFY_PERSISTENT_NOTIFICATION,
                     const.NOTIFY_CREATE,
                     {
                         const.NOTIFY_TITLE: title,
                         const.NOTIFY_MESSAGE: message,
-                        const.NOTIFY_NOTIFICATION_ID: f"parent_{parent_id}",
+                        const.NOTIFY_NOTIFICATION_ID: f"approver_{approver_id}",
                     },
                     blocking=True,
                 )
             else:
                 const.LOGGER.debug(
-                    "No notification method configured for Parent ID '%s'",
-                    parent_id,
+                    "No notification method configured for Approver ID '%s'",
+                    approver_id,
                 )
 
-        # PERF: Log parent notification latency
+        # PERF: Log approver notification latency
         perf_duration = time.perf_counter() - perf_start
         const.LOGGER.debug(
-            "PERF: notify_parents() sent %d notifications in %.3fs (sequential)",
-            parent_count,
+            "PERF: notify_approvers() sent %d notifications in %.3fs (sequential)",
+            approver_count,
             perf_duration,
         )
 
-    async def notify_parents_translated(
+    async def notify_approvers_translated(
         self,
-        kid_id: str,
+        assignee_id: str,
         title_key: str,
         message_key: str,
         message_data: dict[str, Any] | None = None,
@@ -1115,14 +1130,14 @@ class NotificationManager(BaseManager):
         tag_type: str | None = None,
         tag_identifiers: tuple[str, ...] | None = None,
     ) -> None:
-        """Notify parents using translated title and message.
+        """Notify approvers using translated title and message.
 
-        Each parent receives notifications in their own preferred language.
+        Each approver receives notifications in their own preferred language.
         Supports tag-based notification replacement (v0.5.0+).
         Uses concurrent notification sending for ~3x performance improvement.
 
         Args:
-            kid_id: The internal ID of the kid (to find associated parents)
+            assignee_id: The internal ID of the assignee (to find associated approvers)
             title_key: Translation key for the notification title
             message_key: Translation key for the notification message
             message_data: Dictionary of placeholder values for message formatting
@@ -1141,7 +1156,7 @@ class NotificationManager(BaseManager):
             if tag_identifiers:
                 identifiers = (*base_identifiers, *tag_identifiers)
             else:
-                identifiers = (*base_identifiers, kid_id)
+                identifiers = (*base_identifiers, assignee_id)
             notification_tag = self.build_notification_tag(tag_type, *identifiers)
             const.LOGGER.debug(
                 "Using notification tag '%s' for identifiers %s",
@@ -1149,33 +1164,35 @@ class NotificationManager(BaseManager):
                 identifiers,
             )
 
-        # Phase 1: Prepare all parent notifications (translations, formatting)
+        # Phase 1: Prepare all approver notifications (translations, formatting)
         notification_tasks: list[tuple[str, Any]] = []
 
-        for parent_id, parent_info in self.coordinator.parents_data.items():
-            if kid_id not in parent_info.get(const.DATA_PARENT_ASSOCIATED_KIDS, []):
+        for approver_id, approver_info in self.coordinator.approvers_data.items():
+            if assignee_id not in approver_info.get(
+                const.DATA_APPROVER_ASSOCIATED_USERS, []
+            ):
                 continue
 
-            # Use parent's language preference
-            parent_language = (
-                parent_info.get(const.DATA_PARENT_DASHBOARD_LANGUAGE)
-                or cast("KidData", self.coordinator.kids_data.get(kid_id, {})).get(
-                    const.DATA_KID_DASHBOARD_LANGUAGE
-                )
+            # Use approver's language preference
+            approver_language = (
+                approver_info.get(const.DATA_APPROVER_DASHBOARD_LANGUAGE)
+                or cast(
+                    "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
+                ).get(const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE)
                 or self.hass.config.language
             )
 
             const.LOGGER.debug(
-                "Parent notification: kid_id=%s, parent_id=%s, language=%s, title_key=%s",
-                kid_id,
-                parent_id,
-                parent_language,
+                "Approver notification: assignee_id=%s, approver_id=%s, language=%s, title_key=%s",
+                assignee_id,
+                approver_id,
+                approver_language,
                 title_key,
             )
 
-            # Load notification translations for this parent's language
+            # Load notification translations for this approver's language
             translations = await th.load_notification_translation(
-                self.hass, parent_language
+                self.hass, approver_language
             )
 
             # Convert const keys to JSON keys and look up translations
@@ -1201,9 +1218,9 @@ class NotificationManager(BaseManager):
             # Skip notification if placeholders missing
             if title is None or message is None:
                 const.LOGGER.error(
-                    "Skipping notification to parent_id=%s (kid_id=%s) due to missing placeholders",
-                    parent_id,
-                    kid_id,
+                    "Skipping notification to approver_id=%s (assignee_id=%s) due to missing placeholders",
+                    approver_id,
+                    assignee_id,
                 )
                 continue
 
@@ -1216,17 +1233,18 @@ class NotificationManager(BaseManager):
                 final_extra_data[const.NOTIFY_TAG] = notification_tag
 
             # Determine notification method and prepare coroutine
-            persistent_enabled = parent_info.get(
-                const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, True
+            persistent_enabled = approver_info.get(
+                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+                True,
             )
-            mobile_notify_service = parent_info.get(
-                const.DATA_PARENT_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            mobile_notify_service = approver_info.get(
+                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
 
             if mobile_notify_service:
                 notification_tasks.append(
                     (
-                        parent_id,
+                        approver_id,
                         self._send_notification(
                             mobile_notify_service,
                             title,
@@ -1239,14 +1257,14 @@ class NotificationManager(BaseManager):
             elif persistent_enabled:
                 notification_tasks.append(
                     (
-                        parent_id,
+                        approver_id,
                         self.hass.services.async_call(
                             const.NOTIFY_PERSISTENT_NOTIFICATION,
                             const.NOTIFY_CREATE,
                             {
                                 const.NOTIFY_TITLE: title,
                                 const.NOTIFY_MESSAGE: message,
-                                const.NOTIFY_NOTIFICATION_ID: f"parent_{parent_id}",
+                                const.NOTIFY_NOTIFICATION_ID: f"approver_{approver_id}",
                             },
                             blocking=True,
                         ),
@@ -1254,12 +1272,12 @@ class NotificationManager(BaseManager):
                 )
             else:
                 const.LOGGER.debug(
-                    "No notification method configured for Parent ID '%s'",
-                    parent_id,
+                    "No notification method configured for Approver ID '%s'",
+                    approver_id,
                 )
 
         # Phase 2: Send all notifications concurrently
-        parent_count = len(notification_tasks)
+        approver_count = len(notification_tasks)
         if notification_tasks:
             results = await asyncio.gather(
                 *[coro for _, coro in notification_tasks],
@@ -1269,33 +1287,33 @@ class NotificationManager(BaseManager):
             # Log any errors
             for idx, result in enumerate(results):
                 if isinstance(result, Exception):
-                    parent_id = notification_tasks[idx][0]
+                    approver_id = notification_tasks[idx][0]
                     const.LOGGER.warning(
-                        "Failed to send notification to parent '%s': %s",
-                        parent_id,
+                        "Failed to send notification to approver '%s': %s",
+                        approver_id,
                         result,
                     )
 
-        # PERF: Log parent notification latency
+        # PERF: Log approver notification latency
         perf_duration = time.perf_counter() - perf_start
         const.LOGGER.debug(
-            "PERF: notify_parents_translated() sent %d notifications in %.3fs (concurrent)",
-            parent_count,
+            "PERF: notify_approvers_translated() sent %d notifications in %.3fs (concurrent)",
+            approver_count,
             perf_duration,
         )
 
-    async def broadcast_to_all_parents(
+    async def broadcast_to_all_approvers(
         self,
         title_key: str,
         message_key: str,
         placeholders: dict[str, str] | None = None,
     ) -> None:
-        """Broadcast a notification to ALL parents (system-level announcements).
+        """Broadcast a notification to ALL approvers (system-level announcements).
 
-        Unlike notify_parents_translated(), this sends to every parent regardless
-        of kid association. Used for system-wide notifications like data resets.
+        Unlike notify_approvers_translated(), this sends to every approver regardless
+        of assignee association. Used for system-wide notifications like data resets.
 
-        Each parent receives the notification in their preferred language.
+        Each approver receives the notification in their preferred language.
 
         Args:
             title_key: Translation key for the notification title
@@ -1306,16 +1324,16 @@ class NotificationManager(BaseManager):
         notification_tasks: list[tuple[str, Any]] = []
         message_data = placeholders or {}
 
-        for parent_id, parent_info in self.coordinator.parents_data.items():
-            # Use parent's language preference, fall back to system language
-            parent_language = (
-                parent_info.get(const.DATA_PARENT_DASHBOARD_LANGUAGE)
+        for approver_id, approver_info in self.coordinator.approvers_data.items():
+            # Use approver's language preference, fall back to system language
+            approver_language = (
+                approver_info.get(const.DATA_APPROVER_DASHBOARD_LANGUAGE)
                 or self.hass.config.language
             )
 
-            # Load notification translations for this parent's language
+            # Load notification translations for this approver's language
             translations = await th.load_notification_translation(
-                self.hass, parent_language
+                self.hass, approver_language
             )
 
             # Convert const key to JSON key and look up translations
@@ -1336,22 +1354,23 @@ class NotificationManager(BaseManager):
             # Skip notification if placeholders missing
             if title is None or message is None:
                 const.LOGGER.error(
-                    "Skipping notification to parent_id=%s due to missing placeholders",
-                    parent_id,
+                    "Skipping notification to approver_id=%s due to missing placeholders",
+                    approver_id,
                 )
                 continue
 
-            mobile_notify_service = parent_info.get(
-                const.DATA_PARENT_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            mobile_notify_service = approver_info.get(
+                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
-            persistent_enabled = parent_info.get(
-                const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, True
+            persistent_enabled = approver_info.get(
+                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+                True,
             )
 
             if mobile_notify_service:
                 notification_tasks.append(
                     (
-                        parent_id,
+                        approver_id,
                         self._send_notification(
                             mobile_notify_service,
                             title,
@@ -1362,14 +1381,14 @@ class NotificationManager(BaseManager):
             elif persistent_enabled:
                 notification_tasks.append(
                     (
-                        parent_id,
+                        approver_id,
                         self.hass.services.async_call(
                             const.NOTIFY_PERSISTENT_NOTIFICATION,
                             const.NOTIFY_CREATE,
                             {
                                 const.NOTIFY_TITLE: title,
                                 const.NOTIFY_MESSAGE: message,
-                                const.NOTIFY_NOTIFICATION_ID: f"kc_system_{parent_id}",
+                                const.NOTIFY_NOTIFICATION_ID: f"kc_system_{approver_id}",
                             },
                             blocking=True,
                         ),
@@ -1377,12 +1396,12 @@ class NotificationManager(BaseManager):
                 )
             else:
                 const.LOGGER.debug(
-                    "No notification method configured for Parent ID '%s'",
-                    parent_id,
+                    "No notification method configured for Approver ID '%s'",
+                    approver_id,
                 )
 
         # Send all notifications concurrently
-        parent_count = len(notification_tasks)
+        approver_count = len(notification_tasks)
         if notification_tasks:
             results = await asyncio.gather(
                 *[coro for _, coro in notification_tasks],
@@ -1392,17 +1411,17 @@ class NotificationManager(BaseManager):
             # Log any errors
             for idx, result in enumerate(results):
                 if isinstance(result, Exception):
-                    parent_id = notification_tasks[idx][0]
+                    approver_id = notification_tasks[idx][0]
                     const.LOGGER.warning(
-                        "Failed to send broadcast notification to parent '%s': %s",
-                        parent_id,
+                        "Failed to send broadcast notification to approver '%s': %s",
+                        approver_id,
                         result,
                     )
 
         perf_duration = time.perf_counter() - perf_start
         const.LOGGER.debug(
-            "PERF: broadcast_to_all_parents() sent %d notifications in %.3fs",
-            parent_count,
+            "PERF: broadcast_to_all_approvers() sent %d notifications in %.3fs",
+            approver_count,
             perf_duration,
         )
 
@@ -1410,41 +1429,45 @@ class NotificationManager(BaseManager):
     # Notification Management
     # =========================================================================
 
-    async def clear_notification_for_parents(
+    async def clear_notification_for_approvers(
         self,
-        kid_id: str,
+        assignee_id: str,
         tag_type: str,
         item_id: str,
     ) -> None:
-        """Clear a notification for all parents of a kid.
+        """Clear a notification for all approvers of a assignee.
 
-        Sends "clear_notification" message to each parent's notification service
+        Sends "clear_notification" message to each approver's notification service
         with the appropriate tag.
 
         Args:
-            kid_id: The internal ID of the Kid Item (to find associated parents)
+            assignee_id: The internal ID of the Assignee Item (to find associated approvers)
             tag_type: Tag type constant (e.g., NOTIFY_TAG_TYPE_STATUS)
             item_id: The Chore/Reward Item ID (UUID) to include in the tag
         """
-        # Build the tag for this item (multi-instance support: entry_id, item_id, kid_id)
+        # Build the tag for this item (multi-instance support: entry_id, item_id, assignee_id)
         notification_tag = self.build_notification_tag(
-            tag_type, self.entry_id, item_id, kid_id
+            tag_type, self.entry_id, item_id, assignee_id
         )
 
         const.LOGGER.debug(
-            "Clearing notification with tag '%s' for kid '%s'",
+            "Clearing notification with tag '%s' for assignee '%s'",
             notification_tag,
-            kid_id,
+            assignee_id,
         )
 
-        # Build clear tasks for all parents associated with this kid
+        # Build clear tasks for all approvers associated with this assignee
         clear_tasks: list[tuple[str, Any]] = []
 
-        for parent_id, parent_info in self.coordinator.parents_data.items():
-            if kid_id not in parent_info.get(const.DATA_PARENT_ASSOCIATED_KIDS, []):
+        for approver_id, approver_info in self.coordinator.approvers_data.items():
+            if assignee_id not in approver_info.get(
+                const.DATA_APPROVER_ASSOCIATED_USERS, []
+            ):
                 continue
 
-            notify_service = parent_info.get(const.DATA_PARENT_MOBILE_NOTIFY_SERVICE)
+            notify_service = approver_info.get(
+                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE
+            )
             if not notify_service:
                 continue
 
@@ -1460,7 +1483,7 @@ class NotificationManager(BaseManager):
                 service_name,
                 service_data,
             )
-            clear_tasks.append((parent_id, coro))
+            clear_tasks.append((approver_id, coro))
 
         # Execute all clears concurrently
         if clear_tasks:
@@ -1470,43 +1493,47 @@ class NotificationManager(BaseManager):
             )
             for idx, result in enumerate(results):
                 if isinstance(result, Exception):
-                    parent_id = clear_tasks[idx][0]
+                    approver_id = clear_tasks[idx][0]
                     const.LOGGER.warning(
-                        "Failed to clear notification for parent '%s': %s",
-                        parent_id,
+                        "Failed to clear notification for approver '%s': %s",
+                        approver_id,
                         result,
                     )
         else:
             const.LOGGER.debug(
-                "No parents with notification service found for kid '%s'",
-                kid_id,
+                "No approvers with notification service found for assignee '%s'",
+                assignee_id,
             )
 
-    async def clear_notification_for_kid(
+    async def clear_notification_for_assignee(
         self,
-        kid_id: str,
+        assignee_id: str,
         tag: str | None = None,
     ) -> None:
-        """Clear notifications for a specific kid.
+        """Clear notifications for a specific assignee.
 
         Args:
-            kid_id: ID of the kid to clear notifications for
+            assignee_id: ID of the assignee to clear notifications for
             tag: Optional tag to clear specific notifications
         """
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
-            const.LOGGER.debug("Kid '%s' not found, cannot clear notifications", kid_id)
-            return
-
-        if not kid_info.get(const.DATA_KID_MOBILE_NOTIFY_SERVICE):
+        assignee_info: AssigneeData | None = self.coordinator.assignees_data.get(
+            assignee_id
+        )
+        if not assignee_info:
             const.LOGGER.debug(
-                "No notification service configured for kid '%s'", kid_id
+                "Assignee '%s' not found, cannot clear notifications", assignee_id
             )
             return
 
-        service_name = kid_info[const.DATA_KID_MOBILE_NOTIFY_SERVICE].removeprefix(
-            "notify."
-        )
+        if not assignee_info.get(const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE):
+            const.LOGGER.debug(
+                "No notification service configured for assignee '%s'", assignee_id
+            )
+            return
+
+        service_name = assignee_info[
+            const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE
+        ].removeprefix("notify.")
 
         service_data: dict[str, Any] = {
             "message": "clear_notification",
@@ -1515,10 +1542,14 @@ class NotificationManager(BaseManager):
         if tag:
             service_data["data"] = {"tag": tag}
             const.LOGGER.debug(
-                "Clearing notification with tag '%s' for kid '%s'", tag, kid_id
+                "Clearing notification with tag '%s' for assignee '%s'",
+                tag,
+                assignee_id,
             )
         else:
-            const.LOGGER.debug("Clearing all notifications for kid '%s'", kid_id)
+            const.LOGGER.debug(
+                "Clearing all notifications for assignee '%s'", assignee_id
+            )
 
         try:
             await self.hass.services.async_call(
@@ -1528,14 +1559,14 @@ class NotificationManager(BaseManager):
             )
         except Exception as ex:
             const.LOGGER.warning(
-                "Failed to clear notification for kid '%s': %s",
-                kid_id,
+                "Failed to clear notification for assignee '%s': %s",
+                assignee_id,
                 ex,
             )
 
     async def remind_in_minutes(
         self,
-        kid_id: str,
+        assignee_id: str,
         minutes: int,
         *,
         chore_id: str | None = None,
@@ -1547,8 +1578,8 @@ class NotificationManager(BaseManager):
         If a reward_id is provided, checks whether that reward is still pending.
         """
         const.LOGGER.debug(
-            "Scheduling reminder for Kid ID '%s', Chore ID '%s', Reward ID '%s' in %d minutes",
-            kid_id,
+            "Scheduling reminder for Assignee ID '%s', Chore ID '%s', Reward ID '%s' in %d minutes",
+            assignee_id,
             chore_id,
             reward_id,
             minutes,
@@ -1557,11 +1588,13 @@ class NotificationManager(BaseManager):
         delay_seconds = 5 if self.coordinator._test_mode else (minutes * 60)
         await asyncio.sleep(delay_seconds)
 
-        kid_info: KidData | None = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info: AssigneeData | None = self.coordinator.assignees_data.get(
+            assignee_id
+        )
+        if not assignee_info:
             const.LOGGER.warning(
-                "Kid ID '%s' not found during reminder check",
-                kid_id,
+                "Assignee ID '%s' not found during reminder check",
+                assignee_id,
             )
             return
 
@@ -1585,16 +1618,20 @@ class NotificationManager(BaseManager):
                 )
                 return
 
-            # Get the per-kid chore state
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if not kid_info:
+            # Get the per-assignee chore state
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if not assignee_info:
                 const.LOGGER.debug(
-                    "Kid ID '%s' not found in data. Skipping reminder",
-                    kid_id,
+                    "Assignee ID '%s' not found in data. Skipping reminder",
+                    assignee_id,
                 )
                 return
-            kid_chore_data = ChoreEngine.get_chore_data_for_kid(kid_info, chore_id)
-            current_state = kid_chore_data.get(const.DATA_KID_CHORE_DATA_STATE)
+            assignee_chore_data = ChoreEngine.get_chore_data_for_assignee(
+                assignee_info, chore_id
+            )
+            current_state = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE
+            )
 
             # Only resend if still pending/overdue
             if current_state not in [
@@ -1602,77 +1639,81 @@ class NotificationManager(BaseManager):
                 const.CHORE_STATE_OVERDUE,
             ]:
                 const.LOGGER.info(
-                    "Chore ID '%s' for Kid ID '%s' is in state '%s'. No reminder sent",
+                    "Chore ID '%s' for Assignee ID '%s' is in state '%s'. No reminder sent",
                     chore_id,
-                    kid_id,
+                    assignee_id,
                     current_state,
                 )
                 return
 
             # Build actions and send reminder
-            actions = self.build_chore_actions(kid_id, chore_id, self.entry_id)
-            extra_data = self.build_extra_data(kid_id, chore_id=chore_id)
-            await self.notify_parents_translated(
-                kid_id,
-                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_REMINDER_PARENT,
-                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_REMINDER_PARENT,
+            actions = self.build_chore_actions(assignee_id, chore_id, self.entry_id)
+            extra_data = self.build_extra_data(assignee_id, chore_id=chore_id)
+            await self.notify_approvers_translated(
+                assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_REMINDER_APPROVER,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_REMINDER_APPROVER,
                 message_data={
                     "chore_name": chore_info.get(
                         const.DATA_CHORE_NAME, const.DISPLAY_UNNAMED_CHORE
                     ),
-                    "kid_name": kid_info.get(
-                        const.DATA_KID_NAME, const.DISPLAY_UNNAMED_KID
+                    "assignee_name": assignee_info.get(
+                        const.DATA_ASSIGNEE_NAME, const.DISPLAY_UNNAMED_ASSIGNEE
                     ),
                 },
                 actions=actions,
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-                tag_identifiers=(chore_id, kid_id),
+                tag_identifiers=(chore_id, assignee_id),
             )
             const.LOGGER.info(
-                "Resent reminder for Chore ID '%s' for Kid ID '%s'",
+                "Resent reminder for Chore ID '%s' for Assignee ID '%s'",
                 chore_id,
-                kid_id,
+                assignee_id,
             )
 
         elif reward_id:
             # Check if the reward is still pending
-            reward_data = kid_info.get(const.DATA_KID_REWARD_DATA, {}).get(
+            reward_data = assignee_info.get(const.DATA_ASSIGNEE_REWARD_DATA, {}).get(
                 reward_id, {}
             )
-            pending_count = reward_data.get(const.DATA_KID_REWARD_DATA_PENDING_COUNT, 0)
+            pending_count = reward_data.get(
+                const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0
+            )
             if pending_count <= 0:
                 const.LOGGER.info(
-                    "Reward ID '%s' is no longer pending for Kid ID '%s'. No reminder sent",
+                    "Reward ID '%s' is no longer pending for Assignee ID '%s'. No reminder sent",
                     reward_id,
-                    kid_id,
+                    assignee_id,
                 )
                 return
 
             # Build actions and send reminder
-            actions = self.build_reward_actions(kid_id, reward_id, self.entry_id)
-            extra_data = self.build_extra_data(kid_id, reward_id=reward_id)
+            actions = self.build_reward_actions(assignee_id, reward_id, self.entry_id)
+            extra_data = self.build_extra_data(assignee_id, reward_id=reward_id)
             reward_info: RewardData = cast(
                 "RewardData", self.coordinator.rewards_data.get(reward_id, {})
             )
             reward_name = reward_info.get(const.DATA_REWARD_NAME, "the reward")
-            await self.notify_parents_translated(
-                kid_id,
-                title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_REMINDER_PARENT,
-                message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_REMINDER_PARENT,
+            await self.notify_approvers_translated(
+                assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_REMINDER_APPROVER,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_REMINDER_APPROVER,
                 message_data={
                     "reward_name": reward_name,
-                    "kid_name": kid_info.get(const.DATA_KID_NAME, "A kid"),
+                    "assignee_name": assignee_info.get(
+                        const.DATA_ASSIGNEE_NAME, "A assignee"
+                    ),
                 },
                 actions=actions,
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-                tag_identifiers=(reward_id, kid_id),
+                tag_identifiers=(reward_id, assignee_id),
             )
             const.LOGGER.info(
-                "Resent reminder for Reward ID '%s' for Kid ID '%s'",
+                "Resent reminder for Reward ID '%s' for Assignee ID '%s'",
                 reward_id,
-                kid_id,
+                assignee_id,
             )
         else:
             const.LOGGER.warning(
@@ -1684,179 +1725,188 @@ class NotificationManager(BaseManager):
     # =========================================================================
 
     async def _handle_badge_earned(self, payload: dict[str, Any]) -> None:
-        """Handle BADGE_EARNED event - send notifications to kid and parents.
+        """Handle BADGE_EARNED event - send notifications to assignee and approvers.
 
         Args:
-            payload: Event data containing kid_id, badge_id, badge_name
+            payload: Event data containing assignee_id, badge_id, badge_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         badge_id = payload.get("badge_id", "")
         badge_name = payload.get("badge_name", "Unknown Badge")
-        kid_name = payload.get("kid_name", "")
+        assignee_name = payload.get("assignee_name", "")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        if not kid_name:
+        if not assignee_name:
             const.LOGGER.warning(
-                "BADGE_EARNED notification missing kid_name in payload for kid_id=%s",
-                kid_id,
+                "BADGE_EARNED notification missing assignee_name in payload for assignee_id=%s",
+                assignee_id,
             )
             # Fallback to lookup
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if kid_info:
-                kid_name = kid_info.get(const.DATA_KID_NAME, "")
-            if not kid_name:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if assignee_info:
+                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            if not assignee_name:
                 return
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_BADGE_ID: badge_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_BADGE_ID: badge_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_ASSIGNEE,
             message_data={"badge_name": badge_name},
             extra_data=extra_data,
         )
 
-        # Notify parents
-        await self.notify_parents_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_PARENT,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_PARENT,
-            message_data={"kid_name": kid_name, "badge_name": badge_name},
+        # Notify approvers
+        await self.notify_approvers_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_APPROVER,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_APPROVER,
+            message_data={"assignee_name": assignee_name, "badge_name": badge_name},
             extra_data=extra_data,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent badge earned notifications for kid=%s, badge=%s",
-            kid_id,
+            "NotificationManager: Sent badge earned notifications for assignee=%s, badge=%s",
+            assignee_id,
             badge_name,
         )
 
     async def _handle_achievement_earned(self, payload: dict[str, Any]) -> None:
-        """Handle ACHIEVEMENT_EARNED event - send notifications to kid and parents.
+        """Handle ACHIEVEMENT_EARNED event - send notifications to assignee and approvers.
 
         Args:
-            payload: Event data containing kid_id, achievement_id, achievement_name
+            payload: Event data containing assignee_id, achievement_id, achievement_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         achievement_id = payload.get("achievement_id", "")
         achievement_name = payload.get("achievement_name", "Unknown Achievement")
-        kid_name = payload.get("kid_name", "")
+        assignee_name = payload.get("assignee_name", "")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        if not kid_name:
+        if not assignee_name:
             const.LOGGER.warning(
-                "ACHIEVEMENT_EARNED notification missing kid_name in payload for kid_id=%s",
-                kid_id,
+                "ACHIEVEMENT_EARNED notification missing assignee_name in payload for assignee_id=%s",
+                assignee_id,
             )
             # Fallback to lookup
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if kid_info:
-                kid_name = kid_info.get(const.DATA_KID_NAME, "")
-            if not kid_name:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if assignee_info:
+                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            if not assignee_name:
                 return
         extra_data = {
-            const.DATA_KID_ID: kid_id,
+            const.DATA_ASSIGNEE_ID: assignee_id,
             const.DATA_ACHIEVEMENT_ID: achievement_id,
         }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_ASSIGNEE,
             message_data={"achievement_name": achievement_name},
             extra_data=extra_data,
         )
 
-        # Notify parents
-        await self.notify_parents_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_PARENT,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_PARENT,
+        # Notify approvers
+        await self.notify_approvers_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_APPROVER,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_APPROVER,
             message_data={
-                "kid_name": kid_name,
+                "assignee_name": assignee_name,
                 "achievement_name": achievement_name,
             },
             extra_data=extra_data,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent achievement notifications for kid=%s, achievement=%s",
-            kid_id,
+            "NotificationManager: Sent achievement notifications for assignee=%s, achievement=%s",
+            assignee_id,
             achievement_name,
         )
 
     async def _handle_challenge_completed(self, payload: dict[str, Any]) -> None:
-        """Handle CHALLENGE_COMPLETED event - send notifications to kid and parents.
+        """Handle CHALLENGE_COMPLETED event - send notifications to assignee and approvers.
 
         Args:
-            payload: Event data containing kid_id, challenge_id, challenge_name
+            payload: Event data containing assignee_id, challenge_id, challenge_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         challenge_id = payload.get("challenge_id", "")
         challenge_name = payload.get("challenge_name", "Unknown Challenge")
-        kid_name = payload.get("kid_name", "")
+        assignee_name = payload.get("assignee_name", "")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        if not kid_name:
+        if not assignee_name:
             const.LOGGER.warning(
-                "CHALLENGE_COMPLETED notification missing kid_name in payload for kid_id=%s",
-                kid_id,
+                "CHALLENGE_COMPLETED notification missing assignee_name in payload for assignee_id=%s",
+                assignee_id,
             )
             # Fallback to lookup
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if kid_info:
-                kid_name = kid_info.get(const.DATA_KID_NAME, "")
-            if not kid_name:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if assignee_info:
+                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            if not assignee_name:
                 return
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_CHALLENGE_ID: challenge_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_CHALLENGE_ID: challenge_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_ASSIGNEE,
             message_data={"challenge_name": challenge_name},
             extra_data=extra_data,
         )
 
-        # Notify parents
-        await self.notify_parents_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_PARENT,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_PARENT,
-            message_data={"kid_name": kid_name, "challenge_name": challenge_name},
+        # Notify approvers
+        await self.notify_approvers_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_APPROVER,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_APPROVER,
+            message_data={
+                "assignee_name": assignee_name,
+                "challenge_name": challenge_name,
+            },
             extra_data=extra_data,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent challenge notifications for kid=%s, challenge=%s",
-            kid_id,
+            "NotificationManager: Sent challenge notifications for assignee=%s, challenge=%s",
+            assignee_id,
             challenge_name,
         )
 
     async def _handle_chore_claimed(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_CLAIMED event - send notification to parents for approval.
+        """Handle CHORE_CLAIMED event - send notification to approvers for approval.
 
         This bridges ChoreManager events to the notification system.
         Notifications are NOT sent if auto_approve is enabled or notify_on_claim is disabled.
 
         Args:
-            payload: Event data containing kid_id, chore_id, and optional chore_name
+            payload: Event data containing assignee_id, chore_id, and optional chore_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             const.LOGGER.warning(
-                "CHORE_CLAIMED notification skipped: missing kid_id or chore_id"
+                "CHORE_CLAIMED notification skipped: missing assignee_id or chore_id"
             )
             return
 
@@ -1879,39 +1929,41 @@ class NotificationManager(BaseManager):
         chore_name = payload.get("chore_name") or chore_info.get(
             const.DATA_CHORE_NAME, ""
         )
-        kid_name = payload.get("kid_name", "")
-        if not kid_name:
+        assignee_name = payload.get("assignee_name", "")
+        if not assignee_name:
             const.LOGGER.warning(
-                "CHORE_CLAIMED notification missing kid_name in payload for kid_id=%s",
-                kid_id,
+                "CHORE_CLAIMED notification missing assignee_name in payload for assignee_id=%s",
+                assignee_id,
             )
             # Fallback to lookup
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if kid_info:
-                kid_name = kid_info.get(const.DATA_KID_NAME, "")
-            if not kid_name:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if assignee_info:
+                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            if not assignee_name:
                 return
         chore_points = chore_info.get(
             const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_ZERO
         )
 
         # Count pending chores for aggregation
-        pending_count = self.coordinator.chore_manager.get_pending_chore_count_for_kid(
-            kid_id
+        pending_count = (
+            self.coordinator.chore_manager.get_pending_chore_count_for_assignee(
+                assignee_id
+            )
         )
 
         # Build action buttons
-        actions = self.build_chore_actions(kid_id, chore_id, self.entry_id)
-        extra_data = self.build_extra_data(kid_id, chore_id=chore_id)
+        actions = self.build_chore_actions(assignee_id, chore_id, self.entry_id)
+        extra_data = self.build_extra_data(assignee_id, chore_id=chore_id)
 
         if pending_count > 1:
             # Aggregated notification
-            await self.notify_parents_translated(
-                kid_id,
-                title_key=const.TRANS_KEY_NOTIF_TITLE_PENDING_CHORES_PARENT,
-                message_key=const.TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_PARENT,
+            await self.notify_approvers_translated(
+                assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_PENDING_CHORES_APPROVER,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_APPROVER,
                 message_data={
-                    "kid_name": kid_name,
+                    "assignee_name": assignee_name,
                     "count": pending_count,
                     "latest_chore": chore_name,
                     "points": int(chore_points),
@@ -1919,398 +1971,415 @@ class NotificationManager(BaseManager):
                 actions=actions,
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-                tag_identifiers=(chore_id, kid_id),
+                tag_identifiers=(chore_id, assignee_id),
             )
         else:
             # Single chore notification
-            await self.notify_parents_translated(
-                kid_id,
-                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_CLAIMED_PARENT,
-                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_CLAIMED_PARENT,
+            await self.notify_approvers_translated(
+                assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_CLAIMED_APPROVER,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_CLAIMED_APPROVER,
                 message_data={
-                    "kid_name": kid_name,
+                    "assignee_name": assignee_name,
                     "chore_name": chore_name,
                 },
                 actions=actions,
                 extra_data=extra_data,
                 tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-                tag_identifiers=(chore_id, kid_id),
+                tag_identifiers=(chore_id, assignee_id),
             )
 
         # Note: Due-soon reminder tracking is already cleared by ChoreManager.claim_chore()
         # per Cross-Manager Directive 2 (Direct Writes are FORBIDDEN)
 
-        # Auto-clear: Remove overdue and due window notifications for kid
+        # Auto-clear: Remove overdue and due window notifications for assignee
         # when they claim the chore (v0.5.0+ auto-clearing functionality)
         overdue_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, kid_id
+            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
         )
         due_window_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, kid_id
+            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, assignee_id
         )
 
-        await self.clear_notification_for_kid(kid_id, overdue_tag)
-        await self.clear_notification_for_kid(kid_id, due_window_tag)
+        await self.clear_notification_for_assignee(assignee_id, overdue_tag)
+        await self.clear_notification_for_assignee(assignee_id, due_window_tag)
 
         const.LOGGER.debug(
-            "NotificationManager: Sent chore claimed notification for kid=%s, chore=%s",
-            kid_id,
+            "NotificationManager: Sent chore claimed notification for assignee=%s, chore=%s",
+            assignee_id,
             chore_name,
         )
 
     async def _handle_reward_claimed(self, payload: dict[str, Any]) -> None:
-        """Handle REWARD_CLAIMED event - send notification to parents for approval.
+        """Handle REWARD_CLAIMED event - send notification to approvers for approval.
 
         Args:
-            payload: Event data containing kid_id, reward_id, reward_name, points, notif_id
+            payload: Event data containing assignee_id, reward_id, reward_name, points, notif_id
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         reward_id = payload.get("reward_id", "")
         reward_name = payload.get("reward_name", "Unknown Reward")
         points = payload.get("points", 0)
         notif_id = payload.get("notif_id", "")
-        kid_name = payload.get("kid_name", "")
+        assignee_name = payload.get("assignee_name", "")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        if not kid_name:
+        if not assignee_name:
             const.LOGGER.warning(
-                "REWARD_CLAIMED notification missing kid_name in payload for kid_id=%s",
-                kid_id,
+                "REWARD_CLAIMED notification missing assignee_name in payload for assignee_id=%s",
+                assignee_id,
             )
             # Fallback to lookup
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if kid_info:
-                kid_name = kid_info.get(const.DATA_KID_NAME, "")
-            if not kid_name:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if assignee_info:
+                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            if not assignee_name:
                 return
 
-        # Build actions for parents
-        actions = self.build_reward_actions(kid_id, reward_id, self.entry_id, notif_id)
+        # Build actions for approvers
+        actions = self.build_reward_actions(
+            assignee_id, reward_id, self.entry_id, notif_id
+        )
         extra_data = self.build_extra_data(
-            kid_id, reward_id=reward_id, notif_id=notif_id
+            assignee_id, reward_id=reward_id, notif_id=notif_id
         )
 
-        # Notify parents
-        await self.notify_parents_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_CLAIMED_PARENT,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_CLAIMED_PARENT,
+        # Notify approvers
+        await self.notify_approvers_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_CLAIMED_APPROVER,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_CLAIMED_APPROVER,
             message_data={
-                "kid_name": kid_name,
+                "assignee_name": assignee_name,
                 "reward_name": reward_name,
                 "points": points,
             },
             actions=actions,
             extra_data=extra_data,
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(reward_id, kid_id),
+            tag_identifiers=(reward_id, assignee_id),
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent reward claimed notification for kid=%s, reward=%s",
-            kid_id,
+            "NotificationManager: Sent reward claimed notification for assignee=%s, reward=%s",
+            assignee_id,
             reward_name,
         )
 
     async def _handle_chore_claim_undone(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_CLAIM_UNDONE event - clear parent claim notifications.
+        """Handle CHORE_CLAIM_UNDONE event - clear approver claim notifications.
 
         Args:
-            payload: Event data containing kid_id and chore_id
+            payload: Event data containing assignee_id and chore_id
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             return
 
-        await self.clear_notification_for_parents(
-            kid_id,
+        await self.clear_notification_for_approvers(
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             chore_id,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Cleared chore claim notifications for kid=%s, chore=%s",
-            kid_id,
+            "NotificationManager: Cleared chore claim notifications for assignee=%s, chore=%s",
+            assignee_id,
             chore_id,
         )
 
     async def _handle_reward_claim_undone(self, payload: dict[str, Any]) -> None:
-        """Handle REWARD_CLAIM_UNDONE event - clear parent claim notifications.
+        """Handle REWARD_CLAIM_UNDONE event - clear approver claim notifications.
 
         Args:
-            payload: Event data containing kid_id and reward_id
+            payload: Event data containing assignee_id and reward_id
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         reward_id = payload.get("reward_id", "")
 
-        if not kid_id or not reward_id:
+        if not assignee_id or not reward_id:
             return
 
-        await self.clear_notification_for_parents(
-            kid_id,
+        await self.clear_notification_for_approvers(
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             reward_id,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Cleared reward claim notifications for kid=%s, reward=%s",
-            kid_id,
+            "NotificationManager: Cleared reward claim notifications for assignee=%s, reward=%s",
+            assignee_id,
             reward_id,
         )
 
     async def _handle_reward_approved(self, payload: dict[str, Any]) -> None:
-        """Handle REWARD_APPROVED event - send notification to kid.
+        """Handle REWARD_APPROVED event - send notification to assignee.
 
         Args:
-            payload: Event data containing kid_id, reward_id, reward_name
+            payload: Event data containing assignee_id, reward_id, reward_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         reward_id = payload.get("reward_id", "")
         reward_name = payload.get("reward_name", "Unknown Reward")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_REWARD_ID: reward_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_REWARD_ID: reward_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_APPROVED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_APPROVED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_APPROVED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_APPROVED_ASSIGNEE,
             message_data={"reward_name": reward_name},
             extra_data=extra_data,
         )
 
-        # Clear the original claim notification from parents' devices
-        await self.clear_notification_for_parents(
-            kid_id,
+        # Clear the original claim notification from approvers' devices
+        await self.clear_notification_for_approvers(
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             reward_id,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent reward approved notification for kid=%s, reward=%s",
-            kid_id,
+            "NotificationManager: Sent reward approved notification for assignee=%s, reward=%s",
+            assignee_id,
             reward_name,
         )
 
     async def _handle_reward_disapproved(self, payload: dict[str, Any]) -> None:
-        """Handle REWARD_DISAPPROVED event - send notification to kid.
+        """Handle REWARD_DISAPPROVED event - send notification to assignee.
 
         Args:
-            payload: Event data containing kid_id, reward_id, reward_name
+            payload: Event data containing assignee_id, reward_id, reward_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         reward_id = payload.get("reward_id", "")
         reward_name = payload.get("reward_name", "Unknown Reward")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_REWARD_ID: reward_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_REWARD_ID: reward_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_DISAPPROVED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_DISAPPROVED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_REWARD_DISAPPROVED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_REWARD_DISAPPROVED_ASSIGNEE,
             message_data={"reward_name": reward_name},
             extra_data=extra_data,
         )
 
-        # Clear the original claim notification from parents' devices
-        await self.clear_notification_for_parents(
-            kid_id,
+        # Clear the original claim notification from approvers' devices
+        await self.clear_notification_for_approvers(
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             reward_id,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent reward disapproved notification for kid=%s, reward=%s",
-            kid_id,
+            "NotificationManager: Sent reward disapproved notification for assignee=%s, reward=%s",
+            assignee_id,
             reward_name,
         )
 
     async def _handle_chore_disapproved(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_DISAPPROVED event - send notification to kid.
+        """Handle CHORE_DISAPPROVED event - send notification to assignee.
 
         Args:
-            payload: Event data containing kid_id, chore_id, chore_name
+            payload: Event data containing assignee_id, chore_id, chore_name
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_CHORE_ID: chore_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_CHORE_ID: chore_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DISAPPROVED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DISAPPROVED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DISAPPROVED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DISAPPROVED_ASSIGNEE,
             message_data={"chore_name": chore_name},
             extra_data=extra_data,
         )
 
-        # Clear the original claim notification from parents' devices
-        await self.clear_notification_for_parents(
-            kid_id,
+        # Clear the original claim notification from approvers' devices
+        await self.clear_notification_for_approvers(
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             chore_id,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent chore disapproved notification for kid=%s, chore=%s",
-            kid_id,
+            "NotificationManager: Sent chore disapproved notification for assignee=%s, chore=%s",
+            assignee_id,
             chore_name,
         )
 
     async def _handle_chore_approved(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_APPROVED event - notify kid and clear pending notifications.
+        """Handle CHORE_APPROVED event - notify assignee and clear pending notifications.
 
-        Sends approval notification to kid if notify_on_approval is enabled.
-        Clears both parent claim notifications and kid overdue notifications.
+        Sends approval notification to assignee if notify_on_approval is enabled.
+        Clears both approver claim notifications and assignee overdue notifications.
 
         Args:
-            payload: Event data containing kid_id, chore_id, chore_name, points_awarded
+            payload: Event data containing assignee_id, chore_id, chore_name, points_awarded
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         points = payload.get(
             "points_awarded", 0
         )  # Use points_awarded from ChoreManager
-        notify_kid = bool(payload.get("notify_kid", True))
+        notify_assignee = bool(payload.get("notify_assignee", True))
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             return
 
         # Check if approval notifications are enabled for this chore
         chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
         if (
-            notify_kid
+            notify_assignee
             and chore_info
             and chore_info.get(
                 const.DATA_CHORE_NOTIFY_ON_APPROVAL,
                 const.DEFAULT_NOTIFY_ON_APPROVAL,
             )
         ):
-            # Notify kid of approval
-            await self.notify_kid_translated(
-                kid_id,
-                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_APPROVED_KID,
-                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_KID,
+            # Notify assignee of approval
+            await self.notify_assignee_translated(
+                assignee_id,
+                title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_APPROVED_ASSIGNEE,
+                message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE,
                 message_data={
                     "chore_name": chore_name,
                     "points": points,
                 },
             )
 
-        # Clear claim notification for parents
-        await self.clear_notification_for_parents(
-            kid_id,
+        # Clear claim notification for approvers
+        await self.clear_notification_for_approvers(
+            assignee_id,
             const.NOTIFY_TAG_TYPE_STATUS,
             chore_id,
         )
 
-        # Clear overdue/due window notifications for kid
+        # Clear overdue/due window notifications for assignee
         overdue_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, kid_id
+            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
         )
         due_window_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, kid_id
+            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, assignee_id
         )
 
-        await self.clear_notification_for_kid(kid_id, overdue_tag)
-        await self.clear_notification_for_kid(kid_id, due_window_tag)
+        await self.clear_notification_for_assignee(assignee_id, overdue_tag)
+        await self.clear_notification_for_assignee(assignee_id, due_window_tag)
 
         const.LOGGER.debug(
-            "NotificationManager: Cleared notifications for approved chore=%s, kid=%s",
+            "NotificationManager: Cleared notifications for approved chore=%s, assignee=%s",
             chore_name,
-            kid_id,
+            assignee_id,
         )
 
     async def _handle_bonus_applied(self, payload: dict[str, Any]) -> None:
-        """Handle BONUS_APPLIED event - send notification to kid.
+        """Handle BONUS_APPLIED event - send notification to assignee.
 
         Args:
-            payload: Event data containing kid_id, bonus_id, bonus_name, points
+            payload: Event data containing assignee_id, bonus_id, bonus_name, points
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         bonus_id = payload.get("bonus_id", "")
         bonus_name = payload.get("bonus_name", "Unknown Bonus")
         points = payload.get("points", 0)
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_BONUS_ID: bonus_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_BONUS_ID: bonus_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_BONUS_APPLIED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_BONUS_APPLIED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_BONUS_APPLIED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_BONUS_APPLIED_ASSIGNEE,
             message_data={"bonus_name": bonus_name, "points": points},
             extra_data=extra_data,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent bonus applied notification for kid=%s, bonus=%s",
-            kid_id,
+            "NotificationManager: Sent bonus applied notification for assignee=%s, bonus=%s",
+            assignee_id,
             bonus_name,
         )
 
     async def _handle_penalty_applied(self, payload: dict[str, Any]) -> None:
-        """Handle PENALTY_APPLIED event - send notification to kid.
+        """Handle PENALTY_APPLIED event - send notification to assignee.
 
         Args:
-            payload: Event data containing kid_id, penalty_id, penalty_name, points
+            payload: Event data containing assignee_id, penalty_id, penalty_name, points
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         penalty_id = payload.get("penalty_id", "")
         penalty_name = payload.get("penalty_name", "Unknown Penalty")
         points = payload.get("points", 0)
 
-        if not kid_id:
+        if not assignee_id:
             return
 
-        extra_data = {const.DATA_KID_ID: kid_id, const.DATA_PENALTY_ID: penalty_id}
+        extra_data = {
+            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_PENALTY_ID: penalty_id,
+        }
 
-        # Notify kid
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_PENALTY_APPLIED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_PENALTY_APPLIED_KID,
+        # Notify assignee
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_PENALTY_APPLIED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_PENALTY_APPLIED_ASSIGNEE,
             message_data={"penalty_name": penalty_name, "points": points},
             extra_data=extra_data,
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent penalty applied notification for kid=%s, penalty=%s",
-            kid_id,
+            "NotificationManager: Sent penalty applied notification for assignee=%s, penalty=%s",
+            assignee_id,
             penalty_name,
         )
 
     async def _handle_multiplier_changed(self, payload: dict[str, Any]) -> None:
-        """Handle points multiplier changes - notify kid and parents.
+        """Handle points multiplier changes - notify assignee and approvers.
 
         Args:
-            payload: Event data containing kid_id, old_multiplier, and new_multiplier
+            payload: Event data containing assignee_id, old_multiplier, and new_multiplier
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         old_multiplier = payload.get("old_multiplier")
         new_multiplier = payload.get("new_multiplier", payload.get("multiplier"))
 
-        if not kid_id or old_multiplier is None or new_multiplier is None:
+        if not assignee_id or old_multiplier is None or new_multiplier is None:
             return
 
         old_value = float(old_multiplier)
@@ -2318,16 +2387,16 @@ class NotificationManager(BaseManager):
 
         if old_value == new_value:
             const.LOGGER.debug(
-                "NotificationManager: Skipping multiplier notification (unchanged) for kid=%s",
-                kid_id,
+                "NotificationManager: Skipping multiplier notification (unchanged) for assignee=%s",
+                assignee_id,
             )
             return
 
-        kid_name = ""
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if kid_info:
-            kid_name = kid_info.get(const.DATA_KID_NAME, "")
-        if not kid_name:
+        assignee_name = ""
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if assignee_info:
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+        if not assignee_name:
             return
 
         message_data = {
@@ -2335,180 +2404,186 @@ class NotificationManager(BaseManager):
             "new_multiplier": new_value,
         }
 
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_KID,
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_ASSIGNEE,
             message_data=message_data,
         )
 
-        await self.notify_parents_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_PARENT,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_PARENT,
+        await self.notify_approvers_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_APPROVER,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_APPROVER,
             message_data={
-                "kid_name": kid_name,
+                "assignee_name": assignee_name,
                 **message_data,
             },
         )
 
         const.LOGGER.debug(
-            "NotificationManager: Sent multiplier change notifications for kid=%s (%s -> %s)",
-            kid_id,
+            "NotificationManager: Sent multiplier change notifications for assignee=%s (%s -> %s)",
+            assignee_id,
             old_value,
             new_value,
         )
 
     async def _handle_chore_due_window(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_DUE_WINDOW event - notify kid when chore enters due window (v0.6.0+).
+        """Handle CHORE_DUE_WINDOW event - notify assignee when chore enters due window (v0.6.0+).
 
         Triggered when chore transitions from PENDING → DUE state.
         Uses Schedule-Lock pattern to prevent duplicate notifications within same period.
 
         Args:
-            payload: Event data containing kid_id, chore_id, chore_name,
+            payload: Event data containing assignee_id, chore_id, chore_name,
                      hours (remaining), points, due_date
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         hours = payload.get("hours", 0)
         points = payload.get("points", 0)
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             return
 
         # Phase 3 Step 9: Filter rotation chores - only notify turn-holder
         chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
         if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            current_turn_kid = chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_KID_ID)
-            if current_turn_kid != kid_id:
+            current_turn_assignee = chore_info.get(
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+            )
+            if current_turn_assignee != assignee_id:
                 const.LOGGER.debug(
                     "NotificationManager: Skipping due window notification for rotation chore=%s "
-                    "(not_my_turn: current turn is kid=%s, not %s)",
+                    "(not_my_turn: current turn is assignee=%s, not %s)",
                     chore_name,
-                    current_turn_kid,
-                    kid_id,
+                    current_turn_assignee,
+                    assignee_id,
                 )
                 return
 
         # Schedule-Lock: Check if already notified this period
-        if not self._should_send_chore_notification(kid_id, chore_id, "due_start"):
+        if not self._should_send_chore_notification(assignee_id, chore_id, "due_start"):
             const.LOGGER.debug(
                 "NotificationManager: Suppressing due start notification (Schedule-Lock) "
-                "for chore=%s to kid=%s",
+                "for chore=%s to assignee=%s",
                 chore_name,
-                kid_id,
+                assignee_id,
             )
             return
 
-        # Notify kid with claim action (using tag for smart replacement)
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DUE_WINDOW_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_KID,
+        # Notify assignee with claim action (using tag for smart replacement)
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DUE_WINDOW_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE,
             message_data={
                 "chore_name": chore_name,
                 "hours": hours,
                 "points": points,
             },
-            actions=self.build_claim_action(kid_id, chore_id, self.entry_id),
+            actions=self.build_claim_action(assignee_id, chore_id, self.entry_id),
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, kid_id),
+            tag_identifiers=(chore_id, assignee_id),
         )
 
         # Record notification sent (persists to storage)
-        self._record_chore_notification_sent(kid_id, chore_id, "due_start")
+        self._record_chore_notification_sent(assignee_id, chore_id, "due_start")
 
         const.LOGGER.debug(
-            "NotificationManager: Sent due start notification for chore=%s to kid=%s (%d hrs)",
+            "NotificationManager: Sent due start notification for chore=%s to assignee=%s (%d hrs)",
             chore_name,
-            kid_id,
+            assignee_id,
             hours,
         )
 
     async def _handle_chore_due_reminder(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_DUE_REMINDER event - send reminder to kid with claim button (v0.6.0+).
+        """Handle CHORE_DUE_REMINDER event - send reminder to assignee with claim button (v0.6.0+).
 
         Renamed from _handle_chore_due_soon to clarify purpose.
         Uses configurable per-chore `due_reminder_offset` timing.
         Uses Schedule-Lock pattern to prevent duplicate notifications within same period.
 
         Args:
-            payload: Event data containing kid_id, chore_id, chore_name, minutes, points, due_date
+            payload: Event data containing assignee_id, chore_id, chore_name, minutes, points, due_date
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         minutes = payload.get("minutes", 0)
         points = payload.get("points", 0)
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             return
 
         # Phase 3 Step 9: Filter rotation chores - only notify turn-holder
         chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
         if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            current_turn_kid = chore_info.get(const.DATA_CHORE_ROTATION_CURRENT_KID_ID)
-            if current_turn_kid != kid_id:
+            current_turn_assignee = chore_info.get(
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+            )
+            if current_turn_assignee != assignee_id:
                 const.LOGGER.debug(
                     "NotificationManager: Skipping due reminder notification for rotation chore=%s "
-                    "(not_my_turn: current turn is kid=%s, not %s)",
+                    "(not_my_turn: current turn is assignee=%s, not %s)",
                     chore_name,
-                    current_turn_kid,
-                    kid_id,
+                    current_turn_assignee,
+                    assignee_id,
                 )
                 return
 
         # Schedule-Lock: Check if already notified this period
-        if not self._should_send_chore_notification(kid_id, chore_id, "due_reminder"):
+        if not self._should_send_chore_notification(
+            assignee_id, chore_id, "due_reminder"
+        ):
             const.LOGGER.debug(
                 "NotificationManager: Suppressing due-reminder notification (Schedule-Lock) "
-                "for chore=%s to kid=%s",
+                "for chore=%s to assignee=%s",
                 chore_name,
-                kid_id,
+                assignee_id,
             )
             return
 
-        # Notify kid with claim action
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DUE_REMINDER_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_KID,
+        # Notify assignee with claim action
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DUE_REMINDER_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE,
             message_data={
                 "chore_name": chore_name,
                 "minutes": minutes,
                 "points": points,
             },
-            actions=self.build_claim_action(kid_id, chore_id, self.entry_id),
+            actions=self.build_claim_action(assignee_id, chore_id, self.entry_id),
         )
 
         # Record notification sent (persists to storage)
-        self._record_chore_notification_sent(kid_id, chore_id, "due_reminder")
+        self._record_chore_notification_sent(assignee_id, chore_id, "due_reminder")
 
         const.LOGGER.debug(
-            "NotificationManager: Sent due-reminder notification for chore=%s to kid=%s (%d min)",
+            "NotificationManager: Sent due-reminder notification for chore=%s to assignee=%s (%d min)",
             chore_name,
-            kid_id,
+            assignee_id,
             minutes,
         )
 
     async def _handle_chore_overdue(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_OVERDUE event - notify kid and parents with actions.
+        """Handle CHORE_OVERDUE event - notify assignee and approvers with actions.
 
-        For rotation chores, notifies ALL assigned kids (steal mechanic).
-        For regular chores, notifies only the target kid.
+        For rotation chores, notifies ALL assigned assignees (steal mechanic).
+        For regular chores, notifies only the target assignee.
         Uses Schedule-Lock pattern to prevent duplicate notifications within same period.
 
         Args:
-            payload: Event data containing kid_id, chore_id, chore_name, due_date
+            payload: Event data containing assignee_id, chore_id, chore_name, due_date
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         due_date = payload.get("due_date", "")
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             return
 
         # Check if overdue notifications are enabled for this chore
@@ -2530,59 +2605,61 @@ class NotificationManager(BaseManager):
             )
             return
 
-        # For rotation chores, notify ALL assigned kids (steal mechanic)
-        # For regular chores, notify only the original kid
+        # For rotation chores, notify ALL assigned assignees (steal mechanic)
+        # For regular chores, notify only the original assignee
         if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            kids_assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            assignees_assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
             const.LOGGER.debug(
-                "NotificationManager: Rotation chore overdue - notifying all %d assigned kids",
-                len(kids_assigned),
+                "NotificationManager: Rotation chore overdue - notifying all %d assigned assignees",
+                len(assignees_assigned),
             )
 
-            # Send to all assigned kids
-            for target_kid_id in kids_assigned:
-                await self._send_overdue_notification_to_kid(
-                    target_kid_id, chore_id, chore_name, due_date, payload
+            # Send to all assigned assignees
+            for target_assignee_id in assignees_assigned:
+                await self._send_overdue_notification_to_assignee(
+                    target_assignee_id, chore_id, chore_name, due_date, payload
                 )
         else:
-            # Regular chore - send to original kid only
-            await self._send_overdue_notification_to_kid(
-                kid_id, chore_id, chore_name, due_date, payload
+            # Regular chore - send to original assignee only
+            await self._send_overdue_notification_to_assignee(
+                assignee_id, chore_id, chore_name, due_date, payload
             )
 
-    async def _send_overdue_notification_to_kid(
+    async def _send_overdue_notification_to_assignee(
         self,
-        target_kid_id: str,
+        target_assignee_id: str,
         chore_id: str,
         chore_name: str,
         due_date: str,
         payload: dict[str, Any],
     ) -> None:
-        """Send overdue notification to a specific kid with Schedule-Lock protection."""
+        """Send overdue notification to a specific assignee with Schedule-Lock protection."""
         # Schedule-Lock: Check if already notified this period
-        if not self._should_send_chore_notification(target_kid_id, chore_id, "overdue"):
+        if not self._should_send_chore_notification(
+            target_assignee_id, chore_id, "overdue"
+        ):
             const.LOGGER.debug(
                 "NotificationManager: Suppressing overdue notification (Schedule-Lock) "
-                "for chore=%s to kid=%s",
+                "for chore=%s to assignee=%s",
                 chore_name,
-                target_kid_id,
+                target_assignee_id,
             )
             return
 
-        # Get kid's language for datetime formatting
-        kid_info: KidData = cast(
-            "KidData", self.coordinator.kids_data.get(target_kid_id, {})
+        # Get assignee's language for datetime formatting
+        assignee_info: AssigneeData = cast(
+            "AssigneeData", self.coordinator.assignees_data.get(target_assignee_id, {})
         )
-        kid_language = kid_info.get(
-            const.DATA_KID_DASHBOARD_LANGUAGE, self.hass.config.language
+        assignee_language = assignee_info.get(
+            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, self.hass.config.language
         )
 
         # Convert UTC ISO string to local datetime for display
         due_dt = dt_to_utc(due_date) if due_date else None
-        formatted_due_date = dt_format_short(due_dt, language=kid_language)
+        formatted_due_date = dt_format_short(due_dt, language=assignee_language)
 
-        # Get kid's name for notification message
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown Kid")
+        # Get assignee's name for notification message
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown Assignee")
 
         # Get chore points for message
         chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
@@ -2590,89 +2667,93 @@ class NotificationManager(BaseManager):
             chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0) if chore_info else 0
         )
 
-        # Notify kid with claim action (using tag for smart replacement)
-        await self.notify_kid_translated(
-            target_kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_KID,
+        # Notify assignee with claim action (using tag for smart replacement)
+        await self.notify_assignee_translated(
+            target_assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE,
             message_data={
-                "kid_name": kid_name,
+                "assignee_name": assignee_name,
                 "chore_name": chore_name,
                 "due_date": formatted_due_date,
                 "points": chore_points,
             },
-            actions=self.build_claim_action(target_kid_id, chore_id, self.entry_id),
+            actions=self.build_claim_action(
+                target_assignee_id, chore_id, self.entry_id
+            ),
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, target_kid_id),
+            tag_identifiers=(chore_id, target_assignee_id),
         )
 
-        # Build parent actions
-        parent_actions: list[dict[str, str]] = []
-        parent_actions.extend(
-            self.build_complete_action(target_kid_id, chore_id, self.entry_id)
+        # Build approver actions
+        approver_actions: list[dict[str, str]] = []
+        approver_actions.extend(
+            self.build_complete_action(target_assignee_id, chore_id, self.entry_id)
         )
-        parent_actions.extend(
-            self.build_skip_action(target_kid_id, chore_id, self.entry_id)
+        approver_actions.extend(
+            self.build_skip_action(target_assignee_id, chore_id, self.entry_id)
         )
-        parent_actions.extend(
-            self.build_remind_action(target_kid_id, chore_id, self.entry_id)
+        approver_actions.extend(
+            self.build_remind_action(target_assignee_id, chore_id, self.entry_id)
         )
 
-        # Get kid name from payload (ChoreManager always provides it)
-        original_kid_name = payload.get("kid_name", "")
-        if not original_kid_name:
+        # Get assignee name from payload (ChoreManager always provides it)
+        original_assignee_name = payload.get("assignee_name", "")
+        if not original_assignee_name:
             const.LOGGER.error(
-                "CHORE_OVERDUE notification missing kid_name in payload for target_kid=%s, chore_id=%s",
-                target_kid_id,
+                "CHORE_OVERDUE notification missing assignee_name in payload for target_assignee=%s, chore_id=%s",
+                target_assignee_id,
                 chore_id,
             )
             return
 
-        # Get parent's language for datetime formatting
-        # Note: notify_parents_translated handles per-parent language internally,
+        # Get approver's language for datetime formatting
+        # Note: notify_approvers_translated handles per-approver language internally,
         # but we format with system default here since the message_data is shared
-        parent_language = self.hass.config.language
-        formatted_due_date_parent = dt_format_short(due_dt, language=parent_language)
+        approver_language = self.hass.config.language
+        formatted_due_date_approver = dt_format_short(
+            due_dt, language=approver_language
+        )
 
-        await self.notify_parents_translated(
-            target_kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_PARENT,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_PARENT,
+        await self.notify_approvers_translated(
+            target_assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_APPROVER,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_APPROVER,
             message_data={
-                "kid_name": original_kid_name,  # Use original kid name from payload
+                "assignee_name": original_assignee_name,  # Use original assignee name from payload
                 "chore_name": chore_name,
-                "due_date": formatted_due_date_parent,
+                "due_date": formatted_due_date_approver,
             },
-            actions=parent_actions,
+            actions=approver_actions,
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, target_kid_id),
+            tag_identifiers=(chore_id, target_assignee_id),
         )
 
         # Record notification sent (persists to storage)
-        self._record_chore_notification_sent(target_kid_id, chore_id, "overdue")
+        self._record_chore_notification_sent(target_assignee_id, chore_id, "overdue")
 
         const.LOGGER.debug(
-            "NotificationManager: Sent overdue notification for chore=%s to kid=%s and parents",
+            "NotificationManager: Sent overdue notification for chore=%s to assignee=%s and approvers",
             chore_name,
-            target_kid_id,
+            target_assignee_id,
         )
 
     async def _handle_chore_missed(self, payload: dict[str, Any]) -> None:
-        """Handle CHORE_MISSED event - notify kid and parents when chore locked due to missed.
+        """Handle CHORE_MISSED event - notify assignee and approvers when chore locked due to missed.
 
         Phase 3 Step 9 (v0.5.0): Missed lock notifications
         Triggered when rotation chore with at_due_date_mark_missed_and_lock reaches due date.
         Uses overdue notification flag (notify_on_overdue) to gate both overdue and missed.
 
         Args:
-            payload: Event data containing kid_id, chore_id, chore_name, due_date
+            payload: Event data containing assignee_id, chore_id, chore_name, due_date
         """
-        kid_id = payload.get("kid_id", "")
+        assignee_id = payload.get("assignee_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         due_date = payload.get("due_date", "")
 
-        if not kid_id or not chore_id:
+        if not assignee_id or not chore_id:
             return
 
         # Check if overdue notifications are enabled (gates both overdue and missed)
@@ -2695,85 +2776,91 @@ class NotificationManager(BaseManager):
             return
 
         # Schedule-Lock: Check if already notified this period
-        if not self._should_send_chore_notification(kid_id, chore_id, "missed"):
+        if not self._should_send_chore_notification(assignee_id, chore_id, "missed"):
             const.LOGGER.debug(
                 "NotificationManager: Suppressing missed notification (Schedule-Lock) "
-                "for chore=%s to kid=%s",
+                "for chore=%s to assignee=%s",
                 chore_name,
-                kid_id,
+                assignee_id,
             )
             return
 
-        # Get kid's language for datetime formatting
-        kid_info: KidData = cast("KidData", self.coordinator.kids_data.get(kid_id, {}))
-        kid_language = kid_info.get(
-            const.DATA_KID_DASHBOARD_LANGUAGE, self.hass.config.language
+        # Get assignee's language for datetime formatting
+        assignee_info: AssigneeData = cast(
+            "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
+        )
+        assignee_language = assignee_info.get(
+            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, self.hass.config.language
         )
 
         # Convert UTC ISO string to local datetime for display
         due_dt = dt_to_utc(due_date) if due_date else None
-        formatted_due_date = dt_format_short(due_dt, language=kid_language)
+        formatted_due_date = dt_format_short(due_dt, language=assignee_language)
 
-        # Get kid's name for notification message
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown Kid")
+        # Get assignee's name for notification message
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown Assignee")
 
-        # Notify kid (NO claim action - chore is locked)
-        await self.notify_kid_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_KID,
+        # Notify assignee (NO claim action - chore is locked)
+        await self.notify_assignee_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_ASSIGNEE,
             message_data={
-                "kid_name": kid_name,
+                "assignee_name": assignee_name,
                 "chore_name": chore_name,
                 "due_date": formatted_due_date,
             },
             actions=None,  # No actions - chore is locked
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, kid_id),
+            tag_identifiers=(chore_id, assignee_id),
         )
 
-        # Build parent actions (complete/skip still available for parents)
-        parent_actions: list[dict[str, str]] = []
-        parent_actions.extend(
-            self.build_complete_action(kid_id, chore_id, self.entry_id)
+        # Build approver actions (complete/skip still available for approvers)
+        approver_actions: list[dict[str, str]] = []
+        approver_actions.extend(
+            self.build_complete_action(assignee_id, chore_id, self.entry_id)
         )
-        parent_actions.extend(self.build_skip_action(kid_id, chore_id, self.entry_id))
+        approver_actions.extend(
+            self.build_skip_action(assignee_id, chore_id, self.entry_id)
+        )
 
-        # Get kid name from payload (ChoreManager always provides it)
-        kid_name_payload = payload.get("kid_name", "")
-        if not kid_name_payload:
+        # Get assignee name from payload (ChoreManager always provides it)
+        assignee_name_payload = payload.get("assignee_name", "")
+        if not assignee_name_payload:
             const.LOGGER.error(
-                "CHORE_MISSED notification missing kid_name in payload for kid_id=%s, chore_id=%s",
-                kid_id,
+                "CHORE_MISSED notification missing assignee_name in payload for assignee_id=%s, chore_id=%s",
+                assignee_id,
                 chore_id,
             )
             return
 
-        # Format due date for parents
-        parent_language = self.hass.config.language
-        formatted_due_date_parent = dt_format_short(due_dt, language=parent_language)
+        # Format due date for approvers
+        approver_language = self.hass.config.language
+        formatted_due_date_approver = dt_format_short(
+            due_dt, language=approver_language
+        )
 
-        await self.notify_parents_translated(
-            kid_id,
-            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_KID,
-            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_KID,
+        await self.notify_approvers_translated(
+            assignee_id,
+            title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE,
+            message_key=const.TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_ASSIGNEE,
             message_data={
-                "kid_name": kid_name_payload,
+                "assignee_name": assignee_name_payload,
                 "chore_name": chore_name,
-                "due_date": formatted_due_date_parent,
+                "due_date": formatted_due_date_approver,
             },
-            actions=parent_actions,
+            actions=approver_actions,
             tag_type=const.NOTIFY_TAG_TYPE_STATUS,
-            tag_identifiers=(chore_id, kid_id),
+            tag_identifiers=(chore_id, assignee_id),
         )
 
         # Record notification sent (persists to storage)
-        self._record_chore_notification_sent(kid_id, chore_id, "missed")
+        self._record_chore_notification_sent(assignee_id, chore_id, "missed")
 
         const.LOGGER.debug(
-            "NotificationManager: Sent missed notification for chore=%s to kid=%s and parents",
+            "NotificationManager: Sent missed notification for chore=%s to assignee=%s and approvers",
             chore_name,
-            kid_id,
+            assignee_id,
         )
 
     # =========================================================================
@@ -2784,17 +2871,17 @@ class NotificationManager(BaseManager):
         """Handle CHORE_DELETED event - clear any pending notifications for deleted chore.
 
         When a chore is deleted, we need to clear notifications that reference it:
-        - Pending approval notifications sent to parents
+        - Pending approval notifications sent to approvers
         - Due soon / overdue reminders
         - Notification records in our DATA_NOTIFICATIONS bucket (Schedule-Lock janitor)
 
         Args:
             payload: Event data containing chore_id, chore_name, and optionally
-                     assigned_kids (list of kid IDs that had this chore assigned)
+                     assigned_assignees (list of assignee IDs that had this chore assigned)
         """
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown")
-        assigned_kids = payload.get("assigned_kids", [])
+        assigned_assignees = payload.get("assigned_assignees", [])
 
         if not chore_id:
             const.LOGGER.warning(
@@ -2803,20 +2890,20 @@ class NotificationManager(BaseManager):
             return
 
         const.LOGGER.debug(
-            "Clearing notifications for deleted chore '%s' (id=%s), assigned_kids=%s",
+            "Clearing notifications for deleted chore '%s' (id=%s), assigned_assignees=%s",
             chore_name,
             chore_id,
-            assigned_kids,
+            assigned_assignees,
         )
 
         # Clean up notification records in our bucket (Schedule-Lock janitor)
         self._cleanup_chore_notifications(chore_id)
 
-        # Clear notifications for each kid that had this chore assigned
-        for kid_id in assigned_kids:
+        # Clear notifications for each assignee that had this chore assigned
+        for assignee_id in assigned_assignees:
             # Clear STATUS tag notifications (pending approvals, due/overdue)
-            await self.clear_notification_for_parents(
-                kid_id,
+            await self.clear_notification_for_approvers(
+                assignee_id,
                 const.NOTIFY_TAG_TYPE_STATUS,
                 chore_id,
             )
@@ -2825,7 +2912,7 @@ class NotificationManager(BaseManager):
         """Handle REWARD_DELETED event - clear any pending notifications for deleted reward.
 
         When a reward is deleted, we need to clear notifications that reference it:
-        - Pending reward claim notifications sent to parents
+        - Pending reward claim notifications sent to approvers
         - Reward approval/disapproval notifications
 
         Args:
@@ -2846,22 +2933,22 @@ class NotificationManager(BaseManager):
             reward_id,
         )
 
-        # Clear REWARDS tag notifications for all kids
-        # Rewards can be claimed by any kid, so we iterate through all kids
-        for kid_id in self.coordinator.kids_data:
-            await self.clear_notification_for_parents(
-                kid_id,
+        # Clear REWARDS tag notifications for all assignees
+        # Rewards can be claimed by any assignee, so we iterate through all assignees
+        for assignee_id in self.coordinator.assignees_data:
+            await self.clear_notification_for_approvers(
+                assignee_id,
                 const.NOTIFY_TAG_TYPE_REWARDS,
                 reward_id,
             )
 
-    async def _handle_kid_deleted(self, payload: dict[str, Any]) -> None:
-        """Handle KID_DELETED event - clear all notifications involving deleted kid.
+    async def _handle_assignee_deleted(self, payload: dict[str, Any]) -> None:
+        """Handle KID_DELETED event - clear all notifications involving deleted assignee.
 
-        When a kid is deleted, we need to clear all notifications that reference them:
-        - All pending approval notifications for this kid's chores
-        - All reward claim notifications involving this kid
-        - Any status/system notifications for this kid
+        When a assignee is deleted, we need to clear all notifications that reference them:
+        - All pending approval notifications for this assignee's chores
+        - All reward claim notifications involving this assignee
+        - Any status/system notifications for this assignee
         - Notification records in our DATA_NOTIFICATIONS bucket (Schedule-Lock janitor)
 
         Note: This is a best-effort cleanup. Some notifications may have already
@@ -2869,46 +2956,46 @@ class NotificationManager(BaseManager):
         resilient to orphaned notifications.
 
         Args:
-            payload: Event data containing kid_id, kid_name, was_shadow
+            payload: Event data containing assignee_id, assignee_name, was_shadow
         """
-        kid_id = payload.get("kid_id", "")
-        kid_name = payload.get("kid_name", "Unknown")
+        assignee_id = payload.get("assignee_id", "")
+        assignee_name = payload.get("assignee_name", "Unknown")
         was_shadow = payload.get("was_shadow", False)
 
-        if not kid_id:
+        if not assignee_id:
             const.LOGGER.warning(
-                "KID_DELETED notification cleanup skipped: missing kid_id"
+                "KID_DELETED notification cleanup skipped: missing assignee_id"
             )
             return
 
         # Clean up notification records in our bucket (Schedule-Lock janitor)
-        self._cleanup_kid_chore_notifications(kid_id)
+        self._cleanup_assignee_chore_notifications(assignee_id)
 
-        # Shadow kids don't typically have notifications
+        # Shadow assignees don't typically have notifications
         if was_shadow:
             const.LOGGER.debug(
-                "Skipping notification cleanup for shadow kid '%s'",
-                kid_name,
+                "Skipping notification cleanup for shadow assignee '%s'",
+                assignee_name,
             )
             return
 
         const.LOGGER.debug(
-            "Clearing all notifications for deleted kid '%s' (id=%s)",
-            kid_name,
-            kid_id,
+            "Clearing all notifications for deleted assignee '%s' (id=%s)",
+            assignee_name,
+            assignee_id,
         )
 
-        # Clear all notification tag types for this kid
-        # We use kid_id as the item_id since we want to clear all notifications
-        # that have this kid_id in their tag
+        # Clear all notification tag types for this assignee
+        # We use assignee_id as the item_id since we want to clear all notifications
+        # that have this assignee_id in their tag
         for tag_type in (
             const.NOTIFY_TAG_TYPE_STATUS,
             const.NOTIFY_TAG_TYPE_REWARDS,
             const.NOTIFY_TAG_TYPE_PENDING,
             const.NOTIFY_TAG_TYPE_SYSTEM,
         ):
-            await self.clear_notification_for_parents(
-                kid_id,
+            await self.clear_notification_for_approvers(
+                assignee_id,
                 tag_type,
-                kid_id,  # Use kid_id as item_id to match tags like "status-kidid-kidid"
+                assignee_id,  # Use assignee_id as item_id to match tags like "status-assigneeid-assigneeid"
             )

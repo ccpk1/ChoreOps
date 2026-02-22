@@ -1,5 +1,5 @@
 # File: config_flow.py
-"""Multi-step config flow for the KidsChores integration, storing entities by internal_id.
+"""Multi-step config flow for the ChoreOps integration, storing entities by internal_id.
 
 Ensures that all add/edit/delete operations reference entities via internal_id for consistency.
 """
@@ -15,19 +15,19 @@ import voluptuous as vol
 from . import const, data_builders as db, migration_pre_v50 as mp50
 from .data_builders import EntityValidationError
 from .helpers import backup_helpers as bh, flow_helpers as fh
-from .options_flow import KidsChoresOptionsFlowHandler
+from .options_flow import ChoreOpsOptionsFlowHandler
 
 
-class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
-    """Config Flow for KidsChores with internal_id-based entity management."""
+class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
+    """Config Flow for ChoreOps with internal_id-based entity management."""
 
     VERSION = 1
 
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._data: dict[str, Any] = {}
-        self._kids_temp: dict[str, dict[str, Any]] = {}
-        self._parents_temp: dict[str, dict[str, Any]] = {}
+        self._assignees_temp: dict[str, dict[str, Any]] = {}
+        self._approvers_temp: dict[str, dict[str, Any]] = {}
         self._chores_temp: dict[str, dict[str, Any]] = {}
         self._badges_temp: dict[str, dict[str, Any]] = {}
         self._rewards_temp: dict[str, dict[str, Any]] = {}
@@ -36,8 +36,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._penalties_temp: dict[str, dict[str, Any]] = {}
         self._bonuses_temp: dict[str, dict[str, Any]] = {}
 
-        self._kid_count: int = 0
-        self._parents_count: int = 0
+        self._assignee_count: int = 0
+        self._approvers_count: int = 0
         self._chore_count: int = 0
         self._badge_count: int = 0
         self._reward_count: int = 0
@@ -47,7 +47,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._bonus_count: int = 0
 
         self._assignee_index: int = 0
-        self._parents_index: int = 0
+        self._approvers_index: int = 0
         self._chore_index: int = 0
         self._badge_index: int = 0
         self._reward_index: int = 0
@@ -55,7 +55,6 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._challenge_index: int = 0
         self._penalty_index: int = 0
         self._bonus_index: int = 0
-        self._assignee_count: int = 0
         self._legacy_split_user_counts: bool = False
         self._legacy_collecting_assignable_users: bool = False
 
@@ -66,7 +65,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         """Start the config flow with an intro step."""
 
-        # Check if there's an existing KidsChores entry
+        # Check if there's an existing ChoreOps entry
         if any(self._async_current_entries()):
             return self.async_abort(reason=const.TRANS_KEY_ERROR_SINGLE_INSTANCE)
 
@@ -95,7 +94,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         """Handle data recovery options when existing storage is found."""
         from pathlib import Path
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         # Note: We don't load translations because SelectSelector cannot
         # dynamically translate runtime-generated options (backup file lists).
@@ -113,8 +112,8 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self._handle_start_fresh()
             elif selection == "current_active":
                 return await self._handle_use_current()
-            elif selection == "migrate_from_kidschores":
-                return await self._handle_migrate_from_kidschores()
+            elif selection == "migrate_from_assigneeschores":
+                return await self._handle_migrate_from_assigneeschores()
             elif selection == "paste_json":
                 return await self._handle_paste_json()
             else:
@@ -140,7 +139,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self._handle_restore_backup(selection)
 
         # Build selection menu
-        store = KidsChoresStore(self.hass)
+        store = ChoreOpsStore(self.hass)
         storage_path = Path(store.get_storage_path())
         recovery_capabilities = await mp50.async_get_data_recovery_capabilities(
             self.hass
@@ -160,7 +159,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             options.append("current_active")
 
         if has_legacy_candidates:
-            options.append("migrate_from_kidschores")
+            options.append("migrate_from_assigneeschores")
 
         options.append("start_fresh")
 
@@ -213,10 +212,10 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         import os
         from pathlib import Path
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         try:
-            store = KidsChoresStore(self.hass)
+            store = ChoreOpsStore(self.hass)
             storage_path = Path(store.get_storage_path())
 
             # Create safety backup if file exists
@@ -261,16 +260,16 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_UNKNOWN)
 
         # File is valid - create config entry immediately with existing data
-        # No need to collect kids/chores/points since they're already defined
+        # No need to collect assignees/chores/points since they're already defined
         return self.async_create_entry(
             title=const.CHOREOPS_TITLE,
             data={},  # Empty - integration will load from storage file
         )
 
-    async def _handle_migrate_from_kidschores(self):
-        """Handle one-time migration from legacy KidsChores artifacts."""
+    async def _handle_migrate_from_assigneeschores(self):
+        """Handle one-time migration from legacy ChoreOps artifacts."""
         try:
-            result = await mp50.async_migrate_from_legacy_kidschores_storage(self.hass)
+            result = await mp50.async_migrate_from_legacy_choreops_storage(self.hass)
             if not result.get("migrated"):
                 error_key = result.get("error")
                 if error_key == "no_legacy_source":
@@ -302,11 +301,11 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         from pathlib import Path
         import shutil
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         try:
             # Get storage path directly without creating storage manager yet
-            store = KidsChoresStore(self.hass)
+            store = ChoreOpsStore(self.hass)
             storage_path = Path(store.get_storage_path())
             backup_path = storage_path.parent / backup_filename
 
@@ -366,7 +365,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             else:
                 # Raw data format (like v30, v31, v40beta1 samples)
                 # Load through storage manager to add proper wrapper
-                store = KidsChoresStore(self.hass)
+                store = ChoreOpsStore(self.hass)
                 store.set_data(backup_data)
                 await store.async_save()
 
@@ -397,7 +396,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 )
 
             # Backup successfully restored - create config entry with settings
-            # No need to collect kids/chores/points since they were in the backup
+            # No need to collect assignees/chores/points since they were in the backup
             return self.async_create_entry(
                 title=const.CHOREOPS_TITLE,
                 data={},  # Empty - integration will load from restored storage file
@@ -419,7 +418,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         import json
         from pathlib import Path
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         errors: dict[str, str] = {}
 
@@ -470,9 +469,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                         }
 
                         # Write to storage file
-                        storage_path = Path(
-                            KidsChoresStore(self.hass).get_storage_path()
-                        )
+                        storage_path = Path(ChoreOpsStore(self.hass).get_storage_path())
 
                         await self.hass.async_add_executor_job(
                             lambda: storage_path.parent.mkdir(
@@ -553,7 +550,9 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
-                self._assignee_count = int(user_input[const.CFOF_KIDS_INPUT_KID_COUNT])
+                self._assignee_count = int(
+                    user_input[const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT]
+                )
                 if self._assignee_count < 0:
                     raise ValueError
                 if self._assignee_count == 0:
@@ -561,13 +560,19 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 self._assignee_index = 0
                 return await self.async_step_assignees()
             except ValueError:
-                errors[const.CFOP_ERROR_BASE] = const.TRANS_KEY_CFOF_INVALID_KID_COUNT
+                errors[const.CFOP_ERROR_BASE] = (
+                    const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_COUNT
+                )
 
         schema = vol.Schema(
-            {vol.Required(const.CFOF_KIDS_INPUT_KID_COUNT, default=1): vol.Coerce(int)}
+            {
+                vol.Required(
+                    const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT, default=1
+                ): vol.Coerce(int)
+            }
         )
         return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_KID_COUNT,
+            step_id=const.CONFIG_FLOW_STEP_ASSIGNEE_COUNT,
             data_schema=schema,
             errors=errors,
         )
@@ -578,16 +583,18 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         if user_input is not None:
             errors = fh.validate_assignee_inputs(
                 user_input,
-                self._kids_temp,
-                self._parents_temp,
+                self._assignees_temp,
+                self._approvers_temp,
             )
 
             if not errors:
                 assignee_profile_data = dict(db.build_assignee_profile(user_input))
-                internal_id = str(assignee_profile_data[const.DATA_KID_INTERNAL_ID])
-                self._kids_temp[internal_id] = assignee_profile_data
+                internal_id = str(
+                    assignee_profile_data[const.DATA_ASSIGNEE_INTERNAL_ID]
+                )
+                self._assignees_temp[internal_id] = assignee_profile_data
 
-                assignee_name = str(assignee_profile_data[const.DATA_KID_NAME])
+                assignee_name = str(assignee_profile_data[const.DATA_ASSIGNEE_NAME])
                 const.LOGGER.debug(
                     "Added assignee profile: %s with ID: %s",
                     assignee_name,
@@ -602,24 +609,10 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         users = await self.hass.auth.async_get_users()
         assignee_schema = await fh.build_assignee_schema(self.hass, users=users)
         return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_KIDS,
+            step_id=const.CONFIG_FLOW_STEP_ASSIGNEES,
             data_schema=assignee_schema,
             errors=errors,
         )
-
-    async def async_step_kid_count(self, user_input: dict[str, Any] | None = None):
-        """Compatibility wrapper for legacy kid_count flow step."""
-        const.LOGGER.warning(
-            "Config flow step 'kid_count' is deprecated, routing to 'assignee_count'"
-        )
-        return await self.async_step_assignee_count(user_input)
-
-    async def async_step_kids(self, user_input: dict[str, Any] | None = None):
-        """Compatibility wrapper for legacy kids flow step."""
-        const.LOGGER.warning(
-            "Config flow step 'kids' is deprecated, routing to 'assignees'"
-        )
-        return await self.async_step_assignees(user_input)
 
     # --------------------------------------------------------------------------
     # USERS
@@ -629,23 +622,23 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         """Ask how many users to define initially."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            count_input_key = const.CFOF_PARENTS_INPUT_PARENT_COUNT
-            if const.CFOF_KIDS_INPUT_KID_COUNT in user_input:
-                count_input_key = const.CFOF_KIDS_INPUT_KID_COUNT
+            count_input_key = const.CFOF_APPROVERS_INPUT_APPROVER_COUNT
+            if const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT in user_input:
+                count_input_key = const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT
                 self._legacy_split_user_counts = True
                 self._legacy_collecting_assignable_users = True
             elif (
                 self._legacy_split_user_counts
                 and self._legacy_collecting_assignable_users
-                and const.CFOF_PARENTS_INPUT_PARENT_COUNT in user_input
+                and const.CFOF_APPROVERS_INPUT_APPROVER_COUNT in user_input
             ):
                 self._legacy_collecting_assignable_users = False
 
             try:
-                self._parents_count = int(user_input[count_input_key])
-                if self._parents_count < 0:
+                self._approvers_count = int(user_input[count_input_key])
+                if self._approvers_count < 0:
                     raise ValueError
-                if self._parents_count == 0:
+                if self._approvers_count == 0:
                     if (
                         self._legacy_split_user_counts
                         and self._legacy_collecting_assignable_users
@@ -653,22 +646,22 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                         self._legacy_collecting_assignable_users = False
                         return await self.async_step_user_count()
                     return await self.async_step_chore_count()
-                self._parents_index = 0
+                self._approvers_index = 0
                 return await self.async_step_users()
             except ValueError:
-                if count_input_key == const.CFOF_KIDS_INPUT_KID_COUNT:
+                if count_input_key == const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT:
                     errors[const.CFOP_ERROR_BASE] = (
-                        const.TRANS_KEY_CFOF_INVALID_KID_COUNT
+                        const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_COUNT
                     )
                 else:
                     errors[const.CFOP_ERROR_BASE] = (
-                        const.TRANS_KEY_CFOF_INVALID_PARENT_COUNT
+                        const.TRANS_KEY_CFOF_INVALID_APPROVER_COUNT
                     )
 
         schema = vol.Schema(
             {
                 vol.Required(
-                    const.CFOF_PARENTS_INPUT_PARENT_COUNT,
+                    const.CFOF_APPROVERS_INPUT_APPROVER_COUNT,
                     default=1,
                 ): vol.Coerce(int)
             }
@@ -683,93 +676,98 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         """Collect each user profile using internal_id as the primary key."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            is_legacy_kid_payload = (
-                const.CFOF_KIDS_INPUT_KID_NAME in user_input
-                and const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS not in user_input
-                and const.CFOF_PARENTS_INPUT_CAN_APPROVE not in user_input
-                and const.CFOF_PARENTS_INPUT_CAN_MANAGE not in user_input
-                and const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT not in user_input
+            is_assignee_payload = (
+                const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME in user_input
+                and const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES not in user_input
+                and const.CFOF_APPROVERS_INPUT_CAN_APPROVE not in user_input
+                and const.CFOF_APPROVERS_INPUT_CAN_MANAGE not in user_input
+                and const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT not in user_input
             )
-            if is_legacy_kid_payload:
-                user_input = {
-                    const.CFOF_PARENTS_INPUT_NAME: user_input.get(
-                        const.CFOF_KIDS_INPUT_KID_NAME,
-                        const.SENTINEL_EMPTY,
-                    ),
-                    const.CFOF_PARENTS_INPUT_HA_USER: user_input.get(
-                        const.CFOF_KIDS_INPUT_HA_USER,
-                        const.SENTINEL_EMPTY,
-                    ),
-                    const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: user_input.get(
-                        const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE,
-                        const.DEFAULT_DASHBOARD_LANGUAGE,
-                    ),
-                    const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: user_input.get(
-                        const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE,
-                        const.SENTINEL_EMPTY,
-                    ),
-                    const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
-                    const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: True,
-                    const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: True,
-                    const.CFOF_PARENTS_INPUT_CAN_APPROVE: False,
-                    const.CFOF_PARENTS_INPUT_CAN_MANAGE: False,
-                    const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: [],
-                }
-
-            user_input = fh.normalize_user_form_input(user_input)
-
-            errors = fh.validate_users_inputs(
-                user_input,
-                self._parents_temp,
-                self._kids_temp,
+            is_assignee_payload = is_assignee_payload or (
+                bool(user_input.get(const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT))
+                and not bool(user_input.get(const.CFOF_APPROVERS_INPUT_CAN_APPROVE))
+                and not bool(user_input.get(const.CFOF_APPROVERS_INPUT_CAN_MANAGE))
+                and not user_input.get(
+                    const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES, []
+                )
             )
 
-            if not errors:
-                parent_data = dict(db.build_user_profile(user_input))
-                internal_id = str(parent_data[const.DATA_PARENT_INTERNAL_ID])
-                parent_name = str(parent_data[const.DATA_PARENT_NAME])
-
-                if parent_data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False):
-                    linked_profile_input = {
-                        const.CFOF_KIDS_INPUT_KID_NAME: parent_name,
-                        const.CFOF_KIDS_INPUT_HA_USER: parent_data.get(
-                            const.DATA_PARENT_HA_USER_ID,
-                            "",
+            if is_assignee_payload:
+                assignee_input = {
+                    const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: user_input.get(
+                        const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+                        user_input.get(
+                            const.CFOF_APPROVERS_INPUT_NAME,
+                            const.SENTINEL_EMPTY,
                         ),
-                        const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: parent_data.get(
-                            const.DATA_PARENT_DASHBOARD_LANGUAGE,
+                    ),
+                    const.CFOF_ASSIGNEES_INPUT_HA_USER: user_input.get(
+                        const.CFOF_ASSIGNEES_INPUT_HA_USER,
+                        user_input.get(
+                            const.CFOF_APPROVERS_INPUT_HA_USER,
+                            const.SENTINEL_EMPTY,
+                        ),
+                    ),
+                    const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: user_input.get(
+                        const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
+                        user_input.get(
+                            const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
                             const.DEFAULT_DASHBOARD_LANGUAGE,
                         ),
-                        const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: const.SENTINEL_EMPTY,
-                    }
-                    linked_profile_data = dict(
-                        db.build_assignee_profile(
-                            linked_profile_input,
-                            is_linked_profile=True,
-                            linked_user_id=internal_id,
-                        )
-                    )
-                    linked_profile_id = str(
-                        linked_profile_data[const.DATA_KID_INTERNAL_ID]
-                    )
-                    self._kids_temp[linked_profile_id] = linked_profile_data
-                    parent_data[const.DATA_PARENT_LINKED_PROFILE_ID] = linked_profile_id
-                    const.LOGGER.debug(
-                        "Created linked profile '%s' (ID: %s) for user '%s'",
-                        linked_profile_data[const.DATA_KID_NAME],
-                        linked_profile_id,
-                        parent_name,
-                    )
-
-                self._parents_temp[internal_id] = parent_data
-                const.LOGGER.debug(
-                    "Added user profile: %s with ID: %s",
-                    parent_name,
-                    internal_id,
+                    ),
+                    const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: user_input.get(
+                        const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
+                        user_input.get(
+                            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+                            const.SENTINEL_EMPTY,
+                        ),
+                    ),
+                }
+                errors = fh.validate_assignee_inputs(
+                    assignee_input,
+                    self._assignees_temp,
+                    self._approvers_temp,
                 )
 
-            self._parents_index += 1
-            if self._parents_index >= self._parents_count:
+                if not errors:
+                    assignee_profile_data = dict(
+                        db.build_assignee_profile(assignee_input)
+                    )
+                    internal_id = str(
+                        assignee_profile_data[const.DATA_ASSIGNEE_INTERNAL_ID]
+                    )
+                    self._assignees_temp[internal_id] = assignee_profile_data
+                    assignee_name = str(assignee_profile_data[const.DATA_ASSIGNEE_NAME])
+                    const.LOGGER.debug(
+                        "Added assignee profile: %s with ID: %s",
+                        assignee_name,
+                        internal_id,
+                    )
+            else:
+                user_input = fh.normalize_user_form_input(user_input)
+
+                errors = fh.validate_users_inputs(
+                    user_input,
+                    self._approvers_temp,
+                    self._assignees_temp,
+                )
+
+                if not errors:
+                    approver_data = dict(db.build_user_profile(user_input))
+                    internal_id = str(approver_data[const.DATA_APPROVER_INTERNAL_ID])
+                    approver_name = str(approver_data[const.DATA_APPROVER_NAME])
+
+                    approver_data[const.DATA_APPROVER_LINKED_PROFILE_ID] = None
+
+                    self._approvers_temp[internal_id] = approver_data
+                    const.LOGGER.debug(
+                        "Added user profile: %s with ID: %s",
+                        approver_name,
+                        internal_id,
+                    )
+
+            self._approvers_index += 1
+            if self._approvers_index >= self._approvers_count:
                 if (
                     self._legacy_split_user_counts
                     and self._legacy_collecting_assignable_users
@@ -779,14 +777,14 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self.async_step_chore_count()
             return await self.async_step_users()
 
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in self._kids_temp.items()
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in self._assignees_temp.items()
         }
 
         users = await self.hass.auth.async_get_users()
         user_schema = await fh.build_user_schema(
-            self.hass, users=users, kids_dict=kids_dict
+            self.hass, users=users, assignees_dict=assignees_dict
         )
         return self.async_show_form(
             step_id=const.CONFIG_FLOW_STEP_USERS,
@@ -835,15 +833,15 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         if user_input is not None:
             user_input = fh.normalize_chore_form_input(user_input)
 
-            # Build kids_dict for name→UUID conversion
-            kids_dict = {
-                kid_data[const.DATA_KID_NAME]: kid_id
-                for kid_id, kid_data in self._kids_temp.items()
+            # Build assignees_dict for name→UUID conversion
+            assignees_dict = {
+                assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+                for assignee_id, assignee_data in self._assignees_temp.items()
             }
 
             # Validate chore input (returns errors dict and processed due_date)
             errors, due_date_str = fh.validate_chores_inputs(
-                user_input, kids_dict, self._chores_temp
+                user_input, assignees_dict, self._chores_temp
             )
             errors = fh.map_chore_form_errors(errors)
 
@@ -852,7 +850,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 # (preserves clearable-field behavior)
                 suggested_values = fh.build_chore_section_suggested_values(user_input)
                 chore_schema = fh.build_chore_schema(
-                    kids_dict,
+                    assignees_dict,
                     frequency_options=const.CHORE_FREQUENCY_OPTIONS_CONFIG_FLOW,
                 )
                 chore_schema = self.add_suggested_values_to_schema(
@@ -868,7 +866,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
             # Transform CFOF_* → DATA_* keys
             transformed_data = fh.transform_chore_cfof_to_data(
-                user_input, kids_dict, due_date_str
+                user_input, assignees_dict, due_date_str
             )
 
             # Build complete chore entity (generates internal_id)
@@ -888,15 +886,15 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self.async_step_badge_count()
             return await self.async_step_chores()
 
-        # Use flow_helpers.build_chore_schema, passing the current kids
+        # Use flow_helpers.build_chore_schema, passing the current assignees
         # Config flow uses restricted frequency options (excludes DAILY_MULTI)
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in self._kids_temp.items()
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in self._assignees_temp.items()
         }
         default_data: dict[str, Any] = {}
         chore_schema = fh.build_chore_schema(
-            kids_dict,
+            assignees_dict,
             default_data,
             frequency_options=const.CHORE_FREQUENCY_OPTIONS_CONFIG_FLOW,
         )
@@ -990,7 +988,7 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         # --- Build Schema with Suggested Values ---
         schema_fields = fh.build_badge_common_schema(
             default=None,
-            kids_dict=self._kids_temp,
+            assignees_dict=self._assignees_temp,
             chores_dict=self._chores_temp,
             rewards_dict=self._rewards_temp,
             achievements_dict=self._achievements_temp,
@@ -1306,24 +1304,27 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             if not errors:
                 try:
                     # Config flow uses names directly (no name-to-ID mapping needed)
-                    kids_name_to_id = {
-                        kid_data[const.DATA_KID_NAME]: kid_id
-                        for kid_id, kid_data in self._kids_temp.items()
+                    assignees_name_to_id = {
+                        assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+                        for assignee_id, assignee_data in self._assignees_temp.items()
                     }
 
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_achievement_data(user_input)
 
-                    # Convert assigned kids from names to IDs
-                    assigned_kids_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, []
+                    # Convert assigned assignees from names to IDs
+                    assigned_assignees_names = data_input.get(
+                        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, []
                     )
-                    if not isinstance(assigned_kids_names, list):
-                        assigned_kids_names = (
-                            [assigned_kids_names] if assigned_kids_names else []
+                    if not isinstance(assigned_assignees_names, list):
+                        assigned_assignees_names = (
+                            [assigned_assignees_names]
+                            if assigned_assignees_names
+                            else []
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_KIDS] = [
-                        kids_name_to_id.get(name, name) for name in assigned_kids_names
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES] = [
+                        assignees_name_to_id.get(name, name)
+                        for name in assigned_assignees_names
                     ]
 
                     # Build complete achievement structure
@@ -1349,13 +1350,13 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                     return await self.async_step_challenge_count()
                 return await self.async_step_achievements()
 
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in self._kids_temp.items()
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in self._assignees_temp.items()
         }
         all_chores = self._chores_temp
         achievement_schema = fh.build_achievement_schema(
-            kids_dict=kids_dict, chores_dict=all_chores, default=None
+            assignees_dict=assignees_dict, chores_dict=all_chores, default=None
         )
         return self.async_show_form(
             step_id=const.CONFIG_FLOW_STEP_ACHIEVEMENTS,
@@ -1416,24 +1417,27 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             if not errors:
                 try:
                     # Config flow uses names directly (need name-to-ID mapping)
-                    kids_name_to_id = {
-                        kid_data[const.DATA_KID_NAME]: kid_id
-                        for kid_id, kid_data in self._kids_temp.items()
+                    assignees_name_to_id = {
+                        assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+                        for assignee_id, assignee_data in self._assignees_temp.items()
                     }
 
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_challenge_data(user_input)
 
-                    # Convert assigned kids from names to IDs
-                    assigned_kids_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_KIDS, []
+                    # Convert assigned assignees from names to IDs
+                    assigned_assignees_names = data_input.get(
+                        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
                     )
-                    if not isinstance(assigned_kids_names, list):
-                        assigned_kids_names = (
-                            [assigned_kids_names] if assigned_kids_names else []
+                    if not isinstance(assigned_assignees_names, list):
+                        assigned_assignees_names = (
+                            [assigned_assignees_names]
+                            if assigned_assignees_names
+                            else []
                         )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_KIDS] = [
-                        kids_name_to_id.get(name, name) for name in assigned_kids_names
+                    data_input[const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES] = [
+                        assignees_name_to_id.get(name, name)
+                        for name in assigned_assignees_names
                     ]
 
                     # Additional config flow specific validation: dates must be in the future
@@ -1482,14 +1486,14 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                     return await self.async_step_finish()
                 return await self.async_step_challenges()
 
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in self._kids_temp.items()
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in self._assignees_temp.items()
         }
         all_chores = self._chores_temp
         default_data = user_input or None
         challenge_schema = fh.build_challenge_schema(
-            kids_dict=kids_dict,
+            assignees_dict=assignees_dict,
             chores_dict=all_chores,
             default=default_data,
         )
@@ -1511,33 +1515,38 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             return await self._create_entry()
 
         # Create a mapping from assignment-profile IDs to display names
-        kid_id_to_name = {
-            kid_id: data[const.DATA_KID_NAME]
-            for kid_id, data in self._kids_temp.items()
+        assignee_id_to_name = {
+            assignee_id: data[const.DATA_ASSIGNEE_NAME]
+            for assignee_id, data in self._assignees_temp.items()
         }
 
-        # Enhance parent summary to include associated profile names
-        parents_summary = []
-        for parent in self._parents_temp.values():
-            associated_kids_names = [
-                kid_id_to_name.get(kid_id, const.TRANS_KEY_DISPLAY_UNKNOWN_KID)
-                for kid_id in parent.get(const.DATA_PARENT_ASSOCIATED_KIDS, [])
+        # Enhance approver summary to include associated profile names
+        approvers_summary = []
+        for approver_record in self._approvers_temp.values():
+            associated_assignees_names = [
+                assignee_id_to_name.get(
+                    assignee_id, const.TRANS_KEY_DISPLAY_UNKNOWN_ASSIGNEE
+                )
+                for assignee_id in approver_record.get(
+                    const.DATA_APPROVER_ASSOCIATED_USERS, []
+                )
             ]
-            if associated_kids_names:
-                kids_str = ", ".join(associated_kids_names)
-                parents_summary.append(
-                    f"{parent[const.DATA_PARENT_NAME]} (Kids: {kids_str})"
+            if associated_assignees_names:
+                assignees_str = ", ".join(associated_assignees_names)
+                approvers_summary.append(
+                    f"{approver_record[const.DATA_APPROVER_NAME]} (Assignees: {assignees_str})"
                 )
             else:
-                parents_summary.append(parent[const.DATA_PARENT_NAME])
+                approvers_summary.append(approver_record[const.DATA_APPROVER_NAME])
 
-        kids_names = (
+        assignees_names = (
             ", ".join(
-                kid_data[const.DATA_KID_NAME] for kid_data in self._kids_temp.values()
+                assignee_data[const.DATA_ASSIGNEE_NAME]
+                for assignee_data in self._assignees_temp.values()
             )
             or const.SENTINEL_NONE_TEXT
         )
-        parents_names = ", ".join(parents_summary) or const.SENTINEL_NONE_TEXT
+        approvers_names = ", ".join(approvers_summary) or const.SENTINEL_NONE_TEXT
         chores_names = (
             ", ".join(
                 chore_data[const.DATA_CHORE_NAME]
@@ -1588,10 +1597,10 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             or const.SENTINEL_NONE_TEXT
         )
 
-        # Use TRANS_KEY constants that already contain English labels (e.g., "Kids: ")
+        # Use TRANS_KEY constants that already contain English labels (e.g., "Assignees: ")
         summary = (
-            f"{const.TRANS_KEY_CFOF_SUMMARY_KIDS}{kids_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_PARENTS}{parents_names}\n\n"
+            f"{const.TRANS_KEY_CFOF_SUMMARY_ASSIGNEES}{assignees_names}\n\n"
+            f"{const.TRANS_KEY_CFOF_SUMMARY_APPROVERS}{approvers_names}\n\n"
             f"{const.TRANS_KEY_CFOF_SUMMARY_CHORES}{chores_names}\n\n"
             f"{const.TRANS_KEY_CFOF_SUMMARY_BADGES}{badges_names}\n\n"
             f"{const.TRANS_KEY_CFOF_SUMMARY_REWARDS}{rewards_names}\n\n"
@@ -1608,23 +1617,23 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
     async def _create_entry(self):
         """Finalize config entry with direct-to-storage entity data (KC 4.0+ architecture)."""
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         # Start with canonical structure from Store (SINGLE SOURCE OF TRUTH)
-        storage_data = KidsChoresStore.get_default_structure()
+        storage_data = ChoreOpsStore.get_default_structure()
 
         # Populate with user-configured entities from config flow
-        storage_data[const.DATA_KIDS] = self._kids_temp
-        parent_users = {
-            parent_id: {
-                **dict(parent_data),
+        storage_data[const.DATA_ASSIGNEES] = self._assignees_temp
+        approver_users = {
+            approver_id: {
+                **dict(approver_data),
                 const.DATA_USER_CAN_BE_ASSIGNED: False,
             }
-            for parent_id, parent_data in self._parents_temp.items()
+            for approver_id, approver_data in self._approvers_temp.items()
         }
         storage_data[const.DATA_USERS] = {
-            **self._kids_temp,
-            **parent_users,
+            **self._assignees_temp,
+            **approver_users,
         }
         storage_data[const.DATA_CHORES] = self._chores_temp
         storage_data[const.DATA_BADGES] = self._badges_temp
@@ -1635,15 +1644,15 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         storage_data[const.DATA_CHALLENGES] = self._challenges_temp
 
         # Initialize storage manager and save entity data
-        store = KidsChoresStore(self.hass)
+        store = ChoreOpsStore(self.hass)
         store.set_data(storage_data)
         await store.async_save()
 
         const.LOGGER.info(
-            "INFO: Config Flow saved storage with schema version %s (%d kids, %d parents, %d chores, %d badges, %d rewards, %d bonuses, %d penalties)",
+            "INFO: Config Flow saved storage with schema version %s (%d assignees, %d approvers, %d chores, %d badges, %d rewards, %d bonuses, %d penalties)",
             const.SCHEMA_VERSION_STORAGE_ONLY,
-            len(self._kids_temp),
-            len(self._parents_temp),
+            len(self._assignees_temp),
+            len(self._approvers_temp),
             len(self._chores_temp),
             len(self._badges_temp),
             len(self._rewards_temp),
@@ -1651,10 +1660,10 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             len(self._penalties_temp),
         )
         const.LOGGER.debug(
-            "DEBUG: Config Flow - Kids data: %s",
+            "DEBUG: Config Flow - Assignees data: %s",
             {
-                kid_id: kid_data.get(const.DATA_KID_NAME)
-                for kid_id, kid_data in self._kids_temp.items()
+                assignee_id: assignee_data.get(const.DATA_ASSIGNEE_NAME)
+                for assignee_id, assignee_data in self._assignees_temp.items()
             },
         )
 
@@ -1760,4 +1769,4 @@ class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Return the Options Flow."""
-        return KidsChoresOptionsFlowHandler(config_entry)
+        return ChoreOpsOptionsFlowHandler(config_entry)

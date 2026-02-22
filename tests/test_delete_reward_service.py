@@ -1,6 +1,6 @@
 """Tests for delete_reward service.
 
-Tests the kidschores.delete_reward service which allows programmatic deletion
+Tests the assigneeschores.delete_reward service which allows programmatic deletion
 of rewards using either reward ID or reward name as identifier.
 """
 
@@ -35,7 +35,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 8 chores, 3 rewards."""
+    """Load full scenario: 3 assignees, 2 approvers, 8 chores, 3 rewards."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -99,27 +99,27 @@ class TestDeleteRewardByID:
             )
 
     @pytest.mark.asyncio
-    async def test_delete_by_id_removes_from_kid_reward_data(
+    async def test_delete_by_id_removes_from_assignee_reward_data(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test deleting a reward cleans up kid reward_data references."""
+        """Test deleting a reward cleans up assignee reward_data references."""
         from custom_components.choreops import const
 
         coordinator = scenario_full.coordinator
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
-        kid_id = scenario_full.kid_ids["Zoë"]
+        assignee_id = scenario_full.assignee_ids["Zoë"]
 
-        # Ensure kid has data for this reward
-        if reward_id not in coordinator.kids_data[kid_id].get(
-            const.DATA_KID_REWARD_DATA, {}
+        # Ensure assignee has data for this reward
+        if reward_id not in coordinator.assignees_data[assignee_id].get(
+            const.DATA_ASSIGNEE_REWARD_DATA, {}
         ):
-            coordinator.kids_data[kid_id].setdefault(const.DATA_KID_REWARD_DATA, {})[
-                reward_id
-            ] = {
-                const.DATA_KID_REWARD_DATA_NAME: "Extra Screen Time",
-                const.DATA_KID_REWARD_DATA_PENDING_COUNT: 1,
+            coordinator.assignees_data[assignee_id].setdefault(
+                const.DATA_ASSIGNEE_REWARD_DATA, {}
+            )[reward_id] = {
+                const.DATA_ASSIGNEE_REWARD_DATA_NAME: "Extra Screen Time",
+                const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT: 1,
             }
 
         # Mock _persist to avoid file operations
@@ -133,9 +133,9 @@ class TestDeleteRewardByID:
                 return_response=True,
             )
 
-        # Verify cleanup: reward removed from kid's reward_data
-        assert reward_id not in coordinator.kids_data[kid_id].get(
-            const.DATA_KID_REWARD_DATA, {}
+        # Verify cleanup: reward removed from assignee's reward_data
+        assert reward_id not in coordinator.assignees_data[assignee_id].get(
+            const.DATA_ASSIGNEE_REWARD_DATA, {}
         )
 
 

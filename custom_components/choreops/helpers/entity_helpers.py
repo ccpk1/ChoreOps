@@ -1,5 +1,5 @@
 # File: helpers/entity_helpers.py
-"""Entity registry helper functions for KidsChores.
+"""Entity registry helper functions for ChoreOps.
 
 Functions that interact with Home Assistant's entity registry for querying,
 parsing unique IDs, and removing entities.
@@ -28,8 +28,7 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
-    from ..type_defs import KidData
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 # ==============================================================================
@@ -40,16 +39,16 @@ if TYPE_CHECKING:
 def get_event_signal(entry_id: str, suffix: str) -> str:
     """Build instance-scoped event signal name for dispatcher.
 
-    This ensures complete isolation between multiple KidsChores config entries.
+    This ensures complete isolation between multiple ChoreOps config entries.
     Each instance gets its own signal namespace using its config_entry.entry_id.
 
-    Format: 'kidschores_{entry_id}_{suffix}'
+    Format: 'choreops_{entry_id}_{suffix}'
 
     Multi-instance example:
         - Instance 1 (entry_id="abc123"):
-          get_event_signal("abc123", "points_changed") → "kidschores_abc123_points_changed"
+          get_event_signal("abc123", "points_changed") → "choreops_abc123_points_changed"
         - Instance 2 (entry_id="xyz789"):
-          get_event_signal("xyz789", "points_changed") → "kidschores_xyz789_points_changed"
+          get_event_signal("xyz789", "points_changed") → "choreops_xyz789_points_changed"
 
     Managers can emit/listen without cross-talk between instances.
 
@@ -63,7 +62,7 @@ def get_event_signal(entry_id: str, suffix: str) -> str:
     Example:
         >>> from .. import const
         >>> get_event_signal("abc123", const.SIGNAL_SUFFIX_POINTS_CHANGED)
-        'kidschores_abc123_points_changed'
+        'choreops_abc123_points_changed'
     """
     return f"{const.DOMAIN}_{entry_id}_{suffix}"
 
@@ -113,12 +112,12 @@ def get_integration_entities(
 def get_points_adjustment_buttons(
     hass: HomeAssistant,
     entry_id: str,
-    kid_id: str,
+    assignee_id: str,
 ) -> list[dict[str, Any]]:
-    """Get all point adjustment buttons for a kid with parsed display info.
+    """Get all point adjustment buttons for a assignee with parsed display info.
 
     Searches for buttons matching the pattern:
-    {entry_id}_{kid_id}_{slugified_delta}_parent_points_adjust_button
+    {entry_id}_{assignee_id}_{slugified_delta}_approver_points_adjust_button
 
     Uses config entry filtering for performance (O(n) where n = our entities only).
     Returns sorted list by delta value (negatives first, then positives).
@@ -126,7 +125,7 @@ def get_points_adjustment_buttons(
     Args:
         hass: HomeAssistant instance.
         entry_id: Config entry ID.
-        kid_id: Kid's internal_id (UUID).
+        assignee_id: Assignee's internal_id (UUID).
 
     Returns:
         List of dicts sorted by delta value:
@@ -136,7 +135,7 @@ def get_points_adjustment_buttons(
         ]
 
     Example:
-        buttons = get_points_adjustment_buttons(hass, entry.entry_id, kid_id)
+        buttons = get_points_adjustment_buttons(hass, entry.entry_id, assignee_id)
         button_eids = [b["eid"] for b in buttons]
 
     Note:
@@ -150,12 +149,12 @@ def get_points_adjustment_buttons(
     # Get only entities from THIS config entry (not all system entities)
     entities = er.async_entries_for_config_entry(entity_registry, entry_id)
 
-    button_suffix = const.BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST
-    prefix_pattern = f"{entry_id}_{kid_id}_"
+    button_suffix = const.BUTTON_KC_UID_SUFFIX_APPROVER_POINTS_ADJUST
+    prefix_pattern = f"{entry_id}_{assignee_id}_"
     temp_buttons = []
 
     for entity in entities:
-        # Filter to buttons with the parent points adjust suffix
+        # Filter to buttons with the approver points adjust suffix
         if (
             entity.domain != "button"
             or button_suffix not in entity.unique_id
@@ -164,7 +163,7 @@ def get_points_adjustment_buttons(
             continue
 
         # Extract delta from unique_id
-        # Format: {entry_id}_{kid_id}_{slugified_delta}_parent_points_adjust_button
+        # Format: {entry_id}_{assignee_id}_{slugified_delta}_approver_points_adjust_button
         try:
             prefix_part = entity.unique_id.split(button_suffix)[0]
             delta_slug = prefix_part.split("_")[-1]
@@ -205,19 +204,19 @@ def parse_entity_reference(
 ) -> tuple[str, ...] | None:
     """Parse entity unique_id into component parts after removing prefix.
 
-    Used to extract kid IDs, chore IDs, etc. from entity unique IDs.
+    Used to extract assignee IDs, chore IDs, etc. from entity unique IDs.
     Read-only utility - does not modify entities.
 
     Args:
-        unique_id: Entity unique_id (e.g., "entry_123_kid_456_chore_789").
+        unique_id: Entity unique_id (e.g., "entry_123_assignee_456_chore_789").
         prefix: Config entry prefix to strip (e.g., "entry_123_").
 
     Returns:
         Tuple of ID components after prefix, or None if invalid format.
 
     Example:
-        >>> parse_entity_reference("entry_123_kid_456_chore_789", "entry_123_")
-        ('kid_456', 'chore_789')
+        >>> parse_entity_reference("entry_123_assignee_456_chore_789", "entry_123_")
+        ('assignee_456', 'chore_789')
 
         >>> parse_entity_reference("invalid", "entry_123_")
         None
@@ -286,9 +285,9 @@ def remove_entities_by_item_id(
 ) -> int:
     """Remove all entities whose unique_id references the given item_id.
 
-    Called when deleting kids, chores, rewards, penalties, bonuses, badges.
-    Uses delimiter matching to prevent false positives (e.g., kid_1 should
-    not match kid_10).
+    Called when deleting assignees, chores, rewards, penalties, bonuses, badges.
+    Uses delimiter matching to prevent false positives (e.g., assignee_1 should
+    not match assignee_10).
 
     Args:
         hass: HomeAssistant instance.
@@ -342,8 +341,8 @@ def remove_entities_by_item_id(
 # ==============================================================================
 
 
-def get_first_kidschores_entry(hass: HomeAssistant) -> str | None:
-    """Get the entry_id of the first loaded KidsChores config entry.
+def get_first_choreops_entry(hass: HomeAssistant) -> str | None:
+    """Get the entry_id of the first loaded ChoreOps config entry.
 
     Args:
         hass: HomeAssistant instance
@@ -372,7 +371,7 @@ def get_entity_id_from_unique_id(
         hass: HomeAssistant instance
         unique_id: The unique_id to look up
         domain: Optional entity domain (sensor, button, etc.) for faster lookup.
-            If None, searches all common KidsChores domains.
+            If None, searches all common ChoreOps domains.
 
     Returns:
         entity_id string, or None if not found
@@ -386,7 +385,7 @@ def get_entity_id_from_unique_id(
 
     Note:
         Optimized from O(n) iteration to O(1) registry lookup when domain known.
-        For unknown domains, searches common KidsChores entity types.
+        For unknown domains, searches common ChoreOps entity types.
     """
     entity_registry = async_get_entity_registry(hass)
 
@@ -394,7 +393,7 @@ def get_entity_id_from_unique_id(
         # Fast path: O(1) direct lookup if domain known
         return entity_registry.async_get_entity_id(domain, const.DOMAIN, unique_id)
 
-    # Fallback: search all common KidsChores domains (rare case)
+    # Fallback: search all common ChoreOps domains (rare case)
     # Only searches domains we actually use in this integration
     for domain_type in ["sensor", "button", "select", "datetime", "calendar"]:
         eid = entity_registry.async_get_entity_id(domain_type, const.DOMAIN, unique_id)
@@ -424,22 +423,22 @@ def get_friendly_label(hass: HomeAssistant, label_name: str) -> str:
 # ==============================================================================
 # Item Lookup Helpers (Domain Items in Storage)
 # Basic ID/name lookups returning None, and error-raising variants for services.
-# These operate on Domain Items (Kid, Chore, Reward, etc.), NOT HA Entities.
+# These operate on Domain Items (Assignee, Chore, Reward, etc.), NOT HA Entities.
 # ==============================================================================
 
 
 def get_item_id_by_name(
-    coordinator: KidsChoresDataCoordinator, item_type: str, item_name: str
+    coordinator: ChoreOpsDataCoordinator, item_type: str, item_name: str
 ) -> str | None:
     """Look up a Domain Item's internal ID (UUID) by name.
 
-    Searches the storage for a Domain Item (Kid, Chore, Reward, etc.) by its name
+    Searches the storage for a Domain Item (Assignee, Chore, Reward, etc.) by its name
     and returns the internal_id (UUID) if found. This is NOT looking up an HA Entity.
 
     Args:
-        coordinator: The KidsChores data coordinator.
-        item_type: The type of Domain Item ("kid", "chore", "reward", "penalty",
-            "badge", "bonus", "parent", "achievement", "challenge").
+        coordinator: The ChoreOps data coordinator.
+        item_type: The type of Domain Item ("assignee", "chore", "reward", "penalty",
+            "badge", "bonus", "approver", "achievement", "challenge").
         item_name: The name of the Item to look up.
 
     Returns:
@@ -450,7 +449,10 @@ def get_item_id_by_name(
     """
     # Map item type to (data dict, name key constant)
     item_map = {
-        const.ENTITY_TYPE_KID: (coordinator.kids_data, const.DATA_KID_NAME),
+        const.ENTITY_TYPE_ASSIGNEE: (
+            coordinator.assignees_data,
+            const.DATA_ASSIGNEE_NAME,
+        ),
         const.ENTITY_TYPE_CHORE: (coordinator.chores_data, const.DATA_CHORE_NAME),
         const.ENTITY_TYPE_REWARD: (coordinator.rewards_data, const.DATA_REWARD_NAME),
         const.ENTITY_TYPE_PENALTY: (
@@ -459,7 +461,10 @@ def get_item_id_by_name(
         ),
         const.ENTITY_TYPE_BADGE: (coordinator.badges_data, const.DATA_BADGE_NAME),
         const.ENTITY_TYPE_BONUS: (coordinator.bonuses_data, const.DATA_BONUS_NAME),
-        const.ENTITY_TYPE_PARENT: (coordinator.parents_data, const.DATA_PARENT_NAME),
+        const.ENTITY_TYPE_APPROVER: (
+            coordinator.approvers_data,
+            const.DATA_APPROVER_NAME,
+        ),
         const.ENTITY_TYPE_ACHIEVEMENT: (
             coordinator.achievements_data,
             const.DATA_ACHIEVEMENT_NAME,
@@ -484,7 +489,7 @@ def get_item_id_by_name(
 
 
 def get_item_id_or_raise(
-    coordinator: KidsChoresDataCoordinator, item_type: str, item_name: str
+    coordinator: ChoreOpsDataCoordinator, item_type: str, item_name: str
 ) -> str:
     """Look up a Domain Item's internal ID (UUID) by name, or raise error if not found.
 
@@ -492,9 +497,9 @@ def get_item_id_or_raise(
     for Item lookups across services. This is NOT looking up an HA Entity.
 
     Args:
-        coordinator: The KidsChores data coordinator.
-        item_type: The type of Domain Item ("kid", "chore", "reward", "penalty",
-            "badge", "bonus", "parent", "achievement", "challenge").
+        coordinator: The ChoreOps data coordinator.
+        item_type: The type of Domain Item ("assignee", "chore", "reward", "penalty",
+            "badge", "bonus", "approver", "achievement", "challenge").
         item_name: The name of the Item to look up.
 
     Returns:
@@ -520,7 +525,7 @@ def get_item_name_or_log_error(
     """Get Domain Item name from storage data, log error if missing (data corruption detection).
 
     Args:
-        item_type: Type of Domain Item (for logging) e.g. 'kid', 'chore', 'reward'
+        item_type: Type of Domain Item (for logging) e.g. 'assignee', 'chore', 'reward'
         item_id: Internal ID/UUID of the Item (for logging)
         item_data: Dict containing the Item's data from storage
         name_key: Key to look up name in item_data
@@ -547,21 +552,21 @@ def get_item_name_or_log_error(
     return name
 
 
-def get_kid_name_by_id(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+def get_assignee_name_by_id(
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> str | None:
-    """Retrieve the kid_name for a given kid_id.
+    """Retrieve the assignee name for a given internal ID.
 
     Args:
-        coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the kid to look up.
+        coordinator: The ChoreOps data coordinator.
+        assignee_id: The internal ID (UUID) of the assignee to look up.
 
     Returns:
-        The name of the kid, or None if not found.
+        The assignee name, or None if not found.
     """
-    kid_info = coordinator.kids_data.get(kid_id)
-    if kid_info:
-        return kid_info.get(const.DATA_KID_NAME)
+    assignee_info = coordinator.assignees_data.get(assignee_id)
+    if assignee_info:
+        return assignee_info.get(const.DATA_ASSIGNEE_NAME)
     return None
 
 
@@ -598,12 +603,12 @@ async def remove_entities_by_validator(
         Count of removed entities.
 
     Example:
-        # Remove entities referencing deleted kids
+        # Remove entities referencing deleted assignees
         removed = await remove_entities_by_validator(
             hass, entry_id,
             platforms=["sensor"],
-            is_valid=lambda uid: extract_kid_id(uid) in valid_kid_ids,
-            entity_type="kid sensor",
+            is_valid=lambda uid: extract_assignee_id(uid) in valid_assignee_ids,
+            entity_type="assignee sensor",
         )
     """
     perf_start = time.perf_counter()
@@ -705,44 +710,44 @@ async def remove_orphaned_shared_chore_sensors(
     )
 
 
-async def remove_orphaned_kid_chore_entities(
+async def remove_orphaned_assignee_chore_entities(
     hass: HomeAssistant,
     entry_id: str,
-    kids_data: dict[str, Any],
+    assignees_data: dict[str, Any],
     chores_data: dict[str, Any],
 ) -> int:
-    """Remove kid-chore entities for kids no longer assigned to chores.
+    """Remove assignee-chore entities for assignees no longer assigned.
 
     Args:
         hass: HomeAssistant instance.
         entry_id: Config entry ID.
-        kids_data: Dict of kid_id → kid_info.
+        assignees_data: Dict of assignee_id → assignee_info.
         chores_data: Dict of chore_id → chore_info.
 
     Returns:
         Count of removed entities.
     """
-    if not kids_data or not chores_data:
+    if not assignees_data or not chores_data:
         return 0
 
     prefix = f"{entry_id}_"
 
-    # Build valid kid-chore combinations
+    # Build valid assignee-chore combinations
     valid_combinations: set[tuple[str, str]] = set()
     for chore_id, chore_info in chores_data.items():
-        for kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-            valid_combinations.add((kid_id, chore_id))
+        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+            valid_combinations.add((assignee_id, chore_id))
 
     # Build regex for efficient extraction
-    kid_ids = "|".join(re.escape(kid_id) for kid_id in kids_data)
+    assignee_ids = "|".join(re.escape(assignee_id) for assignee_id in assignees_data)
     chore_ids = "|".join(re.escape(chore_id) for chore_id in chores_data)
-    pattern = re.compile(rf"^({kid_ids})_({chore_ids})")
+    pattern = re.compile(rf"^({assignee_ids})_({chore_ids})")
 
     def is_valid(unique_id: str) -> bool:
         core = unique_id[len(prefix) :]
         match = pattern.match(core)
         if not match:
-            return True  # Not a kid-chore entity, keep it
+            return True  # Not a assignee-chore entity, keep it
         return (match.group(1), match.group(2)) in valid_combinations
 
     return await remove_entities_by_validator(
@@ -750,7 +755,7 @@ async def remove_orphaned_kid_chore_entities(
         entry_id,
         platforms=[const.Platform.SENSOR, const.Platform.BUTTON],
         is_valid=is_valid,
-        entity_type="kid-chore entity",
+        entity_type="assignee-chore entity",
     )
 
 
@@ -761,19 +766,19 @@ async def remove_orphaned_progress_entities(
     *,
     entity_type: str,
     progress_suffix: str,
-    assigned_kids_key: str,
+    assigned_assignees_key: str,
 ) -> int:
-    """Remove progress entities for kids no longer assigned (generic).
+    """Remove progress entities for assignees no longer assigned (generic).
 
     Used for badges, achievements, and challenges.
 
     Args:
         hass: HomeAssistant instance.
         entry_id: Config entry ID.
-        domain_data: Dict of parent_entity_id → entity_info (e.g., badges_data).
+        domain_data: Dict of approver_entity_id → entity_info (e.g., badges_data).
         entity_type: Display name for logging (e.g., "badge", "achievement").
         progress_suffix: Suffix for progress sensors.
-        assigned_kids_key: Key in entity_info for assigned kids list.
+        assigned_assignees_key: Key in entity_info for assigned assignees list.
 
     Returns:
         Count of removed entities.
@@ -786,9 +791,12 @@ async def remove_orphaned_progress_entities(
         if len(parts) != 2:
             return True  # Can't parse, keep it
 
-        kid_id, parent_entity_id = parts
-        parent_info = domain_data.get(parent_entity_id)
-        return bool(parent_info and kid_id in parent_info.get(assigned_kids_key, []))
+        assignee_id, approver_entity_id = parts
+        approver_info = domain_data.get(approver_entity_id)
+        return bool(
+            approver_info
+            and assignee_id in approver_info.get(assigned_assignees_key, [])
+        )
 
     return await remove_entities_by_validator(
         hass,
@@ -815,10 +823,10 @@ async def remove_orphaned_manual_adjustment_buttons(
     Returns:
         Count of removed entities.
     """
-    button_suffix = const.BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST
+    button_suffix = const.BUTTON_KC_UID_SUFFIX_APPROVER_POINTS_ADJUST
 
     def is_valid(unique_id: str) -> bool:
-        # New format: {entry_id}_{kid_id}_{slugified_delta}_parent_points_adjust_button
+        # New format: {entry_id}_{assignee_id}_{slugified_delta}_approver_points_adjust_button
         if button_suffix not in unique_id:
             return False
         try:
@@ -852,34 +860,18 @@ async def remove_orphaned_manual_adjustment_buttons(
 # ==============================================================================
 
 
-def is_shadow_kid(coordinator: KidsChoresDataCoordinator, kid_id: str) -> bool:
-    """Legacy compatibility check for shadow-profile marker.
-
-    During the migration window, this field indicates a feature-gated profile
-    shape inherited from legacy parent-link flows.
-
-    Args:
-        coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the kid to check.
-
-    Returns:
-        True if the legacy shadow marker is present, False otherwise.
-    """
-    kid_info: KidData = cast("KidData", coordinator.kids_data.get(kid_id, {}))
-    return bool(kid_info.get(const.DATA_KID_IS_SHADOW, False))
+def is_shadow_assignee(coordinator: ChoreOpsDataCoordinator, assignee_id: str) -> bool:
+    """Return False; shadow-profile runtime behavior is migration-only."""
+    return False
 
 
-def is_linked_profile(coordinator: KidsChoresDataCoordinator, kid_id: str) -> bool:
-    """Return whether this user record follows linked-profile gating semantics.
-
-    During schema45 migration, linked-profile behavior maps to the legacy
-    marker used by existing storage and compatibility tests.
-    """
-    return is_shadow_kid(coordinator, kid_id)
+def is_linked_profile(coordinator: ChoreOpsDataCoordinator, assignee_id: str) -> bool:
+    """Return False; linked-profile runtime behavior is migration-only."""
+    return False
 
 
 def is_user_approval_profile(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> bool:
     """Return whether this user currently maps to an approval-profile record.
 
@@ -887,11 +879,11 @@ def is_user_approval_profile(
     and is intentionally behavior-compatible with existing entity creation
     logic while naming migrates to capability-oriented terminology.
     """
-    return is_user_feature_gated_profile(coordinator, kid_id)
+    return is_user_feature_gated_profile(coordinator, assignee_id)
 
 
 def is_user_feature_gated_profile(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> bool:
     """Return whether this user follows feature-gated entity creation rules.
 
@@ -899,68 +891,58 @@ def is_user_feature_gated_profile(
     and is intentionally behavior-compatible while runtime naming migrates
     to capability-oriented terminology.
     """
-    return is_linked_profile(coordinator, kid_id)
+    return is_linked_profile(coordinator, assignee_id)
 
 
 def is_user_assignment_participant(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> bool:
     """Return whether a user is allowed to participate in assignment workflows.
 
     Schema45+ contract uses capability flags (`can_be_assigned`) as the
-    canonical participation signal. During migration, legacy kid records that
+    canonical participation signal. During migration, legacy assignee records that
     still carry shadow markers keep backward-compatible behavior.
 
     Args:
-        coordinator: The KidsChores data coordinator.
-        kid_id: Internal user/kid ID.
+        coordinator: The ChoreOps data coordinator.
+        assignee_id: Internal user/assignee ID.
 
     Returns:
         True when assignment participation is enabled.
     """
-    kid_info = cast("dict[str, Any]", coordinator.kids_data.get(kid_id, {}))
+    assignee_info = cast(
+        "dict[str, Any]", coordinator.assignees_data.get(assignee_id, {})
+    )
 
     # Canonical schema45+ capability
-    if const.DATA_USER_CAN_BE_ASSIGNED in kid_info:
-        return bool(kid_info.get(const.DATA_USER_CAN_BE_ASSIGNED, True))
+    if const.DATA_USER_CAN_BE_ASSIGNED in assignee_info:
+        return bool(assignee_info.get(const.DATA_USER_CAN_BE_ASSIGNED, True))
 
     # Legacy fallback during migration window
-    if const.DATA_KID_IS_SHADOW in kid_info:
-        return not bool(kid_info.get(const.DATA_KID_IS_SHADOW, False))
+    if const.DATA_ASSIGNEE_IS_SHADOW in assignee_info:
+        return not bool(assignee_info.get(const.DATA_ASSIGNEE_IS_SHADOW, False))
 
     return True
 
 
-def get_parent_for_linked_profile(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+def get_approver_for_linked_profile(
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> dict[str, Any] | None:
-    """Get linked parent data for a linked-profile user record.
-
-    Args:
-        coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the user/kid record.
-
-    Returns:
-        The parent data dictionary, or None if no legacy link is present.
-    """
-    kid_info: KidData = cast("KidData", coordinator.kids_data.get(kid_id, {}))
-    parent_id = kid_info.get(const.DATA_KID_LINKED_PARENT_ID)
-    if parent_id:
-        return cast("dict[str, Any] | None", coordinator.parents_data.get(parent_id))
+    """Return None; linked-profile runtime lookup is migration-only."""
     return None
 
 
-def get_parent_for_shadow_kid(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+def get_approver_for_shadow_assignee(
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> dict[str, Any] | None:
-    """Backward-compatible alias for linked-profile parent lookup."""
-    return get_parent_for_linked_profile(coordinator, kid_id)
+    """Backward-compatible alias for linked-profile approver lookup."""
+    return get_approver_for_linked_profile(coordinator, assignee_id)
 
 
 def should_create_workflow_buttons(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> bool:
-    """Determine if claim/disapprove buttons should be created for a kid.
+    """Determine if claim/disapprove buttons should be created for a assignee.
 
     Workflow buttons (Claim, Disapprove) are created for:
     - Assignment participants using default profile behavior
@@ -970,28 +952,28 @@ def should_create_workflow_buttons(
     - Feature-gated profiles with enable_chore_workflow=False
 
     Args:
-        coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the user/kid record.
+        coordinator: The ChoreOps data coordinator.
+        assignee_id: The internal ID (UUID) of the user/assignee record.
 
     Returns:
         True if workflow buttons should be created, False otherwise.
     """
-    if not is_user_assignment_participant(coordinator, kid_id):
+    if not is_user_assignment_participant(coordinator, assignee_id):
         return False
 
-    if not is_user_feature_gated_profile(coordinator, kid_id):
+    if not is_user_feature_gated_profile(coordinator, assignee_id):
         return True  # Default assignment participants always get workflow buttons
 
-    parent_data = get_parent_for_linked_profile(coordinator, kid_id)
-    if parent_data:
-        return parent_data.get(const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False)
+    approver_data = get_approver_for_linked_profile(coordinator, assignee_id)
+    if approver_data:
+        return approver_data.get(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False)
     return False
 
 
 def should_create_gamification_entities(
-    coordinator: KidsChoresDataCoordinator, kid_id: str
+    coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> bool:
-    """Determine if gamification entities should be created for a kid.
+    """Determine if gamification entities should be created for a assignee.
 
     Gamification entities (points sensors, badge progress, reward/bonus/penalty
     buttons, points adjust buttons) are created for:
@@ -1002,21 +984,21 @@ def should_create_gamification_entities(
     - Feature-gated profiles with enable_gamification=False
 
     Args:
-        coordinator: The KidsChores data coordinator.
-        kid_id: The internal ID (UUID) of the user/kid record.
+        coordinator: The ChoreOps data coordinator.
+        assignee_id: The internal ID (UUID) of the user/assignee record.
 
     Returns:
         True if gamification entities should be created, False otherwise.
     """
-    if not is_user_assignment_participant(coordinator, kid_id):
+    if not is_user_assignment_participant(coordinator, assignee_id):
         return False
 
-    if not is_user_feature_gated_profile(coordinator, kid_id):
+    if not is_user_feature_gated_profile(coordinator, assignee_id):
         return True  # Default assignment participants always get gamification
 
-    parent_data = get_parent_for_linked_profile(coordinator, kid_id)
-    if parent_data:
-        return parent_data.get(const.DATA_PARENT_ENABLE_GAMIFICATION, False)
+    approver_data = get_approver_for_linked_profile(coordinator, assignee_id)
+    if approver_data:
+        return approver_data.get(const.DATA_APPROVER_ENABLE_GAMIFICATION, False)
     return False
 
 
@@ -1026,7 +1008,7 @@ def should_create_entity(
     is_feature_gated_profile: bool = False,
     is_approval_profile: bool = False,
     is_assignment_participant: bool = True,
-    is_shadow_kid: bool = False,
+    is_shadow_assignee: bool = False,
     workflow_enabled: bool = True,
     gamification_enabled: bool = True,
     extra_enabled: bool = False,
@@ -1048,7 +1030,7 @@ def should_create_entity(
         is_feature_gated_profile: Preferred profile-gating flag for platform code.
         is_approval_profile: Capability-oriented profile flag used by platform code.
         is_assignment_participant: Whether this user participates in assignment scope.
-        is_shadow_kid: Legacy compatibility flag (deprecated; maps to approval profile)
+        is_shadow_assignee: Legacy compatibility flag (deprecated; maps to approval profile)
         workflow_enabled: Whether workflow is enabled for gated profiles.
         gamification_enabled: Whether gamification is enabled for gated profiles.
         extra_enabled: Whether show_legacy_entities (extra entities) flag is enabled
@@ -1064,7 +1046,7 @@ def should_create_entity(
             break
 
     feature_gated_profile = (
-        is_feature_gated_profile or is_approval_profile or is_shadow_kid
+        is_feature_gated_profile or is_approval_profile or is_shadow_assignee
     )
 
     # Unknown suffix - default to gamification for gated profiles

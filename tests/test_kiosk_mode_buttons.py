@@ -1,8 +1,8 @@
-"""Tests for kiosk mode behavior in kid claim button paths.
+"""Tests for kiosk mode behavior in assignee claim button paths.
 
 Covers:
-- Kid chore claim button behavior with kiosk mode disabled/enabled
-- Kid reward claim button behavior with kiosk mode enabled
+- Assignee chore claim button behavior with kiosk mode disabled/enabled
+- Assignee reward claim button behavior with kiosk mode enabled
 - General options persistence of kiosk mode
 - Service auth remains strict when kiosk mode is enabled
 """
@@ -64,8 +64,8 @@ async def test_kiosk_disabled_blocks_unauthorized_chore_claim_button(
     scenario_minimal: SetupResult,
     mock_hass_users: dict[str, Any],
 ) -> None:
-    """Kid claim button should enforce kid auth when kiosk mode is disabled."""
-    unauthorized_context = Context(user_id=mock_hass_users["kid2"].id)
+    """Assignee claim button should enforce assignee auth when kiosk mode is disabled."""
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
 
     with patch(
         "custom_components.choreops.button.is_kiosk_mode_enabled", return_value=False
@@ -87,8 +87,8 @@ async def test_kiosk_enabled_allows_unauthorized_chore_claim_button(
     scenario_minimal: SetupResult,
     mock_hass_users: dict[str, Any],
 ) -> None:
-    """Kid claim button should allow claim from unlinked user when kiosk is enabled."""
-    unauthorized_context = Context(user_id=mock_hass_users["kid2"].id)
+    """Assignee claim button should allow claim from unlinked user when kiosk is enabled."""
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
     with patch(
         "custom_components.choreops.button.is_kiosk_mode_enabled", return_value=True
     ):
@@ -104,12 +104,12 @@ async def test_kiosk_enabled_allows_unauthorized_chore_claim_button(
     assert result.state_after == CHORE_STATE_CLAIMED
 
 
-async def test_kiosk_enabled_skips_reward_kid_auth_guard(
+async def test_kiosk_enabled_skips_reward_assignee_auth_guard(
     hass: HomeAssistant,
     scenario_full: SetupResult,
     mock_hass_users: dict[str, Any],
 ) -> None:
-    """Reward claim button should skip kid auth guard when kiosk mode is enabled."""
+    """Reward claim button should skip assignee auth guard when kiosk mode is enabled."""
     coordinator = scenario_full.coordinator
 
     dashboard = get_dashboard_helper(hass, "zoe")
@@ -128,7 +128,7 @@ async def test_kiosk_enabled_skips_reward_kid_auth_guard(
         patch(
             "custom_components.choreops.button.is_user_authorized_for_action",
             new=AsyncMock(return_value=False),
-        ) as mock_auth_for_kid,
+        ) as mock_auth_for_assignee,
         patch.object(
             coordinator.reward_manager,
             "redeem",
@@ -140,10 +140,10 @@ async def test_kiosk_enabled_skips_reward_kid_auth_guard(
             SERVICE_PRESS,
             {"entity_id": claim_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["kid99"].id),
+            context=Context(user_id=mock_hass_users["assignee99"].id),
         )
 
-    mock_auth_for_kid.assert_not_awaited()
+    mock_auth_for_assignee.assert_not_awaited()
     mock_redeem.assert_awaited_once()
 
 
@@ -199,14 +199,14 @@ async def test_service_claim_auth_stays_strict_with_kiosk_enabled(
     )
     await hass.async_block_till_done()
 
-    unauthorized_context = Context(user_id=mock_hass_users["kid2"].id)
+    unauthorized_context = Context(user_id=mock_hass_users["assignee2"].id)
 
     with pytest.raises(HomeAssistantError):
         await hass.services.async_call(
             const.DOMAIN,
             const.SERVICE_CLAIM_CHORE,
             {
-                const.SERVICE_FIELD_KID_NAME: "Zoë",
+                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
                 const.SERVICE_FIELD_CHORE_NAME: "Make bed",
             },
             blocking=True,
@@ -227,11 +227,11 @@ async def test_kiosk_enabled_anonymous_chore_disapprove_uses_undo_path(
     scenario_minimal: SetupResult,
     mock_hass_users: dict[str, Any],
 ) -> None:
-    """Anonymous disapprove uses kid undo path when kiosk mode is enabled."""
+    """Anonymous disapprove uses assignee undo path when kiosk mode is enabled."""
     coordinator = scenario_minimal.coordinator
 
-    kid_context = Context(user_id=mock_hass_users["kid1"].id)
-    claim_result = await claim_chore(hass, "zoe", "Make bed", kid_context)
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    claim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
     assert claim_result.success is True
     assert claim_result.state_after == CHORE_STATE_CLAIMED
 

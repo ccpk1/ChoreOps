@@ -30,7 +30,7 @@ from tests.helpers import (
     ATTR_COMPLETED_BY,
     ATTR_DASHBOARD_CHORES,
     ATTR_TRANSLATION_SENSOR,
-    DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
     SENSOR_KC_EID_PREFIX_DASHBOARD_LANG,
     SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER,
     construct_entity_id,
@@ -47,7 +47,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid, 1 parent, 5 chores (English only)."""
+    """Load minimal scenario: 1 assignee, 1 approver, 5 chores (English only)."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -60,7 +60,7 @@ async def scenario_multilang(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load multilang scenario: 2 kids (English + Spanish), 5 chores."""
+    """Load multilang scenario: 2 assignees (English + Spanish), 5 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -73,7 +73,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 19 chores."""
+    """Load full scenario: 3 assignees, 2 approvers, 19 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -86,18 +86,18 @@ async def scenario_full(
 # =============================================================================
 
 
-def get_dashboard_helper_size(hass: HomeAssistant, kid_name: str) -> int:
+def get_dashboard_helper_size(hass: HomeAssistant, assignee_name: str) -> int:
     """Get the JSON size of dashboard helper attributes in bytes.
 
     Args:
         hass: Home Assistant instance
-        kid_name: Kid's display name (e.g., "Zoë")
+        assignee_name: Assignee's display name (e.g., "Zoë")
 
     Returns:
         Size in bytes of the JSON-serialized attributes
     """
     helper_eid = construct_entity_id(
-        "sensor", kid_name, SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER
+        "sensor", assignee_name, SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER
     )
     helper_state = hass.states.get(helper_eid)
     assert helper_state is not None, f"Dashboard helper not found: {helper_eid}"
@@ -107,19 +107,19 @@ def get_dashboard_helper_size(hass: HomeAssistant, kid_name: str) -> int:
     return len(attrs_json.encode("utf-8"))
 
 
-def get_translation_sensor_eid(hass: HomeAssistant, kid_name: str = "Zoë") -> str:
-    """Get translation sensor entity ID from a kid's dashboard helper.
+def get_translation_sensor_eid(hass: HomeAssistant, assignee_name: str = "Zoë") -> str:
+    """Get translation sensor entity ID from a assignee's dashboard helper.
 
     Args:
         hass: Home Assistant instance
-        kid_name: Any kid name to get dashboard helper from (default: Zoë)
+        assignee_name: Any assignee name to get dashboard helper from (default: Zoë)
 
     Returns:
         Translation sensor entity ID (e.g., sensor.system_choreops_dashboard_translations_en)
     """
-    # Slugify the kid name (lowercase, replace special chars)
+    # Slugify the assignee name (lowercase, replace special chars)
     slug = (
-        kid_name.lower()
+        assignee_name.lower()
         .replace("!", "")
         .replace("ë", "e")
         .replace("å", "a")
@@ -127,7 +127,7 @@ def get_translation_sensor_eid(hass: HomeAssistant, kid_name: str = "Zoë") -> s
     )
     helper_state = hass.states.get(
         f"sensor.{slug}_choreops_ui_dashboard_helper"
-    ) or hass.states.get(f"sensor.{slug}_kidschores_ui_dashboard_helper")
+    ) or hass.states.get(f"sensor.{slug}_choreops_ui_dashboard_helper")
     assert helper_state is not None, (
         f"Dashboard helper not found: sensor.{slug}_choreops_ui_dashboard_helper"
     )
@@ -137,17 +137,17 @@ def get_translation_sensor_eid(hass: HomeAssistant, kid_name: str = "Zoë") -> s
     return translation_sensor
 
 
-def get_translation_sensor_size(hass: HomeAssistant, kid_name: str = "Zoë") -> int:
+def get_translation_sensor_size(hass: HomeAssistant, assignee_name: str = "Zoë") -> int:
     """Get the JSON size of translation sensor attributes in bytes.
 
     Args:
         hass: Home Assistant instance
-        kid_name: Any kid name to get dashboard helper from (default: Zoë)
+        assignee_name: Any assignee name to get dashboard helper from (default: Zoë)
 
     Returns:
         Size in bytes of the JSON-serialized attributes
     """
-    sensor_eid = get_translation_sensor_eid(hass, kid_name)
+    sensor_eid = get_translation_sensor_eid(hass, assignee_name)
     sensor_state = hass.states.get(sensor_eid)
     assert sensor_state is not None, f"Translation sensor not found: {sensor_eid}"
 
@@ -208,7 +208,7 @@ class TestTranslationSensorArchitecture:
         assert en_sensor is not None, "English translation sensor not found"
 
         # Spanish sensor should NOT exist (no Spanish users)
-        # Try to get Spanish sensor - should fail since no Spanish-speaking kids exist
+        # Try to get Spanish sensor - should fail since no Spanish-speaking assignees exist
         try:
             es_sensor_eid = get_translation_sensor_eid(hass, "Lila")
             es_sensor = hass.states.get(es_sensor_eid)
@@ -282,7 +282,7 @@ class TestTranslationSensorArchitecture:
         hass: HomeAssistant,
         scenario_multilang: SetupResult,
     ) -> None:
-        """TRANS-06: Each kid's dashboard helper points to correct language sensor."""
+        """TRANS-06: Each assignee's dashboard helper points to correct language sensor."""
         # Zoë should point to English
         zoe_helper = hass.states.get(
             construct_entity_id(
@@ -325,7 +325,7 @@ class TestMinimalChoreAttributes:
         "primary_group",
         "is_today_am",
         "lock_reason",  # Phase 4: rotation support
-        "turn_kid_name",  # Phase 4: rotation support
+        "turn_assignee_name",  # Phase 4: rotation support
         "available_at",  # Phase 4: rotation support
     }
 
@@ -382,7 +382,7 @@ class TestMinimalChoreAttributes:
         chores = helper_state.attributes.get(ATTR_DASHBOARD_CHORES, [])
         for chore in chores:
             # eid should be a sensor entity ID with correct format
-            # Format: sensor.{kid_slug}_choreops_chore_status_{chore_name}
+            # Format: sensor.{assignee_slug}_choreops_chore_status_{chore_name}
             assert chore["eid"].startswith("sensor."), f"Invalid eid: {chore['eid']}"
             assert "_choreops_chore_status_" in chore["eid"], (
                 f"Entity ID missing expected pattern: {chore['eid']}"
@@ -534,9 +534,9 @@ class TestGapAttributes:
         assert chore_sensor is not None
 
         # Use the const key name for the attribute
-        assert DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START in chore_sensor.attributes, (
-            f"approval_period_start attribute missing from {chore_sensor_eid}"
-        )
+        assert (
+            DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START in chore_sensor.attributes
+        ), f"approval_period_start attribute missing from {chore_sensor_eid}"
 
 
 # =============================================================================
@@ -611,14 +611,14 @@ class TestEdgeCases:
         assert eid is not None, "Expected fallback to English sensor"
         assert "en" in eid, f"Expected English sensor as fallback, got {eid}"
 
-    async def test_edge_02_no_kids_no_extra_sensors(
+    async def test_edge_02_no_assignees_no_extra_sensors(
         self,
         hass: HomeAssistant,
     ) -> None:
         """EDGE-02: Without any setup, no translation sensors exist.
 
         This is a basic sanity check - before integration setup, there
-        should be no KidsChores sensors at all.
+        should be no ChoreOps sensors at all.
         """
         # Before any setup, no translation sensors should exist
         en_sensor = hass.states.get(

@@ -1,5 +1,5 @@
 # File: coordinator.py
-"""Coordinator for the KidsChores integration.
+"""Coordinator for the ChoreOps integration.
 
 Handles data synchronization, chore claiming and approval, badge tracking,
 reward redemption, penalty application, and recurring chore handling.
@@ -35,16 +35,16 @@ from .managers import (
     UIManager,
     UserManager,
 )
-from .store import KidsChoresStore
+from .store import ChoreOpsStore
 from .type_defs import (
     AchievementsCollection,
+    ApproverData,
+    ApproversCollection,
+    AssigneesCollection,
     BadgesCollection,
     BonusesCollection,
     ChallengesCollection,
     ChoresCollection,
-    KidsCollection,
-    ParentData,
-    ParentsCollection,
     PenaltiesCollection,
     RewardsCollection,
     UserData,
@@ -53,11 +53,11 @@ from .type_defs import (
 
 # Type alias for typed config entry access (modern HA pattern)
 # Must be defined after imports but before class since it references the class
-type KidsChoresConfigEntry = ConfigEntry["KidsChoresDataCoordinator"]
+type ChoreOpsConfigEntry = ConfigEntry["ChoreOpsDataCoordinator"]
 
 
-class KidsChoresDataCoordinator(DataUpdateCoordinator):
-    """Coordinator for KidsChores integration.
+class ChoreOpsDataCoordinator(DataUpdateCoordinator):
+    """Coordinator for ChoreOps integration.
 
     Manages data primarily using internal_id for entities.
 
@@ -73,9 +73,9 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         config_entry: ConfigEntry,
-        store: KidsChoresStore,
+        store: ChoreOpsStore,
     ):
-        """Initialize the KidsChoresDataCoordinator."""
+        """Initialize the ChoreOpsDataCoordinator."""
         update_interval_minutes = config_entry.options.get(
             const.CONF_UPDATE_INTERVAL, const.DEFAULT_UPDATE_INTERVAL
         )
@@ -113,7 +113,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         # Economy manager for point transactions and ledger (v0.5.0+)
         self.economy_manager = EconomyManager(hass, self)
 
-        # User manager for Kid/Parent CRUD operations (v0.5.0+)
+        # User manager for Assignee/Approver CRUD operations (v0.5.0+)
         # Phase 7.3b: Centralized create/update/delete with proper event signaling
         self.user_manager = UserManager(hass, self)
 
@@ -165,7 +165,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
 
             return self._data
         except Exception as err:
-            raise UpdateFailed(f"Error updating KidsChores data: {err}") from err
+            raise UpdateFailed(f"Error updating ChoreOps data: {err}") from err
 
     async def async_config_entry_first_refresh(self):
         """Load from storage and hand off to SystemManager for integrity.
@@ -358,13 +358,13 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
                 if isinstance(user_data, dict)
             }
 
-        legacy_kids = self._data.get(const.DATA_KIDS, {})
-        if not isinstance(legacy_kids, dict):
+        legacy_assignees = self._data.get(const.DATA_ASSIGNEES, {})
+        if not isinstance(legacy_assignees, dict):
             return {}
         return {
-            kid_id: cast("UserData", kid_data)
-            for kid_id, kid_data in legacy_kids.items()
-            if isinstance(kid_data, dict)
+            assignee_id: cast("UserData", assignee_data)
+            for assignee_id, assignee_data in legacy_assignees.items()
+            if isinstance(assignee_data, dict)
         }
 
     @property
@@ -378,7 +378,7 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         - linked-profile users are included
 
         Phase 1 lock: this list is authoritative for user-management UX and must
-        not be narrowed to a legacy parent-only bucket.
+        not be narrowed to a legacy approver-only bucket.
         """
         canonical_users = self._data.get(const.DATA_USERS)
         if isinstance(canonical_users, dict):
@@ -390,9 +390,9 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         else:
             merged_users = {}
 
-            legacy_kids = self._data.get(const.DATA_KIDS, {})
-            if isinstance(legacy_kids, dict):
-                for user_id, user_data in legacy_kids.items():
+            legacy_assignees = self._data.get(const.DATA_ASSIGNEES, {})
+            if isinstance(legacy_assignees, dict):
+                for user_id, user_data in legacy_assignees.items():
                     if isinstance(user_data, dict):
                         existing_user = merged_users.get(user_id)
                         if isinstance(existing_user, dict):
@@ -413,11 +413,11 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         return cast("UsersCollection", sorted_users)
 
     @property
-    def kids_data(self) -> KidsCollection:
-        """Return kid-compatible data view.
+    def assignees_data(self) -> AssigneesCollection:
+        """Return assignee-compatible data view.
 
         During schema45 migration window, `users` is canonical while much of
-        runtime still consumes `kids_data`.
+        runtime still consumes `assignees_data`.
         """
         return {
             user_id: user_data
@@ -427,23 +427,23 @@ class KidsChoresDataCoordinator(DataUpdateCoordinator):
         }
 
     @property
-    def parents_data(self) -> ParentsCollection:
-        """Return parent-compatible data view.
+    def approvers_data(self) -> ApproversCollection:
+        """Return approver-compatible data view.
 
-        Parent role records are derived from canonical `users`.
+        Approver role records are derived from canonical `users`.
         """
         users = self.users_data
         if users:
             return {
-                user_id: cast("ParentData", user_data)
+                user_id: cast("ApproverData", user_data)
                 for user_id, user_data in users.items()
                 if isinstance(user_data, dict)
                 and (
                     user_data.get(const.DATA_USER_CAN_APPROVE, False)
                     or user_data.get(const.DATA_USER_CAN_MANAGE, False)
-                    or const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT in user_data
-                    or const.DATA_PARENT_ASSOCIATED_KIDS in user_data
-                    or const.DATA_PARENT_LINKED_PROFILE_ID in user_data
+                    or const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT in user_data
+                    or const.DATA_APPROVER_ASSOCIATED_USERS in user_data
+                    or const.DATA_APPROVER_LINKED_PROFILE_ID in user_data
                 )
             }
 

@@ -1,4 +1,4 @@
-"""Tests for KidsChores diagnostics module.
+"""Tests for ChoreOps diagnostics module.
 
 Tests diagnostics export returns raw storage data directly.
 Validates byte-for-byte compatibility with storage file for paste recovery.
@@ -24,18 +24,18 @@ pytestmark = pytest.mark.asyncio
 
 @pytest.fixture
 def mock_storage_data():
-    """Create mock raw storage data (simulates kidschores_data file)."""
+    """Create mock raw storage data (simulates choreops_data file)."""
     return {
-        const.DATA_KIDS: {
-            "kid1": {
-                const.DATA_KID_NAME: "Alice",
-                const.DATA_KID_INTERNAL_ID: "kid1",
-                const.DATA_KID_POINTS: 100,
+        const.DATA_ASSIGNEES: {
+            "assignee1": {
+                const.DATA_ASSIGNEE_NAME: "Alice",
+                const.DATA_ASSIGNEE_INTERNAL_ID: "assignee1",
+                const.DATA_ASSIGNEE_POINTS: 100,
             },
-            "kid2": {
-                const.DATA_KID_NAME: "Bob",
-                const.DATA_KID_INTERNAL_ID: "kid2",
-                const.DATA_KID_POINTS: 50,
+            "assignee2": {
+                const.DATA_ASSIGNEE_NAME: "Bob",
+                const.DATA_ASSIGNEE_INTERNAL_ID: "assignee2",
+                const.DATA_ASSIGNEE_POINTS: 50,
             },
         },
         const.DATA_CHORES: {
@@ -48,7 +48,7 @@ def mock_storage_data():
         const.DATA_PENALTIES: {},
         const.DATA_BONUSES: {},
         const.DATA_BADGES: {},
-        const.DATA_PARENTS: {},
+        const.DATA_APPROVERS: {},
         const.DATA_ACHIEVEMENTS: {},
         const.DATA_CHALLENGES: {},
         const.DATA_SCHEMA_VERSION: 42,
@@ -66,7 +66,7 @@ def mock_coordinator(mock_storage_data):
     coordinator.store = store
 
     # Mock convenience accessors (point to same data)
-    coordinator.kids_data = mock_storage_data[const.DATA_KIDS]
+    coordinator.assignees_data = mock_storage_data[const.DATA_ASSIGNEES]
 
     return coordinator
 
@@ -77,7 +77,7 @@ def mock_config_entry(mock_coordinator):
     entry = MagicMock(spec=ConfigEntry)
     entry.entry_id = "test_entry_id"
     entry.version = 1
-    entry.title = "KidsChores"
+    entry.title = "ChoreOps"
     # Add runtime_data pointing to coordinator
     entry.runtime_data = mock_coordinator
     # Add default options for config_entry_settings
@@ -106,7 +106,7 @@ def mock_hass():
 def mock_device_entry():
     """Create a mock device entry."""
     device = MagicMock(spec=DeviceEntry)
-    device.identifiers = {(const.DOMAIN, "kid1")}
+    device.identifiers = {(const.DOMAIN, "assignee1")}
     return device
 
 
@@ -131,13 +131,13 @@ async def test_config_entry_diagnostics_has_all_storage_keys(
     result = await async_get_config_entry_diagnostics(mock_hass, mock_config_entry)
 
     # Verify all core storage keys are present
-    assert const.DATA_KIDS in result
+    assert const.DATA_ASSIGNEES in result
     assert const.DATA_CHORES in result
     assert const.DATA_REWARDS in result
     assert const.DATA_PENALTIES in result
     assert const.DATA_BONUSES in result
     assert const.DATA_BADGES in result
-    assert const.DATA_PARENTS in result
+    assert const.DATA_APPROVERS in result
     assert const.DATA_ACHIEVEMENTS in result
     assert const.DATA_CHALLENGES in result
     assert const.DATA_SCHEMA_VERSION in result
@@ -159,10 +159,12 @@ async def test_config_entry_diagnostics_byte_for_byte_compatibility(
     for key in mock_storage_data:
         assert result[key] == mock_storage_data[key]
 
-    # Verify kids data structure preserved exactly
-    assert result[const.DATA_KIDS]["kid1"][const.DATA_KID_NAME] == "Alice"
-    assert result[const.DATA_KIDS]["kid1"][const.DATA_KID_POINTS] == 100
-    assert result[const.DATA_KIDS]["kid2"][const.DATA_KID_NAME] == "Bob"
+    # Verify assignees data structure preserved exactly
+    assert (
+        result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_ASSIGNEE_NAME] == "Alice"
+    )
+    assert result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_ASSIGNEE_POINTS] == 100
+    assert result[const.DATA_ASSIGNEES]["assignee2"][const.DATA_ASSIGNEE_NAME] == "Bob"
 
     # Verify chores data structure preserved exactly
     assert result[const.DATA_CHORES]["chore1"][const.DATA_CHORE_NAME] == "Clean Room"
@@ -171,28 +173,28 @@ async def test_config_entry_diagnostics_byte_for_byte_compatibility(
     assert const.DATA_CONFIG_ENTRY_SETTINGS in result
 
 
-async def test_device_diagnostics_returns_kid_data(
+async def test_device_diagnostics_returns_assignee_data(
     mock_hass, mock_config_entry, mock_device_entry, mock_coordinator
 ):
-    """Test device diagnostics returns kid-specific data."""
+    """Test device diagnostics returns assignee-specific data."""
     result = await async_get_device_diagnostics(
         mock_hass, mock_config_entry, mock_device_entry
     )
 
     # Verify structure
-    assert "kid_id" in result
-    assert "kid_data" in result
+    assert "assignee_id" in result
+    assert "assignee_data" in result
 
-    # Verify kid data
-    assert result["kid_id"] == "kid1"
-    assert result["kid_data"][const.DATA_KID_NAME] == "Alice"
-    assert result["kid_data"][const.DATA_KID_POINTS] == 100
+    # Verify assignee data
+    assert result["assignee_id"] == "assignee1"
+    assert result["assignee_data"][const.DATA_ASSIGNEE_NAME] == "Alice"
+    assert result["assignee_data"][const.DATA_ASSIGNEE_POINTS] == 100
 
 
-async def test_device_diagnostics_missing_kid_id(
+async def test_device_diagnostics_missing_assignee_id(
     mock_hass, mock_config_entry, mock_coordinator
 ):
-    """Test device diagnostics error when kid_id cannot be determined."""
+    """Test device diagnostics error when assignee_id cannot be determined."""
     # Create device with no identifiers
     device = MagicMock(spec=DeviceEntry)
     device.identifiers = set()
@@ -201,22 +203,25 @@ async def test_device_diagnostics_missing_kid_id(
 
     # Verify error response
     assert "error" in result
-    assert "Could not determine kid_id" in result["error"]
+    assert "Could not determine assignee_id" in result["error"]
 
 
-async def test_device_diagnostics_kid_not_found(
+async def test_device_diagnostics_assignee_not_found(
     mock_hass, mock_config_entry, mock_coordinator
 ):
-    """Test device diagnostics error when kid data not found."""
-    # Create device with non-existent kid_id
+    """Test device diagnostics error when assignee data not found."""
+    # Create device with non-existent assignee_id
     device = MagicMock(spec=DeviceEntry)
-    device.identifiers = {(const.DOMAIN, "nonexistent_kid")}
+    device.identifiers = {(const.DOMAIN, "nonexistent_assignee")}
 
     result = await async_get_device_diagnostics(mock_hass, mock_config_entry, device)
 
     # Verify error response
     assert "error" in result
-    assert "Kid data not found for kid_id: nonexistent_kid" in result["error"]
+    assert (
+        "Assignee data not found for assignee_id: nonexistent_assignee"
+        in result["error"]
+    )
 
 
 async def test_diagnostics_simplicity():
@@ -224,7 +229,7 @@ async def test_diagnostics_simplicity():
 
     The simplified approach:
     - Config entry diagnostics: Returns store.data directly
-    - Device diagnostics: Returns kid_data snapshot only
+    - Device diagnostics: Returns assignee_data snapshot only
     - No parsing, reformatting, or wrapper metadata
     - Byte-for-byte identical to storage file
     - Future-proof (all storage keys automatically included)

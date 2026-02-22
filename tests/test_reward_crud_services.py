@@ -3,11 +3,11 @@
 This module tests:
 - create_reward service with schema validation
 - update_reward service with schema validation
-- E2E verification via kid reward sensors
+- E2E verification via assignee reward sensors
 
 Testing approach:
 - Schema validation with literal field names (not constants)
-- E2E verification through dashboard helper and kid sensors
+- E2E verification through dashboard helper and assignee sensors
 - Both positive (accepts valid data) and negative (rejects invalid data) cases
 
 See tests/SERVICE_TESTING_PATTERNS.md for patterns used.
@@ -43,7 +43,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 8 chores, 3 rewards."""
+    """Load full scenario: 3 assignees, 2 approvers, 8 chores, 3 rewards."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -57,21 +57,21 @@ async def scenario_full(
 
 
 def find_reward_in_dashboard_helper(
-    hass: HomeAssistant, kid_slug: str, reward_name: str
+    hass: HomeAssistant, assignee_slug: str, reward_name: str
 ) -> dict[str, Any] | None:
-    """Find reward in kid's dashboard helper rewards list.
+    """Find reward in assignee's dashboard helper rewards list.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid slug (e.g., "zoe", "max", "lila")
+        assignee_slug: Assignee slug (e.g., "zoe", "max", "lila")
         reward_name: Reward name to search for
 
     Returns:
         Reward dict if found, None otherwise
     """
     helper_state = hass.states.get(
-        f"sensor.{kid_slug}_choreops_ui_dashboard_helper"
-    ) or hass.states.get(f"sensor.{kid_slug}_kidschores_ui_dashboard_helper")
+        f"sensor.{assignee_slug}_choreops_ui_dashboard_helper"
+    ) or hass.states.get(f"sensor.{assignee_slug}_choreops_ui_dashboard_helper")
 
     if helper_state is None:
         return None
@@ -85,14 +85,14 @@ def find_reward_in_dashboard_helper(
     return None
 
 
-def get_kid_reward_sensor_state(
-    hass: HomeAssistant, kid_slug: str, reward_name: str
+def get_assignee_reward_sensor_state(
+    hass: HomeAssistant, assignee_slug: str, reward_name: str
 ) -> Any:
-    """Get kid's reward sensor state by reward name.
+    """Get assignee's reward sensor state by reward name.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid slug (e.g., "zoe", "max", "lila")
+        assignee_slug: Assignee slug (e.g., "zoe", "max", "lila")
         reward_name: Reward name to construct entity ID
 
     Returns:
@@ -100,7 +100,7 @@ def get_kid_reward_sensor_state(
     """
     # Convert reward name to entity-safe format
     reward_slug = reward_name.lower().replace(" ", "_").replace("-", "_")
-    reward_eid = f"sensor.kc_{kid_slug}_reward_{reward_slug}"
+    reward_eid = f"sensor.kc_{assignee_slug}_reward_{reward_slug}"
 
     return hass.states.get(reward_eid)
 
@@ -235,7 +235,7 @@ class TestCreateRewardEndToEnd:
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test created reward appears in all kids' dashboard helpers.
+        """Test created reward appears in all assignees' dashboard helpers.
 
         E2E Pattern: Service call → Dashboard helper update → Verify
         """
@@ -260,18 +260,18 @@ class TestCreateRewardEndToEnd:
             # Wait for coordinator update
             await hass.async_block_till_done()
 
-        # Verify appears in dashboard helper for all kids
-        for kid_name, kid_slug in [
+        # Verify appears in dashboard helper for all assignees
+        for assignee_name, assignee_slug in [
             ("Zoë", "zoe"),
             ("Max!", "max"),
             ("Lila", "lila"),
         ]:
             reward = find_reward_in_dashboard_helper(
-                hass, kid_slug, "Dashboard Test Reward"
+                hass, assignee_slug, "Dashboard Test Reward"
             )
 
             assert reward is not None, (
-                f"Reward not found in {kid_slug}'s dashboard helper"
+                f"Reward not found in {assignee_slug}'s dashboard helper"
             )
             assert reward["cost"] == 150.0
             # Dashboard helper doesn't include description/icon
@@ -450,15 +450,15 @@ class TestUpdateRewardEndToEnd:
             # Wait for coordinator update
             await hass.async_block_till_done()
 
-        # Verify cost updated in all kids' dashboard helpers
-        for kid_slug in ["zoe", "max", "lila"]:
+        # Verify cost updated in all assignees' dashboard helpers
+        for assignee_slug in ["zoe", "max", "lila"]:
             reward = find_reward_in_dashboard_helper(
-                hass, kid_slug, "Extra Screen Time"
+                hass, assignee_slug, "Extra Screen Time"
             )
 
             assert reward is not None
             assert reward["cost"] == 999.0, (
-                f"Cost not updated in {kid_slug}'s dashboard helper"
+                f"Cost not updated in {assignee_slug}'s dashboard helper"
             )
 
     @pytest.mark.asyncio

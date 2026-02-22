@@ -3,7 +3,7 @@
 This module tests:
 - Safety mechanism (confirm_destructive required)
 - Global scope reset (all domains)
-- Per-kid scope reset (single kid)
+- Per-assignee scope reset (single assignee)
 - Item type filtering (single domain)
 - Validation errors (invalid inputs)
 
@@ -45,7 +45,7 @@ FIELD_ITEM_NAME = "item_name"
 
 # Scope values
 SCOPE_GLOBAL = "global"
-SCOPE_KID = "kid"
+SCOPE_ASSIGNEE = "assignee"
 
 # Item types
 ITEM_TYPE_POINTS = "points"
@@ -64,7 +64,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 19 chores, rewards."""
+    """Load full scenario: 3 assignees, 2 approvers, 19 chores, rewards."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -77,44 +77,44 @@ async def scenario_full(
 # ============================================================================
 
 
-def get_kid_points(result: SetupResult, kid_name: str) -> float:
-    """Get current points for a kid by name."""
-    for kid_data in result.coordinator.kids_data.values():
-        if kid_data.get("name") == kid_name:
-            return kid_data.get("points", 0)
+def get_assignee_points(result: SetupResult, assignee_name: str) -> float:
+    """Get current points for a assignee by name."""
+    for assignee_data in result.coordinator.assignees_data.values():
+        if assignee_data.get("name") == assignee_name:
+            return assignee_data.get("points", 0)
     return 0
 
 
-def get_kid_multiplier(result: SetupResult, kid_name: str) -> float:
-    """Get current points multiplier for a kid by name."""
-    for kid_data in result.coordinator.kids_data.values():
-        if kid_data.get("name") == kid_name:
-            return kid_data.get("points_multiplier", 1.0)
+def get_assignee_multiplier(result: SetupResult, assignee_name: str) -> float:
+    """Get current points multiplier for a assignee by name."""
+    for assignee_data in result.coordinator.assignees_data.values():
+        if assignee_data.get("name") == assignee_name:
+            return assignee_data.get("points_multiplier", 1.0)
     return 1.0
 
 
-def get_kid_chore_data(result: SetupResult, kid_name: str) -> dict[str, Any]:
-    """Get chore_data dict for a kid by name."""
-    for kid_data in result.coordinator.kids_data.values():
-        if kid_data.get("name") == kid_name:
-            return kid_data.get("chore_data", {})
+def get_assignee_chore_data(result: SetupResult, assignee_name: str) -> dict[str, Any]:
+    """Get chore_data dict for a assignee by name."""
+    for assignee_data in result.coordinator.assignees_data.values():
+        if assignee_data.get("name") == assignee_name:
+            return assignee_data.get("chore_data", {})
     return {}
 
 
-def get_kid_ledger(result: SetupResult, kid_name: str) -> list[Any]:
-    """Get ledger for a kid by name."""
-    for kid_data in result.coordinator.kids_data.values():
-        if kid_data.get("name") == kid_name:
-            return kid_data.get("ledger", [])
+def get_assignee_ledger(result: SetupResult, assignee_name: str) -> list[Any]:
+    """Get ledger for a assignee by name."""
+    for assignee_data in result.coordinator.assignees_data.values():
+        if assignee_data.get("name") == assignee_name:
+            return assignee_data.get("ledger", [])
     return []
 
 
-def set_kid_points(result: SetupResult, kid_name: str, points: float) -> None:
-    """Set points for a kid (for test setup)."""
-    for kid_data in result.coordinator.kids_data.values():
-        if kid_data.get("name") == kid_name:
-            kid_data["points"] = points
-            kid_data["ledger"] = [{"type": "test", "points": points}]
+def set_assignee_points(result: SetupResult, assignee_name: str, points: float) -> None:
+    """Set points for a assignee (for test setup)."""
+    for assignee_data in result.coordinator.assignees_data.values():
+        if assignee_data.get("name") == assignee_name:
+            assignee_data["points"] = points
+            assignee_data["ledger"] = [{"type": "test", "points": points}]
             return
 
 
@@ -170,15 +170,15 @@ class TestDataResetSafetyMechanism:
         scenario_full: SetupResult,
     ) -> None:
         """Test service succeeds when confirm_destructive is True."""
-        # Give a kid some points to verify reset works
-        set_kid_points(scenario_full, "Zoë", 100)
+        # Give a assignee some points to verify reset works
+        set_assignee_points(scenario_full, "Zoë", 100)
 
         # Mock _persist to avoid actual storage writes
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -194,7 +194,7 @@ class TestDataResetSafetyMechanism:
 
         # Service completed without error - that's the success condition
         # Points should be reset to 0
-        assert get_kid_points(scenario_full, "Zoë") == 0
+        assert get_assignee_points(scenario_full, "Zoë") == 0
 
 
 # ============================================================================
@@ -203,25 +203,25 @@ class TestDataResetSafetyMechanism:
 
 
 class TestDataResetGlobalScope:
-    """Test global scope resets all data for all kids."""
+    """Test global scope resets all data for all assignees."""
 
     @pytest.mark.asyncio
-    async def test_global_resets_all_kids_points(
+    async def test_global_resets_all_assignees_points(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test global scope resets points for all kids."""
-        # Setup: Give all kids different point balances
-        set_kid_points(scenario_full, "Zoë", 100)
-        set_kid_points(scenario_full, "Max!", 200)
-        set_kid_points(scenario_full, "Lila", 300)
+        """Test global scope resets points for all assignees."""
+        # Setup: Give all assignees different point balances
+        set_assignee_points(scenario_full, "Zoë", 100)
+        set_assignee_points(scenario_full, "Max!", 200)
+        set_assignee_points(scenario_full, "Lila", 300)
 
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -235,23 +235,23 @@ class TestDataResetGlobalScope:
                 blocking=True,
             )
 
-        # Verify all kids' points are reset to 0
-        assert get_kid_points(scenario_full, "Zoë") == 0
-        assert get_kid_points(scenario_full, "Max!") == 0
-        assert get_kid_points(scenario_full, "Lila") == 0
+        # Verify all assignees' points are reset to 0
+        assert get_assignee_points(scenario_full, "Zoë") == 0
+        assert get_assignee_points(scenario_full, "Max!") == 0
+        assert get_assignee_points(scenario_full, "Lila") == 0
 
     @pytest.mark.asyncio
-    async def test_global_resets_all_kids_multipliers(
+    async def test_global_resets_all_assignees_multipliers(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test global scope resets multipliers for all kids."""
+        """Test global scope resets multipliers for all assignees."""
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -265,27 +265,27 @@ class TestDataResetGlobalScope:
                 blocking=True,
             )
 
-        # Verify all kids' multipliers are reset to 1.0
-        assert get_kid_multiplier(scenario_full, "Zoë") == 1.0
-        assert get_kid_multiplier(scenario_full, "Max!") == 1.0
-        assert get_kid_multiplier(scenario_full, "Lila") == 1.0
+        # Verify all assignees' multipliers are reset to 1.0
+        assert get_assignee_multiplier(scenario_full, "Zoë") == 1.0
+        assert get_assignee_multiplier(scenario_full, "Max!") == 1.0
+        assert get_assignee_multiplier(scenario_full, "Lila") == 1.0
 
     @pytest.mark.asyncio
-    async def test_global_clears_all_kids_ledgers(
+    async def test_global_clears_all_assignees_ledgers(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test global scope clears ledgers for all kids."""
-        # Setup: Give kids ledger entries via points
-        set_kid_points(scenario_full, "Zoë", 50)
-        assert len(get_kid_ledger(scenario_full, "Zoë")) > 0
+        """Test global scope clears ledgers for all assignees."""
+        # Setup: Give assignees ledger entries via points
+        set_assignee_points(scenario_full, "Zoë", 50)
+        assert len(get_assignee_ledger(scenario_full, "Zoë")) > 0
 
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -300,7 +300,7 @@ class TestDataResetGlobalScope:
             )
 
         # Verify ledgers are cleared
-        assert get_kid_ledger(scenario_full, "Zoë") == []
+        assert get_assignee_ledger(scenario_full, "Zoë") == []
 
 
 # ============================================================================
@@ -308,26 +308,26 @@ class TestDataResetGlobalScope:
 # ============================================================================
 
 
-class TestDataResetKidScope:
-    """Test kid scope resets data only for target kid."""
+class TestDataResetAssigneeScope:
+    """Test assignee scope resets data only for target assignee."""
 
     @pytest.mark.asyncio
-    async def test_kid_scope_resets_only_target_kid(
+    async def test_assignee_scope_resets_only_target_assignee(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test kid scope resets only the specified kid, others untouched."""
-        # Setup: Give all kids different point balances
-        set_kid_points(scenario_full, "Zoë", 100)
-        set_kid_points(scenario_full, "Max!", 200)
-        set_kid_points(scenario_full, "Lila", 300)
+        """Test assignee scope resets only the specified assignee, others untouched."""
+        # Setup: Give all assignees different point balances
+        set_assignee_points(scenario_full, "Zoë", 100)
+        set_assignee_points(scenario_full, "Max!", 200)
+        set_assignee_points(scenario_full, "Lila", 300)
 
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -336,32 +336,32 @@ class TestDataResetKidScope:
                 SERVICE_RESET_TRANSACTIONAL_DATA,
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
-                    FIELD_SCOPE: SCOPE_KID,
+                    FIELD_SCOPE: SCOPE_ASSIGNEE,
                     FIELD_ASSIGNEE_NAME: "Zoë",
                 },
                 blocking=True,
             )
 
         # Verify only Zoë's points are reset
-        assert get_kid_points(scenario_full, "Zoë") == 0
-        # Other kids should be untouched
-        assert get_kid_points(scenario_full, "Max!") == 200
-        assert get_kid_points(scenario_full, "Lila") == 300
+        assert get_assignee_points(scenario_full, "Zoë") == 0
+        # Other assignees should be untouched
+        assert get_assignee_points(scenario_full, "Max!") == 200
+        assert get_assignee_points(scenario_full, "Lila") == 300
 
     @pytest.mark.asyncio
-    async def test_kid_scope_requires_assignee_name(
+    async def test_assignee_scope_requires_assignee_name(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test kid scope fails without assignee_name."""
+        """Test assignee scope fails without assignee_name."""
         with pytest.raises(HomeAssistantError):
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_RESET_TRANSACTIONAL_DATA,
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
-                    FIELD_SCOPE: SCOPE_KID,
+                    FIELD_SCOPE: SCOPE_ASSIGNEE,
                     # assignee_name missing!
                 },
                 blocking=True,
@@ -383,14 +383,14 @@ class TestDataResetItemTypeFilter:
         scenario_full: SetupResult,
     ) -> None:
         """Test item_type: points resets only economy data."""
-        # Setup: Give kid points
-        set_kid_points(scenario_full, "Zoë", 100)
+        # Setup: Give assignee points
+        set_assignee_points(scenario_full, "Zoë", 100)
 
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -405,7 +405,7 @@ class TestDataResetItemTypeFilter:
             )
 
         # Verify points are reset
-        assert get_kid_points(scenario_full, "Zoë") == 0
+        assert get_assignee_points(scenario_full, "Zoë") == 0
 
 
 # ============================================================================
@@ -465,8 +465,8 @@ class TestDataResetValidationErrors:
                 SERVICE_RESET_TRANSACTIONAL_DATA,
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
-                    FIELD_SCOPE: SCOPE_KID,
-                    FIELD_ASSIGNEE_NAME: "NonexistentKid",
+                    FIELD_SCOPE: SCOPE_ASSIGNEE,
+                    FIELD_ASSIGNEE_NAME: "NonexistentAssignee",
                 },
                 blocking=True,
             )
@@ -492,7 +492,7 @@ class TestDataResetBackupCreation:
         async def mock_create_backup(*args, **kwargs):
             nonlocal backup_created
             backup_created = True
-            return "kidschores_data_test_backup"
+            return "choreops_data_test_backup"
 
         with (
             patch(
@@ -502,7 +502,7 @@ class TestDataResetBackupCreation:
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=AsyncMock(),
             ),
         ):
@@ -533,7 +533,7 @@ class TestDataResetNotification:
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test notification is sent to parents after global reset."""
+        """Test notification is sent to approvers after global reset."""
         notification_sent = False
 
         async def mock_broadcast(*args, **kwargs):
@@ -544,7 +544,7 @@ class TestDataResetNotification:
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
             patch.object(
                 scenario_full.coordinator.notification_manager,
-                "broadcast_to_all_parents",
+                "broadcast_to_all_approvers",
                 new=mock_broadcast,
             ),
         ):

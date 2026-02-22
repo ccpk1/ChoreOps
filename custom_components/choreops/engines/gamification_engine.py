@@ -76,12 +76,12 @@ class GamificationEngine:
 
     Context Requirements:
     - today_stats: Pre-computed daily stats (points, chores, streaks)
-    - kid_info: Full kid data (for badge_progress lookups)
+    - assignee_info: Full assignee data (for badge_progress lookups)
     - all_chores: Chore definitions (for due date checking)
     - today_iso: Current date as ISO string
 
     Evaluation Flow:
-        1. Context is prepared by Manager with all needed kid/chore data
+        1. Context is prepared by Manager with all needed assignee/chore data
         2. Engine evaluates criteria using pure functions
         3. Engine returns results (criteria_met, progress, reasons)
         4. Manager handles side effects (awarding, notifications, storage)
@@ -303,12 +303,12 @@ class GamificationEngine:
         context: EvaluationContext,
         badge_data: dict[str, Any],
     ) -> EvaluationResult:
-        """Evaluate if kid meets badge criteria.
+        """Evaluate if assignee meets badge criteria.
 
         Pure function - no side effects, no database access.
 
         Args:
-            context: EvaluationContext with kid data, chore data, timestamps
+            context: EvaluationContext with assignee data, chore data, timestamps
             badge_data: Badge definition from storage
 
         Returns:
@@ -402,7 +402,7 @@ class GamificationEngine:
         context: EvaluationContext,
         achievement_data: dict[str, Any],
     ) -> EvaluationResult:
-        """Evaluate if kid has completed an achievement.
+        """Evaluate if assignee has completed an achievement.
 
         Achievement types:
         - STREAK: Consecutive days of specific action
@@ -410,7 +410,7 @@ class GamificationEngine:
         - DAILY_MIN: Minimum daily activity
 
         Args:
-            context: EvaluationContext with kid data
+            context: EvaluationContext with assignee data
             achievement_data: Achievement definition
 
         Returns:
@@ -425,13 +425,13 @@ class GamificationEngine:
             achievement_data.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 0.0)
         )
 
-        # Get kid's achievement tracking data from context
-        # This is per-kid progress keyed by kid_id within achievement_progress
-        kid_id: str = context.get("kid_id") or ""
+        # Get assignee achievement tracking data from context
+        # This is per-assignee progress keyed by assignee_id within achievement_progress
+        assignee_id: str = context.get("assignee_id") or ""
         achievement_progress: dict[str, Any] = context.get("achievement_progress") or {}
         tracking_raw = achievement_progress.get(achievement_id, {})
-        if isinstance(tracking_raw, dict) and kid_id in tracking_raw:
-            nested_tracking = tracking_raw.get(kid_id)
+        if isinstance(tracking_raw, dict) and assignee_id in tracking_raw:
+            nested_tracking = tracking_raw.get(assignee_id)
             if isinstance(nested_tracking, dict):
                 tracking = nested_tracking
             else:
@@ -484,7 +484,7 @@ class GamificationEngine:
         context: EvaluationContext,
         challenge_data: dict[str, Any],
     ) -> EvaluationResult:
-        """Evaluate if kid has completed a challenge.
+        """Evaluate if assignee has completed a challenge.
 
         Challenges are time-bound goals with start/end dates.
 
@@ -493,7 +493,7 @@ class GamificationEngine:
         - DAILY_MIN: Minimum daily activity within date range
 
         Args:
-            context: EvaluationContext with kid data
+            context: EvaluationContext with assignee data
             challenge_data: Challenge definition
 
         Returns:
@@ -534,13 +534,13 @@ class GamificationEngine:
                 reason="Challenge has ended",
             )
 
-        # Get kid's challenge tracking data from context
-        # challenge_progress in context contains per-challenge, per-kid progress
-        kid_id: str = context.get("kid_id") or ""
+        # Get assignee challenge tracking data from context
+        # challenge_progress in context contains per-challenge, per-assignee progress
+        assignee_id: str = context.get("assignee_id") or ""
         challenge_progress: dict[str, Any] = context.get("challenge_progress") or {}
         tracking_raw = challenge_progress.get(challenge_id, {})
-        if isinstance(tracking_raw, dict) and kid_id in tracking_raw:
-            nested_tracking = tracking_raw.get(kid_id)
+        if isinstance(tracking_raw, dict) and assignee_id in tracking_raw:
+            nested_tracking = tracking_raw.get(assignee_id)
             if isinstance(nested_tracking, dict):
                 tracking = nested_tracking
             else:
@@ -621,7 +621,7 @@ class GamificationEngine:
             achievement_progress = context.get("current_achievement_progress") or {}
             current_value = float(
                 cast("dict[str, Any]", achievement_progress).get(
-                    const.DATA_KID_CURRENT_STREAK,
+                    const.DATA_ASSIGNEE_CURRENT_STREAK,
                     0,
                 )
             )
@@ -631,7 +631,9 @@ class GamificationEngine:
             chore_periods_all_time = context.get("chore_periods_all_time") or {}
             baseline = float(canonical_target.get("baseline_value", 0.0))
             total_approved = float(
-                chore_periods_all_time.get(const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0)
+                chore_periods_all_time.get(
+                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                )
             )
             current_value = max(total_approved - baseline, 0.0)
             reason = f"Total: {current_value}/{threshold}"
@@ -652,7 +654,7 @@ class GamificationEngine:
             badge_entry = badges_earned.get(source_badge_id, {})
             current_value = float(
                 cast("dict[str, Any]", badge_entry).get(
-                    const.DATA_KID_BADGES_EARNED_AWARD_COUNT,
+                    const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT,
                     0,
                 )
             )
@@ -699,7 +701,7 @@ class GamificationEngine:
         # Use per-badge cycle count
         badge_progress = context.get("current_badge_progress") or {}
         cycle_count = badge_progress.get(
-            const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
         )
 
         # Get today's point progress from pre-computed stats in context
@@ -762,7 +764,7 @@ class GamificationEngine:
     ) -> CriterionResult:
         """Evaluate points-from-chores badge criterion (PERIODIC BADGES ONLY).
 
-        Checks if kid has earned enough points specifically from chores
+        Checks if assignee has earned enough points specifically from chores
         (excludes bonuses, penalties, manual adjustments, etc.).
 
         Args:
@@ -777,7 +779,7 @@ class GamificationEngine:
         # PERIODIC BADGES ONLY: Use per-badge cycle count
         badge_progress = context.get("current_badge_progress") or {}
         cycle_count = badge_progress.get(
-            const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
         )
 
         # Get chore-specific points from pre-computed stats
@@ -813,7 +815,7 @@ class GamificationEngine:
     ) -> CriterionResult:
         """Evaluate chore count badge criterion.
 
-        Checks if kid has completed enough total chores.
+        Checks if assignee has completed enough total chores.
 
         Args:
             context: EvaluationContext with current_badge_progress
@@ -827,7 +829,7 @@ class GamificationEngine:
         # Get cycle count from badge progress
         badge_progress = context.get("current_badge_progress") or {}
         cycle_count = badge_progress.get(
-            const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
         )
 
         # Get today's chore completion count from pre-computed stats
@@ -1230,10 +1232,10 @@ class GamificationEngine:
         """Resolve normalized daily state for day-count and streak evaluators."""
         badge_progress: Any = context.get("current_badge_progress") or {}
         cycle_count = int(
-            badge_progress.get(const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
+            badge_progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
         )
         last_update_day = str(
-            badge_progress.get(const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
+            badge_progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
         )
         today_iso = str(context.get("today_iso") or _today_iso())
         already_counted_today = last_update_day == today_iso
@@ -1314,7 +1316,7 @@ class GamificationEngine:
         # For total chore achievements, use approved from chore_periods.all_time
         if achievement_type == const.ACHIEVEMENT_TYPE_TOTAL:
             return chore_periods_all_time.get(
-                const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0
+                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
             )
 
         # For point achievements, use total_points_earned from context

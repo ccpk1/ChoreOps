@@ -1,4 +1,4 @@
-"""Test constants for KidsChores integration tests.
+"""Test constants for ChoreOps integration tests.
 
 This module re-exports all constants from the integration for use in tests.
 Import from here, not directly from custom_components.choreops.const.
@@ -18,9 +18,9 @@ allow any auto-formatter or linter to reorder them.
 QUICK REFERENCE
 =============================================================================
 
-CHORE STATUS SENSOR STATE VALUES (sensor.kc_<kid>_chore_status_<chore>):
+CHORE STATUS SENSOR STATE VALUES (sensor.kc_<assignee>_chore_status_<chore>):
     - CHORE_STATE_PENDING: Initial state, chore not yet claimed
-    - CHORE_STATE_CLAIMED: Kid has claimed, awaiting approval
+    - CHORE_STATE_CLAIMED: Assignee has claimed, awaiting approval
     - CHORE_STATE_APPROVED: Chore completed and approved
     - CHORE_STATE_OVERDUE: Past due date without completion
     - CHORE_STATE_CLAIMED_IN_PART: Partial claim (shared chores)
@@ -29,7 +29,7 @@ CHORE STATUS SENSOR STATE VALUES (sensor.kc_<kid>_chore_status_<chore>):
 
 GLOBAL STATE ATTRIBUTE (ATTR_GLOBAL_STATE on chore status sensor):
     The global_state attribute shows the aggregated chore state across all
-    assigned kids. See test_constants.py for full documentation.
+    assigned assignees. See test_constants.py for full documentation.
 
 =============================================================================
 """
@@ -77,7 +77,7 @@ from custom_components.choreops.const import (
     ATTR_DASHBOARD_BONUSES,
     ATTR_DASHBOARD_CHALLENGES,
     ATTR_DASHBOARD_CHORES,
-    ATTR_DASHBOARD_KID_NAME,
+    ATTR_DASHBOARD_ASSIGNEE_NAME,
     ATTR_DASHBOARD_PENALTIES,
     ATTR_DASHBOARD_PENDING_APPROVALS,
     ATTR_DASHBOARD_POINTS_BUTTONS,
@@ -120,8 +120,8 @@ from custom_components.choreops.const import (
     CONFIG_FLOW_STEP_DATA_RECOVERY,
     CONFIG_FLOW_STEP_FINISH,
     CONFIG_FLOW_STEP_INTRO,
-    CONFIG_FLOW_STEP_KID_COUNT,
-    CONFIG_FLOW_STEP_KIDS,
+    CONFIG_FLOW_STEP_ASSIGNEE_COUNT,
+    CONFIG_FLOW_STEP_ASSIGNEES,
     CONFIG_FLOW_STEP_USER_COUNT,
     CONFIG_FLOW_STEP_USERS,
     CONFIG_FLOW_STEP_PENALTY_COUNT,
@@ -131,26 +131,26 @@ from custom_components.choreops.const import (
     CONFIG_FLOW_STEP_REWARD_COUNT,
     CONFIG_FLOW_STEP_REWARDS,
     # =========================================================================
-    # CONFIG/OPTIONS FLOW FIELD NAMES - Kids
+    # CONFIG/OPTIONS FLOW FIELD NAMES - Assignees
     # =========================================================================
-    CFOF_KIDS_INPUT_KID_NAME,
-    CFOF_KIDS_INPUT_KID_COUNT,
-    CFOF_KIDS_INPUT_HA_USER,
-    CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE,
-    CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE,
+    CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+    CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT,
+    CFOF_ASSIGNEES_INPUT_HA_USER,
+    CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
+    CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
     # =========================================================================
-    # CONFIG/OPTIONS FLOW FIELD NAMES - Parents
+    # CONFIG/OPTIONS FLOW FIELD NAMES - Approvers
     # =========================================================================
-    CFOF_PARENTS_INPUT_NAME,
-    CFOF_PARENTS_INPUT_PARENT_COUNT,
-    CFOF_PARENTS_INPUT_HA_USER,
-    CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-    CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
-    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    CFOF_PARENTS_INPUT_CAN_APPROVE,
-    CFOF_PARENTS_INPUT_CAN_MANAGE,
-    CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
-    CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
+    CFOF_APPROVERS_INPUT_NAME,
+    CFOF_APPROVERS_INPUT_APPROVER_COUNT,
+    CFOF_APPROVERS_INPUT_HA_USER,
+    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+    CFOF_APPROVERS_INPUT_CAN_APPROVE,
+    CFOF_APPROVERS_INPUT_CAN_MANAGE,
+    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Chores
     # =========================================================================
@@ -159,7 +159,7 @@ from custom_components.choreops.const import (
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_ICON,
     CFOF_CHORES_INPUT_DESCRIPTION,
-    CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_APPLICABLE_DAYS,
@@ -174,7 +174,7 @@ from custom_components.choreops.const import (
     CFOF_CHORES_INPUT_NOTIFICATIONS,
     CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE,
     CFOF_CHORES_INPUT_SHOW_ON_CALENDAR,
-    # Per-kid helper template checkboxes (PKAD-2026-001)
+    # Per-assignee helper template checkboxes (PKAD-2026-001)
     CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL,
     CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL,
     CFOF_CHORES_INPUT_APPLY_TIMES_TO_ALL,
@@ -229,7 +229,7 @@ from custom_components.choreops.const import (
     CFOF_ACHIEVEMENTS_INPUT_TYPE,
     CFOF_ACHIEVEMENTS_INPUT_TARGET_VALUE,
     CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS,
-    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS,
+    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Challenges
     # =========================================================================
@@ -242,7 +242,7 @@ from custom_components.choreops.const import (
     CFOF_CHALLENGES_INPUT_REWARD_POINTS,
     CFOF_CHALLENGES_INPUT_START_DATE,
     CFOF_CHALLENGES_INPUT_END_DATE,
-    CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - System Settings
     # =========================================================================
@@ -269,8 +269,8 @@ from custom_components.choreops.const import (
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
     OPTIONS_FLOW_STEP_SELECT_ENTITY,
-    OPTIONS_FLOW_STEP_ADD_KID,
-    OPTIONS_FLOW_STEP_EDIT_KID,
+    OPTIONS_FLOW_STEP_ADD_ASSIGNEE,
+    OPTIONS_FLOW_STEP_EDIT_ASSIGNEE,
     OPTIONS_FLOW_STEP_ADD_USER,
     OPTIONS_FLOW_STEP_EDIT_USER,
     OPTIONS_FLOW_STEP_ADD_CHORE,
@@ -281,13 +281,13 @@ from custom_components.choreops.const import (
     OPTIONS_FLOW_STEP_ADD_ACHIEVEMENT,
     OPTIONS_FLOW_STEP_ADD_CHALLENGE,
     OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI,
-    # Per-kid helper step IDs (PKAD-2026-001)
-    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DATES,
-    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS,
+    # Per-assignee helper step IDs (PKAD-2026-001)
+    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DATES,
+    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS,
     OPTIONS_FLOW_STEP_EDIT_CHORE,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
-    OPTIONS_FLOW_KIDS,
+    OPTIONS_FLOW_ASSIGNEES,
     OPTIONS_FLOW_USERS,
     OPTIONS_FLOW_CHORES,
     OPTIONS_FLOW_REWARDS,
@@ -378,7 +378,7 @@ from custom_components.choreops.const import (
     DATA_CHORE_APPROVAL_PERIOD_START,
     DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_KIDS,
+    DATA_CHORE_ASSIGNED_ASSIGNEES,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_CUSTOM_INTERVAL,
     DATA_CHORE_CUSTOM_INTERVAL_UNIT,
@@ -391,11 +391,11 @@ from custom_components.choreops.const import (
     DATA_CHORE_LABELS,
     DATA_CHORE_NAME,
     DATA_CHORE_OVERDUE_HANDLING_TYPE,
-    DATA_CHORE_PER_KID_APPLICABLE_DAYS,
-    DATA_CHORE_PER_KID_DAILY_MULTI_TIMES,
-    DATA_CHORE_PER_KID_DUE_DATES,
+    DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS,
+    DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES,
+    DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_CHORE_RECURRING_FREQUENCY,
-    DATA_CHORE_ROTATION_CURRENT_KID_ID,  # v0.5.0
+    DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,  # v0.5.0
     DATA_CHORE_ROTATION_CYCLE_OVERRIDE,  # v0.5.0
     DATA_CHORE_SHOW_ON_CALENDAR,
     DATA_CHORE_STATE,
@@ -404,65 +404,65 @@ from custom_components.choreops.const import (
     # =========================================================================
     # DATA KEYS - KID FIELDS
     # =========================================================================
-    DATA_KID_BADGE_PROGRESS,
-    DATA_KID_BADGES_EARNED,
-    DATA_KID_CHORE_DATA,
-    DATA_KID_CUMULATIVE_BADGE_PROGRESS,
-    DATA_KID_DASHBOARD_LANGUAGE,
+    DATA_ASSIGNEE_BADGE_PROGRESS,
+    DATA_ASSIGNEE_BADGES_EARNED,
+    DATA_ASSIGNEE_CHORE_DATA,
+    DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS,
+    DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
     # =========================================================================
     # DATA KEYS - KID CHORE DATA
     # =========================================================================
-    DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START,
-    DATA_KID_CHORE_DATA_LAST_APPROVED,
-    DATA_KID_CHORE_DATA_LAST_CLAIMED,
-    DATA_KID_CHORE_DATA_LAST_DISAPPROVED,
-    DATA_KID_CHORE_DATA_LAST_MISSED,  # Phase 5: Missed tracking
-    DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT,
-    DATA_KID_CHORE_DATA_PERIODS,  # Phase 5: Period buckets structure
-    DATA_KID_CHORE_DATA_PERIODS_DAILY,  # Phase 5: Daily buckets
-    DATA_KID_CHORE_DATA_PERIODS_WEEKLY,  # Phase 5: Weekly buckets
-    DATA_KID_CHORE_DATA_PERIODS_MONTHLY,  # Phase 5: Monthly buckets
-    DATA_KID_CHORE_DATA_PERIODS_YEARLY,  # Phase 5: Yearly buckets
-    DATA_KID_CHORE_DATA_PERIOD_MISSED,  # Phase 5: Missed count key
-    DATA_KID_CHORE_DATA_STATE,
-    DATA_KID_CHORE_DATA_TOTAL_COUNT,
-    DATA_KID_CHORE_DATA_TOTAL_POINTS,
-    DATA_KID_CHORE_PERIODS,  # v43+ aggregated chore periods
-    DATA_KID_CHORE_DATA_PERIODS_ALL_TIME,  # v43+ all_time bucket key
-    DATA_KID_CHORE_DATA_PERIOD_APPROVED,  # v43+ approved count key
-    DATA_KID_CHORE_DATA_PERIOD_POINTS,  # v43+ points key
-    DATA_KID_CHORE_STATS_LEGACY,  # v43+ moved to LEGACY, use DATA_KID_CHORE_PERIODS
+    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED,
+    DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED,
+    DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED,
+    DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED,  # Phase 5: Missed tracking
+    DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT,
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS,  # Phase 5: Period buckets structure
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,  # Phase 5: Daily buckets
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY,  # Phase 5: Weekly buckets
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY,  # Phase 5: Monthly buckets
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY,  # Phase 5: Yearly buckets
+    DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED,  # Phase 5: Missed count key
+    DATA_ASSIGNEE_CHORE_DATA_STATE,
+    DATA_ASSIGNEE_CHORE_DATA_TOTAL_COUNT,
+    DATA_ASSIGNEE_CHORE_DATA_TOTAL_POINTS,
+    DATA_ASSIGNEE_CHORE_PERIODS,  # v43+ aggregated chore periods
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME,  # v43+ all_time bucket key
+    DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED,  # v43+ approved count key
+    DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS,  # v43+ points key
+    DATA_ASSIGNEE_CHORE_STATS_LEGACY,  # v43+ moved to LEGACY, use DATA_ASSIGNEE_CHORE_PERIODS
     # Phase 2: DATA_KID_COMPLETED_BY_OTHER_CHORES removed (was line 419)
-    DATA_KID_HA_USER_ID,
-    DATA_KID_INTERNAL_ID,
-    DATA_KID_IS_SHADOW,
-    DATA_KID_LINKED_PARENT_ID,
-    DATA_KID_NAME,
+    DATA_ASSIGNEE_HA_USER_ID,
+    DATA_ASSIGNEE_INTERNAL_ID,
+    DATA_ASSIGNEE_IS_SHADOW,
+    DATA_ASSIGNEE_LINKED_APPROVER_ID,
+    DATA_ASSIGNEE_NAME,
     # DATA_KID_OVERDUE_CHORES removed - dead code, see DATA_KID_OVERDUE_CHORES_LEGACY
-    DATA_KID_POINT_PERIODS,  # v43+ flat structure
-    DATA_KID_POINT_DATA_LEGACY,  # LEGACY v42 - for migration tests only
-    DATA_KID_POINT_PERIOD_HIGHEST_BALANCE,  # v43+ renamed
-    DATA_KID_POINT_PERIOD_POINTS_EARNED,  # v43+ renamed
-    DATA_KID_POINT_PERIOD_POINTS_SPENT,  # v43+ renamed
-    DATA_KID_POINT_DATA_PERIODS_LEGACY,  # LEGACY v42 - for migration tests only
-    DATA_KID_POINT_PERIODS_ALL_TIME,  # v43+ renamed
-    DATA_KID_POINT_STATS_LEGACY,
-    DATA_KID_POINTS,
-    DATA_KID_REWARD_DATA,
-    DATA_KID_REWARD_DATA_PENDING_COUNT,
-    DATA_KIDS,
+    DATA_ASSIGNEE_POINT_PERIODS,  # v43+ flat structure
+    DATA_ASSIGNEE_POINT_DATA_LEGACY,  # LEGACY v42 - for migration tests only
+    DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE,  # v43+ renamed
+    DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,  # v43+ renamed
+    DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT,  # v43+ renamed
+    DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY,  # LEGACY v42 - for migration tests only
+    DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME,  # v43+ renamed
+    DATA_ASSIGNEE_POINT_STATS_LEGACY,
+    DATA_ASSIGNEE_POINTS,
+    DATA_ASSIGNEE_REWARD_DATA,
+    DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT,
+    DATA_ASSIGNEES,
     # =========================================================================
-    # DATA KEYS - PARENT FIELDS (Shadow Kid Support)
+    # DATA KEYS - PARENT FIELDS (Shadow Assignee Support)
     # =========================================================================
-    DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
-    DATA_PARENT_DASHBOARD_LANGUAGE,
-    DATA_PARENT_ENABLE_CHORE_WORKFLOW,
-    DATA_PARENT_ENABLE_GAMIFICATION,
-    DATA_PARENT_MOBILE_NOTIFY_SERVICE,
-    DATA_PARENT_HA_USER_ID,
-    DATA_PARENT_LINKED_PROFILE_ID,
-    DATA_PARENT_NAME,
-    DATA_PARENTS,
+    DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+    DATA_APPROVER_DASHBOARD_LANGUAGE,
+    DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
+    DATA_APPROVER_ENABLE_GAMIFICATION,
+    DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
+    DATA_APPROVER_HA_USER_ID,
+    DATA_APPROVER_LINKED_PROFILE_ID,
+    DATA_APPROVER_NAME,
+    DATA_APPROVERS,
     DATA_PENALTIES,
     # =========================================================================
     # DATA KEYS - REWARD FIELDS
@@ -534,7 +534,7 @@ from custom_components.choreops.const import (
     # NOTIFICATION DATA KEYS
     # =========================================================================
     DATA_CHORE_ID,
-    DATA_KID_ID,
+    DATA_ASSIGNEE_ID,
     DATA_REWARD_ID,
     NOTIFY_ACTION,
     NOTIFY_NOTIFICATION_ID,
@@ -547,7 +547,7 @@ from custom_components.choreops.const import (
     SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER,
     SENSOR_KC_PREFIX,
     SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR,
-    SENSOR_KC_UID_SUFFIX_KID_POINTS_SENSOR,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR,
     # =========================================================================
     # TRANSLATION KEYS (for error assertions)
     # =========================================================================
@@ -570,10 +570,8 @@ from custom_components.choreops.const import (
     # SERVICE FIELD NAMES (for service call payloads)
     # =========================================================================
     SERVICE_FIELD_ASSIGNEE_NAME,
+    SERVICE_FIELD_ASSIGNEE_ID,
     SERVICE_FIELD_APPROVER_NAME,
-    SERVICE_FIELD_KID_NAME,
-    SERVICE_FIELD_KID_ID,
-    SERVICE_FIELD_PARENT_NAME,
     SERVICE_FIELD_REWARD_ID,
     SERVICE_FIELD_REWARD_NAME,
     SERVICE_FIELD_REWARD_COST_OVERRIDE,
@@ -596,12 +594,12 @@ from custom_components.choreops.const import (
 )
 
 
-def construct_entity_id(platform: str, kid_name: str, suffix: str) -> str:
-    """Construct entity ID for a kid's entity.
+def construct_entity_id(platform: str, assignee_name: str, suffix: str) -> str:
+    """Construct entity ID for a assignee's entity.
 
     Args:
         platform: Entity platform ("sensor", "button", etc.)
-        kid_name: Kid's display name
+        assignee_name: Assignee's display name
         suffix: Entity suffix constant
 
     Returns:
@@ -613,8 +611,8 @@ def construct_entity_id(platform: str, kid_name: str, suffix: str) -> str:
     """
     from homeassistant.util import slugify
 
-    kid_slug = slugify(kid_name)
-    return f"{platform}.{kid_slug}_choreops{suffix}"
+    assignee_slug = slugify(assignee_name)
+    return f"{platform}.{assignee_slug}_choreops{suffix}"
 
 
 # =============================================================================

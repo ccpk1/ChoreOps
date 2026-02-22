@@ -8,7 +8,7 @@ import pytest
 import voluptuous_serialize
 
 from custom_components.choreops import const
-from custom_components.choreops.helpers.flow_helpers import build_parent_schema
+from custom_components.choreops.helpers.flow_helpers import build_user_schema
 
 
 class TestOptionalSelectFieldValidation:
@@ -23,25 +23,25 @@ class TestOptionalSelectFieldValidation:
         return [user1]
 
     @pytest.fixture
-    def kids_dict(self):
-        """Sample kids dictionary."""
-        return {"TestKid": "kid_internal_id_abc"}
+    def assignees_dict(self):
+        """Sample assignees dictionary."""
+        return {"TestAssignee": "assignee_internal_id_abc"}
 
     async def test_schema_serialization(
         self,
         hass: HomeAssistant,
         mock_users,
-        kids_dict,
+        assignees_dict,
     ):
         """Test that the schema can be serialized by HA for the frontend."""
         with patch(
             "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
-            schema = await build_parent_schema(
+            schema = await build_user_schema(
                 hass=hass,
                 users=mock_users,
-                kids_dict=kids_dict,
+                assignees_dict=assignees_dict,
             )
 
         # This is what HA does to send schema to frontend
@@ -69,42 +69,42 @@ class TestOptionalSelectFieldValidation:
             ("__MISSING__", True, "Key not in input at all"),
         ],
     )
-    async def test_parent_schema_ha_user_validation(
+    async def test_approver_schema_ha_user_validation(
         self,
         hass: HomeAssistant,
         mock_users,
-        kids_dict,
+        assignees_dict,
         ha_user_value,
         should_pass,
         description,
     ):
-        """Test that parent schema validates different HA user values correctly."""
+        """Test that approver schema validates different HA user values correctly."""
         # Build the schema
         with patch(
             "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
-            schema = await build_parent_schema(
+            schema = await build_user_schema(
                 hass=hass,
                 users=mock_users,
-                kids_dict=kids_dict,
+                assignees_dict=assignees_dict,
             )
 
         # Build test input
         test_input = {
-            const.CFOF_PARENTS_INPUT_NAME: "Test Parent",
+            const.CFOF_APPROVERS_INPUT_NAME: "Test Approver",
         }
 
         # Add HA user field unless testing missing key
         if ha_user_value != "__MISSING__":
-            test_input[const.CFOF_PARENTS_INPUT_HA_USER] = ha_user_value
+            test_input[const.CFOF_APPROVERS_INPUT_HA_USER] = ha_user_value
 
         # Try to validate
         try:
             validated = schema(test_input)
             passed = True
             # Verify the validated result exists (don't need the value)
-            _ = validated.get(const.CFOF_PARENTS_INPUT_HA_USER)
+            _ = validated.get(const.CFOF_APPROVERS_INPUT_HA_USER)
         except Exception:
             passed = False
 
@@ -116,7 +116,7 @@ class TestOptionalSelectFieldValidation:
         self,
         hass: HomeAssistant,
         mock_users,
-        kids_dict,
+        assignees_dict,
     ):
         """Test that SENTINEL_NO_SELECTION ('__none__') is accepted for None selection.
 
@@ -127,10 +127,10 @@ class TestOptionalSelectFieldValidation:
             "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
             return_value=["en"],
         ):
-            schema = await build_parent_schema(
+            schema = await build_user_schema(
                 hass=hass,
                 users=mock_users,
-                kids_dict=kids_dict,
+                assignees_dict=assignees_dict,
             )
 
         # Test various possible values HA might send
@@ -145,13 +145,13 @@ class TestOptionalSelectFieldValidation:
         results = {}
         for name, value in test_cases:
             test_input = {
-                const.CFOF_PARENTS_INPUT_NAME: "Test Parent",
-                const.CFOF_PARENTS_INPUT_HA_USER: value,
+                const.CFOF_APPROVERS_INPUT_NAME: "Test Approver",
+                const.CFOF_APPROVERS_INPUT_HA_USER: value,
             }
             try:
                 validated = schema(test_input)
                 results[name] = (
-                    f"PASS: {validated.get(const.CFOF_PARENTS_INPUT_HA_USER)!r}"
+                    f"PASS: {validated.get(const.CFOF_APPROVERS_INPUT_HA_USER)!r}"
                 )
             except Exception as e:
                 results[name] = f"FAIL: {e}"

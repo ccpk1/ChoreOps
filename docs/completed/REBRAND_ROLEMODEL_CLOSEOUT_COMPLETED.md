@@ -16,6 +16,19 @@ All remaining implementation work is tracked in:
 
 This file remains as historical decision and policy context only.
 
+## Historical reference-only checklist freeze
+
+- All phase tables, progress percentages, and checklist-style items below are frozen historical snapshots.
+- No unchecked item in this file is actionable execution work.
+- Authoritative execution ownership is exclusively in `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`.
+- Keep decision and policy evidence intact for audit traceability only.
+
+## Transfer acknowledgment
+
+- Transfer locked date: `2026-02-22`
+- PM initials/date: `____ / ____`
+- Builder lead initials/date: `____ / ____`
+
 ## Purpose
 
 Unify conflicting status signals across active plans and define one methodical finish path for:

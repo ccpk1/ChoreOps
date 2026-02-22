@@ -1,5 +1,5 @@
 # File: __init__.py
-"""Initialization file for the KidsChores integration.
+"""Initialization file for the ChoreOps integration.
 
 Handles setting up the integration, including loading configuration entries,
 initializing data storage, and preparing the coordinator for data handling.
@@ -19,24 +19,24 @@ from typing import TYPE_CHECKING
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 
 from . import const
-from .coordinator import KidsChoresConfigEntry, KidsChoresDataCoordinator
+from .coordinator import ChoreOpsConfigEntry, ChoreOpsDataCoordinator
 from .helpers import backup_helpers as bh
 from .notification_action_handler import async_handle_notification_action
 from .services import async_setup_services, async_unload_services
-from .store import KidsChoresStore
+from .store import ChoreOpsStore
 
 if TYPE_CHECKING:
     from homeassistant.core import Event, HomeAssistant
 
 
-async def _update_all_kid_device_names(
-    hass: HomeAssistant, entry: KidsChoresConfigEntry
+async def _update_all_assignee_device_names(
+    hass: HomeAssistant, entry: ChoreOpsConfigEntry
 ) -> None:
-    """Update all kid device names when config entry title changes.
+    """Update all assignee device names when config entry title changes.
 
-    When the integration name (config entry title) changes, all kid device
+    When the integration name (config entry title) changes, all assignee device
     names need to be updated since they include the title in the format:
-    "{kid_name} ({entry.title})".
+    "{assignee_name} ({entry.title})".
 
     Args:
         hass: Home Assistant instance
@@ -57,51 +57,53 @@ async def _update_all_kid_device_names(
     device_registry = dr.async_get(hass)
     updated_count = 0
 
-    # Update device name for each kid
-    for kid_id, kid_data in coordinator.kids_data.items():
-        kid_name = kid_data.get(const.DATA_KID_NAME, "Unknown")
-        device = device_registry.async_get_device(identifiers={(const.DOMAIN, kid_id)})
+    # Update device name for each assignee
+    for assignee_id, assignee_data in coordinator.assignees_data.items():
+        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        device = device_registry.async_get_device(
+            identifiers={(const.DOMAIN, assignee_id)}
+        )
 
         if device:
-            new_device_name = f"{kid_name} ({entry.title})"
+            new_device_name = f"{assignee_name} ({entry.title})"
             # Only update if name actually changed
             if device.name != new_device_name:
                 device_registry.async_update_device(device.id, name=new_device_name)
                 const.LOGGER.debug(
-                    "Updated device name for kid '%s' (ID: %s) to '%s'",
-                    kid_name,
-                    kid_id,
+                    "Updated device name for assignee '%s' (ID: %s) to '%s'",
+                    assignee_name,
+                    assignee_id,
                     new_device_name,
                 )
                 updated_count += 1
 
     if updated_count > 0:
         const.LOGGER.info(
-            "Updated %d kid device names for new integration title: %s",
+            "Updated %d assignee device names for new integration title: %s",
             updated_count,
             entry.title,
         )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> bool:
     """Set up the integration from a config entry."""
-    const.LOGGER.info("INFO: Starting setup for KidsChores entry: %s", entry.entry_id)
+    const.LOGGER.info("INFO: Starting setup for ChoreOps entry: %s", entry.entry_id)
 
     # Set the home assistant configured timezone for date/time operations
     # Must be done early before any components that use datetime helpers
     const.set_default_timezone(hass)
 
     # Initialize the storage manager to handle persistent data.
-    store = KidsChoresStore(hass, const.STORAGE_KEY)
+    store = ChoreOpsStore(hass, const.STORAGE_KEY)
     # Initialize new file.
     await store.async_initialize()
 
     # DEBUG: Check what was loaded from storage
     loaded_data = store.data
     const.LOGGER.debug(
-        "DEBUG: __init__ after storage load: %d users, %d kids, %d chores, %d badges",
+        "DEBUG: __init__ after storage load: %d users, %d assignees, %d chores, %d badges",
         len(loaded_data.get(const.DATA_USERS, {})),
-        len(loaded_data.get(const.DATA_KIDS, {})),
+        len(loaded_data.get(const.DATA_ASSIGNEES, {})),
         len(loaded_data.get(const.DATA_CHORES, {})),
         len(loaded_data.get(const.DATA_BADGES, {})),
     )
@@ -128,7 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -
         async_migrate_uid_suffixes_v0_5_0(hass, entry)
 
     # PHASE 4: Create coordinator with access to current config
-    temp_coordinator = KidsChoresDataCoordinator(hass, entry, store)
+    temp_coordinator = ChoreOpsDataCoordinator(hass, entry, store)
     await temp_coordinator.async_config_entry_first_refresh()
 
     # Create safety backup only on true first startup (not on reloads)
@@ -231,7 +233,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -
     try:
         from .helpers import dashboard_builder as dbuilder
 
-        dedupe_removed = await dbuilder.async_dedupe_kidschores_dashboards(hass)
+        dedupe_removed = await dbuilder.async_dedupe_choreops_dashboards(hass)
         removed_total = sum(dedupe_removed.values())
         if removed_total > 0:
             const.LOGGER.info(
@@ -261,7 +263,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -
             const.LOGGER.info("Fresh startup: removed %d conditional entities", removed)
 
     # Data-driven orphan removal (always runs - handles deleted/changed data)
-    # SystemManager runs all orphan checks: kid-chore, shared, badges,
+    # SystemManager runs all orphan checks: assignee-chore, shared, badges,
     # achievements, challenges, manual adjustment buttons
     await coordinator.system_manager.run_startup_safety_net()
 
@@ -278,13 +280,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -
         hass.bus.async_listen(const.NOTIFICATION_EVENT, handle_notification_event)
     )
 
-    const.LOGGER.info("INFO: KidsChores setup complete for entry: %s", entry.entry_id)
+    const.LOGGER.info("INFO: ChoreOps setup complete for entry: %s", entry.entry_id)
     return True
 
 
-async def async_update_options(
-    hass: HomeAssistant, entry: KidsChoresConfigEntry
-) -> None:
+async def async_update_options(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> None:
     """Handle options update (e.g., integration name change, feature flags).
 
     This is called when the config entry is updated, including when the user
@@ -330,16 +330,16 @@ async def async_update_options(
     # Run full orphan cleanup as safety net (catches data-driven orphans too)
     await coordinator.system_manager.run_startup_safety_net()
 
-    # Update all kid device names in case title changed
-    await _update_all_kid_device_names(hass, entry)
+    # Update all assignee device names in case title changed
+    await _update_all_assignee_device_names(hass, entry)
 
     # Reload the config entry to apply changes
     await hass.config_entries.async_reload(entry.entry_id)
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> bool:
     """Unload a config entry."""
-    const.LOGGER.info("INFO: Unloading KidsChores entry: %s", entry.entry_id)
+    const.LOGGER.info("INFO: Unloading ChoreOps entry: %s", entry.entry_id)
 
     # Force immediate save of any pending changes before unload
     # Access coordinator from runtime_data (modern HA pattern)
@@ -364,7 +364,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) 
     return unload_ok
 
 
-async def async_remove_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) -> None:
+async def async_remove_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> None:
     """Handle removal of a config entry.
 
     Creates a backup before deletion to allow data recovery if integration
@@ -375,7 +375,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) 
         entry: Config entry being removed
 
     """
-    const.LOGGER.info("INFO: Removing KidsChores entry: %s", entry.entry_id)
+    const.LOGGER.info("INFO: Removing ChoreOps entry: %s", entry.entry_id)
 
     # Access store via coordinator.store (modern HA pattern)
     # runtime_data may not exist if setup failed or entry was never loaded
@@ -405,9 +405,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: KidsChoresConfigEntry) 
 
         # Delete active storage file
         await store.async_delete_storage()
-        const.LOGGER.info(
-            "KidsChores storage file deleted for entry: %s", entry.entry_id
-        )
+        const.LOGGER.info("ChoreOps storage file deleted for entry: %s", entry.entry_id)
     else:
         const.LOGGER.info(
             "No storage data found for entry %s - nothing to remove", entry.entry_id

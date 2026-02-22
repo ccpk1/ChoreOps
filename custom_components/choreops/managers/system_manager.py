@@ -1,5 +1,5 @@
 # File: managers/system_manager.py
-"""System Manager for KidsChores integration.
+"""System Manager for ChoreOps integration.
 
 The "Janitor" - handles entity registry cleanup via reactive signals.
 
@@ -12,12 +12,12 @@ Entity Cleanup Strategy:
 1. TARGETED (Domain Managers): When ChoreManager.delete_chore() runs, it calls
    entity_helpers.remove_entities_by_item_id() directly for that specific chore.
 2. REACTIVE (SystemManager): Listens to *_DELETED signals for cross-domain cleanup
-   (e.g., when a kid is deleted, scrub any remaining kid-related entities).
+   (e.g., when a assignee is deleted, scrub any remaining assignee-related entities).
 3. SAFETY NET (Startup): Runs remove_all_orphaned_entities() once to catch any
    orphans from crashes, incomplete deletes, or edge cases.
 
 Signals Consumed:
-- SIGNAL_SUFFIX_KID_DELETED: Scrub kid entities from registry
+- SIGNAL_SUFFIX_KID_DELETED: Scrub assignee entities from registry
 - SIGNAL_SUFFIX_CHORE_DELETED: Scrub chore entities from registry
 - SIGNAL_SUFFIX_REWARD_DELETED: Scrub reward entities from registry
 - SIGNAL_SUFFIX_BADGE_DELETED: Scrub badge entities from registry
@@ -38,10 +38,10 @@ from .. import const
 from ..helpers import backup_helpers as bh
 from ..helpers.entity_helpers import (
     get_item_id_or_raise,
-    is_shadow_kid,
+    is_shadow_assignee,
     parse_entity_reference,
     remove_entities_by_item_id,
-    remove_orphaned_kid_chore_entities,
+    remove_orphaned_assignee_chore_entities,
     remove_orphaned_manual_adjustment_buttons,
     remove_orphaned_progress_entities,
     remove_orphaned_shared_chore_sensors,
@@ -56,7 +56,7 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 class SystemManager(BaseManager):
@@ -74,13 +74,13 @@ class SystemManager(BaseManager):
     def __init__(
         self,
         hass: HomeAssistant,
-        coordinator: KidsChoresDataCoordinator,
+        coordinator: ChoreOpsDataCoordinator,
     ) -> None:
         """Initialize system manager.
 
         Args:
             hass: Home Assistant instance
-            coordinator: Parent coordinator
+            coordinator: Approver coordinator
         """
         super().__init__(hass, coordinator)
 
@@ -106,7 +106,7 @@ class SystemManager(BaseManager):
         )
 
         # 2. Signal Listener: Subscribe to lifecycle DELETED signals
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._handle_kid_deleted)
+        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._handle_assignee_deleted)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DELETED, self._handle_chore_deleted)
         self.listen(const.SIGNAL_SUFFIX_REWARD_DELETED, self._handle_reward_deleted)
         self.listen(const.SIGNAL_SUFFIX_BADGE_DELETED, self._handle_badge_deleted)
@@ -229,13 +229,13 @@ class SystemManager(BaseManager):
 
         schema45_summary = await async_apply_schema45_user_contract(self.coordinator)
         const.LOGGER.info(
-            "SystemManager: Schema45 migration summary users=%d linked_merges=%d standalone_parents=%d collisions=%d remap_total=%d remap_added=%d",
+            "SystemManager: Schema45 migration summary users=%d linked_merges=%d standalone_approvers=%d collisions=%d remap_total=%d remap_added=%d",
             schema45_summary["users_migrated"],
-            schema45_summary["linked_parent_merges"],
-            schema45_summary["standalone_parent_creations"],
-            schema45_summary["parent_id_collisions"],
-            schema45_summary["parent_id_remap_entries_total"],
-            schema45_summary["parent_id_remap_entries_added"],
+            schema45_summary["linked_approver_merges"],
+            schema45_summary["standalone_approver_creations"],
+            schema45_summary["approver_id_collisions"],
+            schema45_summary["approver_id_remap_entries_total"],
+            schema45_summary["approver_id_remap_entries_added"],
         )
 
         # 2. Startup Safety Net (Registry validation)
@@ -269,35 +269,35 @@ class SystemManager(BaseManager):
     # =========================================================================
 
     @callback
-    def _handle_kid_deleted(self, payload: dict[str, Any]) -> None:
-        """Handle KID_DELETED signal - scrub registry for kid entities.
+    def _handle_assignee_deleted(self, payload: dict[str, Any]) -> None:
+        """Handle KID_DELETED signal - scrub registry for assignee entities.
 
-        Called AFTER the kid has been deleted from storage and _persist() called.
-        The payload contains the kid_id needed for registry scrubbing.
+        Called AFTER the assignee has been deleted from storage and _persist() called.
+        The payload contains the assignee_id needed for registry scrubbing.
 
         Note: Must use @callback decorator to ensure this runs in the event loop
         thread, as entity registry operations require event loop context.
 
         Args:
-            payload: Signal payload with kid_id, kid_name, was_shadow
+            payload: Signal payload with assignee_id, assignee_name, was_shadow
         """
-        kid_id = payload.get("kid_id")
-        if not kid_id:
-            const.LOGGER.warning("KID_DELETED signal missing kid_id in payload")
+        assignee_id = payload.get("assignee_id")
+        if not assignee_id:
+            const.LOGGER.warning("KID_DELETED signal missing assignee_id in payload")
             return
 
         # Domain Managers already do targeted cleanup - this is for any stragglers
         removed = remove_entities_by_item_id(
             self.hass,
             self.coordinator.config_entry.entry_id,
-            kid_id,
+            assignee_id,
         )
 
         if removed > 0:
             const.LOGGER.debug(
-                "SystemManager cleaned up %d remaining entities for deleted kid %s",
+                "SystemManager cleaned up %d remaining entities for deleted assignee %s",
                 removed,
-                kid_id,
+                assignee_id,
             )
 
     @callback
@@ -413,11 +413,11 @@ class SystemManager(BaseManager):
         total_removed = 0
         entry_id = self.coordinator.config_entry.entry_id
 
-        # Kid-chore assignment orphans
-        total_removed += await remove_orphaned_kid_chore_entities(
+        # Assignee-chore assignment orphans
+        total_removed += await remove_orphaned_assignee_chore_entities(
             self.hass,
             entry_id,
-            self.coordinator.kids_data,
+            self.coordinator.assignees_data,
             self.coordinator.chores_data,
         )
 
@@ -433,7 +433,7 @@ class SystemManager(BaseManager):
             self.coordinator.badges_data,
             entity_type="badge",
             progress_suffix=const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR,
-            assigned_kids_key=const.DATA_BADGE_ASSIGNED_TO,
+            assigned_assignees_key=const.DATA_BADGE_ASSIGNED_TO,
         )
 
         # Achievement progress orphans
@@ -443,7 +443,7 @@ class SystemManager(BaseManager):
             self.coordinator.achievements_data,
             entity_type="achievement",
             progress_suffix=const.DATA_ACHIEVEMENT_PROGRESS_SUFFIX,
-            assigned_kids_key=const.DATA_ACHIEVEMENT_ASSIGNED_KIDS,
+            assigned_assignees_key=const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
         )
 
         # Challenge progress orphans
@@ -453,7 +453,7 @@ class SystemManager(BaseManager):
             self.coordinator.challenges_data,
             entity_type="challenge",
             progress_suffix=const.DATA_CHALLENGE_PROGRESS_SUFFIX,
-            assigned_kids_key=const.DATA_CHALLENGE_ASSIGNED_KIDS,
+            assigned_assignees_key=const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
         )
 
         # Manual adjustment button orphans
@@ -480,7 +480,7 @@ class SystemManager(BaseManager):
     async def remove_conditional_entities(
         self,
         *,
-        kid_ids: list[str] | None = None,
+        assignee_ids: list[str] | None = None,
     ) -> int:
         """Remove entities no longer allowed by feature flags.
 
@@ -489,23 +489,23 @@ class SystemManager(BaseManager):
 
         This consolidates:
         - Extra entity cleanup (show_legacy_entities flag)
-        - Shadow kid workflow entity cleanup
-        - Shadow kid gamification entity cleanup
+        - Shadow assignee workflow entity cleanup
+        - Shadow assignee gamification entity cleanup
 
         Args:
-            kid_ids: List of kid IDs to check, or None for all kids.
-                     Use targeted kid_ids when a specific kid's flags change.
+            assignee_ids: List of assignee IDs to check, or None for all assignees.
+                     Use targeted assignee_ids when a specific assignee's flags change.
                      Use None for bulk cleanup (fresh startup, post-migration).
 
         Returns:
             Count of removed entities.
 
         Call patterns:
-            - Options flow (extra flag changes): kid_ids=None (affects all)
-            - Options flow (parent flags change): kid_ids=[shadow_kid_id]
-            - Unlink service: kid_ids=[shadow_kid_id]
-            - Fresh HA startup (not reload): kid_ids=None
-            - Post-migration: kid_ids=None
+            - Options flow (extra flag changes): assignee_ids=None (affects all)
+            - Options flow (approver flags change): assignee_ids=[shadow_assignee_id]
+            - Unlink service: assignee_ids=[shadow_assignee_id]
+            - Fresh HA startup (not reload): assignee_ids=None
+            - Post-migration: assignee_ids=None
         """
         perf_start = time.perf_counter()
         ent_reg = er.async_get(self.hass)
@@ -517,8 +517,8 @@ class SystemManager(BaseManager):
             const.CONF_SHOW_LEGACY_ENTITIES, False
         )
 
-        # Build kid filter set (None = check all)
-        target_kids = set(kid_ids) if kid_ids else None
+        # Build assignee filter set (None = check all)
+        target_assignees = set(assignee_ids) if assignee_ids else None
 
         # Get only entities from THIS config entry (not all system entities)
         entities = er.async_entries_for_config_entry(
@@ -530,34 +530,36 @@ class SystemManager(BaseManager):
             if not unique_id.startswith(prefix):
                 continue
 
-            # Extract kid_id from unique_id using helper
+            # Extract assignee_id from unique_id using helper
             parts = parse_entity_reference(unique_id, prefix)
             if not parts:
                 continue
-            kid_id = parts[0]
+            assignee_id = parts[0]
 
             # Skip if not in target list (when targeted)
-            if target_kids and kid_id not in target_kids:
+            if target_assignees and assignee_id not in target_assignees:
                 continue
 
-            # Determine kid context
-            is_shadow = is_shadow_kid(self.coordinator, kid_id)
-            workflow_enabled = should_create_workflow_buttons(self.coordinator, kid_id)
+            # Determine assignee context
+            is_shadow = is_shadow_assignee(self.coordinator, assignee_id)
+            workflow_enabled = should_create_workflow_buttons(
+                self.coordinator, assignee_id
+            )
             gamification_enabled = should_create_gamification_entities(
-                self.coordinator, kid_id
+                self.coordinator, assignee_id
             )
 
             # Check if entity should exist using unified filter
             if not should_create_entity(
                 unique_id,
-                is_shadow_kid=is_shadow,
+                is_shadow_assignee=is_shadow,
                 workflow_enabled=workflow_enabled,
                 gamification_enabled=gamification_enabled,
                 extra_enabled=extra_enabled,
             ):
                 const.LOGGER.debug(
-                    "Removing conditional entity for kid %s: %s (shadow=%s)",
-                    kid_id,
+                    "Removing conditional entity for assignee %s: %s (shadow=%s)",
+                    assignee_id,
                     entity_entry.entity_id,
                     is_shadow,
                 )
@@ -591,7 +593,7 @@ class SystemManager(BaseManager):
             service_data: Service call data containing:
                 - confirm_destructive: bool (required, must be True)
                 - scope: str (optional, defaults to "global")
-                - kid_name: str (optional, required if scope="kid")
+                - assignee_name: str (optional, required if scope="assignee")
                 - item_type: str (optional, filters to specific domain)
                 - item_name: str (optional, filters to specific item)
 
@@ -618,7 +620,7 @@ class SystemManager(BaseManager):
             scope = const.DATA_RESET_SCOPE_GLOBAL
 
         # Validate scope value
-        valid_scopes = {const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_KID}
+        valid_scopes = {const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_ASSIGNEE}
         if scope not in valid_scopes:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
@@ -626,16 +628,16 @@ class SystemManager(BaseManager):
                 translation_placeholders={"scope": str(scope)},
             )
 
-        kid_name = service_data.get(const.SERVICE_FIELD_KID_NAME)
+        assignee_name = service_data.get(const.SERVICE_FIELD_ASSIGNEE_NAME)
         item_type = service_data.get(const.SERVICE_FIELD_ITEM_TYPE)
         item_name = service_data.get(const.SERVICE_FIELD_ITEM_NAME)
 
-        # Validate scope=kid requires kid_name
-        if scope == const.DATA_RESET_SCOPE_KID and not kid_name:
+        # Validate scope=assignee requires assignee_name
+        if scope == const.DATA_RESET_SCOPE_ASSIGNEE and not assignee_name:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE,
-                translation_placeholders={"scope": "kid (requires kid_name)"},
+                translation_placeholders={"scope": "assignee (requires assignee_name)"},
             )
 
         # Validate item_type if provided
@@ -659,19 +661,19 @@ class SystemManager(BaseManager):
         # =====================================================================
         # 4D: Name→ID Resolution
         # =====================================================================
-        kid_id: str | None = None
+        assignee_id: str | None = None
         item_id: str | None = None
 
-        if kid_name:
+        if assignee_name:
             try:
-                kid_id = get_item_id_or_raise(
-                    self.coordinator, const.ENTITY_TYPE_KID, kid_name
+                assignee_id = get_item_id_or_raise(
+                    self.coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
                 )
             except HomeAssistantError:
                 raise ServiceValidationError(
                     translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_DATA_RESET_KID_NOT_FOUND,
-                    translation_placeholders={"kid_name": str(kid_name)},
+                    translation_key=const.TRANS_KEY_ERROR_DATA_RESET_ASSIGNEE_NOT_FOUND,
+                    translation_placeholders={"assignee_name": str(assignee_name)},
                 ) from None
 
         if item_name and item_type:
@@ -702,9 +704,9 @@ class SystemManager(BaseManager):
                     ) from None
 
         const.LOGGER.info(
-            "Data reset orchestration: scope=%s, kid_id=%s, item_type=%s, item_id=%s",
+            "Data reset orchestration: scope=%s, assignee_id=%s, item_type=%s, item_id=%s",
             scope,
-            kid_id,
+            assignee_id,
             item_type,
             item_id,
         )
@@ -728,27 +730,29 @@ class SystemManager(BaseManager):
         # =====================================================================
         # 4F: Call Managers (Based on Scope + Item Type)
         # =====================================================================
-        await self._call_data_reset_managers(scope, kid_id, item_type, item_id)
+        await self._call_data_reset_managers(scope, assignee_id, item_type, item_id)
 
         # =====================================================================
         # 4G: Send Notification
         # =====================================================================
-        await self._send_data_reset_notification(scope, kid_name, item_type, item_name)
+        await self._send_data_reset_notification(
+            scope, assignee_name, item_type, item_name
+        )
 
         const.LOGGER.info("Data reset orchestration complete")
 
     async def _call_data_reset_managers(
         self,
         scope: str,
-        kid_id: str | None,
+        assignee_id: str | None,
         item_type: str | None,
         item_id: str | None,
     ) -> None:
         """Call domain manager data_reset methods based on scope and item_type.
 
         Args:
-            scope: Reset scope (global or kid)
-            kid_id: Target kid ID (None for global scope without kid filter)
+            scope: Reset scope (global or assignee)
+            assignee_id: Target assignee ID (None for global scope without assignee filter)
             item_type: Domain to reset (None = all domains)
             item_id: Specific item to reset (None = all items in domain)
         """
@@ -756,67 +760,75 @@ class SystemManager(BaseManager):
 
         # If item_type specified, only call that domain's manager
         if item_type:
-            await self._call_single_domain_reset(scope, kid_id, item_type, item_id)
+            await self._call_single_domain_reset(scope, assignee_id, item_type, item_id)
             return
 
         # No item_type = reset ALL domains
         # Order: downstream → upstream (gamification → rewards → chores → economy)
         # This ensures dependent data is cleared before foundation data
         # 1. Gamification (furthest downstream - consumes points/chores)
-        await coord.gamification_manager.data_reset_badges(scope, kid_id, item_id)
-        await coord.gamification_manager.data_reset_achievements(scope, kid_id, item_id)
-        await coord.gamification_manager.data_reset_challenges(scope, kid_id, item_id)
+        await coord.gamification_manager.data_reset_badges(scope, assignee_id, item_id)
+        await coord.gamification_manager.data_reset_achievements(
+            scope, assignee_id, item_id
+        )
+        await coord.gamification_manager.data_reset_challenges(
+            scope, assignee_id, item_id
+        )
         # 2. Rewards (intermediate - consumes points)
-        await coord.reward_manager.data_reset_rewards(scope, kid_id, item_id)
+        await coord.reward_manager.data_reset_rewards(scope, assignee_id, item_id)
         # 3. Chores (upstream producer of points)
-        await coord.chore_manager.data_reset_chores(scope, kid_id, item_id)
+        await coord.chore_manager.data_reset_chores(scope, assignee_id, item_id)
         # 4. Economy (foundation - owns points, multiplier, bonuses, penalties)
-        await coord.economy_manager.data_reset_points(scope, kid_id, item_id)
-        await coord.economy_manager.data_reset_penalties(scope, kid_id, item_id)
-        await coord.economy_manager.data_reset_bonuses(scope, kid_id, item_id)
+        await coord.economy_manager.data_reset_points(scope, assignee_id, item_id)
+        await coord.economy_manager.data_reset_penalties(scope, assignee_id, item_id)
+        await coord.economy_manager.data_reset_bonuses(scope, assignee_id, item_id)
 
     async def _call_single_domain_reset(
         self,
         scope: str,
-        kid_id: str | None,
+        assignee_id: str | None,
         item_type: str,
         item_id: str | None,
     ) -> None:
         """Call the appropriate manager for a specific item_type.
 
         Args:
-            scope: Reset scope (global or kid)
-            kid_id: Target kid ID
+            scope: Reset scope (global or assignee)
+            assignee_id: Target assignee ID
             item_type: Domain to reset
             item_id: Specific item to reset
         """
         coord = self.coordinator
 
         if item_type == const.DATA_RESET_ITEM_TYPE_POINTS:
-            await coord.economy_manager.data_reset_points(scope, kid_id, item_id)
+            await coord.economy_manager.data_reset_points(scope, assignee_id, item_id)
         elif item_type == const.DATA_RESET_ITEM_TYPE_CHORES:
-            await coord.chore_manager.data_reset_chores(scope, kid_id, item_id)
+            await coord.chore_manager.data_reset_chores(scope, assignee_id, item_id)
         elif item_type == const.DATA_RESET_ITEM_TYPE_REWARDS:
-            await coord.reward_manager.data_reset_rewards(scope, kid_id, item_id)
+            await coord.reward_manager.data_reset_rewards(scope, assignee_id, item_id)
         elif item_type == const.DATA_RESET_ITEM_TYPE_BADGES:
-            await coord.gamification_manager.data_reset_badges(scope, kid_id, item_id)
+            await coord.gamification_manager.data_reset_badges(
+                scope, assignee_id, item_id
+            )
         elif item_type == const.DATA_RESET_ITEM_TYPE_ACHIEVEMENTS:
             await coord.gamification_manager.data_reset_achievements(
-                scope, kid_id, item_id
+                scope, assignee_id, item_id
             )
         elif item_type == const.DATA_RESET_ITEM_TYPE_CHALLENGES:
             await coord.gamification_manager.data_reset_challenges(
-                scope, kid_id, item_id
+                scope, assignee_id, item_id
             )
         elif item_type == const.DATA_RESET_ITEM_TYPE_PENALTIES:
-            await coord.economy_manager.data_reset_penalties(scope, kid_id, item_id)
+            await coord.economy_manager.data_reset_penalties(
+                scope, assignee_id, item_id
+            )
         elif item_type == const.DATA_RESET_ITEM_TYPE_BONUSES:
-            await coord.economy_manager.data_reset_bonuses(scope, kid_id, item_id)
+            await coord.economy_manager.data_reset_bonuses(scope, assignee_id, item_id)
 
     async def _send_data_reset_notification(
         self,
         scope: str,
-        kid_name: str | None,
+        assignee_name: str | None,
         item_type: str | None,
         item_name: str | None,
     ) -> None:
@@ -824,7 +836,7 @@ class SystemManager(BaseManager):
 
         Args:
             scope: Reset scope used
-            kid_name: Kid name if kid scope
+            assignee_name: Assignee name if assignee scope
             item_type: Item type if filtered
             item_name: Item name if specific item
         """
@@ -835,16 +847,16 @@ class SystemManager(BaseManager):
         elif item_type:
             message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM_TYPE
             placeholders = {"item_type": str(item_type)}
-        elif scope == const.DATA_RESET_SCOPE_KID and kid_name:
-            message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_KID
-            placeholders = {"kid_name": str(kid_name)}
+        elif scope == const.DATA_RESET_SCOPE_ASSIGNEE and assignee_name:
+            message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ASSIGNEE
+            placeholders = {"assignee_name": str(assignee_name)}
         else:
             message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_GLOBAL
             placeholders = {}
 
-        # Send notification to all parents via NotificationManager
-        # Use a broadcast approach - notify ALL parents regardless of kid association
-        await self.coordinator.notification_manager.broadcast_to_all_parents(
+        # Send notification to all approvers via NotificationManager
+        # Use a broadcast approach - notify ALL approvers regardless of assignee association
+        await self.coordinator.notification_manager.broadcast_to_all_approvers(
             title_key=const.TRANS_KEY_NOTIF_TITLE_DATA_RESET,
             message_key=message_key,
             placeholders=placeholders,

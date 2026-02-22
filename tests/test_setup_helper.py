@@ -12,7 +12,7 @@ import pytest
 from tests.helpers import (
     SetupResult,
     setup_minimal_scenario,
-    setup_multi_kid_scenario,
+    setup_multi_assignee_scenario,
     setup_scenario,
 )
 
@@ -21,36 +21,36 @@ from tests.helpers import (
 async def test_setup_minimal_scenario(
     hass: HomeAssistant, mock_hass_users: dict
 ) -> None:
-    """Test setup_minimal_scenario creates 1 kid, 1 parent, 1 chore."""
+    """Test setup_minimal_scenario creates 1 assignee, 1 approver, 1 chore."""
     result = await setup_minimal_scenario(hass, mock_hass_users)
 
     assert isinstance(result, SetupResult)
     assert result.config_entry is not None
     assert result.coordinator is not None
 
-    # Verify kid was created
-    assert "Zoë" in result.kid_ids
-    assert result.kid_ids["Zoë"] is not None
+    # Verify assignee was created
+    assert "Zoë" in result.assignee_ids
+    assert result.assignee_ids["Zoë"] is not None
 
-    # Verify parent was created
-    assert "Mom" in result.parent_ids
+    # Verify approver was created
+    assert "Mom" in result.approver_ids
 
     # Verify chore was created
     assert "Clean Room" in result.chore_ids
 
     # Verify coordinator has the data
-    kid_names = {
-        kid_data.get("name")
-        for kid_data in result.coordinator.kids_data.values()
-        if isinstance(kid_data, dict)
+    assignee_names = {
+        assignee_data.get("name")
+        for assignee_data in result.coordinator.assignees_data.values()
+        if isinstance(assignee_data, dict)
     }
-    parent_names = {
-        parent_data.get("name")
-        for parent_data in result.coordinator.parents_data.values()
-        if isinstance(parent_data, dict)
+    approver_names = {
+        approver_data.get("name")
+        for approver_data in result.coordinator.approvers_data.values()
+        if isinstance(approver_data, dict)
     }
-    assert "Zoë" in kid_names
-    assert "Mom" in parent_names
+    assert "Zoë" in assignee_names
+    assert "Mom" in approver_names
     assert len(result.coordinator.chores_data) == 1
 
 
@@ -64,15 +64,15 @@ async def test_setup_scenario_custom_config(
         mock_hass_users,
         {
             "points": {"label": "Stars", "icon": "mdi:star"},
-            "kids": [
-                {"name": "Alex", "ha_user": "kid1"},
-                {"name": "Sarah", "ha_user": "kid2"},
+            "assignees": [
+                {"name": "Alex", "ha_user": "assignee1"},
+                {"name": "Sarah", "ha_user": "assignee2"},
             ],
-            "parents": [
+            "approvers": [
                 {
                     "name": "Dad",
-                    "ha_user": "parent1",
-                    "kids": ["Alex", "Sarah"],
+                    "ha_user": "approver1",
+                    "assignees": ["Alex", "Sarah"],
                 }
             ],
             "chores": [
@@ -91,24 +91,24 @@ async def test_setup_scenario_custom_config(
         },
     )
 
-    # Verify kids
-    assert "Alex" in result.kid_ids
-    assert "Sarah" in result.kid_ids
-    kid_names = {
-        kid_data.get("name")
-        for kid_data in result.coordinator.kids_data.values()
-        if isinstance(kid_data, dict)
+    # Verify assignees
+    assert "Alex" in result.assignee_ids
+    assert "Sarah" in result.assignee_ids
+    assignee_names = {
+        assignee_data.get("name")
+        for assignee_data in result.coordinator.assignees_data.values()
+        if isinstance(assignee_data, dict)
     }
-    assert {"Alex", "Sarah"}.issubset(kid_names)
+    assert {"Alex", "Sarah"}.issubset(assignee_names)
 
-    # Verify parent
-    assert "Dad" in result.parent_ids
-    parent_names = {
-        parent_data.get("name")
-        for parent_data in result.coordinator.parents_data.values()
-        if isinstance(parent_data, dict)
+    # Verify approver
+    assert "Dad" in result.approver_ids
+    approver_names = {
+        approver_data.get("name")
+        for approver_data in result.coordinator.approvers_data.values()
+        if isinstance(approver_data, dict)
     }
-    assert "Dad" in parent_names
+    assert "Dad" in approver_names
 
     # Verify chores
     assert "Do Homework" in result.chore_ids
@@ -121,28 +121,28 @@ async def test_setup_scenario_custom_config(
 
 
 @pytest.mark.asyncio
-async def test_setup_multi_kid_scenario(
+async def test_setup_multi_assignee_scenario(
     hass: HomeAssistant, mock_hass_users: dict
 ) -> None:
-    """Test setup_multi_kid_scenario creates multiple kids with shared chore."""
-    result = await setup_multi_kid_scenario(
+    """Test setup_multi_assignee_scenario creates multiple assignees with shared chore."""
+    result = await setup_multi_assignee_scenario(
         hass,
         mock_hass_users,
-        kid_names=["Kid1", "Kid2", "Kid3"],
-        parent_name="Parent",
+        assignee_names=["Assignee1", "Assignee2", "Assignee3"],
+        approver_name="Approver",
         shared_chore_name="Group Task",
     )
 
-    # Verify all kids created
-    assert "Kid1" in result.kid_ids
-    assert "Kid2" in result.kid_ids
-    assert "Kid3" in result.kid_ids
-    kid_names = {
-        kid_data.get("name")
-        for kid_data in result.coordinator.kids_data.values()
-        if isinstance(kid_data, dict)
+    # Verify all assignees created
+    assert "Assignee1" in result.assignee_ids
+    assert "Assignee2" in result.assignee_ids
+    assert "Assignee3" in result.assignee_ids
+    assignee_names = {
+        assignee_data.get("name")
+        for assignee_data in result.coordinator.assignees_data.values()
+        if isinstance(assignee_data, dict)
     }
-    assert {"Kid1", "Kid2", "Kid3"}.issubset(kid_names)
+    assert {"Assignee1", "Assignee2", "Assignee3"}.issubset(assignee_names)
 
     # Verify shared chore
     assert "Group Task" in result.chore_ids
@@ -157,35 +157,35 @@ async def test_setup_scenario_no_chores(
         hass,
         mock_hass_users,
         {
-            "kids": [{"name": "Solo Kid", "ha_user": "kid1"}],
-            "parents": [{"name": "Solo Parent", "ha_user": "parent1"}],
+            "assignees": [{"name": "Solo Assignee", "ha_user": "assignee1"}],
+            "approvers": [{"name": "Solo Approver", "ha_user": "approver1"}],
             # No chores
         },
     )
 
-    assert "Solo Kid" in result.kid_ids
-    assert "Solo Parent" in result.parent_ids
+    assert "Solo Assignee" in result.assignee_ids
+    assert "Solo Approver" in result.approver_ids
     assert len(result.chore_ids) == 0
     assert len(result.coordinator.chores_data) == 0
 
 
 @pytest.mark.asyncio
-async def test_setup_scenario_no_parents(
+async def test_setup_scenario_no_approvers(
     hass: HomeAssistant, mock_hass_users: dict
 ) -> None:
-    """Test setup_scenario works with no parents configured."""
+    """Test setup_scenario works with no approvers configured."""
     result = await setup_scenario(
         hass,
         mock_hass_users,
         {
-            "kids": [{"name": "Orphan Kid", "ha_user": "kid1"}],
-            # No parents
+            "assignees": [{"name": "Orphan Assignee", "ha_user": "assignee1"}],
+            # No approvers
             "chores": [
-                {"name": "Self Chore", "assigned_to": ["Orphan Kid"], "points": 5}
+                {"name": "Self Chore", "assigned_to": ["Orphan Assignee"], "points": 5}
             ],
         },
     )
 
-    assert "Orphan Kid" in result.kid_ids
-    assert isinstance(result.parent_ids, dict)
+    assert "Orphan Assignee" in result.assignee_ids
+    assert isinstance(result.approver_ids, dict)
     assert "Self Chore" in result.chore_ids

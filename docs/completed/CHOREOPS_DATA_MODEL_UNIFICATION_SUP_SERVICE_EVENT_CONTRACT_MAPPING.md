@@ -180,12 +180,14 @@ be parsed by runtime service/event handlers outside migration modules.
 
 ## Approval checklist (required before code cutover)
 
-- [ ] Mapping table approved by product + architecture owner
-- [ ] Service-by-service rename list confirmed (`services.yaml`)
-- [ ] Event/notification payload parity approved
-- [ ] Release-note migration examples drafted and reviewed
-- [ ] Contract-lint rule targets approved (`kid_name`, `parent_name`, legacy dual parsing)
-- [ ] Translation cleanup scope approved (`translations/en.json` + `translations_custom/en_*.json` orphan-key cleanup + locale stale-key cleanup across both trees)
+- [x] Mapping table approved by product + architecture owner
+- [x] Service-by-service rename list confirmed (`services.yaml`)
+- [x] Event/notification payload parity approved
+- [x] Release-note migration examples drafted and reviewed
+- [x] Contract-lint rule targets approved (`kid_name`, `parent_name`, legacy dual parsing)
+- [x] Translation cleanup scope approved (`translations/en.json` + `translations_custom/en_*.json` orphan-key cleanup + locale stale-key cleanup across both trees)
+
+Approval lock record (2026-02-22): approved by `CCPK1`.
 
 ## Owner decisions captured (2026-02-19)
 

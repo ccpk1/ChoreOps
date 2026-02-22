@@ -10,7 +10,7 @@ This module is the SINGLE SOURCE OF TRUTH for:
 
 ### CFOF Key Alignment (Phase 6)
 Most CFOF_* constant values are now aligned with DATA_* values:
-- CFOF_*_INPUT_NAME = "name" = DATA_*_NAME (for kids, parents, rewards, etc.)
+- CFOF_*_INPUT_NAME = "name" = DATA_*_NAME (for assignees, approvers, rewards, etc.)
 - This means user_input from forms can often be passed directly to build_*() functions
 
 ### Build Functions
@@ -50,7 +50,7 @@ from typing import Any, cast
 import uuid
 
 from . import const
-from .type_defs import BadgeData, ChoreData, KidData, ParentData, RewardData
+from .type_defs import ApproverData, AssigneeData, BadgeData, ChoreData, RewardData
 from .utils.dt_utils import dt_now_utc, dt_parse
 
 # ==============================================================================
@@ -315,7 +315,7 @@ def build_reward(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Rewards have no runtime fields on the reward record itself.
-# All runtime state is in assignee-side DATA_KID_REWARD_DATA structure.
+# All runtime state is in assignee-side DATA_ASSIGNEE_REWARD_DATA structure.
 
 _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -337,13 +337,10 @@ _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
 
 _REWARD_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_KID_REWARD_DATA,  # Per-reward claim tracking
-        const.DATA_KID_REWARD_PERIODS,  # Aggregated reward periods (v43+, all_time bucket)
+        const.DATA_ASSIGNEE_REWARD_DATA,  # Per-reward claim tracking
+        const.DATA_ASSIGNEE_REWARD_PERIODS,  # Aggregated reward periods (v43+, all_time bucket)
     }
 )
-
-# Compatibility alias: retained temporarily while runtime references are migrated.
-_REWARD_KID_RUNTIME_FIELDS = _REWARD_ASSIGNEE_RUNTIME_FIELDS
 
 
 # ==============================================================================
@@ -544,7 +541,7 @@ def build_bonus_or_penalty(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Bonuses have no runtime fields on the bonus record itself.
-# All runtime state is in assignee-side DATA_KID_BONUS_APPLIES structure.
+# All runtime state is in assignee-side DATA_ASSIGNEE_BONUS_APPLIES structure.
 
 _BONUS_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -565,12 +562,9 @@ _BONUS_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
 
 _BONUS_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_KID_BONUS_APPLIES,  # Active bonus tracking
+        const.DATA_ASSIGNEE_BONUS_APPLIES,  # Active bonus tracking
     }
 )
-
-# Compatibility alias: retained temporarily while runtime references are migrated.
-_BONUS_KID_RUNTIME_FIELDS = _BONUS_ASSIGNEE_RUNTIME_FIELDS
 
 # --- Penalty Data Reset Support ---
 # MAINTENANCE CONTRACT: When adding fields to build_bonus_or_penalty():
@@ -578,7 +572,7 @@ _BONUS_KID_RUNTIME_FIELDS = _BONUS_ASSIGNEE_RUNTIME_FIELDS
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Penalties have no runtime fields on the penalty record itself.
-# All runtime state is in assignee-side DATA_KID_PENALTY_APPLIES structure.
+# All runtime state is in assignee-side DATA_ASSIGNEE_PENALTY_APPLIES structure.
 
 _PENALTY_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -599,12 +593,9 @@ _PENALTY_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
 
 _PENALTY_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_KID_PENALTY_APPLIES,  # Active penalty tracking
+        const.DATA_ASSIGNEE_PENALTY_APPLIES,  # Active penalty tracking
     }
 )
-
-# Compatibility alias: retained temporarily while runtime references are migrated.
-_PENALTY_KID_RUNTIME_FIELDS = _PENALTY_ASSIGNEE_RUNTIME_FIELDS
 
 
 # ==============================================================================
@@ -613,7 +604,7 @@ _PENALTY_KID_RUNTIME_FIELDS = _PENALTY_ASSIGNEE_RUNTIME_FIELDS
 
 # Note: CFOF_KIDS_INPUT_* values are now aligned with DATA_KID_* values
 # (Phase 6 CFOF Key Alignment), so no mapping function is needed.
-# build_kid() accepts keys directly from UI forms.
+# build_assignee() accepts keys directly from UI forms.
 
 
 def validate_assignee_profile_data(
@@ -626,39 +617,39 @@ def validate_assignee_profile_data(
 ) -> dict[str, str]:
     """Validate assignee-profile business rules.
 
-    Canonical runtime alias for `validate_kid_data()`.
+    Canonical runtime alias for `validate_assignee_data()`.
     """
-    return validate_kid_data(
+    return validate_assignee_data(
         data,
         existing_assignees,
         existing_users,
         is_update=is_update,
-        current_kid_id=current_assignee_id,
+        current_assignee_id=current_assignee_id,
     )
 
 
-def validate_kid_data(
+def validate_assignee_data(
     data: dict[str, Any],
-    existing_kids: dict[str, Any] | None = None,
-    existing_parents: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
+    existing_approvers: dict[str, Any] | None = None,
     *,
     is_update: bool = False,
-    current_kid_id: str | None = None,
+    current_assignee_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate kid business rules - SINGLE SOURCE OF TRUTH.
+    """Validate assignee business rules - SINGLE SOURCE OF TRUTH.
 
-    This function contains all kid validation logic used by both:
-    - Options Flow (UI) via flow_helpers.validate_kids_inputs()
-    - Services (API) via handle_create_kid() / handle_update_kid()
+    This function contains all assignee validation logic used by both:
+    - Options Flow (UI) via flow_helpers.validate_assignee_inputs()
+    - Services (API) via handle_create_assignee() / handle_update_assignee()
 
     Works with DATA_* keys (canonical storage format).
 
     Args:
-        data: Kid data dict with DATA_* keys
-        existing_kids: All existing kids for duplicate checking (optional)
-        existing_parents: All existing parents for cross-validation (optional)
-        is_update: True if updating existing kid (some validations skip)
-        current_kid_id: ID of kid being updated (to exclude from duplicate check)
+        data: Assignee data dict with DATA_* keys
+        existing_assignees: All existing assignees for duplicate checking (optional)
+        existing_approvers: All existing approvers for cross-validation (optional)
+        is_update: True if updating existing assignee (some validations skip)
+        current_assignee_id: ID of assignee being updated (to exclude from duplicate check)
 
     Returns:
         Dict of errors: {error_field: translation_key}
@@ -666,46 +657,52 @@ def validate_kid_data(
 
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
-        2. Name not duplicate among kids
-        3. Name not conflict with assignment-enabled parent profiles
+        2. Name not duplicate among assignees
+        3. Name not conflict with assignment-enabled approver profiles
     """
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
-    name = data.get(const.DATA_KID_NAME, "")
+    name = data.get(const.DATA_ASSIGNEE_NAME, "")
     if isinstance(name, str):
         name = name.strip()
 
     if not is_update and not name:
-        errors[const.CFOP_ERROR_KID_NAME] = const.TRANS_KEY_CFOF_INVALID_KID_NAME
+        errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
+            const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
+        )
         return errors
 
-    if is_update and const.DATA_KID_NAME in data and not name:
-        errors[const.CFOP_ERROR_KID_NAME] = const.TRANS_KEY_CFOF_INVALID_KID_NAME
+    if is_update and const.DATA_ASSIGNEE_NAME in data and not name:
+        errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
+            const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
+        )
         return errors
 
-    # === 2. Duplicate name check among kids (exclude parent-linked profiles) ===
-    # Parent-linked profiles are managed by the parent linkage system -
+    # === 2. Duplicate name check among assignees (exclude approver-linked profiles) ===
+    # Approver-linked profiles are managed by the approver linkage system -
     # their name conflicts are
-    # handled by rule 3 (parent name conflict check)
-    if name and existing_kids:
-        for kid_id, kid_data in existing_kids.items():
-            if kid_id == current_kid_id:
+    # handled by rule 3 (approver name conflict check)
+    if name and existing_assignees:
+        for assignee_id, assignee_data in existing_assignees.items():
+            if assignee_id == current_assignee_id:
                 continue  # Skip self when updating
-            if kid_data.get(const.DATA_KID_IS_SHADOW, False):
-                continue  # Parent-linked profiles handled by parent validation
-            if kid_data.get(const.DATA_KID_NAME) == name:
-                errors[const.CFOP_ERROR_KID_NAME] = const.TRANS_KEY_CFOF_DUPLICATE_KID
+            if assignee_data.get(const.DATA_ASSIGNEE_IS_SHADOW, False):
+                continue  # Approver-linked profiles handled by approver validation
+            if assignee_data.get(const.DATA_ASSIGNEE_NAME) == name:
+                errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
+                    const.TRANS_KEY_CFOF_DUPLICATE_ASSIGNEE
+                )
                 return errors
 
-    # === 3. Conflict with assignment-enabled parent profiles ===
-    # Check conflicts only for assignment-enabled parents
-    # Parents without assignment capability do not create linked kid-like profiles
-    if name and existing_parents:
-        for parent_data in existing_parents.values():
-            if parent_data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False):
-                if parent_data.get(const.DATA_PARENT_NAME) == name:
-                    errors[const.CFOP_ERROR_KID_NAME] = (
+    # === 3. Conflict with assignment-enabled approver profiles ===
+    # Check conflicts only for assignment-enabled approvers
+    # Approvers without assignment capability do not create linked assignee-like profiles
+    if name and existing_approvers:
+        for approver_data in existing_approvers.values():
+            if approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False):
+                if approver_data.get(const.DATA_APPROVER_NAME) == name:
+                    errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
                         const.TRANS_KEY_CFOF_DUPLICATE_NAME
                     )
                     return errors
@@ -713,39 +710,34 @@ def validate_kid_data(
     return errors
 
 
-def build_kid(
+def build_assignee(
     user_input: dict[str, Any],
-    existing: KidData | None = None,
-    *,
-    is_shadow: bool = False,
-    linked_parent_id: str | None = None,
-) -> KidData:
-    """Build kid data for create or update operations.
+    existing: AssigneeData | None = None,
+) -> AssigneeData:
+    """Build assignee data for create or update operations.
 
-    This is the SINGLE SOURCE OF TRUTH for kid field handling.
-    One function handles both create (existing=None) and update (existing=KidData).
+    This is the SINGLE SOURCE OF TRUTH for assignee field handling.
+    One function handles both create (existing=None) and update (existing=AssigneeData).
 
     Args:
         user_input: Form/service data with CFOF_* keys (may have missing fields)
-        existing: None for create, existing KidData for update
-        is_shadow: Legacy compatibility flag for parent-linked profile
-        linked_parent_id: Parent ID to link (required when is_shadow=True)
+        existing: None for create, existing AssigneeData for update
 
     Returns:
-        Complete KidData TypedDict ready for storage
+        Complete AssigneeData TypedDict ready for storage
 
     Raises:
         EntityValidationError: If name validation fails (empty/whitespace)
 
     Examples:
         # CREATE mode - generates UUID, applies defaults for missing fields
-        kid = build_kid({CFOF_KIDS_INPUT_KID_NAME: "Alice"})
+        assignee = build_assignee({CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: "Alice"})
 
         # UPDATE mode - preserves existing fields not in user_input
-        kid = build_kid({CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_kid)
+        assignee = build_assignee({CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_assignee)
 
-        # Linked profile mode - creates parent-linked kid profile
-        kid = build_kid(parent_derived_input, is_shadow=True, linked_parent_id="uuid")
+        # Create mode with assignee defaults
+        assignee = build_assignee(approver_derived_input)
     """
     is_create = existing is None
 
@@ -763,171 +755,152 @@ def build_kid(
 
     # --- Name validation (required for create, optional for update) ---
     raw_name = get_field(
-        const.CFOF_KIDS_INPUT_KID_NAME,
-        const.DATA_KID_NAME,
+        const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+        const.DATA_ASSIGNEE_NAME,
         "",
     )
     name = str(raw_name).strip() if raw_name else ""
 
     if is_create and not name:
         raise EntityValidationError(
-            field=const.CFOF_KIDS_INPUT_KID_NAME,
-            translation_key=const.TRANS_KEY_CFOF_INVALID_KID_NAME,
+            field=const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+            translation_key=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME,
         )
-    if const.CFOF_KIDS_INPUT_KID_NAME in user_input and not name:
+    if const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME in user_input and not name:
         raise EntityValidationError(
-            field=const.CFOF_KIDS_INPUT_KID_NAME,
-            translation_key=const.TRANS_KEY_CFOF_INVALID_KID_NAME,
+            field=const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+            translation_key=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME,
         )
 
     # --- Internal ID: generate for create, preserve for update ---
     if is_create or existing is None:
         internal_id = str(uuid.uuid4())
     else:
-        internal_id = existing.get(const.DATA_KID_INTERNAL_ID, str(uuid.uuid4()))
+        internal_id = existing.get(const.DATA_ASSIGNEE_INTERNAL_ID, str(uuid.uuid4()))
 
     # --- Handle HA user and notification service sentinels ---
     ha_user_id = get_field(
-        const.CFOF_KIDS_INPUT_HA_USER,
-        const.DATA_KID_HA_USER_ID,
+        const.CFOF_ASSIGNEES_INPUT_HA_USER,
+        const.DATA_ASSIGNEE_HA_USER_ID,
         "",
     )
     if ha_user_id in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         ha_user_id = ""
 
     notify_service = get_field(
-        const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE,
-        const.DATA_KID_MOBILE_NOTIFY_SERVICE,
+        const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
+        const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE,
         const.SENTINEL_EMPTY,
     )
     if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         notify_service = ""
 
-    # --- Build complete kid structure ---
-    # Include all runtime fields that _create_kid() used to add
-    kid_data: KidData = {
+    # --- Build complete assignee structure ---
+    # Include all runtime fields that _create_assignee() used to add
+    assignee_data: AssigneeData = {
         # Core identification
-        const.DATA_KID_INTERNAL_ID: internal_id,
-        const.DATA_KID_NAME: name,
+        const.DATA_ASSIGNEE_INTERNAL_ID: internal_id,
+        const.DATA_ASSIGNEE_NAME: name,
         # Points (runtime initialized)
-        const.DATA_KID_POINTS: float(
+        const.DATA_ASSIGNEE_POINTS: float(
             get_field(
                 const.CFOF_GLOBAL_INPUT_INTERNAL_ID,  # Not a real form field
-                const.DATA_KID_POINTS,
+                const.DATA_ASSIGNEE_POINTS,
                 const.DEFAULT_ZERO,
             )
             if existing
             else const.DEFAULT_ZERO
         ),
-        const.DATA_KID_POINTS_MULTIPLIER: float(
+        const.DATA_ASSIGNEE_POINTS_MULTIPLIER: float(
             existing.get(
-                const.DATA_KID_POINTS_MULTIPLIER, const.DEFAULT_KID_POINTS_MULTIPLIER
+                const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
+                const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
             )
             if existing
-            else const.DEFAULT_KID_POINTS_MULTIPLIER
+            else const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER
         ),
         # Linkage
-        const.DATA_KID_HA_USER_ID: ha_user_id,
+        const.DATA_ASSIGNEE_HA_USER_ID: ha_user_id,
         # Notifications
-        const.DATA_KID_MOBILE_NOTIFY_SERVICE: notify_service,
-        const.DATA_KID_USE_PERSISTENT_NOTIFICATIONS: (
-            existing.get(const.DATA_KID_USE_PERSISTENT_NOTIFICATIONS, False)
+        const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE: notify_service,
+        const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS: (
+            existing.get(const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
             else False
         ),
-        const.DATA_KID_DASHBOARD_LANGUAGE: str(
+        const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE: str(
             get_field(
-                const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE,
-                const.DATA_KID_DASHBOARD_LANGUAGE,
+                const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
+                const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
         # Badge tracking (runtime initialized)
-        const.DATA_KID_BADGES_EARNED: (
-            existing.get(const.DATA_KID_BADGES_EARNED, {}) if existing else {}
+        const.DATA_ASSIGNEE_BADGES_EARNED: (
+            existing.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}) if existing else {}
         ),
         # Reward tracking (runtime initialized)
-        const.DATA_KID_REWARD_DATA: (
-            existing.get(const.DATA_KID_REWARD_DATA, {}) if existing else {}
+        const.DATA_ASSIGNEE_REWARD_DATA: (
+            existing.get(const.DATA_ASSIGNEE_REWARD_DATA, {}) if existing else {}
         ),
         # Penalty/bonus tracking (runtime initialized)
-        const.DATA_KID_PENALTY_APPLIES: (
-            existing.get(const.DATA_KID_PENALTY_APPLIES, {}) if existing else {}
+        const.DATA_ASSIGNEE_PENALTY_APPLIES: (
+            existing.get(const.DATA_ASSIGNEE_PENALTY_APPLIES, {}) if existing else {}
         ),
-        const.DATA_KID_BONUS_APPLIES: (
-            existing.get(const.DATA_KID_BONUS_APPLIES, {}) if existing else {}
+        const.DATA_ASSIGNEE_BONUS_APPLIES: (
+            existing.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {}) if existing else {}
         ),
         # NOTE: DATA_KID_OVERDUE_CHORES removed - dead code, overdue tracked in chore_data[chore_id].state
     }
 
-    # --- Compatibility linkage markers (only set if requested) ---
-    if is_shadow:
-        kid_data[const.DATA_KID_IS_SHADOW] = True
-        kid_data[const.DATA_KID_LINKED_PARENT_ID] = linked_parent_id
-    elif existing:
-        # Preserve existing linked-profile status on update
-        if existing.get(const.DATA_KID_IS_SHADOW):
-            kid_data[const.DATA_KID_IS_SHADOW] = True
-            kid_data[const.DATA_KID_LINKED_PARENT_ID] = existing.get(
-                const.DATA_KID_LINKED_PARENT_ID
-            )
-
-    return kid_data
+    return assignee_data
 
 
 def build_assignee_profile(
     user_input: dict[str, Any],
-    existing: KidData | None = None,
-    *,
-    is_linked_profile: bool = False,
-    linked_user_id: str | None = None,
-) -> KidData:
+    existing: AssigneeData | None = None,
+) -> AssigneeData:
     """Build assignee-profile data for create or update operations.
 
-    Canonical runtime alias for `build_kid()`.
+    Canonical runtime alias for `build_assignee()`.
     """
-    return build_kid(
+    return build_assignee(
         user_input,
         existing=existing,
-        is_shadow=is_linked_profile,
-        linked_parent_id=linked_user_id,
     )
 
 
-# --- Kid Data Reset Support ---
-# MAINTENANCE CONTRACT: When adding fields to build_kid():
+# --- Assignee Data Reset Support ---
+# MAINTENANCE CONTRACT: When adding fields to build_assignee():
 # - CONFIG fields: Add to _KID_DATA_RESET_PRESERVE_FIELDS (preserved during data reset)
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 
-_KID_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
+_ASSIGNEE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
         # System identity (never changes)
-        const.DATA_KID_INTERNAL_ID,
+        const.DATA_ASSIGNEE_INTERNAL_ID,
         # User-configured fields
-        const.DATA_KID_NAME,
-        const.DATA_KID_HA_USER_ID,
-        const.DATA_KID_MOBILE_NOTIFY_SERVICE,
-        const.DATA_KID_USE_PERSISTENT_NOTIFICATIONS,
-        const.DATA_KID_DASHBOARD_LANGUAGE,
-        const.DATA_KID_POINTS_MULTIPLIER,
-        # System-managed linkage (preserved but not user-editable)
-        const.DATA_KID_IS_SHADOW,
-        const.DATA_KID_LINKED_PARENT_ID,
+        const.DATA_ASSIGNEE_NAME,
+        const.DATA_ASSIGNEE_HA_USER_ID,
+        const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE,
+        const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS,
+        const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
+        const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
     }
 )
 
 
-# --- Economy Manager Kid Runtime Fields (for data_reset_kids) ---
-# These are kid-side fields owned by EconomyManager.
+# --- Economy Manager Assignee Runtime Fields (for data_reset_assignees) ---
+# These are assignee-side fields owned by EconomyManager.
 # EconomyManager creates these on-demand before recording transactions.
 # On data reset: reset points to 0, clear ledger, clear point stats/data.
 
-_ECONOMY_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_ECONOMY_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_KID_POINTS,  # Current point balance
-        const.DATA_KID_POINTS_MULTIPLIER,  # Reset to DEFAULT_KID_POINTS_MULTIPLIER
-        const.DATA_KID_LEDGER,  # Transaction history
-        const.DATA_KID_POINT_PERIODS,  # Period point breakdowns (EconomyManager owns, v43+)
+        const.DATA_ASSIGNEE_POINTS,  # Current point balance
+        const.DATA_ASSIGNEE_POINTS_MULTIPLIER,  # Reset to DEFAULT_KID_POINTS_MULTIPLIER
+        const.DATA_ASSIGNEE_LEDGER,  # Transaction history
+        const.DATA_ASSIGNEE_POINT_PERIODS,  # Period point breakdowns (EconomyManager owns, v43+)
     }
 )
 
@@ -938,7 +911,7 @@ _ECONOMY_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
 
 # Note: CFOF_PARENTS_INPUT_* values are now aligned with DATA_PARENT_* values
 # (Phase 6 CFOF Key Alignment), so no mapping function is needed.
-# build_parent() accepts keys directly from UI forms.
+# build_approver() accepts keys directly from UI forms.
 
 
 def validate_user_profile_data(
@@ -951,39 +924,39 @@ def validate_user_profile_data(
 ) -> dict[str, str]:
     """Validate user-profile business rules.
 
-    Canonical runtime alias for `validate_parent_data()`.
+    Canonical runtime alias for `validate_approver_data()`.
     """
-    return validate_parent_data(
+    return validate_approver_data(
         data,
         existing_users,
         existing_assignees,
         is_update=is_update,
-        current_parent_id=current_user_id,
+        current_approver_id=current_user_id,
     )
 
 
-def validate_parent_data(
+def validate_approver_data(
     data: dict[str, Any],
-    existing_parents: dict[str, Any] | None = None,
-    existing_kids: dict[str, Any] | None = None,
+    existing_approvers: dict[str, Any] | None = None,
+    existing_assignees: dict[str, Any] | None = None,
     *,
     is_update: bool = False,
-    current_parent_id: str | None = None,
+    current_approver_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate parent business rules - SINGLE SOURCE OF TRUTH.
+    """Validate approver business rules - SINGLE SOURCE OF TRUTH.
 
-    This function contains all parent validation logic used by both:
-    - Options Flow (UI) via flow_helpers.validate_parents_inputs()
-    - Services (API) via handle_create_parent() / handle_update_parent()
+    This function contains all approver validation logic used by both:
+    - Options Flow (UI) via flow_helpers.validate_users_inputs()
+    - Services (API) via handle_create_approver() / handle_update_approver()
 
     Works with DATA_* keys (canonical storage format).
 
     Args:
-        data: Parent data dict with DATA_* keys
-        existing_parents: All existing parents for duplicate checking (optional)
-        existing_kids: All existing kids for cross-validation (optional)
-        is_update: True if updating existing parent (some validations skip)
-        current_parent_id: ID of parent being updated (to exclude from duplicate check)
+        data: Approver data dict with DATA_* keys
+        existing_approvers: All existing approvers for duplicate checking (optional)
+        existing_assignees: All existing assignees for cross-validation (optional)
+        is_update: True if updating existing approver (some validations skip)
+        current_approver_id: ID of approver being updated (to exclude from duplicate check)
 
     Returns:
         Dict of errors: {error_field: translation_key}
@@ -991,8 +964,8 @@ def validate_parent_data(
 
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
-        2. Name not duplicate among parents
-        3. Name not conflict with kids (only when assignment is enabled)
+        2. Name not duplicate among approvers
+        3. Name not conflict with assignees (only when assignment is enabled)
         4. Workflow/gamification require assignment enablement
         5. At least one of assignment or approval must be enabled
         6. Approval requires non-empty associated users list
@@ -1000,36 +973,40 @@ def validate_parent_data(
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
-    name = data.get(const.DATA_PARENT_NAME, "")
+    name = data.get(const.DATA_APPROVER_NAME, "")
     if isinstance(name, str):
         name = name.strip()
 
     if not is_update and not name:
-        errors[const.CFOP_ERROR_PARENT_NAME] = const.TRANS_KEY_CFOF_INVALID_PARENT_NAME
+        errors[const.CFOP_ERROR_APPROVER_NAME] = (
+            const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
+        )
         return errors
 
-    if is_update and const.DATA_PARENT_NAME in data and not name:
-        errors[const.CFOP_ERROR_PARENT_NAME] = const.TRANS_KEY_CFOF_INVALID_PARENT_NAME
+    if is_update and const.DATA_APPROVER_NAME in data and not name:
+        errors[const.CFOP_ERROR_APPROVER_NAME] = (
+            const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
+        )
         return errors
 
-    # === 2. Duplicate name check among parents ===
-    if name and existing_parents:
-        for parent_id, parent_data in existing_parents.items():
-            if parent_id == current_parent_id:
+    # === 2. Duplicate name check among approvers ===
+    if name and existing_approvers:
+        for approver_id, approver_data in existing_approvers.items():
+            if approver_id == current_approver_id:
                 continue  # Skip self when updating
-            if parent_data.get(const.DATA_PARENT_NAME) == name:
-                errors[const.CFOP_ERROR_PARENT_NAME] = (
-                    const.TRANS_KEY_CFOF_DUPLICATE_PARENT
+            if approver_data.get(const.DATA_APPROVER_NAME) == name:
+                errors[const.CFOP_ERROR_APPROVER_NAME] = (
+                    const.TRANS_KEY_CFOF_DUPLICATE_APPROVER
                 )
                 return errors
 
-    # === 3. Conflict with kids (only when assignment is enabled) ===
+    # === 3. Conflict with assignees (only when assignment is enabled) ===
     # When assignment is enabled, a linked profile record may use this name
-    assignment_enabled = data.get(const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False)
-    if assignment_enabled and name and existing_kids:
-        for kid_data in existing_kids.values():
-            if kid_data.get(const.DATA_KID_NAME) == name:
-                errors[const.CFOP_ERROR_PARENT_NAME] = (
+    assignment_enabled = data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
+    if assignment_enabled and name and existing_assignees:
+        for assignee_data in existing_assignees.values():
+            if assignee_data.get(const.DATA_ASSIGNEE_NAME) == name:
+                errors[const.CFOP_ERROR_APPROVER_NAME] = (
                     const.TRANS_KEY_CFOF_DUPLICATE_NAME
                 )
                 return errors
@@ -1037,11 +1014,11 @@ def validate_parent_data(
     has_usage_context = any(
         key in data
         for key in (
-            const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
-            const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
-            const.DATA_PARENT_ENABLE_GAMIFICATION,
+            const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+            const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
+            const.DATA_APPROVER_ENABLE_GAMIFICATION,
             const.DATA_USER_CAN_APPROVE,
-            const.DATA_PARENT_ASSOCIATED_KIDS,
+            const.DATA_APPROVER_ASSOCIATED_USERS,
         )
     )
 
@@ -1049,15 +1026,15 @@ def validate_parent_data(
         return errors
 
     # === 4. Workflow/gamification require assignment enablement ===
-    enable_chore_workflow = data.get(const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False)
-    enable_gamification = data.get(const.DATA_PARENT_ENABLE_GAMIFICATION, False)
+    enable_chore_workflow = data.get(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False)
+    enable_gamification = data.get(const.DATA_APPROVER_ENABLE_GAMIFICATION, False)
     if (enable_chore_workflow or enable_gamification) and not assignment_enabled:
         errors[const.CFOP_ERROR_CHORE_OPTIONS] = (
             const.TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT
         )
         return errors
 
-    associated_users = data.get(const.DATA_PARENT_ASSOCIATED_KIDS, [])
+    associated_users = data.get(const.DATA_APPROVER_ASSOCIATED_USERS, [])
 
     # === 5. At least one of assignment or approval must be enabled ===
     can_approve = bool(data.get(const.DATA_USER_CAN_APPROVE, False))
@@ -1069,7 +1046,7 @@ def validate_parent_data(
 
     # === 6. Approval requires non-empty associated users list ===
     if can_approve and not associated_users:
-        errors[const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS] = (
+        errors[const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES] = (
             const.TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS
         )
         return errors
@@ -1077,31 +1054,31 @@ def validate_parent_data(
     return errors
 
 
-def build_parent(
+def build_approver(
     user_input: dict[str, Any],
-    existing: ParentData | None = None,
-) -> ParentData:
-    """Build parent data for create or update operations.
+    existing: ApproverData | None = None,
+) -> ApproverData:
+    """Build approver data for create or update operations.
 
-    This is the SINGLE SOURCE OF TRUTH for parent field handling.
-    One function handles both create (existing=None) and update (existing=ParentData).
+    This is the SINGLE SOURCE OF TRUTH for approver field handling.
+    One function handles both create (existing=None) and update (existing=ApproverData).
 
     Args:
         user_input: Form/service data with CFOF_* keys (may have missing fields)
-        existing: None for create, existing ParentData for update
+        existing: None for create, existing ApproverData for update
 
     Returns:
-        Complete ParentData TypedDict ready for storage
+        Complete ApproverData TypedDict ready for storage
 
     Raises:
         EntityValidationError: If name validation fails (empty/whitespace)
 
     Examples:
         # CREATE mode - generates UUID, applies defaults for missing fields
-        parent = build_parent({CFOF_PARENTS_INPUT_NAME: "Dad"})
+        approver = build_approver({CFOF_APPROVERS_INPUT_NAME: "Dad"})
 
         # UPDATE mode - preserves existing fields not in user_input
-        parent = build_parent({CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: ["uuid1"]}, existing=old)
+        approver = build_approver({CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: ["uuid1"]}, existing=old)
     """
     is_create = existing is None
 
@@ -1119,124 +1096,124 @@ def build_parent(
 
     # --- Name validation (required for create, optional for update) ---
     raw_name = get_field(
-        const.CFOF_PARENTS_INPUT_NAME,
-        const.DATA_PARENT_NAME,
+        const.CFOF_APPROVERS_INPUT_NAME,
+        const.DATA_APPROVER_NAME,
         "",
     )
     name = str(raw_name).strip() if raw_name else ""
 
     if is_create and not name:
         raise EntityValidationError(
-            field=const.CFOF_PARENTS_INPUT_NAME,
-            translation_key=const.TRANS_KEY_CFOF_INVALID_PARENT_NAME,
+            field=const.CFOF_APPROVERS_INPUT_NAME,
+            translation_key=const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME,
         )
-    if const.CFOF_PARENTS_INPUT_NAME in user_input and not name:
+    if const.CFOF_APPROVERS_INPUT_NAME in user_input and not name:
         raise EntityValidationError(
-            field=const.CFOF_PARENTS_INPUT_NAME,
-            translation_key=const.TRANS_KEY_CFOF_INVALID_PARENT_NAME,
+            field=const.CFOF_APPROVERS_INPUT_NAME,
+            translation_key=const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME,
         )
 
     # --- Internal ID: generate for create, preserve for update ---
     if is_create or existing is None:
         internal_id = str(uuid.uuid4())
     else:
-        internal_id = existing.get(const.DATA_PARENT_INTERNAL_ID, str(uuid.uuid4()))
+        internal_id = existing.get(const.DATA_APPROVER_INTERNAL_ID, str(uuid.uuid4()))
 
     # --- Handle HA user and notification service sentinels ---
     ha_user_id = get_field(
-        const.CFOF_PARENTS_INPUT_HA_USER,
-        const.DATA_PARENT_HA_USER_ID,
+        const.CFOF_APPROVERS_INPUT_HA_USER,
+        const.DATA_APPROVER_HA_USER_ID,
         "",
     )
     if ha_user_id in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         ha_user_id = ""
 
     notify_service = get_field(
-        const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
-        const.DATA_PARENT_MOBILE_NOTIFY_SERVICE,
+        const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+        const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
         "",
     )
     if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         notify_service = ""
 
-    associated_kids = list(
+    associated_assignees = list(
         get_field(
-            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-            const.DATA_PARENT_ASSOCIATED_KIDS,
+            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+            const.DATA_APPROVER_ASSOCIATED_USERS,
             [],
         )
     )
 
-    # --- Build complete parent structure ---
-    parent_data: dict[str, Any] = {
-        const.DATA_PARENT_INTERNAL_ID: internal_id,
-        const.DATA_PARENT_NAME: name,
-        const.DATA_PARENT_HA_USER_ID: ha_user_id,
-        const.DATA_PARENT_ASSOCIATED_KIDS: associated_kids,
-        const.DATA_PARENT_MOBILE_NOTIFY_SERVICE: notify_service,
-        const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS: (
-            existing.get(const.DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS, False)
+    # --- Build complete approver structure ---
+    approver_data: dict[str, Any] = {
+        const.DATA_APPROVER_INTERNAL_ID: internal_id,
+        const.DATA_APPROVER_NAME: name,
+        const.DATA_APPROVER_HA_USER_ID: ha_user_id,
+        const.DATA_APPROVER_ASSOCIATED_USERS: associated_assignees,
+        const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE: notify_service,
+        const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: (
+            existing.get(const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
             else False
         ),
-        const.DATA_PARENT_DASHBOARD_LANGUAGE: str(
+        const.DATA_APPROVER_DASHBOARD_LANGUAGE: str(
             get_field(
-                const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE,
-                const.DATA_PARENT_DASHBOARD_LANGUAGE,
+                const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
+                const.DATA_APPROVER_DASHBOARD_LANGUAGE,
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
-        const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: bool(
+        const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: bool(
             get_field(
-                const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-                const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT,
+                const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
                 False,
             )
         ),
-        const.DATA_PARENT_ENABLE_CHORE_WORKFLOW: bool(
+        const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: bool(
             get_field(
-                const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
-                const.DATA_PARENT_ENABLE_CHORE_WORKFLOW,
+                const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
+                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
                 False,
             )
         ),
-        const.DATA_PARENT_ENABLE_GAMIFICATION: bool(
+        const.DATA_APPROVER_ENABLE_GAMIFICATION: bool(
             get_field(
-                const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
-                const.DATA_PARENT_ENABLE_GAMIFICATION,
+                const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+                const.DATA_APPROVER_ENABLE_GAMIFICATION,
                 False,
             )
         ),
         const.DATA_USER_CAN_APPROVE: bool(
             get_field(
-                const.CFOF_PARENTS_INPUT_CAN_APPROVE,
+                const.CFOF_APPROVERS_INPUT_CAN_APPROVE,
                 const.DATA_USER_CAN_APPROVE,
                 False,
             )
         ),
         const.DATA_USER_CAN_MANAGE: bool(
             get_field(
-                const.CFOF_PARENTS_INPUT_CAN_MANAGE,
+                const.CFOF_APPROVERS_INPUT_CAN_MANAGE,
                 const.DATA_USER_CAN_MANAGE,
                 False,
             )
         ),
     }
-    parent_data[const.DATA_PARENT_LINKED_PROFILE_ID] = (
-        existing.get(const.DATA_PARENT_LINKED_PROFILE_ID) if existing else None
+    approver_data[const.DATA_APPROVER_LINKED_PROFILE_ID] = (
+        existing.get(const.DATA_APPROVER_LINKED_PROFILE_ID) if existing else None
     )
-    return cast("ParentData", parent_data)
+    return cast("ApproverData", approver_data)
 
 
 def build_user_profile(
     user_input: dict[str, Any],
-    existing: ParentData | None = None,
-) -> ParentData:
+    existing: ApproverData | None = None,
+) -> ApproverData:
     """Build user-profile data for create or update operations.
 
-    Canonical runtime alias for `build_parent()`.
+    Canonical runtime alias for `build_approver()`.
     """
-    return build_parent(user_input, existing=existing)
+    return build_approver(user_input, existing=existing)
 
 
 # ==============================================================================
@@ -1247,7 +1224,7 @@ def build_user_profile(
 # (Phase 6 CFOF Key Alignment). However, transform_chore_cfof_to_data() is
 # still needed for complex fields:
 # - daily_multi_times: CSV string → int list
-# - per_kid_due_dates: per-kid override parsing
+# - per_assignee_due_dates: per-assignee override parsing
 # See flow_helpers.transform_chore_cfof_to_data() for details.
 
 
@@ -1279,12 +1256,12 @@ def validate_chore_data(
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
         2. Name not duplicate
-        3. At least one kid assigned (create only)
+        3. At least one assignee assigned (create only)
         4. Points >= 0 (if provided)
         5. Due date not in past (if provided)
         6. DAILY_MULTI + reset type combination
         7. Overdue + reset type combination
-        8. DAILY_MULTI requires due_date (unless INDEPENDENT multi-kid)
+        8. DAILY_MULTI requires due_date (unless INDEPENDENT multi-assignee)
         9. AT_DUE_DATE_* reset types require due_date
     """
     errors: dict[str, str] = {}
@@ -1313,10 +1290,12 @@ def validate_chore_data(
                 )
                 return errors
 
-    # === 3. Assigned kids validation (create only) ===
-    assigned_kids = data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-    if not is_update and not assigned_kids:
-        errors[const.CFOP_ERROR_ASSIGNED_KIDS] = const.TRANS_KEY_CFOF_NO_KIDS_ASSIGNED
+    # === 3. Assigned assignees validation (create only) ===
+    assigned_assignees = data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+    if not is_update and not assigned_assignees:
+        errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+            const.TRANS_KEY_CFOF_NO_ASSIGNEES_ASSIGNED
+        )
         return errors
 
     # === 4. Points >= 0 ===
@@ -1393,17 +1372,17 @@ def validate_chore_data(
             )
             return errors
 
-    # === Check if INDEPENDENT multi-kid (special case for due date requirements) ===
-    is_independent_multikid = (
+    # === Check if INDEPENDENT multi-assignee (special case for due date requirements) ===
+    is_independent_multiassignee = (
         completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-        and len(assigned_kids) >= 2
+        and len(assigned_assignees) >= 2
     )
 
     # === 8. DAILY_MULTI requires due_date ===
     if (
         recurring_frequency == const.FREQUENCY_DAILY_MULTI
         and not due_date_raw
-        and not is_independent_multikid
+        and not is_independent_multiassignee
     ):
         errors[const.CFOP_ERROR_DAILY_MULTI_DUE_DATE] = (
             const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_DUE_DATE_REQUIRED
@@ -1415,21 +1394,21 @@ def validate_chore_data(
         const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
         const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
     ):
-        if not due_date_raw and not is_independent_multikid:
+        if not due_date_raw and not is_independent_multiassignee:
             errors[const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE] = (
                 const.TRANS_KEY_CFOF_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE
             )
             return errors
 
-    # === V-03: Rotation requires ≥ 2 assigned kids ===
+    # === V-03: Rotation requires ≥ 2 assigned assignees ===
     rotation_criteria = {
         const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         const.COMPLETION_CRITERIA_ROTATION_SMART,
     }
     if completion_criteria in rotation_criteria:
-        if len(assigned_kids) < 2:
-            errors[const.CFOP_ERROR_ASSIGNED_KIDS] = (
-                const.TRANS_KEY_ERROR_ROTATION_MIN_KIDS
+        if len(assigned_assignees) < 2:
+            errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+                const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
             )
             return errors
 
@@ -1475,7 +1454,7 @@ def build_chore(
 
     Examples:
         # CREATE mode - generates UUID, applies const.DEFAULT_* for missing fields
-        chore = build_chore({DATA_CHORE_NAME: "Clean Room", DATA_CHORE_ASSIGNED_KIDS: [...]})
+        chore = build_chore({DATA_CHORE_NAME: "Clean Room", DATA_CHORE_ASSIGNED_ASSIGNEES: [...]})
 
         # UPDATE mode - preserves existing fields not in user_input
         chore = build_chore({DATA_CHORE_DEFAULT_POINTS: 15}, existing=old_chore)
@@ -1541,7 +1520,7 @@ def build_chore(
 
     # --- Build complete chore structure ---
     # Extract values needed for rotation genesis logic
-    assigned_kids_value = get_field(const.DATA_CHORE_ASSIGNED_KIDS, [])
+    assigned_assignees_value = get_field(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
     completion_criteria_value = get_field(
         const.DATA_CHORE_COMPLETION_CRITERIA,
         const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -1584,7 +1563,7 @@ def build_chore(
                 get_field(const.DATA_CHORE_ICON, const.SENTINEL_EMPTY)
             ),
             # Assignment
-            const.DATA_CHORE_ASSIGNED_KIDS: list(assigned_kids_value),
+            const.DATA_CHORE_ASSIGNED_ASSIGNEES: list(assigned_assignees_value),
             # Scheduling
             const.DATA_CHORE_RECURRING_FREQUENCY: recurring_frequency,
             const.DATA_CHORE_CUSTOM_INTERVAL: custom_interval,
@@ -1594,17 +1573,17 @@ def build_chore(
             ),
             # Due dates
             const.DATA_CHORE_DUE_DATE: get_field(const.DATA_CHORE_DUE_DATE, None),
-            const.DATA_CHORE_PER_KID_DUE_DATES: _normalize_dict_field(
-                get_field(const.DATA_CHORE_PER_KID_DUE_DATES, {})
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: _normalize_dict_field(
+                get_field(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
             ),
             const.DATA_CHORE_APPLICABLE_DAYS: _normalize_list_field(
                 get_field(const.DATA_CHORE_APPLICABLE_DAYS, [])
             ),
-            const.DATA_CHORE_PER_KID_APPLICABLE_DAYS: _normalize_dict_field(
-                get_field(const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
+            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS: _normalize_dict_field(
+                get_field(const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {})
             ),
-            const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES: _normalize_dict_field(
-                get_field(const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {})
+            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES: _normalize_dict_field(
+                get_field(const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {})
             ),
             # Due window configuration (per-chore offsets)
             const.DATA_CHORE_DUE_WINDOW_OFFSET: get_field(
@@ -1692,13 +1671,13 @@ def build_chore(
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             ),
             # Rotation tracking (v0.5.0 Chore Logic)
-            const.DATA_CHORE_ROTATION_CURRENT_KID_ID: get_field(
-                const.DATA_CHORE_ROTATION_CURRENT_KID_ID,
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: get_field(
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
                 (
-                    assigned_kids_value[0]
+                    assigned_assignees_value[0]
                     if (
                         is_create
-                        and assigned_kids_value
+                        and assigned_assignees_value
                         and completion_criteria_value
                         in (
                             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
@@ -1708,7 +1687,7 @@ def build_chore(
                     else None
                 ),
             ),
-            # rotation_order removed - unused field, assigned_kids defines order
+            # rotation_order removed - unused field, assigned_assignees defines order
             const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE: get_field(
                 const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE, False
             ),
@@ -1735,19 +1714,19 @@ _CHORE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_CHORE_DESCRIPTION,
         const.DATA_CHORE_LABELS,
         const.DATA_CHORE_ICON,
-        # Assignment (per-kid CONFIG, not runtime)
-        const.DATA_CHORE_ASSIGNED_KIDS,
+        # Assignment (per-assignee CONFIG, not runtime)
+        const.DATA_CHORE_ASSIGNED_ASSIGNEES,
         # Scheduling configuration
         const.DATA_CHORE_RECURRING_FREQUENCY,
         const.DATA_CHORE_CUSTOM_INTERVAL,
         const.DATA_CHORE_CUSTOM_INTERVAL_UNIT,
         const.DATA_CHORE_DAILY_MULTI_TIMES,
-        # Due date configuration (per-kid CONFIG)
+        # Due date configuration (per-assignee CONFIG)
         const.DATA_CHORE_DUE_DATE,
-        const.DATA_CHORE_PER_KID_DUE_DATES,
+        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
         const.DATA_CHORE_APPLICABLE_DAYS,
-        const.DATA_CHORE_PER_KID_APPLICABLE_DAYS,
-        const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES,
+        const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS,
+        const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES,
         # Due window configuration
         const.DATA_CHORE_DUE_WINDOW_OFFSET,
         const.DATA_CHORE_DUE_REMINDER_OFFSET,
@@ -1769,8 +1748,8 @@ _CHORE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
 # These are fields in the chore record that track runtime state.
 # On FULL chore data reset, they are CLEARED to their defaults.
 #
-# NOTE: Per-kid tracking lists (claimed_by, completed_by) are cleared entirely
-# on full reset. Per-kid CONFIG (assigned_kids, per_kid_due_dates) is PRESERVED.
+# NOTE: Per-assignee tracking lists (claimed_by, completed_by) are cleared entirely
+# on full reset. Per-assignee CONFIG (assigned_assignees, per_assignee_due_dates) is PRESERVED.
 
 _CHORE_RUNTIME_DATA_FIELDS: frozenset[str] = frozenset(
     {
@@ -1783,31 +1762,31 @@ _CHORE_RUNTIME_DATA_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Chore Per-Kid Runtime Lists (for PER-KID data reset) ---
-# These are chore-level lists that track kid_ids for runtime state.
-# On PER-KID data reset: REMOVE the specific kid_id from these lists.
+# --- Chore Per-Assignee Runtime Lists (for PER-KID data reset) ---
+# These are chore-level lists that track assignee_ids for runtime state.
+# On PER-KID data reset: REMOVE the specific assignee_id from these lists.
 # On FULL data reset: CLEAR these lists entirely (handled by build_chore defaults).
 #
-# MAINTENANCE CONTRACT: When adding new chore-level kid tracking lists,
-# add them here so per-kid data reset removes the kid from them.
+# MAINTENANCE CONTRACT: When adding new chore-level assignee tracking lists,
+# add them here so per-assignee data reset removes the assignee from them.
 
-_CHORE_PER_KID_RUNTIME_LISTS: frozenset[str] = frozenset(
+_CHORE_PER_ASSIGNEE_RUNTIME_LISTS: frozenset[str] = frozenset(
     {
-        const.DATA_CHORE_CLAIMED_BY,  # List of kid_ids who claimed
-        const.DATA_CHORE_COMPLETED_BY,  # List of kid_ids who completed
+        const.DATA_CHORE_CLAIMED_BY,  # List of assignee_ids who claimed
+        const.DATA_CHORE_COMPLETED_BY,  # List of assignee_ids who completed
     }
 )
 
-# --- Chore Kid Runtime Fields (for data_reset_chores) ---
-# These are kid-side structures owned by ChoreManager.
-# ChoreManager creates these on-demand before recording data (not at kid genesis).
-# On data reset: CLEAR these structures for affected kid(s).
+# --- Chore Assignee Runtime Fields (for data_reset_chores) ---
+# These are assignee-side structures owned by ChoreManager.
+# ChoreManager creates these on-demand before recording data (not at assignee genesis).
+# On data reset: CLEAR these structures for affected assignee(s).
 # Note: chore_stats deleted in v43; chore_periods holds aggregated all-time stats.
 
-_CHORE_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_CHORE_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_KID_CHORE_DATA,  # Per-chore tracking (ChoreManager creates on-demand)
-        const.DATA_KID_CHORE_PERIODS,  # Aggregated chore periods (v43+, all_time bucket)
+        const.DATA_ASSIGNEE_CHORE_DATA,  # Per-chore tracking (ChoreManager creates on-demand)
+        const.DATA_ASSIGNEE_CHORE_PERIODS,  # Aggregated chore periods (v43+, all_time bucket)
     }
 )
 
@@ -2081,7 +2060,9 @@ def build_badge(
         if not isinstance(assigned, list):
             assigned = [assigned] if assigned else []
         assigned = [
-            kid_id for kid_id in assigned if kid_id and kid_id != const.SENTINEL_EMPTY
+            assignee_id
+            for assignee_id in assigned
+            if assignee_id and assignee_id != const.SENTINEL_EMPTY
         ]
         badge_data[const.DATA_BADGE_ASSIGNED_TO] = assigned
 
@@ -2234,7 +2215,7 @@ def build_badge(
 #
 # NOTE: Badges have complex, type-dependent structures. The preserve set includes
 # all base fields and nested config dicts (target, awards, reset_schedule, etc.).
-# The only true RUNTIME field is 'earned_by' (list of kid_ids who earned the badge).
+# The only true RUNTIME field is 'earned_by' (list of assignee_ids who earned the badge).
 
 _BADGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -2259,15 +2240,15 @@ _BADGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Badge Kid Runtime Fields (for data_reset_badges) ---
-# These are kid-side structures owned by GamificationManager.
-# On data reset: CLEAR these structures for affected kid(s).
+# --- Badge Assignee Runtime Fields (for data_reset_badges) ---
+# These are assignee-side structures owned by GamificationManager.
+# On data reset: CLEAR these structures for affected assignee(s).
 
-_BADGE_KID_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_BADGE_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_KID_BADGES_EARNED,  # Badge award history
-        const.DATA_KID_BADGE_PROGRESS,  # Current badge progress
-        const.DATA_KID_CUMULATIVE_BADGE_PROGRESS,  # Cumulative badge tracking
+        const.DATA_ASSIGNEE_BADGES_EARNED,  # Badge award history
+        const.DATA_ASSIGNEE_BADGE_PROGRESS,  # Current badge progress
+        const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS,  # Cumulative badge tracking
     }
 )
 
@@ -2290,7 +2271,7 @@ _CFOF_TO_ACHIEVEMENT_DATA_MAPPING: dict[str, str] = {
     const.CFOF_ACHIEVEMENTS_INPUT_DESCRIPTION: const.DATA_ACHIEVEMENT_DESCRIPTION,
     const.CFOF_ACHIEVEMENTS_INPUT_LABELS: const.DATA_ACHIEVEMENT_LABELS,
     const.CFOF_ACHIEVEMENTS_INPUT_ICON: const.DATA_ACHIEVEMENT_ICON,
-    const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS: const.DATA_ACHIEVEMENT_ASSIGNED_KIDS,
+    const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
     const.CFOF_ACHIEVEMENTS_INPUT_TYPE: const.DATA_ACHIEVEMENT_TYPE,
     const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID: const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID,
     const.CFOF_ACHIEVEMENTS_INPUT_CRITERIA: const.DATA_ACHIEVEMENT_CRITERIA,
@@ -2372,11 +2353,11 @@ def validate_achievement_data(
                 )
                 return errors
 
-    # === 3. At least one kid must be assigned ===
-    assigned_kids = data.get(const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, [])
-    if not assigned_kids:
-        errors[const.CFOP_ERROR_ASSIGNED_KIDS] = (
-            const.TRANS_KEY_CFOF_ACHIEVEMENT_NO_KIDS_ASSIGNED
+    # === 3. At least one assignee must be assigned ===
+    assigned_assignees = data.get(const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, [])
+    if not assigned_assignees:
+        errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+            const.TRANS_KEY_CFOF_ACHIEVEMENT_NO_ASSIGNEES_ASSIGNED
         )
         return errors
 
@@ -2469,8 +2450,8 @@ def build_achievement(
         const.DATA_ACHIEVEMENT_ICON: str(
             get_field(const.DATA_ACHIEVEMENT_ICON, const.SENTINEL_EMPTY)
         ),
-        const.DATA_ACHIEVEMENT_ASSIGNED_KIDS: _normalize_list_field(
-            get_field(const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, [])
+        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: _normalize_list_field(
+            get_field(const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, [])
         ),
         const.DATA_ACHIEVEMENT_TYPE: str(
             get_field(const.DATA_ACHIEVEMENT_TYPE, const.ACHIEVEMENT_TYPE_STREAK)
@@ -2504,7 +2485,7 @@ def build_achievement(
 # - CONFIG fields: Add to _ACHIEVEMENT_DATA_RESET_PRESERVE_FIELDS (preserved during data reset)
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
-# NOTE: Achievements store progress directly on the achievement record (not kid-side).
+# NOTE: Achievements store progress directly on the achievement record (not assignee-side).
 # On data reset, PROGRESS is cleared but CONFIG fields are preserved.
 
 _ACHIEVEMENT_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
@@ -2517,7 +2498,7 @@ _ACHIEVEMENT_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_ACHIEVEMENT_LABELS,
         const.DATA_ACHIEVEMENT_ICON,
         # Configuration
-        const.DATA_ACHIEVEMENT_ASSIGNED_KIDS,
+        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
         const.DATA_ACHIEVEMENT_TYPE,
         const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID,
         const.DATA_ACHIEVEMENT_CRITERIA,
@@ -2546,7 +2527,7 @@ _CFOF_TO_CHALLENGE_DATA_MAPPING: dict[str, str] = {
     const.CFOF_CHALLENGES_INPUT_DESCRIPTION: const.DATA_CHALLENGE_DESCRIPTION,
     const.CFOF_CHALLENGES_INPUT_LABELS: const.DATA_CHALLENGE_LABELS,
     const.CFOF_CHALLENGES_INPUT_ICON: const.DATA_CHALLENGE_ICON,
-    const.CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS: const.DATA_CHALLENGE_ASSIGNED_KIDS,
+    const.CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
     const.CFOF_CHALLENGES_INPUT_TYPE: const.DATA_CHALLENGE_TYPE,
     const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID: const.DATA_CHALLENGE_SELECTED_CHORE_ID,
     const.CFOF_CHALLENGES_INPUT_CRITERIA: const.DATA_CHALLENGE_CRITERIA,
@@ -2620,11 +2601,11 @@ def validate_challenge_data(
         errors["base"] = const.TRANS_KEY_CFOF_CHALLENGE_NAME_REQUIRED
         return errors
 
-    # === 2. At least one kid must be assigned ===
-    assigned_kids = data.get(const.DATA_CHALLENGE_ASSIGNED_KIDS, [])
-    if not assigned_kids:
-        errors[const.CFOP_ERROR_ASSIGNED_KIDS] = (
-            const.TRANS_KEY_CFOF_CHALLENGE_NO_KIDS_ASSIGNED
+    # === 2. At least one assignee must be assigned ===
+    assigned_assignees = data.get(const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, [])
+    if not assigned_assignees:
+        errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+            const.TRANS_KEY_CFOF_CHALLENGE_NO_ASSIGNEES_ASSIGNED
         )
         return errors
 
@@ -2772,8 +2753,8 @@ def build_challenge(
         const.DATA_CHALLENGE_ICON: str(
             get_field(const.DATA_CHALLENGE_ICON, const.SENTINEL_EMPTY)
         ),
-        const.DATA_CHALLENGE_ASSIGNED_KIDS: _normalize_list_field(
-            get_field(const.DATA_CHALLENGE_ASSIGNED_KIDS, [])
+        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES: _normalize_list_field(
+            get_field(const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, [])
         ),
         const.DATA_CHALLENGE_TYPE: str(
             get_field(const.DATA_CHALLENGE_TYPE, const.CHALLENGE_TYPE_DAILY_MIN)
@@ -2811,7 +2792,7 @@ def build_challenge(
 # - CONFIG fields: Add to _CHALLENGE_DATA_RESET_PRESERVE_FIELDS (preserved during data reset)
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
-# NOTE: Challenges store progress directly on the challenge record (not kid-side).
+# NOTE: Challenges store progress directly on the challenge record (not assignee-side).
 # On data reset, PROGRESS is cleared but CONFIG fields are preserved.
 
 _CHALLENGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
@@ -2824,7 +2805,7 @@ _CHALLENGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_CHALLENGE_LABELS,
         const.DATA_CHALLENGE_ICON,
         # Configuration
-        const.DATA_CHALLENGE_ASSIGNED_KIDS,
+        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
         const.DATA_CHALLENGE_TYPE,
         const.DATA_CHALLENGE_SELECTED_CHORE_ID,
         const.DATA_CHALLENGE_CRITERIA,

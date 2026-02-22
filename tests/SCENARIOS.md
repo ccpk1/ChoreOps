@@ -8,13 +8,13 @@ Quick reference for selecting the right YAML scenario for your test.
 
 **Family**: Mom + Zoë
 **Content**: 5 basic chores, simple setup
-**Use for**: Quick smoke tests, config flow validation, single-kid workflows
+**Use for**: Quick smoke tests, config flow validation, single-assignee workflows
 
 ### `scenario_shared.yaml`
 
-**Family**: Both parents + multiple kids
+**Family**: Both approvers + multiple assignees
 **Content**: Shared chores focus
-**Use for**: Multi-kid coordination, shared chore claiming patterns
+**Use for**: Multi-assignee coordination, shared chore claiming patterns
 
 ### `scenario_full.yaml`
 
@@ -43,7 +43,7 @@ Additional scenarios exist for specific test needs (approval resets, chore servi
 | Your Test Focus      | Recommended Scenario | Why                                |
 | -------------------- | -------------------- | ---------------------------------- |
 | Basic functionality  | `minimal`            | Fast, simple, focused              |
-| Multi-kid features   | `shared`             | Covers coordination patterns       |
+| Multi-assignee features   | `shared`             | Covers coordination patterns       |
 | Full integration     | `full`               | Complete feature coverage          |
 | Notifications        | `notifications`      | Optimized for notification testing |
 | Time-based features  | `scheduling`         | Due dates, recurring, overdue      |
@@ -58,7 +58,7 @@ async def scenario_minimal(hass, mock_hass_users):
     return await setup_from_yaml(hass, mock_hass_users, "tests/scenarios/scenario_minimal.yaml")
 
 async def test_something(hass, scenario_minimal):
-    # Use scenario data: scenario_minimal.kid_ids["Zoë"], etc.
+    # Use scenario data: scenario_minimal.assignee_ids["Zoë"], etc.
 ```
 
 ## Data Consistency

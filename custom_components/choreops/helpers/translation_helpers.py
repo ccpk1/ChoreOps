@@ -1,9 +1,9 @@
 # File: helpers/translation_helpers.py
-"""Translation helper functions for KidsChores (The Librarian).
+"""Translation helper functions for ChoreOps (The Librarian).
 
 Shared logic for loading and caching translation files used by:
 - UIManager: Dashboard translations for sensor attributes
-- NotificationManager: Notification translations for parent alerts
+- NotificationManager: Notification translations for approver alerts
 
 All functions here require a `hass` object for async file I/O.
 """
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 # Module-level translation cache for performance (v0.5.0+)
 # Key format: f"{language}_{translation_type}" where translation_type is "dashboard" or "notification"
-# This avoids repeated file I/O when sending notifications to multiple parents with same language
+# This avoids repeated file I/O when sending notifications to multiple approvers with same language
 _translation_cache: dict[str, dict[str, Any]] = {}
 
 
@@ -188,7 +188,7 @@ async def load_notification_translation(
     """Load notification translations for a specific language with English fallback.
 
     Uses module-level caching to avoid repeated file I/O when sending
-    notifications to multiple parents with the same language preference (v0.5.0+).
+    notifications to multiple approvers with the same language preference (v0.5.0+).
 
     Args:
         hass: Home Assistant instance

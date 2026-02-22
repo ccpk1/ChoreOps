@@ -8,8 +8,8 @@
 #   - Past and future due dates for testing overdue transitions
 #
 # Contents:
-#   - 1 parent: Test Parent
-#   - 1 kid: Zoë (isolates scheduling logic from shared chore complexity)
+#   - 1 approver: Test Approver
+#   - 1 assignee: Zoë (isolates scheduling logic from shared chore complexity)
 #   - 15 chores: One for each scheduling configuration combination
 #
 # Use case:
@@ -29,18 +29,18 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-# Kids (1 kid to isolate scheduling from shared chore complexity)
-kids:
+# Assignees (1 assignee to isolate scheduling from shared chore complexity)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (1 parent)
-parents:
+# Approvers (1 approver)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë"]
+    ha_user: "approver1"
+    assignees: ["Zoë"]
     mobile_notify_service: ""
 
 # =============================================================================

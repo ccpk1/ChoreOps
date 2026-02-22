@@ -19,7 +19,7 @@ import pytest
 from tests.helpers import (
     APPROVAL_RESET_UPON_COMPLETION,
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
-    CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DAILY_MULTI_TIMES,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
@@ -69,9 +69,9 @@ class TestDailyMultiOptionsFlow:
         config_entry = scenario_minimal.config_entry
         coordinator = scenario_minimal.coordinator
 
-        # Get existing kid names
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assert len(kid_names) > 0
+        # Get existing assignee names
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assert len(assignee_names) > 0
 
         # Start options flow
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -98,7 +98,7 @@ class TestDailyMultiOptionsFlow:
         # Add chore with DAILY_MULTI frequency
         due_date = datetime.now(UTC) + timedelta(hours=1)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             result = await hass.config_entries.options.async_configure(
                 flow_id,  # type: ignore[arg-type]
@@ -107,7 +107,7 @@ class TestDailyMultiOptionsFlow:
                     CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
                     CFOF_CHORES_INPUT_ICON: "mdi:check",
                     CFOF_CHORES_INPUT_DESCRIPTION: "",
-                    CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names[:1],
+                    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assignee_names[:1],
                     CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                     CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -129,8 +129,8 @@ class TestDailyMultiOptionsFlow:
         config_entry = scenario_minimal.config_entry
         coordinator = scenario_minimal.coordinator
 
-        # Get existing kid names
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        # Get existing assignee names
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         # Start options flow and navigate to add chore
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -148,7 +148,7 @@ class TestDailyMultiOptionsFlow:
         # Add chore with DAILY_MULTI
         due_date = datetime.now(UTC) + timedelta(hours=1)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             result = await hass.config_entries.options.async_configure(
                 flow_id,  # type: ignore[arg-type]
@@ -157,7 +157,7 @@ class TestDailyMultiOptionsFlow:
                     CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
                     CFOF_CHORES_INPUT_ICON: "mdi:check",
                     CFOF_CHORES_INPUT_DESCRIPTION: "",
-                    CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names[:1],
+                    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assignee_names[:1],
                     CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                     CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -200,8 +200,8 @@ class TestDailyMultiOptionsFlow:
         config_entry = scenario_minimal.config_entry
         coordinator = scenario_minimal.coordinator
 
-        # Get existing kid names
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        # Get existing assignee names
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         # Start options flow and navigate to add chore
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -219,7 +219,7 @@ class TestDailyMultiOptionsFlow:
         # Add chore with DAILY_MULTI
         due_date = datetime.now(UTC) + timedelta(hours=1)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             result = await hass.config_entries.options.async_configure(
                 flow_id,  # type: ignore[arg-type]
@@ -228,7 +228,7 @@ class TestDailyMultiOptionsFlow:
                     CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
                     CFOF_CHORES_INPUT_ICON: "mdi:check",
                     CFOF_CHORES_INPUT_DESCRIPTION: "",
-                    CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names[:1],
+                    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assignee_names[:1],
                     CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                     CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -262,8 +262,8 @@ class TestDailyMultiOptionsFlow:
         config_entry = scenario_minimal.config_entry
         coordinator = scenario_minimal.coordinator
 
-        # Get existing kid names
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        # Get existing assignee names
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         # Start options flow and navigate to add chore
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -281,7 +281,7 @@ class TestDailyMultiOptionsFlow:
         # Add chore with DAILY_MULTI
         due_date = datetime.now(UTC) + timedelta(hours=1)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             result = await hass.config_entries.options.async_configure(
                 flow_id,  # type: ignore[arg-type]
@@ -290,7 +290,7 @@ class TestDailyMultiOptionsFlow:
                     CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
                     CFOF_CHORES_INPUT_ICON: "mdi:check",
                     CFOF_CHORES_INPUT_DESCRIPTION: "",
-                    CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names[:1],
+                    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assignee_names[:1],
                     CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                     CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -324,8 +324,8 @@ class TestDailyMultiOptionsFlow:
         config_entry = scenario_minimal.config_entry
         coordinator = scenario_minimal.coordinator
 
-        # Get existing kid names
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        # Get existing assignee names
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         # Start options flow and navigate to add chore
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -343,7 +343,7 @@ class TestDailyMultiOptionsFlow:
         # Add chore with DAILY_MULTI
         due_date = datetime.now(UTC) + timedelta(hours=1)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             result = await hass.config_entries.options.async_configure(
                 flow_id,  # type: ignore[arg-type]
@@ -352,7 +352,7 @@ class TestDailyMultiOptionsFlow:
                     CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
                     CFOF_CHORES_INPUT_ICON: "mdi:check",
                     CFOF_CHORES_INPUT_DESCRIPTION: "",
-                    CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names[:1],
+                    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assignee_names[:1],
                     CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                     CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -388,8 +388,8 @@ class TestDailyMultiOptionsFlow:
         config_entry = scenario_minimal.config_entry
         coordinator = scenario_minimal.coordinator
 
-        # Get existing kid names
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        # Get existing assignee names
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         # Start options flow and navigate to add chore
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -407,7 +407,7 @@ class TestDailyMultiOptionsFlow:
         # Add chore with DAILY_MULTI
         due_date = datetime.now(UTC) + timedelta(hours=1)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             result = await hass.config_entries.options.async_configure(
                 flow_id,  # type: ignore[arg-type]
@@ -416,7 +416,7 @@ class TestDailyMultiOptionsFlow:
                     CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
                     CFOF_CHORES_INPUT_ICON: "mdi:check",
                     CFOF_CHORES_INPUT_DESCRIPTION: "",
-                    CFOF_CHORES_INPUT_ASSIGNED_KIDS: kid_names[:1],
+                    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assignee_names[:1],
                     CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                     CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,

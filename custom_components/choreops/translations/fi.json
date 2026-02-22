@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Tervetuloa KidsChores",
-        "description": "Tämä ohjattu toiminto opastaa sinua KidsChoresin määrittämisessä.\n\n[📖 Pikaopas]({documentation_url})"
+        "title": "Tervetuloa ChoreOps",
+        "description": "Tämä ohjattu toiminto opastaa sinua ChoreOpsin määrittämisessä.\n\n[📖 Pikaopas]({documentation_url})"
       },
       "data_recovery": {
         "title": "Tietojen palautusvaihtoehdot",
-        "description": "Aiempia KidsChores-tietoja löytyi:\n{storage_path}\n\nLöytyi {backup_count} varmuuskopiotiedostoa.\n\nMitä haluaisit tehdä?\n\n[📖 Lue lisää varmuuskopioinnista ja palautuksesta]({documentation_url})",
+        "description": "Aiempia ChoreOps-tietoja löytyi:\n{storage_path}\n\nLöytyi {backup_count} varmuuskopiotiedostoa.\n\nMitä haluaisit tehdä?\n\n[📖 Lue lisää varmuuskopioinnista ja palautuksesta]({documentation_url})",
         "data": {
           "backup_selection": "Valitse vaihtoehto"
         }
       },
       "paste_json_input": {
         "title": "JSON-tietojen tuonti",
-        "description": "Liitä koko JSON-sisältö jommastakummasta:\n\n• KidsChores-datatiedosto (kidschores_data)\n• Diagnostiikkatiedoston lataus\n\nJärjestelmä tunnistaa ja purkaa tiedostomuodon automaattisesti tarpeen mukaan. Sekä raakadatan tallennus- että diagnostiikkatiedostojen vientimuotoja tuetaan.",
+        "description": "Liitä koko JSON-sisältö jommastakummasta:\n\n• ChoreOps-datatiedosto (choreops_data)\n• Diagnostiikkatiedoston lataus\n\nJärjestelmä tunnistaa ja purkaa tiedostomuodon automaattisesti tarpeen mukaan. Sekä raakadatan tallennus- että diagnostiikkatiedostojen vientimuotoja tuetaan.",
         "data": {
           "json_data": "JSON-tiedot"
         },
         "data_description": {
-          "json_data": "Liitä koko JSON-sisältö tähän. Hyväksyy tiedot kidschores_data-tiedostosta tai diagnostiikkaviennistä (purkaa automaattisesti ylimääräisen rakenteen)."
+          "json_data": "Liitä koko JSON-sisältö tähän. Hyväksyy tiedot choreops_data-tiedostosta tai diagnostiikkaviennistä (purkaa automaattisesti ylimääräisen rakenteen)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Putkittain erotetut pistearvot manuaalisille säätöpainikkeille (esim. +1,0|-1,0|+10,0|-10,0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Lasten lukumäärä",
         "description": "Kuinka monta lasta haluat hallita?",
         "data": {
-          "kid_count": "Lasten lukumäärä"
+          "assignee_count": "Lasten lukumäärä"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Määrittele lapsi",
         "description": "Kirjoita jokaisen lapsen nimi.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "Työraporttisi ja ilmoitusten kieli."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Vanhempien lukumäärä",
         "description": "Kuinka monta vanhempaa haluat aluksi määritellä?",
         "data": {
-          "parent_count": "Vanhempien lukumäärä"
+          "approver_count": "Vanhempien lukumäärä"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Määritä ylätaso",
         "description": "Anna tiedot jokaisesta vanhemmasta.",
         "data": {
           "name": "Vanhemman nimi",
           "ha_user_id": "Kotiavustaja-käyttäjä",
-          "associated_kids": "Liittyneet lapset",
+          "associated_assignees": "Liittyneet lapset",
           "mobile_notify_service": "Ilmoitukset",
           "dashboard_language": "Kieli"
         },
         "data_description": {
           "name": "Tämän pääobjektin yksilöllinen nimi, jota käytetään koko järjestelmässä.",
           "ha_user_id": "Valinnainen: Yhdistä tämä vanhempi Home Assistant -käyttäjään ilmoituksia ja hallintapaneelin käyttöä varten.",
-          "associated_kids": "Valitse, keitä lapsia tämä vanhempi valvoo ilmoitusten ja hyväksyntätoimintojen osalta.",
+          "associated_assignees": "Valitse, keitä lapsia tämä vanhempi valvoo ilmoitusten ja hyväksyntätoimintojen osalta.",
           "mobile_notify_service": "Valitse ilmoituspalvelu ottaaksesi ilmoitukset käyttöön tälle vanhemmalle tai jätä tyhjäksi poistaaksesi ne käytöstä.",
           "dashboard_language": "Työraporttisi ja ilmoitusten kieli."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Kuvaus (valinnainen)",
               "icon": "📋 Kuvake (mdi:xxx)",
               "default_points": "💰 Annetut pisteet",
-              "assigned_kids": "👥 Määrätyt lapset",
+              "assigned_assignees": "👥 Määrätyt lapset",
               "completion_criteria": "👥 Suorituskriteerit"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Valinnaiset ohjeet tai tiedot tehtävän suorittamisesta.",
               "icon": "Materiaalisuunnittelun kuvake (esim. mdi:luuta, mdi:astianpesukone).",
               "default_points": "Pisteitä ansaitaan suoritettaessa.",
-              "assigned_kids": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
+              "assigned_assignees": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
               "completion_criteria": "Määrittää, miten tehtävä suoritetaan, kun se on annettu useille lapsille: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "📋 Kuvake (mdi:xxx)",
           "chore_labels": "📋 Tunnisteet (valinnainen)",
           "default_points": "💰 Annetut pisteet",
-          "assigned_kids": "👥 Määrätyt lapset",
+          "assigned_assignees": "👥 Määrätyt lapset",
           "completion_criteria": "👥 Suorituskriteerit",
           "approval_reset_type": "➡️ Täydennykset sallittu ja hyväksynnän nollausaika",
           "approval_reset_pending_claim_action": "➡️ Hyväksynnän nollauksessa odottavien korvaushakemusten käsittely",
@@ -212,7 +212,7 @@
           "icon": "Materiaalisuunnittelun kuvake (esim. mdi:luuta, mdi:astianpesukone).",
           "chore_labels": "Tagit askareiden järjestämiseen (esim. 'keittiö', 'ulkona'). Jätä tyhjäksi, jos et tarvitse.",
           "default_points": "Pisteitä ansaitaan suoritettaessa.",
-          "assigned_kids": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
+          "assigned_assignees": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
           "completion_criteria": "Määrittää, miten tehtävä suoritetaan, kun se on annettu useille lapsille: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto.",
           "approval_reset_type": "Ohjaa, milloin työn hyväksymissyklin raja aktivoituu (keskiyöllä, eräpäivänä, valmistuttua tai manuaalisesti).",
           "approval_reset_pending_claim_action": "Näin tapahtuu vaatimuksille, jotka odottavat edelleen hyväksyntää, kun hyväksyntä nollataan.",
@@ -359,7 +359,7 @@
           "description": "Kuvaus (valinnainen)",
           "achievement_labels": "Saavutustunnisteet",
           "icon": "Kuvake (mdi:xxx)",
-          "assigned_kids": "Määrätyt lapset",
+          "assigned_assignees": "Määrätyt lapset",
           "type": "Saavutuksen tyyppi",
           "selected_chore_id": "Valitse tehtävään liittyvä",
           "criteria": "Kriteerit (valinnainen)",
@@ -383,7 +383,7 @@
           "description": "Kuvaus (valinnainen)",
           "challenge_labels": "Haasteotsikot",
           "icon": "Kuvake (mdi:xxx)",
-          "assigned_kids": "Määrätyt lapset",
+          "assigned_assignees": "Määrätyt lapset",
           "type": "Haasteen tyyppi",
           "selected_chore_id": "Valitse haasteeseen liittyvä tehtävä (valinnainen)",
           "criteria": "Kriteerit (valinnainen)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Tämän niminen merkki on jo olemassa.",
       "duplicate_challenge": "Tämän niminen haaste on jo olemassa.",
       "duplicate_chore": "Tämän niminen työtehtävä on jo olemassa",
-      "duplicate_kid": "Tämän niminen lapsi on jo olemassa",
-      "duplicate_parent": "Tämänniminen ylätason yksikkö on jo olemassa",
+      "duplicate_assignee": "Tämän niminen lapsi on jo olemassa",
+      "duplicate_approver": "Tämänniminen ylätason yksikkö on jo olemassa",
       "duplicate_penalty": "Tämän niminen rangaistus on jo olemassa.",
       "duplicate_reward": "Tämän niminen palkinto on jo olemassa.",
       "duplicate_bonus": "Tämän niminen bonus on jo olemassa.",
-      "shadow_kid_name_conflict": "Tehtävämääräystä ei voida ottaa käyttöön: samanniminen lapsi on jo olemassa. Nimeä ensin olemassa oleva lapsi uudelleen.",
+      "shadow_assignee_name_conflict": "Tehtävämääräystä ei voida ottaa käyttöön: samanniminen lapsi on jo olemassa. Nimeä ensin olemassa oleva lapsi uudelleen.",
       "due_date_in_past": "Eräpäivän on oltava tulevaisuudessa.",
       "end_date_in_past": "Päättymispäivämäärän on oltava tulevaisuudessa.",
       "end_date_not_after_start_date": "Päättymispäivämäärän on oltava alkamispäivämäärää myöhäisempi",
       "err_end_before_start": "Päättymispäivämäärän on oltava alkamispäivämäärän jälkeen",
       "err_name_duplicate": "Tämän niminen haaste on jo olemassa.",
-      "achievement_no_kids_assigned": "Ainakin yhden lapsen on oltava määrätty saavutukseen",
-      "challenge_no_kids_assigned": "Haasteeseen on oltava määrätty vähintään yksi lapsi",
+      "achievement_no_assignees_assigned": "Ainakin yhden lapsen on oltava määrätty saavutukseen",
+      "challenge_no_assignees_assigned": "Haasteeseen on oltava määrätty vähintään yksi lapsi",
       "invalid_achievement_count": "Virheellinen saavutusten määrä",
       "invalid_achievement_name": "Virheellinen saavutuksen nimi",
       "invalid_badge": "Virheellinen merkki",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Virheellinen haasteen nimi",
       "invalid_chore": "Virheellinen työtehtävä",
       "invalid_chore_count": "Virheellinen tehtävien määrä",
-      "rotation_min_kids": "Kiertotehtävät vaativat vähintään kaksi nimettyä lasta",
+      "rotation_min_assignees": "Kiertotehtävät vaativat vähintään kaksi nimettyä lasta",
       "invalid_chore_name": "Virheellinen työn nimi",
       "invalid_points": "Pisteiden on oltava nolla tai suurempi",
       "invalid_overdue_reset_combination": "”Eräpäivänä nollaa sitten” -myöhästymiskäsittely toimii vain keskiyön nollaustyyppien kanssa. Valitse hyväksynnän nollaustyypiksi ”Keskiyöllä (kerran)” tai ”Keskiyöllä (toistuvasti)”.",
       "invalid_due_date": "Virheellinen eräpäivä",
       "date_required_for_frequency": "Tälle toistuvalle tiheydelle vaaditaan eräpäivä. Tyhjennä päivämääriä toimii vain, jos tiheys on Ei mitään, Päivittäin tai Viikoittain.",
       "invalid_end_date": "Virheellinen päättymispäivämäärä.",
-      "invalid_kid_count": "Virheellinen lasten määrä",
-      "invalid_kid_name": "Virheellinen lapsen nimi",
-      "invalid_parent_count": "Virheellinen ylätason määrä",
-      "invalid_parent_name": "Virheellinen ylätason nimi",
-      "no_kids_assigned": "Ainakin yksi lapsi on määrättävä tehtävään",
+      "invalid_assignee_count": "Virheellinen lasten määrä",
+      "invalid_assignee_name": "Virheellinen lapsen nimi",
+      "invalid_approver_count": "Virheellinen ylätason määrä",
+      "invalid_approver_name": "Virheellinen ylätason nimi",
+      "no_assignees_assigned": "Ainakin yksi lapsi on määrättävä tehtävään",
       "invalid_penalty": "Virheellinen rangaistus",
       "invalid_penalty_count": "Virheellinen rangaistuspisteiden määrä",
       "invalid_penalty_name": "Virheellinen rangaistusalueen nimi",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Virheelliset pisteet säätävät arvoja. Arvon on oltava luettelo."
     },
     "abort": {
-      "single_instance_allowed": "Vain yksi KidsChores-instanssi voidaan määrittää.",
-      "already_configured": "KidsChores-tiedot on palautettu onnistuneesti. Voit nyt ladata integraation uudelleen.",
+      "single_instance_allowed": "Vain yksi ChoreOps-instanssi voidaan määrittää.",
+      "already_configured": "ChoreOps-tiedot on palautettu onnistuneesti. Voit nyt ladata integraation uudelleen.",
       "file_not_found": "Valittua varmuuskopiotiedostoa ei löytynyt.",
       "corrupt_file": "Valittu tiedosto sisältää virheellisen JSON-tiedoston, eikä sitä voida lukea.",
-      "invalid_structure": "Valitusta tiedostosta puuttuu pakollinen KidsChores-tietorakenne.",
+      "invalid_structure": "Valitusta tiedostosta puuttuu pakollinen ChoreOps-tietorakenne.",
       "reconfigure_failed": "Uudelleenmääritys epäonnistui. Yritä uudelleen.",
       "reconfigure_successful": "Järjestelmäasetukset päivitetty onnistuneesti."
     }
@@ -509,7 +509,7 @@
           "points_icon": "Pistekuvake"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Lisää lapsi",
         "description": "Anna uuden lapsen tiedot.\n\n📖 [Määritysopas]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "Työraporttisi ja ilmoitusten kieli."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Lisää ylätaso",
         "description": "Anna uuden pääkäyttäjän tiedot.\n\n📖 [Määritysopas]({documentation_url})",
         "data": {
           "name": "Vanhemman nimi",
           "ha_user_id": "Kotiavustaja-käyttäjä",
-          "associated_kids": "Liittyneet lapset",
+          "associated_assignees": "Liittyneet lapset",
           "mobile_notify_service": "Ilmoitukset",
           "dashboard_language": "Kieli",
           "allow_chore_assignment": "Salli askareiden määrääminen minulle",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Tämän pääobjektin yksilöllinen nimi, jota käytetään koko järjestelmässä.",
           "ha_user_id": "Valinnainen: Yhdistä tämä vanhempi Home Assistant -käyttäjään ilmoituksia ja hallintapaneelin käyttöä varten.",
-          "associated_kids": "Valitse, keitä lapsia tämä vanhempi valvoo ilmoitusten ja hyväksyntätoimintojen osalta.",
+          "associated_assignees": "Valitse, keitä lapsia tämä vanhempi valvoo ilmoitusten ja hyväksyntätoimintojen osalta.",
           "mobile_notify_service": "Valitse ilmoituspalvelu ottaaksesi ilmoitukset käyttöön tälle vanhemmalle tai jätä tyhjäksi poistaaksesi ne käytöstä.",
           "allow_chore_assignment": "Luo profiilin, jotta tehtäviä voidaan määrittää sinulle. Oletusarvoisesti vain Hyväksy-painike näkyy, jotta tehtävät voidaan suorittaa yhdellä napsautuksella. Huomautus: Valinnan poistaminen säilyttää lapsen profiilin, jonka pääte on '_unlinked', manuaalista puhdistusta varten.",
           "enable_chore_workflow": "Lisää Vaatimus- ja Hylkää-painikkeet koko työnkulkuun (vaatimus → hyväksy/hylkää).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Kuvaus (valinnainen)",
               "icon": "📋 Kuvake (mdi:xxx)",
               "default_points": "💰 Annetut pisteet",
-              "assigned_kids": "👥 Määrätyt lapset",
+              "assigned_assignees": "👥 Määrätyt lapset",
               "completion_criteria": "👥 Suorituskriteerit"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Valinnaiset ohjeet tai tiedot tehtävän suorittamisesta.",
               "icon": "Materiaalisuunnittelun kuvake (esim. mdi:luuta, mdi:astianpesukone).",
               "default_points": "Pisteitä ansaitaan suoritettaessa.",
-              "assigned_kids": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
+              "assigned_assignees": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
               "completion_criteria": "Määrittää, miten tehtävä suoritetaan, kun se on annettu useille lapsille: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "📋 Kuvake (mdi:xxx)",
           "chore_labels": "📋 Tunnisteet (valinnainen)",
           "default_points": "💰 Annetut pisteet",
-          "assigned_kids": "👥 Määrätyt lapset",
+          "assigned_assignees": "👥 Määrätyt lapset",
           "completion_criteria": "👥 Suorituskriteerit",
           "approval_reset_type": "➡️ Täydennykset sallittu ja hyväksynnän nollausaika",
           "approval_reset_pending_claim_action": "➡️ Hyväksynnän nollauksessa odottavien korvaushakemusten käsittely",
@@ -654,7 +654,7 @@
           "icon": "Materiaalisuunnittelun kuvake (esim. mdi:luuta, mdi:astianpesukone).",
           "chore_labels": "Tagit askareiden järjestämiseen (esim. 'keittiö', 'ulkona'). Jätä tyhjäksi, jos et tarvitse.",
           "default_points": "Pisteitä ansaitaan suoritettaessa.",
-          "assigned_kids": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
+          "assigned_assignees": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
           "completion_criteria": "Määrittää, miten tehtävä suoritetaan, kun se on annettu useille lapsille: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto.",
           "approval_reset_type": "Ohjaa, milloin työn hyväksymissyklin raja aktivoituu (keskiyöllä, eräpäivänä, valmistuttua tai manuaalisesti).",
           "approval_reset_pending_claim_action": "Määrittää, mitä hyväksymättömille vaatimuksille tapahtuu, kun hyväksynnän nollausraja aktivoituu.",
@@ -932,7 +932,7 @@
           "description": "Kuvaus (valinnainen)",
           "achievement_labels": "Saavutustunnisteet",
           "icon": "Kuvake (mdi:xxx)",
-          "assigned_kids": "Määrätyt lapset",
+          "assigned_assignees": "Määrätyt lapset",
           "type": "Saavutuksen tyyppi",
           "selected_chore_id": "Valitse tehtävään liittyvä",
           "criteria": "Kriteerit (valinnainen)",
@@ -949,7 +949,7 @@
           "description": "Kuvaus (valinnainen)",
           "challenge_labels": "Haasteotsikot",
           "icon": "Kuvake (mdi:xxx)",
-          "assigned_kids": "Määrätyt lapset",
+          "assigned_assignees": "Määrätyt lapset",
           "type": "Haasteen tyyppi",
           "selected_chore_id": "Valitse haasteeseen liittyvä tehtävä (valinnainen)",
           "criteria": "Kriteerit (valinnainen)",
@@ -960,7 +960,7 @@
           "internal_id": "Sisäinen tunnus"
         }
       },
-      "edit_kid": {
+      "edit_assignee": {
         "title": "Muokkaa lasta",
         "description": "Muokkaa valitun lapsen tietoja.\n\n📖 [Määritysopas]({documentation_url})",
         "data": {
@@ -977,7 +977,7 @@
           "dashboard_language": "Työraporttisi ja ilmoitusten kieli."
         }
       },
-      "edit_kid_shadow": {
+      "edit_assignee_shadow": {
         "title": "Muokkaa Varjolapsia",
         "description": "Muokkaa valitun varjolapsen tietoja. ⚠️ Tämä lapsi on linkitetty vanhempaan. Nimen muuttaminen rikkoo nimen täsmäytysvaatimuksen linkityksen poistamiseksi palvelun kautta.",
         "data": {
@@ -994,13 +994,13 @@
           "dashboard_language": "Työraporttisi ja ilmoitusten kieli."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Muokkaa ylätasapainoa",
         "description": "Muokkaa valitun pääobjektin tietoja.\n\n📖 [Määritysopas]({documentation_url})",
         "data": {
           "name": "Vanhemman nimi",
           "ha_user_id": "Kotiavustaja-käyttäjä",
-          "associated_kids": "Liittyneet lapset",
+          "associated_assignees": "Liittyneet lapset",
           "mobile_notify_service": "Ilmoitukset",
           "dashboard_language": "Kieli",
           "allow_chore_assignment": "Salli askareiden määrääminen minulle",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Tämän pääobjektin yksilöllinen nimi, jota käytetään koko järjestelmässä.",
           "ha_user_id": "Valinnainen: Yhdistä tämä vanhempi Home Assistant -käyttäjään ilmoituksia ja hallintapaneelin käyttöä varten.",
-          "associated_kids": "Valitse, keitä lapsia tämä vanhempi valvoo ilmoitusten ja hyväksyntätoimintojen osalta.",
+          "associated_assignees": "Valitse, keitä lapsia tämä vanhempi valvoo ilmoitusten ja hyväksyntätoimintojen osalta.",
           "mobile_notify_service": "Valitse ilmoituspalvelu ottaaksesi ilmoitukset käyttöön tälle vanhemmalle tai jätä tyhjäksi poistaaksesi ne käytöstä.",
           "allow_chore_assignment": "Luo profiilin, jotta sinulle voidaan määrittää tehtäviä. Oletusarvoisesti vain Hyväksy-painike näkyy, jotta tehtävät voidaan suorittaa yhdellä napsautuksella. Huomautus: Valinnan poistaminen säilyttää lapsen profiilin '_unlinked'-liitteellä manuaalista puhdistusta varten.",
           "enable_chore_workflow": "Lisää Vaatimus- ja Hylkää-painikkeet koko työnkulkuun (vaatimus → hyväksy/hylkää).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Kuvaus (valinnainen)",
               "icon": "📋 Kuvake (mdi:xxx)",
               "default_points": "💰 Annetut pisteet",
-              "assigned_kids": "👥 Määrätyt lapset",
+              "assigned_assignees": "👥 Määrätyt lapset",
               "completion_criteria": "👥 Suorituskriteerit"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Valinnaiset ohjeet tai tiedot tehtävän suorittamisesta.",
               "icon": "Materiaalisuunnittelun kuvake (esim. mdi:luuta, mdi:astianpesukone).",
               "default_points": "Pisteitä ansaitaan suoritettaessa.",
-              "assigned_kids": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
+              "assigned_assignees": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
               "completion_criteria": "Määrittää, miten tehtävä suoritetaan, kun se on annettu useille lapsille: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋 Tunnisteet (valinnainen)",
           "internal_id": "Sisäinen tunnus",
           "default_points": "💰 Annetut pisteet",
-          "assigned_kids": "👥 Määrätyt lapset",
+          "assigned_assignees": "👥 Määrätyt lapset",
           "completion_criteria": "👥 Suorituskriteerit",
           "approval_reset_type": "➡️ Täydennykset sallittu ja hyväksynnän nollausaika",
           "approval_reset_pending_claim_action": "➡️ Hyväksynnän nollauksessa odottavien korvaushakemusten käsittely",
@@ -1123,7 +1123,7 @@
           "icon": "Materiaalisuunnittelun kuvake (esim. mdi:luuta, mdi:astianpesukone).",
           "chore_labels": "Tagit askareiden järjestämiseen (esim. 'keittiö', 'ulkona'). Jätä tyhjäksi, jos et tarvitse.",
           "default_points": "Pisteitä ansaitaan suoritettaessa.",
-          "assigned_kids": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
+          "assigned_assignees": "Lapset, jotka näkevät ja voivat vaatia tämän tehtävän.",
           "completion_criteria": "Määrittää, miten tehtävä suoritetaan, kun se on annettu useille lapsille: yksilöllinen seuranta, jaettu suoritus tai vuoropohjainen kierto.",
           "approval_reset_type": "Ohjaa, milloin työn hyväksymissyklin raja aktivoituu (keskiyöllä, eräpäivänä, valmistuttua tai manuaalisesti).",
           "approval_reset_pending_claim_action": "Määrittää, mitä hyväksymättömille vaatimuksille tapahtuu, kun hyväksynnän nollausraja aktivoituu.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "Milloin ilmoituksia lähetetään: Vaatimuksen, hyväksynnän, hylkäämisen tai minkä tahansa näiden yhdistelmän yhteydessä."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Muokkaa lapsikohtaisia eräpäiviä: {chore_name}",
-        "description": "Aseta jokaiselle lapselle omat eräpäivät. Päämuokkauslomakkeen päivämääräkenttä toimii **mallina** kätevästi – käytä sitä asettaaksesi saman päivämäärän nopeasti kaikille lapsille alla olevan valintaruudun avulla tai jätä se tyhjäksi ja aseta päivämäärät erikseen tähän.\n\nKentät näytetään seuraaville: {kid_names}. Jätä tyhjäksi, jos määräaikaa ei ole.{template_date}\n\n📖 [Lisäopas]({documentation_url})",
+        "description": "Aseta jokaiselle lapselle omat eräpäivät. Päämuokkauslomakkeen päivämääräkenttä toimii **mallina** kätevästi – käytä sitä asettaaksesi saman päivämäärän nopeasti kaikille lapsille alla olevan valintaruudun avulla tai jätä se tyhjäksi ja aseta päivämäärät erikseen tähän.\n\nKentät näytetään seuraaville: {assignee_names}. Jätä tyhjäksi, jos määräaikaa ei ole.{template_date}\n\n📖 [Lisäopas]({documentation_url})",
         "data": {
           "apply_template_to_all": "Käytä mallipäivämäärää kaikkiin lapsiin"
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Syötä 2–6 kertaa 24-tunnin muodossa erotettuna pystyviivalla (|). Esimerkki: 08:00|17:00 aamulle ja illalle."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Lapsikohtainen aikataulu: {chore_name}",
-        "description": "Määritä yksilölliset aikatauluasetukset jokaiselle tähän tehtävään määritetylle lapselle. Päälomakkeen arvot toimivat **mallipohjina** – käytä valintaruutuja ottaaksesi ne käyttöön kaikille lapsille tai mukauta kunkin lapsen asetuksia erikseen.\n\n**Huomautus:** Kaikki alla olevat kentät eivät koske kaikkia tehtäviä. Lomake näyttää dynaamisesti asiaankuuluvat vaihtoehdot suoritustavan, tiheyden ja sen perusteella, onko määräpäiviä asetettu.\n\n**Päivittäinen (useita) aikoja -muoto:** Jos näkyvissä, anna 2–6 aikaa 24 tunnin muodossa erotettuna pystyviivalla |. Esimerkki: 08:00|17:00\n\nLapset: {kid_names}{template_info}\n\n📖 [Lisäopas]({documentation_url})",
+        "description": "Määritä yksilölliset aikatauluasetukset jokaiselle tähän tehtävään määritetylle lapselle. Päälomakkeen arvot toimivat **mallipohjina** – käytä valintaruutuja ottaaksesi ne käyttöön kaikille lapsille tai mukauta kunkin lapsen asetuksia erikseen.\n\n**Huomautus:** Kaikki alla olevat kentät eivät koske kaikkia tehtäviä. Lomake näyttää dynaamisesti asiaankuuluvat vaihtoehdot suoritustavan, tiheyden ja sen perusteella, onko määräpäiviä asetettu.\n\n**Päivittäinen (useita) aikoja -muoto:** Jos näkyvissä, anna 2–6 aikaa 24 tunnin muodossa erotettuna pystyviivalla |. Esimerkki: 08:00|17:00\n\nLapset: {assignee_names}{template_info}\n\n📖 [Lisäopas]({documentation_url})",
         "data": {
           "apply_days_to_all": "Käytä mallipäiviä kaikille lapsille",
           "apply_times_to_all": "Käytä malliaikoja kaikille lapsille",
@@ -1428,7 +1428,7 @@
           "description": "Kuvaus (valinnainen)",
           "achievement_labels": "Saavutustunnisteet",
           "icon": "Kuvake (mdi:xxx)",
-          "assigned_kids": "Määrätyt lapset",
+          "assigned_assignees": "Määrätyt lapset",
           "type": "Saavutuksen tyyppi",
           "selected_chore_id": "Valitse tehtävään liittyvä",
           "criteria": "Kriteerit (valinnainen)",
@@ -1445,7 +1445,7 @@
           "description": "Kuvaus (valinnainen)",
           "challenge_labels": "Haasteotsikot",
           "icon": "Kuvake (mdi:xxx)",
-          "assigned_kids": "Määrätyt lapset",
+          "assigned_assignees": "Määrätyt lapset",
           "type": "Haasteen tyyppi",
           "selected_chore_id": "Valitse haasteeseen liittyvä tehtävä (valinnainen)",
           "criteria": "Kriteerit (valinnainen)",
@@ -1456,14 +1456,14 @@
           "internal_id": "Sisäinen tunnus"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Poista lapsi",
-        "description": "Oletko varma, että haluat poistaa lapsen {kid_name}?",
+        "description": "Oletko varma, että haluat poistaa lapsen {assignee_name}?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Poista ylätaso",
-        "description": "Oletko varma, että haluat poistaa pääobjektin {parent_name}?",
+        "description": "Oletko varma, että haluat poistaa pääobjektin {approver_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Hallitse kojelautaa",
-        "description": "Luo, päivitä tai poista KidsChores Lovelace -koontinäyttöjä.\n\n**Vaaditut mukautetut kortit** (asenna HACS-käyttöliittymän kautta):\n- Sienikortit (custom:mushroom-template-card)\n- Automaattiset entiteetit (custom:auto-entities)\n- Mini-graafikortti (custom:mini-graph-card)\n\nIlman näitä kortteja koontinäytöissä näkyy virheitä. Asenna ne ensin HACS:sta ennen koontinäyttöjen luomista.",
+        "description": "Luo, päivitä tai poista ChoreOps Lovelace -koontinäyttöjä.\n\n**Vaaditut mukautetut kortit** (asenna HACS-käyttöliittymän kautta):\n- Sienikortit (custom:mushroom-template-card)\n- Automaattiset entiteetit (custom:auto-entities)\n- Mini-graafikortti (custom:mini-graph-card)\n\nIlman näitä kortteja koontinäytöissä näkyy virheitä. Asenna ne ensin HACS:sta ennen koontinäyttöjen luomista.",
         "data": {
           "dashboard_action": "Toiminta",
           "dashboard_check_cards": "Tarkista kortin asennus"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Luo/Päivitä kojelauta",
-        "description": "Luo KidsChores-koontinäyttö, jossa on välilehdet jokaiselle lapselle.\n\nValitse koontinäytölle nimi, valitse sisällytettävät lapset ja lisää halutessasi Järjestelmänvalvoja-välilehti vanhempien hallintaa varten.\n\n[📖 Koontinäytön luontiopas]({documentation_url})",
+        "description": "Luo ChoreOps-koontinäyttö, jossa on välilehdet jokaiselle lapselle.\n\nValitse koontinäytölle nimi, valitse sisällytettävät lapset ja lisää halutessasi Järjestelmänvalvoja-välilehti vanhempien hallintaa varten.\n\n[📖 Koontinäytön luontiopas]({documentation_url})",
         "data": {
           "dashboard_name": "Kojelaudan nimi",
           "dashboard_style": "Kojelaudan tyyli",
-          "dashboard_kid_selection": "Lapset (yksi tabletti lasta kohden)",
+          "dashboard_assignee_selection": "Lapset (yksi tabletti lasta kohden)",
           "dashboard_include_admin": "Sisällytä Järjestelmänvalvoja-välilehti",
           "dashboard_force_rebuild": "Pakota uudelleenrakennus (korvaa olemassa oleva)"
         },
         "data_description": {
           "dashboard_name": "Kojelaudan nimi (näkyy sivupalkissa). Ehdotus: Askareita",
           "dashboard_style": "Valitse kojelaudan asettelu: Täysi (kaikki ominaisuudet), Minimalistinen (vain välttämättömät) tai Kompakti (tiivis asettelu).",
-          "dashboard_kid_selection": "Valitse, mille lapsille haluat luoda välilehtiä. Jokainen lapsi saa oman näkymän/välilehden.",
+          "dashboard_assignee_selection": "Valitse, mille lapsille haluat luoda välilehtiä. Jokainen lapsi saa oman näkymän/välilehden.",
           "dashboard_include_admin": "Lisää Järjestelmänvalvoja-välilehti, jossa on vanhempien hallintatoiminnot hyväksyntöjä ja hallintaa varten.",
           "dashboard_force_rebuild": "Jos tämä on käytössä, olemassa oleva kojelauta korvataan. Muussa tapauksessa kojelaudan luominen epäonnistuu, jos se on olemassa."
         }
       },
       "dashboard_delete": {
         "title": "Poista kojelauta",
-        "description": "Valitse poistettavat KidsChores-koontinäytöt.\n\n⚠️ Tätä toimintoa ei voi perua.",
+        "description": "Valitse poistettavat ChoreOps-koontinäytöt.\n\n⚠️ Tätä toimintoa ei voi perua.",
         "data": {
           "dashboard_delete_selection": "Poistettavat kojelaudat"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Yleiset asetukset",
-        "description": "Hallinnoi KidsChores-integraation yleisiä asetuksia.\n\n[📖 Lue lisää varmuuskopioinnista ja palautuksesta]({documentation_url})",
+        "description": "Hallinnoi ChoreOps-integraation yleisiä asetuksia.\n\n[📖 Lue lisää varmuuskopioinnista ja palautuksesta]({documentation_url})",
         "data": {
           "points_adjust_values": "Manuaalisten pisteiden säätöpainikkeiden arvot",
           "update_interval": "Päivitysväli",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Luettelo manuaalisten pisteiden säätöpainikkeiden arvoista. Arvot erotetaan merkillä '|'.",
-          "update_interval": "KidsChoresin sisäisen tilan päivitysväli minuutteina.",
+          "update_interval": "ChoreOpsin sisäisen tilan päivitysväli minuutteina.",
           "calendar_show_period": "Kuinka monena päivänä tulevaisuudessa aikataulun mukaiset askareet ja haasteet näytetään kalenterissa.",
           "retention_periods": "Tiedon säilytysajat muodossa Päivittäin|Viikoittain|Kuukausittain|Vuosittain (esim. '7|4|12|3'). Kunkin arvon on oltava positiivinen kokonaisluku.",
           "retention_daily": "Säilytettävien päivittäisten historiatietojen määrä päivinä ennen puhdistusta. Vähintään 1, enintään 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Varmuuskopioiden hallinta",
-        "description": "Hallitse KidsChores-tietojesi varmuuskopioita. Nykyinen tila: {backup_count} varmuuskopiota, joiden tallennustila on {storage_size} Mt.",
+        "description": "Hallitse ChoreOps-tietojesi varmuuskopioita. Nykyinen tila: {backup_count} varmuuskopiota, joiden tallennustila on {storage_size} Mt.",
         "data": {
           "backup_action_selection": "Valitse toiminto"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Varmuuskopiointitoiminnot",
-        "description": "Hallitse KidsChores-tietojesi varmuuskopioita.",
+        "description": "Hallitse ChoreOps-tietojesi varmuuskopioita.",
         "data": {
           "backup_action_selection": "Valitse toiminto"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Luo manuaalinen varmuuskopio",
-        "description": "Luo uusi varmuuskopio KidsChores-tiedoistasi.\n\nNykyiset varmuuskopiot: {backup_count}\nSäilytysasetus: {retention} varmuuskopiot",
+        "description": "Luo uusi varmuuskopio ChoreOps-tiedoistasi.\n\nNykyiset varmuuskopiot: {backup_count}\nSäilytysasetus: {retention} varmuuskopiot",
         "data": {
           "confirm": "Vahvista varmuuskopion luominen"
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Tietojen palautusvaihtoehdot",
-        "description": "Olemassa olevia KidsChores-tietoja löytyi sijainnista:\n{storage_path}\n\nLöytyi {backup_count} varmuuskopiotiedostoa.\n\nMitä haluat tehdä?",
+        "description": "Olemassa olevia ChoreOps-tietoja löytyi sijainnista:\n{storage_path}\n\nLöytyi {backup_count} varmuuskopiotiedostoa.\n\nMitä haluat tehdä?",
         "data": {
           "backup_selection": "Valitse vaihtoehto"
         }
       },
       "paste_json_restore": {
         "title": "JSON-tietojen tuonti",
-        "description": "Liitä koko JSON-sisältö jommastakummasta:\n\n• KidsChores-datatiedosto (kidschores_data)\n• Diagnostiikkatiedoston lataus\n\nJärjestelmä tunnistaa ja purkaa tiedostomuodon automaattisesti tarpeen mukaan. Sekä raakadatan tallennus- että diagnostiikkatiedostojen vientimuotoja tuetaan.",
+        "description": "Liitä koko JSON-sisältö jommastakummasta:\n\n• ChoreOps-datatiedosto (choreops_data)\n• Diagnostiikkatiedoston lataus\n\nJärjestelmä tunnistaa ja purkaa tiedostomuodon automaattisesti tarpeen mukaan. Sekä raakadatan tallennus- että diagnostiikkatiedostojen vientimuotoja tuetaan.",
         "data": {
           "json_data": "JSON-tiedot"
         },
         "data_description": {
-          "json_data": "Liitä koko JSON-sisältö tähän. Hyväksyy tiedot kidschores_data-tiedostosta tai diagnostiikkaviennistä (purkaa automaattisesti ylimääräisen rakenteen)."
+          "json_data": "Liitä koko JSON-sisältö tähän. Hyväksyy tiedot choreops_data-tiedostosta tai diagnostiikkaviennistä (purkaa automaattisesti ylimääräisen rakenteen)."
         }
       },
       "create_backup_confirm": {
         "title": "Luo manuaalinen varmuuskopio",
-        "description": "Luodaanko manuaalinen varmuuskopio nykyisistä KidsChores-tiedoistasi?",
+        "description": "Luodaanko manuaalinen varmuuskopio nykyisistä ChoreOps-tiedoistasi?",
         "data": {
           "confirm": "Vahvistaa"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Tämän niminen merkki on jo olemassa.",
       "duplicate_challenge": "Tämän niminen haaste on jo olemassa.",
       "duplicate_chore": "Tämän niminen työtehtävä on jo olemassa",
-      "duplicate_kid": "Tämän niminen lapsi on jo olemassa",
-      "duplicate_parent": "Tämänniminen ylätason yksikkö on jo olemassa",
+      "duplicate_assignee": "Tämän niminen lapsi on jo olemassa",
+      "duplicate_approver": "Tämänniminen ylätason yksikkö on jo olemassa",
       "duplicate_penalty": "Tämän niminen rangaistus on jo olemassa.",
       "duplicate_reward": "Tämän niminen palkinto on jo olemassa.",
       "duplicate_bonus": "Tämän niminen bonus on jo olemassa.",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Virheellinen eräpäivä",
       "date_required_for_frequency": "Tälle toistuvalle tiheydelle vaaditaan eräpäivä. Tyhjennä päivämääriä toimii vain, jos tiheys on Ei mitään, Päivittäin tai Viikoittain.",
       "invalid_end_date": "Virheellinen päättymispäivämäärä.",
-      "invalid_kid_count": "Virheellinen lasten määrä",
-      "invalid_kid_name": "Virheellinen lapsen nimi",
-      "no_kids_assigned": "Ainakin yksi lapsi on määrättävä tehtävään",
-      "achievement_no_kids_assigned": "Ainakin yhden lapsen on oltava määrätty saavutukseen",
-      "challenge_no_kids_assigned": "Haasteeseen on oltava määrätty vähintään yksi lapsi",
+      "invalid_assignee_count": "Virheellinen lasten määrä",
+      "invalid_assignee_name": "Virheellinen lapsen nimi",
+      "no_assignees_assigned": "Ainakin yksi lapsi on määrättävä tehtävään",
+      "achievement_no_assignees_assigned": "Ainakin yhden lapsen on oltava määrätty saavutukseen",
+      "challenge_no_assignees_assigned": "Haasteeseen on oltava määrätty vähintään yksi lapsi",
       "invalid_penalty": "Virheellinen rangaistus",
       "invalid_penalty_count": "Virheellinen rangaistuspisteiden määrä",
       "invalid_bonus": "Virheellinen bonus",
@@ -1721,23 +1721,23 @@
       "file_not_found": "Valittua tiedostoa ei löytynyt.",
       "invalid_selection": "Valitse kelvollinen vaihtoehto.",
       "error_daily_multi_requires_compatible_reset": "'Useita kertoja päivässä' -tiheys ei ole yhteensopiva keskiyön nollaustyyppien kanssa, koska ne nollaavat hyväksynnät vain kerran keskiyöllä.",
-      "error_daily_multi_independent_multi_kids": "'Useita kertoja päivässä' -tiheys RIIPPUMATTOMASTI suoritetulla suorituksella vaatii täsmälleen yhden lapsen, ellei lapsikohtaisia aikoja ole määritetty. Määritä jokaiselle lapselle eri ajat lapsikohtaisissa asetuksissa.",
+      "error_daily_multi_independent_multi_assignees": "'Useita kertoja päivässä' -tiheys RIIPPUMATTOMASTI suoritetulla suorituksella vaatii täsmälleen yhden lapsen, ellei lapsikohtaisia aikoja ole määritetty. Määritä jokaiselle lapselle eri ajat lapsikohtaisissa asetuksissa.",
       "error_daily_multi_times_required": "Aikaluettelo vaaditaan, jos tiheys on 'Useita kertoja päivässä'.",
       "error_daily_multi_times_invalid_format": "Virheellinen aikamuoto. Käytä 24-tunnin muotoa (HH:MM) ja erota se pisteellä | (esim. 08:00|17:00).",
       "error_daily_multi_times_too_few": "Useita kertoja päivässä -tiheydelle vaaditaan vähintään kaksi kertaa. Yhden kerran tapauksessa käytä tavallista Päivittäistä-tiheyttä.",
       "error_daily_multi_times_too_many": "Enintään kuusi kertaa päivässä sallitaan 'Useita kertoja päivässä' -tiheydellä.",
       "error_daily_multi_due_date_required": "Useita kertoja päivässä -tiheys edellyttää määräpäivän asettamista. Päivämäärä määrittää aikataulutuksen aloituspäivän ja ajat määrittävät kunkin päivän saatavuusikkunat.",
-      "rotation_min_kids": "Kiertotehtävät vaativat vähintään kaksi nimettyä lasta",
+      "rotation_min_assignees": "Kiertotehtävät vaativat vähintään kaksi nimettyä lasta",
       "error_allow_steal_incompatible": "Salli varastaa -myöhästymiskäsittely on yhteensopiva vain rotaatiotöiden (rotation_simple tai rotation_smart) kanssa, joiden nollaustyyppi on 'Kerran päivässä', ja se vaatii määräpäivän varausikkunan avautumisen määrittämiseksi.",
       "error_at_due_date_reset_requires_due_date": "Eräpäivänä tapahtuvat hyväksynnän nollaustyypit (kerran tai useita kertoja) edellyttävät eräpäivän asettamista. Ilman eräpäivää hyväksynnän nollaus ei koskaan käynnisty ja työ pysyy hyväksyttynä toistaiseksi.",
-      "error_per_kid_applicable_days_invalid": "Yhdelle tai useammalle lapselle on virheellinen päivien muoto. Päivien on oltava kokonaislukuja 0–6 (maanantai–sunnuntai) ilman kaksoiskappaleita.",
-      "error_per_kid_daily_multi_times_invalid": "Yhden tai useamman lapsen päivittäisen kellonajan muoto on virheellinen. Käytä 24-tunnin muotoa ja erota se merkillä | (esim. 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Yhdelle tai useammalle lapselle on virheellinen päivien muoto. Päivien on oltava kokonaislukuja 0–6 (maanantai–sunnuntai) ilman kaksoiskappaleita.",
+      "error_per_assignee_daily_multi_times_invalid": "Yhden tai useamman lapsen päivittäisen kellonajan muoto on virheellinen. Käytä 24-tunnin muotoa ja erota se merkillä | (esim. 08:00|17:00).",
       "dashboard_exists": "Tällä URL-polulla varustettu kojelauta on jo olemassa. Ota käyttöön 'Pakota uudelleenrakennus' korvataksesi sen.",
       "dashboard_template_error": "Kojelaudan mallin nouto epäonnistui. Tarkista verkkoyhteys tai yritä myöhemmin uudelleen.",
       "dashboard_render_error": "Kojelaudan mallin renderöinti epäonnistui. Tämä saattaa viitata mallin virheeseen.",
       "dashboard_save_error": "Kojelaudan tallentaminen Home Assistantiin epäonnistui. Tarkista lisätietoja järjestelmälokeista.",
       "dashboard_no_name": "Anna kojelaudalle nimi.",
-      "dashboard_no_kids": "Valitse vähintään yksi lapsi tai ota käyttöön 'Sisällytä ylläpitäjävälilehti'.",
+      "dashboard_no_assignees": "Valitse vähintään yksi lapsi tai ota käyttöön 'Sisällytä ylläpitäjävälilehti'.",
       "dashboard_no_dashboards": "Valitse poistettavaksi vähintään yksi kojelauta."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Virheellinen haaste",
       "invalid_chore": "Virheellinen työtehtävä",
       "invalid_entity": "Virheellinen yksikkö",
-      "invalid_kid": "Virheellinen lapsi",
-      "invalid_parent": "Virheellinen ylätaso",
+      "invalid_assignee": "Virheellinen lapsi",
+      "invalid_approver": "Virheellinen ylätaso",
       "invalid_penalty": "Virheellinen rangaistus",
       "invalid_reward": "Virheellinen palkinto",
       "invalid_bonus": "Virheellinen bonus",
-      "no_kid": "Yhtäkään lasta ei ole muokattava. Lisää ensin yksi merkintä.",
-      "no_parent": "Yhtäkään ylätason henkilöä ei ole määritetty muokattavaksi. Lisää ensin yksi merkintä.",
+      "no_assignee": "Yhtäkään lasta ei ole muokattava. Lisää ensin yksi merkintä.",
+      "no_approver": "Yhtäkään ylätason henkilöä ei ole määritetty muokattavaksi. Lisää ensin yksi merkintä.",
       "no_chore": "Muokattavia askareita ei ole määritetty. Lisää ensin yksi merkintä.",
       "no_badge": "Muokattavia merkkejä ei ole määritetty. Lisää ensin yksi merkintä.",
       "no_reward": "Muokattavia palkintoja ei ole määritetty. Lisää ensin yksi merkintä.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "Muokattavia haasteita ei ole asetettu. Lisää ensin yksi merkintä.",
       "setup_complete": "Asennus valmis",
       "backup_restored": "Varmuuskopio palautettu onnistuneesti. Integraatio on ladattu uudelleen palautetuilla tiedoilla.",
-      "no_dashboards_to_delete": "KidsChores-koontinäyttöjä ei löytynyt. Luo ensin sellainen käyttämällä kohdasta Hallitse koontinäyttöä."
+      "no_dashboards_to_delete": "ChoreOps-koontinäyttöjä ei löytynyt. Luo ensin sellainen käyttämällä kohdasta Hallitse koontinäyttöä."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Hallinnoi pisteitä",
-        "manage_kid": "Hallitse lasta",
-        "manage_parent": "Hallinnoi ylätason",
+        "manage_assignee": "Hallitse lasta",
+        "manage_approver": "Hallinnoi ylätason",
         "manage_chore": "Hallitse kotitöitä",
         "manage_badge": "Hallinnoi merkkiä",
         "manage_reward": "Hallinnoi palkintoja",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Ylläpitäjä (Vanhemman hallintapaneeli)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2021,7 +2021,7 @@
       "name": "Vaatimustehtävä",
       "description": "Lapsi ilmoittaa kotitehtävästä ja merkitsee sen \"ilmoitetuksi\" vanhempien hyväksyntää varten.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Sen lapsen nimi, joka ilmoittaa tehtävän.",
           "example": "Alice"
@@ -2037,12 +2037,12 @@
       "name": "Hyväksy kotityö",
       "description": "Vanhempi hyväksyy tehtävän ja antaa pisteitä.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Vanhempi hyväksyy kotityön.",
           "example": "Äiti"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Sen lapsen nimi, joka teki tehtävän.",
           "example": "Alice"
@@ -2063,12 +2063,12 @@
       "name": "Hylkää kotityö",
       "description": "Vanhempi ei hyväksy lapsen kotitehtävää, mikä palauttaa sen aseman.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Vanhempi paheksuu kotitehtävää.",
           "example": "Äiti"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Sen lapsen nimi, jonka kotitehtävää ei hyväksytä.",
           "example": "Alice"
@@ -2084,12 +2084,12 @@
       "name": "Lunasta palkinto",
       "description": "Vanhempi lunastaa palkinnon lapselle vähentäen pisteitä.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Vanhempi, joka valtuuttaa palkinnon lunastuksen.",
           "example": "Äiti"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi lunastaa palkinnon.",
           "example": "Alice"
@@ -2105,12 +2105,12 @@
       "name": "Hyväksy palkinto",
       "description": "Vanhempi hyväksyy lapsen lunastaman palkinnon.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Vanhempi hyväksyy palkinnon.",
           "example": "Äiti"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi, joka lunastaa palkinnon.",
           "example": "Alice"
@@ -2130,12 +2130,12 @@
       "name": "Hylkää palkinto",
       "description": "Vanhempi ei hyväksy palkinnon lunastamista lapselle.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Vanhempi ei hyväksy palkintoa.",
           "example": "Isä"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi, jonka palkinnon lunastamista ei hyväksytä.",
           "example": "Alice"
@@ -2151,12 +2151,12 @@
       "name": "Käytä rangaistusta",
       "description": "Vanhempi soveltaa rangaistusta pisteiden vähentämiseksi.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Vanhempi, joka määrää rangaistuksen.",
           "example": "Isä"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi saa rangaistuksen.",
           "example": "Alice"
@@ -2172,12 +2172,12 @@
       "name": "Käytä bonusta",
       "description": "Vanhempi antaa lapselle bonuksen ja antaa pisteitä.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Vanhemman nimi",
           "description": "Bonusta käyttävä vanhempi.",
           "example": "Äiti"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi, joka saa bonuksen.",
           "example": "Alice"
@@ -2281,7 +2281,7 @@
           "description": "Luotavan työn nimi.",
           "example": "Puhdas huone"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Määrätyt lapset",
           "description": "Lista lasten nimistä, jotka tälle tehtävälle annetaan.",
           "example": "['Emma', 'Jack']"
@@ -2377,7 +2377,7 @@
           "description": "Päivitettävän työn nimi (vaihtoehto id:lle). Käyttäjäystävällisempi kuin id.",
           "example": "Puhdas huone"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Määrätyt lapset",
           "description": "Uusi lista lasten nimistä, jotka tälle tehtävälle annetaan.",
           "example": "['Emma', 'Jack']"
@@ -2484,12 +2484,12 @@
           "description": "Rotaatiotyön nimi. Valinnainen, jos chore_id on annettu.",
           "example": "Puhdas makuuhuone"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Lapsen tunnus",
           "description": "Vuorolle määritettävän lapsen sisäinen tunniste. Täytyy määrittää tälle tehtävälle. Valinnainen, jos lapsen_nimi on annettu.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Vuorolle määritettävän lapsen nimi. Täytyy määrittää tälle tehtävälle. Valinnainen, jos lapsen_tunnus on annettu.",
           "example": "Alice"
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Nollaa tapahtumatiedot",
-      "description": "Palauta suorituksenaikaiset/tapahtumatiedot säilyttäen määritykset (lapset, askareet, palkinnot jne.). Automaattinen varmuuskopio luodaan ennen nollausta nimellä kidschores_data_timestamp_reset .storage-hakemistoon. Käytä laajuusarvoa kohdistaaksesi tiettyihin lapsiin tai verkkotunnuksiin. Edellyttää, että confirm_destructive-parametri on asetettu arvoon true turvamekanismina.",
+      "description": "Palauta suorituksenaikaiset/tapahtumatiedot säilyttäen määritykset (lapset, askareet, palkinnot jne.). Automaattinen varmuuskopio luodaan ennen nollausta nimellä choreops_data_timestamp_reset .storage-hakemistoon. Käytä laajuusarvoa kohdistaaksesi tiettyihin lapsiin tai verkkotunnuksiin. Edellyttää, että confirm_destructive-parametri on asetettu arvoon true turvamekanismina.",
       "fields": {
         "confirm_destructive": {
           "name": "Vahvista tuhoisa",
@@ -2542,11 +2542,11 @@
         },
         "scope": {
           "name": "Soveltamisala",
-          "description": "Palauta laajuus: 'global' nollaa kaikki tiedot, 'kid' nollaa vain tietyn lapsen tiedot."
+          "description": "Palauta laajuus: 'global' nollaa kaikki tiedot, 'assignee' nollaa vain tietyn lapsen tiedot."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
-          "description": "Pakollinen, jos laajuus on 'kid'. Lapsen nimi, jonka tiedot nollataan."
+          "description": "Pakollinen, jos laajuus on 'assignee'. Lapsen nimi, jonka tiedot nollataan."
         },
         "item_type": {
           "name": "Tuotteen tyyppi",
@@ -2560,7 +2560,7 @@
     },
     "reset_overdue_chores": {
       "name": "Nollaa myöhässä olevat tehtävät",
-      "description": "Palauta erääntyneet tehtävät takaisin Odottaa-tilaan ja aikatauluta ne uudelleen niiden toistumistiheyden ja edellisen eräpäivän perusteella. Voit halutessasi antaa chore_id:n (tai chore_name:n) nollataksesi tietyn tehtävän ja halutessasi kid_name:n nollataksesi tehtävän vain kyseisen lapsen osalta.",
+      "description": "Palauta erääntyneet tehtävät takaisin Odottaa-tilaan ja aikatauluta ne uudelleen niiden toistumistiheyden ja edellisen eräpäivän perusteella. Voit halutessasi antaa chore_id:n (tai chore_name:n) nollataksesi tietyn tehtävän ja halutessasi assignee_name:n nollataksesi tehtävän vain kyseisen lapsen osalta.",
       "fields": {
         "chore_id": {
           "name": "Työn tunnus",
@@ -2572,7 +2572,7 @@
           "description": "Nollattavan työn nimi (valinnainen, jos chore_id on annettu).",
           "example": "Pese astiat"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi saa rangaistuksen.",
           "example": "Alice"
@@ -2581,7 +2581,7 @@
     },
     "set_chore_due_date": {
       "name": "Aseta/Nollaa tehtävän määräpäivä",
-      "description": "Aseta (tai tyhjennä) tehtävän määräpäivä. Anna tehtävän nimi ja halutessasi uusi määräpäivä. Jos määräpäivää ei anneta, olemassa oleva määräpäivä tyhjennetään. Palvelu hylkää menneisyydessä asetetut määräpäivät. Itsenäisille tehtäville voit halutessasi antaa kid_name-attribuutin asettaaksesi määräpäivän vain kyseiselle lapselle.",
+      "description": "Aseta (tai tyhjennä) tehtävän määräpäivä. Anna tehtävän nimi ja halutessasi uusi määräpäivä. Jos määräpäivää ei anneta, olemassa oleva määräpäivä tyhjennetään. Palvelu hylkää menneisyydessä asetetut määräpäivät. Itsenäisille tehtäville voit halutessasi antaa assignee_name-attribuutin asettaaksesi määräpäivän vain kyseiselle lapselle.",
       "fields": {
         "chore_name": {
           "name": "Työn nimi",
@@ -2593,12 +2593,12 @@
           "description": "Työn uusi määräpäivä. Valitse kelvollinen päivämäärä ja kellonaika (paikallisessa aikavyöhykkeessäsi) päivämäärä-/kellonaikavalitsimella. Jätä tyhjäksi, jos haluat tyhjentää määräpäivän.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Itsenäisten askareiden kohdalla määritä lapsi, jolle määräpäivä asetetaan. Jos tämä jätetään pois, asettaa määräpäivän kaikille määritetyille lapsille.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Lapsen tunnus",
           "description": "Lapsen sisäinen tunniste. Vain kokeneille käyttäjille - käytä sen sijaan lapsen_nimeä.",
           "example": "abc123-def456"
@@ -2607,7 +2607,7 @@
     },
     "skip_chore_due_date": {
       "name": "Ohita kotitehtävä -eräpäivä",
-      "description": "Ohita toistuvan tehtävän nykyinen määräpäivä. Tämä palvelu aikatauluttaa tehtävän määräpäivän välittömästi uudelleen sen toistumistiheyden perusteella ja palauttaa sen tilan odottavaksi. Kaikki odottavat vaatimukset tai hyväksynnät poistetaan. Itsenäisille tehtäville voit halutessasi antaa kid_name-kentän ohittaaksesi vain kyseisen tehtävän.",
+      "description": "Ohita toistuvan tehtävän nykyinen määräpäivä. Tämä palvelu aikatauluttaa tehtävän määräpäivän välittömästi uudelleen sen toistumistiheyden perusteella ja palauttaa sen tilan odottavaksi. Kaikki odottavat vaatimukset tai hyväksynnät poistetaan. Itsenäisille tehtäville voit halutessasi antaa assignee_name-kentän ohittaaksesi vain kyseisen tehtävän.",
       "fields": {
         "chore_id": {
           "name": "Työn tunnus",
@@ -2619,12 +2619,12 @@
           "description": "Nollattavan työn nimi (valinnainen, jos chore_id on annettu).",
           "example": "Pese astiat"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Itsenäisten askareiden kohdalla määritä lapsi, jonka määräpäivä ohitetaan. Jos tämä jätetään pois, määräpäivä ohitetaan kaikilta määritetyiltä lapsilta.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Lapsen tunnus",
           "description": "Lapsen sisäinen tunniste. Vain kokeneille käyttäjille - käytä sen sijaan lapsen_nimeä.",
           "example": "abc123-def456"
@@ -2639,7 +2639,7 @@
       "name": "Poista myönnetyt ansiomerkit",
       "description": "Poista kaikki myönnetyt ansiomerkit kaikilta lapsilta. Valinnaisesti anna ansiomerkin nimi nollataksesi tietyn ansiomerkin kaikille lapsille. Käytä lapsen nimeä nollataksesi kaikki tietyn lapsen ansiomerkit. Yhdistä molemmat nollataksesi tietyn lapsen ansiomerkin.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Lapsen nimi",
           "description": "Lapsi, jolle on myönnetty ansiomerkkejä, poistetaan.",
           "example": "Bob"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Työn tila - {chore_name}",
         "state": {
           "pending": "Odottaa",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Lapsikohtaiset askareiden elinkaaren tilat, suorituskykytilastot ja määritysmetatiedot"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Kuvaus"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Määrätyt lapset"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Jäi väliin"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Käännä lapsen nimi"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Nykyinen pistesaldo yksityiskohtaisine ansainta- ja kulutustilastoineen"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Suurin {points} koskaan"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Suoritetut kotityöt - Kuukausittain"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Kotityöt",
         "unit_of_measurement": "Kotityöt",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Kaikkien askareiden kokonaismäärä ja yksityiskohtaiset tilastot"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Merkit",
         "state_attributes": {
           "purpose": {
             "name": "Tarkoitus",
             "state": {
-              "purpose_kid_badges": "Korkein ansaittu merkki ja reaaliaikainen kumulatiivinen edistyminen, mukaan lukien aktiiviset syklit ja palkintohistoria kaikissa merkkityypeissä"
+              "purpose_assignee_badges": "Korkein ansaittu merkki ja reaaliaikainen kumulatiivinen edistyminen, mukaan lukien aktiiviset syklit ja palkintohistoria kaikissa merkkityypeissä"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Tarrat"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Lapset ansaitsivat"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Lapset määrätty"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Merkin edistyminen - {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Ansiomerkin edistymisprosentti (0–100) seuraa ansiomerkin valmistumista, kriteerien tila, päivämäärät ja palkintohistoria"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Kuvaus"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Määrätyt lapset"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Palkinnon tila - {reward_name}",
         "state": {
           "locked": "Lukittu",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Palkintojen lunastustila lunastushistorian ja toimintopainikkeiden kera"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Rangaistukset - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "Bonus voimassa - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Ansaitut pisteet - Päivittäin"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Ansaitut pisteet - Viikoittain"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Ansaitut pisteet - Kuukausittain"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Kuvaus"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Määrätyt lapset"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Palkintopisteet"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Ansaittu"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Kuvaus"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Määrätyt lapset"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Päättymispäivä"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Ansaittu"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Edistyminen - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Yksittäisen lapsen edistymisprosentti (0–100) tämän saavutuksen saavuttamisessa, nykyinen raaka edistymismäärä ja palkinnon tila"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Kuvaus"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Määrätyt lapset"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Edistyminen - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Yksittäisen lapsen edistymisprosentti (0–100) tämän haasteen suorittamisessa määräaikana, nykyinen raaka edistymismäärä ja palkintojen tila"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Kuvaus"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Määrätyt lapset"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Korkein kotitöiden putki",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "Käyttöliittymän kojelaudan apuohjelma",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Kotityöt merkin mukaan"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Valitse bonus"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Ylläpitäjän kojelaudan lapsen valitsin",
         "state_attributes": {
           "purpose": {
             "name": "Tarkoitus",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Järjestelmänvalitsin järjestelmänvalvojan kojelaudan korteille järjestelmätasolla"
+              "purpose_system_dashboard_admin_assignee": "Järjestelmänvalitsin järjestelmänvalvojan kojelaudan korteille järjestelmätasolla"
             }
           },
           "dashboard_helper_eid": {
             "name": "Kojelaudan apuyksikön tunnus"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Valittu lapsietana"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Valitun lapsen nimi"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "Käyttöliittymän kojelaudan tehtävälistan apuohjelma",
         "state_attributes": {
           "purpose": {
             "name": "Tarkoitus",
             "state": {
-              "purpose_select_kid_chores": "Lapsen askarevalintoja kojelaudan suodatusta varten"
+              "purpose_select_assignee_chores": "Lapsen askarevalintoja kojelaudan suodatusta varten"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Kalenteri",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Kalenteri, jossa näkyy lapsen kotitöiden aikataulu ja eräpäivät"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "Käyttöliittymän kojelaudan päivämääräapu",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Päivämäärän valinta-apu kojelaudan käyttöliittymän suodatukseen ja navigointiin"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Vaadi tehtävä - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "Lapsi väittää tehneensä määrätyn kotitehtävän"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Hyväksy tehtävä - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "Vanhempi hyväksyy väitetyn kotitehtävän"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Hylkää kotitehtävä - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "Vanhempi ei hyväksy ilmoitettua kotitehtävää"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Lunasta palkinto - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "Lapsi lunastaa palkinnon pisteillä"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Hyväksy palkinto - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "Vanhempi hyväksyy lunastetun palkinnon"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Hylkää palkinto - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "Vanhempi ei hyväksy lunastettua palkintoa"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Rangaistus - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "Vanhempi määrää rangaistuksen (vähentää pisteitä)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Käytä bonusta - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "Vanhempi käyttää bonusta (lisää pisteitä)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Säädä {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "Vanhempi säätää lapsen pisteitä manuaalisesti"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Lapsen nimi"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Lisäys {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Vähennys {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "Nimellä {name}ei löytynyt lasta"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "Ei löydy pääasiallista kohdetta nimellä {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "Lapsi {name} on jo linkitetty vanhempaan"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "Lapsi {name} ei ole linkitetty vanhempaan"
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "Vanhempi {name} on jo linkitetty toiseen lapseen"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} ei löytynyt"
     },
     "not_assigned": {
-      "message": "{entity} ei ole liitetty {kid}:een"
+      "message": "{entity} ei ole liitetty {assignee}:een"
     },
     "rotation_no_turn_holder": {
       "message": "Vuorottelutehtäville on oltava määrätty vuoronpitäjä"
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Kaikki vuorojärjestyksessä olevat lapset on määrättävä tehtävään"
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Kiertotehtävät vaativat vähintään kaksi nimettyä lasta"
     },
     "not_rotation": {
       "message": "Tämä työ ei ole rotaatiotilassa"
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "Lapselle ei ole määrätty tätä tehtävää"
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "Tähän tehtävään ei ole määrätty lapsia"
     },
     "insufficient_points": {
-      "message": "{kid} :lla on {current} pistettä, mutta hän tarvitsee {required} pistettä"
+      "message": "{assignee} :lla on {current} pistettä, mutta hän tarvitsee {required} pistettä"
     },
     "already_claimed": {
       "message": "{entity} on jo lunastettu"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "Toistumistaajuus {frequency} ei ole kelvollinen"
     },
-    "chore_overdue_for_kid": {
-      "message": "Työ {chore_name} on myöhässä käyttäjälle {kid_name}"
+    "chore_overdue_for_assignee": {
+      "message": "Työ {chore_name} on myöhässä käyttäjälle {assignee_name}"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "Lapselle {kid_name} ei ole määrätty kotitehtävää {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "Lapselle {assignee_name} ei ole määrätty kotitehtävää {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "Jaetulle tehtävälle ei voi määrittää lasta {chore_name}. Jaetuilla tehtävillä on yksi määräpäivä kaikille lapsille."
     },
     "reward_not_found": {
@@ -4471,14 +4471,14 @@
     "data_reset_confirmation_required": {
       "message": "Sinun on asetettava confirm_destructive: true jatkaaksesi tietojen nollausta"
     },
-    "data_reset_kid_not_found": {
-      "message": "Lasta {kid_name} ei löytynyt"
+    "data_reset_assignee_not_found": {
+      "message": "Lasta {assignee_name} ei löytynyt"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} ei löytynyt"
     },
     "data_reset_invalid_scope": {
-      "message": "Virheellinen laajuus {scope}. Täytyy olla: global, kid, item_type tai item"
+      "message": "Virheellinen laajuus {scope}. Täytyy olla: global, assignee, item_type tai item"
     },
     "data_reset_invalid_item_type": {
       "message": "Virheellinen item_type {item_type}. Täytyy olla: lapset, kotitehtävät, palkinnot, merkit, saavutukset, haasteet, rangaistukset tai bonukset"
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "Kaikki ajonaikaiset tiedot on nollattu. Määritykset säilytetty."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Tietojen nollaus valmis käyttäjälle {kid_name}. Pisteet, tilastot ja edistyminen tyhjennetty."
+    "notif_message_data_reset_assignee": {
+      "message": "Tietojen nollaus valmis käyttäjälle {assignee_name}. Pisteet, tilastot ja edistyminen tyhjennetty."
     },
     "notif_message_data_reset_item_type": {
       "message": "Kaikkien {item_type}tietojen nollaus valmis. Suorituksenaikaiset tiedot tyhjennetty."
@@ -4502,7 +4502,7 @@
       "message": "Kotityön tekemättä jättäminen"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} jätti tehtävän väliin: {chore_name}"
+      "message": "{assignee_name} jätti tehtävän väliin: {chore_name}"
     }
   }
 }

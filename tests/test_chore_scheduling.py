@@ -96,23 +96,23 @@ from tests.helpers import (
     CHORE_STATE_WAITING,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
+    DATA_ASSIGNEE_CHORE_DATA,
+    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_ASSIGNEE_CHORE_DATA_STATE,
+    DATA_ASSIGNEE_NAME,
+    DATA_ASSIGNEE_POINTS,
     DATA_CHORE_APPLICABLE_DAYS,
     DATA_CHORE_APPROVAL_PERIOD_START,
     DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_KIDS,
+    DATA_CHORE_ASSIGNED_ASSIGNEES,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_DEFAULT_POINTS,
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_NAME,
     DATA_CHORE_OVERDUE_HANDLING_TYPE,
-    DATA_CHORE_PER_KID_DUE_DATES,
+    DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_CHORE_RECURRING_FREQUENCY,
-    DATA_KID_CHORE_DATA,
-    DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START,
-    DATA_KID_CHORE_DATA_STATE,
-    DATA_KID_NAME,
-    DATA_KID_POINTS,
     DOMAIN,
     FREQUENCY_DAILY,
     FREQUENCY_NONE,
@@ -137,7 +137,7 @@ from tests.helpers import (
 def set_chore_due_date_to_past(
     coordinator: Any,
     chore_id: str,
-    kid_id: str | None = None,
+    assignee_id: str | None = None,
     days_ago: int = 1,
 ) -> datetime:
     """Set a chore's due date to a past date for testing overdue behavior.
@@ -163,12 +163,12 @@ def set_chore_due_date_to_past(
 
     Storage locations by completion_criteria:
       SHARED:      due_date at chore level, approval_period_start at chore level
-      INDEPENDENT: due_date per-kid, approval_period_start per-kid in kid_chore_data
+      INDEPENDENT: due_date per-assignee, approval_period_start per-assignee in assignee_chore_data
 
     Args:
-        coordinator: KidsChoresDataCoordinator
+        coordinator: ChoreOpsDataCoordinator
         chore_id: The chore's internal UUID
-        kid_id: For independent chores, the kid's UUID (or None to set all)
+        assignee_id: For independent chores, the assignee's UUID (or None to set all)
         days_ago: How many days in the past (default: 1 = yesterday)
 
     Returns:
@@ -196,27 +196,35 @@ def set_chore_due_date_to_past(
 
     # Update due date and approval_period_start WITHOUT resetting state
     if criteria == COMPLETION_CRITERIA_INDEPENDENT:
-        # INDEPENDENT: due date and approval_period_start are per-kid
-        per_kid_due_dates = chore_info.setdefault(DATA_CHORE_PER_KID_DUE_DATES, {})
-        if kid_id:
-            # Single kid
-            per_kid_due_dates[kid_id] = past_date_iso
-            kid_info = coordinator.kids_data.get(kid_id, {})
-            kid_chore_data = kid_info.get(DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-            if kid_chore_data:
-                kid_chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = (
+        # INDEPENDENT: due date and approval_period_start are per-assignee
+        per_assignee_due_dates = chore_info.setdefault(
+            DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+        )
+        if assignee_id:
+            # Single assignee
+            per_assignee_due_dates[assignee_id] = past_date_iso
+            assignee_info = coordinator.assignees_data.get(assignee_id, {})
+            assignee_chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {}).get(
+                chore_id, {}
+            )
+            if assignee_chore_data:
+                assignee_chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     period_start_iso
                 )
         else:
-            # All assigned kids
-            for assigned_kid_id in chore_info.get(DATA_CHORE_ASSIGNED_KIDS, []):
-                per_kid_due_dates[assigned_kid_id] = past_date_iso
-                kid_info = coordinator.kids_data.get(assigned_kid_id, {})
-                kid_chore_data = kid_info.get(DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-                if kid_chore_data:
-                    kid_chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = (
-                        period_start_iso
-                    )
+            # All assigned assignees
+            for assigned_assignee_id in chore_info.get(
+                DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            ):
+                per_assignee_due_dates[assigned_assignee_id] = past_date_iso
+                assignee_info = coordinator.assignees_data.get(assigned_assignee_id, {})
+                assignee_chore_data = assignee_info.get(
+                    DATA_ASSIGNEE_CHORE_DATA, {}
+                ).get(chore_id, {})
+                if assignee_chore_data:
+                    assignee_chore_data[
+                        DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+                    ] = period_start_iso
     else:
         # SHARED: due date and approval_period_start are at chore level
         chore_info[DATA_CHORE_DUE_DATE] = past_date_iso
@@ -231,11 +239,11 @@ def get_chore_due_date(
 ) -> datetime | None:
     """Get the due date for a chore (global/template level).
 
-    For INDEPENDENT chores, this is the template; per-kid dates are in per_kid_due_dates.
+    For INDEPENDENT chores, this is the template; per-assignee dates are in per_assignee_due_dates.
     For SHARED chores, this is the authoritative due date.
 
     Args:
-        coordinator: KidsChoresDataCoordinator
+        coordinator: ChoreOpsDataCoordinator
         chore_id: The chore's internal UUID
 
     Returns:
@@ -248,19 +256,19 @@ def get_chore_due_date(
     return dt_to_utc(due_str)
 
 
-def get_kid_due_date(
+def get_assignee_due_date(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     chore_id: str,
 ) -> datetime | None:
-    """Get the due date for a chore for a specific kid.
+    """Get the due date for a chore for a specific assignee.
 
-    For INDEPENDENT chores, reads from per_kid_due_dates.
+    For INDEPENDENT chores, reads from per_assignee_due_dates.
     For SHARED chores, falls back to chore-level due date.
 
     Args:
-        coordinator: KidsChoresDataCoordinator
-        kid_id: The kid's internal UUID
+        coordinator: ChoreOpsDataCoordinator
+        assignee_id: The assignee's internal UUID
         chore_id: The chore's internal UUID
 
     Returns:
@@ -268,10 +276,10 @@ def get_kid_due_date(
     """
     chore_info = coordinator.chores_data.get(chore_id, {})
 
-    # Check per-kid due dates first (INDEPENDENT chores)
-    per_kid_due_dates = chore_info.get(DATA_CHORE_PER_KID_DUE_DATES, {})
-    if kid_id in per_kid_due_dates:
-        due_str = per_kid_due_dates[kid_id]
+    # Check per-assignee due dates first (INDEPENDENT chores)
+    per_assignee_due_dates = chore_info.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+    if assignee_id in per_assignee_due_dates:
+        due_str = per_assignee_due_dates[assignee_id]
         if due_str:
             return dt_to_utc(due_str)
 
@@ -282,25 +290,25 @@ def get_kid_due_date(
     return dt_to_utc(due_str)
 
 
-def get_kid_chore_state(
+def get_assignee_chore_state(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     chore_id: str,
 ) -> str:
-    """Get the current state of a chore for a specific kid.
+    """Get the current state of a chore for a specific assignee.
 
     Args:
-        coordinator: KidsChoresDataCoordinator
-        kid_id: The kid's internal UUID
+        coordinator: ChoreOpsDataCoordinator
+        assignee_id: The assignee's internal UUID
         chore_id: The chore's internal UUID
 
     Returns:
         State string (e.g., 'pending', 'claimed', 'approved', 'overdue')
     """
-    kid_data = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_data.get(DATA_KID_CHORE_DATA, {})
+    assignee_data = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
-    return per_chore.get(DATA_KID_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return per_chore.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def get_chore_by_name(
@@ -310,7 +318,7 @@ def get_chore_by_name(
     """Find a chore by name.
 
     Args:
-        coordinator: KidsChoresDataCoordinator
+        coordinator: ChoreOpsDataCoordinator
         name: Chore name to find
 
     Returns:
@@ -322,22 +330,22 @@ def get_chore_by_name(
     return None
 
 
-def get_kid_by_name(
+def get_assignee_by_name(
     coordinator: Any,
     name: str,
 ) -> tuple[str, dict[str, Any]] | None:
-    """Find a kid by name.
+    """Find a assignee by name.
 
     Args:
-        coordinator: KidsChoresDataCoordinator
-        name: Kid name to find
+        coordinator: ChoreOpsDataCoordinator
+        name: Assignee name to find
 
     Returns:
-        Tuple of (kid_id, kid_info) or None if not found
+        Tuple of (assignee_id, assignee_info) or None if not found
     """
-    for kid_id, kid_info in coordinator.kids_data.items():
-        if kid_info.get(DATA_KID_NAME) == name:
-            return kid_id, kid_info
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
+        if assignee_info.get(DATA_ASSIGNEE_NAME) == name:
+            return assignee_id, assignee_info
     return None
 
 
@@ -354,7 +362,7 @@ async def scheduling_scenario(
     """Load scheduling scenario using modern setup_from_yaml().
 
     Returns:
-        SetupResult with config_entry, coordinator, kid_ids, chore_ids maps
+        SetupResult with config_entry, coordinator, assignee_ids, chore_ids maps
     """
     return await setup_from_yaml(
         hass,
@@ -379,12 +387,12 @@ class TestDueDateLoading:
     ) -> None:
         """Test that chores with due_date_relative='future' have future due dates."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         # "Reset Midnight Once" has due_date_relative: "future"
         chore_id = chore_map["Reset Midnight Once"]
-        due_date = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date = get_assignee_due_date(coordinator, zoe_id, chore_id)
 
         assert due_date is not None, "Due date should be set"
         now_utc = datetime.now(UTC)
@@ -398,7 +406,7 @@ class TestDueDateLoading:
     ) -> None:
         """Test that we can set a due date to the past via coordinator."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         # "Overdue At Due Date" - set due date to past via coordinator
@@ -406,7 +414,7 @@ class TestDueDateLoading:
         chore_id = chore_map["Overdue At Due Date"]
         set_chore_due_date_to_past(coordinator, chore_id, zoe_id, days_ago=1)
 
-        due_date = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date = get_assignee_due_date(coordinator, zoe_id, chore_id)
 
         assert due_date is not None, "Due date should be set"
         now_utc = datetime.now(UTC)
@@ -420,11 +428,11 @@ class TestDueDateLoading:
     ) -> None:
         """Test that all chores in scheduling scenario have due dates set."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         for chore_name, chore_id in chore_map.items():
-            due_date = get_kid_due_date(coordinator, zoe_id, chore_id)
+            due_date = get_assignee_due_date(coordinator, zoe_id, chore_id)
             assert due_date is not None, f"Chore '{chore_name}' should have a due date"
 
     @pytest.mark.asyncio
@@ -435,11 +443,11 @@ class TestDueDateLoading:
     ) -> None:
         """Test that due dates are timezone-aware (UTC)."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Once"]
-        due_date = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date = get_assignee_due_date(coordinator, zoe_id, chore_id)
 
         assert due_date is not None
         assert due_date.tzinfo is not None, "Due date should be timezone-aware"
@@ -464,7 +472,7 @@ class TestOverdueDetection:
         "Overdue At Due Date" - set due date to past via coordinator, then check overdue.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue At Due Date"]
@@ -476,7 +484,7 @@ class TestOverdueDetection:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is OVERDUE
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_OVERDUE, (
             f"Chore with past due date and at_due_date handling should be OVERDUE, got {state}"
         )
@@ -495,7 +503,7 @@ class TestOverdueDetection:
         "Overdue Never" - set to past but should NOT become overdue.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue Never"]
@@ -507,7 +515,7 @@ class TestOverdueDetection:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is still PENDING (not overdue)
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_PENDING, (
             f"Chore with never_overdue should stay PENDING, got {state}"
         )
@@ -523,7 +531,7 @@ class TestOverdueDetection:
     ) -> None:
         """Test: Future due date should NOT be overdue."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Once"]
@@ -532,7 +540,7 @@ class TestOverdueDetection:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is PENDING (not overdue)
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_PENDING, (
             f"Chore with future due date should be PENDING, got {state}"
         )
@@ -550,7 +558,7 @@ class TestOverdueDetection:
         "Weekly Overdue" - set to past and verify it becomes overdue.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Weekly Overdue"]
@@ -562,7 +570,7 @@ class TestOverdueDetection:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is OVERDUE
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_OVERDUE, (
             f"Weekly chore with past due date should be OVERDUE, got {state}"
         )
@@ -584,13 +592,13 @@ class TestFrequencyEffects:
     ) -> None:
         """Test: One-time chore has a due date set."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["One Time Task"]
 
         # Verify due date exists
-        due_date = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date is not None, "One-time chore should have a due date"
 
         # Verify frequency (recurring_frequency: "none" for one-time chores)
@@ -738,12 +746,12 @@ class TestChoreConfigurationVerification:
     ) -> None:
         """Test: All chores in scheduling scenario are assigned to Zoë."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         for chore_name, chore_id in chore_map.items():
             chore_info = coordinator.chores_data.get(chore_id, {})
-            assigned = chore_info.get(DATA_CHORE_ASSIGNED_KIDS, [])
+            assigned = chore_info.get(DATA_CHORE_ASSIGNED_ASSIGNEES, [])
             assert zoe_id in assigned, f"'{chore_name}' should be assigned to Zoë"
 
 
@@ -777,7 +785,7 @@ class TestApprovalResetAtMidnightOnce:
         Bug: Due date is rescheduled immediately on approval
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Once"]
@@ -790,19 +798,19 @@ class TestApprovalResetAtMidnightOnce:
         )
 
         # Get due date before approval
-        due_date_before = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_before = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date_before is not None, "Chore should have a due date"
 
         # Claim and approve the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify state is APPROVED
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_APPROVED
 
         # Get due date after approval
-        due_date_after = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_after = get_assignee_due_date(coordinator, zoe_id, chore_id)
 
         # BUG: Due date should NOT change on approval for AT_MIDNIGHT_ONCE
         # This assertion documents expected behavior - it may fail due to the bug
@@ -819,17 +827,17 @@ class TestApprovalResetAtMidnightOnce:
     ) -> None:
         """Test: AT_MIDNIGHT_ONCE should block second approval in same period."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Once"]
 
         # First claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify state is APPROVED
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_APPROVED
 
         # Verify chore_is_approved_in_period returns True
@@ -865,7 +873,7 @@ class TestApprovalResetAtMidnightMulti:
     ) -> None:
         """Test: AT_MIDNIGHT_MULTI allows multiple claim-approve cycles in same period."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Multi"]
@@ -879,7 +887,7 @@ class TestApprovalResetAtMidnightMulti:
 
         # First claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # MULTI should allow another claim immediately
         # _can_claim_chore should return True for MULTI types
@@ -904,7 +912,7 @@ class TestApprovalResetUponCompletion:
     ) -> None:
         """Test: UPON_COMPLETION should reschedule due date immediately on approval."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Upon Completion"]
@@ -917,15 +925,15 @@ class TestApprovalResetUponCompletion:
         )
 
         # Get due date before approval
-        due_date_before = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_before = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date_before is not None, "Chore should have a due date"
 
         # Claim and approve the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Get due date after approval
-        due_date_after = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_after = get_assignee_due_date(coordinator, zoe_id, chore_id)
 
         # UPON_COMPLETION SHOULD reschedule due date on approval
         assert due_date_after is not None, "Due date should still exist"
@@ -942,17 +950,17 @@ class TestApprovalResetUponCompletion:
     ) -> None:
         """Test: UPON_COMPLETION should reset state to PENDING immediately."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Upon Completion"]
 
         # Claim and approve the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # State should be PENDING (not APPROVED) because UPON_COMPLETION resets immediately
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_PENDING, (
             f"UPON_COMPLETION should reset to PENDING, got {state}"
         )
@@ -975,7 +983,7 @@ class TestApprovalResetAtDueDateOnce:
     ) -> None:
         """Test: AT_DUE_DATE_ONCE should NOT reschedule due date on approval."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Due Date Once"]
@@ -988,19 +996,19 @@ class TestApprovalResetAtDueDateOnce:
         )
 
         # Get due date before approval
-        due_date_before = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_before = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date_before is not None, "Chore should have a due date"
 
         # Claim and approve the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify state is APPROVED
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_APPROVED
 
         # Get due date after approval - should be unchanged
-        due_date_after = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_after = get_assignee_due_date(coordinator, zoe_id, chore_id)
 
         # Like AT_MIDNIGHT_ONCE, due date should NOT change on approval
         assert due_date_after == due_date_before, (
@@ -1016,14 +1024,14 @@ class TestApprovalResetAtDueDateOnce:
     ) -> None:
         """Test: AT_DUE_DATE_ONCE should block second approval before due date."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Due Date Once"]
 
         # First claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify cannot approve again
         can_approve, error_key = coordinator.chore_manager.can_approve_chore(
@@ -1053,7 +1061,7 @@ class TestApprovalResetAtDueDateMulti:
     ) -> None:
         """Test: AT_DUE_DATE_MULTI allows multiple claim-approve cycles in same period."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Due Date Multi"]
@@ -1067,7 +1075,7 @@ class TestApprovalResetAtDueDateMulti:
 
         # First claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # MULTI should allow another claim immediately
         # _can_claim_chore should return True for MULTI types
@@ -1076,7 +1084,7 @@ class TestApprovalResetAtDueDateMulti:
 
         # Second claim and approve should work
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify can still claim again (multi allows unlimited before due date)
         can_claim, _ = coordinator.chore_manager.can_claim_chore(zoe_id, chore_id)
@@ -1090,21 +1098,21 @@ class TestApprovalResetAtDueDateMulti:
     ) -> None:
         """Test: AT_DUE_DATE_MULTI should NOT reschedule due date on approval."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Due Date Multi"]
 
         # Get due date before approval
-        due_date_before = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_before = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date_before is not None, "Chore should have a due date"
 
         # First approval
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Due date should remain unchanged
-        due_date_after_first = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_after_first = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date_after_first == due_date_before, (
             f"AT_DUE_DATE_MULTI: Due date should NOT change on first approval. "
             f"Before: {due_date_before}, After: {due_date_after_first}"
@@ -1112,10 +1120,10 @@ class TestApprovalResetAtDueDateMulti:
 
         # Second approval
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Due date should still remain unchanged
-        due_date_after_second = get_kid_due_date(coordinator, zoe_id, chore_id)
+        due_date_after_second = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert due_date_after_second == due_date_before, (
             f"AT_DUE_DATE_MULTI: Due date should NOT change on second approval. "
             f"Before: {due_date_before}, After: {due_date_after_second}"
@@ -1129,35 +1137,41 @@ class TestApprovalResetAtDueDateMulti:
     ) -> None:
         """Test: AT_DUE_DATE_MULTI allows multiple approvals in sequence."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Due Date Multi"]
 
         # Track points earned to verify multiple approvals work
-        initial_points = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        initial_points = coordinator.assignees_data[zoe_id].get(DATA_ASSIGNEE_POINTS, 0)
 
         # First approval
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
-        points_after_first = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        points_after_first = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_POINTS, 0
+        )
         assert points_after_first > initial_points, "First approval should grant points"
 
         # Second approval
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
-        points_after_second = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        points_after_second = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_POINTS, 0
+        )
         assert points_after_second > points_after_first, (
             "Second approval should grant additional points"
         )
 
         # Third approval - verify unlimited approvals
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
-        points_after_third = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        points_after_third = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_POINTS, 0
+        )
         assert points_after_third > points_after_second, (
             "Third approval should grant additional points"
         )
@@ -1180,7 +1194,7 @@ class TestOverdueAtDueDate:
     ) -> None:
         """Test: Chore with at_due_date becomes OVERDUE when past due date."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue At Due Date"]
@@ -1192,10 +1206,10 @@ class TestOverdueAtDueDate:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is now OVERDUE
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
 
         assert current_state == CHORE_STATE_OVERDUE, (
             f"at_due_date chore with past due date should be OVERDUE, got {current_state}"
@@ -1214,7 +1228,7 @@ class TestOverdueAtDueDate:
     ) -> None:
         """Test: Chore with at_due_date and future due date is NOT overdue."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         # Use a chore with future due date
@@ -1240,7 +1254,7 @@ class TestOverdueNeverOverdue:
     ) -> None:
         """Test: Chore with never_overdue stays PENDING even when past due date."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue Never"]
@@ -1253,10 +1267,10 @@ class TestOverdueNeverOverdue:
         )
 
         # Get initial state - should be PENDING or None (not yet initialized)
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        initial_state_value = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        initial_state_value = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
         assert initial_state_value in (None, CHORE_STATE_PENDING), (
             f"Initial state should be None or PENDING, got {initial_state_value}"
         )
@@ -1268,10 +1282,10 @@ class TestOverdueNeverOverdue:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is STILL PENDING or None (not overdue despite past due date)
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
 
         assert current_state in (None, CHORE_STATE_PENDING), (
             f"never_overdue chore should stay PENDING/None, got {current_state}"
@@ -1294,7 +1308,7 @@ class TestOverdueThenReset:
     ) -> None:
         """Test: Chore with at_due_date_then_reset becomes OVERDUE when past due."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue Then Reset"]
@@ -1313,10 +1327,10 @@ class TestOverdueThenReset:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is OVERDUE
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
 
         assert current_state == CHORE_STATE_OVERDUE, (
             f"at_due_date_then_reset chore should be OVERDUE, got {current_state}"
@@ -1343,7 +1357,7 @@ class TestOverdueThenReset:
         during reset (should_clear_overdue = True).
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue Then Reset"]
@@ -1355,20 +1369,23 @@ class TestOverdueThenReset:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify chore is overdue
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        assert kid_chore_data.get(DATA_KID_CHORE_DATA_STATE) == CHORE_STATE_OVERDUE
+        assert (
+            assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+            == CHORE_STATE_OVERDUE
+        )
 
         # Run the daily reset - this is what clears AT_DUE_DATE_THEN_RESET chores
         # The reset method checks overdue_handling_type and clears OVERDUE state
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # After reset, the chore should be back to PENDING
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
 
         assert current_state == CHORE_STATE_PENDING, (
             f"at_due_date_then_reset should reset to PENDING after window, got {current_state}"
@@ -1385,7 +1402,7 @@ class TestOverdueThenReset:
         The chore stays overdue and is visible as such until the reset mechanism runs.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue Then Reset"]
@@ -1422,7 +1439,7 @@ class TestOverdueClaimedChoreNotOverdue:
     ) -> None:
         """Test: A claimed chore should NOT be marked as overdue."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         # Use a chore with at_due_date handling
@@ -1432,10 +1449,10 @@ class TestOverdueClaimedChoreNotOverdue:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
 
         # Verify state is CLAIMED
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        state_before = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        state_before = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
         assert state_before == CHORE_STATE_CLAIMED, (
             f"State should be CLAIMED after claim, got {state_before}"
         )
@@ -1447,10 +1464,10 @@ class TestOverdueClaimedChoreNotOverdue:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Verify state is STILL CLAIMED (not overdue)
-        kid_chore_data = coordinator.chore_manager.get_chore_data_for_kid(
+        assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        state_after = kid_chore_data.get(DATA_KID_CHORE_DATA_STATE)
+        state_after = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
 
         assert state_after == CHORE_STATE_CLAIMED, (
             f"Claimed chore should stay CLAIMED, not become overdue. Got {state_after}"
@@ -1468,7 +1485,7 @@ class TestIsOverdueHelper:
     ) -> None:
         """Test: chore_is_overdue() returns True when chore state is OVERDUE."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Overdue At Due Date"]
@@ -1491,7 +1508,7 @@ class TestIsOverdueHelper:
     ) -> None:
         """Test: chore_is_overdue() returns False when chore state is PENDING."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         # Use a chore with future due date (won't be overdue)
@@ -1514,7 +1531,7 @@ class TestIsOverdueHelper:
     ) -> None:
         """Test: chore_is_overdue() returns False for non-existent chore."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
 
         # Use a fake chore ID
         fake_chore_id = "nonexistent-chore-id-12345"
@@ -1546,7 +1563,7 @@ class TestPendingClaimHold:
     ) -> None:
         """Test: HOLD pending claim is retained after reset."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Hold"]
@@ -1562,7 +1579,7 @@ class TestPendingClaimHold:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
 
         # Verify state is CLAIMED
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
 
         # Verify has pending claim
@@ -1574,7 +1591,7 @@ class TestPendingClaimHold:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify state is STILL CLAIMED (hold action keeps the claim)
-        state_after = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_after = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_after == CHORE_STATE_CLAIMED, (
             f"HOLD action should retain claimed state, got {state_after}"
         )
@@ -1592,14 +1609,14 @@ class TestPendingClaimHold:
     ) -> None:
         """Test: HOLD pending claim does NOT award points on reset."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Hold"]
 
         # Get points before
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_before = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
@@ -1608,8 +1625,8 @@ class TestPendingClaimHold:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify points unchanged (no auto-approval)
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_after = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         assert points_after == points_before, (
             f"HOLD action should NOT award points. Before: {points_before}, After: {points_after}"
@@ -1630,7 +1647,7 @@ class TestPendingClaimClear:
     ) -> None:
         """Test: CLEAR pending claim resets state to PENDING."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Clear"]
@@ -1646,7 +1663,7 @@ class TestPendingClaimClear:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
 
         # Verify state is CLAIMED
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
 
         # Set due date to past so reset will process the chore
@@ -1657,7 +1674,7 @@ class TestPendingClaimClear:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify state is PENDING (claim was cleared)
-        state_after = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_after = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_after == CHORE_STATE_PENDING, (
             f"CLEAR action should reset to PENDING, got {state_after}"
         )
@@ -1670,7 +1687,7 @@ class TestPendingClaimClear:
     ) -> None:
         """Test: CLEAR pending claim removes pending claim status."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Clear"]
@@ -1702,14 +1719,14 @@ class TestPendingClaimClear:
     ) -> None:
         """Test: CLEAR pending claim does NOT award points on reset."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Clear"]
 
         # Get points before
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_before = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
@@ -1721,8 +1738,8 @@ class TestPendingClaimClear:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify points unchanged
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_after = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         assert points_after == points_before, (
             f"CLEAR action should NOT award points. Before: {points_before}, After: {points_after}"
@@ -1744,7 +1761,7 @@ class TestPendingClaimAutoApprove:
     ) -> None:
         """Test: AUTO_APPROVE pending claim awards points on reset."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Auto Approve"]
@@ -1761,8 +1778,8 @@ class TestPendingClaimAutoApprove:
         assert chore_points > 0, "Test chore should have points defined"
 
         # Get points before
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_before = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
@@ -1774,8 +1791,8 @@ class TestPendingClaimAutoApprove:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify points awarded (auto-approval happened)
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_after = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         assert points_after == points_before + chore_points, (
             f"AUTO_APPROVE should award {chore_points} points. "
@@ -1790,7 +1807,7 @@ class TestPendingClaimAutoApprove:
     ) -> None:
         """Test: AUTO_APPROVE pending claim resets to PENDING after auto-approval."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Auto Approve"]
@@ -1799,7 +1816,7 @@ class TestPendingClaimAutoApprove:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
 
         # Verify state is CLAIMED before reset
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
 
         # Set due date to past so reset will process the chore
@@ -1809,7 +1826,7 @@ class TestPendingClaimAutoApprove:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify state is PENDING after reset (auto-approval + reset)
-        state_after = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_after = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_after == CHORE_STATE_PENDING, (
             f"AUTO_APPROVE should reset to PENDING after approval, got {state_after}"
         )
@@ -1822,7 +1839,7 @@ class TestPendingClaimAutoApprove:
     ) -> None:
         """Test: AUTO_APPROVE pending claim removes pending claim status."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Auto Approve"]
@@ -1858,17 +1875,17 @@ class TestPendingClaimEdgeCases:
     ) -> None:
         """Test: Already approved chores are not affected by pending claim action."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Hold"]
 
         # Claim and approve the chore normally
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify state is APPROVED
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_APPROVED
 
         # Verify no pending claim (already approved)
@@ -1883,7 +1900,7 @@ class TestPendingClaimEdgeCases:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # State should be PENDING after reset (normal reset behavior)
-        state_after = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_after = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_after == CHORE_STATE_PENDING, (
             f"Approved chore should reset to PENDING, got {state_after}"
         )
@@ -1896,7 +1913,7 @@ class TestPendingClaimEdgeCases:
     ) -> None:
         """Test: Unclaimed chores are not affected by pending claim action settings."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         _chore_id = chore_map[
@@ -1904,15 +1921,15 @@ class TestPendingClaimEdgeCases:
         ]  # Keep for clarity, intentionally unused
 
         # Get points before (no claim, no approval)
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_before = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         # Don't claim - just trigger reset
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify points unchanged (no pending claim to auto-approve)
-        kid_info = coordinator.kids_data.get(zoe_id, {})
-        points_after = kid_info.get(DATA_KID_POINTS, 0)
+        assignee_info = coordinator.assignees_data.get(zoe_id, {})
+        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
 
         assert points_after == points_before, (
             f"Unclaimed chore should NOT award points on reset. "
@@ -2006,7 +2023,7 @@ class TestApplicableDays:
     ) -> None:
         """Test: Upon completion, next due date respects applicable_days."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         # Use MWF chore (Mon/Wed/Fri only)
@@ -2014,10 +2031,10 @@ class TestApplicableDays:
 
         # Claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Get the new due date
-        new_due_date = get_kid_due_date(coordinator, zoe_id, chore_id)
+        new_due_date = get_assignee_due_date(coordinator, zoe_id, chore_id)
         assert new_due_date is not None, "Should have a new due date after approval"
 
         # Verify the due date falls on an applicable day (Mon=0, Wed=2, Fri=4)
@@ -2052,7 +2069,7 @@ class TestMultiWeekScheduling:
     ) -> None:
         """Test: Biweekly chore reschedules 14 days after approval."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Biweekly Task"]
@@ -2079,7 +2096,7 @@ class TestMultiWeekScheduling:
 
         # Claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
         await hass.async_block_till_done()
 
         # Get new due date from entity state (refreshed)
@@ -2114,7 +2131,7 @@ class TestMultiWeekScheduling:
         Uses entity state as source of truth per AGENT_TEST_CREATION_INSTRUCTIONS.md.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Monthly Task"]
@@ -2141,7 +2158,7 @@ class TestMultiWeekScheduling:
 
         # Claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
         await hass.async_block_till_done()
 
         # Get new due date from entity state (refreshed)
@@ -2194,7 +2211,7 @@ class TestTimeBoundaryCrossing:
         the chore should be claimable again (new approval period).
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Once"]
@@ -2214,14 +2231,14 @@ class TestTimeBoundaryCrossing:
             .isoformat()
         )
 
-        # Set last_approved to yesterday via kid_chore_data
-        kid_data = coordinator.kids_data.setdefault(zoe_id, {})
-        chore_data = kid_data.setdefault(DATA_KID_CHORE_DATA, {}).setdefault(
+        # Set last_approved to yesterday via assignee_chore_data
+        assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
+        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = yesterday
-        chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
-        chore_data[DATA_KID_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
 
         # Approval was before period_start → not approved in current period
@@ -2248,7 +2265,7 @@ class TestTimeBoundaryCrossing:
         Approvals from before period_start don't count in the new period.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Midnight Multi"]
@@ -2264,13 +2281,13 @@ class TestTimeBoundaryCrossing:
         )
 
         # Set up state
-        kid_data = coordinator.kids_data.setdefault(zoe_id, {})
-        chore_data = kid_data.setdefault(DATA_KID_CHORE_DATA, {}).setdefault(
+        assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
+        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = yesterday_11pm
-        chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
-        chore_data[DATA_KID_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
 
         # Approval was before period_start → not in current period
@@ -2294,7 +2311,7 @@ class TestTimeBoundaryCrossing:
         the chore should be claimable again (new cycle).
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Due Date Once"]
@@ -2304,13 +2321,13 @@ class TestTimeBoundaryCrossing:
         now = datetime.now(UTC).isoformat()
 
         # Set up state
-        kid_data = coordinator.kids_data.setdefault(zoe_id, {})
-        chore_data = kid_data.setdefault(DATA_KID_CHORE_DATA, {}).setdefault(
+        assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
+        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = three_days_ago
-        chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = now
-        chore_data[DATA_KID_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = now
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
 
         # Approval was before period_start → not in current period
@@ -2334,17 +2351,17 @@ class TestTimeBoundaryCrossing:
         when the last approval was or what period_start says.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Reset Upon Completion"]
 
         # Claim and approve
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # UPON_COMPLETION should reset to PENDING immediately
-        state = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state == CHORE_STATE_PENDING, (
             "UPON_COMPLETION should reset state to PENDING after approval"
         )
@@ -2361,19 +2378,19 @@ class TestTimeBoundaryCrossing:
     ) -> None:
         """Approval-in-period flips exactly when period_start moves past approval time."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
 
         now_utc = datetime.now(UTC)
         approved_at = now_utc.isoformat()
 
-        kid_data = coordinator.kids_data.setdefault(zoe_id, {})
-        chore_data = kid_data.setdefault(DATA_KID_CHORE_DATA, {}).setdefault(
+        assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
+        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = approved_at
-        chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = approved_at
-        chore_data[DATA_KID_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = approved_at
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
         coordinator.async_set_updated_data(coordinator._data)
         await hass.async_block_till_done()
@@ -2388,7 +2405,7 @@ class TestTimeBoundaryCrossing:
         assert sensor.state == CHORE_STATE_APPROVED
 
         period_after = (now_utc + timedelta(seconds=1)).isoformat()
-        chore_data[DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = period_after
+        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = period_after
         coordinator._persist()
         coordinator.async_set_updated_data(coordinator._data)
         await hass.async_block_till_done()
@@ -2492,37 +2509,37 @@ async def shared_scenario(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load shared chore scenario for multi-kid approval reset tests."""
+    """Load shared chore scenario for multi-assignee approval reset tests."""
     return await setup_from_yaml(
         hass, mock_hass_users, "tests/scenarios/scenario_shared.yaml"
     )
 
 
 class TestSharedChoreApprovalReset:
-    """Test approval reset behavior for shared chores across multiple kids.
+    """Test approval reset behavior for shared chores across multiple assignees.
 
     Shared chores have different approval tracking than independent chores:
-    - SHARED_ALL: All assigned kids must complete before chore is done
-    - SHARED_FIRST: First kid to claim owns it, others can't claim
+    - SHARED_ALL: All assigned assignees must complete before chore is done
+    - SHARED_FIRST: First assignee to claim owns it, others can't claim
 
     Approval period tracking for shared chores is at the CHORE level,
-    not the per-kid level like independent chores.
+    not the per-assignee level like independent chores.
     """
 
     @pytest.mark.asyncio
-    async def test_shared_all_midnight_once_per_kid_tracking(
+    async def test_shared_all_midnight_once_per_assignee_tracking(
         self,
         hass: HomeAssistant,
         shared_scenario: SetupResult,
     ) -> None:
-        """Test: SHARED_ALL with AT_MIDNIGHT_ONCE tracks each kid independently.
+        """Test: SHARED_ALL with AT_MIDNIGHT_ONCE tracks each assignee independently.
 
-        Behavior: Each kid can claim and be approved once per period.
-        The chore is fully complete only when ALL kids are approved.
+        Behavior: Each assignee can claim and be approved once per period.
+        The chore is fully complete only when ALL assignees are approved.
         """
         coordinator = shared_scenario.coordinator
-        zoe_id = shared_scenario.kid_ids["Zoë"]
-        max_id = shared_scenario.kid_ids["Max!"]
+        zoe_id = shared_scenario.assignee_ids["Zoë"]
+        max_id = shared_scenario.assignee_ids["Max!"]
         chore_map = shared_scenario.chore_ids
 
         chore_id = chore_map["Shared All Pending Clear"]
@@ -2539,7 +2556,7 @@ class TestSharedChoreApprovalReset:
 
         # Zoë claims and gets approved
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Zoë is now approved for this period
         assert coordinator.chore_manager.chore_is_approved_in_period(
@@ -2550,26 +2567,26 @@ class TestSharedChoreApprovalReset:
         can_claim_zoe, _ = coordinator.chore_manager.can_claim_chore(zoe_id, chore_id)
         assert not can_claim_zoe, "Zoë should not be able to claim again (ONCE mode)"
 
-        # Max can still claim (independent per-kid tracking for SHARED_ALL)
+        # Max can still claim (independent per-assignee tracking for SHARED_ALL)
         can_claim_max, _ = coordinator.chore_manager.can_claim_chore(max_id, chore_id)
         assert can_claim_max, "Max should be able to claim (independent tracking)"
 
     @pytest.mark.asyncio
-    async def test_shared_first_midnight_once_blocks_all_kids_after_first(
+    async def test_shared_first_midnight_once_blocks_all_assignees_after_first(
         self,
         hass: HomeAssistant,
         shared_scenario: SetupResult,
     ) -> None:
-        """Test: SHARED_FIRST with AT_MIDNIGHT_ONCE blocks all kids after first approval.
+        """Test: SHARED_FIRST with AT_MIDNIGHT_ONCE blocks all assignees after first approval.
 
-        Behavior: Once first kid claims and is approved, NO other kid can claim
+        Behavior: Once first assignee claims and is approved, NO other assignee can claim
         until the next approval period (midnight reset).
 
         Note: This chore (Shared First Pending Hold) is only assigned to Zoë & Max.
         """
         coordinator = shared_scenario.coordinator
-        zoe_id = shared_scenario.kid_ids["Zoë"]
-        max_id = shared_scenario.kid_ids["Max!"]
+        zoe_id = shared_scenario.assignee_ids["Zoë"]
+        max_id = shared_scenario.assignee_ids["Max!"]
         chore_map = shared_scenario.chore_ids
 
         chore_id = chore_map["Shared First Pending Hold"]
@@ -2596,7 +2613,7 @@ class TestSharedChoreApprovalReset:
         assert not can_claim_max, "Max blocked (Zoë claimed first)"
 
         # Approve Zoë
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # After approval, still blocked (ONCE mode, same period)
         can_claim_max, _ = coordinator.chore_manager.can_claim_chore(max_id, chore_id)
@@ -2608,22 +2625,22 @@ class TestSharedChoreApprovalReset:
         hass: HomeAssistant,
         shared_scenario: SetupResult,
     ) -> None:
-        """Test: SHARED chores track approval period consistently across all kids.
+        """Test: SHARED chores track approval period consistently across all assignees.
 
         Behavior: For shared chores with completion_criteria='shared_all',
-        when one kid completes and gets approved, the approval tracking
+        when one assignee completes and gets approved, the approval tracking
         should be consistent for determining period boundaries.
         """
         coordinator = shared_scenario.coordinator
-        zoe_id = shared_scenario.kid_ids["Zoë"]
-        max_id = shared_scenario.kid_ids["Max!"]
+        zoe_id = shared_scenario.assignee_ids["Zoë"]
+        max_id = shared_scenario.assignee_ids["Max!"]
         chore_map = shared_scenario.chore_ids
 
         chore_id = chore_map["Shared All Pending Clear"]
 
         # Claim and approve Zoë to trigger approval tracking
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
-        await coordinator.chore_manager.approve_chore("parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         # Verify Zoë is approved in current period
         zoe_approved = coordinator.chore_manager.chore_is_approved_in_period(
@@ -2634,7 +2651,7 @@ class TestSharedChoreApprovalReset:
         # For SHARED_ALL chores, Max can still complete (he hasn't yet)
         # Check Max's can_claim state (should be able to claim since it's SHARED_ALL)
         max_can_claim, _ = coordinator.chore_manager.can_claim_chore(max_id, chore_id)
-        # SHARED_ALL: all kids must complete, so Max should be able to claim
+        # SHARED_ALL: all assignees must complete, so Max should be able to claim
         assert max_can_claim, "Max should still be able to claim SHARED_ALL chore"
 
 
@@ -2667,7 +2684,7 @@ class TestPendingClaimActionBehavior:
     ) -> None:
         """Test clear_pending: claimed chore reverts to PENDING at reset."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Clear"]
@@ -2679,7 +2696,7 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
 
         # Verify chore is CLAIMED
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
 
         # Trigger reset (simulating midnight reset for daily chores)
@@ -2687,7 +2704,7 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # After reset with clear_pending, chore should be PENDING
-        state_after = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_after = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_after == CHORE_STATE_PENDING, (
             "clear_pending should revert CLAIMED to PENDING at reset"
         )
@@ -2698,7 +2715,7 @@ class TestPendingClaimActionBehavior:
     ) -> None:
         """Test hold_pending: claimed chore stays CLAIMED after reset."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Hold"]
@@ -2710,7 +2727,7 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
 
         # Verify chore is CLAIMED
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
 
         # Trigger reset (simulating midnight reset for daily chores)
@@ -2718,7 +2735,7 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # After reset with hold_pending, chore should still be CLAIMED
-        state_after = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_after = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_after == CHORE_STATE_CLAIMED, (
             "hold_pending should keep CLAIMED status after reset"
         )
@@ -2729,13 +2746,15 @@ class TestPendingClaimActionBehavior:
     ) -> None:
         """Test auto_approve_pending: claimed chore is approved and awards points."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_map = scheduling_scenario.chore_ids
 
         chore_id = chore_map["Pending Auto Approve"]
 
         # Get initial points using existing pattern from this file
-        zoe_points_before = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        zoe_points_before = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_POINTS, 0
+        )
 
         # Get chore points for later comparison (before setting due date to past)
         chore_info = coordinator.chores_data.get(chore_id, {})
@@ -2748,10 +2767,11 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
 
         # Verify chore is CLAIMED and points unchanged
-        state_before = get_kid_chore_state(coordinator, zoe_id, chore_id)
+        state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
         assert (
-            coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0) == zoe_points_before
+            coordinator.assignees_data[zoe_id].get(DATA_ASSIGNEE_POINTS, 0)
+            == zoe_points_before
         )
 
         # Trigger reset (simulating midnight reset for daily chores)
@@ -2759,7 +2779,9 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # After reset with auto_approve_pending, points should be awarded
-        zoe_points_after = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        zoe_points_after = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_POINTS, 0
+        )
         assert zoe_points_after == zoe_points_before + chore_points, (
             "auto_approve_pending should award points at reset"
         )
@@ -2786,23 +2808,26 @@ class TestApprovalResetEdgeCases:
         completed once ever (until manually reset or due date is added).
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
 
         # Use existing chore with AT_DUE_DATE_ONCE reset type
         chore_id = scheduling_scenario.chore_ids["Reset Due Date Once"]
 
         # Clear the due date using the proper service method to simulate edge case
-        await coordinator.chore_manager.set_due_date(chore_id, None, kid_id=zoe_id)
+        await coordinator.chore_manager.set_due_date(chore_id, None, assignee_id=zoe_id)
 
-        # Verify no due date is set (for INDEPENDENT chores, check per-kid due dates)
+        # Verify no due date is set (for INDEPENDENT chores, check per-assignee due dates)
         chore_info = coordinator.chores_data.get(chore_id, {})
-        per_kid_dues = chore_info.get(DATA_CHORE_PER_KID_DUE_DATES, {})
-        assert per_kid_dues.get(zoe_id) is None, (
-            "Chore should have no due date for this kid"
+        per_assignee_dues = chore_info.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        assert per_assignee_dues.get(zoe_id) is None, (
+            "Chore should have no due date for this assignee"
         )
 
         # Initial state should be pending
-        assert get_kid_chore_state(coordinator, zoe_id, chore_id) == CHORE_STATE_PENDING
+        assert (
+            get_assignee_chore_state(coordinator, zoe_id, chore_id)
+            == CHORE_STATE_PENDING
+        )
 
         # Should be able to claim initially
         can_claim, _ = coordinator.chore_manager.can_claim_chore(zoe_id, chore_id)
@@ -2810,12 +2835,16 @@ class TestApprovalResetEdgeCases:
 
         # Claim and approve the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
-        assert get_kid_chore_state(coordinator, zoe_id, chore_id) == CHORE_STATE_CLAIMED
+        assert (
+            get_assignee_chore_state(coordinator, zoe_id, chore_id)
+            == CHORE_STATE_CLAIMED
+        )
 
-        await coordinator.chore_manager.approve_chore("Parent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("Approver", zoe_id, chore_id)
 
         assert (
-            get_kid_chore_state(coordinator, zoe_id, chore_id) == CHORE_STATE_APPROVED
+            get_assignee_chore_state(coordinator, zoe_id, chore_id)
+            == CHORE_STATE_APPROVED
         )
 
         # Trigger daily reset (this should NOT reset the chore due to no due date)
@@ -2823,7 +2852,8 @@ class TestApprovalResetEdgeCases:
 
         # State should remain APPROVED (not reset to PENDING)
         assert (
-            get_kid_chore_state(coordinator, zoe_id, chore_id) == CHORE_STATE_APPROVED
+            get_assignee_chore_state(coordinator, zoe_id, chore_id)
+            == CHORE_STATE_APPROVED
         )
 
         # Should NOT be able to claim again
@@ -2857,19 +2887,19 @@ class TestApprovalResetEdgeCases:
         immediately (acting like UPON_COMPLETION reset type).
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
 
         # Use existing chore with AT_DUE_DATE_MULTI reset type
         chore_id = scheduling_scenario.chore_ids["Reset Due Date Multi"]
 
         # Clear the due date using the proper service method to simulate edge case
-        await coordinator.chore_manager.set_due_date(chore_id, None, kid_id=zoe_id)
+        await coordinator.chore_manager.set_due_date(chore_id, None, assignee_id=zoe_id)
 
-        # Verify no due date is set (for INDEPENDENT chores, check per-kid due dates)
+        # Verify no due date is set (for INDEPENDENT chores, check per-assignee due dates)
         chore_info = coordinator.chores_data.get(chore_id, {})
-        per_kid_dues = chore_info.get(DATA_CHORE_PER_KID_DUE_DATES, {})
-        assert per_kid_dues.get(zoe_id) is None, (
-            "Chore should have no due date for this kid"
+        per_assignee_dues = chore_info.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        assert per_assignee_dues.get(zoe_id) is None, (
+            "Chore should have no due date for this assignee"
         )
 
         # Should allow multiple claims/approvals even without due date
@@ -2885,14 +2915,14 @@ class TestApprovalResetEdgeCases:
             # Claim and approve
             await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
             assert (
-                get_kid_chore_state(coordinator, zoe_id, chore_id)
+                get_assignee_chore_state(coordinator, zoe_id, chore_id)
                 == CHORE_STATE_CLAIMED
             ), f"Attempt {attempt}: Should be claimed after claim_chore"
 
-            await coordinator.chore_manager.approve_chore("Parent", zoe_id, chore_id)
+            await coordinator.chore_manager.approve_chore("Approver", zoe_id, chore_id)
 
             assert (
-                get_kid_chore_state(coordinator, zoe_id, chore_id)
+                get_assignee_chore_state(coordinator, zoe_id, chore_id)
                 == CHORE_STATE_APPROVED
             )
 
@@ -2925,8 +2955,8 @@ class TestDueWindowClaimLockBehavior:
     ) -> None:
         """Workflow path: lock blocks button claim before window, allows claim in window."""
         chore_id = scheduling_scenario.chore_ids["Reset Due Date Once"]
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
         now = datetime.now(UTC)
 
         # Configure waiting lock + due window via service API (no direct data injection)
@@ -2955,16 +2985,19 @@ class TestDueWindowClaimLockBehavior:
         assert chore_sensor_before.attributes.get("available_at") is not None
 
         # Phase 5 contract: waiting is display-only (derived), not persisted
-        kid_chore_data = scheduling_scenario.coordinator.kids_data[zoe_id][
-            DATA_KID_CHORE_DATA
+        assignee_chore_data = scheduling_scenario.coordinator.assignees_data[zoe_id][
+            DATA_ASSIGNEE_CHORE_DATA
         ][chore_id]
-        assert kid_chore_data.get(DATA_KID_CHORE_DATA_STATE) == CHORE_STATE_PENDING
+        assert (
+            assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+            == CHORE_STATE_PENDING
+        )
 
         blocked_claim = await claim_chore(
             hass,
             "zoe",
             "Reset Due Date Once",
-            kid_context,
+            assignee_context,
         )
         assert blocked_claim.state_before == CHORE_STATE_WAITING
         assert blocked_claim.state_after == CHORE_STATE_WAITING
@@ -2999,7 +3032,7 @@ class TestDueWindowClaimLockBehavior:
             hass,
             "zoe",
             "Reset Due Date Once",
-            kid_context,
+            assignee_context,
         )
         assert allowed_claim.success, (
             f"Claim should succeed in due window: {allowed_claim.error}"
@@ -3017,7 +3050,7 @@ class TestDueWindowClaimLockBehavior:
     ) -> None:
         """Manager path: can_claim_chore blocks before window and allows in window."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Due Date Once"]
         now = datetime.now(UTC)
 
@@ -3132,7 +3165,7 @@ class TestDueWindowClaimLockBehavior:
     ) -> None:
         """When lock-until-window is disabled, future due date stays claimable."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Due Date Once"]
         now = datetime.now(UTC)
 

@@ -11,7 +11,7 @@ COMPLIANT WITH AGENT_TEST_CREATION_INSTRUCTIONS.md:
 - Rule 6: Coordinator data access only for internal logic verification
 
 Test Organization:
-- TestIndependentChores: Single-kid and multi-kid independent chores
+- TestIndependentChores: Single-assignee and multi-assignee independent chores
 - TestSharedFirstChores: Race-to-complete chores
 - TestSharedAllChores: All-must-complete chores
 - TestAutoApprove: Instant approval on claim
@@ -62,12 +62,12 @@ from tests.helpers.workflows import (
     claim_chore,
     disapprove_chore,
     find_chore,
+    get_assignee_points,
     get_dashboard_helper,
-    get_kid_points,
 )
 
 if TYPE_CHECKING:
-    from custom_components.choreops.type_defs import ChoreData, KidData
+    from custom_components.choreops.type_defs import AssigneeData, ChoreData
 
 
 # =============================================================================
@@ -80,7 +80,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid, 1 parent, 5 chores."""
+    """Load minimal scenario: 1 assignee, 1 approver, 5 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -93,7 +93,7 @@ async def scenario_shared(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load shared scenario: 3 kids, 1 parent, 8 shared chores."""
+    """Load shared scenario: 3 assignees, 1 approver, 8 shared chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -136,19 +136,19 @@ async def scenario_enhanced_frequencies(
 
 
 def get_chore_state_from_sensor(
-    hass: HomeAssistant, kid_slug: str, chore_name: str
+    hass: HomeAssistant, assignee_slug: str, chore_name: str
 ) -> str:
     """Get chore state from sensor entity (what the user sees in UI).
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
         chore_name: Display name of chore
 
     Returns:
         State string from sensor entity
     """
-    dashboard = get_dashboard_helper(hass, kid_slug)
+    dashboard = get_dashboard_helper(hass, assignee_slug)
     chore = find_chore(dashboard, chore_name)
     if chore is None:
         return "not_found"
@@ -158,19 +158,19 @@ def get_chore_state_from_sensor(
 
 
 def get_chore_global_state_from_sensor(
-    hass: HomeAssistant, kid_slug: str, chore_name: str
+    hass: HomeAssistant, assignee_slug: str, chore_name: str
 ) -> str:
     """Get chore global state from sensor entity attributes.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         chore_name: Display name of chore
 
     Returns:
         Global state string from sensor attributes
     """
-    dashboard = get_dashboard_helper(hass, kid_slug)
+    dashboard = get_dashboard_helper(hass, assignee_slug)
     chore = find_chore(dashboard, chore_name)
     if chore is None:
         return "not_found"
@@ -183,10 +183,10 @@ def get_chore_global_state_from_sensor(
 
 
 def get_chore_attributes_from_sensor(
-    hass: HomeAssistant, kid_slug: str, chore_name: str
+    hass: HomeAssistant, assignee_slug: str, chore_name: str
 ) -> dict[str, Any]:
-    """Get all chore sensor attributes for a kid/chore pair."""
-    dashboard = get_dashboard_helper(hass, kid_slug)
+    """Get all chore sensor attributes for a assignee/chore pair."""
+    dashboard = get_dashboard_helper(hass, assignee_slug)
     chore = find_chore(dashboard, chore_name)
     if chore is None:
         return {}
@@ -198,17 +198,17 @@ def get_chore_attributes_from_sensor(
     return dict(chore_state.attributes)
 
 
-def get_points_from_sensor(hass: HomeAssistant, kid_slug: str) -> float:
-    """Get kid's points from sensor entity.
+def get_points_from_sensor(hass: HomeAssistant, assignee_slug: str) -> float:
+    """Get assignee's points from sensor entity.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
 
     Returns:
         Current point balance
     """
-    return get_kid_points(hass, kid_slug)
+    return get_assignee_points(hass, assignee_slug)
 
 
 # =============================================================================
@@ -231,9 +231,9 @@ class TestIndependentChores:
         initial_state = get_chore_state_from_sensor(hass, "zoe", "Make bed")
         assert initial_state == CHORE_STATE_PENDING
 
-        # Claim the chore via button press with kid context
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        result = await claim_chore(hass, "zoe", "Make bed", kid_context)
+        # Claim the chore via button press with assignee context
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
 
         assert result.success, f"Claim failed: {result.error}"
 
@@ -248,17 +248,17 @@ class TestIndependentChores:
         scenario_minimal: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Approving a claimed chore grants points to the kid."""
+        """Approving a claimed chore grants points to the assignee."""
         initial_points = get_points_from_sensor(hass, "zoe")
 
-        # Claim the chore (kid context)
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", "Make bed", kid_context)
+        # Claim the chore (assignee context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
-        # Approve the chore (parent context)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
-        approve_result = await approve_chore(hass, "zoe", "Make bed", parent_context)
+        # Approve the chore (approver context)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
+        approve_result = await approve_chore(hass, "zoe", "Make bed", approver_context)
         assert approve_result.success, f"Approve failed: {approve_result.error}"
 
         # Points should increase by chore value (5 points)
@@ -278,8 +278,8 @@ class TestIndependentChores:
     ) -> None:
         """Disapproving a claimed chore resets it to pending state."""
         # Claim the chore
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", "Make bed", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
         assert claim_result.success
 
         # Verify claimed via sensor
@@ -287,10 +287,10 @@ class TestIndependentChores:
             get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_CLAIMED
         )
 
-        # Disapprove (parent context)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        # Disapprove (approver context)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
         disapprove_result = await disapprove_chore(
-            hass, "zoe", "Make bed", parent_context
+            hass, "zoe", "Make bed", approver_context
         )
         assert disapprove_result.success, (
             f"Disapprove failed: {disapprove_result.error}"
@@ -311,11 +311,11 @@ class TestIndependentChores:
         initial_points = get_points_from_sensor(hass, "zoe")
 
         # Claim and disapprove
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Make bed", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Make bed", assignee_context)
 
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
-        await disapprove_chore(hass, "zoe", "Make bed", parent_context)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
+        await disapprove_chore(hass, "zoe", "Make bed", approver_context)
 
         # Points should be unchanged
         final_points = get_points_from_sensor(hass, "zoe")
@@ -333,11 +333,11 @@ class TestIndependentChores:
         coordinator = scenario_minimal.coordinator
         chore_name = "Make bed"
         chore_id = scenario_minimal.chore_ids[chore_name]
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
 
         chore_info = coordinator.chores_data.get(chore_id, {})
-        chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = {
-            kid_id: (dt_now_utc() + timedelta(hours=3)).isoformat()
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            assignee_id: (dt_now_utc() + timedelta(hours=3)).isoformat()
         }
         chore_info[const.DATA_CHORE_DUE_DATE] = (
             dt_now_utc() + timedelta(hours=3)
@@ -406,8 +406,8 @@ class TestAutoApprove:
         initial_points = get_points_from_sensor(hass, "zoe")
 
         # Claim the auto-approve chore (Brush teeth = 3 points, auto_approve=true)
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        result = await claim_chore(hass, "zoe", "Brush teeth", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        result = await claim_chore(hass, "zoe", "Brush teeth", assignee_context)
         assert result.success, f"Claim failed: {result.error}"
 
         # Wait for auto-approve task to complete
@@ -431,22 +431,22 @@ class TestSharedFirstChores:
     """Tests for chores with completion_criteria='shared_first'.
 
     In shared_first chores:
-    1. When one kid claims, all others immediately get 'completed_by_other'
-    2. Only the claiming kid can be approved for points
+    1. When one assignee claims, all others immediately get 'completed_by_other'
+    2. Only the claiming assignee can be approved for points
     3. On disapproval, everyone resets to pending
     """
 
     @pytest.mark.asyncio
-    async def test_claim_blocks_other_kids(
+    async def test_claim_blocks_other_assignees(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """First kid to claim blocks all other kids immediately."""
+        """First assignee to claim blocks all other assignees immediately."""
         # Zoë claims first
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        result = await claim_chore(hass, "zoe", "Take out trash", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        result = await claim_chore(hass, "zoe", "Take out trash", assignee_context)
         assert result.success, f"Claim failed: {result.error}"
 
         # Zoë should be claimed
@@ -466,16 +466,16 @@ class TestSharedFirstChores:
         )
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_remains_completed_by_other_when_due_and_overdue(
+    async def test_secondary_assignee_remains_completed_by_other_when_due_and_overdue(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Secondary kid stays completed_by_other even after due date passes.
+        """Secondary assignee stays completed_by_other even after due date passes.
 
         This is a focused regression for shared_first display priority:
-        completed_by_other must take precedence over due/overdue for blocked kids.
+        completed_by_other must take precedence over due/overdue for blocked assignees.
         """
         from custom_components.choreops import const
 
@@ -483,12 +483,12 @@ class TestSharedFirstChores:
         chore_name = "Shared First Pending Hold"
         chore_id = scenario_shared.chore_ids[chore_name]
 
-        # Zoë claims first; Max becomes secondary blocked kid
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        # Zoë claims first; Max becomes secondary blocked assignee
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
-        # Secondary kid baseline state/attributes from chore status sensor
+        # Secondary assignee baseline state/attributes from chore status sensor
         assert (
             get_chore_state_from_sensor(hass, "max", chore_name) == "completed_by_other"
         )
@@ -499,7 +499,7 @@ class TestSharedFirstChores:
 
         # Force chore past due date WITHOUT resetting state/ownership.
         # Do not use set_due_date() here because that API intentionally resets
-        # chore state for all kids to begin a fresh cycle.
+        # chore state for all assignees to begin a fresh cycle.
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[const.DATA_CHORE_DUE_DATE] = (
             dt_now_utc() - timedelta(minutes=5)
@@ -507,7 +507,7 @@ class TestSharedFirstChores:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()
 
-        # Regression expectation: secondary kid must remain completed_by_other
+        # Regression expectation: secondary assignee must remain completed_by_other
         # (not due/overdue) while blocked from claiming.
         assert (
             get_chore_state_from_sensor(hass, "max", chore_name) == "completed_by_other"
@@ -528,12 +528,12 @@ class TestSharedFirstChores:
         initial_lila_points = get_points_from_sensor(hass, "lila")
 
         # Zoë claims
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Take out trash", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Take out trash", assignee_context)
 
-        # Parent approves Zoë
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
-        await approve_chore(hass, "zoe", "Take out trash", parent_context)
+        # Approver approves Zoë
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
+        await approve_chore(hass, "zoe", "Take out trash", approver_context)
 
         # Zoë should be approved with points (5 points)
         assert (
@@ -556,13 +556,13 @@ class TestSharedFirstChores:
         assert get_points_from_sensor(hass, "lila") == initial_lila_points
 
     @pytest.mark.asyncio
-    async def test_auto_approve_secondary_kid_remains_completed_by_other_when_overdue(
+    async def test_auto_approve_secondary_assignee_remains_completed_by_other_when_overdue(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Auto-approve shared_first keeps secondary kid blocked across overdue."""
+        """Auto-approve shared_first keeps secondary assignee blocked across overdue."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -573,8 +573,8 @@ class TestSharedFirstChores:
         initial_max_points = get_points_from_sensor(hass, "max")
 
         # Zoë claims; auto-approve should immediately complete for Zoë
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
         await hass.async_block_till_done()
 
@@ -598,7 +598,7 @@ class TestSharedFirstChores:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()
 
-        # Secondary kid remains completed_by_other and blocked after overdue pass
+        # Secondary assignee remains completed_by_other and blocked after overdue pass
         assert (
             get_chore_state_from_sensor(hass, "max", chore_name) == "completed_by_other"
         )
@@ -606,16 +606,16 @@ class TestSharedFirstChores:
         assert max_attrs_after.get(const.ATTR_CAN_CLAIM) is False
 
     @pytest.mark.asyncio
-    async def test_disapprove_resets_all_kids(
+    async def test_disapprove_resets_all_assignees(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Disapproving the claimer resets ALL kids to pending."""
+        """Disapproving the claimer resets ALL assignees to pending."""
         # Zoë claims (Max becomes completed_by_other)
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Organize garage", kid_context)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Organize garage", assignee_context)
 
         assert (
             get_chore_state_from_sensor(hass, "max", "Organize garage")
@@ -623,8 +623,8 @@ class TestSharedFirstChores:
         )
 
         # Disapprove Zoë
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
-        await disapprove_chore(hass, "zoe", "Organize garage", parent_context)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
+        await disapprove_chore(hass, "zoe", "Organize garage", approver_context)
 
         # Both should be reset to pending
         assert (
@@ -637,21 +637,21 @@ class TestSharedFirstChores:
         )
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_stays_completed_by_other_in_due_window(
+    async def test_secondary_assignee_stays_completed_by_other_in_due_window(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Secondary shared_first kid remains completed_by_other inside due window."""
+        """Secondary shared_first assignee remains completed_by_other inside due window."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared First Pending Hold"
         chore_id = scenario_shared.chore_ids[chore_name]
 
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
         chore_info = coordinator.chores_data.get(chore_id, {})
@@ -668,7 +668,7 @@ class TestSharedFirstChores:
         assert max_attrs.get(const.ATTR_CAN_CLAIM) is False
 
     @pytest.mark.asyncio
-    async def test_disapprove_after_past_due_resets_all_shared_first_kids(
+    async def test_disapprove_after_past_due_resets_all_shared_first_assignees(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
@@ -681,10 +681,10 @@ class TestSharedFirstChores:
         chore_name = "Shared First Pending Hold"
         chore_id = scenario_shared.chore_ids[chore_name]
 
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
         chore_info = coordinator.chores_data.get(chore_id, {})
@@ -695,7 +695,7 @@ class TestSharedFirstChores:
         await hass.async_block_till_done()
 
         disapprove_result = await disapprove_chore(
-            hass, "zoe", chore_name, parent_context
+            hass, "zoe", chore_name, approver_context
         )
         assert disapprove_result.success, (
             f"Disapprove failed: {disapprove_result.error}"
@@ -718,26 +718,26 @@ class TestSharedAllChores:
     """Tests for chores with completion_criteria='shared_all'.
 
     In shared_all chores:
-    - Each kid can claim and be approved independently
-    - Each kid gets their own points when approved
-    - All kids share the same global state tracking
+    - Each assignee can claim and be approved independently
+    - Each assignee gets their own points when approved
+    - All assignees share the same global state tracking
     """
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_not_blocked_and_overdue_claimable_when_due_passes(
+    async def test_secondary_assignee_not_blocked_and_overdue_claimable_when_due_passes(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Shared_all secondary kid is not blocked and becomes overdue (claimable)."""
+        """Shared_all secondary assignee is not blocked and becomes overdue (claimable)."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
         chore_id = scenario_shared.chore_ids[chore_name]
 
-        # Pin pre-overdue state: move due date far enough out that kid2 is not in
+        # Pin pre-overdue state: move due date far enough out that assignee2 is not in
         # due window and should resolve to PENDING before any overdue transition.
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[const.DATA_CHORE_DUE_DATE] = (
@@ -745,8 +745,8 @@ class TestSharedAllChores:
         ).isoformat()
 
         # Zoë claims first, but Max should remain claimable (shared_all semantics)
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
         assert (
@@ -769,7 +769,7 @@ class TestSharedAllChores:
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()
 
-        # Shared_all secondary kid should transition to overdue and remain claimable
+        # Shared_all secondary assignee should transition to overdue and remain claimable
         assert (
             get_chore_state_from_sensor(hass, "max", chore_name) == CHORE_STATE_OVERDUE
         )
@@ -782,13 +782,13 @@ class TestSharedAllChores:
         assert max_attrs_after.get(const.ATTR_GLOBAL_STATE) == CHORE_STATE_OVERDUE
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_enters_due_state_before_overdue_for_shared_all(
+    async def test_secondary_assignee_enters_due_state_before_overdue_for_shared_all(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Shared_all secondary kid can be pinned to due state and remains claimable."""
+        """Shared_all secondary assignee can be pinned to due state and remains claimable."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -802,11 +802,11 @@ class TestSharedAllChores:
         ).isoformat()
 
         # Zoë claims first; Max remains independently claimable in shared_all
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
-        # Secondary kid should resolve to DUE (not completed_by_other)
+        # Secondary assignee should resolve to DUE (not completed_by_other)
         assert get_chore_state_from_sensor(hass, "max", chore_name) == "due"
         assert (
             get_chore_state_from_sensor(hass, "max", chore_name) != "completed_by_other"
@@ -817,13 +817,13 @@ class TestSharedAllChores:
         assert max_attrs.get(const.ATTR_GLOBAL_STATE) == CHORE_STATE_CLAIMED_IN_PART
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_enters_missed_when_strict_overdue_lock_enabled(
+    async def test_secondary_assignee_enters_missed_when_strict_overdue_lock_enabled(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Shared_all secondary kid resolves to missed under strict overdue lock."""
+        """Shared_all secondary assignee resolves to missed under strict overdue lock."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -840,8 +840,8 @@ class TestSharedAllChores:
         ).isoformat()
 
         # Zoë claims first to ensure shared_all global remains in-part while Max hits missed
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
@@ -855,81 +855,81 @@ class TestSharedAllChores:
         assert max_attrs.get(const.ATTR_CHORE_LOCK_REASON) == CHORE_STATE_MISSED
 
     @pytest.mark.asyncio
-    async def test_each_kid_gets_points_on_approval(
+    async def test_each_assignee_gets_points_on_approval(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Each kid gets points when they individually get approved."""
+        """Each assignee gets points when they individually get approved."""
         initial_zoe = get_points_from_sensor(hass, "zoe")
         initial_max = get_points_from_sensor(hass, "max")
 
         # Walk the dog = shared_all, Zoë + Max, 8 pts
 
         # Zoë claims and gets approved
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "Walk the dog", kid1_context)
-        await approve_chore(hass, "zoe", "Walk the dog", parent_context)
+        await claim_chore(hass, "zoe", "Walk the dog", assignee1_context)
+        await approve_chore(hass, "zoe", "Walk the dog", approver_context)
 
         # Zoë gets points immediately
         assert get_points_from_sensor(hass, "zoe") == initial_zoe + 8.0
 
         # Max claims and gets approved
-        kid2_context = Context(user_id=mock_hass_users["kid2"].id)
-        await claim_chore(hass, "max", "Walk the dog", kid2_context)
-        await approve_chore(hass, "max", "Walk the dog", parent_context)
+        assignee2_context = Context(user_id=mock_hass_users["assignee2"].id)
+        await claim_chore(hass, "max", "Walk the dog", assignee2_context)
+        await approve_chore(hass, "max", "Walk the dog", approver_context)
 
         # Max gets points
         assert get_points_from_sensor(hass, "max") == initial_max + 8.0
 
     @pytest.mark.asyncio
-    async def test_three_kid_shared_all(
+    async def test_three_assignee_shared_all(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Three-kid shared_all chore - each gets points independently."""
+        """Three-assignee shared_all chore - each gets points independently."""
         initial_zoe = get_points_from_sensor(hass, "zoe")
         initial_max = get_points_from_sensor(hass, "max")
         initial_lila = get_points_from_sensor(hass, "lila")
 
         # Family dinner cleanup = shared_all, 10 pts
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
         # All three claim and get approved one by one
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Family dinner cleanup", kid1_ctx)
-        await approve_chore(hass, "zoe", "Family dinner cleanup", parent_context)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Family dinner cleanup", assignee1_ctx)
+        await approve_chore(hass, "zoe", "Family dinner cleanup", approver_context)
         assert get_points_from_sensor(hass, "zoe") == initial_zoe + 10.0
 
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
-        await claim_chore(hass, "max", "Family dinner cleanup", kid2_ctx)
-        await approve_chore(hass, "max", "Family dinner cleanup", parent_context)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        await claim_chore(hass, "max", "Family dinner cleanup", assignee2_ctx)
+        await approve_chore(hass, "max", "Family dinner cleanup", approver_context)
         assert get_points_from_sensor(hass, "max") == initial_max + 10.0
 
-        kid3_ctx = Context(user_id=mock_hass_users["kid3"].id)
-        await claim_chore(hass, "lila", "Family dinner cleanup", kid3_ctx)
-        await approve_chore(hass, "lila", "Family dinner cleanup", parent_context)
+        assignee3_ctx = Context(user_id=mock_hass_users["assignee3"].id)
+        await claim_chore(hass, "lila", "Family dinner cleanup", assignee3_ctx)
+        await approve_chore(hass, "lila", "Family dinner cleanup", approver_context)
         assert get_points_from_sensor(hass, "lila") == initial_lila + 10.0
 
     @pytest.mark.asyncio
-    async def test_approved_state_tracked_per_kid(
+    async def test_approved_state_tracked_per_assignee(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Each kid has independent state tracking."""
+        """Each assignee has independent state tracking."""
         # Only Zoë completes the chore
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "Family dinner cleanup", kid1_ctx)
-        await approve_chore(hass, "zoe", "Family dinner cleanup", parent_ctx)
+        await claim_chore(hass, "zoe", "Family dinner cleanup", assignee1_ctx)
+        await approve_chore(hass, "zoe", "Family dinner cleanup", approver_ctx)
 
         # Zoë is approved
         assert (
@@ -948,12 +948,12 @@ class TestSharedAllChores:
         )
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_waiting_before_window_when_claim_lock_enabled_shared_all(
+    async def test_secondary_assignee_waiting_before_window_when_claim_lock_enabled_shared_all(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Shared_all secondary kid resolves to waiting pre-window when lock enabled."""
+        """Shared_all secondary assignee resolves to waiting pre-window when lock enabled."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -979,13 +979,13 @@ class TestSharedAllChores:
         assert max_attrs.get(const.ATTR_CHORE_LOCK_REASON) == const.CHORE_STATE_WAITING
 
     @pytest.mark.asyncio
-    async def test_secondary_kid_pending_pre_window_when_claim_lock_disabled_shared_all(
+    async def test_secondary_assignee_pending_pre_window_when_claim_lock_disabled_shared_all(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Shared_all secondary kid stays pending pre-window when lock disabled."""
+        """Shared_all secondary assignee stays pending pre-window when lock disabled."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -999,8 +999,8 @@ class TestSharedAllChores:
         chore_info[const.DATA_CHORE_DUE_WINDOW_OFFSET] = "1h"
         chore_info[const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW] = False
 
-        kid1_context = Context(user_id=mock_hass_users["kid1"].id)
-        claim_result = await claim_chore(hass, "zoe", chore_name, kid1_context)
+        assignee1_context = Context(user_id=mock_hass_users["assignee1"].id)
+        claim_result = await claim_chore(hass, "zoe", chore_name, assignee1_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
 
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
@@ -1018,12 +1018,12 @@ class TestRotationSimpleChores:
     """Tests for chores with completion_criteria='rotation_simple'."""
 
     @pytest.mark.asyncio
-    async def test_non_turn_kid_stays_not_my_turn_and_locked_when_due_passes(
+    async def test_non_turn_assignee_stays_not_my_turn_and_locked_when_due_passes(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Non-turn kid remains not_my_turn (not overdue/due) in rotation_simple."""
+        """Non-turn assignee remains not_my_turn (not overdue/due) in rotation_simple."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -1033,7 +1033,7 @@ class TestRotationSimpleChores:
         zoe_state = get_chore_state_from_sensor(hass, "zoe", chore_name)
         max_state = get_chore_state_from_sensor(hass, "max", chore_name)
 
-        # Exactly one kid should be blocked as not_my_turn in simple rotation
+        # Exactly one assignee should be blocked as not_my_turn in simple rotation
         non_turn_slug = ""
         if (
             zoe_state == CHORE_STATE_NOT_MY_TURN
@@ -1047,7 +1047,7 @@ class TestRotationSimpleChores:
             non_turn_slug = "max"
 
         assert non_turn_slug, (
-            "Expected exactly one non-turn kid in not_my_turn state for rotation_simple"
+            "Expected exactly one non-turn assignee in not_my_turn state for rotation_simple"
         )
 
         attrs_before = get_chore_attributes_from_sensor(hass, non_turn_slug, chore_name)
@@ -1055,7 +1055,7 @@ class TestRotationSimpleChores:
         assert attrs_before.get(const.ATTR_CHORE_LOCK_REASON) == CHORE_STATE_NOT_MY_TURN
 
         # Force due date into the past and run scheduler periodic update.
-        # Rotation lock should still take precedence for non-turn kid.
+        # Rotation lock should still take precedence for non-turn assignee.
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[const.DATA_CHORE_DUE_DATE] = (
             dt_now_utc() - timedelta(minutes=5)
@@ -1072,12 +1072,12 @@ class TestRotationSimpleChores:
         assert attrs_after.get(const.ATTR_CHORE_LOCK_REASON) == CHORE_STATE_NOT_MY_TURN
 
     @pytest.mark.asyncio
-    async def test_non_turn_kid_stays_not_my_turn_before_due_when_allow_steal_enabled(
+    async def test_non_turn_assignee_stays_not_my_turn_before_due_when_allow_steal_enabled(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Rotation simple non-turn kid remains locked before steal window opens."""
+        """Rotation simple non-turn assignee remains locked before steal window opens."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -1106,18 +1106,18 @@ class TestRotationSimpleChores:
         ):
             non_turn_slug = "max"
 
-        assert non_turn_slug, "Expected one non-turn kid before steal window opens"
+        assert non_turn_slug, "Expected one non-turn assignee before steal window opens"
         attrs = get_chore_attributes_from_sensor(hass, non_turn_slug, chore_name)
         assert attrs.get(const.ATTR_CAN_CLAIM) is False
         assert attrs.get(const.ATTR_CHORE_LOCK_REASON) == CHORE_STATE_NOT_MY_TURN
 
     @pytest.mark.asyncio
-    async def test_non_turn_kid_transitions_to_overdue_when_allow_steal_enabled_and_past_due(
+    async def test_non_turn_assignee_transitions_to_overdue_when_allow_steal_enabled_and_past_due(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Rotation simple non-turn kid becomes overdue/claimable after due in steal mode."""
+        """Rotation simple non-turn assignee becomes overdue/claimable after due in steal mode."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -1146,7 +1146,7 @@ class TestRotationSimpleChores:
         ):
             non_turn_slug = "max"
 
-        assert non_turn_slug, "Expected one non-turn kid before steal window opens"
+        assert non_turn_slug, "Expected one non-turn assignee before steal window opens"
 
         chore_info[const.DATA_CHORE_DUE_DATE] = (
             dt_now_utc() - timedelta(minutes=5)
@@ -1167,12 +1167,12 @@ class TestRotationSmartChores:
     """Tests for chores with completion_criteria='rotation_smart'."""
 
     @pytest.mark.asyncio
-    async def test_non_turn_kid_stays_not_my_turn_and_locked_when_due_passes(
+    async def test_non_turn_assignee_stays_not_my_turn_and_locked_when_due_passes(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Non-turn kid remains not_my_turn (not overdue/due) in rotation_smart."""
+        """Non-turn assignee remains not_my_turn (not overdue/due) in rotation_smart."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -1182,7 +1182,7 @@ class TestRotationSmartChores:
         zoe_state = get_chore_state_from_sensor(hass, "zoe", chore_name)
         lila_state = get_chore_state_from_sensor(hass, "lila", chore_name)
 
-        # Exactly one kid should be blocked as not_my_turn in smart rotation
+        # Exactly one assignee should be blocked as not_my_turn in smart rotation
         non_turn_slug = ""
         if (
             zoe_state == CHORE_STATE_NOT_MY_TURN
@@ -1196,7 +1196,7 @@ class TestRotationSmartChores:
             non_turn_slug = "lila"
 
         assert non_turn_slug, (
-            "Expected exactly one non-turn kid in not_my_turn state for rotation_smart"
+            "Expected exactly one non-turn assignee in not_my_turn state for rotation_smart"
         )
 
         attrs_before = get_chore_attributes_from_sensor(hass, non_turn_slug, chore_name)
@@ -1204,7 +1204,7 @@ class TestRotationSmartChores:
         assert attrs_before.get(const.ATTR_CHORE_LOCK_REASON) == CHORE_STATE_NOT_MY_TURN
 
         # Force due date into the past and run scheduler periodic update.
-        # Rotation lock should still take precedence for non-turn kid.
+        # Rotation lock should still take precedence for non-turn assignee.
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[const.DATA_CHORE_DUE_DATE] = (
             dt_now_utc() - timedelta(minutes=5)
@@ -1221,12 +1221,12 @@ class TestRotationSmartChores:
         assert attrs_after.get(const.ATTR_CHORE_LOCK_REASON) == CHORE_STATE_NOT_MY_TURN
 
     @pytest.mark.asyncio
-    async def test_non_turn_kid_transitions_to_overdue_when_allow_steal_and_past_due(
+    async def test_non_turn_assignee_transitions_to_overdue_when_allow_steal_and_past_due(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Rotation smart non-turn kid moves from not_my_turn to overdue when steal opens."""
+        """Rotation smart non-turn assignee moves from not_my_turn to overdue when steal opens."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -1255,7 +1255,7 @@ class TestRotationSmartChores:
         ):
             non_turn_slug = "lila"
 
-        assert non_turn_slug, "Expected one non-turn kid before steal window opens"
+        assert non_turn_slug, "Expected one non-turn assignee before steal window opens"
 
         attrs_before = get_chore_attributes_from_sensor(hass, non_turn_slug, chore_name)
         assert attrs_before.get(const.ATTR_CAN_CLAIM) is False
@@ -1277,13 +1277,13 @@ class TestRotationSmartChores:
         assert attrs_after.get(const.ATTR_CHORE_LOCK_REASON) is None
 
     @pytest.mark.asyncio
-    async def test_rotation_override_bypasses_not_my_turn_for_non_turn_kid(
+    async def test_rotation_override_bypasses_not_my_turn_for_non_turn_assignee(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Rotation override allows non-turn kid claim without immediate state flip."""
+        """Rotation override allows non-turn assignee claim without immediate state flip."""
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
@@ -1309,21 +1309,21 @@ class TestRotationSmartChores:
         ):
             non_turn_slug = "lila"
 
-        assert non_turn_slug, "Expected one non-turn kid before override"
+        assert non_turn_slug, "Expected one non-turn assignee before override"
 
         chore_info[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = True
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()
 
-        kid_ctx_by_slug = {
-            "zoe": Context(user_id=mock_hass_users["kid1"].id),
-            "lila": Context(user_id=mock_hass_users["kid3"].id),
+        assignee_ctx_by_slug = {
+            "zoe": Context(user_id=mock_hass_users["assignee1"].id),
+            "lila": Context(user_id=mock_hass_users["assignee3"].id),
         }
         claim_result = await claim_chore(
             hass,
             non_turn_slug,
             chore_name,
-            kid_ctx_by_slug[non_turn_slug],
+            assignee_ctx_by_slug[non_turn_slug],
         )
         assert claim_result.success, (
             f"Expected override to permit claim for {non_turn_slug}: "
@@ -1331,7 +1331,7 @@ class TestRotationSmartChores:
         )
 
     @pytest.mark.asyncio
-    async def test_non_turn_kid_remains_not_my_turn_under_strict_missed_policy(
+    async def test_non_turn_assignee_remains_not_my_turn_under_strict_missed_policy(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
@@ -1365,7 +1365,7 @@ class TestRotationSmartChores:
         ):
             non_turn_slug = "lila"
 
-        assert non_turn_slug, "Expected one non-turn kid for rotation_smart"
+        assert non_turn_slug, "Expected one non-turn assignee for rotation_smart"
 
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()
@@ -1417,26 +1417,26 @@ class TestApprovalResetNoDueDate:
         assert chore_info.get(DATA_CHORE_RECURRING_FREQUENCY) == FREQUENCY_NONE
         assert chore_info.get(DATA_CHORE_DUE_DATE) is None
 
-        initial_kid1_points = get_points_from_sensor(hass, "zoe")
+        initial_assignee1_points = get_points_from_sensor(hass, "zoe")
 
-        # Kid1 claims and gets approved
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        # Assignee1 claims and gets approved
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "No Due Date Independent", kid1_ctx)
+        await claim_chore(hass, "zoe", "No Due Date Independent", assignee1_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Independent")
             == CHORE_STATE_CLAIMED
         )
 
-        await approve_chore(hass, "zoe", "No Due Date Independent", parent_ctx)
+        await approve_chore(hass, "zoe", "No Due Date Independent", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Independent")
             == CHORE_STATE_APPROVED
         )
-        assert get_points_from_sensor(hass, "zoe") == initial_kid1_points + 10.0
+        assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 10.0
 
-        # Kid2 remains pending (independent chore)
+        # Assignee2 remains pending (independent chore)
         assert (
             get_chore_state_from_sensor(hass, "max", "No Due Date Independent")
             == CHORE_STATE_PENDING
@@ -1444,26 +1444,26 @@ class TestApprovalResetNoDueDate:
 
         # Trigger approval reset (INTERNAL API - acceptable for scheduler operations)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         await hass.async_block_till_done()
 
-        # Kid1 should reset to PENDING (ready for next round)
+        # Assignee1 should reset to PENDING (ready for next round)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Independent")
             == CHORE_STATE_PENDING
         )
 
-        # Kid2 still pending (was never claimed)
+        # Assignee2 still pending (was never claimed)
         assert (
             get_chore_state_from_sensor(hass, "max", "No Due Date Independent")
             == CHORE_STATE_PENDING
         )
 
         # Points remain (reset doesn't remove points)
-        assert get_points_from_sensor(hass, "zoe") == initial_kid1_points + 10.0
+        assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 10.0
 
     @pytest.mark.asyncio
     async def test_shared_first_chore_resets_after_approval(
@@ -1472,7 +1472,7 @@ class TestApprovalResetNoDueDate:
         scenario_approval_reset_no_due_date: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """SHARED_FIRST chore with no due date resets all kids to PENDING."""
+        """SHARED_FIRST chore with no due date resets all assignees to PENDING."""
         coordinator = scenario_approval_reset_no_due_date.coordinator
 
         # Verify chore configuration
@@ -1489,13 +1489,13 @@ class TestApprovalResetNoDueDate:
             == COMPLETION_CRITERIA_SHARED_FIRST
         )
 
-        initial_kid1_points = get_points_from_sensor(hass, "zoe")
+        initial_assignee1_points = get_points_from_sensor(hass, "zoe")
 
-        # Kid1 claims (Kid2 becomes completed_by_other)
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        # Assignee1 claims (Assignee2 becomes completed_by_other)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "No Due Date Shared First", kid1_ctx)
+        await claim_chore(hass, "zoe", "No Due Date Shared First", assignee1_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared First")
             == CHORE_STATE_CLAIMED
@@ -1505,23 +1505,23 @@ class TestApprovalResetNoDueDate:
             == "completed_by_other"
         )
 
-        # Kid1 gets approved
-        await approve_chore(hass, "zoe", "No Due Date Shared First", parent_ctx)
+        # Assignee1 gets approved
+        await approve_chore(hass, "zoe", "No Due Date Shared First", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared First")
             == CHORE_STATE_APPROVED
         )
-        assert get_points_from_sensor(hass, "zoe") == initial_kid1_points + 15.0
+        assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 15.0
 
         # Trigger approval reset (INTERNAL API)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         await hass.async_block_till_done()
 
-        # BOTH kids should reset to PENDING (shared_first resets all)
+        # BOTH assignees should reset to PENDING (shared_first resets all)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared First")
             == CHORE_STATE_PENDING
@@ -1532,7 +1532,7 @@ class TestApprovalResetNoDueDate:
         )
 
         # Points remain
-        assert get_points_from_sensor(hass, "zoe") == initial_kid1_points + 15.0
+        assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 15.0
 
     @pytest.mark.asyncio
     async def test_shared_all_chore_resets_after_approval(
@@ -1541,7 +1541,7 @@ class TestApprovalResetNoDueDate:
         scenario_approval_reset_no_due_date: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """SHARED_ALL chore with no due date resets each kid independently."""
+        """SHARED_ALL chore with no due date resets each assignee independently."""
         coordinator = scenario_approval_reset_no_due_date.coordinator
 
         # Verify chore configuration
@@ -1557,40 +1557,40 @@ class TestApprovalResetNoDueDate:
             chore_info.get(DATA_CHORE_COMPLETION_CRITERIA) == COMPLETION_CRITERIA_SHARED
         )
 
-        initial_kid1_points = get_points_from_sensor(hass, "zoe")
-        initial_kid2_points = get_points_from_sensor(hass, "max")
+        initial_assignee1_points = get_points_from_sensor(hass, "zoe")
+        initial_assignee2_points = get_points_from_sensor(hass, "max")
 
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        # Kid1 claims and gets approved
-        await claim_chore(hass, "zoe", "No Due Date Shared All", kid1_ctx)
-        await approve_chore(hass, "zoe", "No Due Date Shared All", parent_ctx)
+        # Assignee1 claims and gets approved
+        await claim_chore(hass, "zoe", "No Due Date Shared All", assignee1_ctx)
+        await approve_chore(hass, "zoe", "No Due Date Shared All", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared All")
             == CHORE_STATE_APPROVED
         )
-        assert get_points_from_sensor(hass, "zoe") == initial_kid1_points + 20.0
+        assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 20.0
 
-        # Kid2 claims and gets approved
-        await claim_chore(hass, "max", "No Due Date Shared All", kid2_ctx)
-        await approve_chore(hass, "max", "No Due Date Shared All", parent_ctx)
+        # Assignee2 claims and gets approved
+        await claim_chore(hass, "max", "No Due Date Shared All", assignee2_ctx)
+        await approve_chore(hass, "max", "No Due Date Shared All", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "max", "No Due Date Shared All")
             == CHORE_STATE_APPROVED
         )
-        assert get_points_from_sensor(hass, "max") == initial_kid2_points + 20.0
+        assert get_points_from_sensor(hass, "max") == initial_assignee2_points + 20.0
 
         # Trigger approval reset (INTERNAL API)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         await hass.async_block_till_done()
 
-        # BOTH kids should reset to PENDING
+        # BOTH assignees should reset to PENDING
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared All")
             == CHORE_STATE_PENDING
@@ -1601,8 +1601,8 @@ class TestApprovalResetNoDueDate:
         )
 
         # Points remain for both
-        assert get_points_from_sensor(hass, "zoe") == initial_kid1_points + 20.0
-        assert get_points_from_sensor(hass, "max") == initial_kid2_points + 20.0
+        assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 20.0
+        assert get_points_from_sensor(hass, "max") == initial_assignee2_points + 20.0
 
     @pytest.mark.asyncio
     async def test_claimed_but_not_approved_also_resets(
@@ -1614,9 +1614,9 @@ class TestApprovalResetNoDueDate:
         """Chores in CLAIMED state (not approved) also reset to PENDING."""
         coordinator = scenario_approval_reset_no_due_date.coordinator
 
-        # Kid1 claims but does NOT get approved
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "No Due Date Independent", kid1_ctx)
+        # Assignee1 claims but does NOT get approved
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "No Due Date Independent", assignee1_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Independent")
             == CHORE_STATE_CLAIMED
@@ -1624,7 +1624,7 @@ class TestApprovalResetNoDueDate:
 
         # Trigger approval reset (INTERNAL API)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
@@ -1659,8 +1659,8 @@ class TestWorkflowIntegrationEdgeCases:
         """Test: Claiming a chore does NOT award points (only approval does)."""
         initial_points = get_points_from_sensor(hass, "zoe")
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
 
         # Points should NOT change on claim
         final_points = get_points_from_sensor(hass, "zoe")
@@ -1669,23 +1669,23 @@ class TestWorkflowIntegrationEdgeCases:
         )
 
     @pytest.mark.asyncio
-    async def test_multiple_claims_same_chore_different_kids_independent(
+    async def test_multiple_claims_same_chore_different_assignees_independent(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Independent chores allow multiple kids to claim.
+        """Test: Independent chores allow multiple assignees to claim.
 
-        Each kid tracks their own state for independent chores.
-        Walk the dog is shared_all (acts like independent per-kid tracking).
+        Each assignee tracks their own state for independent chores.
+        Walk the dog is shared_all (acts like independent per-assignee tracking).
         """
-        kid1_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        kid2_ctx = Context(user_id=mock_hass_users["kid2"].id)
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
 
-        # Both kids can claim the same chore
-        await claim_chore(hass, "zoe", "Walk the dog", kid1_ctx)
-        await claim_chore(hass, "max", "Walk the dog", kid2_ctx)
+        # Both assignees can claim the same chore
+        await claim_chore(hass, "zoe", "Walk the dog", assignee1_ctx)
+        await claim_chore(hass, "max", "Walk the dog", assignee2_ctx)
 
         # Both should be CLAIMED (independent tracking)
         assert (
@@ -1704,7 +1704,7 @@ class TestWorkflowIntegrationEdgeCases:
         scenario_minimal: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: Approval increments the kid's chore approval count stats.
+        """Test: Approval increments the assignee's chore approval count stats.
 
         StatisticsManager records approval counts in period buckets (including all_time)
         via _on_chore_approved listener.
@@ -1712,35 +1712,45 @@ class TestWorkflowIntegrationEdgeCases:
         from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         # Get initial approval count from period all_time bucket
-        kid_info: KidData | dict[str, Any] = coordinator.kids_data.get(kid_id, {})
-        kid_chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-        periods = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
-        all_time_container = periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
-        all_time = all_time_container.get(
-            const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+        assignee_info: AssigneeData | dict[str, Any] = coordinator.assignees_data.get(
+            assignee_id, {}
         )
-        initial_count = all_time.get(const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0)
+        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            chore_id, {}
+        )
+        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        all_time_container = periods.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        all_time = all_time_container.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        initial_count = all_time.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0)
 
         # Claim and approve via button presses
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
-        await approve_chore(hass, "zoe", "Make bed", parent_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
+        await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
         # Get final approval count from period all_time bucket
-        kid_info = coordinator.kids_data.get(kid_id, {})
-        kid_chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-        periods = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
-        all_time_container = periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
-        all_time = all_time_container.get(
-            const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+        assignee_info = coordinator.assignees_data.get(assignee_id, {})
+        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            chore_id, {}
         )
-        final_count = all_time.get(const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, 0)
+        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        all_time_container = periods.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        all_time = all_time_container.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        final_count = all_time.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0)
 
         assert final_count == initial_count + 1, (
             f"Approval count should increment: {initial_count} -> {final_count}"
@@ -1761,35 +1771,47 @@ class TestWorkflowIntegrationEdgeCases:
         from custom_components.choreops import const
 
         coordinator = scenario_minimal.coordinator
-        kid_id = scenario_minimal.kid_ids["Zoë"]
+        assignee_id = scenario_minimal.assignee_ids["Zoë"]
         chore_id = scenario_minimal.chore_ids["Make bed"]
 
         # Get initial disapproval count from period all_time bucket
-        kid_info: KidData | dict[str, Any] = coordinator.kids_data.get(kid_id, {})
-        kid_chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-        periods = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
-        all_time_container = periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
-        all_time = all_time_container.get(
-            const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+        assignee_info: AssigneeData | dict[str, Any] = coordinator.assignees_data.get(
+            assignee_id, {}
         )
-        initial_count = all_time.get(const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED, 0)
+        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            chore_id, {}
+        )
+        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        all_time_container = periods.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        all_time = all_time_container.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        initial_count = all_time.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED, 0
+        )
 
         # Claim and disapprove via button presses
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
-        await disapprove_chore(hass, "zoe", "Make bed", parent_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
+        await disapprove_chore(hass, "zoe", "Make bed", approver_ctx)
 
         # Get final disapproval count from period all_time bucket
-        kid_info = coordinator.kids_data.get(kid_id, {})
-        kid_chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-        periods = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
-        all_time_container = periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
-        all_time = all_time_container.get(
-            const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+        assignee_info = coordinator.assignees_data.get(assignee_id, {})
+        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            chore_id, {}
         )
-        final_count = all_time.get(const.DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED, 0)
+        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        all_time_container = periods.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        all_time = all_time_container.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
+        final_count = all_time.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED, 0)
 
         assert final_count == initial_count + 1, (
             f"Disapproval count should increment: {initial_count} -> {final_count}"
@@ -1809,11 +1831,11 @@ class TestWorkflowIntegrationEdgeCases:
         """
         initial_points = get_points_from_sensor(hass, "zoe")
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
-        await approve_chore(hass, "zoe", "Make bed", parent_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
+        await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
         final_points = get_points_from_sensor(hass, "zoe")
         assert final_points == initial_points + 5.0, (
@@ -1830,20 +1852,20 @@ class TestWorkflowIntegrationEdgeCases:
     ) -> None:
         """Current streak changes only on approval-completion events."""
         coordinator = scenario_minimal.coordinator
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         attrs_before = get_chore_attributes_from_sensor(hass, "zoe", "Make bed")
         streak_before = int(attrs_before.get(ATTR_CHORE_CURRENT_STREAK, 0) or 0)
 
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
         attrs_after_claim = get_chore_attributes_from_sensor(hass, "zoe", "Make bed")
         streak_after_claim = int(
             attrs_after_claim.get(ATTR_CHORE_CURRENT_STREAK, 0) or 0
         )
         assert streak_after_claim == streak_before
 
-        await approve_chore(hass, "zoe", "Make bed", parent_ctx)
+        await approve_chore(hass, "zoe", "Make bed", approver_ctx)
         attrs_after_approve = get_chore_attributes_from_sensor(hass, "zoe", "Make bed")
         streak_after_approve = int(
             attrs_after_approve.get(ATTR_CHORE_CURRENT_STREAK, 0) or 0
@@ -1851,7 +1873,7 @@ class TestWorkflowIntegrationEdgeCases:
         assert streak_after_approve == streak_before + 1
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
         await hass.async_block_till_done()
@@ -1863,30 +1885,30 @@ class TestWorkflowIntegrationEdgeCases:
         assert streak_after_reset == streak_after_approve
 
     @pytest.mark.asyncio
-    async def test_independent_kid_undo_claim_round_trip_sensor_consistency(
+    async def test_independent_assignee_undo_claim_round_trip_sensor_consistency(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Kid undo claim round-trip preserves points and allows clean re-completion.
+        """Assignee undo claim round-trip preserves points and allows clean re-completion.
 
-        Flow: pending -> claimed -> kid undo via disapprove button -> pending ->
-        re-claim -> parent approve -> approved, with points awarded exactly once.
+        Flow: pending -> claimed -> assignee undo via disapprove button -> pending ->
+        re-claim -> approver approve -> approved, with points awarded exactly once.
         """
         initial_points = get_points_from_sensor(hass, "zoe")
 
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
-        claim_result = await claim_chore(hass, "zoe", "Make bed", kid_context)
+        claim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
         assert claim_result.success, f"Claim failed: {claim_result.error}"
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_CLAIMED
         )
 
-        # Kid pressing disapprove acts as undo-claim path in button handler
-        undo_result = await disapprove_chore(hass, "zoe", "Make bed", kid_context)
+        # Assignee pressing disapprove acts as undo-claim path in button handler
+        undo_result = await disapprove_chore(hass, "zoe", "Make bed", assignee_context)
         assert undo_result.success, f"Undo claim failed: {undo_result.error}"
         await hass.async_block_till_done()
 
@@ -1895,9 +1917,9 @@ class TestWorkflowIntegrationEdgeCases:
         )
         assert get_points_from_sensor(hass, "zoe") == initial_points
 
-        reclaim_result = await claim_chore(hass, "zoe", "Make bed", kid_context)
+        reclaim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
         assert reclaim_result.success, f"Re-claim failed: {reclaim_result.error}"
-        approve_result = await approve_chore(hass, "zoe", "Make bed", parent_context)
+        approve_result = await approve_chore(hass, "zoe", "Make bed", approver_context)
         assert approve_result.success, f"Approve failed: {approve_result.error}"
         await hass.async_block_till_done()
 
@@ -1918,26 +1940,26 @@ class TestWorkflowIntegrationEdgeCases:
         Coverage target: shared_all approved, shared_first claimed/blocked, and
         rotation_simple claimed lock all reset safely via public reset service.
         """
-        kid_context_zoe = Context(user_id=mock_hass_users["kid1"].id)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_context_zoe = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
 
-        # Shared all: move one kid to approved
+        # Shared all: move one assignee to approved
         claim_shared_all = await claim_chore(
-            hass, "zoe", "Family dinner cleanup", kid_context_zoe
+            hass, "zoe", "Family dinner cleanup", assignee_context_zoe
         )
         assert claim_shared_all.success, (
             f"Shared all claim failed: {claim_shared_all.error}"
         )
         approve_shared_all = await approve_chore(
-            hass, "zoe", "Family dinner cleanup", parent_context
+            hass, "zoe", "Family dinner cleanup", approver_context
         )
         assert approve_shared_all.success, (
             f"Shared all approve failed: {approve_shared_all.error}"
         )
 
-        # Shared first: claimer blocks other kids
+        # Shared first: claimer blocks other assignees
         claim_shared_first = await claim_chore(
-            hass, "zoe", "Take out trash", kid_context_zoe
+            hass, "zoe", "Take out trash", assignee_context_zoe
         )
         assert claim_shared_first.success, (
             f"Shared first claim failed: {claim_shared_first.error}"
@@ -1956,9 +1978,9 @@ class TestWorkflowIntegrationEdgeCases:
         assert rotation_turn_slug is not None
 
         rotation_user_id = {
-            "zoe": mock_hass_users["kid1"].id,
-            "max": mock_hass_users["kid2"].id,
-            "lila": mock_hass_users["kid3"].id,
+            "zoe": mock_hass_users["assignee1"].id,
+            "max": mock_hass_users["assignee2"].id,
+            "lila": mock_hass_users["assignee3"].id,
         }[rotation_turn_slug]
         claim_rotation = await claim_chore(
             hass,
@@ -1983,7 +2005,7 @@ class TestWorkflowIntegrationEdgeCases:
         )
         await hass.async_block_till_done()
 
-        # Shared chores baseline: all pending for all kids
+        # Shared chores baseline: all pending for all assignees
         for slug in ("zoe", "max", "lila"):
             assert (
                 get_chore_state_from_sensor(hass, slug, "Family dinner cleanup")
@@ -2044,12 +2066,12 @@ class TestWorkflowResetIntegration:
         """
         coordinator = scenario_minimal.coordinator
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Complete the workflow: claim -> approve
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
-        await approve_chore(hass, "zoe", "Make bed", parent_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
+        await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
         # Verify approved
         assert (
@@ -2058,7 +2080,7 @@ class TestWorkflowResetIntegration:
 
         # Trigger daily reset (INTERNAL API)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
@@ -2084,15 +2106,15 @@ class TestWorkflowResetIntegration:
         coordinator = scenario_minimal.coordinator
 
         # Claim but don't approve
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_CLAIMED
         )
 
         # Trigger daily reset (INTERNAL API)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
@@ -2116,11 +2138,11 @@ class TestWorkflowResetIntegration:
         """
         coordinator = scenario_minimal.coordinator
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
-        await approve_chore(hass, "zoe", "Make bed", parent_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
+        await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
         # Record points after approval
         points_after_approval = get_points_from_sensor(hass, "zoe")
@@ -2128,7 +2150,7 @@ class TestWorkflowResetIntegration:
 
         # Trigger reset (INTERNAL API)
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
             await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
@@ -2171,7 +2193,9 @@ class TestEnhancedFrequencyWorkflows:
         verifying the complete workflow operates correctly.
         """
         coordinator = scenario_enhanced_frequencies.coordinator
-        chore_id = scenario_enhanced_frequencies.chore_ids["Daily Multi Single Kid"]
+        chore_id = scenario_enhanced_frequencies.chore_ids[
+            "Daily Multi Single Assignee"
+        ]
 
         # Verify this is a DAILY_MULTI chore with correct configuration
         chore: ChoreData | dict[str, Any] = coordinator.chores_data.get(chore_id, {})
@@ -2180,25 +2204,27 @@ class TestEnhancedFrequencyWorkflows:
 
         # Initial state should be PENDING
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Daily Multi Single Kid")
+            get_chore_state_from_sensor(hass, "zoe", "Daily Multi Single Assignee")
             == CHORE_STATE_PENDING
         )
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Claim the chore
-        await claim_chore(hass, "zoe", "Daily Multi Single Kid", kid_ctx)
+        await claim_chore(hass, "zoe", "Daily Multi Single Assignee", assignee_ctx)
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Daily Multi Single Kid")
+            get_chore_state_from_sensor(hass, "zoe", "Daily Multi Single Assignee")
             == CHORE_STATE_CLAIMED
         )
 
         # Approve the chore
-        await approve_chore(hass, "zoe", "Daily Multi Single Kid", parent_ctx)
+        await approve_chore(hass, "zoe", "Daily Multi Single Assignee", approver_ctx)
 
         # After approval, state should change (APPROVED or PENDING based on reset)
-        final_state = get_chore_state_from_sensor(hass, "zoe", "Daily Multi Single Kid")
+        final_state = get_chore_state_from_sensor(
+            hass, "zoe", "Daily Multi Single Assignee"
+        )
         assert final_state in [CHORE_STATE_APPROVED, CHORE_STATE_PENDING]
 
     @pytest.mark.asyncio
@@ -2231,18 +2257,18 @@ class TestEnhancedFrequencyWorkflows:
             == CHORE_STATE_PENDING
         )
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Claim the chore
-        await claim_chore(hass, "zoe", "Custom From Complete Single", kid_ctx)
+        await claim_chore(hass, "zoe", "Custom From Complete Single", assignee_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Custom From Complete Single")
             == CHORE_STATE_CLAIMED
         )
 
         # Approve the chore
-        await approve_chore(hass, "zoe", "Custom From Complete Single", parent_ctx)
+        await approve_chore(hass, "zoe", "Custom From Complete Single", approver_ctx)
 
         # After approval with UPON_COMPLETION reset, should be PENDING
         final_state = get_chore_state_from_sensor(
@@ -2279,18 +2305,18 @@ class TestEnhancedFrequencyWorkflows:
             == CHORE_STATE_PENDING
         )
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Claim the chore
-        await claim_chore(hass, "zoe", "Custom Hours 8h Cross Midnight", kid_ctx)
+        await claim_chore(hass, "zoe", "Custom Hours 8h Cross Midnight", assignee_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Custom Hours 8h Cross Midnight")
             == CHORE_STATE_CLAIMED
         )
 
         # Approve the chore
-        await approve_chore(hass, "zoe", "Custom Hours 8h Cross Midnight", parent_ctx)
+        await approve_chore(hass, "zoe", "Custom Hours 8h Cross Midnight", approver_ctx)
 
         # After approval, state should change
         final_state = get_chore_state_from_sensor(
@@ -2318,16 +2344,16 @@ class TestEnhancedFrequencyWorkflows:
         chore: ChoreData | dict[str, Any] = coordinator.chores_data.get(chore_id, {})
         assert chore.get(DATA_CHORE_RECURRING_FREQUENCY) == FREQUENCY_DAILY
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
         # Standard workflow: claim -> approve
-        await claim_chore(hass, "zoe", "Make bed", kid_ctx)
+        await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_CLAIMED
         )
 
-        await approve_chore(hass, "zoe", "Make bed", parent_ctx)
+        await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
         # Should be APPROVED (standard behavior)
         assert (
@@ -2349,24 +2375,24 @@ class TestEnhancedFrequencyWorkflows:
         - Dashboard helper and sensor agree on the same visible state
         """
         coordinator = scenario_enhanced_frequencies.coordinator
-        chore_name = "Daily Multi Single Kid"
+        chore_name = "Daily Multi Single Assignee"
         chore_id = scenario_enhanced_frequencies.chore_ids[chore_name]
-        kid_id = scenario_enhanced_frequencies.kid_ids["Zoë"]
+        assignee_id = scenario_enhanced_frequencies.assignee_ids["Zoë"]
 
         chore: ChoreData | dict[str, Any] = coordinator.chores_data.get(chore_id, {})
         assert chore.get(DATA_CHORE_RECURRING_FREQUENCY) == FREQUENCY_DAILY_MULTI
 
-        initial_due_dt = coordinator.chore_manager.get_due_date(chore_id, kid_id)
+        initial_due_dt = coordinator.chore_manager.get_due_date(chore_id, assignee_id)
         assert initial_due_dt is not None
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", chore_name, kid_ctx)
-        await approve_chore(hass, "zoe", chore_name, parent_ctx)
+        await claim_chore(hass, "zoe", chore_name, assignee_ctx)
+        await approve_chore(hass, "zoe", chore_name, approver_ctx)
         await hass.async_block_till_done()
 
-        updated_due_dt = coordinator.chore_manager.get_due_date(chore_id, kid_id)
+        updated_due_dt = coordinator.chore_manager.get_due_date(chore_id, assignee_id)
         assert updated_due_dt is not None
         assert updated_due_dt > initial_due_dt, (
             "Daily multi due date should advance after approval"
@@ -2390,7 +2416,7 @@ class TestEnhancedFrequencyWorkflows:
         """WF-06: CUSTOM_FROM_COMPLETE reschedules from completion time (not old due date).
 
         Best-in-class checks:
-        - Reads completion timestamp from kid chore data
+        - Reads completion timestamp from assignee chore data
         - Verifies new due date is interval-anchored to completion
         - Verifies UI returns to pending for immediate next-cycle visibility
         """
@@ -2399,7 +2425,7 @@ class TestEnhancedFrequencyWorkflows:
         coordinator = scenario_enhanced_frequencies.coordinator
         chore_name = "Custom From Complete Single"
         chore_id = scenario_enhanced_frequencies.chore_ids[chore_name]
-        kid_id = scenario_enhanced_frequencies.kid_ids["Zoë"]
+        assignee_id = scenario_enhanced_frequencies.assignee_ids["Zoë"]
 
         chore: ChoreData | dict[str, Any] = coordinator.chores_data.get(chore_id, {})
         assert (
@@ -2408,19 +2434,23 @@ class TestEnhancedFrequencyWorkflows:
         assert chore.get(DATA_CHORE_CUSTOM_INTERVAL) == 5
         assert chore.get(DATA_CHORE_CUSTOM_INTERVAL_UNIT) == TIME_UNIT_DAYS
 
-        kid_ctx = Context(user_id=mock_hass_users["kid1"].id)
-        parent_ctx = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
 
-        await claim_chore(hass, "zoe", chore_name, kid_ctx)
-        await approve_chore(hass, "zoe", chore_name, parent_ctx)
+        await claim_chore(hass, "zoe", chore_name, assignee_ctx)
+        await approve_chore(hass, "zoe", chore_name, approver_ctx)
         await hass.async_block_till_done()
 
-        kid_chore_data: KidData | dict[str, Any] = coordinator.kids_data.get(
-            kid_id, {}
-        ).get(const.DATA_KID_CHORE_DATA, {})
-        chore_entry = kid_chore_data.get(chore_id, {})
-        completion_anchor_iso = chore_entry.get(const.DATA_KID_CHORE_DATA_LAST_CLAIMED)
-        new_due_dt = coordinator.chore_manager.get_due_date(chore_id, kid_id)
+        assignee_chore_data: AssigneeData | dict[str, Any] = (
+            coordinator.assignees_data.get(assignee_id, {}).get(
+                const.DATA_ASSIGNEE_CHORE_DATA, {}
+            )
+        )
+        chore_entry = assignee_chore_data.get(chore_id, {})
+        completion_anchor_iso = chore_entry.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED
+        )
+        new_due_dt = coordinator.chore_manager.get_due_date(chore_id, assignee_id)
 
         assert isinstance(completion_anchor_iso, str)
         assert new_due_dt is not None
@@ -2439,26 +2469,26 @@ class TestEnhancedFrequencyWorkflows:
         )
 
     @pytest.mark.asyncio
-    async def test_wf_07_independent_per_kid_due_dates_produce_divergent_ui_states(
+    async def test_wf_07_independent_per_assignee_due_dates_produce_divergent_ui_states(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """WF-07: Same chore shows different UI states for primary/secondary kids.
+        """WF-07: Same chore shows different UI states for primary/secondary assignees.
 
         Best-in-class checks:
-        - One kid in due window (DUE), another before window (WAITING)
+        - One assignee in due window (DUE), another before window (WAITING)
         - Claim lock + lock reason are asserted from UI sensor attributes
-        - Dashboard helper reflects the same divergent statuses for each kid
+        - Dashboard helper reflects the same divergent statuses for each assignee
         """
         from custom_components.choreops import const
 
         coordinator = scenario_shared.coordinator
         chore_name = "Shared All Pending Hold"
         chore_id = scenario_shared.chore_ids[chore_name]
-        zoe_id = scenario_shared.kid_ids["Zoë"]
-        max_id = scenario_shared.kid_ids["Max!"]
-        lila_id = scenario_shared.kid_ids["Lila"]
+        zoe_id = scenario_shared.assignee_ids["Zoë"]
+        max_id = scenario_shared.assignee_ids["Max!"]
+        lila_id = scenario_shared.assignee_ids["Lila"]
 
         now = dt_now_utc()
         chore_info = coordinator.chores_data.get(chore_id, {})
@@ -2467,7 +2497,7 @@ class TestEnhancedFrequencyWorkflows:
         )
         chore_info[const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW] = True
         chore_info[const.DATA_CHORE_DUE_WINDOW_OFFSET] = "1h"
-        chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = {
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
             zoe_id: (now + timedelta(minutes=30)).isoformat(),
             max_id: (now + timedelta(hours=3)).isoformat(),
             lila_id: (now + timedelta(hours=3)).isoformat(),

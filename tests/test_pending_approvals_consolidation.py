@@ -19,8 +19,8 @@ async def test_pending_approvals_consolidation_includes_all_unapproved(
     """Test that dashboard helper includes all unapproved chores and rewards.
 
     Consolidation should collect:
-    - All chores in 'claimed' state (waiting for parent approval)
-    - All rewards in 'pending_approval' state (waiting for parent approval)
+    - All chores in 'claimed' state (waiting for approver approval)
+    - All rewards in 'pending_approval' state (waiting for approver approval)
     - Excluded: chores with auto_approve=True (already approved)
     """
     # Basic test that integration setup works

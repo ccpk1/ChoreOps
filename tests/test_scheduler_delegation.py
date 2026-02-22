@@ -50,15 +50,15 @@ async def scheduling_scenario(
 def set_chore_due_date_to_past(
     coordinator: Any,
     chore_id: str,
-    kid_id: str,
+    assignee_id: str,
     days_ago: int = 1,
 ) -> None:
     """Set a chore's due date to the past for testing.
 
     Args:
-        coordinator: The KidsChoresCoordinator
+        coordinator: The ChoreOpsCoordinator
         chore_id: Chore to update
-        kid_id: Kid ID for INDEPENDENT chores
+        assignee_id: Assignee ID for INDEPENDENT chores
         days_ago: How many days in the past
     """
     from datetime import timedelta
@@ -77,17 +77,19 @@ def set_chore_due_date_to_past(
     )
 
     if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-        per_kid = chore_info.setdefault(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-        per_kid[kid_id] = past_date_iso
+        per_assignee = chore_info.setdefault(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+        )
+        per_assignee[assignee_id] = past_date_iso
     else:
         chore_info[const.DATA_CHORE_DUE_DATE] = past_date_iso
 
 
-def get_kid_by_name(coordinator: Any, name: str) -> str | None:
-    """Get kid ID by name."""
-    for kid_id, kid_info in coordinator.kids_data.items():
-        if kid_info.get(const.DATA_KID_NAME) == name:
-            return kid_id
+def get_assignee_by_name(coordinator: Any, name: str) -> str | None:
+    """Get assignee ID by name."""
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
+        if assignee_info.get(const.DATA_ASSIGNEE_NAME) == name:
+            return assignee_id
     return None
 
 
@@ -112,7 +114,7 @@ class TestOverdueEventEmission:
         and emits the CHORE_OVERDUE event.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Overdue At Due Date"]
 
         # Track emitted events
@@ -141,7 +143,7 @@ class TestOverdueEventEmission:
 
         # Verify event payload
         event_payload = overdue_events[0][1]
-        assert event_payload["kid_id"] == zoe_id
+        assert event_payload["assignee_id"] == zoe_id
         assert event_payload["chore_id"] == chore_id
         assert "days_overdue" in event_payload
         assert "due_date" in event_payload
@@ -158,7 +160,7 @@ class TestOverdueEventEmission:
         during overdue detection, so no event should be emitted.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Overdue Never"]
 
         # Track emitted events
@@ -194,13 +196,13 @@ class TestOverdueEventEmission:
         hass: HomeAssistant,
         scheduling_scenario: SetupResult,
     ) -> None:
-        """Test: INDEPENDENT chores emit per-kid overdue events.
+        """Test: INDEPENDENT chores emit per-assignee overdue events.
 
-        For chores with COMPLETION_CRITERIA_INDEPENDENT, each kid has their
+        For chores with COMPLETION_CRITERIA_INDEPENDENT, each assignee has their
         own due date. The overdue check should handle this correctly.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
 
         # Find an INDEPENDENT chore with overdue at_due_date handling
         chore_id = None
@@ -228,24 +230,24 @@ class TestOverdueEventEmission:
 
         coordinator.chore_manager.emit = tracking_emit
 
-        # Set due date to past for this kid only
+        # Set due date to past for this assignee only
         set_chore_due_date_to_past(coordinator, chore_id, zoe_id, days_ago=1)
 
         # Trigger overdue check
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
-        # Verify overdue event was emitted for this kid
-        overdue_events_for_kid = [
+        # Verify overdue event was emitted for this assignee
+        overdue_events_for_assignee = [
             e
             for e in emitted_events
             if e[0] == const.SIGNAL_SUFFIX_CHORE_OVERDUE
-            and e[1].get("kid_id") == zoe_id
+            and e[1].get("assignee_id") == zoe_id
             and e[1].get("chore_id") == chore_id
         ]
 
-        # Should have at least one overdue event for this kid+chore
-        assert len(overdue_events_for_kid) >= 1, (
-            f"Expected overdue event for kid {zoe_id}, chore {chore_id}"
+        # Should have at least one overdue event for this assignee+chore
+        assert len(overdue_events_for_assignee) >= 1, (
+            f"Expected overdue event for assignee {zoe_id}, chore {chore_id}"
         )
 
 
@@ -270,12 +272,12 @@ class TestRecurringResetEventEmission:
         calls reset_chore() and emits CHORE_STATUS_RESET event.
         """
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
 
         # Claim and approve the chore first (so reset has something to reset)
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
-        await coordinator.chore_manager.approve_chore("TestParent", zoe_id, chore_id)
+        await coordinator.chore_manager.approve_chore("TestApprover", zoe_id, chore_id)
 
         # Track emitted events
         emitted_events: list[tuple[str, dict[str, Any]]] = []
@@ -305,7 +307,7 @@ class TestRecurringResetEventEmission:
         # The important thing is that the delegation path works
         if reset_events:
             event_payload = reset_events[0][1]
-            assert "kid_id" in event_payload
+            assert "assignee_id" in event_payload
             assert "chore_id" in event_payload
 
     @pytest.mark.asyncio
@@ -316,7 +318,7 @@ class TestRecurringResetEventEmission:
     ) -> None:
         """Test: _transition_chore_state emits CHORE_STATUS_RESET when resetting to PENDING."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
 
         # Claim the chore first
@@ -351,7 +353,7 @@ class TestRecurringResetEventEmission:
 
         # Verify event payload
         event_payload = reset_events[0][1]
-        assert event_payload["kid_id"] == zoe_id
+        assert event_payload["assignee_id"] == zoe_id
         assert event_payload["chore_id"] == chore_id
         assert "chore_name" in event_payload
 
@@ -396,7 +398,7 @@ class TestServiceDelegation:
     ) -> None:
         """Test: Coordinator.set_chore_due_date() delegates to Manager.set_due_date()."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
 
         # Track if Manager method was called
@@ -417,7 +419,7 @@ class TestServiceDelegation:
 
         future_date = dt_util.utcnow() + timedelta(days=7)
         await coordinator.chore_manager.set_due_date(
-            chore_id, future_date, kid_id=zoe_id
+            chore_id, future_date, assignee_id=zoe_id
         )
 
         # Verify Manager method was called
@@ -461,7 +463,7 @@ class TestServiceDelegation:
     ) -> None:
         """Test: Coordinator.undo_chore_claim() delegates to Manager.undo_claim()."""
         coordinator = scheduling_scenario.coordinator
-        zoe_id = scheduling_scenario.kid_ids["Zoë"]
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
         chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
 
         # Claim the chore first

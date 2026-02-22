@@ -8,11 +8,11 @@ This module provides reusable utilities for both config flow and options flow te
 Usage:
     from tests.helpers.flow_test_helpers import FlowTestHelper
 
-    # Convert YAML kid to form data
-    form_data = FlowTestHelper.build_kid_form_data(yaml_kid)
+    # Convert YAML assignee to form data
+    form_data = FlowTestHelper.build_assignee_form_data(yaml_assignee)
 
     # Verify entities created after flow
-    await FlowTestHelper.verify_entity_counts(hass, {"kids": 2, "chores": 5})
+    await FlowTestHelper.verify_entity_counts(hass, {"assignees": 2, "chores": 5})
 """
 
 from typing import Any
@@ -27,13 +27,28 @@ from tests.helpers import (
     BADGE_TYPE_PERIODIC,
     BADGE_TYPE_SPECIAL_OCCASION,
     # Config/Options flow field names - Achievements
-    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS,
+    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES,
     CFOF_ACHIEVEMENTS_INPUT_DESCRIPTION,
     CFOF_ACHIEVEMENTS_INPUT_ICON,
     CFOF_ACHIEVEMENTS_INPUT_NAME,
     CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS,
     CFOF_ACHIEVEMENTS_INPUT_TARGET_VALUE,
     CFOF_ACHIEVEMENTS_INPUT_TYPE,
+    # Config/Options flow field names - Approvers
+    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+    CFOF_APPROVERS_INPUT_CAN_APPROVE,
+    CFOF_APPROVERS_INPUT_CAN_MANAGE,
+    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+    CFOF_APPROVERS_INPUT_HA_USER,
+    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+    CFOF_APPROVERS_INPUT_NAME,
+    CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+    # Config/Options flow field names - Assignees
+    CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
+    CFOF_ASSIGNEES_INPUT_HA_USER,
+    CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
     # Config/Options flow field names - Badges
     CFOF_BADGES_INPUT_ASSIGNED_TO,
     CFOF_BADGES_INPUT_AWARD_ITEMS,
@@ -52,7 +67,7 @@ from tests.helpers import (
     CFOF_BONUSES_INPUT_NAME,
     CFOF_BONUSES_INPUT_POINTS,
     # Config/Options flow field names - Challenges
-    CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES,
     CFOF_CHALLENGES_INPUT_DESCRIPTION,
     CFOF_CHALLENGES_INPUT_END_DATE,
     CFOF_CHALLENGES_INPUT_ICON,
@@ -62,28 +77,13 @@ from tests.helpers import (
     CFOF_CHALLENGES_INPUT_TARGET_VALUE,
     CFOF_CHALLENGES_INPUT_TYPE,
     # Config/Options flow field names - Chores
-    CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_DESCRIPTION,
     CFOF_CHORES_INPUT_ICON,
     CFOF_CHORES_INPUT_NAME,
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
-    # Config/Options flow field names - Kids
-    CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE,
-    CFOF_KIDS_INPUT_HA_USER,
-    CFOF_KIDS_INPUT_KID_NAME,
-    CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE,
-    # Config/Options flow field names - Parents
-    CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    CFOF_PARENTS_INPUT_ASSOCIATED_KIDS,
-    CFOF_PARENTS_INPUT_CAN_APPROVE,
-    CFOF_PARENTS_INPUT_CAN_MANAGE,
-    CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW,
-    CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION,
-    CFOF_PARENTS_INPUT_HA_USER,
-    CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE,
-    CFOF_PARENTS_INPUT_NAME,
     # Config/Options flow field names - Penalties
     CFOF_PENALTIES_INPUT_DESCRIPTION,
     CFOF_PENALTIES_INPUT_ICON,
@@ -115,64 +115,70 @@ class FlowTestHelper:
     # =========================================================================
 
     @staticmethod
-    def build_kid_form_data(yaml_kid: dict[str, Any]) -> dict[str, Any]:
-        """Convert YAML kid data to flow form input.
+    def build_assignee_form_data(yaml_assignee: dict[str, Any]) -> dict[str, Any]:
+        """Convert YAML assignee data to flow form input.
 
         Args:
-            yaml_kid: Kid data from scenario YAML file
+            yaml_assignee: Assignee data from scenario YAML file
 
         Returns:
             Dictionary suitable for flow.async_configure() user_input
         """
         # Convert empty string to sentinel (HA SelectSelector issue)
-        ha_user = yaml_kid.get("ha_user_name", SENTINEL_NO_SELECTION)
+        ha_user = yaml_assignee.get("ha_user_name", SENTINEL_NO_SELECTION)
         if ha_user == "":
             ha_user = SENTINEL_NO_SELECTION
         # Convert empty mobile_notify_service to sentinel
-        notify_service = yaml_kid.get("mobile_notify_service", SENTINEL_NO_SELECTION)
+        notify_service = yaml_assignee.get(
+            "mobile_notify_service", SENTINEL_NO_SELECTION
+        )
         if notify_service == "":
             notify_service = SENTINEL_NO_SELECTION
         return {
-            CFOF_KIDS_INPUT_KID_NAME: yaml_kid["name"],
-            CFOF_KIDS_INPUT_HA_USER: ha_user,
-            CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: yaml_kid.get(
+            CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: yaml_assignee["name"],
+            CFOF_ASSIGNEES_INPUT_HA_USER: ha_user,
+            CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: yaml_assignee.get(
                 "dashboard_language", "en"
             ),
-            CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: notify_service,
+            CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: notify_service,
         }
 
     @staticmethod
-    def build_parent_form_data(yaml_parent: dict[str, Any]) -> dict[str, Any]:
-        """Convert YAML parent data to flow form input.
+    def build_approver_form_data(yaml_approver: dict[str, Any]) -> dict[str, Any]:
+        """Convert YAML approver data to flow form input.
 
         Args:
-            yaml_parent: Parent data from scenario YAML file
+            yaml_approver: Approver data from scenario YAML file
 
         Returns:
             Dictionary suitable for flow.async_configure() user_input
         """
         # Convert empty string to sentinel (HA SelectSelector issue)
-        ha_user = yaml_parent.get("ha_user_name", SENTINEL_NO_SELECTION)
+        ha_user = yaml_approver.get("ha_user_name", SENTINEL_NO_SELECTION)
         if ha_user == "":
             ha_user = SENTINEL_NO_SELECTION
         # Convert empty mobile_notify_service to sentinel
-        notify_service = yaml_parent.get("mobile_notify_service", SENTINEL_NO_SELECTION)
+        notify_service = yaml_approver.get(
+            "mobile_notify_service", SENTINEL_NO_SELECTION
+        )
         if notify_service == "":
             notify_service = SENTINEL_NO_SELECTION
         return {
-            CFOF_PARENTS_INPUT_NAME: yaml_parent["name"],
-            CFOF_PARENTS_INPUT_HA_USER: ha_user,
-            CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: yaml_parent.get("associated_kids", []),
-            CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: notify_service,
-            CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: yaml_parent.get(
+            CFOF_APPROVERS_INPUT_NAME: yaml_approver["name"],
+            CFOF_APPROVERS_INPUT_HA_USER: ha_user,
+            CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: yaml_approver.get(
+                "associated_assignees", []
+            ),
+            CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: notify_service,
+            CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: yaml_approver.get(
                 "allow_chore_assignment", False
             ),
-            CFOF_PARENTS_INPUT_CAN_APPROVE: yaml_parent.get("can_approve", False),
-            CFOF_PARENTS_INPUT_CAN_MANAGE: yaml_parent.get("can_manage", False),
-            CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: yaml_parent.get(
+            CFOF_APPROVERS_INPUT_CAN_APPROVE: yaml_approver.get("can_approve", False),
+            CFOF_APPROVERS_INPUT_CAN_MANAGE: yaml_approver.get("can_manage", False),
+            CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: yaml_approver.get(
                 "enable_chore_workflow", False
             ),
-            CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: yaml_parent.get(
+            CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: yaml_approver.get(
                 "enable_gamification", False
             ),
         }
@@ -180,13 +186,13 @@ class FlowTestHelper:
     @staticmethod
     def build_chore_form_data(
         yaml_chore: dict[str, Any],
-        kid_names: list[str] | None = None,
+        assignee_names: list[str] | None = None,
     ) -> dict[str, Any]:
         """Convert YAML chore data to flow form input.
 
         Args:
             yaml_chore: Chore data from scenario YAML file
-            kid_names: List of available kid names for assignment
+            assignee_names: List of available assignee names for assignment
 
         Returns:
             Dictionary suitable for flow.async_configure() user_input
@@ -207,7 +213,7 @@ class FlowTestHelper:
             CFOF_CHORES_INPUT_DEFAULT_POINTS: yaml_chore.get("points", 10),
             CFOF_CHORES_INPUT_ICON: yaml_chore.get("icon", "mdi:check"),
             CFOF_CHORES_INPUT_DESCRIPTION: yaml_chore.get("description", ""),
-            CFOF_CHORES_INPUT_ASSIGNED_KIDS: yaml_chore.get("assigned_to", []),
+            CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: yaml_chore.get("assigned_to", []),
             CFOF_CHORES_INPUT_RECURRING_FREQUENCY: recurring_frequency,
             CFOF_CHORES_INPUT_COMPLETION_CRITERIA: yaml_chore.get(
                 "completion_criteria", "independent"
@@ -352,7 +358,7 @@ class FlowTestHelper:
             CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS: yaml_achievement.get(
                 "reward_points", 50
             ),
-            CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS: yaml_achievement.get(
+            CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: yaml_achievement.get(
                 "assigned_to", []
             ),
         }
@@ -378,7 +384,9 @@ class FlowTestHelper:
             ),
             CFOF_CHALLENGES_INPUT_START_DATE: yaml_challenge.get("start_date"),
             CFOF_CHALLENGES_INPUT_END_DATE: yaml_challenge.get("end_date"),
-            CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS: yaml_challenge.get("assigned_to", []),
+            CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: yaml_challenge.get(
+                "assigned_to", []
+            ),
         }
 
     # =========================================================================
@@ -387,13 +395,13 @@ class FlowTestHelper:
 
     @staticmethod
     async def get_coordinator(hass: HomeAssistant) -> Any:
-        """Get the KidsChores coordinator from config entry runtime_data.
+        """Get the ChoreOps coordinator from config entry runtime_data.
 
         Args:
             hass: Home Assistant instance
 
         Returns:
-            KidsChoresDataCoordinator instance
+            ChoreOpsDataCoordinator instance
         """
         for entry in hass.config_entries.async_entries(DOMAIN):
             if entry.state.name == "LOADED":
@@ -410,7 +418,7 @@ class FlowTestHelper:
         Args:
             hass: Home Assistant instance
             expected: Dict mapping entity type to expected count
-                      Keys: "kids", "parents", "chores", "rewards", etc.
+                      Keys: "assignees", "approvers", "chores", "rewards", etc.
 
         Returns:
             Dict mapping entity type to pass/fail boolean
@@ -420,8 +428,8 @@ class FlowTestHelper:
             return dict.fromkeys(expected, False)
 
         actual_counts = {
-            "kids": len(coordinator.kids_data),
-            "parents": len(coordinator.parents_data),
+            "assignees": len(coordinator.assignees_data),
+            "approvers": len(coordinator.approvers_data),
             "chores": len(coordinator.chores_data),
             "rewards": len(coordinator.rewards_data),
             "penalties": len(coordinator.penalties_data),
@@ -451,7 +459,7 @@ class FlowTestHelper:
 
         Args:
             hass: Home Assistant instance
-            entity_type: Type ("kids", "chores", "rewards", etc.)
+            entity_type: Type ("assignees", "chores", "rewards", etc.)
             name: Entity name to find
 
         Returns:
@@ -462,8 +470,8 @@ class FlowTestHelper:
             return None
 
         data_map = {
-            "kids": coordinator.kids_data,
-            "parents": coordinator.parents_data,
+            "assignees": coordinator.assignees_data,
+            "approvers": coordinator.approvers_data,
             "chores": coordinator.chores_data,
             "rewards": coordinator.rewards_data,
             "penalties": coordinator.penalties_data,
@@ -634,8 +642,8 @@ def get_scenario_entity_counts(scenario_data: dict[str, Any]) -> dict[str, int]:
     """
     family = scenario_data.get("family", {})
     return {
-        "kids": len(family.get("kids", [])),
-        "parents": len(family.get("parents", [])),
+        "assignees": len(family.get("assignees", [])),
+        "approvers": len(family.get("approvers", [])),
         "chores": len(scenario_data.get("chores", [])),
         "rewards": len(scenario_data.get("rewards", [])),
         "penalties": len(scenario_data.get("penalties", [])),

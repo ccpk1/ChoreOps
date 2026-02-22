@@ -1,105 +1,105 @@
 {
-  "_comment_kid_section": "═════════════════════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "BARNAVISERINGAR: Gamifierad, andrapersons, uppmuntrande ton med emojis. INGET prefix 'Barnsysslor:'.",
-  "_comment_kid_footer": "═════════════════════════════════════════════════════════════════════════════════",
-  "chore_approved_kid": {
+  "_comment_assignee_section": "═════════════════════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "BARNAVISERINGAR: Gamifierad, andrapersons, uppmuntrande ton med emojis. INGET prefix 'Barnsysslor:'.",
+  "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "🎉 Godkänt för sysslor!",
     "message": "{chore_name} godkänd! Du fick {points} poäng"
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Syssla återlämnad",
     "message": "{chore_name} behöver mer arbete."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Försenad syssla",
     "message": "{chore_name} är försenad! Slutför den nu för att tjäna {points} poäng"
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Syssla har löpt ut",
     "message": "{chore_name} har upphört att fungera utan att det har slutförts."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Påminnelse om sysslor",
     "message": "{chore_name} ska vara klar om {minutes} minuter! Värt {points} poäng"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Syssla ska vara klar nu",
     "message": "{chore_name} är nu förfallet! Slutför inom {hours} timme(r) för att tjäna {points} poäng"
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 Belöning godkänd!",
     "message": "{reward_name} godkänd!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "💭 Belöningsförfrågan returnerad",
     "message": "{reward_name} godkändes inte den här gången."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "🥇 Märke intjänat!",
     "message": "Du har förtjänat märket {badge_name} !"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "🏆 Prestation uppnådd!",
     "message": "Du förtjänade {achievement_name}! Fortsätt med det fantastiska arbetet"
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 Utmaningen är klar!",
     "message": "Du har slutfört {challenge_name}! Fortsätt med det fantastiska arbetet."
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Straff tillämpad",
     "message": "{penalty_name}: {points} poäng dragna. Nu kommer vi tillbaka på rätt spår!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ Bonus tillämpad!",
     "message": "{bonus_name}: Du tjänade {points} bonuspoäng! Bra jobbat"
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator uppdaterad",
     "message": "Din poängmultiplikator har ändrats från {old_multiplier}x till {new_multiplier}x"
   },
-  "_comment_parent_section": "═════════════════════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "FÖRÄLDRAMEDDELANDEN: Informativ, tredjepersons, handlingsbar. Format: '{kid_name}: Åtgärd'. INGET prefix 'Barnsysslor:'.",
-  "_comment_parent_footer": "═════════════════════════════════════════════════════════════════════════════════",
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Syssla begärd",
-    "message": "{kid_name} har gjort anspråk på {chore_name} och arbetar på det nu"
+  "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "FÖRÄLDRAMEDDELANDEN: Informativ, tredjepersons, handlingsbar. Format: '{assignee_name}: Åtgärd'. INGET prefix 'Barnsysslor:'.",
+  "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Syssla begärd",
+    "message": "{assignee_name} har gjort anspråk på {chore_name} och arbetar på det nu"
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Godkännande krävs",
-    "message": "Påminnelse: {chore_name} som gjorts anspråk på av {kid_name} väntar på din granskning"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Godkännande krävs",
+    "message": "Påminnelse: {chore_name} som gjorts anspråk på av {assignee_name} väntar på din granskning"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Försenad syssla",
-    "message": "{kid_name}s syssla {chore_name} är försenad (förfaller: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Försenad syssla",
+    "message": "{assignee_name}s syssla {chore_name} är försenad (förfaller: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} Väntar",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} Väntar",
     "message": "{count} sysslor väntar på granskning. Senaste: {latest_chore} (+{points} poäng)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Belöningsförfrågan",
-    "message": "{kid_name} begärde {reward_name} för {points} poäng"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Belöningsförfrågan",
+    "message": "{assignee_name} begärde {reward_name} för {points} poäng"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Belöning väntar",
-    "message": "Påminnelse: {reward_name} begärd av {kid_name} väntar på ditt godkännande"
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Belöning väntar",
+    "message": "Påminnelse: {reward_name} begärd av {assignee_name} väntar på ditt godkännande"
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Märke intjänat",
-    "message": "{kid_name} fick märket {badge_name} !"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Märke intjänat",
+    "message": "{assignee_name} fick märket {badge_name} !"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Prestation",
-    "message": "{kid_name} tjänade {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Prestation",
+    "message": "{assignee_name} tjänade {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Utmaning klar",
-    "message": "{kid_name} slutförd {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Utmaning klar",
+    "message": "{assignee_name} slutförd {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Multiplikatorn uppdaterad",
-    "message": "{kid_name}s poängmultiplikator ändrad från {old_multiplier}x till {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Multiplikatorn uppdaterad",
+    "message": "{assignee_name}s poängmultiplikator ändrad från {old_multiplier}x till {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMINISTRATIONSMEDDELANDEN: Datahanteringsåtgärder",
@@ -112,9 +112,9 @@
     "title": "🔄 Barnsysslor: Fullständig återställning",
     "message": "All systemdata har återställts till standardinställningarna"
   },
-  "data_reset_kid": {
+  "data_reset_assignee": {
     "title": "🔄 Barnsysslor: Återställning av barn",
-    "message": "Dataåterställning för {kid_name}"
+    "message": "Dataåterställning för {assignee_name}"
   },
   "data_reset_item_type": {
     "title": "🔄 Barnsysslor: {item_type} Återställ",

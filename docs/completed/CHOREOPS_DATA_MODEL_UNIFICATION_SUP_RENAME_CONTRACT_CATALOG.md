@@ -208,14 +208,23 @@ Current recommendation:
 
 ## Approval checklist
 
-- [ ] D1 translation key policy approved
-- [ ] D2 data constant migration depth approved
-- [ ] D3 helper alias removal timing approved
-- [ ] D4 linked-term runtime elimination approved
-- [ ] D5 translation orphan-key policy approved
-- [ ] Service/event mapping contract approved
-- [ ] Translation update scope approved
-- [ ] Method/helper rename scope approved
+- [x] D1 translation key policy approved
+- [x] D2 data constant migration depth approved
+- [x] D3 helper alias removal timing approved
+- [x] D4 linked-term runtime elimination approved
+- [x] D5 translation orphan-key policy approved
+- [x] Service/event mapping contract approved
+- [x] Translation update scope approved
+- [x] Method/helper rename scope approved
+
+Approval lock record (2026-02-22):
+
+- D1: Option A
+- D2: Option A
+- D3: Option A
+- D4: Option A
+- D5: Option A
+- Approved by: `CCPK1` (PM lock)
 
 ## Execution tracking
 

@@ -16,6 +16,19 @@ All remaining implementation work is tracked in:
 
 This file remains as historical governance context only.
 
+## Historical reference-only checklist freeze
+
+- All sequence tables, progress indicators, and checklist-style content below are frozen historical snapshots.
+- No unchecked item in this file is actionable execution work.
+- Authoritative execution ownership is exclusively in `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`.
+- Keep decision/evidence sections intact for audit traceability only.
+
+## Transfer acknowledgment
+
+- Transfer locked date: `2026-02-22`
+- PM initials/date: `____ / ____`
+- Builder lead initials/date: `____ / ____`
+
 ## Purpose
 
 Provide one operating guide so PM and builder can use the four plans without overlap, contradiction, or lost context.
@@ -43,34 +56,34 @@ Supporting policy used by all four plans:
 
 ## Sequencing model (must follow in order)
 
-| Sequence | Plan owner | What happens | Entry gate | Exit gate |
-|---|---|---|---|---|
-| 0 | Program authority | Reconcile contradictory status claims across plans | All four plans listed and linked | One agreed “current state” statement in each plan |
-| 1 | Program authority + policy | Freeze terminology + compatibility policy | Sequence 0 complete | Policy text approved in all four plans |
-| 2 | Data model plan | Runtime symbol and model hard-cut batches | Sequence 1 complete | Runtime naming debt closed or explicitly migration-tagged |
-| 3 | Flow plan | Config/options flow contract alignment and wrapper reduction | Sequence 2 complete | Flow tests pass; no label-only alias routes remain |
-| 4 | Translation plan | Runtime key parity and translation cleanup in lockstep | Sequence 3 complete | Zero missing runtime keys; terminology policy satisfied |
-| 5 | Program authority | Docs exception review + archive decision | Sequence 4 complete | Acceptance checklist fully checked |
+| Sequence | Plan owner                 | What happens                                                 | Entry gate                       | Exit gate                                                 |
+| -------- | -------------------------- | ------------------------------------------------------------ | -------------------------------- | --------------------------------------------------------- |
+| 0        | Program authority          | Reconcile contradictory status claims across plans           | All four plans listed and linked | One agreed “current state” statement in each plan         |
+| 1        | Program authority + policy | Freeze terminology + compatibility policy                    | Sequence 0 complete              | Policy text approved in all four plans                    |
+| 2        | Data model plan            | Runtime symbol and model hard-cut batches                    | Sequence 1 complete              | Runtime naming debt closed or explicitly migration-tagged |
+| 3        | Flow plan                  | Config/options flow contract alignment and wrapper reduction | Sequence 2 complete              | Flow tests pass; no label-only alias routes remain        |
+| 4        | Translation plan           | Runtime key parity and translation cleanup in lockstep       | Sequence 3 complete              | Zero missing runtime keys; terminology policy satisfied   |
+| 5        | Program authority          | Docs exception review + archive decision                     | Sequence 4 complete              | Acceptance checklist fully checked                        |
 
 ## Sequence progress and phase dependencies
 
 Use this table as the PM advancement gate. A sequence is only complete when all required plan-phase checks for that row are complete.
 
-| Sequence | Required plan/phase completion | Progress status | Evidence required to advance |
-|---|---|---|---|
-| 0 | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 1 (status reconciliation) complete; conflicting claims removed from all active plans | ☑ Complete | Cross-plan contradiction log + updated status text in each plan |
-| 1 | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 2 (terminology freeze) complete; terminology policy approved in all four plans | ☑ Complete | Policy approval notes + explicit `KidsChores`/`KidsChores Mode` boundary confirmations |
-| 2 | `CHOREOPS_DATA_MODEL_UNIFICATION`: runtime/model hard-cut phase complete for current batch scope; migration-only exceptions tagged | ☑ Complete | Runtime symbol rename/removal changelog + focused runtime regression results |
-| 3 | `OPTIONS_FLOW_ROLE_BASED_USERS`: flow contract phase complete for current batch scope; wrapper reduction completed per gate | ☑ Complete | Config/options flow matrix + focused flow test evidence |
-| 4 | `TRANSLATION_CONTRACT_REALIGNMENT`: Phase 1-3 completion for active wave (inventory, parity, lockstep mapping) | ☑ Complete | Translation mismatch inventory + zero-missing-runtime-key report + targeted tests |
-| 5 | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 4/5 closeout governance execution | ☑ Complete | Final open-vs-done matrix + PM and builder lead sign-off |
+| Sequence | Required plan/phase completion                                                                                                     | Progress status | Evidence required to advance                                                           |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------------------- |
+| 0        | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 1 (status reconciliation) complete; conflicting claims removed from all active plans           | ☑ Complete      | Cross-plan contradiction log + updated status text in each plan                        |
+| 1        | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 2 (terminology freeze) complete; terminology policy approved in all four plans                 | ☑ Complete      | Policy approval notes + explicit `KidsChores`/`KidsChores Mode` boundary confirmations |
+| 2        | `CHOREOPS_DATA_MODEL_UNIFICATION`: runtime/model hard-cut phase complete for current batch scope; migration-only exceptions tagged | ☑ Complete      | Runtime symbol rename/removal changelog + focused runtime regression results           |
+| 3        | `OPTIONS_FLOW_ROLE_BASED_USERS`: flow contract phase complete for current batch scope; wrapper reduction completed per gate        | ☑ Complete      | Config/options flow matrix + focused flow test evidence                                |
+| 4        | `TRANSLATION_CONTRACT_REALIGNMENT`: Phase 1-3 completion for active wave (inventory, parity, lockstep mapping)                     | ☑ Complete      | Translation mismatch inventory + zero-missing-runtime-key report + targeted tests      |
+| 5        | `REBRAND_ROLEMODEL_CLOSEOUT`: Phase 4/5 closeout governance execution                                                              | ☑ Complete      | Final open-vs-done matrix + PM and builder lead sign-off                               |
 
 ### Advancement rule
 
 - A sequence may advance only when:
-   - its row is marked **Complete**,
-   - required evidence is linked in the owning plan,
-   - and no downstream plan reports a blocking contradiction.
+  - its row is marked **Complete**,
+  - required evidence is linked in the owning plan,
+  - and no downstream plan reports a blocking contradiction.
 
 ### Current progress snapshot (update daily)
 

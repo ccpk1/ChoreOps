@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Välkommen till KidsChores",
-        "description": "Den här guiden guidar dig genom att konfigurera KidsChores.\n\n[📖 Snabbstartsguide]({documentation_url})"
+        "title": "Välkommen till ChoreOps",
+        "description": "Den här guiden guidar dig genom att konfigurera ChoreOps.\n\n[📖 Snabbstartsguide]({documentation_url})"
       },
       "data_recovery": {
         "title": "Alternativ för dataåterställning",
-        "description": "Befintlig KidsChores-data hittades i:\n{storage_path}\n\nHittade {backup_count} säkerhetskopior.\n\nVad vill du göra?\n\n[📖 Läs mer om säkerhetskopiering och återställning]({documentation_url})",
+        "description": "Befintlig ChoreOps-data hittades i:\n{storage_path}\n\nHittade {backup_count} säkerhetskopior.\n\nVad vill du göra?\n\n[📖 Läs mer om säkerhetskopiering och återställning]({documentation_url})",
         "data": {
           "backup_selection": "Välj alternativ"
         }
       },
       "paste_json_input": {
         "title": "Importera JSON-data",
-        "description": "Klistra in hela JSON-innehållet från antingen:\n\n• En KidsChores-datafil (kidschores_data)\n• En diagnostiknedladdning\n\nSystemet kommer automatiskt att upptäcka och packa upp formatet efter behov. Både rådata för lagring och export av diagnostik stöds.",
+        "description": "Klistra in hela JSON-innehållet från antingen:\n\n• En ChoreOps-datafil (choreops_data)\n• En diagnostiknedladdning\n\nSystemet kommer automatiskt att upptäcka och packa upp formatet efter behov. Både rådata för lagring och export av diagnostik stöds.",
         "data": {
           "json_data": "JSON-data"
         },
         "data_description": {
-          "json_data": "Klistra in hela JSON-innehållet här. Tar emot data från kidschores_data-filen eller diagnostikexporten (packar upp extra struktur automatiskt)."
+          "json_data": "Klistra in hela JSON-innehållet här. Tar emot data från choreops_data-filen eller diagnostikexporten (packar upp extra struktur automatiskt)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Rörseparerade punktvärden för manuella justeringsknappar (t.ex. +1,0|-1,0|+10,0|-10,0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Antal barn",
         "description": "Hur många barn vill du ta hand om?",
         "data": {
-          "kid_count": "Antal barn"
+          "assignee_count": "Antal barn"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Definiera barn",
         "description": "Ange namnet för varje barn.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "Språk som används för din syssloöversikt och dina aviseringar."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Antal föräldrar",
         "description": "Hur många föräldrar vill du definiera inledningsvis?",
         "data": {
-          "parent_count": "Antal föräldrar"
+          "approver_count": "Antal föräldrar"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Definiera förälder",
         "description": "Ange uppgifter för varje förälder.",
         "data": {
           "name": "Föräldernamn",
           "ha_user_id": "Hemassistent-användare",
-          "associated_kids": "Associerade barn",
+          "associated_assignees": "Associerade barn",
           "mobile_notify_service": "Aviseringar",
           "dashboard_language": "Språk"
         },
         "data_description": {
           "name": "Unikt namn för denna förälder, som används i hela systemet.",
           "ha_user_id": "Valfritt: Länka den här föräldern till en Home Assistant-användare för aviseringar och åtkomst till instrumentpanelen.",
-          "associated_kids": "Välj vilka barn den här föräldern övervakar för aviseringar och godkännandeåtgärder.",
+          "associated_assignees": "Välj vilka barn den här föräldern övervakar för aviseringar och godkännandeåtgärder.",
           "mobile_notify_service": "Välj en aviseringstjänst för att aktivera aviseringar för den här föräldern, eller lämna tomt för att inaktivera.",
           "dashboard_language": "Språk som används för din syssloöversikt och dina aviseringar."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Beskrivning (valfritt)",
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poäng tilldelade",
-              "assigned_kids": "👥 Tilldelade barn",
+              "assigned_assignees": "👥 Tilldelade barn",
               "completion_criteria": "👥 Slutförandekriterier"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Valfria instruktioner eller detaljer om hur man slutför den här sysslan.",
               "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
               "default_points": "Poäng intjänade när de är klara.",
-              "assigned_kids": "Barn som kan se och göra anspråk på den här sysslan.",
+              "assigned_assignees": "Barn som kan se och göra anspråk på den här sysslan.",
               "completion_criteria": "Styr hur sysslan slutförs när flera barn är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "📋 Ikon (mdi:xxx)",
           "chore_labels": "📋 Etiketter (valfritt)",
           "default_points": "💰 Poäng tilldelade",
-          "assigned_kids": "👥 Tilldelade barn",
+          "assigned_assignees": "👥 Tilldelade barn",
           "completion_criteria": "👥 Slutförandekriterier",
           "approval_reset_type": "➡️ Tillåtna slutföranden och återställning av godkännandetidpunkt",
           "approval_reset_pending_claim_action": "➡️ Hantering av väntande reklamationer vid godkännande Återställ",
@@ -212,7 +212,7 @@
           "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
           "chore_labels": "Taggar för att organisera sysslor (t.ex. 'kök', 'utomhus'). Lämna tomt om det inte behövs.",
           "default_points": "Poäng intjänade när de är klara.",
-          "assigned_kids": "Barn som kan se och göra anspråk på den här sysslan.",
+          "assigned_assignees": "Barn som kan se och göra anspråk på den här sysslan.",
           "completion_criteria": "Styr hur sysslan slutförs när flera barn är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
           "approval_reset_type": "Styr när sysslanens godkännandecykelgräns utlöses (midnatt, förfallodatum, vid slutförande eller manuell utlösning).",
           "approval_reset_pending_claim_action": "Detta är vad som händer med anspråk som fortfarande väntar på godkännande när godkännandet återställs.",
@@ -359,7 +359,7 @@
           "description": "Beskrivning (valfritt)",
           "achievement_labels": "Prestationsetiketter",
           "icon": "Ikon (mdi:xxx)",
-          "assigned_kids": "Tilldelade barn",
+          "assigned_assignees": "Tilldelade barn",
           "type": "Typ av prestation",
           "selected_chore_id": "Välj associerad syssla",
           "criteria": "Kriterier (valfritt)",
@@ -383,7 +383,7 @@
           "description": "Beskrivning (valfritt)",
           "challenge_labels": "Utmaningsetiketter",
           "icon": "Ikon (mdi:xxx)",
-          "assigned_kids": "Tilldelade barn",
+          "assigned_assignees": "Tilldelade barn",
           "type": "Typ av utmaning",
           "selected_chore_id": "Välj syssla associerad med utmaning (valfritt)",
           "criteria": "Kriterier (valfritt)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Ett märke med detta namn finns redan",
       "duplicate_challenge": "En utmaning med detta namn finns redan",
       "duplicate_chore": "En syssla med detta namn finns redan",
-      "duplicate_kid": "Ett barn med detta namn finns redan",
-      "duplicate_parent": "En förälder med detta namn finns redan",
+      "duplicate_assignee": "Ett barn med detta namn finns redan",
+      "duplicate_approver": "En förälder med detta namn finns redan",
       "duplicate_penalty": "Ett straff med detta namn finns redan",
       "duplicate_reward": "En belöning med detta namn finns redan",
       "duplicate_bonus": "En bonus med detta namn finns redan",
-      "shadow_kid_name_conflict": "Det går inte att aktivera tilldelning av sysslor: ett barn med ditt namn finns redan. Byt namn på det befintliga barnet först.",
+      "shadow_assignee_name_conflict": "Det går inte att aktivera tilldelning av sysslor: ett barn med ditt namn finns redan. Byt namn på det befintliga barnet först.",
       "due_date_in_past": "Förfallodatumet måste vara i framtiden.",
       "end_date_in_past": "Slutdatumet måste vara i framtiden.",
       "end_date_not_after_start_date": "Slutdatumet måste vara senare än startdatumet",
       "err_end_before_start": "Slutdatumet måste vara efter startdatumet",
       "err_name_duplicate": "En utmaning med detta namn finns redan",
-      "achievement_no_kids_assigned": "Minst ett barn måste tilldelas prestationen",
-      "challenge_no_kids_assigned": "Minst ett barn måste tilldelas utmaningen",
+      "achievement_no_assignees_assigned": "Minst ett barn måste tilldelas prestationen",
+      "challenge_no_assignees_assigned": "Minst ett barn måste tilldelas utmaningen",
       "invalid_achievement_count": "Ogiltigt antal prestationer",
       "invalid_achievement_name": "Ogiltigt prestationsnamn",
       "invalid_badge": "Ogiltigt märke",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Ogiltigt utmaningsnamn",
       "invalid_chore": "Ogiltig syssla",
       "invalid_chore_count": "Ogiltigt antal sysslor",
-      "rotation_min_kids": "Rotationssysslor kräver minst 2 tilldelade barn",
+      "rotation_min_assignees": "Rotationssysslor kräver minst 2 tilldelade barn",
       "invalid_chore_name": "Ogiltigt namn på syssla",
       "invalid_points": "Poängen måste vara noll eller större",
       "invalid_overdue_reset_combination": "Hanteringen av förseningar \"Återställ sedan vid förfallodatum\" fungerar endast med återställningstyperna midnatt. Välj \"Vid midnatt (en gång)\" eller \"Vid midnatt (upprepad)\" för återställningstypen för godkännande.",
       "invalid_due_date": "Ogiltigt förfallodatum",
       "date_required_for_frequency": "Ett förfallodatum krävs för denna återkommande frekvens. Rensa datum fungerar endast med frekvensen Ingen, Daglig eller Veckovis.",
       "invalid_end_date": "Ogiltigt slutdatum.",
-      "invalid_kid_count": "Ogiltigt antal barn",
-      "invalid_kid_name": "Ogiltigt barnnamn",
-      "invalid_parent_count": "Ogiltigt antal föräldrar",
-      "invalid_parent_name": "Ogiltigt föräldernamn",
-      "no_kids_assigned": "Minst ett barn måste tilldelas sysslan",
+      "invalid_assignee_count": "Ogiltigt antal barn",
+      "invalid_assignee_name": "Ogiltigt barnnamn",
+      "invalid_approver_count": "Ogiltigt antal föräldrar",
+      "invalid_approver_name": "Ogiltigt föräldernamn",
+      "no_assignees_assigned": "Minst ett barn måste tilldelas sysslan",
       "invalid_penalty": "Ogiltig straff",
       "invalid_penalty_count": "Ogiltigt antal straff",
       "invalid_penalty_name": "Ogiltigt straffnamn",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Ogiltiga poängjusteringsvärden. Måste vara en lista."
     },
     "abort": {
-      "single_instance_allowed": "Endast en enda KidsChores-instans kan konfigureras.",
-      "already_configured": "KidsChores-data har återställts. Du kan nu ladda om integrationen.",
+      "single_instance_allowed": "Endast en enda ChoreOps-instans kan konfigureras.",
+      "already_configured": "ChoreOps-data har återställts. Du kan nu ladda om integrationen.",
       "file_not_found": "Den valda säkerhetskopian kunde inte hittas.",
       "corrupt_file": "Den valda filen innehåller ogiltig JSON och kan inte läsas.",
-      "invalid_structure": "Den valda filen saknar den nödvändiga KidsChores-datastrukturen.",
+      "invalid_structure": "Den valda filen saknar den nödvändiga ChoreOps-datastrukturen.",
       "reconfigure_failed": "Omkonfigurationen misslyckades. Försök igen.",
       "reconfigure_successful": "Systeminställningarna har uppdaterats."
     }
@@ -509,7 +509,7 @@
           "points_icon": "Poängikon"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Lägg till barn",
         "description": "Ange informationen om det nya barnet.\n\n📖 [Konfigurationsguide]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "Språk som används för din syssloöversikt och dina aviseringar."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Lägg till förälder",
         "description": "Ange informationen för den nya föräldern.\n\n📖 [Konfigurationsguide]({documentation_url})",
         "data": {
           "name": "Föräldernamn",
           "ha_user_id": "Hemassistent-användare",
-          "associated_kids": "Associerade barn",
+          "associated_assignees": "Associerade barn",
           "mobile_notify_service": "Aviseringar",
           "dashboard_language": "Språk",
           "allow_chore_assignment": "Tillåt att sysslor tilldelas mig",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Unikt namn för denna förälder, som används i hela systemet.",
           "ha_user_id": "Valfritt: Länka den här föräldern till en Home Assistant-användare för aviseringar och åtkomst till instrumentpanelen.",
-          "associated_kids": "Välj vilka barn den här föräldern övervakar för aviseringar och godkännandeåtgärder.",
+          "associated_assignees": "Välj vilka barn den här föräldern övervakar för aviseringar och godkännandeåtgärder.",
           "mobile_notify_service": "Välj en aviseringstjänst för att aktivera aviseringar för den här föräldern, eller lämna tomt för att inaktivera.",
           "allow_chore_assignment": "Skapar en profil så att uppgifter kan tilldelas dig. Som standard visas bara en Godkänn-knapp för slutförande med ett klick. Obs: Om du avmarkerar rutan bevaras barnprofilen med suffixet '_unlinked' för manuell rensning.",
           "enable_chore_workflow": "Lägger till knappar för att göra anspråk och avvisa för hela arbetsflödet (göra anspråk → godkänn/avvisa).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Beskrivning (valfritt)",
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poäng tilldelade",
-              "assigned_kids": "👥 Tilldelade barn",
+              "assigned_assignees": "👥 Tilldelade barn",
               "completion_criteria": "👥 Slutförandekriterier"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Valfria instruktioner eller detaljer om hur man slutför den här sysslan.",
               "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
               "default_points": "Poäng intjänade när de är klara.",
-              "assigned_kids": "Barn som kan se och göra anspråk på den här sysslan.",
+              "assigned_assignees": "Barn som kan se och göra anspråk på den här sysslan.",
               "completion_criteria": "Styr hur sysslan slutförs när flera barn är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "📋 Ikon (mdi:xxx)",
           "chore_labels": "📋 Etiketter (valfritt)",
           "default_points": "💰 Poäng tilldelade",
-          "assigned_kids": "👥 Tilldelade barn",
+          "assigned_assignees": "👥 Tilldelade barn",
           "completion_criteria": "👥 Slutförandekriterier",
           "approval_reset_type": "➡️ Tillåtna slutföranden och återställning av godkännandetidpunkt",
           "approval_reset_pending_claim_action": "➡️ Hantering av väntande reklamationer vid godkännande Återställ",
@@ -654,7 +654,7 @@
           "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
           "chore_labels": "Taggar för att organisera sysslor (t.ex. 'kök', 'utomhus'). Lämna tomt om det inte behövs.",
           "default_points": "Poäng intjänade när de är klara.",
-          "assigned_kids": "Barn som kan se och göra anspråk på den här sysslan.",
+          "assigned_assignees": "Barn som kan se och göra anspråk på den här sysslan.",
           "completion_criteria": "Styr hur sysslan slutförs när flera barn är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
           "approval_reset_type": "Styr när sysslanens godkännandecykelgräns utlöses (midnatt, förfallodatum, vid slutförande eller manuell utlösning).",
           "approval_reset_pending_claim_action": "Styr vad som händer med ogodkända anspråk när återställningsgränsen för godkännande utlöses.",
@@ -932,7 +932,7 @@
           "description": "Beskrivning (valfritt)",
           "achievement_labels": "Prestationsetiketter",
           "icon": "Ikon (mdi:xxx)",
-          "assigned_kids": "Tilldelade barn",
+          "assigned_assignees": "Tilldelade barn",
           "type": "Typ av prestation",
           "selected_chore_id": "Välj associerad syssla",
           "criteria": "Kriterier (valfritt)",
@@ -949,7 +949,7 @@
           "description": "Beskrivning (valfritt)",
           "challenge_labels": "Utmaningsetiketter",
           "icon": "Ikon (mdi:xxx)",
-          "assigned_kids": "Tilldelade barn",
+          "assigned_assignees": "Tilldelade barn",
           "type": "Typ av utmaning",
           "selected_chore_id": "Välj syssla associerad med utmaning (valfritt)",
           "criteria": "Kriterier (valfritt)",
@@ -960,7 +960,7 @@
           "internal_id": "Internt ID"
         }
       },
-      "edit_kid": {
+      "edit_assignee": {
         "title": "Redigera barn",
         "description": "Ändra detaljerna för det valda barnet.\n\n📖 [Konfigurationsguide]({documentation_url})",
         "data": {
@@ -977,7 +977,7 @@
           "dashboard_language": "Språk som används för din syssloöversikt och dina aviseringar."
         }
       },
-      "edit_kid_shadow": {
+      "edit_assignee_shadow": {
         "title": "Redigera skuggbarn",
         "description": "Ändra informationen om det valda skuggbarnet. ⚠️ Det här barnet är länkat till en förälder. Om namnet ändras bryts kravet på namnmatchning för att ta bort länken via tjänsten.",
         "data": {
@@ -994,13 +994,13 @@
           "dashboard_language": "Språk som används för din syssloöversikt och dina aviseringar."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Redigera förälder",
         "description": "Ändra informationen för den valda föräldern.\n\n📖 [Konfigurationsguide]({documentation_url})",
         "data": {
           "name": "Föräldernamn",
           "ha_user_id": "Hemassistent-användare",
-          "associated_kids": "Associerade barn",
+          "associated_assignees": "Associerade barn",
           "mobile_notify_service": "Aviseringar",
           "dashboard_language": "Språk",
           "allow_chore_assignment": "Tillåt att sysslor tilldelas mig",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Unikt namn för denna förälder, som används i hela systemet.",
           "ha_user_id": "Valfritt: Länka den här föräldern till en Home Assistant-användare för aviseringar och åtkomst till instrumentpanelen.",
-          "associated_kids": "Välj vilka barn den här föräldern övervakar för aviseringar och godkännandeåtgärder.",
+          "associated_assignees": "Välj vilka barn den här föräldern övervakar för aviseringar och godkännandeåtgärder.",
           "mobile_notify_service": "Välj en aviseringstjänst för att aktivera aviseringar för den här föräldern, eller lämna tomt för att inaktivera.",
           "allow_chore_assignment": "Skapar en profil så att uppgifter kan tilldelas dig. Som standard visas bara en Godkänn-knapp för slutförande med ett klick. Obs: Om du avmarkerar rutan bevaras barnprofilen med suffixet '_unlinked' för manuell rensning.",
           "enable_chore_workflow": "Lägger till knappar för att göra anspråk och avvisa för hela arbetsflödet (göra anspråk → godkänn/avvisa).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Beskrivning (valfritt)",
               "icon": "📋 Ikon (mdi:xxx)",
               "default_points": "💰 Poäng tilldelade",
-              "assigned_kids": "👥 Tilldelade barn",
+              "assigned_assignees": "👥 Tilldelade barn",
               "completion_criteria": "👥 Slutförandekriterier"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Valfria instruktioner eller detaljer om hur man slutför den här sysslan.",
               "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
               "default_points": "Poäng intjänade när de är klara.",
-              "assigned_kids": "Barn som kan se och göra anspråk på den här sysslan.",
+              "assigned_assignees": "Barn som kan se och göra anspråk på den här sysslan.",
               "completion_criteria": "Styr hur sysslan slutförs när flera barn är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋 Etiketter (valfritt)",
           "internal_id": "Internt ID",
           "default_points": "💰 Poäng tilldelade",
-          "assigned_kids": "👥 Tilldelade barn",
+          "assigned_assignees": "👥 Tilldelade barn",
           "completion_criteria": "👥 Slutförandekriterier",
           "approval_reset_type": "➡️ Tillåtna slutföranden och återställning av godkännandetidpunkt",
           "approval_reset_pending_claim_action": "➡️ Hantering av väntande reklamationer vid godkännande Återställ",
@@ -1123,7 +1123,7 @@
           "icon": "Ikon för materialdesign (t.ex. mdi:kvast, mdi:diskmaskin).",
           "chore_labels": "Taggar för att organisera sysslor (t.ex. 'kök', 'utomhus'). Lämna tomt om det inte behövs.",
           "default_points": "Poäng intjänade när de är klara.",
-          "assigned_kids": "Barn som kan se och göra anspråk på den här sysslan.",
+          "assigned_assignees": "Barn som kan se och göra anspråk på den här sysslan.",
           "completion_criteria": "Styr hur sysslan slutförs när flera barn är tilldelade: individuell spårning, delad slutförande eller turbaserad rotation.",
           "approval_reset_type": "Styr när sysslanens godkännandecykelgräns utlöses (midnatt, förfallodatum, vid slutförande eller manuell utlösning).",
           "approval_reset_pending_claim_action": "Styr vad som händer med ogodkända anspråk när återställningsgränsen för godkännande utlöses.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "När aviseringar ska skickas: Vid anspråk, vid godkännande, vid avslag eller någon kombination."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Redigera förfallodatum per barn: {chore_name}",
-        "description": "Ange individuella förfallodatum för varje tilldelat barn. Datumfältet i huvudredigeringsformuläret fungerar som en **mall** för enkelhetens skull – använd det för att snabbt tillämpa samma datum på alla barn via kryssrutan nedan, eller lämna det tomt och ange datum individuellt här.\n\nFält visas för: {kid_names}. Lämna tomt om det inte finns någon deadline.{template_date}\n\n📖 [Avancerad guide]({documentation_url})",
+        "description": "Ange individuella förfallodatum för varje tilldelat barn. Datumfältet i huvudredigeringsformuläret fungerar som en **mall** för enkelhetens skull – använd det för att snabbt tillämpa samma datum på alla barn via kryssrutan nedan, eller lämna det tomt och ange datum individuellt här.\n\nFält visas för: {assignee_names}. Lämna tomt om det inte finns någon deadline.{template_date}\n\n📖 [Avancerad guide]({documentation_url})",
         "data": {
           "apply_template_to_all": "Använd malldatum för alla barn"
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Ange 2–6 gånger i 24-timmarsformat, separerade med | (pipettecken). Exempel: 08:00|17:00 för morgon och kväll."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Schema per barn: {chore_name}",
-        "description": "Konfigurera individuella schemainställningar för varje barn som är tilldelat denna syssla. De huvudsakliga formulärvärdena fungerar som **mallar** – använd kryssrutorna för att tillämpa dem på alla barn eller anpassa varje barns inställningar individuellt.\n\n**Obs:** Inte alla fält nedan gäller för varje syssla. Formuläret visar dynamiskt relevanta alternativ baserat på slutförandeläge, frekvens och om förfallodatum är inställda.\n\n**Dagligt (flera) tidformat:** Om visas, ange 2–6 tider i 24-timmarsformat separerade med | (pipette). Exempel: 08:00|17:00\n\nBarn: {kid_names}{template_info}\n\n📖 [Avancerad guide]({documentation_url})",
+        "description": "Konfigurera individuella schemainställningar för varje barn som är tilldelat denna syssla. De huvudsakliga formulärvärdena fungerar som **mallar** – använd kryssrutorna för att tillämpa dem på alla barn eller anpassa varje barns inställningar individuellt.\n\n**Obs:** Inte alla fält nedan gäller för varje syssla. Formuläret visar dynamiskt relevanta alternativ baserat på slutförandeläge, frekvens och om förfallodatum är inställda.\n\n**Dagligt (flera) tidformat:** Om visas, ange 2–6 tider i 24-timmarsformat separerade med | (pipette). Exempel: 08:00|17:00\n\nBarn: {assignee_names}{template_info}\n\n📖 [Avancerad guide]({documentation_url})",
         "data": {
           "apply_days_to_all": "Tillämpa malldagar för alla barn",
           "apply_times_to_all": "Använd malltider för alla barn",
@@ -1428,7 +1428,7 @@
           "description": "Beskrivning (valfritt)",
           "achievement_labels": "Prestationsetiketter",
           "icon": "Ikon (mdi:xxx)",
-          "assigned_kids": "Tilldelade barn",
+          "assigned_assignees": "Tilldelade barn",
           "type": "Typ av prestation",
           "selected_chore_id": "Välj associerad syssla",
           "criteria": "Kriterier (valfritt)",
@@ -1445,7 +1445,7 @@
           "description": "Beskrivning (valfritt)",
           "challenge_labels": "Utmaningsetiketter",
           "icon": "Ikon (mdi:xxx)",
-          "assigned_kids": "Tilldelade barn",
+          "assigned_assignees": "Tilldelade barn",
           "type": "Typ av utmaning",
           "selected_chore_id": "Välj syssla associerad med utmaning (valfritt)",
           "criteria": "Kriterier (valfritt)",
@@ -1456,14 +1456,14 @@
           "internal_id": "Internt ID"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Ta bort barn",
-        "description": "Är du säker på att du vill ta bort barnet {kid_name}?",
+        "description": "Är du säker på att du vill ta bort barnet {assignee_name}?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Ta bort förälder",
-        "description": "Är du säker på att du vill ta bort föräldern {parent_name}?",
+        "description": "Är du säker på att du vill ta bort föräldern {approver_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Hantera instrumentpanelen",
-        "description": "Skapa, uppdatera eller ta bort KidsChores Lovelace-instrumentpaneler.\n\n**Obligatoriska anpassade kort** (installera via HACS Frontend):\n- Svampkort (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Minigrafkort (custom:mini-graph-card)\n\nUtan dessa kort kommer instrumentpaneler att visa fel. Installera dem först från HACS innan du genererar instrumentpaneler.",
+        "description": "Skapa, uppdatera eller ta bort ChoreOps Lovelace-instrumentpaneler.\n\n**Obligatoriska anpassade kort** (installera via HACS Frontend):\n- Svampkort (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Minigrafkort (custom:mini-graph-card)\n\nUtan dessa kort kommer instrumentpaneler att visa fel. Installera dem först från HACS innan du genererar instrumentpaneler.",
         "data": {
           "dashboard_action": "Handling",
           "dashboard_check_cards": "Kontrollera kortinstallationen"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Skapa/uppdatera instrumentpanel",
-        "description": "Generera en KidsChores-instrumentpanel med flikar för varje barn.\n\nVälj ett namn för instrumentpanelen, välj vilka barn som ska inkluderas och lägg eventuellt till en administratörsflik för föräldrahantering.\n\n[📖 Guide till generering av instrumentpaneler]({documentation_url})",
+        "description": "Generera en ChoreOps-instrumentpanel med flikar för varje barn.\n\nVälj ett namn för instrumentpanelen, välj vilka barn som ska inkluderas och lägg eventuellt till en administratörsflik för föräldrahantering.\n\n[📖 Guide till generering av instrumentpaneler]({documentation_url})",
         "data": {
           "dashboard_name": "Instrumentpanelens namn",
           "dashboard_style": "Instrumentpanelens stil",
-          "dashboard_kid_selection": "Barn (en flik per barn)",
+          "dashboard_assignee_selection": "Barn (en flik per barn)",
           "dashboard_include_admin": "Inkludera administratörsfliken",
           "dashboard_force_rebuild": "Tvinga ombyggnad (skriv över befintlig)"
         },
         "data_description": {
           "dashboard_name": "Namn på instrumentpanelen (visas i sidofältet). Förslag: Sysslor",
           "dashboard_style": "Välj layout för instrumentpanelen: Fullständig (alla funktioner), Minimal (endast det viktigaste) eller Kompakt (tät layout).",
-          "dashboard_kid_selection": "Välj vilka barn som ska skapas flikar för. Varje barn får sin egen vy/flik.",
+          "dashboard_assignee_selection": "Välj vilka barn som ska skapas flikar för. Varje barn får sin egen vy/flik.",
           "dashboard_include_admin": "Lägg till en administratörsflik med överordnade kontroller för godkännanden och hantering.",
           "dashboard_force_rebuild": "Om aktiverad kommer den befintliga instrumentpanelen att skrivas över. Annars misslyckas genereringen om instrumentpanelen finns."
         }
       },
       "dashboard_delete": {
         "title": "Ta bort instrumentpanelen",
-        "description": "Välj KidsChores-instrumentpaneler att ta bort.\n\n⚠️ Den här åtgärden kan inte ångras.",
+        "description": "Välj ChoreOps-instrumentpaneler att ta bort.\n\n⚠️ Den här åtgärden kan inte ångras.",
         "data": {
           "dashboard_delete_selection": "Instrumentpaneler att ta bort"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Allmänna alternativ",
-        "description": "Hantera allmänna inställningar för KidsChores-integrationen.\n\n[📖 Läs mer om säkerhetskopiering och återställning]({documentation_url})",
+        "description": "Hantera allmänna inställningar för ChoreOps-integrationen.\n\n[📖 Läs mer om säkerhetskopiering och återställning]({documentation_url})",
         "data": {
           "points_adjust_values": "Värden på knappen för manuell punktjustering",
           "update_interval": "Uppdateringsintervall",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Lista med värden för knapparna för manuell punktjustering. Varje värde separeras med '|'.",
-          "update_interval": "Intervall i minuter för uppdatering av KidsChores interna tillstånd.",
+          "update_interval": "Intervall i minuter för uppdatering av ChoreOps interna tillstånd.",
           "calendar_show_period": "Antal dagar i framtiden för att visa schemalagda sysslor och utmaningar i kalendern.",
           "retention_periods": "Datalagringsperioder i formatet Dagligen|Veckovis|Månadsvis|Årligen (t.ex. '7|4|12|3'). Varje värde måste vara ett positivt heltal.",
           "retention_daily": "Antal dagar med daglig historisk data som ska behållas före rensning. Minst 1, högst 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Hantering av säkerhetskopiering",
-        "description": "Hantera dina säkerhetskopior av KidsChores-data. Nuvarande status: {backup_count} säkerhetskopior med {storage_size} MB.",
+        "description": "Hantera dina säkerhetskopior av ChoreOps-data. Nuvarande status: {backup_count} säkerhetskopior med {storage_size} MB.",
         "data": {
           "backup_action_selection": "Välj en åtgärd"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Säkerhetskopieringsåtgärder",
-        "description": "Hantera dina säkerhetskopior av KidsChores-data.",
+        "description": "Hantera dina säkerhetskopior av ChoreOps-data.",
         "data": {
           "backup_action_selection": "Välj en åtgärd"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Skapa manuell säkerhetskopia",
-        "description": "Skapa en ny säkerhetskopia av dina KidsChores-data.\n\nNuvarande säkerhetskopior: {backup_count}\nLagringsinställning: {retention} säkerhetskopior",
+        "description": "Skapa en ny säkerhetskopia av dina ChoreOps-data.\n\nNuvarande säkerhetskopior: {backup_count}\nLagringsinställning: {retention} säkerhetskopior",
         "data": {
           "confirm": "Bekräfta skapandet av säkerhetskopian"
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Alternativ för dataåterställning",
-        "description": "Befintlig KidsChores-data hittades i:\n{storage_path}\n\nHittade {backup_count} säkerhetskopior.\n\nVad vill du göra?",
+        "description": "Befintlig ChoreOps-data hittades i:\n{storage_path}\n\nHittade {backup_count} säkerhetskopior.\n\nVad vill du göra?",
         "data": {
           "backup_selection": "Välj alternativ"
         }
       },
       "paste_json_restore": {
         "title": "Importera JSON-data",
-        "description": "Klistra in hela JSON-innehållet från antingen:\n\n• En KidsChores-datafil (kidschores_data)\n• En diagnostiknedladdning\n\nSystemet kommer automatiskt att upptäcka och packa upp formatet efter behov. Både rådata för lagring och export av diagnostik stöds.",
+        "description": "Klistra in hela JSON-innehållet från antingen:\n\n• En ChoreOps-datafil (choreops_data)\n• En diagnostiknedladdning\n\nSystemet kommer automatiskt att upptäcka och packa upp formatet efter behov. Både rådata för lagring och export av diagnostik stöds.",
         "data": {
           "json_data": "JSON-data"
         },
         "data_description": {
-          "json_data": "Klistra in hela JSON-innehållet här. Tar emot data från kidschores_data-filen eller diagnostikexporten (packar upp extra struktur automatiskt)."
+          "json_data": "Klistra in hela JSON-innehållet här. Tar emot data från choreops_data-filen eller diagnostikexporten (packar upp extra struktur automatiskt)."
         }
       },
       "create_backup_confirm": {
         "title": "Skapa manuell säkerhetskopia",
-        "description": "Skapa en manuell säkerhetskopia av dina nuvarande KidsChores-data?",
+        "description": "Skapa en manuell säkerhetskopia av dina nuvarande ChoreOps-data?",
         "data": {
           "confirm": "Bekräfta"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Ett märke med detta namn finns redan",
       "duplicate_challenge": "En utmaning med detta namn finns redan",
       "duplicate_chore": "En syssla med detta namn finns redan",
-      "duplicate_kid": "Ett barn med detta namn finns redan",
-      "duplicate_parent": "En förälder med detta namn finns redan",
+      "duplicate_assignee": "Ett barn med detta namn finns redan",
+      "duplicate_approver": "En förälder med detta namn finns redan",
       "duplicate_penalty": "Ett straff med detta namn finns redan",
       "duplicate_reward": "En belöning med detta namn finns redan",
       "duplicate_bonus": "En bonus med detta namn finns redan",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Ogiltigt förfallodatum",
       "date_required_for_frequency": "Ett förfallodatum krävs för denna återkommande frekvens. Rensa datum fungerar endast med frekvensen Ingen, Daglig eller Veckovis.",
       "invalid_end_date": "Ogiltigt slutdatum.",
-      "invalid_kid_count": "Ogiltigt antal barn",
-      "invalid_kid_name": "Ogiltigt barnnamn",
-      "no_kids_assigned": "Minst ett barn måste tilldelas sysslan",
-      "achievement_no_kids_assigned": "Minst ett barn måste tilldelas prestationen",
-      "challenge_no_kids_assigned": "Minst ett barn måste tilldelas utmaningen",
+      "invalid_assignee_count": "Ogiltigt antal barn",
+      "invalid_assignee_name": "Ogiltigt barnnamn",
+      "no_assignees_assigned": "Minst ett barn måste tilldelas sysslan",
+      "achievement_no_assignees_assigned": "Minst ett barn måste tilldelas prestationen",
+      "challenge_no_assignees_assigned": "Minst ett barn måste tilldelas utmaningen",
       "invalid_penalty": "Ogiltig straff",
       "invalid_penalty_count": "Ogiltigt antal straff",
       "invalid_bonus": "Ogiltig bonus",
@@ -1721,23 +1721,23 @@
       "file_not_found": "Den valda filen kunde inte hittas.",
       "invalid_selection": "Välj ett giltigt alternativ.",
       "error_daily_multi_requires_compatible_reset": "Frekvensen \"Flera gånger per dag\" är inte kompatibel med återställningstyperna vid midnatt eftersom de bara återställer godkännanden en gång vid midnatt.",
-      "error_daily_multi_independent_multi_kids": "Frekvensen 'Flera gånger per dag' med OBEROENDE slutförande kräver exakt ett barn, såvida inte tider per barn har konfigurerats. Konfigurera olika tider för varje barn i inställningarna per barn.",
+      "error_daily_multi_independent_multi_assignees": "Frekvensen 'Flera gånger per dag' med OBEROENDE slutförande kräver exakt ett barn, såvida inte tider per barn har konfigurerats. Konfigurera olika tider för varje barn i inställningarna per barn.",
       "error_daily_multi_times_required": "Tidslista krävs för frekvensen 'Flera gånger per dag'.",
       "error_daily_multi_times_invalid_format": "Ogiltigt tidsformat. Använd 24-timmarsformat (TT:MM) avgränsat med | (t.ex. 08:00|17:00).",
       "error_daily_multi_times_too_few": "Minst 2 gånger krävs för frekvensen 'Flera gånger per dag'. För en enskild tid, använd vanlig frekvens 'Daglig'.",
       "error_daily_multi_times_too_many": "Maximalt 6 gånger tillåtet per dag för frekvensen 'Flera gånger per dag'.",
       "error_daily_multi_due_date_required": "Frekvensen \"Flera gånger per dag\" kräver att ett förfallodatum anges. Datumet avgör när schemaläggningen startar och tiderna avgör tillgänglighetsfönstren varje dag.",
-      "rotation_min_kids": "Rotationssysslor kräver minst 2 tilldelade barn",
+      "rotation_min_assignees": "Rotationssysslor kräver minst 2 tilldelade barn",
       "error_allow_steal_incompatible": "Tillåt hantering av försenade stjälningar är endast kompatibelt med rotationssysslor (rotation_simple eller rotation_smart), återställningstypen 'En gång per dag', och kräver ett förfallodatum för att definiera när stjälningsfönstret öppnas.",
       "error_at_due_date_reset_requires_due_date": "Godkännandeåterställningstyperna \"Vid förfallodatum\" (en gång eller flera gånger) kräver att ett förfallodatum anges. Utan ett förfallodatum kommer återställningen av godkännandet aldrig att utlösas och sysslan förblir godkänd på obestämd tid.",
-      "error_per_kid_applicable_days_invalid": "Ogiltigt tillämpligt dagsformat för ett eller flera barn. Dagarna måste vara heltal 0–6 (måndag–söndag) utan dubbletter.",
-      "error_per_kid_daily_multi_times_invalid": "Ogiltigt dagligt tidsformat för ett eller flera barn. Använd 24-timmarsformat avgränsat med | (t.ex. 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Ogiltigt tillämpligt dagsformat för ett eller flera barn. Dagarna måste vara heltal 0–6 (måndag–söndag) utan dubbletter.",
+      "error_per_assignee_daily_multi_times_invalid": "Ogiltigt dagligt tidsformat för ett eller flera barn. Använd 24-timmarsformat avgränsat med | (t.ex. 08:00|17:00).",
       "dashboard_exists": "En instrumentpanel med den här URL-sökvägen finns redan. Aktivera \"Tvinga ombyggnad\" för att skriva över.",
       "dashboard_template_error": "Det gick inte att hämta instrumentpanelsmallen. Kontrollera nätverksanslutningen eller försök igen senare.",
       "dashboard_render_error": "Misslyckades med att rendera instrumentpanelsmallen. Detta kan tyda på ett mallfel.",
       "dashboard_save_error": "Det gick inte att spara instrumentpanelen i Home Assistant. Kontrollera systemloggarna för mer information.",
       "dashboard_no_name": "Ange ett namn för instrumentpanelen.",
-      "dashboard_no_kids": "Välj minst ett barn eller aktivera \"Inkludera administratörsflik\".",
+      "dashboard_no_assignees": "Välj minst ett barn eller aktivera \"Inkludera administratörsflik\".",
       "dashboard_no_dashboards": "Välj minst en instrumentpanel att ta bort."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Ogiltig utmaning",
       "invalid_chore": "Ogiltig syssla",
       "invalid_entity": "Ogiltig entitet",
-      "invalid_kid": "Ogiltigt barn",
-      "invalid_parent": "Ogiltig förälder",
+      "invalid_assignee": "Ogiltigt barn",
+      "invalid_approver": "Ogiltig förälder",
       "invalid_penalty": "Ogiltig straff",
       "invalid_reward": "Ogiltig belöning",
       "invalid_bonus": "Ogiltig bonus",
-      "no_kid": "Inga barn är konfigurerade för redigering. Lägg till en post först.",
-      "no_parent": "Inga föräldrar är konfigurerade för redigering. Lägg till en post först.",
+      "no_assignee": "Inga barn är konfigurerade för redigering. Lägg till en post först.",
+      "no_approver": "Inga föräldrar är konfigurerade för redigering. Lägg till en post först.",
       "no_chore": "Inga sysslor är konfigurerade för redigering. Lägg till en post först.",
       "no_badge": "Inga märken är konfigurerade för redigering. Lägg till en post först.",
       "no_reward": "Inga belöningar är konfigurerade för redigering. Lägg till ett bidrag först.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "Inga utmaningar är konfigurerade för redigering. Lägg till ett bidrag först.",
       "setup_complete": "Installationen är klar",
       "backup_restored": "Säkerhetskopieringen har återställts. Integrationen har laddats om med den återställda datan.",
-      "no_dashboards_to_delete": "Inga KidsChores-instrumentpaneler hittades. Skapa en först med hjälp av Hantera instrumentpanel."
+      "no_dashboards_to_delete": "Inga ChoreOps-instrumentpaneler hittades. Skapa en först med hjälp av Hantera instrumentpanel."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Hantera poäng",
-        "manage_kid": "Hantera barn",
-        "manage_parent": "Hantera förälder",
+        "manage_assignee": "Hantera barn",
+        "manage_approver": "Hantera förälder",
         "manage_chore": "Hantera syssla",
         "manage_badge": "Hantera märke",
         "manage_reward": "Hantera belöning",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Admin (föräldraöversikt)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2021,7 +2021,7 @@
       "name": "Ansök om syssla",
       "description": "Ett barn gör anspråk på en syssla och markerar den som \"gjord\" för föräldrarnas godkännande.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Namnet på barnet som gör sysslan.",
           "example": "Alice"
@@ -2037,12 +2037,12 @@
       "name": "Godkänn syssla",
       "description": "Föräldern godkänner sysslan och ger poäng.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Föräldern godkänner sysslan.",
           "example": "Mamma"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Namnet på barnet som utförde sysslan.",
           "example": "Alice"
@@ -2063,12 +2063,12 @@
       "name": "Avvisa syssla",
       "description": "Föräldern ogillar en syssla för ett barn och återställer dess status.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Föräldern ogillar sysslan.",
           "example": "Mamma"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Namnet på barnet vars syssla inte godkänns.",
           "example": "Alice"
@@ -2084,12 +2084,12 @@
       "name": "Lös in belöning",
       "description": "En förälder löser in en belöning för ett barn och drar av poäng.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Föräldern som godkänner inlösen av belöningen.",
           "example": "Mamma"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Barnet som löser in belöningen.",
           "example": "Alice"
@@ -2105,12 +2105,12 @@
       "name": "Godkänn belöning",
       "description": "Förälder godkänner en belöning som ett barn begärt.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Föräldern godkänner belöningen.",
           "example": "Mamma"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Barnet som löser in belöningen.",
           "example": "Alice"
@@ -2130,12 +2130,12 @@
       "name": "Avvisa belöning",
       "description": "Förälder ogillar inlösen av belöning för ett barn.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Föräldern ogillar belöningen.",
           "example": "Pappa"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Barnet vars belöningsinlösen inte godkänns.",
           "example": "Alice"
@@ -2151,12 +2151,12 @@
       "name": "Tillämpa straff",
       "description": "En förälder tillämpar en straffavgift för att dra av poäng.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Den förälder som tillämpar straffet.",
           "example": "Pappa"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Pojken som får straffet.",
           "example": "Alice"
@@ -2172,12 +2172,12 @@
       "name": "Använd bonus",
       "description": "En förälder ger ett barn en bonus och ger poäng.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Föräldernamn",
           "description": "Föräldern som tillämpar bonusen.",
           "example": "Mamma"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Barnet som får bonusen.",
           "example": "Alice"
@@ -2281,7 +2281,7 @@
           "description": "Namnet på den syssla som ska skapas.",
           "example": "Rent rum"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Tilldelade barn",
           "description": "Lista med barnnamn att tilldela den här sysslan.",
           "example": "['Emma', 'Jack']"
@@ -2377,7 +2377,7 @@
           "description": "Namnet på den syssla som ska uppdateras (alternativ till id). Mer användarvänligt än id.",
           "example": "Rent rum"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Tilldelade barn",
           "description": "Ny lista med barnnamn att tilldela den här sysslan.",
           "example": "['Emma', 'Jack']"
@@ -2484,14 +2484,14 @@
           "description": "Namn på rotationsuppgiften. Valfritt om chore_id anges.",
           "example": "Rent sovrum"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Barn-ID",
           "description": "Internt ID för barnet som turen ska tilldelas. Måste tilldelas denna syssla. Valfritt om barnnamn anges.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
-          "description": "Namn på barnet som turen ska tilldelas. Måste tilldelas denna syssla. Valfritt om kid_id anges.",
+          "description": "Namn på barnet som turen ska tilldelas. Måste tilldelas denna syssla. Valfritt om assignee_id anges.",
           "example": "Alice"
         }
       }
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Återställ transaktionsdata",
-      "description": "Återställ runtime-/transaktionsdata samtidigt som konfigurationen (barn, sysslor, belöningar etc.) bevaras. En automatisk säkerhetskopia skapas före återställning som kidschores_data_timestamp_reset i .storage-katalogen. Använd scope för att rikta in sig på specifika barn eller domäner. Kräver att parametern confirm_destructive är satt till true som en säkerhetsmekanism.",
+      "description": "Återställ runtime-/transaktionsdata samtidigt som konfigurationen (barn, sysslor, belöningar etc.) bevaras. En automatisk säkerhetskopia skapas före återställning som choreops_data_timestamp_reset i .storage-katalogen. Använd scope för att rikta in sig på specifika barn eller domäner. Kräver att parametern confirm_destructive är satt till true som en säkerhetsmekanism.",
       "fields": {
         "confirm_destructive": {
           "name": "Bekräfta destruktiv",
@@ -2542,11 +2542,11 @@
         },
         "scope": {
           "name": "Omfattning",
-          "description": "Återställ omfattning: 'global' återställer all data, 'kid' återställer endast data för ett specifikt barn."
+          "description": "Återställ omfattning: 'global' återställer all data, 'assignee' återställer endast data för ett specifikt barn."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
-          "description": "Obligatoriskt om omfånget är 'kid'. Namnet på det barn vars data ska återställas."
+          "description": "Obligatoriskt om omfånget är 'assignee'. Namnet på det barn vars data ska återställas."
         },
         "item_type": {
           "name": "Artikeltyp",
@@ -2560,7 +2560,7 @@
     },
     "reset_overdue_chores": {
       "name": "Återställ försenade sysslor",
-      "description": "Återställ försenade sysslor till Väntande tillstånd och schemalägg dem baserat på deras återkommande frekvens och tidigare förfallodatum. Du kan valfritt ange ett chore_id (eller chore_name) för att återställa en specifik syssla och valfritt ett kid_name för att återställa sysslan endast för det barnet.",
+      "description": "Återställ försenade sysslor till Väntande tillstånd och schemalägg dem baserat på deras återkommande frekvens och tidigare förfallodatum. Du kan valfritt ange ett chore_id (eller chore_name) för att återställa en specifik syssla och valfritt ett assignee_name för att återställa sysslan endast för det barnet.",
       "fields": {
         "chore_id": {
           "name": "Sysslo-ID",
@@ -2572,7 +2572,7 @@
           "description": "Namnet på den syssla som ska återställas (valfritt om chore_id anges).",
           "example": "Diska"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "Pojken som får straffet.",
           "example": "Alice"
@@ -2593,12 +2593,12 @@
           "description": "Det nya förfallodatumet för sysslan. Använd datum-/tidsväljaren för att välja ett giltigt datum och tid (i din lokala tidszon). Lämna tomt för att rensa förfallodatumet.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "För oberoende sysslor, ange barnet som förfallodatumet ska ställas in för. Om utelämnas anges förfallodatumet för alla tilldelade barn.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Barn-ID",
           "description": "Barnets interna ID. Endast avancerade användare - använd barnets namn istället.",
           "example": "abc123-def456"
@@ -2619,12 +2619,12 @@
           "description": "Namnet på den syssla som ska återställas (valfritt om chore_id anges).",
           "example": "Diska"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "För oberoende sysslor, ange barnet som förfallodatumet ska hoppas över. Om detta utelämnas hoppas förfallodatumet över för alla tilldelade barn.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Barn-ID",
           "description": "Barnets interna ID. Endast avancerade användare - använd barnets namn istället.",
           "example": "abc123-def456"
@@ -2639,7 +2639,7 @@
       "name": "Ta bort tilldelade märken",
       "description": "Ta bort alla tilldelade märken för alla barn. Ange eventuellt märkets namn för att återställa ett specifikt märke för alla barn. Använd barnets namn för att återställa alla märken för ett specifikt barn. Kombinera båda för att återställa ett specifikt märke för ett specifikt barn.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Barnets namn",
           "description": "De barn som tilldelats märken kommer att tas bort.",
           "example": "Guppa"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Status för sysslor - {chore_name}",
         "state": {
           "pending": "I avvaktan på",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Barnspecifika sysslors livscykeltillstånd, prestandastatistik och konfigurationsmetadata"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Beskrivning"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Tilldelade barn"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Missade"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Vänd barnnamn"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Aktuellt poängsaldo med detaljerad intäkts- och utgiftsstatistik"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Maximalt {points} någonsin"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Sysslor slutförda - Månadsvis"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Sysslor",
         "unit_of_measurement": "Sysslor",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Totalt antal slutförda sysslor hela tiden med detaljerad statistik"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Märken",
         "state_attributes": {
           "purpose": {
             "name": "Ändamål",
             "state": {
-              "purpose_kid_badges": "Högsta uppnådda märket och ackumulerade framsteg i realtid, inklusive aktiva cykler och utmärkelsehistorik för alla märkestyper"
+              "purpose_assignee_badges": "Högsta uppnådda märket och ackumulerade framsteg i realtid, inklusive aktiva cykler och utmärkelsehistorik för alla märkestyper"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Etiketter"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Barn tjänade"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Tilldelade barn"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Märkesframsteg - {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Procentuell märkesförlopp (0–100) som spårar slutförandet mot att erhålla detta märke, med kriteriestatus, datum och utmärkelsehistorik"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Beskrivning"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Tilldelade barn"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Belöningsstatus - {reward_name}",
         "state": {
           "locked": "Låst",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Status för belöningsinlösen med anspråkshistorik och åtgärdsknappar"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Tillämpade straff - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "Bonus gäller - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Intjänade poäng - Dagligen"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Intjänade poäng - Veckovis"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Intjänade poäng - Månadsvis"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Beskrivning"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Tilldelade barn"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Belöningspoäng"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Intjänad av"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Beskrivning"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Tilldelade barn"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Slutdatum"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Intjänad av"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Framsteg - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Enskilt barns framsteg i procent (0–100) mot att uppnå denna prestation, med aktuellt antal råa framsteg och utmärkelsestatus"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Beskrivning"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Tilldelade barn"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Framsteg - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Enskilda barns framsteg i procent (0–100) mot att slutföra denna utmaning inom datumfönstret, med aktuellt antal råa framsteg och belöningsstatus."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Beskrivning"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Tilldelade barn"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Högsta syssloserie",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "Hjälp för UI-instrumentpanel",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Sysslor efter etikett"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Välj bonus"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Admin-instrumentpanel Barnväljare",
         "state_attributes": {
           "purpose": {
             "name": "Ändamål",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Systemnivåväljare för barn för administratörsöversiktskort"
+              "purpose_system_dashboard_admin_assignee": "Systemnivåväljare för barn för administratörsöversiktskort"
             }
           },
           "dashboard_helper_eid": {
             "name": "Enhets-ID för instrumentpanelshjälp"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Vald barnsnigel"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Valt barnnamn"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "Hjälp för sysslolista för UI-instrumentpanelen",
         "state_attributes": {
           "purpose": {
             "name": "Ändamål",
             "state": {
-              "purpose_select_kid_chores": "Barnens syssloval för instrumentpanelsfiltrering"
+              "purpose_select_assignee_chores": "Barnens syssloval för instrumentpanelsfiltrering"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Kalender",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Kalender som visar barnets sysslor och förfallodatum"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "Datumhjälp för UI-instrumentpanel",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Datumvalshjälp för filtrering och navigering av instrumentpanelens användargränssnitt"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Hämta syssla - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "Barnet hävdar att de har slutfört en tilldelad syssla"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Godkänn syssla - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "Förälder godkänner begärd syssla"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Godkänn inte syssla - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "Förälder ogillar påstådd syssla"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Hämta belöning - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "Barnet löser in belöning med poäng"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Godkänn belöning - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "Förälder godkänner inlöst belöning"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Avvisa belöning - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "Förälder ogillar inlöst belöning"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Tillämpa straff - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "Förälder tillämpar straff (drar av poäng)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Använd bonus - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "Förälder tillämpar bonus (lägger till poäng)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Justera {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "Förälder justerar barnets poäng manuellt"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Barnets namn"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Ökning {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Minska {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "Inget barn hittades med namnet {name}"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "Ingen förälder hittades med namnet {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "Barn {name} är redan länkat till en förälder"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "Barn {name} är inte kopplat till någon förälder"
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "Förälder {name} är redan länkad till ett annat barn"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} hittades inte"
     },
     "not_assigned": {
-      "message": "{entity} inte tilldelad till {kid}"
+      "message": "{entity} inte tilldelad till {assignee}"
     },
     "rotation_no_turn_holder": {
       "message": "Rotationssysslor måste ha en tilldelad turhållare"
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Alla barn i rotationsordning måste tilldelas sysslan"
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Rotationssysslor kräver minst 2 tilldelade barn"
     },
     "not_rotation": {
       "message": "Den här sysslan är inte i rotationsläge"
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "Barnet är inte tilldelat den här sysslan"
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "Inga barn är tilldelade denna syssla"
     },
     "insufficient_points": {
-      "message": "{kid} har {current} poäng men behöver {required} poäng"
+      "message": "{assignee} har {current} poäng men behöver {required} poäng"
     },
     "already_claimed": {
       "message": "{entity} har redan gjorts anspråk på"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "Återkommande frekvens {frequency} är inte giltig"
     },
-    "chore_overdue_for_kid": {
-      "message": "Syssla {chore_name} är försenad för {kid_name}"
+    "chore_overdue_for_assignee": {
+      "message": "Syssla {chore_name} är försenad för {assignee_name}"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "Barn {kid_name} har inte tilldelats rutin {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "Barn {assignee_name} har inte tilldelats rutin {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "Kan inte ange barn för delad syssla {chore_name}. Delade sysslor har ett förfallodatum för alla barn."
     },
     "reward_not_found": {
@@ -4471,14 +4471,14 @@
     "data_reset_confirmation_required": {
       "message": "Du måste ange confirm_destructive: true för att fortsätta med dataåterställningen"
     },
-    "data_reset_kid_not_found": {
-      "message": "Barn {kid_name} hittades inte"
+    "data_reset_assignee_not_found": {
+      "message": "Barn {assignee_name} hittades inte"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} hittades inte"
     },
     "data_reset_invalid_scope": {
-      "message": "Ogiltigt omfång {scope}. Måste vara: global, kid, item_type eller item"
+      "message": "Ogiltigt omfång {scope}. Måste vara: global, assignee, item_type eller item"
     },
     "data_reset_invalid_item_type": {
       "message": "Ogiltig objekttyp {item_type}. Måste vara: barn, sysslor, belöningar, märken, prestationer, utmaningar, straff eller bonusar"
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "All körtidsdata har återställts. Konfigurationen har bevarats."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Dataåterställning klar för {kid_name}. Poäng, statistik och framsteg har rensats."
+    "notif_message_data_reset_assignee": {
+      "message": "Dataåterställning klar för {assignee_name}. Poäng, statistik och framsteg har rensats."
     },
     "notif_message_data_reset_item_type": {
       "message": "Dataåterställning klar för alla {item_type}. Körtidsdata rensad."
@@ -4502,7 +4502,7 @@
       "message": "Missad syssla"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} missade sysslan: {chore_name}"
+      "message": "{assignee_name} missade sysslan: {chore_name}"
     }
   }
 }

@@ -14,8 +14,8 @@
     "run_as_root": false
   },
   "custom_components": {
-    "kidschores": {
-      "documentation": "https://github.com/ad-ha/kidschores-ha",
+    "assigneeschores": {
+      "documentation": "https://github.com/ad-ha/assigneeschores-ha",
       "version": "0.4.0b2",
       "requirements": []
     },
@@ -36,16 +36,16 @@
     }
   },
   "integration_manifest": {
-    "domain": "kidschores",
-    "name": "KidsChores",
+    "domain": "assigneeschores",
+    "name": "ChoreOps",
     "codeowners": [
       "ad-ha"
     ],
     "config_flow": true,
     "dependencies": [],
-    "documentation": "https://github.com/ad-ha/kidschores-ha",
+    "documentation": "https://github.com/ad-ha/assigneeschores-ha",
     "iot_class": "local_polling",
-    "issue_tracker": "https://github.com/ad-ha/kidschores-ha/issues",
+    "issue_tracker": "https://github.com/ad-ha/assigneeschores-ha/issues",
     "requirements": [],
     "version": "0.4.0b2",
     "is_built_in": false,
@@ -53,7 +53,7 @@
   },
   "setup_times": {},
   "data": {
-    "kids": {
+    "assignees": {
       "5e85ea08-c332-407b-914d-1d016131a8ea": {
         "name": "Zo\u00eb",
         "points": 63.0,
@@ -1135,7 +1135,7 @@
         "chore_labels": [],
         "icon": "mdi:cat",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "5e85ea08-c332-407b-914d-1d016131a8ea"
         ],
         "recurring_frequency": "none",
@@ -1160,7 +1160,7 @@
         "chore_labels": [],
         "icon": "mdi:watering-can",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "5e85ea08-c332-407b-914d-1d016131a8ea"
         ],
         "recurring_frequency": "none",
@@ -1185,7 +1185,7 @@
         "chore_labels": [],
         "icon": "mdi:lego",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "cd764ae3-24d9-493a-87ef-9fce1112b6fb"
         ],
         "recurring_frequency": "none",
@@ -1210,7 +1210,7 @@
         "chore_labels": [],
         "icon": "mdi:robot",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "cd764ae3-24d9-493a-87ef-9fce1112b6fb"
         ],
         "recurring_frequency": "none",
@@ -1235,7 +1235,7 @@
         "chore_labels": [],
         "icon": "mdi:palette",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "ece7b504-57eb-491e-ab8b-549f96babe05"
         ],
         "recurring_frequency": "none",
@@ -1260,7 +1260,7 @@
         "chore_labels": [],
         "icon": "mdi:broom",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "ece7b504-57eb-491e-ab8b-549f96babe05"
         ],
         "recurring_frequency": "none",
@@ -1285,7 +1285,7 @@
         "chore_labels": [],
         "icon": "mdi:star",
         "shared_chore": false,
-        "assigned_kids": [
+        "assigned_assignees": [
           "5e85ea08-c332-407b-914d-1d016131a8ea",
           "cd764ae3-24d9-493a-87ef-9fce1112b6fb",
           "ece7b504-57eb-491e-ab8b-549f96babe05"
@@ -1385,11 +1385,11 @@
         "internal_id": "36612afe-e777-4b84-8bc5-e979bbfc338b"
       }
     },
-    "parents": {
+    "approvers": {
       "d7996da9-edb9-4c2f-8c29-56323567bbfa": {
         "name": "M\u00f4m Astrid St\u00e2rbl\u00fcm",
         "ha_user_id": "",
-        "associated_kids": [],
+        "associated_assignees": [],
         "enable_notifications": false,
         "mobile_notify_service": "",
         "use_persistent_notifications": false,
@@ -1398,7 +1398,7 @@
       "21957d79-992a-464a-b9a6-92e4362c4840": {
         "name": "Dad Leo",
         "ha_user_id": "",
-        "associated_kids": [],
+        "associated_assignees": [],
         "enable_notifications": false,
         "mobile_notify_service": "",
         "use_persistent_notifications": false,
@@ -1459,7 +1459,7 @@
       "migrations_applied": [
         "datetime_utc",
         "chore_data_structure",
-        "kid_data_structure",
+        "assignee_data_structure",
         "badge_restructure",
         "cumulative_badge_progress",
         "badges_earned_dict",

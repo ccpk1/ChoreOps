@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Vitajte v KidsChores",
-        "description": "Tento sprievodca vás prevedie nastavením aplikácie KidsChores.\n\n[📖 Stručný návod]({documentation_url})"
+        "title": "Vitajte v ChoreOps",
+        "description": "Tento sprievodca vás prevedie nastavením aplikácie ChoreOps.\n\n[📖 Stručný návod]({documentation_url})"
       },
       "data_recovery": {
         "title": "Možnosti obnovy dát",
-        "description": "Existujúce údaje KidsChores nájdené v:\n{storage_path}\n\nNájdených {backup_count} záložných súborov.\n\nČo chcete urobiť?\n\n[📖 Získajte viac informácií o zálohovaní a obnovení]({documentation_url})",
+        "description": "Existujúce údaje ChoreOps nájdené v:\n{storage_path}\n\nNájdených {backup_count} záložných súborov.\n\nČo chcete urobiť?\n\n[📖 Získajte viac informácií o zálohovaní a obnovení]({documentation_url})",
         "data": {
           "backup_selection": "Vyberte možnosť"
         }
       },
       "paste_json_input": {
         "title": "Importovať údaje JSON",
-        "description": "Vložte kompletný obsah JSON z jednej z možností:\n\n• Dátový súbor KidsChores (kidschores_data)\n• Stiahnutie diagnostického súboru\n\nSystém automaticky rozpozná a rozbalí formát podľa potreby. Podporované sú formáty nespracovaných úložných údajov aj exportu diagnostických údajov.",
+        "description": "Vložte kompletný obsah JSON z jednej z možností:\n\n• Dátový súbor ChoreOps (choreops_data)\n• Stiahnutie diagnostického súboru\n\nSystém automaticky rozpozná a rozbalí formát podľa potreby. Podporované sú formáty nespracovaných úložných údajov aj exportu diagnostických údajov.",
         "data": {
           "json_data": "Údaje JSON"
         },
         "data_description": {
-          "json_data": "Sem vložte kompletný obsah JSON. Prijíma údaje zo súboru kidschores_data alebo exportu diagnostiky (automaticky rozbalí extra štruktúru)."
+          "json_data": "Sem vložte kompletný obsah JSON. Prijíma údaje zo súboru choreops_data alebo exportu diagnostiky (automaticky rozbalí extra štruktúru)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Bodové hodnoty oddelené rúrkami pre tlačidlá manuálneho nastavenia (napr. +1,0|-1,0|+10,0|-10,0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Počet detí",
         "description": "Koľko detí chcete zvládať?",
         "data": {
-          "kid_count": "Počet detí"
+          "assignee_count": "Počet detí"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Definujte dieťa",
         "description": "Zadajte meno pre každé dieťa.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "Jazyk používaný pre váš panel úloh a upozornenia."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Počet rodičov",
         "description": "Koľko rodičov chcete na začiatku definovať?",
         "data": {
-          "parent_count": "Počet rodičov"
+          "approver_count": "Počet rodičov"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Definovať rodiča",
         "description": "Zadajte podrobnosti o každom rodičovi.",
         "data": {
           "name": "Meno rodiča",
           "ha_user_id": "Používateľ domáceho asistenta",
-          "associated_kids": "Pridružené deti",
+          "associated_assignees": "Pridružené deti",
           "mobile_notify_service": "Upozornenia",
           "dashboard_language": "Jazyk"
         },
         "data_description": {
           "name": "Jedinečný názov pre tohto rodiča, používaný v celom systéme.",
           "ha_user_id": "Voliteľné: Prepojte tohto rodiča s používateľom Domáceho asistenta, aby ste dostávali upozornenia a mali prístup k ovládaciemu panelu.",
-          "associated_kids": "Vyberte, ktoré deti bude tento rodič dohliadať na upozornenia a schvaľovacie akcie.",
+          "associated_assignees": "Vyberte, ktoré deti bude tento rodič dohliadať na upozornenia a schvaľovacie akcie.",
           "mobile_notify_service": "Vyberte službu upozornení, ak chcete povoliť upozornenia pre tohto rodiča, alebo ich nechajte prázdne, ak ich chcete zakázať.",
           "dashboard_language": "Jazyk používaný pre váš panel úloh a upozornenia."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Popis (voliteľné)",
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Udelené body",
-              "assigned_kids": "👥 Pridelené deti",
+              "assigned_assignees": "👥 Pridelené deti",
               "completion_criteria": "👥 Kritériá dokončenia"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Voliteľné pokyny alebo podrobnosti o tom, ako túto úlohu dokončiť.",
               "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
               "default_points": "Body získané po dokončení.",
-              "assigned_kids": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
+              "assigned_assignees": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
               "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je pridelených viacero detí: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "Ikona 📋 (mdi:xxx)",
           "chore_labels": "📋 Štítky (voliteľné)",
           "default_points": "💰 Udelené body",
-          "assigned_kids": "👥 Pridelené deti",
+          "assigned_assignees": "👥 Pridelené deti",
           "completion_criteria": "👥 Kritériá dokončenia",
           "approval_reset_type": "➡️ Povolené dokončenia a časový limit obnovenia schválenia",
           "approval_reset_pending_claim_action": "➡️ Čaká na vybavenie reklamácií pri schválení resetovania",
@@ -212,7 +212,7 @@
           "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
           "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne.",
           "default_points": "Body získané po dokončení.",
-          "assigned_kids": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
+          "assigned_assignees": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
           "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je pridelených viacero detí: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
           "approval_reset_type": "Ovláda, kedy sa spustí hranica cyklu schvaľovania úlohy (polnoc, dátum splatnosti, po dokončení alebo manuálne spustenie).",
           "approval_reset_pending_claim_action": "Toto sa stane s nárokmi, ktoré stále čakajú na schválenie, keď dôjde k resetovaniu schválenia.",
@@ -359,7 +359,7 @@
           "description": "Popis (voliteľné)",
           "achievement_labels": "Štítky úspechov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Pridelené deti",
+          "assigned_assignees": "Pridelené deti",
           "type": "Typ úspechu",
           "selected_chore_id": "Vyberte priradenú domácu úlohu",
           "criteria": "Kritériá (voliteľné)",
@@ -383,7 +383,7 @@
           "description": "Popis (voliteľné)",
           "challenge_labels": "Štítky výziev",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Pridelené deti",
+          "assigned_assignees": "Pridelené deti",
           "type": "Typ výzvy",
           "selected_chore_id": "Vyberte úlohu spojenú s výzvou (voliteľné)",
           "criteria": "Kritériá (voliteľné)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Odznak s týmto názvom už existuje",
       "duplicate_challenge": "Výzva s týmto názvom už existuje",
       "duplicate_chore": "Úloha s týmto názvom už existuje",
-      "duplicate_kid": "Dieťa s týmto menom už existuje",
-      "duplicate_parent": "Rodič s týmto menom už existuje",
+      "duplicate_assignee": "Dieťa s týmto menom už existuje",
+      "duplicate_approver": "Rodič s týmto menom už existuje",
       "duplicate_penalty": "Trest s týmto názvom už existuje",
       "duplicate_reward": "Odmena s týmto názvom už existuje",
       "duplicate_bonus": "Bonus s týmto názvom už existuje",
-      "shadow_kid_name_conflict": "Nie je možné povoliť priradenie úlohy: dieťa s vaším menom už existuje. Najprv premenujte existujúce dieťa.",
+      "shadow_assignee_name_conflict": "Nie je možné povoliť priradenie úlohy: dieťa s vaším menom už existuje. Najprv premenujte existujúce dieťa.",
       "due_date_in_past": "Dátum splatnosti musí byť v budúcnosti.",
       "end_date_in_past": "Dátum ukončenia musí byť v budúcnosti.",
       "end_date_not_after_start_date": "Dátum ukončenia musí byť neskorší ako dátum začiatku",
       "err_end_before_start": "Dátum ukončenia musí byť po dátume začiatku",
       "err_name_duplicate": "Výzva s týmto názvom už existuje",
-      "achievement_no_kids_assigned": "K úspechu musí byť priradené aspoň jedno dieťa",
-      "challenge_no_kids_assigned": "Do výzvy musí byť pridelené aspoň jedno dieťa",
+      "achievement_no_assignees_assigned": "K úspechu musí byť priradené aspoň jedno dieťa",
+      "challenge_no_assignees_assigned": "Do výzvy musí byť pridelené aspoň jedno dieťa",
       "invalid_achievement_count": "Neplatný počet úspechov",
       "invalid_achievement_name": "Neplatný názov úspechu",
       "invalid_badge": "Neplatný odznak",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Neplatný názov výzvy",
       "invalid_chore": "Neplatná úloha",
       "invalid_chore_count": "Neplatný počet úloh",
-      "rotation_min_kids": "Rotačné práce vyžadujú aspoň 2 pridelené deti",
+      "rotation_min_assignees": "Rotačné práce vyžadujú aspoň 2 pridelené deti",
       "invalid_chore_name": "Neplatný názov úlohy",
       "invalid_points": "Body musia byť nula alebo viac",
       "invalid_overdue_reset_combination": "Manipulácia s oneskorením „V deň splatnosti a potom reset“ funguje iba s typmi resetovania o polnoci. Ako typ resetovania schválenia vyberte možnosť „O polnoci (raz)“ alebo „O polnoci (opakujúce sa)“.",
       "invalid_due_date": "Neplatný dátum splatnosti",
       "date_required_for_frequency": "Pre túto opakujúcu sa frekvenciu je potrebný dátum splatnosti. Vymazať dátumy funguje iba s frekvenciou Žiadna, Denne alebo Týždenne.",
       "invalid_end_date": "Neplatný dátum ukončenia.",
-      "invalid_kid_count": "Neplatný počet detí",
-      "invalid_kid_name": "Neplatné meno dieťaťa",
-      "invalid_parent_count": "Neplatný počet rodičovských položiek",
-      "invalid_parent_name": "Neplatné meno rodiča",
-      "no_kids_assigned": "Aspoň jedno dieťa musí byť pridelené k úlohe",
+      "invalid_assignee_count": "Neplatný počet detí",
+      "invalid_assignee_name": "Neplatné meno dieťaťa",
+      "invalid_approver_count": "Neplatný počet rodičovských položiek",
+      "invalid_approver_name": "Neplatné meno rodiča",
+      "no_assignees_assigned": "Aspoň jedno dieťa musí byť pridelené k úlohe",
       "invalid_penalty": "Neplatný trest",
       "invalid_penalty_count": "Neplatný počet penalt",
       "invalid_penalty_name": "Neplatný názov penalizácie",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Neplatné hodnoty úpravy bodov. Musí to byť zoznam."
     },
     "abort": {
-      "single_instance_allowed": "Je možné nakonfigurovať iba jednu inštanciu KidsChores.",
-      "already_configured": "Dáta KidsChores boli úspešne obnovené. Teraz môžete integráciu znova načítať.",
+      "single_instance_allowed": "Je možné nakonfigurovať iba jednu inštanciu ChoreOps.",
+      "already_configured": "Dáta ChoreOps boli úspešne obnovené. Teraz môžete integráciu znova načítať.",
       "file_not_found": "Vybraný záložný súbor sa nepodarilo nájsť.",
       "corrupt_file": "Vybraný súbor obsahuje neplatný JSON a nie je možné ho prečítať.",
-      "invalid_structure": "Vybranému súboru chýba požadovaná dátová štruktúra KidsChores.",
+      "invalid_structure": "Vybranému súboru chýba požadovaná dátová štruktúra ChoreOps.",
       "reconfigure_failed": "Rekonfigurácia zlyhala. Skúste to znova.",
       "reconfigure_successful": "Systémové nastavenia boli úspešne aktualizované."
     }
@@ -509,7 +509,7 @@
           "points_icon": "Ikona bodov"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Pridať dieťa",
         "description": "Poskytnite podrobnosti o novom dieťati.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "Jazyk používaný pre váš panel úloh a upozornenia."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Pridať rodiča",
         "description": "Poskytnite podrobnosti o novom rodičovi.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Meno rodiča",
           "ha_user_id": "Používateľ domáceho asistenta",
-          "associated_kids": "Pridružené deti",
+          "associated_assignees": "Pridružené deti",
           "mobile_notify_service": "Upozornenia",
           "dashboard_language": "Jazyk",
           "allow_chore_assignment": "Povoliť priradenie domácich úloh mne",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Jedinečný názov pre tohto rodiča, používaný v celom systéme.",
           "ha_user_id": "Voliteľné: Prepojte tohto rodiča s používateľom Domáceho asistenta, aby ste dostávali upozornenia a mali prístup k ovládaciemu panelu.",
-          "associated_kids": "Vyberte, ktoré deti bude tento rodič dohliadať na upozornenia a schvaľovacie akcie.",
+          "associated_assignees": "Vyberte, ktoré deti bude tento rodič dohliadať na upozornenia a schvaľovacie akcie.",
           "mobile_notify_service": "Vyberte službu upozornení, ak chcete povoliť upozornenia pre tohto rodiča, alebo ich nechajte prázdne, ak ich chcete zakázať.",
           "allow_chore_assignment": "Vytvorí profil, aby vám bolo možné priradiť úlohy. Predvolene sa zobrazuje iba tlačidlo Schváliť pre dokončenie jedným kliknutím. Poznámka: Zrušením začiarknutia sa profil dieťaťa zachová s príponou „_unlinked“ pre manuálne čistenie.",
           "enable_chore_workflow": "Pridáva tlačidlá Nárokovať a Zamietnuť pre kompletný pracovný postup (nárokovať → schváliť/zamietnuť).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Popis (voliteľné)",
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Udelené body",
-              "assigned_kids": "👥 Pridelené deti",
+              "assigned_assignees": "👥 Pridelené deti",
               "completion_criteria": "👥 Kritériá dokončenia"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Voliteľné pokyny alebo podrobnosti o tom, ako túto úlohu dokončiť.",
               "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
               "default_points": "Body získané po dokončení.",
-              "assigned_kids": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
+              "assigned_assignees": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
               "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je pridelených viacero detí: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "Ikona 📋 (mdi:xxx)",
           "chore_labels": "📋 Štítky (voliteľné)",
           "default_points": "💰 Udelené body",
-          "assigned_kids": "👥 Pridelené deti",
+          "assigned_assignees": "👥 Pridelené deti",
           "completion_criteria": "👥 Kritériá dokončenia",
           "approval_reset_type": "➡️ Povolené dokončenia a časový limit obnovenia schválenia",
           "approval_reset_pending_claim_action": "➡️ Čaká na vybavenie reklamácií pri schválení resetovania",
@@ -654,7 +654,7 @@
           "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
           "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne.",
           "default_points": "Body získané po dokončení.",
-          "assigned_kids": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
+          "assigned_assignees": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
           "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je pridelených viacero detí: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
           "approval_reset_type": "Ovláda, kedy sa spustí hranica cyklu schvaľovania úlohy (polnoc, dátum splatnosti, po dokončení alebo manuálne spustenie).",
           "approval_reset_pending_claim_action": "Riadi, čo sa stane s neschválenými nárokmi, keď sa spustí hranica resetovania schválenia.",
@@ -932,7 +932,7 @@
           "description": "Popis (voliteľné)",
           "achievement_labels": "Štítky úspechov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Pridelené deti",
+          "assigned_assignees": "Pridelené deti",
           "type": "Typ úspechu",
           "selected_chore_id": "Vyberte priradenú domácu úlohu",
           "criteria": "Kritériá (voliteľné)",
@@ -949,7 +949,7 @@
           "description": "Popis (voliteľné)",
           "challenge_labels": "Štítky výziev",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Pridelené deti",
+          "assigned_assignees": "Pridelené deti",
           "type": "Typ výzvy",
           "selected_chore_id": "Vyberte úlohu spojenú s výzvou (voliteľné)",
           "criteria": "Kritériá (voliteľné)",
@@ -960,7 +960,7 @@
           "internal_id": "Interné ID"
         }
       },
-      "edit_kid": {
+      "edit_assignee": {
         "title": "Upraviť dieťa",
         "description": "Upravte podrobnosti o vybranom dieťati.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
@@ -977,8 +977,8 @@
           "dashboard_language": "Jazyk používaný pre váš panel úloh a upozornenia."
         }
       },
-      "edit_kid_shadow": {
-        "title": "Upraviť Shadow Kid",
+      "edit_assignee_shadow": {
+        "title": "Upraviť Shadow Assignee",
         "description": "Upravte podrobnosti o vybranom tieňovom dieťati. ⚠️ Toto dieťa je prepojené s rodičom. Zmenou mena sa poruší požiadavka na zhodu mien pre odpojenie prostredníctvom služby.",
         "data": {
           "name": "Meno dieťaťa",
@@ -994,13 +994,13 @@
           "dashboard_language": "Jazyk používaný pre váš panel úloh a upozornenia."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Upraviť nadradenú položku",
         "description": "Upravte podrobnosti o vybranom rodičovi.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Meno rodiča",
           "ha_user_id": "Používateľ domáceho asistenta",
-          "associated_kids": "Pridružené deti",
+          "associated_assignees": "Pridružené deti",
           "mobile_notify_service": "Upozornenia",
           "dashboard_language": "Jazyk",
           "allow_chore_assignment": "Povoliť priradenie domácich úloh mne",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Jedinečný názov pre tohto rodiča, používaný v celom systéme.",
           "ha_user_id": "Voliteľné: Prepojte tohto rodiča s používateľom Domáceho asistenta, aby ste dostávali upozornenia a mali prístup k ovládaciemu panelu.",
-          "associated_kids": "Vyberte, ktoré deti bude tento rodič dohliadať na upozornenia a schvaľovacie akcie.",
+          "associated_assignees": "Vyberte, ktoré deti bude tento rodič dohliadať na upozornenia a schvaľovacie akcie.",
           "mobile_notify_service": "Vyberte službu upozornení, ak chcete povoliť upozornenia pre tohto rodiča, alebo ich nechajte prázdne, ak ich chcete zakázať.",
           "allow_chore_assignment": "Vytvorí profil, aby vám bolo možné priradiť úlohy. Predvolene sa zobrazuje iba tlačidlo Schváliť pre dokončenie jedným kliknutím. Poznámka: Zrušením začiarknutia sa profil dieťaťa zachová s príponou „_unlinked“ pre manuálne čistenie.",
           "enable_chore_workflow": "Pridáva tlačidlá Nárokovať a Zamietnuť pre kompletný pracovný postup (nárokovať → schváliť/zamietnuť).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Popis (voliteľné)",
               "icon": "Ikona 📋 (mdi:xxx)",
               "default_points": "💰 Udelené body",
-              "assigned_kids": "👥 Pridelené deti",
+              "assigned_assignees": "👥 Pridelené deti",
               "completion_criteria": "👥 Kritériá dokončenia"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Voliteľné pokyny alebo podrobnosti o tom, ako túto úlohu dokončiť.",
               "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
               "default_points": "Body získané po dokončení.",
-              "assigned_kids": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
+              "assigned_assignees": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
               "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je pridelených viacero detí: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋 Štítky (voliteľné)",
           "internal_id": "Interné ID",
           "default_points": "💰 Udelené body",
-          "assigned_kids": "👥 Pridelené deti",
+          "assigned_assignees": "👥 Pridelené deti",
           "completion_criteria": "👥 Kritériá dokončenia",
           "approval_reset_type": "➡️ Povolené dokončenia a časový limit obnovenia schválenia",
           "approval_reset_pending_claim_action": "➡️ Čaká na vybavenie reklamácií pri schválení resetovania",
@@ -1123,7 +1123,7 @@
           "icon": "Ikona materiálového dizajnu (napr. mdi:metla, mdi:umývačka riadu).",
           "chore_labels": "Štítky na organizovanie domácich prác (napr. „kuchyňa“, „vonkajšie“). Ak nie sú potrebné, nechajte pole prázdne.",
           "default_points": "Body získané po dokončení.",
-          "assigned_kids": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
+          "assigned_assignees": "Deti, ktoré si túto úlohu môžu pozrieť a uplatniť si ju.",
           "completion_criteria": "Ovláda spôsob dokončenia úlohy, keď je pridelených viacero detí: individuálne sledovanie, zdieľané dokončenie alebo rotácia na základe ťahov.",
           "approval_reset_type": "Ovláda, kedy sa spustí hranica cyklu schvaľovania úlohy (polnoc, dátum splatnosti, po dokončení alebo manuálne spustenie).",
           "approval_reset_pending_claim_action": "Riadi, čo sa stane s neschválenými nárokmi, keď sa spustí hranica resetovania schválenia.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "Kedy odosielať oznámenia: Pri reklamácii, schválení, zamietnutí alebo akejkoľvek kombinácii."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Upraviť termíny pre každé dieťa: {chore_name}",
-        "description": "Nastavte individuálne termíny odovzdania pre každé priradené dieťa. Pole s dátumom v hlavnom formulári na úpravu slúži ako **šablóna** pre pohodlie – použite ho na rýchle použitie rovnakého dátumu pre všetky deti pomocou začiarkavacieho políčka nižšie alebo ho nechajte prázdne a nastavte dátumy jednotlivo tu.\n\nPolia sa zobrazujú pre: {kid_names}. Nechajte prázdne, ak termín nie je uvedený.{template_date}\n\n📖 [Pokročilý sprievodca]({documentation_url})",
+        "description": "Nastavte individuálne termíny odovzdania pre každé priradené dieťa. Pole s dátumom v hlavnom formulári na úpravu slúži ako **šablóna** pre pohodlie – použite ho na rýchle použitie rovnakého dátumu pre všetky deti pomocou začiarkavacieho políčka nižšie alebo ho nechajte prázdne a nastavte dátumy jednotlivo tu.\n\nPolia sa zobrazujú pre: {assignee_names}. Nechajte prázdne, ak termín nie je uvedený.{template_date}\n\n📖 [Pokročilý sprievodca]({documentation_url})",
         "data": {
           "apply_template_to_all": "Použiť šablónu dátumu na všetky deti"
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Zadajte 2 až 6-krát v 24-hodinovom formáte oddelené zvislou čiarou | (zvislá čiara). Príklad: 08:00|17:00 pre ráno a večer."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Harmonogram pre každé dieťa: {chore_name}",
-        "description": "Nakonfigurujte individuálne nastavenia rozvrhu pre každé dieťa priradené k tejto úlohe. Hlavné hodnoty formulára fungujú ako **šablóny** – použite začiarkavacie políčka na ich použitie pre všetky deti alebo prispôsobte nastavenia pre každé dieťa individuálne.\n\n**Poznámka:** Nie všetky polia nižšie sa vzťahujú na každú úlohu. Formulár dynamicky zobrazuje relevantné možnosti na základe režimu dokončenia, frekvencie a toho, či sú nastavené dátumy dokončenia.\n\n**Formát denných (viaceroch) časov:** Ak sa zobrazuje, zadajte 2 – 6 časov v 24-hodinovom formáte oddelené znakom | (zvislá čiara). Príklad: 08:00|17:00\n\nDeti: {kid_names}{template_info}\n\n📖 [Pokročilý sprievodca]({documentation_url})",
+        "description": "Nakonfigurujte individuálne nastavenia rozvrhu pre každé dieťa priradené k tejto úlohe. Hlavné hodnoty formulára fungujú ako **šablóny** – použite začiarkavacie políčka na ich použitie pre všetky deti alebo prispôsobte nastavenia pre každé dieťa individuálne.\n\n**Poznámka:** Nie všetky polia nižšie sa vzťahujú na každú úlohu. Formulár dynamicky zobrazuje relevantné možnosti na základe režimu dokončenia, frekvencie a toho, či sú nastavené dátumy dokončenia.\n\n**Formát denných (viaceroch) časov:** Ak sa zobrazuje, zadajte 2 – 6 časov v 24-hodinovom formáte oddelené znakom | (zvislá čiara). Príklad: 08:00|17:00\n\nDeti: {assignee_names}{template_info}\n\n📖 [Pokročilý sprievodca]({documentation_url})",
         "data": {
           "apply_days_to_all": "Použite šablónové dni na všetky deti",
           "apply_times_to_all": "Použiť šablónové časy na všetky deti",
@@ -1428,7 +1428,7 @@
           "description": "Popis (voliteľné)",
           "achievement_labels": "Štítky úspechov",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Pridelené deti",
+          "assigned_assignees": "Pridelené deti",
           "type": "Typ úspechu",
           "selected_chore_id": "Vyberte priradenú domácu úlohu",
           "criteria": "Kritériá (voliteľné)",
@@ -1445,7 +1445,7 @@
           "description": "Popis (voliteľné)",
           "challenge_labels": "Štítky výziev",
           "icon": "Ikona (mdi:xxx)",
-          "assigned_kids": "Pridelené deti",
+          "assigned_assignees": "Pridelené deti",
           "type": "Typ výzvy",
           "selected_chore_id": "Vyberte úlohu spojenú s výzvou (voliteľné)",
           "criteria": "Kritériá (voliteľné)",
@@ -1456,14 +1456,14 @@
           "internal_id": "Interné ID"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Odstrániť dieťa",
-        "description": "Naozaj chcete odstrániť dieťa {kid_name}?",
+        "description": "Naozaj chcete odstrániť dieťa {assignee_name}?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Odstrániť rodičovský element",
-        "description": "Naozaj chcete odstrániť rodičovský element {parent_name}?",
+        "description": "Naozaj chcete odstrániť rodičovský element {approver_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Spravovať ovládací panel",
-        "description": "Vytvorte, aktualizujte alebo odstráňte dashboardy KidsChores Lovelace.\n\n**Požadované vlastné karty** (inštalácia cez HACS Frontend):\n- Karty s hubami (custom:mushroom-template-card)\n- Automatické entity (custom:auto-entities)\n- Minigrafová karta (custom:mini-graph-card)\n\nBez týchto kariet budú dashboardy zobrazovať chyby. Pred generovaním dashboardov ich najskôr nainštalujte z HACS.",
+        "description": "Vytvorte, aktualizujte alebo odstráňte dashboardy ChoreOps Lovelace.\n\n**Požadované vlastné karty** (inštalácia cez HACS Frontend):\n- Karty s hubami (custom:mushroom-template-card)\n- Automatické entity (custom:auto-entities)\n- Minigrafová karta (custom:mini-graph-card)\n\nBez týchto kariet budú dashboardy zobrazovať chyby. Pred generovaním dashboardov ich najskôr nainštalujte z HACS.",
         "data": {
           "dashboard_action": "Akcia",
           "dashboard_check_cards": "Skontrolujte inštaláciu karty"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Vytvoriť/aktualizovať dashboard",
-        "description": "Vytvorte dashboard KidsChores s kartami pre každé dieťa.\n\nVyberte názov dashboardu, vyberte deti, ktoré chcete zahrnúť, a voliteľne pridajte kartu Správca pre správu rodičov.\n\n[📖 Sprievodca generovaním dashboardu]({documentation_url})",
+        "description": "Vytvorte dashboard ChoreOps s kartami pre každé dieťa.\n\nVyberte názov dashboardu, vyberte deti, ktoré chcete zahrnúť, a voliteľne pridajte kartu Správca pre správu rodičov.\n\n[📖 Sprievodca generovaním dashboardu]({documentation_url})",
         "data": {
           "dashboard_name": "Názov panela s nástrojmi",
           "dashboard_style": "Štýl palubnej dosky",
-          "dashboard_kid_selection": "Deti (jedna tableta na dieťa)",
+          "dashboard_assignee_selection": "Deti (jedna tableta na dieťa)",
           "dashboard_include_admin": "Zahrnúť kartu Správca",
           "dashboard_force_rebuild": "Vynútiť obnovu (prepísať existujúce)"
         },
         "data_description": {
           "dashboard_name": "Názov pre dashboard (zobrazí sa v bočnom paneli). Navrhované: Domáce práce",
           "dashboard_style": "Vyberte rozloženie ovládacieho panela: Plné (všetky funkcie), Minimálne (iba základné) alebo Kompaktné (husté rozloženie).",
-          "dashboard_kid_selection": "Vyberte, pre ktoré deti chcete vytvoriť karty. Každé dieťa dostane vlastné zobrazenie/kartu.",
+          "dashboard_assignee_selection": "Vyberte, pre ktoré deti chcete vytvoriť karty. Každé dieťa dostane vlastné zobrazenie/kartu.",
           "dashboard_include_admin": "Pridajte kartu Správca s rodičovskými ovládacími prvkami na schvaľovanie a správu.",
           "dashboard_force_rebuild": "Ak je povolené, existujúci dashboard bude prepísaný. V opačnom prípade generovanie zlyhá, ak dashboard existuje."
         }
       },
       "dashboard_delete": {
         "title": "Odstrániť informačný panel",
-        "description": "Vyberte dashboardy KidsChores, ktoré chcete odstrániť.\n\n⚠️ Túto akciu nie je možné vrátiť späť.",
+        "description": "Vyberte dashboardy ChoreOps, ktoré chcete odstrániť.\n\n⚠️ Túto akciu nie je možné vrátiť späť.",
         "data": {
           "dashboard_delete_selection": "Dashboardy na odstránenie"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Všeobecné možnosti",
-        "description": "Spravujte všeobecné nastavenia pre integráciu KidsChores.\n\n[📖 Získajte viac informácií o zálohovaní a obnovení]({documentation_url})",
+        "description": "Spravujte všeobecné nastavenia pre integráciu ChoreOps.\n\n[📖 Získajte viac informácií o zálohovaní a obnovení]({documentation_url})",
         "data": {
           "points_adjust_values": "Hodnoty tlačidla manuálneho nastavenia bodov",
           "update_interval": "Interval aktualizácie",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Zoznam hodnôt pre tlačidlá manuálneho nastavenia bodov. Každá hodnota je oddelená znakom „|“.",
-          "update_interval": "Interval v minútach pre aktualizáciu interného stavu KidsChores.",
+          "update_interval": "Interval v minútach pre aktualizáciu interného stavu ChoreOps.",
           "calendar_show_period": "Počet dní v budúcnosti, kedy sa majú v kalendári zobraziť naplánované domáce úlohy a výzvy.",
           "retention_periods": "Obdobia uchovávania údajov vo formáte Denne|Týždenne|Mesačne|Ročne (napr. „7|4|12|3“). Každá hodnota musí byť kladné celé číslo.",
           "retention_daily": "Počet dní denných historických údajov, ktoré sa majú uchovávať pred vyčistením. Minimálne 1, maximálne 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Správa záloh",
-        "description": "Spravujte zálohy údajov KidsChores. Aktuálny stav: {backup_count} záloh využíva {storage_size} MB.",
+        "description": "Spravujte zálohy údajov ChoreOps. Aktuálny stav: {backup_count} záloh využíva {storage_size} MB.",
         "data": {
           "backup_action_selection": "Vyberte akciu"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Zálohovacie akcie",
-        "description": "Spravujte zálohy údajov KidsChores.",
+        "description": "Spravujte zálohy údajov ChoreOps.",
         "data": {
           "backup_action_selection": "Vyberte akciu"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Vytvoriť manuálnu zálohu",
-        "description": "Vytvorte si novú zálohu údajov z aplikácie KidsChores.\n\nAktuálne zálohy: {backup_count}\nNastavenie uchovávania: {retention} zálohy",
+        "description": "Vytvorte si novú zálohu údajov z aplikácie ChoreOps.\n\nAktuálne zálohy: {backup_count}\nNastavenie uchovávania: {retention} zálohy",
         "data": {
           "confirm": "Potvrdiť vytvorenie zálohy"
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Možnosti obnovy dát",
-        "description": "Existujúce údaje KidsChores nájdené v:\n{storage_path}\n\nNájdených {backup_count} záložných súborov.\n\nČo chcete urobiť?",
+        "description": "Existujúce údaje ChoreOps nájdené v:\n{storage_path}\n\nNájdených {backup_count} záložných súborov.\n\nČo chcete urobiť?",
         "data": {
           "backup_selection": "Vyberte možnosť"
         }
       },
       "paste_json_restore": {
         "title": "Importovať údaje JSON",
-        "description": "Vložte kompletný obsah JSON z jednej z možností:\n\n• Dátový súbor KidsChores (kidschores_data)\n• Stiahnutie diagnostického súboru\n\nSystém automaticky rozpozná a rozbalí formát podľa potreby. Podporované sú formáty nespracovaných úložných údajov aj exportu diagnostických údajov.",
+        "description": "Vložte kompletný obsah JSON z jednej z možností:\n\n• Dátový súbor ChoreOps (choreops_data)\n• Stiahnutie diagnostického súboru\n\nSystém automaticky rozpozná a rozbalí formát podľa potreby. Podporované sú formáty nespracovaných úložných údajov aj exportu diagnostických údajov.",
         "data": {
           "json_data": "Údaje JSON"
         },
         "data_description": {
-          "json_data": "Sem vložte kompletný obsah JSON. Prijíma údaje zo súboru kidschores_data alebo exportu diagnostiky (automaticky rozbalí extra štruktúru)."
+          "json_data": "Sem vložte kompletný obsah JSON. Prijíma údaje zo súboru choreops_data alebo exportu diagnostiky (automaticky rozbalí extra štruktúru)."
         }
       },
       "create_backup_confirm": {
         "title": "Vytvoriť manuálnu zálohu",
-        "description": "Vytvoriť manuálnu zálohu vašich aktuálnych údajov KidsChores?",
+        "description": "Vytvoriť manuálnu zálohu vašich aktuálnych údajov ChoreOps?",
         "data": {
           "confirm": "Potvrdiť"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Odznak s týmto názvom už existuje",
       "duplicate_challenge": "Výzva s týmto názvom už existuje",
       "duplicate_chore": "Úloha s týmto názvom už existuje",
-      "duplicate_kid": "Dieťa s týmto menom už existuje",
-      "duplicate_parent": "Rodič s týmto menom už existuje",
+      "duplicate_assignee": "Dieťa s týmto menom už existuje",
+      "duplicate_approver": "Rodič s týmto menom už existuje",
       "duplicate_penalty": "Trest s týmto názvom už existuje",
       "duplicate_reward": "Odmena s týmto názvom už existuje",
       "duplicate_bonus": "Bonus s týmto názvom už existuje",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Neplatný dátum splatnosti",
       "date_required_for_frequency": "Pre túto opakujúcu sa frekvenciu je potrebný dátum splatnosti. Vymazať dátumy funguje iba s frekvenciou Žiadna, Denne alebo Týždenne.",
       "invalid_end_date": "Neplatný dátum ukončenia.",
-      "invalid_kid_count": "Neplatný počet detí",
-      "invalid_kid_name": "Neplatné meno dieťaťa",
-      "no_kids_assigned": "Aspoň jedno dieťa musí byť pridelené k úlohe",
-      "achievement_no_kids_assigned": "K úspechu musí byť priradené aspoň jedno dieťa",
-      "challenge_no_kids_assigned": "Do výzvy musí byť pridelené aspoň jedno dieťa",
+      "invalid_assignee_count": "Neplatný počet detí",
+      "invalid_assignee_name": "Neplatné meno dieťaťa",
+      "no_assignees_assigned": "Aspoň jedno dieťa musí byť pridelené k úlohe",
+      "achievement_no_assignees_assigned": "K úspechu musí byť priradené aspoň jedno dieťa",
+      "challenge_no_assignees_assigned": "Do výzvy musí byť pridelené aspoň jedno dieťa",
       "invalid_penalty": "Neplatný trest",
       "invalid_penalty_count": "Neplatný počet penalt",
       "invalid_bonus": "Neplatný bonus",
@@ -1721,23 +1721,23 @@
       "file_not_found": "Vybraný súbor sa nepodarilo nájsť.",
       "invalid_selection": "Vyberte platnú možnosť.",
       "error_daily_multi_requires_compatible_reset": "Frekvencia „Viacerokrát za deň“ nie je kompatibilná s typmi resetovania o polnoci, pretože resetujú schválenia iba raz o polnoci.",
-      "error_daily_multi_independent_multi_kids": "Frekvencia „Viacerokrát za deň“ s NEZÁVISLÝM dokončením vyžaduje presne jedno dieťa, pokiaľ nie sú nakonfigurované časy pre každé dieťa. V nastaveniach pre každé dieťa nakonfigurujte rôzne časy.",
+      "error_daily_multi_independent_multi_assignees": "Frekvencia „Viacerokrát za deň“ s NEZÁVISLÝM dokončením vyžaduje presne jedno dieťa, pokiaľ nie sú nakonfigurované časy pre každé dieťa. V nastaveniach pre každé dieťa nakonfigurujte rôzne časy.",
       "error_daily_multi_times_required": "Pre frekvenciu „Viacerokrát za deň“ je potrebný zoznam časov.",
       "error_daily_multi_times_invalid_format": "Neplatný formát času. Použite 24-hodinový formát (HH:MM) oddelený znakom | (napr. 08:00|17:00).",
       "error_daily_multi_times_too_few": "Pre frekvenciu „Viacerokrát za deň“ sú potrebné aspoň 2 pokusy. Pre jeden pokus použite bežnú frekvenciu „Denne“.",
       "error_daily_multi_times_too_many": "Maximálne 6-krát za deň je povolených pre frekvenciu „Viacerokrát za deň“.",
       "error_daily_multi_due_date_required": "Frekvencia „Viaceríkrát za deň“ vyžaduje nastavenie dátumu splatnosti. Dátum určuje začiatok plánovania a časy určujú okná dostupnosti pre každý deň.",
-      "rotation_min_kids": "Rotačné práce vyžadujú aspoň 2 pridelené deti",
+      "rotation_min_assignees": "Rotačné práce vyžadujú aspoň 2 pridelené deti",
       "error_allow_steal_incompatible": "Manipulácia s oneskoreným odkúpením je kompatibilná iba s úlohami Rotácia (rotation_simple alebo rotation_smart), typom resetovania „Raz za deň“ a vyžaduje dátum splatnosti na definovanie otvorenia okna odkúpenia.",
       "error_at_due_date_reset_requires_due_date": "Typy resetovania schválenia „V deň splatnosti“ (raz alebo viacnásobné) vyžadujú nastavenie dátumu splatnosti. Bez dátumu splatnosti sa resetovanie schválenia nikdy nespustí a úloha zostane schválená na neurčito.",
-      "error_per_kid_applicable_days_invalid": "Neplatný formát príslušných dní pre jedno alebo viac detí. Dni musia byť celé čísla 0-6 (pondelok-nedeľa) bez duplikátov.",
-      "error_per_kid_daily_multi_times_invalid": "Neplatný formát denného času pre jedno alebo viac detí. Použite 24-hodinový formát oddelený znakom | (napr. 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Neplatný formát príslušných dní pre jedno alebo viac detí. Dni musia byť celé čísla 0-6 (pondelok-nedeľa) bez duplikátov.",
+      "error_per_assignee_daily_multi_times_invalid": "Neplatný formát denného času pre jedno alebo viac detí. Použite 24-hodinový formát oddelený znakom | (napr. 08:00|17:00).",
       "dashboard_exists": "Informačný panel s touto cestou URL už existuje. Povoľte možnosť „Vynútiť obnovu“, aby sa prepísal.",
       "dashboard_template_error": "Nepodarilo sa načítať šablónu ovládacieho panela. Skontrolujte sieťové pripojenie alebo skúste to znova neskôr.",
       "dashboard_render_error": "Nepodarilo sa vykresliť šablónu informačného panela. Môže to znamenať chybu šablóny.",
       "dashboard_save_error": "Nepodarilo sa uložiť ovládací panel do služby Home Assistant. Podrobnosti nájdete v systémových protokoloch.",
       "dashboard_no_name": "Zadajte názov pre ovládací panel.",
-      "dashboard_no_kids": "Vyberte aspoň jedno dieťa alebo povoľte možnosť „Zahrnúť kartu Správca“.",
+      "dashboard_no_assignees": "Vyberte aspoň jedno dieťa alebo povoľte možnosť „Zahrnúť kartu Správca“.",
       "dashboard_no_dashboards": "Vyberte aspoň jeden dashboard, ktorý chcete odstrániť."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Neplatná výzva",
       "invalid_chore": "Neplatná úloha",
       "invalid_entity": "Neplatná entita",
-      "invalid_kid": "Neplatné dieťa",
-      "invalid_parent": "Neplatný rodič",
+      "invalid_assignee": "Neplatné dieťa",
+      "invalid_approver": "Neplatný rodič",
       "invalid_penalty": "Neplatný trest",
       "invalid_reward": "Neplatná odmena",
       "invalid_bonus": "Neplatný bonus",
-      "no_kid": "Žiadne deti nie sú nastavené na úpravu. Najprv pridajte jeden záznam.",
-      "no_parent": "Žiadni rodičia nie sú nastavení na úpravu. Najprv pridajte jeden záznam.",
+      "no_assignee": "Žiadne deti nie sú nastavené na úpravu. Najprv pridajte jeden záznam.",
+      "no_approver": "Žiadni rodičia nie sú nastavení na úpravu. Najprv pridajte jeden záznam.",
       "no_chore": "Nie sú nastavené žiadne úlohy na úpravu. Najprv pridajte jeden záznam.",
       "no_badge": "Nie sú nastavené žiadne odznaky na úpravu. Najprv pridajte jeden záznam.",
       "no_reward": "Nie sú nastavené žiadne odmeny na úpravu. Najprv pridajte jeden záznam.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "Nie sú nastavené žiadne výzvy na úpravu. Najprv pridajte jeden záznam.",
       "setup_complete": "Nastavenie dokončené",
       "backup_restored": "Záloha bola úspešne obnovená. Integrácia bola znova načítaná s obnovenými údajmi.",
-      "no_dashboards_to_delete": "Nenašli sa žiadne dashboardy KidsChores. Najprv si jeden vytvorte pomocou funkcie Spravovať dashboard."
+      "no_dashboards_to_delete": "Nenašli sa žiadne dashboardy ChoreOps. Najprv si jeden vytvorte pomocou funkcie Spravovať dashboard."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Spravovať body",
-        "manage_kid": "Spravovať dieťa",
-        "manage_parent": "Spravovať rodičovskú stránku",
+        "manage_assignee": "Spravovať dieťa",
+        "manage_approver": "Spravovať rodičovskú stránku",
         "manage_chore": "Spravovať domáce úlohy",
         "manage_badge": "Spravovať odznak",
         "manage_reward": "Spravovať odmenu",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Správca (Rodičovský panel)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2021,7 +2021,7 @@
       "name": "Nárok na domácu úlohu",
       "description": "Dieťa si nárokuje domácu úlohu a označí ju ako „nárokovanú“ na schválenie rodičmi.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Meno dieťaťa, ktoré si nárokuje domácu úlohu.",
           "example": "Alica"
@@ -2037,12 +2037,12 @@
       "name": "Schváliť domácu úlohu",
       "description": "Rodič schváli domácu úlohu a udelí body.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič schvaľuje domácu úlohu.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Meno dieťaťa, ktoré vykonalo domácu úlohu.",
           "example": "Alica"
@@ -2063,12 +2063,12 @@
       "name": "Neschváliť domácu prácu",
       "description": "Rodič neschváli domácu úlohu pre dieťa a zmení jej status na novú.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič s touto prácou nesúhlasí.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Meno dieťaťa, ktorého domáca úloha je zamietnutá.",
           "example": "Alica"
@@ -2084,12 +2084,12 @@
       "name": "Uplatniť odmenu",
       "description": "Rodič si pre dieťa vyzdvihne odmenu a odpočíta mu body.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič, ktorý povoľuje uplatnenie odmeny.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Dieťa si vyberá odmenu.",
           "example": "Alica"
@@ -2105,12 +2105,12 @@
       "name": "Schváliť odmenu",
       "description": "Rodič schváli odmenu, ktorú si dieťa nárokovalo.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič schvaľuje odmenu.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Dieťa, ktoré si vyberá odmenu.",
           "example": "Alica"
@@ -2130,12 +2130,12 @@
       "name": "Zamietnuť odmenu",
       "description": "Rodič neschválil uplatnenie odmeny pre dieťa.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič nesúhlasí s odmenou.",
           "example": "Otec"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Dieťa, ktorého uplatnenie odmeny je zamietnuté.",
           "example": "Alica"
@@ -2151,12 +2151,12 @@
       "name": "Uplatniť trest",
       "description": "Rodič uplatní pokutu za odpočítanie bodov.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič, ktorý uplatňuje trest.",
           "example": "Otec"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Chlapec dostáva trest.",
           "example": "Alica"
@@ -2172,12 +2172,12 @@
       "name": "Použiť bonus",
       "description": "Rodič udelí dieťaťu bonus a body.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Meno rodiča",
           "description": "Rodič, ktorý uplatňuje bonus.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Dieťa, ktoré dostáva bonus.",
           "example": "Alica"
@@ -2281,7 +2281,7 @@
           "description": "Názov úlohy, ktorú chcete vytvoriť.",
           "example": "Čistá miestnosť"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Pridelené deti",
           "description": "Zoznam mien detí, ktoré sa majú priradiť k tejto úlohe.",
           "example": "[„Emma“, „Jack“]"
@@ -2377,7 +2377,7 @@
           "description": "Názov úlohy, ktorá sa má aktualizovať (alternatíva k id). Používateľsky prívetivejšie ako id.",
           "example": "Čistá miestnosť"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Pridelené deti",
           "description": "Nový zoznam mien detí, ktoré sa majú priradiť k tejto úlohe.",
           "example": "[„Emma“, „Jack“]"
@@ -2484,14 +2484,14 @@
           "description": "Názov rotačnej úlohy. Voliteľné, ak je zadaný parameter chore_id.",
           "example": "Čistá spálňa"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "ID dieťaťa",
           "description": "Interné ID dieťaťa, ktorému sa má priradiť úloha. Musí byť priradené k tejto úlohe. Voliteľné, ak je zadané meno dieťaťa.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
-          "description": "Meno dieťaťa, ktorému sa má priradiť úloha. Musí byť priradené k tejto úlohe. Voliteľné, ak je zadané kid_id.",
+          "description": "Meno dieťaťa, ktorému sa má priradiť úloha. Musí byť priradené k tejto úlohe. Voliteľné, ak je zadané assignee_id.",
           "example": "Alica"
         }
       }
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Obnoviť transakčné údaje",
-      "description": "Obnoviť dáta za behu/transakcie so zachovaním konfigurácie (deti, domáce úlohy, odmeny atď.). Pred resetom sa vytvorí automatická záloha ako kidschores_data_timestamp_reset v adresári .storage. Na zacielenie konkrétnych detí alebo domén použite rozsah. Vyžaduje sa parameter confirm_destructive nastavený na hodnotu true ako bezpečnostný mechanizmus.",
+      "description": "Obnoviť dáta za behu/transakcie so zachovaním konfigurácie (deti, domáce úlohy, odmeny atď.). Pred resetom sa vytvorí automatická záloha ako choreops_data_timestamp_reset v adresári .storage. Na zacielenie konkrétnych detí alebo domén použite rozsah. Vyžaduje sa parameter confirm_destructive nastavený na hodnotu true ako bezpečnostný mechanizmus.",
       "fields": {
         "confirm_destructive": {
           "name": "Potvrdiť deštruktívne",
@@ -2544,7 +2544,7 @@
           "name": "Rozsah pôsobnosti",
           "description": "Obnoviť rozsah: „globálne“ vynuluje všetky údaje, „dieťa“ vynuluje údaje iba pre konkrétne dieťa."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Povinné, ak je rozsah „dieťa“. Meno dieťaťa, ktorého údaje sa majú resetovať."
         },
@@ -2560,7 +2560,7 @@
     },
     "reset_overdue_chores": {
       "name": "Obnoviť oneskorené úlohy",
-      "description": "Obnovte oneskorené úlohy späť do stavu Čakajúce a preplánujte ich na základe ich opakujúcej sa frekvencie a predchádzajúceho dátumu splatnosti. Voliteľne môžete zadať chore_id (alebo chore_name) na resetovanie konkrétnej úlohy a voliteľne kid_name na resetovanie úlohy iba pre dané dieťa.",
+      "description": "Obnovte oneskorené úlohy späť do stavu Čakajúce a preplánujte ich na základe ich opakujúcej sa frekvencie a predchádzajúceho dátumu splatnosti. Voliteľne môžete zadať chore_id (alebo chore_name) na resetovanie konkrétnej úlohy a voliteľne assignee_name na resetovanie úlohy iba pre dané dieťa.",
       "fields": {
         "chore_id": {
           "name": "ID úlohy",
@@ -2572,7 +2572,7 @@
           "description": "Názov úlohy, ktorá sa má resetovať (voliteľné, ak je zadaný parameter chore_id).",
           "example": "Umývanie riadu"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Chlapec dostáva trest.",
           "example": "Alica"
@@ -2581,7 +2581,7 @@
     },
     "set_chore_due_date": {
       "name": "Nastaviť/obnoviť termín dokončenia úlohy",
-      "description": "Nastavte (alebo vymažte) dátum dokončenia domácej úlohy. Zadajte názov úlohy a v prípade potreby aj nový dátum dokončenia. Ak nie je zadaný žiadny dátum dokončenia, existujúci dátum dokončenia sa vymaže. Služba odmietne dátumy dokončenia nastavené v minulosti. V prípade nezávislých domácich úloh voliteľne zadajte názov dieťaťa (kid_name), aby ste nastavili dátum dokončenia iba pre dané dieťa.",
+      "description": "Nastavte (alebo vymažte) dátum dokončenia domácej úlohy. Zadajte názov úlohy a v prípade potreby aj nový dátum dokončenia. Ak nie je zadaný žiadny dátum dokončenia, existujúci dátum dokončenia sa vymaže. Služba odmietne dátumy dokončenia nastavené v minulosti. V prípade nezávislých domácich úloh voliteľne zadajte názov dieťaťa (assignee_name), aby ste nastavili dátum dokončenia iba pre dané dieťa.",
       "fields": {
         "chore_name": {
           "name": "Názov úlohy",
@@ -2593,12 +2593,12 @@
           "description": "Nový dátum dokončenia úlohy. Pomocou voliča dátumu/času vyberte platný dátum a čas (vo vašom miestnom časovom pásme). Ak chcete dátum dokončenia vymazať, ponechajte pole prázdne.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "V prípade samostatných domácich úloh zadajte dieťa, pre ktoré sa má nastaviť dátum dokončenia. Ak sa tento dátum vynechá, nastaví sa dátum dokončenia pre všetky priradené deti.",
           "example": "Alica"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "ID dieťaťa",
           "description": "Interné ID dieťaťa. Len pre pokročilých používateľov – použite namiesto toho meno_dieťaťa.",
           "example": "abc123-def456"
@@ -2607,7 +2607,7 @@
     },
     "skip_chore_due_date": {
       "name": "Preskočiť termín plnenia úloh",
-      "description": "Preskočiť aktuálny termín opakovanej úlohy. Táto služba okamžite preplánuje termín úlohy na základe jej frekvencie opakovania a obnoví jej stav na čakajúce. Všetky čakajúce nároky alebo schválenia budú odstránené. V prípade nezávislých úloh voliteľne zadajte názov dieťaťa (kid_name), ktorý sa má preskočiť iba pre dané dieťa.",
+      "description": "Preskočiť aktuálny termín opakovanej úlohy. Táto služba okamžite preplánuje termín úlohy na základe jej frekvencie opakovania a obnoví jej stav na čakajúce. Všetky čakajúce nároky alebo schválenia budú odstránené. V prípade nezávislých úloh voliteľne zadajte názov dieťaťa (assignee_name), ktorý sa má preskočiť iba pre dané dieťa.",
       "fields": {
         "chore_id": {
           "name": "ID úlohy",
@@ -2619,12 +2619,12 @@
           "description": "Názov úlohy, ktorá sa má resetovať (voliteľné, ak je zadaný parameter chore_id).",
           "example": "Umývanie riadu"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "V prípade samostatných domácich úloh zadajte dieťa, pre ktoré sa má termín odovzdania preskočiť. Ak sa tento termín vynechá, termín odovzdania sa preskočí pre všetky priradené deti.",
           "example": "Alica"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "ID dieťaťa",
           "description": "Interné ID dieťaťa. Len pre pokročilých používateľov – použite namiesto toho meno_dieťaťa.",
           "example": "abc123-def456"
@@ -2639,7 +2639,7 @@
       "name": "Odstrániť udelené odznaky",
       "description": "Odstráňte všetky udelené odznaky pre všetky deti. Voliteľne zadajte názov odznaku, čím resetujete konkrétny odznak pre všetky deti. Použite meno dieťaťa na resetovanie všetkých odznakov pre konkrétne dieťa. Skombinujte obe možnosti na resetovanie konkrétneho odznaku pre konkrétne dieťa.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Meno dieťaťa",
           "description": "Dieťaťu, ktorému boli udelené odznaky, budú odobraté.",
           "example": "Bob"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Stav domácej úlohy - {chore_name}",
         "state": {
           "pending": "Čaká sa na spracovanie",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Stavy životného cyklu domácich úloh špecifických pre dieťa, štatistiky výkonu a konfiguračné metadáta"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Popis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Pridelené deti"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Zmeškané"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Otočte meno dieťaťa"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Aktuálny zostatok bodov s podrobnou štatistikou o získavaní a výdavkoch"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Maximálne {points} kedykoľvek"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Dokončené domáce práce - mesačne"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Domáce práce",
         "unit_of_measurement": "Domáce práce",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Celkový počet dokončených domácich prác za celý čas s podrobnou štatistikou"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Odznaky",
         "state_attributes": {
           "purpose": {
             "name": "Účel",
             "state": {
-              "purpose_kid_badges": "Najvyšší získaný odznak a kumulatívny pokrok v reálnom čase vrátane aktívnych cyklov a histórie ocenení vo všetkých typoch odznakov"
+              "purpose_assignee_badges": "Najvyšší získaný odznak a kumulatívny pokrok v reálnom čase vrátane aktívnych cyklov a histórie ocenení vo všetkých typoch odznakov"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Štítky"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Deti zarobili"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Pridelené deti"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Postup pri získavaní odznaku – {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Percentuálny podiel postupu v získavaní odznaku (0 – 100) sledujúci splnenie úloh smerom k získaniu tohto odznaku, vrátane stavu kritérií, dátumov a histórie udeľovania"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Popis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Pridelené deti"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Stav odmeny - {reward_name}",
         "state": {
           "locked": "Zamknuté",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Stav uplatnenia odmien s históriou uplatnení a akčnými tlačidlami"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Uložené sankcie - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "Bonus platí - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Získané body – denne"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Získané body – týždenne"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Získané body – mesačne"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Popis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Pridelené deti"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Vernostné body"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Získané"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Popis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Pridelené deti"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Dátum ukončenia"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Získané"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Pokrok - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Percentuálny podiel pokroku individuálneho dieťaťa (0 – 100) smerom k získaniu tohto úspechu, s aktuálnym počtom surových výsledkov a stavom ocenenia"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Popis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Pridelené deti"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Pokrok - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Percentuálny podiel pokroku individuálneho dieťaťa (0 – 100) pri plnení tejto výzvy v rámci dátumového okna s aktuálnym počtom surových výsledkov a stavom ocenení"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Popis"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Pridelené deti"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Najvyššia séria domácich prác",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "Pomocník pre dashboard UI",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Domáce práce podľa vydavateľstva"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Vyberte bonus"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Výber dieťaťa v administrátorskom paneli",
         "state_attributes": {
           "purpose": {
             "name": "Účel",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Výber detí na úrovni systému pre karty administrátorského panela"
+              "purpose_system_dashboard_admin_assignee": "Výber detí na úrovni systému pre karty administrátorského panela"
             }
           },
           "dashboard_helper_eid": {
             "name": "ID entity pomocníka dashboardu"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Vybraný detský slimák"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Vybrané meno dieťaťa"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "Pomocník pre zoznam úloh na dashboarde používateľského rozhrania",
         "state_attributes": {
           "purpose": {
             "name": "Účel",
             "state": {
-              "purpose_select_kid_chores": "Výber domácich úloh pre deti na filtrovanie na paneli úloh"
+              "purpose_select_assignee_chores": "Výber domácich úloh pre deti na filtrovanie na paneli úloh"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Kalendár",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Kalendár zobrazujúci rozvrh domácich prác dieťaťa a dátumy ich splatnosti"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "Pomocník pre dátum na ovládacom paneli používateľského rozhrania",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Pomocník pre výber dátumu pre filtrovanie a navigáciu v používateľskom rozhraní dashboardu"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Nárok na domácu úlohu - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "Dieťa tvrdí, že splnilo pridelenú domácu úlohu"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Schváliť domácu úlohu - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "Rodič schvaľuje nárokovanú domácu úlohu"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Zamietnuť domácu úlohu - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "Rodič neschválil nárokovanú domácu úlohu"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Získajte odmenu - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "Dieťa si uplatní odmenu pomocou bodov"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Schváliť odmenu - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "Rodič schvaľuje uplatnenú odmenu"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Zamietnuť odmenu - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "Rodič neschválil uplatnenú odmenu"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Použiť penalizáciu - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "Rodič uplatní penalizáciu (odpočíta body)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Použiť bonus - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "Rodič uplatňuje bonus (pridáva body)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Upraviť {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "Rodič manuálne upravuje body dieťaťa"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Meno dieťaťa"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Prírastok {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Zníženie {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "Nenašlo sa žiadne dieťa s menom {name}"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "Nenašiel sa žiadny rodič s menom {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "Dieťa {name} je už prepojené s rodičom"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "Dieťa {name} nie je prepojené so žiadnym rodičom"
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "Rodič {name} je už prepojený s iným dieťaťom"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} nenašiel sa"
     },
     "not_assigned": {
-      "message": "{entity} nie je priradené k {kid}"
+      "message": "{entity} nie je priradené k {assignee}"
     },
     "rotation_no_turn_holder": {
       "message": "Rotačné úlohy musia mať priradeného držiteľa striedania"
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Všetky deti v poradí striedania musia byť pridelené k domácej úlohe"
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Rotačné práce vyžadujú aspoň 2 pridelené deti"
     },
     "not_rotation": {
       "message": "Táto úloha nie je v režime rotácie"
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "Dieťa nie je priradené k tejto úlohe"
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "Na túto úlohu nie sú pridelené žiadne deti"
     },
     "insufficient_points": {
-      "message": "{kid} má {current} bodov, ale potrebuje {required} bodov"
+      "message": "{assignee} má {current} bodov, ale potrebuje {required} bodov"
     },
     "already_claimed": {
       "message": "{entity} už bolo nárokované"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "Opakujúca sa frekvencia {frequency} nie je platná"
     },
-    "chore_overdue_for_kid": {
-      "message": "Úloha {chore_name} pre {kid_name}je oneskorená"
+    "chore_overdue_for_assignee": {
+      "message": "Úloha {chore_name} pre {assignee_name}je oneskorená"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "Dieťa {kid_name} nie je priradené k úlohe {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "Dieťa {assignee_name} nie je priradené k úlohe {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "Pre zdieľanú domácu úlohu {chore_name}nie je možné zadať dieťa. Zdieľané domáce úlohy majú jeden termín odovzdania pre všetky deti."
     },
     "reward_not_found": {
@@ -4471,14 +4471,14 @@
     "data_reset_confirmation_required": {
       "message": "Pre pokračovanie v resetovaní údajov musíte nastaviť confirm_destructive: true"
     },
-    "data_reset_kid_not_found": {
-      "message": "Dieťa {kid_name} sa nenašlo"
+    "data_reset_assignee_not_found": {
+      "message": "Dieťa {assignee_name} sa nenašlo"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} nenašiel sa"
     },
     "data_reset_invalid_scope": {
-      "message": "Neplatný rozsah {scope}. Musí byť: global, kid, item_type alebo item"
+      "message": "Neplatný rozsah {scope}. Musí byť: global, assignee, item_type alebo item"
     },
     "data_reset_invalid_item_type": {
       "message": "Neplatný typ položky {item_type}. Musí to byť: deti, domáce práce, odmeny, odznaky, úspechy, výzvy, tresty alebo bonusy."
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "Všetky dáta za behu boli resetované. Konfigurácia zachovaná."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Obnovenie údajov pre {kid_name}bolo dokončené. Body, štatistiky a postup boli vymazané."
+    "notif_message_data_reset_assignee": {
+      "message": "Obnovenie údajov pre {assignee_name}bolo dokončené. Body, štatistiky a postup boli vymazané."
     },
     "notif_message_data_reset_item_type": {
       "message": "Obnovenie údajov dokončené pre všetky {item_type}. Údaje za behu boli vymazané."
@@ -4502,7 +4502,7 @@
       "message": "Zmeškaná domáca úloha"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} zmeškal(a) som povinnú prácu: {chore_name}"
+      "message": "{assignee_name} zmeškal(a) som povinnú prácu: {chore_name}"
     }
   }
 }

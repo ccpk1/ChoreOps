@@ -32,17 +32,17 @@ async def test_scenario_full_loads_all_entity_types(
         "tests/scenarios/scenario_full.yaml",
     )
 
-    # Verify kids (baseline - already worked)
-    assert len(result.kid_ids) == 3
-    assert "Zoë" in result.kid_ids
-    assert "Max!" in result.kid_ids
-    assert "Lila" in result.kid_ids
+    # Verify assignees (baseline - already worked)
+    assert len(result.assignee_ids) == 3
+    assert "Zoë" in result.assignee_ids
+    assert "Max!" in result.assignee_ids
+    assert "Lila" in result.assignee_ids
 
-    # Verify configured parents are present. parent_ids may also include
-    # parent-compatible linked-profile records from unified users data.
-    assert len(result.parent_ids) >= 2
-    assert "Môm Astrid Stârblüm" in result.parent_ids
-    assert "Dad Leo" in result.parent_ids
+    # Verify configured approvers are present. approver_ids may also include
+    # approver-compatible linked-profile records from unified users data.
+    assert len(result.approver_ids) >= 2
+    assert "Môm Astrid Stârblüm" in result.approver_ids
+    assert "Dad Leo" in result.approver_ids
 
     # Verify chores (baseline - already worked)
     # Note: scenario_full.yaml currently has 18 chores (was 19 before recent updates)
@@ -159,11 +159,11 @@ async def test_entity_loading_with_empty_lists(
         "tests/scenarios/scenario_minimal.yaml",  # Has no badges/rewards/etc
     )
 
-    # Minimal scenario should have 1 kid, configured parent present, 5 chores
-    # (parent_ids may include parent-compatible linked-profile records)
-    assert len(result.kid_ids) == 1
-    assert len(result.parent_ids) >= 1
-    assert "Môm Astrid Stârblüm" in result.parent_ids
+    # Minimal scenario should have 1 assignee, configured approver present, 5 chores
+    # (approver_ids may include approver-compatible linked-profile records)
+    assert len(result.assignee_ids) == 1
+    assert len(result.approver_ids) >= 1
+    assert "Môm Astrid Stârblüm" in result.approver_ids
     assert len(result.chore_ids) == 5
 
     # All new entity ID mappings should be empty dicts (not None)

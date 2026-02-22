@@ -33,7 +33,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid, 1 parent, 5 chores."""
+    """Load minimal scenario: 1 assignee, 1 approver, 5 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -49,23 +49,23 @@ class TestEconomyManagerDeposit:
         self,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Test that deposit increases kid's balance."""
+        """Test that deposit increases assignee's balance."""
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        # Get a kid
-        kid_id = list(coordinator.kids_data.keys())[0]
-        initial_balance = manager.get_balance(kid_id)
+        # Get a assignee
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        initial_balance = manager.get_balance(assignee_id)
 
         # Deposit points (async method)
         new_balance = await manager.deposit(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=10.0,
             source=const.POINTS_SOURCE_CHORES,
         )
 
         assert new_balance == initial_balance + 10.0
-        assert manager.get_balance(kid_id) == new_balance
+        assert manager.get_balance(assignee_id) == new_balance
 
     @pytest.mark.asyncio
     async def test_deposit_creates_ledger_entry(
@@ -76,22 +76,22 @@ class TestEconomyManagerDeposit:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
 
         # Clear any existing ledger
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Deposit (async method)
         await manager.deposit(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=15.0,
             source=const.POINTS_SOURCE_BONUSES,
             reference_id="test-bonus-123",
         )
 
         # Check ledger
-        history = manager.get_history(kid_id, limit=10)
+        history = manager.get_history(assignee_id, limit=10)
         assert len(history) == 1
         entry = history[0]
         assert entry[const.DATA_LEDGER_AMOUNT] == 15.0
@@ -108,11 +108,11 @@ class TestEconomyManagerDeposit:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        initial_balance = manager.get_balance(kid_id)
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        initial_balance = manager.get_balance(assignee_id)
 
         await manager.deposit(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=25.0,
             source=const.POINTS_SOURCE_CHORES,
         )
@@ -126,7 +126,7 @@ class TestEconomyManagerDeposit:
 
         # Payload is passed as third positional arg (dict)
         payload = call_args[0][2]
-        assert payload["kid_id"] == kid_id
+        assert payload["assignee_id"] == assignee_id
         assert payload["old_balance"] == initial_balance
         assert payload["new_balance"] == initial_balance + 25.0
         assert payload["delta"] == 25.0
@@ -141,15 +141,15 @@ class TestEconomyManagerDeposit:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS_MULTIPLIER] = 1.5  # 1.5x multiplier
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 1.5  # 1.5x multiplier
 
-        initial_balance = manager.get_balance(kid_id)
+        initial_balance = manager.get_balance(assignee_id)
 
         # Deposit with multiplier (async method)
         new_balance = await manager.deposit(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=10.0,
             source=const.POINTS_SOURCE_CHORES,
             apply_multiplier=True,
@@ -167,11 +167,11 @@ class TestEconomyManagerDeposit:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
 
         with pytest.raises(ValueError, match="must be positive"):
             await manager.deposit(
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 amount=-10.0,
                 source=const.POINTS_SOURCE_BONUSES,
             )
@@ -185,22 +185,22 @@ class TestEconomyManagerWithdraw:
         self,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Test that withdraw decreases kid's balance."""
+        """Test that withdraw decreases assignee's balance."""
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 100.0  # Ensure sufficient balance
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 100.0  # Ensure sufficient balance
 
         new_balance = await manager.withdraw(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=30.0,
             source=const.POINTS_SOURCE_REWARDS,
         )
 
         assert new_balance == 70.0
-        assert manager.get_balance(kid_id) == 70.0
+        assert manager.get_balance(assignee_id) == 70.0
 
     @pytest.mark.asyncio
     async def test_withdraw_creates_negative_ledger_entry(
@@ -211,19 +211,19 @@ class TestEconomyManagerWithdraw:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 50.0
-        kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 50.0
+        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         await manager.withdraw(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=20.0,
             source=const.POINTS_SOURCE_REWARDS,
             reference_id="reward-abc",
         )
 
-        history = manager.get_history(kid_id, limit=10)
+        history = manager.get_history(assignee_id, limit=10)
         assert len(history) == 1
         entry = history[0]
         assert entry[const.DATA_LEDGER_AMOUNT] == -20.0  # Negative
@@ -238,26 +238,26 @@ class TestEconomyManagerWithdraw:
     ) -> None:
         """Test that withdraw with insufficient funds raises InsufficientFundsError.
 
-        Note: withdraw() defaults to allow_negative=True (parent authority pattern).
+        Note: withdraw() defaults to allow_negative=True (approver authority pattern).
         Only reward redemptions explicitly set allow_negative=False for NSF.
         """
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 10.0  # Only 10 points
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 10.0  # Only 10 points
 
         with pytest.raises(InsufficientFundsError) as exc_info:
             await manager.withdraw(
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 amount=50.0,  # Trying to withdraw 50
                 source=const.POINTS_SOURCE_REWARDS,
                 allow_negative=False,  # Explicitly test NSF behavior
             )
 
         error = exc_info.value
-        assert error.kid_id == kid_id
+        assert error.assignee_id == assignee_id
         assert error.current_balance == 10.0
         assert error.requested_amount == 50.0
 
@@ -271,12 +271,12 @@ class TestEconomyManagerWithdraw:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 100.0
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 100.0
 
         await manager.withdraw(
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             amount=40.0,
             source=const.POINTS_SOURCE_PENALTIES,
         )
@@ -296,11 +296,11 @@ class TestEconomyManagerWithdraw:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
 
         with pytest.raises(ValueError, match="must be positive"):
             await manager.withdraw(
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 amount=-10.0,
                 source=const.POINTS_SOURCE_PENALTIES,
             )
@@ -318,17 +318,17 @@ class TestEconomyManagerHistory:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 0.0
-        kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
+        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Multiple deposits (async method)
-        await manager.deposit(kid_id, 10.0, source=const.POINTS_SOURCE_CHORES)
-        await manager.deposit(kid_id, 20.0, source=const.POINTS_SOURCE_BONUSES)
-        await manager.deposit(kid_id, 30.0, source=const.POINTS_SOURCE_MANUAL)
+        await manager.deposit(assignee_id, 10.0, source=const.POINTS_SOURCE_CHORES)
+        await manager.deposit(assignee_id, 20.0, source=const.POINTS_SOURCE_BONUSES)
+        await manager.deposit(assignee_id, 30.0, source=const.POINTS_SOURCE_MANUAL)
 
-        history = manager.get_history(kid_id, limit=10)
+        history = manager.get_history(assignee_id, limit=10)
         assert len(history) == 3
         # Entries should be oldest to newest (append order)
         assert history[0][const.DATA_LEDGER_AMOUNT] == 10.0
@@ -344,33 +344,33 @@ class TestEconomyManagerHistory:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 0.0
-        kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
+        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Add 5 entries (async method)
         for i in range(5):
             await manager.deposit(
-                kid_id, float(i + 1), source=const.POINTS_SOURCE_MANUAL
+                assignee_id, float(i + 1), source=const.POINTS_SOURCE_MANUAL
             )
 
         # Request only 2
-        history = manager.get_history(kid_id, limit=2)
+        history = manager.get_history(assignee_id, limit=2)
         assert len(history) == 2
         # Should be the LAST 2 entries (most recent)
         assert history[0][const.DATA_LEDGER_AMOUNT] == 4.0
         assert history[1][const.DATA_LEDGER_AMOUNT] == 5.0
 
-    def test_get_history_nonexistent_kid(
+    def test_get_history_nonexistent_assignee(
         self,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Test get_history returns empty list for nonexistent kid."""
+        """Test get_history returns empty list for nonexistent assignee."""
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        history = manager.get_history("nonexistent-kid-id", limit=10)
+        history = manager.get_history("nonexistent-assignee-id", limit=10)
         assert history == []
 
 
@@ -385,21 +385,21 @@ class TestEconomyManagerBalance:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 42.5
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 42.5
 
-        assert manager.get_balance(kid_id) == 42.5
+        assert manager.get_balance(assignee_id) == 42.5
 
-    def test_get_balance_nonexistent_kid(
+    def test_get_balance_nonexistent_assignee(
         self,
         scenario_minimal: SetupResult,
     ) -> None:
-        """Test get_balance returns 0 for nonexistent kid."""
+        """Test get_balance returns 0 for nonexistent assignee."""
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        balance = manager.get_balance("nonexistent-kid-id")
+        balance = manager.get_balance("nonexistent-assignee-id")
         assert balance == 0.0
 
     def test_get_balance_handles_invalid_value(
@@ -410,12 +410,12 @@ class TestEconomyManagerBalance:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = "not a number"  # type: ignore[typeddict-item]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = "not a number"  # type: ignore[typeddict-item]
 
         # Should return 0.0 instead of crashing
-        assert manager.get_balance(kid_id) == 0.0
+        assert manager.get_balance(assignee_id) == 0.0
 
 
 class TestEconomyManagerLedgerIntegration:
@@ -430,16 +430,18 @@ class TestEconomyManagerLedgerIntegration:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 0.0
-        kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
+        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Use economy_manager.deposit
-        await manager.deposit(kid_id, amount=50.0, source=const.POINTS_SOURCE_CHORES)
+        await manager.deposit(
+            assignee_id, amount=50.0, source=const.POINTS_SOURCE_CHORES
+        )
 
         # Check ledger was created
-        ledger = kid.get(const.DATA_KID_LEDGER, [])
+        ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
         assert len(ledger) == 1
         entry = ledger[0]
         # Source is passed through directly (no mapping)
@@ -454,8 +456,8 @@ class TestEconomyManagerLedgerIntegration:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
 
         # Test various sources - all should pass through unchanged
         test_sources = [
@@ -467,12 +469,12 @@ class TestEconomyManagerLedgerIntegration:
         ]
 
         for source in test_sources:
-            kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
-            kid[const.DATA_KID_POINTS] = 100.0
+            assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+            assignee[const.DATA_ASSIGNEE_POINTS] = 100.0
 
-            await manager.deposit(kid_id, amount=5.0, source=source)
+            await manager.deposit(assignee_id, amount=5.0, source=source)
 
-            ledger = kid.get(const.DATA_KID_LEDGER, [])
+            ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
             assert len(ledger) == 1, f"Failed for source {source}"
             assert ledger[0][const.DATA_LEDGER_SOURCE] == source
 
@@ -485,14 +487,16 @@ class TestEconomyManagerLedgerIntegration:
         coordinator = scenario_minimal.coordinator
         manager = coordinator.economy_manager
 
-        kid_id = list(coordinator.kids_data.keys())[0]
-        kid = coordinator.kids_data[kid_id]
-        kid[const.DATA_KID_POINTS] = 0.0
-        kid[const.DATA_KID_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee_id = list(coordinator.assignees_data.keys())[0]
+        assignee = coordinator.assignees_data[assignee_id]
+        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
+        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Add more than max entries
         for i in range(const.DEFAULT_LEDGER_MAX_ENTRIES + 10):
-            await manager.deposit(kid_id, amount=1.0, source=const.POINTS_SOURCE_OTHER)
+            await manager.deposit(
+                assignee_id, amount=1.0, source=const.POINTS_SOURCE_OTHER
+            )
 
-        ledger = kid.get(const.DATA_KID_LEDGER, [])
+        ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
         assert len(ledger) == const.DEFAULT_LEDGER_MAX_ENTRIES

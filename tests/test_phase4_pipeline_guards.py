@@ -13,7 +13,7 @@ import pytest
 from custom_components.choreops import const
 from custom_components.choreops.utils import dt_utils
 
-from .helpers.constants import DATA_KID_NAME
+from .helpers.constants import DATA_ASSIGNEE_NAME
 from .helpers.setup import setup_from_yaml
 
 # =============================================================================
@@ -21,11 +21,11 @@ from .helpers.setup import setup_from_yaml
 # =============================================================================
 
 
-def get_kid_by_name(coordinator: Any, kid_name: str) -> str | None:
-    """Get kid internal_id by name."""
-    for kid_id, kid_data in coordinator.kids_data.items():
-        if kid_data.get(DATA_KID_NAME) == kid_name:
-            return kid_id
+def get_assignee_by_name(coordinator: Any, assignee_name: str) -> str | None:
+    """Get assignee internal_id by name."""
+    for assignee_id, assignee_data in coordinator.assignees_data.items():
+        if assignee_data.get(DATA_ASSIGNEE_NAME) == assignee_name:
+            return assignee_id
     return None
 
 
@@ -67,9 +67,9 @@ async def test_idempotency_overdue_already_overdue(
     """
     coordinator = minimal_scenario.coordinator
 
-    # Get kid
-    kid_id = get_kid_by_name(coordinator, "Zoë")
-    assert kid_id, "Zoë should exist in minimal scenario"
+    # Get assignee
+    assignee_id = get_assignee_by_name(coordinator, "Zoë")
+    assert assignee_id, "Zoë should exist in minimal scenario"
 
     # Create chore without due date (avoids service validation)
     chore_response = await hass.services.async_call(
@@ -77,7 +77,7 @@ async def test_idempotency_overdue_already_overdue(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Idempotency Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_KIDS: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_OVERDUE_HANDLING: const.OVERDUE_HANDLING_AT_DUE_DATE,
@@ -90,7 +90,7 @@ async def test_idempotency_overdue_already_overdue(
     # Manually set past due date in storage (bypass service validation)
     past_date = (dt_utils.dt_now_local() - timedelta(days=2)).isoformat()
     chore = coordinator.chores_data[chore_id]
-    chore[const.DATA_CHORE_PER_KID_DUE_DATES] = {kid_id: past_date}
+    chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {assignee_id: past_date}
     coordinator._persist()
 
     # First periodic update → should mark OVERDUE
@@ -140,9 +140,9 @@ async def test_gremlin1_prevention_overdue_after_approval(
     """
     coordinator = minimal_scenario.coordinator
 
-    # Get kid
-    kid_id = get_kid_by_name(coordinator, "Zoë")
-    assert kid_id, "Zoë should exist"
+    # Get assignee
+    assignee_id = get_assignee_by_name(coordinator, "Zoë")
+    assert assignee_id, "Zoë should exist"
 
     # Create chore without due date (avoid service validation)
     chore_response = await hass.services.async_call(
@@ -150,7 +150,7 @@ async def test_gremlin1_prevention_overdue_after_approval(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Gremlin 1 Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_KIDS: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -164,7 +164,7 @@ async def test_gremlin1_prevention_overdue_after_approval(
     # Manually set past due date in storage (bypass validation)
     past_date = (dt_utils.dt_now_local() - timedelta(hours=12)).isoformat()
     chore = coordinator.chores_data[chore_id]
-    chore[const.DATA_CHORE_PER_KID_DUE_DATES] = {kid_id: past_date}
+    chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {assignee_id: past_date}
     coordinator._persist()
 
     # Claim and approve chore
@@ -172,7 +172,7 @@ async def test_gremlin1_prevention_overdue_after_approval(
         const.DOMAIN,
         const.SERVICE_CLAIM_CHORE,
         {
-            const.SERVICE_FIELD_KID_NAME: "Zoë",
+            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 1 Test Chore",
         },
         blocking=True,
@@ -182,8 +182,8 @@ async def test_gremlin1_prevention_overdue_after_approval(
         const.DOMAIN,
         const.SERVICE_APPROVE_CHORE,
         {
-            const.SERVICE_FIELD_PARENT_NAME: "Môm Astrid Stârblüm",
-            const.SERVICE_FIELD_KID_NAME: "Zoë",
+            const.SERVICE_FIELD_APPROVER_NAME: "Môm Astrid Stârblüm",
+            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 1 Test Chore",
         },
         blocking=True,
@@ -221,9 +221,9 @@ async def test_gremlin2_prevention_double_processing(
     """
     coordinator = minimal_scenario.coordinator
 
-    # Get kid
-    kid_id = get_kid_by_name(coordinator, "Zoë")
-    assert kid_id, "Zoë should exist"
+    # Get assignee
+    assignee_id = get_assignee_by_name(coordinator, "Zoë")
+    assert assignee_id, "Zoë should exist"
 
     # Create chore with AT_MIDNIGHT reset (triggers during midnight rollover)
     # We'll claim it and make it past due so it appears in BOTH reset AND overdue lists
@@ -232,7 +232,7 @@ async def test_gremlin2_prevention_double_processing(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Gremlin 2 Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_KIDS: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -246,7 +246,7 @@ async def test_gremlin2_prevention_double_processing(
     # Set past due date
     past_date = (dt_utils.dt_now_local() - timedelta(days=1)).isoformat()
     chore = coordinator.chores_data[chore_id]
-    chore[const.DATA_CHORE_PER_KID_DUE_DATES] = {kid_id: past_date}
+    chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {assignee_id: past_date}
     coordinator._persist()
 
     # Claim the chore (now it's CLAIMED + past due → eligible for overdue list)
@@ -254,7 +254,7 @@ async def test_gremlin2_prevention_double_processing(
         const.DOMAIN,
         const.SERVICE_CLAIM_CHORE,
         {
-            const.SERVICE_FIELD_KID_NAME: "Zoë",
+            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 2 Test Chore",
         },
         blocking=True,
@@ -274,9 +274,9 @@ async def test_gremlin2_prevention_double_processing(
         )
         await hass.async_block_till_done()
 
-        # Verify: Only ONE modification for this (kid_id, chore_id) pair
+        # Verify: Only ONE modification for this (assignee_id, chore_id) pair
         modifications = coordinator.chore_manager._pipeline_modified_pairs
-        pair = (kid_id, chore_id)
+        pair = (assignee_id, chore_id)
         assert pair in modifications, "Pair should be modified once"
         # Note: If Gremlin #2 occurred, pair would appear twice (reset + overdue)
 
@@ -302,9 +302,9 @@ async def test_gremlin3_prevention_non_recurring_past_due(
     """
     coordinator = minimal_scenario.coordinator
 
-    # Get kid
-    kid_id = get_kid_by_name(coordinator, "Zoë")
-    assert kid_id, "Zoë should exist"
+    # Get assignee
+    assignee_id = get_assignee_by_name(coordinator, "Zoë")
+    assert assignee_id, "Zoë should exist"
 
     # Create non-recurring chore without due date
     chore_response = await hass.services.async_call(
@@ -312,7 +312,7 @@ async def test_gremlin3_prevention_non_recurring_past_due(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Gremlin 3 Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_KIDS: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_NONE,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
@@ -326,20 +326,23 @@ async def test_gremlin3_prevention_non_recurring_past_due(
     # Manually set past due date before approval
     past_date = (dt_utils.dt_now_local() - timedelta(days=2)).isoformat()
     chore = coordinator.chores_data[chore_id]
-    chore[const.DATA_CHORE_PER_KID_DUE_DATES] = {kid_id: past_date}
+    chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {assignee_id: past_date}
     coordinator._persist()
 
     # Verify chore has past due date before approval
     chore = coordinator.chores_data[chore_id]
-    per_kid_due_dates = chore.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-    assert kid_id in per_kid_due_dates and per_kid_due_dates[kid_id] is not None
+    per_assignee_due_dates = chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+    assert (
+        assignee_id in per_assignee_due_dates
+        and per_assignee_due_dates[assignee_id] is not None
+    )
 
     # Claim and approve
     await hass.services.async_call(
         const.DOMAIN,
         const.SERVICE_CLAIM_CHORE,
         {
-            const.SERVICE_FIELD_KID_NAME: "Zoë",
+            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 3 Test Chore",
         },
         blocking=True,
@@ -349,8 +352,8 @@ async def test_gremlin3_prevention_non_recurring_past_due(
         const.DOMAIN,
         const.SERVICE_APPROVE_CHORE,
         {
-            const.SERVICE_FIELD_PARENT_NAME: "Môm Astrid Stârblüm",
-            const.SERVICE_FIELD_KID_NAME: "Zoë",
+            const.SERVICE_FIELD_APPROVER_NAME: "Môm Astrid Stârblüm",
+            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 3 Test Chore",
         },
         blocking=True,
@@ -358,10 +361,11 @@ async def test_gremlin3_prevention_non_recurring_past_due(
 
     # Verify: Due date cleared (Phase 1 fix)
     chore = coordinator.chores_data[chore_id]
-    per_kid_due_dates = chore.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-    assert kid_id not in per_kid_due_dates or per_kid_due_dates[kid_id] is None, (
-        "Gremlin #3 Prevention: Due date should be cleared for non-recurring chores"
-    )
+    per_assignee_due_dates = chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+    assert (
+        assignee_id not in per_assignee_due_dates
+        or per_assignee_due_dates[assignee_id] is None
+    ), "Gremlin #3 Prevention: Due date should be cleared for non-recurring chores"
 
     # Run periodic update - should NOT mark OVERDUE (no due date)
     await coordinator.chore_manager._on_periodic_update(now_utc=dt_utils.dt_now_utc())
@@ -393,7 +397,7 @@ async def test_debug_mode_tracking_warns_on_duplicate(
     """
     coordinator = minimal_scenario.coordinator
 
-    kid_id = get_kid_by_name(coordinator, "Zoë")
+    assignee_id = get_assignee_by_name(coordinator, "Zoë")
 
     # Create a chore to get a valid chore_id
     chore_response = await hass.services.async_call(
@@ -401,7 +405,7 @@ async def test_debug_mode_tracking_warns_on_duplicate(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Debug Tracking Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_KIDS: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
         },
@@ -410,7 +414,7 @@ async def test_debug_mode_tracking_warns_on_duplicate(
     )
     chore_id = chore_response[const.SERVICE_FIELD_CHORE_CRUD_ID]
 
-    assert kid_id and chore_id, "Kid and chore should exist"
+    assert assignee_id and chore_id, "Assignee and chore should exist"
 
     with (
         patch.object(const, "DEBUG_PIPELINE_GUARDS", True),
@@ -420,10 +424,10 @@ async def test_debug_mode_tracking_warns_on_duplicate(
         coordinator.chore_manager._reset_pipeline_tracking()
 
         # First modification - should be fine
-        coordinator.chore_manager._track_state_modification(kid_id, chore_id)
+        coordinator.chore_manager._track_state_modification(assignee_id, chore_id)
 
         # Second modification - should warn
-        coordinator.chore_manager._track_state_modification(kid_id, chore_id)
+        coordinator.chore_manager._track_state_modification(assignee_id, chore_id)
 
         # Verify warning logged
         assert mock_warning.called, "Should log warning on duplicate modification"

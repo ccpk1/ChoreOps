@@ -1,6 +1,6 @@
 """Statistics Engine - Unified time-series tracking for period-based data.
 
-This engine centralizes all period-based statistics tracking across KidsChores:
+This engine centralizes all period-based statistics tracking across ChoreOps:
 - Chore completions (claimed, approved, rejected, points)
 - Point transactions (earned, spent, bonuses, penalties)
 - Reward claims (claimed, redeemed)
@@ -49,7 +49,7 @@ class StatisticsEngine:
         stats = StatisticsEngine()
 
         # Record a chore completion
-        period_data = kid_chore_data["periods"]
+        period_data = assignee_chore_data["periods"]
         stats.record_transaction(
             period_data,
             increments={"approved": 1, "points": 10},
@@ -57,7 +57,7 @@ class StatisticsEngine:
         )
 
         # Update streak
-        stats.update_streak(kid_chore_data, "current_streak", "last_completed")
+        stats.update_streak(assignee_chore_data, "current_streak", "last_completed")
 
         # Prune old data
         stats.prune_history(period_data, retention_config)
@@ -174,10 +174,10 @@ class StatisticsEngine:
                 point_data["periods"],
                 increments={"earned": 5},
                 period_key_mapping={
-                    "daily": const.DATA_KID_POINT_PERIODS_DAILY,
-                    "weekly": const.DATA_KID_POINT_PERIODS_WEEKLY,
-                    "monthly": const.DATA_KID_POINT_PERIODS_MONTHLY,
-                    "yearly": const.DATA_KID_POINT_PERIODS_YEARLY,
+                    "daily": const.DATA_ASSIGNEE_POINT_PERIODS_DAILY,
+                    "weekly": const.DATA_ASSIGNEE_POINT_PERIODS_WEEKLY,
+                    "monthly": const.DATA_ASSIGNEE_POINT_PERIODS_MONTHLY,
+                    "yearly": const.DATA_ASSIGNEE_POINT_PERIODS_YEARLY,
                 },
             )
         """
@@ -210,13 +210,13 @@ class StatisticsEngine:
             for metric, value in increments.items():
                 # FILTER 1: streak_tally ONLY in daily buckets
                 if (
-                    metric == const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY
+                    metric == const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY
                     and period_type != const.PERIOD_DAILY
                 ):
                     continue
 
                 # FILTER 2: longest_streak NEVER written here (managed in all_time only)
-                if metric == const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK:
+                if metric == const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK:
                     continue
 
                 # Write all other metrics to bucket
@@ -240,13 +240,13 @@ class StatisticsEngine:
             all_time_bucket = all_time_container[const.PERIOD_ALL_TIME]
             for metric, value in increments.items():
                 # FILTER: streak_tally NEVER in all_time (daily only)
-                if metric == const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY:
+                if metric == const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY:
                     continue
 
                 # longest_streak is managed separately in _on_chore_completed
                 # (high-water mark logic, not simple increment)
                 # Skip it here to avoid duplicate/incorrect writes
-                if metric == const.DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK:
+                if metric == const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK:
                     continue
 
                 current = all_time_bucket.get(metric, 0)

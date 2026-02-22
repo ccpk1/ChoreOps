@@ -8,15 +8,15 @@
 <#-- Based on kc_dashboard_all.yaml v0.5.0b3    --#>
 <#--                                             --#>
 <#-- Injection variables (Python << >>):         --#>
-<#--   << kid.name >> - Child's display name     --#>
-<#--   << kid.slug >> - URL-safe slug            --#>
+<#--   << assignee.name >> - Child's display name     --#>
+<#--   << assignee.slug >> - URL-safe slug            --#>
 <#--                                             --#>
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
 
 - max_columns: 4
-  title: << kid.name >> Chores
-  path: << kid.slug >>
+  title: << assignee.name >> Chores
+  path: << assignee.slug >>
   sections:
     - type: grid
       column_span: 4
@@ -45,7 +45,7 @@
 
                   {#-- Language translation now managed by the integration --#}
 
-                  {#-- Select language by going to integration options and editing the kid --#}
+                  {#-- Select language by going to integration options and editing the assignee --#}
 
 
                   {#-- ===== WELCOME CARD ===== --#}
@@ -53,7 +53,7 @@
 
                   {#-- 1. User Configuration --#}
 
-                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+                  {%- set name = '<< assignee.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
 
 
                   {#-- 2. Initialize Variables --#}
@@ -64,7 +64,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -74,7 +74,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< assignee.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -154,7 +154,7 @@
 
                   {#-- 1. User Configuration --#}
 
-                  {%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+                  {%- set name = '<< assignee.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
 
                   {%- set pref_column_count = 4 -%}
 
@@ -199,7 +199,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -220,7 +220,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< kid.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< assignee.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}

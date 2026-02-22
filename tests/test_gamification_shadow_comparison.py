@@ -39,7 +39,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 8 chores, badges, achievements."""
+    """Load full scenario: 3 assignees, 2 approvers, 8 chores, badges, achievements."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -63,14 +63,14 @@ class TestBadgeShadowComparison:
         """Test that new engine evaluates points-based badges same as legacy.
 
         Scenario:
-        1. Give kid enough points to earn a points-based badge
+        1. Give assignee enough points to earn a points-based badge
         2. Compare legacy evaluation result vs new engine result
         """
         coordinator = scenario_full.coordinator
 
-        # Get first kid
-        kid_id, kid_data = next(iter(coordinator.kids_data.items()))
-        kid_name = kid_data.get(const.DATA_KID_NAME, "Unknown")
+        # Get first assignee
+        assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
+        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
         # Find a points-based badge
         points_badge_id = None
@@ -90,32 +90,36 @@ class TestBadgeShadowComparison:
         target = points_badge_data.get(const.DATA_BADGE_TARGET, {})
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 100)
 
-        # Set kid's points above threshold
-        kid_data[const.DATA_KID_POINTS] = float(threshold + 50)
+        # Set assignee's points above threshold
+        assignee_data[const.DATA_ASSIGNEE_POINTS] = float(threshold + 50)
 
         # Also update point_stats for total_earned (LEGACY - kept for test compatibility)
-        point_stats = kid_data.setdefault(const.DATA_KID_POINT_STATS_LEGACY, {})
-        point_stats[const.DATA_KID_POINT_STATS_EARNED_ALL_TIME_LEGACY] = float(
+        point_stats = assignee_data.setdefault(
+            const.DATA_ASSIGNEE_POINT_STATS_LEGACY, {}
+        )
+        point_stats[const.DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY] = float(
             threshold + 50
         )
 
         # Build evaluation context for new engine
         context: EvaluationContext = {
-            "kid_id": kid_id,
-            "kid_name": kid_name,
-            "current_points": float(kid_data.get(const.DATA_KID_POINTS, 0.0)),
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_name,
+            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
             "total_points_earned": float(
-                point_stats.get(const.DATA_KID_POINT_STATS_EARNED_ALL_TIME_LEGACY, 0.0)
+                point_stats.get(
+                    const.DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY, 0.0
+                )
             ),
-            "badge_progress": kid_data.get(const.DATA_KID_BADGE_PROGRESS, {}),
-            "cumulative_badge_progress": kid_data.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+            "badge_progress": assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            "cumulative_badge_progress": assignee_data.get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": kid_data.get(const.DATA_KID_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
-            "chore_periods_all_time": kid_data.get(
-                const.DATA_KID_CHORE_PERIODS, {}
-            ).get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}),
+            "chore_periods_all_time": assignee_data.get(
+                const.DATA_ASSIGNEE_CHORE_PERIODS, {}
+            ).get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
             "achievement_progress": {},
             "challenge_progress": {},
             "today_iso": dt_today_iso(),
@@ -128,7 +132,7 @@ class TestBadgeShadowComparison:
 
         # Verify new engine says criteria is met
         assert new_result["criteria_met"] is True, (
-            f"New engine should say criteria met for kid with {threshold + 50} points "
+            f"New engine should say criteria met for assignee with {threshold + 50} points "
             f"(threshold: {threshold})"
         )
         assert new_result["overall_progress"] >= 1.0, "Progress should be 100%+"
@@ -141,14 +145,14 @@ class TestBadgeShadowComparison:
         """Test that new engine evaluates chore-count badges same as legacy.
 
         Scenario:
-        1. Set up kid with completed chores in badge progress
+        1. Set up assignee with completed chores in badge progress
         2. Compare legacy evaluation result vs new engine result
         """
         coordinator = scenario_full.coordinator
 
-        # Get first kid
-        kid_id, kid_data = next(iter(coordinator.kids_data.items()))
-        kid_name = kid_data.get(const.DATA_KID_NAME, "Unknown")
+        # Get first assignee
+        assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
+        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
         # Find a chore-count badge
         chore_badge_id = None
@@ -169,30 +173,32 @@ class TestBadgeShadowComparison:
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 5)
 
         # Set up badge progress with enough chores
-        badge_progress = kid_data.setdefault(const.DATA_KID_BADGE_PROGRESS, {})
+        badge_progress = assignee_data.setdefault(
+            const.DATA_ASSIGNEE_BADGE_PROGRESS, {}
+        )
         badge_progress[chore_badge_id] = cast(
             "dict[str, Any]",
             {
-                const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT: threshold + 2,
-                const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT: 100.0,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT: threshold + 2,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT: 100.0,
             },
         )
 
         # Build evaluation context
         context: EvaluationContext = {
-            "kid_id": kid_id,
-            "kid_name": kid_name,
-            "current_points": float(kid_data.get(const.DATA_KID_POINTS, 0.0)),
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_name,
+            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
             "total_points_earned": 100.0,
             "badge_progress": badge_progress,
-            "cumulative_badge_progress": kid_data.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+            "cumulative_badge_progress": assignee_data.get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": kid_data.get(const.DATA_KID_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
-            "chore_periods_all_time": kid_data.get(
-                const.DATA_KID_CHORE_PERIODS, {}
-            ).get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}),
+            "chore_periods_all_time": assignee_data.get(
+                const.DATA_ASSIGNEE_CHORE_PERIODS, {}
+            ).get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
             "achievement_progress": {},
             "challenge_progress": {},
             "today_iso": dt_today_iso(),
@@ -205,7 +211,7 @@ class TestBadgeShadowComparison:
 
         # Verify new engine says criteria is met
         assert new_result["criteria_met"] is True, (
-            f"New engine should say criteria met for kid with {threshold + 2} chores "
+            f"New engine should say criteria met for assignee with {threshold + 2} chores "
             f"(threshold: {threshold})"
         )
 
@@ -221,9 +227,9 @@ class TestAchievementShadowComparison:
         """Test chore total achievement evaluation matches."""
         coordinator = scenario_full.coordinator
 
-        # Get first kid
-        kid_id, kid_data = next(iter(coordinator.kids_data.items()))
-        kid_name = kid_data.get(const.DATA_KID_NAME, "Unknown")
+        # Get first assignee
+        assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
+        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
         # Find a CHORE_TOTAL achievement
         achievement_id = None
@@ -242,26 +248,26 @@ class TestAchievementShadowComparison:
         target_count = achievement_data.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 10)
 
         # Set up chore_periods.all_time with enough completions (v43+ structure)
-        chore_periods = kid_data.setdefault(const.DATA_KID_CHORE_PERIODS, {})
-        chore_periods[const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME] = {
-            const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: target_count + 5,
-            const.DATA_KID_CHORE_DATA_PERIOD_POINTS: 500.0,
+        chore_periods = assignee_data.setdefault(const.DATA_ASSIGNEE_CHORE_PERIODS, {})
+        chore_periods[const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME] = {
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: target_count + 5,
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS: 500.0,
         }
 
         # Build evaluation context
         context: EvaluationContext = {
-            "kid_id": kid_id,
-            "kid_name": kid_name,
-            "current_points": float(kid_data.get(const.DATA_KID_POINTS, 0.0)),
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_name,
+            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
             "total_points_earned": 500.0,
-            "badge_progress": kid_data.get(const.DATA_KID_BADGE_PROGRESS, {}),
-            "cumulative_badge_progress": kid_data.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+            "badge_progress": assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            "cumulative_badge_progress": assignee_data.get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": kid_data.get(const.DATA_KID_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
             "chore_periods_all_time": chore_periods.get(
-                const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
             ),
             "achievement_progress": {},
             "challenge_progress": {},
@@ -291,9 +297,9 @@ class TestChallengeShadowComparison:
         """Test challenge evaluation within date window."""
         coordinator = scenario_full.coordinator
 
-        # Get first kid
-        kid_id, kid_data = next(iter(coordinator.kids_data.items()))
-        kid_name = kid_data.get(const.DATA_KID_NAME, "Unknown")
+        # Get first assignee
+        assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
+        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
         # Find any challenge
         challenge_id = None
@@ -317,19 +323,19 @@ class TestChallengeShadowComparison:
 
         # Build evaluation context
         context: EvaluationContext = {
-            "kid_id": kid_id,
-            "kid_name": kid_name,
-            "current_points": float(kid_data.get(const.DATA_KID_POINTS, 0.0)),
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_name,
+            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
             "total_points_earned": 100.0,
-            "badge_progress": kid_data.get(const.DATA_KID_BADGE_PROGRESS, {}),
-            "cumulative_badge_progress": kid_data.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+            "badge_progress": assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            "cumulative_badge_progress": assignee_data.get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": kid_data.get(const.DATA_KID_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
-            "chore_periods_all_time": kid_data.get(
-                const.DATA_KID_CHORE_PERIODS, {}
-            ).get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}),
+            "chore_periods_all_time": assignee_data.get(
+                const.DATA_ASSIGNEE_CHORE_PERIODS, {}
+            ).get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
             "achievement_progress": {},
             "challenge_progress": {},
             "today_iso": dt_today_iso(),
@@ -356,15 +362,15 @@ class TestManagerDryRunMethods:
         """Test dry_run_badge returns evaluation result."""
         coordinator = scenario_full.coordinator
 
-        # Get first kid and badge
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        # Get first assignee and badge
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         badge_id = next(iter(coordinator.badges_data.keys()), None)
 
         if not badge_id:
             pytest.skip("No badges in scenario_full")
 
         # Call dry_run_badge
-        result = coordinator.gamification_manager.dry_run_badge(kid_id, badge_id)
+        result = coordinator.gamification_manager.dry_run_badge(assignee_id, badge_id)
 
         # Verify result structure
         assert result is not None
@@ -381,8 +387,8 @@ class TestManagerDryRunMethods:
         """Test dry_run_achievement returns evaluation result."""
         coordinator = scenario_full.coordinator
 
-        # Get first kid and achievement
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        # Get first assignee and achievement
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         achievement_id = next(iter(coordinator.achievements_data.keys()), None)
 
         if not achievement_id:
@@ -390,7 +396,7 @@ class TestManagerDryRunMethods:
 
         # Call dry_run_achievement
         result = coordinator.gamification_manager.dry_run_achievement(
-            kid_id, achievement_id
+            assignee_id, achievement_id
         )
 
         # Verify result structure
@@ -406,8 +412,8 @@ class TestManagerDryRunMethods:
         """Test dry_run_challenge returns evaluation result."""
         coordinator = scenario_full.coordinator
 
-        # Get first kid and challenge
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        # Get first assignee and challenge
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         challenge_id = next(iter(coordinator.challenges_data.keys()), None)
 
         if not challenge_id:
@@ -425,7 +431,7 @@ class TestManagerDryRunMethods:
 
         # Call dry_run_challenge
         result = coordinator.gamification_manager.dry_run_challenge(
-            kid_id, challenge_id
+            assignee_id, challenge_id
         )
 
         # Verify result structure
@@ -434,20 +440,20 @@ class TestManagerDryRunMethods:
         assert "overall_progress" in result
 
     @pytest.mark.asyncio
-    async def test_dry_run_with_invalid_kid_returns_none(
+    async def test_dry_run_with_invalid_assignee_returns_none(
         self,
         scenario_full: SetupResult,
     ) -> None:
-        """Test dry_run methods return None for invalid kid."""
+        """Test dry_run methods return None for invalid assignee."""
         coordinator = scenario_full.coordinator
 
         badge_id = next(iter(coordinator.badges_data.keys()), None)
         if not badge_id:
             pytest.skip("No badges in scenario_full")
 
-        # Call with invalid kid ID
+        # Call with invalid assignee ID
         result = coordinator.gamification_manager.dry_run_badge(
-            "invalid-kid-id", badge_id
+            "invalid-assignee-id", badge_id
         )
 
         assert result is None
@@ -460,11 +466,11 @@ class TestManagerDryRunMethods:
         """Test dry_run_badge returns None for invalid badge."""
         coordinator = scenario_full.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         # Call with invalid badge ID
         result = coordinator.gamification_manager.dry_run_badge(
-            kid_id, "invalid-badge-id"
+            assignee_id, "invalid-badge-id"
         )
 
         assert result is None

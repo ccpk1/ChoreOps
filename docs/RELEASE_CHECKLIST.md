@@ -15,9 +15,6 @@ Quick reference checklist for preparing and validating releases. Complete ALL it
   - File: `migration_pre_v{VERSION}.py`
   - Verify: All schema versions from previous → current have migration paths
   - Cumulative: Each version should run ALL previous migrations (defensive)
-- [ ] **Migration observability log review**: Verify structured schema migration summary is present in startup logs
-  - Required fields: users migrated, linked merges, standalone parent creations, collisions, remap totals, remap additions
-  - Verify summary persisted in metadata when applicable (`meta.schema45_last_summary`)
 
 ### Code Quality
 
@@ -92,7 +89,7 @@ Quick reference checklist for preparing and validating releases. Complete ALL it
   - Create pre-upgrade backup artifact
   - Execute upgrade and confirm migration summary counts
   - Restore backup and confirm prior state is recoverable
-- [ ] **Dashboard compatible**: Kid Dashboard renders correctly with new schema
+- [ ] **Dashboard compatible**: Assignee Dashboard renders correctly with new schema
 
 ## Migration go/no-go gate
 

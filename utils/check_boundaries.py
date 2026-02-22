@@ -638,6 +638,101 @@ def find_hardfork_contract_legacy_usage() -> list[Violation]:
     return violations
 
 
+def find_hardfork_wrapper_reintroduction() -> list[Violation]:
+    """Block hard-fork-prohibited runtime wrapper and alias reintroduction."""
+    violations: list[Violation] = []
+
+    disallowed_symbol_patterns: list[tuple[str, re.Pattern[str]]] = [
+        (
+            "legacy-wrapper",
+            re.compile(r"\bdef\s+build_parent_section_suggested_values\b"),
+        ),
+        ("legacy-wrapper", re.compile(r"\bdef\s+normalize_parent_form_input\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+build_parent_schema\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+map_parent_form_errors\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+validate_parents_inputs\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+_get_parent_ha_user_ids\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+async_step_add_kid\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+async_step_edit_kid\b")),
+        ("legacy-wrapper", re.compile(r"\bdef\s+async_step_delete_kid\b")),
+        ("legacy-alias", re.compile(r"\bCONFIG_FLOW_STEP_KID_COUNT\b")),
+        ("legacy-alias", re.compile(r"\bCONFIG_FLOW_STEP_KIDS\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_KIDS\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_ADD_KID\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_EDIT_KID\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_EDIT_KID_SHADOW\b")),
+        ("legacy-alias", re.compile(r"\bOPTIONS_FLOW_STEP_DELETE_KID\b")),
+    ]
+
+    legacy_class_pattern = re.compile(
+        r"^\s*class\s+\w*(Kid|Parent|Linked|Shadow|KidsChores)\w*"
+    )
+    allowed_legacy_class_lines = {
+        "class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):",
+        "class KidsChoresConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):",
+    }
+
+    target_files = [
+        HARDFORK_COMPONENT_PATH / "helpers" / "flow_helpers.py",
+        HARDFORK_COMPONENT_PATH / "options_flow.py",
+        HARDFORK_COMPONENT_PATH / "config_flow.py",
+        HARDFORK_COMPONENT_PATH / "const.py",
+        HARDFORK_COMPONENT_PATH / "data_builders.py",
+        HARDFORK_COMPONENT_PATH / "services.py",
+    ]
+
+    for file_path in target_files:
+        if not file_path.exists():
+            continue
+
+        with open(file_path, encoding="utf-8") as file_obj:
+            for line_num, line in enumerate(file_obj, start=1):
+                if line.lstrip().startswith("#"):
+                    continue
+
+                for rule, pattern in disallowed_symbol_patterns:
+                    if pattern.search(line):
+                        message = "Hard-fork prohibited compatibility wrapper or alias"
+                        if rule == "legacy-alias":
+                            message = "Hard-fork prohibited legacy runtime alias symbol detected"
+
+                        violations.append(
+                            Violation(
+                                category="HARDFORK_WRAPPER",
+                                file_path=file_path,
+                                line_number=line_num,
+                                line_content=line.strip(),
+                                message=message,
+                                doc_reference=(
+                                    "HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md "
+                                    "Phase 3 wrapper elimination"
+                                ),
+                            )
+                        )
+
+                if legacy_class_pattern.search(line):
+                    stripped = line.strip()
+                    if stripped in allowed_legacy_class_lines:
+                        continue
+                    violations.append(
+                        Violation(
+                            category="HARDFORK_CLASS",
+                            file_path=file_path,
+                            line_number=line_num,
+                            line_content=stripped,
+                            message=(
+                                "Legacy class naming detected in hard-fork runtime surface"
+                            ),
+                            doc_reference=(
+                                "HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md "
+                                "Phase 3 class naming audit gate"
+                            ),
+                        )
+                    )
+
+    return violations
+
+
 def format_violations(violations: list[Violation]) -> str:
     """Format violations for display."""
     if not violations:
@@ -684,6 +779,7 @@ def main() -> int:
         ("Type Syntax", find_old_typing_syntax),
         ("Exception Handling", find_bare_exceptions),
         ("Hard-fork Contract Lint", find_hardfork_contract_legacy_usage),
+        ("Hard-fork Wrapper Guardrails", find_hardfork_wrapper_reintroduction),
     ]
 
     for check_name, check_func in checks:

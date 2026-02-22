@@ -1,18 +1,18 @@
-"""Validation helpers for KidsChores integration tests.
+"""Validation helpers for ChoreOps integration tests.
 
 Provides assertion helpers and entity counting utilities.
 
 Usage:
     from tests.helpers import (
         assert_entity_exists, assert_state_equals, assert_points_changed,
-        count_entities_by_platform, verify_kid_entities,
+        count_entities_by_platform, verify_assignee_entities,
     )
 
     # Assert entity exists
-    assert_entity_exists(hass, "sensor.zoe_kidschores_star_points")
+    assert_entity_exists(hass, "sensor.zoe_choreops_star_points")
 
     # Assert state equals expected value
-    assert_state_equals(hass, "sensor.zoe_kidschores_star_points", "100")
+    assert_state_equals(hass, "sensor.zoe_choreops_star_points", "100")
 
     # Assert points changed by expected amount
     assert_points_changed(result, expected_change=10.0)
@@ -348,14 +348,14 @@ def assert_due_date_advanced(
 def count_entities_by_platform(
     hass: HomeAssistant,
     platform: str,
-    suffix: str = "_kidschores_",
+    suffix: str = "_choreops_",
 ) -> int:
-    """Count KidsChores entities for a specific platform.
+    """Count ChoreOps entities for a specific platform.
 
     Args:
         hass: Home Assistant instance
         platform: Platform name (sensor, button, etc.)
-        suffix: Entity ID suffix to filter (default "_kidschores_")
+        suffix: Entity ID suffix to filter (default "_choreops_")
 
     Returns:
         Count of matching entities
@@ -369,57 +369,57 @@ def count_entities_by_platform(
     return count
 
 
-def count_entities_by_kid(
+def count_entities_by_assignee(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     platform: str | None = None,
 ) -> int:
-    """Count entities for a specific kid.
+    """Count entities for a specific assignee.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
         platform: Optional platform filter
 
     Returns:
         Count of matching entities
     """
     count = 0
-    kid_pattern = f"{kid_slug}_kidschores_"
+    assignee_pattern = f"{assignee_slug}_choreops_"
 
     platforms = [platform] if platform else ["sensor", "button", "select", "datetime"]
 
     for p in platforms:
         for entity_id in hass.states.async_entity_ids(p):
-            if kid_pattern in entity_id:
+            if assignee_pattern in entity_id:
                 count += 1
 
     return count
 
 
-def get_kid_entity_ids(
+def get_assignee_entity_ids(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     platform: str | None = None,
 ) -> list[str]:
-    """Get all entity IDs for a specific kid.
+    """Get all entity IDs for a specific assignee.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
         platform: Optional platform filter
 
     Returns:
         List of matching entity IDs
     """
     entity_ids = []
-    kid_pattern = f"{kid_slug}_kidschores_"
+    assignee_pattern = f"{assignee_slug}_choreops_"
 
     platforms = [platform] if platform else ["sensor", "button", "select", "datetime"]
 
     for p in platforms:
         for entity_id in hass.states.async_entity_ids(p):
-            if kid_pattern in entity_id:
+            if assignee_pattern in entity_id:
                 entity_ids.append(entity_id)
 
     return sorted(entity_ids)
@@ -430,18 +430,18 @@ def get_kid_entity_ids(
 # =============================================================================
 
 
-def verify_kid_entities(
+def verify_assignee_entities(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     expected_sensors: list[str] | None = None,
     expected_buttons: list[str] | None = None,
     validator: Callable[[str, Any], bool] | None = None,
 ) -> dict[str, Any]:
-    """Verify entities exist for a kid with expected states.
+    """Verify entities exist for a assignee with expected states.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         expected_sensors: List of sensor suffixes to verify (e.g., ["points", "chores_completed"])
         expected_buttons: List of button suffixes to verify
         validator: Optional custom validation function (entity_id, state) -> bool
@@ -463,8 +463,8 @@ def verify_kid_entities(
 
     def resolve_entity_id(platform: str, suffix: str) -> str:
         candidates = [
-            f"{platform}.{kid_slug}_choreops_{suffix}",
-            f"{platform}.{kid_slug}_kidschores_{suffix}",
+            f"{platform}.{assignee_slug}_choreops_{suffix}",
+            f"{platform}.{assignee_slug}_choreops_{suffix}",
         ]
         for entity_id in candidates:
             if hass.states.get(entity_id) is not None:

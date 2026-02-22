@@ -50,8 +50,6 @@ To keep editor diagnostics stable across contributors, this repository uses a lo
 - **Lint/format source**: Ruff config is centralized in `pyproject.toml` (Python 3.13 target, formatter + lint rules + per-file ignores).
 - **Type source of truth**: MyPy is authoritative for CI and local validation; Pylance stays low-noise for editor productivity.
 - **Architecture enforcement**: `utils/check_boundaries.py` is a required gate, not optional.
-- **Hard-fork contract lint**: `utils/check_boundaries.py` enforces no new legacy request fields/symbols in runtime hard-fork surfaces (`services.py`, `notification_action_handler.py`, `config_flow.py`, `options_flow.py`, `helpers/flow_helpers.py`, `data_builders.py`).
-- **Baseline policy**: legacy contract findings are tracked in `docs/in-process/CHOREOPS_DATA_MODEL_UNIFICATION_SUP_CONTRACT_LINT_BASELINE.txt`; new findings not in baseline fail the gate.
 - **Test default behavior**: Pytest excludes `performance` and `stress` markers unless explicitly requested.
 - **Definition of done**: Lint gate + zero MyPy errors + relevant pytest pass.
 
@@ -194,17 +192,17 @@ All entity platforms MUST provide both human-readable (`*_EID_*`) and machine-re
 Every data modification must follow this atomic pattern:
 
 ```python
-# Inside a Manager method only (e.g., managers/kid_manager.py)
-async def update_kid_points(self, kid_id: str, points: int) -> None:
-    """Update kid points - atomic operation."""
+# Inside a Manager method only (e.g., managers/assignee_manager.py)
+async def update_assignee_points(self, assignee_id: str, points: int) -> None:
+    """Update assignee points - atomic operation."""
     # 1. Update memory
-    self._data[const.DATA_KIDS][kid_id][const.DATA_KID_POINTS] = points
+    self._data[const.DATA_ASSIGNEES][assignee_id][const.DATA_ASSIGNEE_POINTS] = points
 
     # 2. Persist to storage AND update entity listeners
     self.coordinator._persist_and_update()
 
     # 3. Emit signal for listeners
-    async_dispatcher_send(self.hass, SIGNAL_SUFFIX_KID_UPDATED)
+    async_dispatcher_send(self.hass, SIGNAL_SUFFIX_ASSIGNEE_UPDATED)
 ```
 
 **Two Persist Methods**:
@@ -240,8 +238,8 @@ All data builders (in `data_builders.py`) MUST set `updated_at` timestamps autom
 
 ```python
 # data_builders.py
-def build_kid_data(...) -> KidData:
-    """Build kid data with automatic timestamp."""
+def build_assignee_data(...) -> AssigneeData:
+    """Build assignee data with automatic timestamp."""
     return {
         "name": name.strip(),
         "points": points,
@@ -268,11 +266,11 @@ period_start = self.coordinator.chore_manager.get_approval_period_start(kid_id, 
 # NotificationManager queries ChoreManager data for Schedule-Lock comparison
 
 # ✅ CORRECT: Emit signal with payload (for writes)
-self.emit(SIGNAL_SUFFIX_BADGE_EARNED, kid_id=kid_id, bonus_ids=bonus_ids)
+self.emit(SIGNAL_SUFFIX_BADGE_EARNED, user_id=user_id, bonus_ids=bonus_ids)
 # EconomyManager._on_badge_earned() handles point deposit + bonus application
 
 # ❌ WRONG: Direct cross-manager write
-await self.coordinator.economy_manager.apply_bonus(kid_id, bonus_id)
+await self.coordinator.economy_manager.apply_bonus(user_id, bonus_id)
 ```
 
 ---

@@ -35,7 +35,7 @@ def get_kc_entity_count(
     entity_registry: er.EntityRegistry,
     config_entry_id: str,
 ) -> int:
-    """Count all KidsChores entities for a config entry.
+    """Count all ChoreOps entities for a config entry.
 
     Uses entity registry (not state machine) for accurate count including
     entities that may be temporarily unavailable.
@@ -60,7 +60,7 @@ def get_unavailable_kc_entities(
     entity_registry: er.EntityRegistry,
     config_entry_id: str,
 ) -> list[str]:
-    """Find KidsChores entities with 'unavailable' state.
+    """Find ChoreOps entities with 'unavailable' state.
 
     Entities in registry but with unavailable state are orphans - they exist
     in registry but have no backing coordinator data.
@@ -123,7 +123,7 @@ async def scenario_minimal(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load minimal scenario: 1 kid, 1 parent, 5 chores."""
+    """Load minimal scenario: 1 assignee, 1 approver, 5 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -136,7 +136,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 18 chores."""
+    """Load full scenario: 3 assignees, 2 approvers, 18 chores."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -217,7 +217,7 @@ class TestEntityStability:
         entity_registry: er.EntityRegistry,
         scenario_full: SetupResult,
     ) -> None:
-        """STAB-03: Full scenario (3 kids, 18 chores) stable across reloads."""
+        """STAB-03: Full scenario (3 assignees, 18 chores) stable across reloads."""
         config_entry = scenario_full.config_entry
 
         # Count entities BEFORE reload

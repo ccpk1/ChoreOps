@@ -1,7 +1,7 @@
-"""Validation script for SystemDashboardAdminKidSelect entity.
+"""Validation script for SystemDashboardAdminAssigneeSelect entity.
 
 This script validates the new system-level select entity implementation.
-Run from KidsChores integration workspace root.
+Run from ChoreOps integration workspace root.
 """
 
 import json
@@ -18,7 +18,7 @@ required_constants = [
     "ATTR_SELECTED_KID_NAME",
 ]
 
-print("✅ SystemDashboardAdminKidSelect Validation")
+print("✅ SystemDashboardAdminAssigneeSelect Validation")
 print("=" * 50)
 print("\n📋 Constant Verification:")
 for constant_name in required_constants:
@@ -36,10 +36,10 @@ try:
     print("  ✅ select.py imports successfully")
 
     # Check if class exists
-    if hasattr(select, "SystemDashboardAdminKidSelect"):
-        print("  ✅ SystemDashboardAdminKidSelect class found")
+    if hasattr(select, "SystemDashboardAdminAssigneeSelect"):
+        print("  ✅ SystemDashboardAdminAssigneeSelect class found")
     else:
-        print("  ❌ SystemDashboardAdminKidSelect class NOT found")
+        print("  ❌ SystemDashboardAdminAssigneeSelect class NOT found")
 except ImportError as e:
     print(f"  ❌ Import failed: {e}")
 
@@ -54,7 +54,7 @@ try:
     entity_trans = (
         translations.get("entity", {})
         .get("select", {})
-        .get("system_dashboard_admin_kid_select")
+        .get("system_dashboard_admin_assignee_select")
     )
     if entity_trans:
         print(f"  ✅ Entity translation found: {entity_trans.get('name')}")
@@ -65,11 +65,11 @@ try:
     purpose_trans = (
         translations.get("entity", {})
         .get("select", {})
-        .get("system_dashboard_admin_kid_select", {})
+        .get("system_dashboard_admin_assignee_select", {})
         .get("state_attributes", {})
         .get("purpose", {})
         .get("state", {})
-        .get("purpose_system_dashboard_admin_kid")
+        .get("purpose_system_dashboard_admin_assignee")
     )
     if purpose_trans:
         print(f"  ✅ Purpose translation found: {purpose_trans}")

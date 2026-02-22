@@ -6,9 +6,9 @@ This checklist captures the remaining owner approvals required to close the wiki
 
 ## Approval gates
 
-- [ ] **Gate 3.1**: Approve external-link retention set
-- [ ] **Gate 4.1**: Approve navigation coverage model (top-level + deep-linked references)
-- [ ] **Gate 4.2**: Approve logo placement strategy (Option A)
+- [x] **Gate 3.1**: Approve external-link retention set
+- [x] **Gate 4.1**: Approve navigation coverage model (top-level + deep-linked references)
+- [x] **Gate 4.2**: Approve logo placement strategy (Option A)
 
 ---
 
@@ -84,10 +84,12 @@ Approve **Option A**:
 
 ## Owner decision record
 
-- Decision date: ********\_\_\_\_********
-- Gate 3.1 approved: [ ] Yes [ ] No
-- Gate 4.1 approved: [ ] Yes [ ] No
-- Gate 4.2 approved: [ ] Yes [ ] No
+- Decision date: `2026-02-22`
+- Gate 3.1 approved: [x] Yes [ ] No
+- Gate 4.1 approved: [x] Yes [ ] No
+- Gate 4.2 approved: [x] Yes [ ] No
 - Notes:
 
-- Approved by: ********\_\_\_\_********
+- Decision lock imported into `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md` Phase 1B.
+
+- Approved by: `CCPK1`

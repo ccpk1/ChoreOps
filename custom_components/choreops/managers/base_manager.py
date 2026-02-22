@@ -1,4 +1,4 @@
-"""Base manager class for KidsChores managers."""
+"""Base manager class for ChoreOps managers."""
 
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 class BaseManager(ABC):
-    """Base class for all KidsChores managers with scoped event support.
+    """Base class for all ChoreOps managers with scoped event support.
 
     Provides:
     - Instance-scoped event emitting (emit)
@@ -40,13 +40,13 @@ class BaseManager(ABC):
     """
 
     def __init__(
-        self, hass: HomeAssistant, coordinator: KidsChoresDataCoordinator
+        self, hass: HomeAssistant, coordinator: ChoreOpsDataCoordinator
     ) -> None:
         """Initialize manager.
 
         Args:
             hass: Home Assistant instance
-            coordinator: Parent coordinator managing this integration instance
+            coordinator: Approver coordinator managing this integration instance
         """
         self.hass = hass
         self.coordinator = coordinator
@@ -62,7 +62,7 @@ class BaseManager(ABC):
         Example:
             self.emit(
                 const.SIGNAL_SUFFIX_POINTS_CHANGED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 old_balance=50.0,
                 new_balance=60.0,
                 delta=10.0,
@@ -93,9 +93,9 @@ class BaseManager(ABC):
 
         Example:
             def _on_points_changed(self, payload: dict[str, Any]) -> None:
-                kid_id = payload["kid_id"]
+                assignee_id = payload["assignee_id"]
                 new_balance = payload["new_balance"]
-                self.recalculate_badges(kid_id)
+                self.recalculate_badges(assignee_id)
 
             # In async_setup():
             self.listen(const.SIGNAL_SUFFIX_POINTS_CHANGED, self._on_points_changed)

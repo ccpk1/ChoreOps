@@ -1,127 +1,127 @@
 {
-  "_comment_kid_section": "═════════════════════════════════════════════════════════════════",
-  "_comment_kid_desc": "KINDERMELDINGEN: Speelse, in de tweede persoon geschreven, aanmoedigende toon met emoji's. GEEN voorvoegsel 'KidsChores:'.",
-  "_comment_kid_footer": "═════════════════════════════════════════════════════════════════",
-  "chore_approved_kid": {
+  "_comment_assignee_section": "═════════════════════════════════════════════════════════════════",
+  "_comment_assignee_desc": "KINDERMELDINGEN: Speelse, in de tweede persoon geschreven, aanmoedigende toon met emoji's. GEEN voorvoegsel 'ChoreOps:'.",
+  "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════",
+  "chore_approved_assignee": {
     "title": "🎉 Klusje goedgekeurd!",
     "message": "{chore_name} goedgekeurd! Je hebt {points} punten verdiend!"
   },
-  "chore_disapproved_kid": {
+  "chore_disapproved_assignee": {
     "title": "↩️ Werkzaamheden teruggegeven",
     "message": "{chore_name} heeft meer werk nodig."
   },
-  "chore_overdue_kid": {
+  "chore_overdue_assignee": {
     "title": "⏰ Klus die al lang had moeten worden uitgevoerd",
     "message": "{chore_name} is te laat! Voltooi het nu om {points} punten te verdienen!"
   },
-  "chore_missed_kid": {
+  "chore_missed_assignee": {
     "title": "😔 Taak verlopen",
     "message": "{chore_name} is verlopen zonder te worden voltooid."
   },
-  "chore_due_reminder_kid": {
+  "chore_due_reminder_assignee": {
     "title": "⏰ Herinnering aan huishoudelijke taken",
     "message": "{chore_name} moet binnen {minutes} minuten ingeleverd worden! Waard {points} punten"
   },
-  "chore_due_window_kid": {
+  "chore_due_window_assignee": {
     "title": "🎯 Klus die nu af moet",
     "message": "{chore_name} moet nu ingeleverd worden! Voltooi binnen {hours} uur om {points} punten te verdienen."
   },
-  "reward_approved_kid": {
+  "reward_approved_assignee": {
     "title": "🎉 Beloning goedgekeurd!",
     "message": "{reward_name} goedgekeurd!"
   },
-  "reward_disapproved_kid": {
+  "reward_disapproved_assignee": {
     "title": "💭 Beloningsverzoek ontvangen",
     "message": "{reward_name} werd deze keer niet goedgekeurd."
   },
-  "badge_earned_kid": {
+  "badge_earned_assignee": {
     "title": "🥇 Badge verdiend!",
     "message": "Je hebt de {badge_name} badge verdiend!"
   },
-  "achievement_earned_kid": {
+  "achievement_earned_assignee": {
     "title": "🏆 Prestatie behaald!",
     "message": "Je hebt {achievement_name}verdiend! Ga zo door!"
   },
-  "challenge_completed_kid": {
+  "challenge_completed_assignee": {
     "title": "🏁 Uitdaging voltooid!",
     "message": "Je hebt {challenge_name}voltooid! Ga zo door!"
   },
-  "penalty_applied_kid": {
+  "penalty_applied_assignee": {
     "title": "⚠️ Straf opgelegd",
     "message": "{penalty_name}: {points} punten afgetrokken. Laten we weer op het goede spoor komen!"
   },
-  "bonus_applied_kid": {
+  "bonus_applied_assignee": {
     "title": "⭐ Bonus toegepast!",
     "message": "{bonus_name}: Je hebt {points} bonuspunten verdiend! Goed gedaan!"
   },
-  "multiplier_changed_kid": {
+  "multiplier_changed_assignee": {
     "title": "⚖️ Vermenigvuldiger bijgewerkt",
     "message": "Je puntenvermenigvuldiger is veranderd van {old_multiplier}x naar {new_multiplier}x"
   },
-  "_comment_parent_section": "═════════════════════════════════════════════════════════════════",
-  "_comment_parent_desc": "OUDERMELDINGEN: Informatief, in de derde persoon, actiegericht. Formaat: '{kid_name}: Actie'. GEEN voorvoegsel 'KidsChores:'.",
-  "_comment_parent_footer": "═════════════════════════════════════════════════════════════════",
-  "chore_claimed_parent": {
-    "title": "✋ {kid_name}: Taak opgeëist",
-    "message": "{kid_name} claimde {chore_name} en werkt er nu aan."
+  "_comment_approver_section": "═════════════════════════════════════════════════════════════════",
+  "_comment_approver_desc": "OUDERMELDINGEN: Informatief, in de derde persoon, actiegericht. Formaat: '{assignee_name}: Actie'. GEEN voorvoegsel 'ChoreOps:'.",
+  "_comment_approver_footer": "═════════════════════════════════════════════════════════════════",
+  "chore_claimed_approver": {
+    "title": "✋ {assignee_name}: Taak opgeëist",
+    "message": "{assignee_name} claimde {chore_name} en werkt er nu aan."
   },
-  "chore_reminder_parent": {
-    "title": "⏰ {kid_name}: Goedkeuring vereist",
-    "message": "Herinnering: {chore_name} geclaimd door {kid_name} wacht op jouw beoordeling"
+  "chore_reminder_approver": {
+    "title": "⏰ {assignee_name}: Goedkeuring vereist",
+    "message": "Herinnering: {chore_name} geclaimd door {assignee_name} wacht op jouw beoordeling"
   },
-  "chore_overdue_parent": {
-    "title": "⚠️ {kid_name}: Klus die al lang had moeten worden gedaan",
-    "message": "De klus van {kid_name} {chore_name} is te laat (te doen: {due_date})"
+  "chore_overdue_approver": {
+    "title": "⚠️ {assignee_name}: Klus die al lang had moeten worden gedaan",
+    "message": "De klus van {assignee_name} {chore_name} is te laat (te doen: {due_date})"
   },
-  "pending_chores_parent": {
-    "title": "📋 {kid_name}: {count} In afwachting",
+  "pending_chores_approver": {
+    "title": "📋 {assignee_name}: {count} In afwachting",
     "message": "{count} klusjes die nog beoordeeld moeten worden. Laatste: {latest_chore} (+{points} punten)"
   },
-  "reward_claimed_parent": {
-    "title": "🎁 {kid_name}: Beloningsverzoek",
-    "message": "{kid_name} heeft {reward_name} aangevraagd voor {points} punten"
+  "reward_claimed_approver": {
+    "title": "🎁 {assignee_name}: Beloningsverzoek",
+    "message": "{assignee_name} heeft {reward_name} aangevraagd voor {points} punten"
   },
-  "reward_reminder_parent": {
-    "title": "⏰ {kid_name}: Beloning in afwachting",
-    "message": "Herinnering: {reward_name} aangevraagd door {kid_name} wacht op uw goedkeuring"
+  "reward_reminder_approver": {
+    "title": "⏰ {assignee_name}: Beloning in afwachting",
+    "message": "Herinnering: {reward_name} aangevraagd door {assignee_name} wacht op uw goedkeuring"
   },
-  "badge_earned_parent": {
-    "title": "🥇 {kid_name}: Badge verdiend",
-    "message": "{kid_name} heeft de {badge_name} badge verdiend!"
+  "badge_earned_approver": {
+    "title": "🥇 {assignee_name}: Badge verdiend",
+    "message": "{assignee_name} heeft de {badge_name} badge verdiend!"
   },
-  "achievement_earned_parent": {
-    "title": "🏆 {kid_name}: Prestatie",
-    "message": "{kid_name} verdiende {achievement_name}"
+  "achievement_earned_approver": {
+    "title": "🏆 {assignee_name}: Prestatie",
+    "message": "{assignee_name} verdiende {achievement_name}"
   },
-  "challenge_completed_parent": {
-    "title": "🏁 {kid_name}: Uitdaging voltooid",
-    "message": "{kid_name} voltooid {challenge_name}"
+  "challenge_completed_approver": {
+    "title": "🏁 {assignee_name}: Uitdaging voltooid",
+    "message": "{assignee_name} voltooid {challenge_name}"
   },
-  "multiplier_changed_parent": {
-    "title": "⚖️ {kid_name}: Vermenigvuldiger bijgewerkt",
-    "message": "De puntenvermenigvuldiger van {kid_name}is veranderd van {old_multiplier}x naar {new_multiplier}x"
+  "multiplier_changed_approver": {
+    "title": "⚖️ {assignee_name}: Vermenigvuldiger bijgewerkt",
+    "message": "De puntenvermenigvuldiger van {assignee_name}is veranderd van {old_multiplier}x naar {new_multiplier}x"
   },
   "_comment_system_section": "═════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEEM-/BEHEERMELDINGEN: Gegevensbeheerbewerkingen",
   "_comment_system_footer": "═════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 KidsChores: Gegevens resetten",
+    "title": "🔄 ChoreOps: Gegevens resetten",
     "message": "De systeemgegevens zijn gereset."
   },
   "data_reset_global": {
-    "title": "🔄 KidsChores: Volledige reset",
+    "title": "🔄 ChoreOps: Volledige reset",
     "message": "Alle systeemgegevens zijn teruggezet naar de standaardinstellingen."
   },
-  "data_reset_kid": {
-    "title": "🔄 KidsChores: Kid Reset",
-    "message": "Gegevens gereset voor {kid_name}"
+  "data_reset_assignee": {
+    "title": "🔄 ChoreOps: Assignee Reset",
+    "message": "Gegevens gereset voor {assignee_name}"
   },
   "data_reset_item_type": {
     "title": "🔄 Kinderklusjes: {item_type} Reset",
     "message": "Alle {item_type} -gegevens zijn gereset."
   },
   "data_reset_item": {
-    "title": "🔄 KidsChores: Item resetten",
+    "title": "🔄 ChoreOps: Item resetten",
     "message": "{item_type} '{item_name}' is gereset"
   },
   "_comment_actions_section": "═════════════════════════════════════════════════════════════════",

@@ -1,5 +1,5 @@
 # File: options_flow.py
-"""Options Flow for the KidsChores integration, managing entities by internal_id.
+"""Options Flow for the ChoreOps integration, managing entities by internal_id.
 
 Handles add/edit/delete operations with entities referenced internally by internal_id.
 Ensures consistency and reloads the integration upon changes.
@@ -39,7 +39,7 @@ def _ensure_str(value):
     return str(value)
 
 
-class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
+class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     """Options Flow for adding/editing/deleting configuration elements."""
 
     def __init__(self, _config_entry: config_entries.ConfigEntry):
@@ -54,16 +54,18 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         self._backup_to_restore: str | None = None  # Track backup filename to restore
         self._backup_delete_selection_map: dict[str, str] = {}
         self._chore_being_edited: dict[str, Any] | None = (
-            None  # For per-kid date editing
+            None  # For per-assignee date editing
         )
-        self._chore_template_date_raw: Any = None  # Template date for per-kid helper
+        self._chore_template_date_raw: Any = (
+            None  # Template date for per-assignee helper
+        )
         # Dashboard generator state
         self._dashboard_name: str = const.DASHBOARD_DEFAULT_NAME
-        self._dashboard_selected_kids: list[str] = []
+        self._dashboard_selected_assignees: list[str] = []
         self._dashboard_template_profile: str = const.DASHBOARD_STYLE_FULL
         self._dashboard_admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL
         self._dashboard_admin_template_global: str = const.DASHBOARD_STYLE_ADMIN
-        self._dashboard_admin_template_per_kid: str = const.DASHBOARD_STYLE_ADMIN
+        self._dashboard_admin_template_per_assignee: str = const.DASHBOARD_STYLE_ADMIN
         self._dashboard_admin_view_visibility: str = (
             const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL
         )
@@ -89,10 +91,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         alias_map: dict[str, str] = {
             const.DASHBOARD_ADMIN_MODE_NONE: const.DASHBOARD_ADMIN_MODE_NONE,
             const.DASHBOARD_ADMIN_MODE_GLOBAL: const.DASHBOARD_ADMIN_MODE_GLOBAL,
-            const.DASHBOARD_ADMIN_MODE_PER_KID: const.DASHBOARD_ADMIN_MODE_PER_KID,
+            const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE: const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
             const.DASHBOARD_ADMIN_MODE_BOTH: const.DASHBOARD_ADMIN_MODE_BOTH,
             "shared": const.DASHBOARD_ADMIN_MODE_GLOBAL,
-            "per_kid": const.DASHBOARD_ADMIN_MODE_PER_KID,
+            "per_assignee": const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
             "both": const.DASHBOARD_ADMIN_MODE_BOTH,
             "none": const.DASHBOARD_ADMIN_MODE_NONE,
         }
@@ -222,7 +224,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
     async def async_step_select_entity(self, user_input=None):
-        """Select an entity (kid, chore, badge, etc.) to edit or delete based on internal_id."""
+        """Select an entity (assignee, chore, badge, etc.) to edit or delete based on internal_id."""
         if self._action not in [
             const.OPTIONS_FLOW_ACTIONS_EDIT,
             const.OPTIONS_FLOW_ACTIONS_DELETE,
@@ -232,8 +234,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         entity_dict = self._get_entity_dict()
 
         # Build sorted list of entity names for consistent display order
-        # For kid records, append marker to parent-linked profiles for clarity
-        linked_profile_marker = " 🔗"  # Link symbol indicates parent linkage
+        # For assignee records, append marker to approver-linked profiles for clarity
+        profile_link_marker = " 🔗"  # Link symbol indicates approver linkage
         entity_names = []
         for data in entity_dict.values():
             name = data.get(
@@ -242,10 +244,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             )
             # Add linked-profile marker for clarity in dropdown
             if self._entity_type in (
-                const.OPTIONS_FLOW_DIC_KID,
+                const.OPTIONS_FLOW_DIC_ASSIGNEE,
                 const.OPTIONS_FLOW_DIC_USER,
-            ) and data.get(const.DATA_KID_IS_SHADOW, False):
-                name = f"{name}{linked_profile_marker}"
+            ) and data.get(const.DATA_ASSIGNEE_IS_SHADOW, False):
+                name = f"{name}{profile_link_marker}"
             entity_names.append(name)
 
         entity_names = sorted(entity_names, key=str.casefold)
@@ -255,7 +257,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 user_input[const.OPTIONS_FLOW_INPUT_ENTITY_NAME]
             )
             # Strip marker when matching back to internal_id
-            match_name = selected_name.replace(linked_profile_marker, "")
+            match_name = selected_name.replace(profile_link_marker, "")
             matched_entities: list[tuple[str, dict[str, Any]]] = [
                 (eid, data)
                 for eid, data in entity_dict.items()
@@ -264,13 +266,17 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             internal_id: str | None = None
             if self._entity_type == const.OPTIONS_FLOW_DIC_USER and matched_entities:
-                parent_ids = set(self._get_coordinator().parents_data)
-                preferred_parent_match = next(
-                    (entity for entity in matched_entities if entity[0] in parent_ids),
+                approver_ids = set(self._get_coordinator().approvers_data)
+                preferred_approver_match = next(
+                    (
+                        entity
+                        for entity in matched_entities
+                        if entity[0] in approver_ids
+                    ),
                     None,
                 )
-                if preferred_parent_match is not None:
-                    internal_id = preferred_parent_match[0]
+                if preferred_approver_match is not None:
+                    internal_id = preferred_approver_match[0]
 
                 preferred_match = next(
                     (
@@ -439,11 +445,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Add a new assignee profile."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        assignee_profiles = coordinator.kids_data
+        assignee_profiles = coordinator.assignees_data
 
         if user_input is not None:
             # Validate inputs (check against existing assignee and user profiles)
-            user_profiles = coordinator.parents_data
+            user_profiles = coordinator.approvers_data
             errors = fh.validate_assignee_inputs(
                 user_input,
                 assignee_profiles,
@@ -453,11 +459,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             if not errors:
                 try:
                     # Use UserManager for assignee profile creation (immediate persist for reload)
-                    internal_id = coordinator.user_manager.create_kid(
+                    internal_id = coordinator.user_manager.create_assignee(
                         user_input, immediate_persist=True
                     )
                     assignee_name = user_input.get(
-                        const.CFOF_KIDS_INPUT_KID_NAME, internal_id
+                        const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME, internal_id
                     )
 
                     const.LOGGER.debug(
@@ -480,7 +486,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             schema = self.add_suggested_values_to_schema(schema, user_input)
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_ADD_KID,
+            step_id=const.OPTIONS_FLOW_STEP_ADD_ASSIGNEE,
             data_schema=schema,
             errors=errors,
             description_placeholders={
@@ -493,14 +499,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         coordinator = self._get_coordinator()
 
         errors: dict[str, str] = {}
-        assignee_profiles = coordinator.kids_data
+        assignee_profiles = coordinator.assignees_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
         if not internal_id or internal_id not in assignee_profiles:
             const.LOGGER.error(
                 "Edit assignee profile - Invalid Internal ID '%s'", internal_id
             )
-            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_KID)
+            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE)
 
         assignee_profile = assignee_profiles[internal_id]
 
@@ -522,7 +528,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     )
 
                     # Use UserManager for assignee update (immediate persist for reload)
-                    coordinator.user_manager.update_kid(
+                    coordinator.user_manager.update_assignee(
                         str(internal_id),
                         dict(updated_assignee),
                         immediate_persist=True,
@@ -530,7 +536,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
                     const.LOGGER.debug(
                         "Edited assignee profile '%s' with ID: %s",
-                        updated_assignee[const.DATA_KID_NAME],
+                        updated_assignee[const.DATA_ASSIGNEE_NAME],
                         internal_id,
                     )
                     self._mark_reload_needed()
@@ -544,19 +550,21 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         users = await self.hass.auth.async_get_users()
 
         # Check if this is a linked profile to show warnings
-        is_linked_profile = assignee_profile.get(const.DATA_KID_IS_SHADOW, False)
+        is_linked_profile = assignee_profile.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
 
         # Prepare suggested values for form (current assignee profile data)
         suggested_values = {
-            const.CFOF_KIDS_INPUT_KID_NAME: assignee_profile[const.DATA_KID_NAME],
-            const.CFOF_KIDS_INPUT_HA_USER: assignee_profile.get(
-                const.DATA_KID_HA_USER_ID
+            const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: assignee_profile[
+                const.DATA_ASSIGNEE_NAME
+            ],
+            const.CFOF_ASSIGNEES_INPUT_HA_USER: assignee_profile.get(
+                const.DATA_ASSIGNEE_HA_USER_ID
             ),
-            const.CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: assignee_profile.get(
-                const.DATA_KID_MOBILE_NOTIFY_SERVICE
+            const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: assignee_profile.get(
+                const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE
             ),
-            const.CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: assignee_profile.get(
-                const.DATA_KID_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+            const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: assignee_profile.get(
+                const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
         }
 
@@ -569,10 +577,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Apply values as suggestions
         schema = self.add_suggested_values_to_schema(schema, suggested_values)
 
-        # Use different step_id for parent-linked profiles
+        # Use different step_id for approver-linked profiles
         if is_linked_profile:
             return self.async_show_form(
-                step_id=const.OPTIONS_FLOW_STEP_EDIT_KID_SHADOW,
+                step_id=const.OPTIONS_FLOW_STEP_EDIT_ASSIGNEE_LINKED,
                 data_schema=schema,
                 errors=errors,
                 description_placeholders={
@@ -582,7 +590,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Regular assignee profile (no warnings)
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_EDIT_KID,
+            step_id=const.OPTIONS_FLOW_STEP_EDIT_ASSIGNEE,
             data_schema=schema,
             errors=errors,
             description_placeholders={
@@ -590,21 +598,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             },
         )
 
-    async def async_step_add_kid(self, user_input=None):
-        """Compatibility wrapper for legacy add_kid flow step."""
-        const.LOGGER.warning(
-            "Options flow step 'add_kid' is deprecated, routing to 'add_assignee'"
-        )
-        return await self.async_step_add_assignee(user_input)
-
-    async def async_step_edit_kid(self, user_input=None):
-        """Compatibility wrapper for legacy edit_kid flow step."""
-        const.LOGGER.warning(
-            "Options flow step 'edit_kid' is deprecated, routing to 'edit_assignee'"
-        )
-        return await self.async_step_edit_assignee(user_input)
-
-    async def async_step_edit_kid_shadow(self, user_input=None):
+    async def async_step_edit_assignee_linked(self, user_input=None):
         """Edit a linked assignee profile - delegates to compatibility handler.
 
         Linked assignee profiles use a different translation key to show warnings,
@@ -615,20 +609,20 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_delete_assignee(self, user_input=None):
         """Delete an assignee profile."""
         coordinator = self._get_coordinator()
-        assignee_profiles = coordinator.kids_data
+        assignee_profiles = coordinator.assignees_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
         if not internal_id or internal_id not in assignee_profiles:
             const.LOGGER.error(
                 "Delete assignee profile - Invalid Internal ID '%s'", internal_id
             )
-            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_KID)
+            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE)
 
-        assignee_name = assignee_profiles[internal_id][const.DATA_KID_NAME]
+        assignee_name = assignee_profiles[internal_id][const.DATA_ASSIGNEE_NAME]
 
         if user_input is not None:
             # Use UserManager for assignee deletion (immediate persist for reload)
-            coordinator.user_manager.delete_kid(
+            coordinator.user_manager.delete_assignee(
                 str(internal_id), immediate_persist=True
             )
 
@@ -640,19 +634,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_init()
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_DELETE_KID,
+            step_id=const.OPTIONS_FLOW_STEP_DELETE_ASSIGNEE,
             data_schema=vol.Schema({}),
             description_placeholders={
-                const.OPTIONS_FLOW_PLACEHOLDER_KID_NAME: assignee_name
+                const.OPTIONS_FLOW_PLACEHOLDER_ASSIGNEE_NAME: assignee_name
             },
         )
-
-    async def async_step_delete_kid(self, user_input=None):
-        """Compatibility wrapper for legacy delete_kid flow step."""
-        const.LOGGER.warning(
-            "Options flow step 'delete_kid' is deprecated, routing to 'delete_assignee'"
-        )
-        return await self.async_step_delete_assignee(user_input)
 
     # ----------------------------------------------------------------------------------
     # USERS MANAGEMENT
@@ -662,13 +649,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Add a new user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        user_profiles = coordinator.parents_data
+        user_profiles = coordinator.approvers_data
 
         if user_input is not None:
             user_input = fh.normalize_user_form_input(user_input)
 
             # Validate inputs (check against existing user and assignee profiles)
-            assignee_profiles = coordinator.kids_data
+            assignee_profiles = coordinator.assignees_data
             errors = fh.validate_users_inputs(
                 user_input,
                 user_profiles,
@@ -683,7 +670,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         user_input, immediate_persist=True
                     )
                     user_name = user_input.get(
-                        const.CFOF_PARENTS_INPUT_NAME, internal_id
+                        const.CFOF_APPROVERS_INPUT_NAME, internal_id
                     )
 
                     self._mark_reload_needed()
@@ -698,17 +685,17 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 except EntityValidationError as err:
                     errors[err.field] = err.translation_key
 
-        # Retrieve HA users and existing kids for linking
+        # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
-        # Build sorted kids dict for dropdown (exclude parent-linked profiles)
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in coordinator.kids_data.items()
-            if not kid_data.get(const.DATA_KID_IS_SHADOW, False)
+        # Build sorted assignees dict for dropdown (exclude approver-linked profiles)
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
+            if not assignee_data.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
         }
 
         user_schema = await fh.build_user_schema(
-            self.hass, users=users, kids_dict=kids_dict
+            self.hass, users=users, assignees_dict=assignees_dict
         )
 
         # On validation error, preserve user's attempted input
@@ -732,14 +719,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Edit an existing user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        user_profiles = coordinator.parents_data
+        user_profiles = coordinator.approvers_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
         if not internal_id or internal_id not in user_profiles:
             const.LOGGER.error(
                 "Edit user profile - Invalid Internal ID '%s'", internal_id
             )
-            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_PARENT)
+            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_APPROVER)
 
         user_profile = user_profiles[internal_id]
 
@@ -748,48 +735,48 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Layer 2: UI validation (excludes current user from duplicate check)
             # Note: internal_id is already validated as str above
-            # For parent-linkage conflict checks: only check non-linked kids
-            non_feature_gated_kids = {
-                kid_id: data
-                for kid_id, data in coordinator.kids_data.items()
-                if not data.get(const.DATA_KID_IS_SHADOW, False)
+            # For approver-linkage conflict checks: only check non-linked assignees
+            non_feature_gated_assignees = {
+                assignee_id: data
+                for assignee_id, data in coordinator.assignees_data.items()
+                if not data.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
             }
             errors = fh.validate_users_inputs(
                 user_input,
                 user_profiles,
-                non_feature_gated_kids,
+                non_feature_gated_assignees,
                 current_user_id=str(internal_id),
             )
 
             if not errors:
                 try:
                     # Build merged user-profile data using data_builders
-                    updated_parent = db.build_user_profile(
+                    updated_approver = db.build_user_profile(
                         user_input,
                         existing=user_profile,
                     )
 
                     # Handle workflow/gamification flag changes for existing linked profile
-                    # This must happen BEFORE update_parent because we need old vs new comparison
-                    existing_linked_kid_id = user_profile.get(
-                        const.DATA_PARENT_LINKED_PROFILE_ID
+                    # This must happen BEFORE update_approver because we need old vs new comparison
+                    existing_linked_assignee_id = user_profile.get(
+                        const.DATA_APPROVER_LINKED_PROFILE_ID
                     )
                     allow_chore_assignment = user_input.get(
-                        const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT, False
+                        const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT, False
                     )
 
-                    if existing_linked_kid_id and allow_chore_assignment:
+                    if existing_linked_assignee_id and allow_chore_assignment:
                         old_workflow = user_profile.get(
-                            const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False
+                            const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False
                         )
                         new_workflow = user_input.get(
-                            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW, False
+                            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW, False
                         )
                         old_gamification = user_profile.get(
-                            const.DATA_PARENT_ENABLE_GAMIFICATION, False
+                            const.DATA_APPROVER_ENABLE_GAMIFICATION, False
                         )
                         new_gamification = user_input.get(
-                            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION, False
+                            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION, False
                         )
 
                         # Cleanup entities if flags were disabled
@@ -799,19 +786,19 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         ):
                             await (
                                 coordinator.system_manager.remove_conditional_entities(
-                                    kid_ids=[existing_linked_kid_id]
+                                    assignee_ids=[existing_linked_assignee_id]
                                 )
                             )
 
                     # Use UserManager for user-profile update (handles linked profile create/unlink)
                     # Immediate persist for reload
                     coordinator.user_manager.update_user(
-                        str(internal_id), dict(updated_parent), immediate_persist=True
+                        str(internal_id), dict(updated_approver), immediate_persist=True
                     )
 
                     const.LOGGER.debug(
                         "Edited user profile '%s' with ID: %s",
-                        updated_parent[const.DATA_PARENT_NAME],
+                        updated_approver[const.DATA_APPROVER_NAME],
                         internal_id,
                     )
                     self._mark_reload_needed()
@@ -821,43 +808,43 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     # Map field-specific error for form highlighting
                     errors[err.field] = err.translation_key
 
-        # Retrieve HA users and existing kids for linking
+        # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
-        # Exclude parent-linked profiles from association list
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in coordinator.kids_data.items()
-            if not kid_data.get(const.DATA_KID_IS_SHADOW, False)
+        # Exclude approver-linked profiles from association list
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
+            if not assignee_data.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
         }
 
         # Prepare suggested values for form (current user-profile data)
         suggested_values = {
-            const.CFOF_PARENTS_INPUT_NAME: user_profile[const.DATA_PARENT_NAME],
-            const.CFOF_PARENTS_INPUT_HA_USER: user_profile.get(
-                const.DATA_PARENT_HA_USER_ID
+            const.CFOF_APPROVERS_INPUT_NAME: user_profile[const.DATA_APPROVER_NAME],
+            const.CFOF_APPROVERS_INPUT_HA_USER: user_profile.get(
+                const.DATA_APPROVER_HA_USER_ID
             ),
-            const.CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: user_profile.get(
-                const.DATA_PARENT_ASSOCIATED_KIDS, []
+            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: user_profile.get(
+                const.DATA_APPROVER_ASSOCIATED_USERS, []
             ),
-            const.CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: user_profile.get(
-                const.DATA_PARENT_MOBILE_NOTIFY_SERVICE
+            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: user_profile.get(
+                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE
             ),
-            const.CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: user_profile.get(
-                const.DATA_PARENT_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+            const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE: user_profile.get(
+                const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
-            const.CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: user_profile.get(
-                const.DATA_PARENT_ALLOW_CHORE_ASSIGNMENT, False
+            const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: user_profile.get(
+                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False
             ),
-            const.CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: user_profile.get(
-                const.DATA_PARENT_ENABLE_CHORE_WORKFLOW, False
+            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: user_profile.get(
+                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False
             ),
-            const.CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: user_profile.get(
-                const.DATA_PARENT_ENABLE_GAMIFICATION, False
+            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: user_profile.get(
+                const.DATA_APPROVER_ENABLE_GAMIFICATION, False
             ),
-            const.CFOF_PARENTS_INPUT_CAN_APPROVE: user_profile.get(
+            const.CFOF_APPROVERS_INPUT_CAN_APPROVE: user_profile.get(
                 const.DATA_USER_CAN_APPROVE, False
             ),
-            const.CFOF_PARENTS_INPUT_CAN_MANAGE: user_profile.get(
+            const.CFOF_APPROVERS_INPUT_CAN_MANAGE: user_profile.get(
                 const.DATA_USER_CAN_MANAGE, False
             ),
         }
@@ -870,7 +857,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         user_schema = await fh.build_user_schema(
             self.hass,
             users=users,
-            kids_dict=kids_dict,
+            assignees_dict=assignees_dict,
         )
         # Apply values as suggestions
         user_schema = self.add_suggested_values_to_schema(
@@ -891,16 +878,16 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_delete_user(self, user_input=None):
         """Delete a user."""
         coordinator = self._get_coordinator()
-        user_profiles = coordinator.parents_data
+        user_profiles = coordinator.approvers_data
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
         if not internal_id or internal_id not in user_profiles:
             const.LOGGER.error(
                 "Delete user profile - Invalid Internal ID '%s'", internal_id
             )
-            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_PARENT)
+            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_APPROVER)
 
-        user_name = user_profiles[internal_id][const.DATA_PARENT_NAME]
+        user_name = user_profiles[internal_id][const.DATA_APPROVER_NAME]
 
         if user_input is not None:
             # Use UserManager for user-profile deletion (immediate persist for reload)
@@ -936,20 +923,20 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             user_input = fh.normalize_chore_form_input(user_input)
 
-            # Build kids_dict for name→UUID conversion
-            kids_dict = {
-                data[const.DATA_KID_NAME]: eid
-                for eid, data in coordinator.kids_data.items()
+            # Build assignees_dict for name→UUID conversion
+            assignees_dict = {
+                data[const.DATA_ASSIGNEE_NAME]: eid
+                for eid, data in coordinator.assignees_data.items()
             }
 
             # Validate chore input
             errors, due_date_str = fh.validate_chores_inputs(
-                user_input, kids_dict, chores_dict
+                user_input, assignees_dict, chores_dict
             )
             errors = fh.map_chore_form_errors(errors)
 
             if errors:
-                schema = fh.build_chore_schema(kids_dict)
+                schema = fh.build_chore_schema(assignees_dict)
                 schema = self.add_suggested_values_to_schema(
                     schema,
                     fh.build_chore_section_suggested_values(user_input),
@@ -966,26 +953,28 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Transform CFOF_* → DATA_* and build chore entity
             transformed_data = fh.transform_chore_cfof_to_data(
-                user_input, kids_dict, due_date_str
+                user_input, assignees_dict, due_date_str
             )
             new_chore_data = db.build_chore(transformed_data)
             internal_id = new_chore_data[const.DATA_CHORE_INTERNAL_ID]
             chore_name = new_chore_data[const.DATA_CHORE_NAME]
 
-            # Get completion criteria and assigned kids for routing logic
+            # Get completion criteria and assigned assignees for routing logic
             completion_criteria = new_chore_data.get(
                 const.DATA_CHORE_COMPLETION_CRITERIA
             )
-            assigned_kids = new_chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            assigned_assignees = new_chore_data.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            )
             recurring_frequency = new_chore_data.get(
                 const.DATA_CHORE_RECURRING_FREQUENCY
             )
 
-            # For INDEPENDENT chores with assigned kids, handle per-kid details
+            # For INDEPENDENT chores with assigned assignees, handle per-assignee details
             # (mirrors edit_chore logic for consistency)
             if (
                 completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-                and assigned_kids
+                and assigned_assignees
             ):
                 # Capture template values from user input before they're cleared
                 clear_due_date = user_input.get(
@@ -1003,17 +992,17 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES, ""
                 )
 
-                # Single kid optimization: apply values directly, skip helper
-                if len(assigned_kids) == 1:
-                    kid_id = assigned_kids[0]
+                # Single assignee optimization: apply values directly, skip helper
+                if len(assigned_assignees) == 1:
+                    assignee_id = assigned_assignees[0]
 
-                    # Build updates dict for single-kid optimizations
-                    single_kid_updates: dict[str, Any] = {}
+                    # Build updates dict for single-assignee optimizations
+                    single_assignee_updates: dict[str, Any] = {}
 
-                    # Handle per-kid due dates
-                    per_kid_due_dates: dict[str, str | None] = {}
+                    # Handle per-assignee due dates
+                    per_assignee_due_dates: dict[str, str | None] = {}
                     if clear_due_date:
-                        per_kid_due_dates[kid_id] = None
+                        per_assignee_due_dates[assignee_id] = None
                     elif raw_template_date:
                         try:
                             utc_dt = dt_parse(
@@ -1022,18 +1011,18 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                                 return_type=const.HELPER_RETURN_DATETIME_UTC,
                             )
                             if utc_dt and isinstance(utc_dt, datetime):
-                                per_kid_due_dates[kid_id] = utc_dt.isoformat()
+                                per_assignee_due_dates[assignee_id] = utc_dt.isoformat()
                         except ValueError as e:
                             const.LOGGER.warning(
-                                "Failed to parse date for single kid: %s", e
+                                "Failed to parse date for single assignee: %s", e
                             )
 
-                    if per_kid_due_dates:
-                        single_kid_updates[const.DATA_CHORE_PER_KID_DUE_DATES] = (
-                            per_kid_due_dates
-                        )
+                    if per_assignee_due_dates:
+                        single_assignee_updates[
+                            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES
+                        ] = per_assignee_due_dates
 
-                    # Apply template applicable_days to single kid
+                    # Apply template applicable_days to single assignee
                     if template_applicable_days:
                         # Convert day name strings to integers (0=Mon, 6=Sun)
                         days_as_ints = [
@@ -1041,26 +1030,26 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                             for d in template_applicable_days
                             if d in const.WEEKDAY_NAME_TO_INT
                         ]
-                        single_kid_updates[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = {
-                            kid_id: days_as_ints
-                        }
-                        # Clear chore-level (per-kid is source of truth)
-                        single_kid_updates[const.DATA_CHORE_APPLICABLE_DAYS] = []
+                        single_assignee_updates[
+                            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS
+                        ] = {assignee_id: days_as_ints}
+                        # Clear chore-level (per-assignee is source of truth)
+                        single_assignee_updates[const.DATA_CHORE_APPLICABLE_DAYS] = []
 
-                    # Apply daily_multi_times to single kid (if DAILY_MULTI)
+                    # Apply daily_multi_times to single assignee (if DAILY_MULTI)
                     if (
                         recurring_frequency == const.FREQUENCY_DAILY_MULTI
                         and template_daily_multi_times
                     ):
-                        single_kid_updates[
-                            const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES
-                        ] = {kid_id: template_daily_multi_times}
-                        # Clear chore-level (per-kid is source of truth)
-                        single_kid_updates[const.DATA_CHORE_DAILY_MULTI_TIMES] = ""
+                        single_assignee_updates[
+                            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES
+                        ] = {assignee_id: template_daily_multi_times}
+                        # Clear chore-level (per-assignee is source of truth)
+                        single_assignee_updates[const.DATA_CHORE_DAILY_MULTI_TIMES] = ""
 
-                    # Build final chore with single-kid updates merged
+                    # Build final chore with single-assignee updates merged
                     final_chore = db.build_chore(
-                        single_kid_updates, existing=new_chore_data
+                        single_assignee_updates, existing=new_chore_data
                     )
                     # Use Manager-owned CRUD (prebuilt=True since final_chore is ready)
                     coordinator.chore_manager.create_chore(
@@ -1070,7 +1059,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         immediate_persist=True,
                     )
 
-                    # CFE-2026-001 FIX: Single-kid DAILY_MULTI without times
+                    # CFE-2026-001 FIX: Single-assignee DAILY_MULTI without times
                     # needs to route to times helper (main form doesn't have times field)
                     if (
                         recurring_frequency == const.FREQUENCY_DAILY_MULTI
@@ -1079,21 +1068,21 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         self._chore_being_edited = dict(final_chore)
                         self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
                         const.LOGGER.debug(
-                            "Added single-kid INDEPENDENT DAILY_MULTI Chore '%s' "
+                            "Added single-assignee INDEPENDENT DAILY_MULTI Chore '%s' "
                             "- routing to times helper",
                             chore_name,
                         )
                         return await self.async_step_chores_daily_multi()
 
                     const.LOGGER.debug(
-                        "Added single-kid INDEPENDENT Chore '%s' with ID: %s",
+                        "Added single-assignee INDEPENDENT Chore '%s' with ID: %s",
                         chore_name,
                         internal_id,
                     )
                     self._mark_reload_needed()
                     return await self.async_step_init()
 
-                # Multiple kids: create chore, then show per-kid details helper
+                # Multiple assignees: create chore, then show per-assignee details helper
                 # Use Manager-owned CRUD (prebuilt=True since new_chore_data is ready)
                 coordinator.chore_manager.create_chore(
                     new_chore_data,
@@ -1110,10 +1099,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 self._chore_template_daily_multi_times = template_daily_multi_times
 
                 const.LOGGER.debug(
-                    "Added multi-kid INDEPENDENT Chore '%s' - routing to per-kid helper",
+                    "Added multi-assignee INDEPENDENT Chore '%s' - routing to per-assignee helper",
                     chore_name,
                 )
-                return await self.async_step_edit_chore_per_kid_details()
+                return await self.async_step_edit_chore_per_assignee_details()
 
             # CFE-2026-001: Check if DAILY_MULTI needs times collection
             # (non-INDEPENDENT chores with DAILY_MULTI frequency)
@@ -1154,12 +1143,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             self._mark_reload_needed()
             return await self.async_step_init()
 
-        # Use flow_helpers.build_chore_schema, passing current kids
-        kids_dict = {
-            data[const.DATA_KID_NAME]: eid
-            for eid, data in coordinator.kids_data.items()
+        # Use flow_helpers.build_chore_schema, passing current assignees
+        assignees_dict = {
+            data[const.DATA_ASSIGNEE_NAME]: eid
+            for eid, data in coordinator.assignees_data.items()
         }
-        schema = fh.build_chore_schema(kids_dict)
+        schema = fh.build_chore_schema(assignees_dict)
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_ADD_CHORE,
             data_schema=schema,
@@ -1185,10 +1174,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             user_input = fh.normalize_chore_form_input(user_input)
 
-            # Build kids_dict for name→UUID conversion
-            kids_dict = {
-                data[const.DATA_KID_NAME]: eid
-                for eid, data in coordinator.kids_data.items()
+            # Build assignees_dict for name→UUID conversion
+            assignees_dict = {
+                data[const.DATA_ASSIGNEE_NAME]: eid
+                for eid, data in coordinator.assignees_data.items()
             }
 
             # Add internal_id for validation
@@ -1200,21 +1189,21 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 cid: cdata for cid, cdata in chores_dict.items() if cid != internal_id
             }
 
-            # Get existing per-kid due dates to preserve during edit
-            existing_per_kid_due_dates = chore_data.get(
-                const.DATA_CHORE_PER_KID_DUE_DATES, {}
+            # Get existing per-assignee due dates to preserve during edit
+            existing_per_assignee_due_dates = chore_data.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
             )
 
             # Validate chore input
             errors, due_date_str = fh.validate_chores_inputs(
-                user_input, kids_dict, chores_for_validation
+                user_input, assignees_dict, chores_for_validation
             )
             errors = fh.map_chore_form_errors(errors)
 
             if errors:
                 # Merge original chore data with user's attempted input
                 merged_defaults = {**chore_data, **user_input}
-                schema = fh.build_chore_schema(kids_dict)
+                schema = fh.build_chore_schema(assignees_dict)
                 schema = self.add_suggested_values_to_schema(
                     schema,
                     fh.build_chore_section_suggested_values(merged_defaults),
@@ -1231,12 +1220,17 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Transform CFOF_* → DATA_* and build merged chore entity
             transformed_data = fh.transform_chore_cfof_to_data(
-                user_input, kids_dict, due_date_str, existing_per_kid_due_dates
+                user_input,
+                assignees_dict,
+                due_date_str,
+                existing_per_assignee_due_dates,
             )
 
-            # Check if assigned kids changed (for reload decision)
-            old_assigned = set(chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, []))
-            new_assigned = set(transformed_data.get(const.DATA_CHORE_ASSIGNED_KIDS, []))
+            # Check if assigned assignees changed (for reload decision)
+            old_assigned = set(chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []))
+            new_assigned = set(
+                transformed_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            )
             assignments_changed = old_assigned != new_assigned
 
             # Use Manager-owned CRUD (handles badge recalc and orphan cleanup)
@@ -1264,22 +1258,24 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 const.LOGGER.debug("Chore assignments changed, marking reload needed")
                 self._mark_reload_needed()
 
-            # For INDEPENDENT chores with assigned kids, handle per-kid date editing
+            # For INDEPENDENT chores with assigned assignees, handle per-assignee date editing
             # Use merged_chore (post-update) for routing decisions
             completion_criteria = merged_chore.get(const.DATA_CHORE_COMPLETION_CRITERIA)
-            assigned_kids = merged_chore.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            # PKAH-2026-002: Only INDEPENDENT chores need per-kid details
-            # SHARED and ROTATION types skip per-kid customization
-            requires_per_kid_details = (
+            assigned_assignees = merged_chore.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            )
+            # PKAH-2026-002: Only INDEPENDENT chores need per-assignee details
+            # SHARED and ROTATION types skip per-assignee customization
+            requires_per_assignee_details = (
                 completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
             )
             const.LOGGER.debug(
-                "ROUTING DEBUG: completion_criteria=%s, assigned_kids=%s, requires_per_kid=%s",
+                "ROUTING DEBUG: completion_criteria=%s, assigned_assignees=%s, requires_per_assignee=%s",
                 completion_criteria,
-                len(assigned_kids),
-                requires_per_kid_details,
+                len(assigned_assignees),
+                requires_per_assignee_details,
             )
-            if requires_per_kid_details and assigned_kids:
+            if requires_per_assignee_details and assigned_assignees:
                 # Check if user explicitly cleared the date via checkbox
                 clear_due_date = user_input.get(
                     const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE, False
@@ -1287,7 +1283,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
                 # Capture the raw user-entered date from form input
                 # (For INDEPENDENT chores, transform_chore_cfof_to_data clears
-                # chore-level due_date - but we use per-kid dates)
+                # chore-level due_date - but we use per-assignee dates)
                 # If clear checkbox is selected, don't pass template date to helper
                 raw_template_date = (
                     None
@@ -1303,22 +1299,22 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES, ""
                 )
 
-                # Single kid optimization: skip per-kid popup if only one kid
-                if len(assigned_kids) == 1:
-                    kid_id = assigned_kids[0]
-                    per_kid_due_dates = dict(
-                        merged_chore.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
+                # Single assignee optimization: skip per-assignee popup if only one assignee
+                if len(assigned_assignees) == 1:
+                    assignee_id = assigned_assignees[0]
+                    per_assignee_due_dates = dict(
+                        merged_chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
                     )
 
                     if clear_due_date:
                         # User explicitly cleared the date
-                        per_kid_due_dates[kid_id] = None
+                        per_assignee_due_dates[assignee_id] = None
                         const.LOGGER.debug(
-                            "Single kid INDEPENDENT chore: cleared due date for %s",
-                            kid_id,
+                            "Single assignee INDEPENDENT chore: cleared due date for %s",
+                            assignee_id,
                         )
                     elif raw_template_date:
-                        # User set a date - apply it directly to the single kid
+                        # User set a date - apply it directly to the single assignee
                         try:
                             utc_dt = dt_parse(
                                 raw_template_date,
@@ -1326,24 +1322,24 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                                 return_type=const.HELPER_RETURN_DATETIME_UTC,
                             )
                             if utc_dt and isinstance(utc_dt, datetime):
-                                per_kid_due_dates[kid_id] = utc_dt.isoformat()
+                                per_assignee_due_dates[assignee_id] = utc_dt.isoformat()
                                 const.LOGGER.debug(
-                                    "Single kid INDEPENDENT chore: applied date %s directly to %s",
+                                    "Single assignee INDEPENDENT chore: applied date %s directly to %s",
                                     utc_dt.isoformat(),
-                                    kid_id,
+                                    assignee_id,
                                 )
                         except ValueError as e:
                             const.LOGGER.warning(
-                                "Failed to parse date for single kid: %s", e
+                                "Failed to parse date for single assignee: %s", e
                             )
-                    # else: date was blank, preserve existing per-kid date (already done)
+                    # else: date was blank, preserve existing per-assignee date (already done)
 
-                    # Build additional updates dict for single-kid case
-                    single_kid_updates: dict[str, Any] = {
-                        const.DATA_CHORE_PER_KID_DUE_DATES: per_kid_due_dates,
+                    # Build additional updates dict for single-assignee case
+                    single_assignee_updates: dict[str, Any] = {
+                        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: per_assignee_due_dates,
                     }
 
-                    # PKAD-2026-001: Apply template applicable_days to single kid
+                    # PKAD-2026-001: Apply template applicable_days to single assignee
                     if template_applicable_days:
                         # Convert day name strings to integers (0=Mon, 6=Sun)
                         days_as_ints = [
@@ -1351,13 +1347,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                             for d in template_applicable_days
                             if d in const.WEEKDAY_NAME_TO_INT
                         ]
-                        single_kid_updates[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = {
-                            kid_id: days_as_ints
-                        }
-                        # Clear chore-level (per-kid is now source of truth)
-                        single_kid_updates[const.DATA_CHORE_APPLICABLE_DAYS] = None
+                        single_assignee_updates[
+                            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS
+                        ] = {assignee_id: days_as_ints}
+                        # Clear chore-level (per-assignee is now source of truth)
+                        single_assignee_updates[const.DATA_CHORE_APPLICABLE_DAYS] = None
 
-                    # PKAD-2026-001: Apply daily_multi_times to single kid (if DAILY_MULTI)
+                    # PKAD-2026-001: Apply daily_multi_times to single assignee (if DAILY_MULTI)
                     recurring_freq = merged_chore.get(
                         const.DATA_CHORE_RECURRING_FREQUENCY
                     )
@@ -1365,33 +1361,37 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         recurring_freq == const.FREQUENCY_DAILY_MULTI
                         and template_daily_multi_times
                     ):
-                        single_kid_updates[
-                            const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES
-                        ] = {kid_id: template_daily_multi_times}
-                        # Clear chore-level (per-kid is now source of truth)
-                        single_kid_updates[const.DATA_CHORE_DAILY_MULTI_TIMES] = None
+                        single_assignee_updates[
+                            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES
+                        ] = {assignee_id: template_daily_multi_times}
+                        # Clear chore-level (per-assignee is now source of truth)
+                        single_assignee_updates[const.DATA_CHORE_DAILY_MULTI_TIMES] = (
+                            None
+                        )
 
                     # Use Manager-owned CRUD for final update
                     final_chore = coordinator.chore_manager.update_chore(
-                        str(internal_id), single_kid_updates, immediate_persist=True
+                        str(internal_id),
+                        single_assignee_updates,
+                        immediate_persist=True,
                     )
 
-                    # CFE-2026-001 FIX: Single-kid DAILY_MULTI without times
-                    # needs to route to times helper (check per-kid times too)
-                    existing_per_kid_times = final_chore.get(
-                        const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {}
+                    # CFE-2026-001 FIX: Single-assignee DAILY_MULTI without times
+                    # needs to route to times helper (check per-assignee times too)
+                    existing_per_assignee_times = final_chore.get(
+                        const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
                     )
-                    kid_has_times = existing_per_kid_times.get(kid_id)
+                    assignee_has_times = existing_per_assignee_times.get(assignee_id)
                     if (
                         recurring_freq == const.FREQUENCY_DAILY_MULTI
                         and not template_daily_multi_times
-                        and not kid_has_times
+                        and not assignee_has_times
                     ):
                         # Store chore data with internal_id for times helper
                         self._chore_being_edited = dict(final_chore)
                         self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
                         const.LOGGER.debug(
-                            "Edited single-kid INDEPENDENT chore to DAILY_MULTI "
+                            "Edited single-assignee INDEPENDENT chore to DAILY_MULTI "
                             "- routing to times helper"
                         )
                         return await self.async_step_chores_daily_multi()
@@ -1399,15 +1399,15 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     self._mark_reload_needed()
                     return await self.async_step_init()
 
-                # Multiple kids: show unified per-kid details step (PKAD-2026-001)
+                # Multiple assignees: show unified per-assignee details step (PKAD-2026-001)
                 # Store chore data AND template values for the helper form
                 self._chore_being_edited = dict(merged_chore)
                 self._chore_being_edited[const.DATA_INTERNAL_ID] = internal_id
-                # Store template values for per-kid details step
+                # Store template values for per-assignee details step
                 self._chore_template_date_raw = raw_template_date
                 self._chore_template_applicable_days = template_applicable_days
                 self._chore_template_daily_multi_times = template_daily_multi_times
-                return await self.async_step_edit_chore_per_kid_details()
+                return await self.async_step_edit_chore_per_assignee_details()
 
             # CFE-2026-001: Check if DAILY_MULTI needs times collection/update
             recurring_frequency = merged_chore.get(const.DATA_CHORE_RECURRING_FREQUENCY)
@@ -1431,45 +1431,47 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             return await self.async_step_init()
 
-        # Use flow_helpers.fh.build_chore_schema, passing current kids
-        kids_dict = {
-            data[const.DATA_KID_NAME]: eid
-            for eid, data in coordinator.kids_data.items()
+        # Use flow_helpers.fh.build_chore_schema, passing current assignees
+        assignees_dict = {
+            data[const.DATA_ASSIGNEE_NAME]: eid
+            for eid, data in coordinator.assignees_data.items()
         }
 
         # Create reverse mapping from internal_id to name
         id_to_name = {
-            eid: data[const.DATA_KID_NAME]
-            for eid, data in coordinator.kids_data.items()
+            eid: data[const.DATA_ASSIGNEE_NAME]
+            for eid, data in coordinator.assignees_data.items()
         }
 
         # Convert stored string to datetime for DateTimeSelector
         existing_due_str = chore_data.get(const.DATA_CHORE_DUE_DATE)
         existing_due_date = None
 
-        # For INDEPENDENT chores, check if all per-kid dates are the same
-        # If they differ, show blank (None) since the per-kid dates take precedence
+        # For INDEPENDENT chores, check if all per-assignee dates are the same
+        # If they differ, show blank (None) since the per-assignee dates take precedence
         completion_criteria = chore_data.get(const.DATA_CHORE_COMPLETION_CRITERIA)
-        per_kid_due_dates = chore_data.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-        per_kid_applicable_days = chore_data.get(
-            const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {}
+        per_assignee_due_dates = chore_data.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
         )
-        assigned_kids_ids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        per_assignee_applicable_days = chore_data.get(
+            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
+        )
+        assigned_assignees_ids = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
         if (
             completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            and assigned_kids_ids
+            and assigned_assignees_ids
         ):
-            # Get all date values for assigned kids (including None)
+            # Get all date values for assigned assignees (including None)
             # Use a set to check uniqueness, treating None as a distinct value
-            all_kid_dates = set()
-            for kid_id in assigned_kids_ids:
-                kid_date = per_kid_due_dates.get(kid_id)
-                all_kid_dates.add(kid_date)
+            all_assignee_dates = set()
+            for assignee_id in assigned_assignees_ids:
+                assignee_date = per_assignee_due_dates.get(assignee_id)
+                all_assignee_dates.add(assignee_date)
 
-            if len(all_kid_dates) == 1:
-                # All assigned kids have the same date (or all None) - show it
-                common_date = next(iter(all_kid_dates))
+            if len(all_assignee_dates) == 1:
+                # All assigned assignees have the same date (or all None) - show it
+                common_date = next(iter(all_assignee_dates))
                 if common_date:  # Only show if not None
                     try:
                         existing_due_date = dt_parse(
@@ -1478,27 +1480,27 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                             return_type=const.HELPER_RETURN_SELECTOR_DATETIME,
                         )
                         const.LOGGER.debug(
-                            "INDEPENDENT chore: all kids have same date: %s",
+                            "INDEPENDENT chore: all assignees have same date: %s",
                             existing_due_date,
                         )
                     except ValueError as e:
                         const.LOGGER.error(
-                            "Failed to parse common per-kid date '%s': %s",
+                            "Failed to parse common per-assignee date '%s': %s",
                             common_date,
                             e,
                         )
                 else:
-                    # All kids have None - show blank
+                    # All assignees have None - show blank
                     const.LOGGER.debug(
-                        "INDEPENDENT chore: all kids have no date, showing blank"
+                        "INDEPENDENT chore: all assignees have no date, showing blank"
                     )
                     existing_due_date = None
             else:
-                # Kids have different dates (including mix of dates and None) - show blank
+                # Assignees have different dates (including mix of dates and None) - show blank
                 const.LOGGER.debug(
-                    "INDEPENDENT chore: kids have different dates (%d unique), "
+                    "INDEPENDENT chore: assignees have different dates (%d unique), "
                     "showing blank due date field",
-                    len(all_kid_dates),
+                    len(all_assignee_dates),
                 )
                 existing_due_date = None
         elif existing_due_str:
@@ -1521,27 +1523,27 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     e,
                 )
 
-        # For INDEPENDENT chores, check if all per-kid applicable_days are the same
-        # Similar logic to per-kid due dates above
+        # For INDEPENDENT chores, check if all per-assignee applicable_days are the same
+        # Similar logic to per-assignee due dates above
         existing_applicable_days_display = None
         if (
             completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            and assigned_kids_ids
+            and assigned_assignees_ids
         ):
-            # Get all applicable_days for assigned kids
+            # Get all applicable_days for assigned assignees
             # Convert to frozenset for hashability (lists aren't hashable)
-            all_kid_days: set[frozenset[int] | None] = set()
-            for kid_id in assigned_kids_ids:
-                kid_days = per_kid_applicable_days.get(kid_id)
+            all_assignee_days: set[frozenset[int] | None] = set()
+            for assignee_id in assigned_assignees_ids:
+                assignee_days = per_assignee_applicable_days.get(assignee_id)
                 # Convert to frozenset to make it hashable for set operations
-                if kid_days is not None:
-                    all_kid_days.add(frozenset(kid_days))
+                if assignee_days is not None:
+                    all_assignee_days.add(frozenset(assignee_days))
                 else:
-                    all_kid_days.add(None)
+                    all_assignee_days.add(None)
 
-            if len(all_kid_days) == 1:
-                # All assigned kids have the same applicable_days
-                common_days = next(iter(all_kid_days))
+            if len(all_assignee_days) == 1:
+                # All assigned assignees have the same applicable_days
+                common_days = next(iter(all_assignee_days))
                 if common_days is not None:
                     # Convert back from frozenset to list, then to string keys
                     weekday_keys = list(const.WEEKDAY_OPTIONS.keys())
@@ -1551,25 +1553,25 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         if isinstance(day, int) and 0 <= day <= 6
                     ]
                     const.LOGGER.debug(
-                        "INDEPENDENT chore: all kids have same applicable_days: %s",
+                        "INDEPENDENT chore: all assignees have same applicable_days: %s",
                         existing_applicable_days_display,
                     )
                 else:
-                    # All kids have None - show empty
+                    # All assignees have None - show empty
                     existing_applicable_days_display = []
                     const.LOGGER.debug(
-                        "INDEPENDENT chore: all kids have no applicable_days, showing empty"
+                        "INDEPENDENT chore: all assignees have no applicable_days, showing empty"
                     )
             else:
-                # Kids have different applicable_days - show empty (will be per-kid)
+                # Assignees have different applicable_days - show empty (will be per-assignee)
                 existing_applicable_days_display = []
                 const.LOGGER.debug(
-                    "INDEPENDENT chore: kids have different applicable_days (%d unique), "
+                    "INDEPENDENT chore: assignees have different applicable_days (%d unique), "
                     "showing empty field",
-                    len(all_kid_days),
+                    len(all_assignee_days),
                 )
         else:
-            # SHARED chore or no kids: use chore-level applicable_days
+            # SHARED chore or no assignees: use chore-level applicable_days
             weekday_keys = list(const.WEEKDAY_OPTIONS.keys())
             existing_applicable_days_display = [
                 weekday_keys[day]
@@ -1579,10 +1581,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 if isinstance(day, int) and 0 <= day <= 6
             ]
 
-        # Convert assigned_kids from internal_ids to names for display
-        # (assigned_kids_ids already set above for per-kid date check)
-        assigned_kids_names = [
-            id_to_name.get(kid_id, kid_id) for kid_id in assigned_kids_ids
+        # Convert assigned_assignees from internal_ids to names for display
+        # (assigned_assignees_ids already set above for per-assignee date check)
+        assigned_assignees_names = [
+            id_to_name.get(assignee_id, assignee_id)
+            for assignee_id in assigned_assignees_ids
         ]
 
         # Prepare suggested values for form (current chore data)
@@ -1597,7 +1600,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: chore_data.get(
                 const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS
             ),
-            const.CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids_names,
+            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees_names,
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_data.get(
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -1625,7 +1628,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT: chore_data.get(
                 const.DATA_CHORE_CUSTOM_INTERVAL_UNIT
             ),
-            # Use computed applicable_days (handles per-kid for INDEPENDENT chores)
+            # Use computed applicable_days (handles per-assignee for INDEPENDENT chores)
             const.CFOF_CHORES_INPUT_APPLICABLE_DAYS: existing_applicable_days_display,
             const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: chore_data.get(
                 const.DATA_CHORE_DAILY_MULTI_TIMES, ""
@@ -1684,7 +1687,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         suggested_values[const.CFOF_CHORES_INPUT_NOTIFICATIONS] = notifications_list
 
         # Build schema and apply suggested values
-        schema = fh.build_chore_schema(kids_dict)
+        schema = fh.build_chore_schema(assignees_dict)
         schema = self.add_suggested_values_to_schema(
             schema,
             fh.build_chore_section_suggested_values(suggested_values),
@@ -1700,16 +1703,16 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             },
         )
 
-    # ----- Edit Per-Kid Due Dates for INDEPENDENT Chores -----
-    async def async_step_edit_chore_per_kid_dates(
+    # ----- Edit Per-Assignee Due Dates for INDEPENDENT Chores -----
+    async def async_step_edit_chore_per_assignee_dates(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Allow editing per-kid due dates for INDEPENDENT chores.
+        """Allow editing per-assignee due dates for INDEPENDENT chores.
 
         Features:
         - Shows template date from main form (if set) with "Apply to All" option
-        - Each kid's current due date shown as default (editable)
-        - Supports bulk application of template date to all or selected kids
+        - Each assignee's current due date shown as default (editable)
+        - Supports bulk application of template date to all or selected assignees
         """
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
@@ -1717,38 +1720,40 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Get chore data from stored state
         chore_data = getattr(self, "_chore_being_edited", None)
         if not chore_data:
-            const.LOGGER.error("Per-kid dates step called without chore data")
+            const.LOGGER.error("Per-assignee dates step called without chore data")
             return await self.async_step_init()
 
         internal_id = chore_data.get(const.DATA_INTERNAL_ID)
         if not internal_id:
-            const.LOGGER.error("Per-kid dates step: missing internal_id")
+            const.LOGGER.error("Per-assignee dates step: missing internal_id")
             return await self.async_step_init()
 
         # Only allow for INDEPENDENT chores
         completion_criteria = chore_data.get(const.DATA_CHORE_COMPLETION_CRITERIA)
         if completion_criteria != const.COMPLETION_CRITERIA_INDEPENDENT:
             const.LOGGER.debug(
-                "Per-kid dates step skipped - not INDEPENDENT (criteria: %s)",
+                "Per-assignee dates step skipped - not INDEPENDENT (criteria: %s)",
                 completion_criteria,
             )
             return await self.async_step_init()
 
-        assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-        if not assigned_kids:
-            const.LOGGER.debug("Per-kid dates step skipped - no assigned kids")
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        if not assigned_assignees:
+            const.LOGGER.debug(
+                "Per-assignee dates step skipped - no assigned assignees"
+            )
             return await self.async_step_init()
 
-        # Get fresh per-kid dates from storage (not from _chore_being_edited)
+        # Get fresh per-assignee dates from storage (not from _chore_being_edited)
         stored_chore = coordinator.chores_data.get(internal_id, {})
-        existing_per_kid_dates = stored_chore.get(
-            const.DATA_CHORE_PER_KID_DUE_DATES, {}
+        existing_per_assignee_dates = stored_chore.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
         )
 
         # Get template date from main form (if set)
         # Use the raw template date stored from form input
         # (transform_chore_cfof_to_data sets chore-level due_date to None
-        # for INDEPENDENT chores - per-kid dates are used instead)
+        # for INDEPENDENT chores - per-assignee dates are used instead)
         raw_template_date = getattr(self, "_chore_template_date_raw", None)
         template_date_str = None
         template_date_display = None
@@ -1771,12 +1776,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             except (ValueError, TypeError):
                 pass
 
-        # Build name-to-id mapping for assigned kids
+        # Build name-to-id mapping for assigned assignees
         name_to_id: dict[str, str] = {}
-        for kid_id in assigned_kids:
-            kid_info = coordinator.kids_data.get(kid_id, {})
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
-            name_to_id[kid_name] = kid_id
+        for assignee_id in assigned_assignees:
+            assignee_info = coordinator.assignees_data.get(assignee_id, {})
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            name_to_id[assignee_name] = assignee_id
 
         if user_input is not None:
             # Check if "Apply to All" was selected
@@ -1784,27 +1789,29 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 const.CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL, False
             )
 
-            # Process per-kid dates from user input
-            # Field keys use kid names for readability; map back to IDs for storage
-            per_kid_due_dates: dict[str, str | None] = {}
-            for kid_name, kid_id in name_to_id.items():
-                # Check if user wants to clear this kid's date
-                clear_field_name = f"clear_due_date_{kid_name}"
-                clear_this_kid = user_input.get(clear_field_name, False)
+            # Process per-assignee dates from user input
+            # Field keys use assignee names for readability; map back to IDs for storage
+            per_assignee_due_dates: dict[str, str | None] = {}
+            for assignee_name, assignee_id in name_to_id.items():
+                # Check if user wants to clear this assignee's date
+                clear_field_name = f"clear_due_date_{assignee_name}"
+                clear_this_assignee = user_input.get(clear_field_name, False)
 
                 # If "Apply to All" is selected and we have a template date, use it
                 if apply_template_to_all and template_date_str:
-                    per_kid_due_dates[kid_id] = template_date_str
+                    per_assignee_due_dates[assignee_id] = template_date_str
                     const.LOGGER.debug(
-                        "Applied template date to %s: %s", kid_name, template_date_str
+                        "Applied template date to %s: %s",
+                        assignee_name,
+                        template_date_str,
                     )
-                elif clear_this_kid:
-                    # User explicitly cleared this kid's date
-                    per_kid_due_dates[kid_id] = None
-                    const.LOGGER.debug("Cleared date for %s", kid_name)
+                elif clear_this_assignee:
+                    # User explicitly cleared this assignee's date
+                    per_assignee_due_dates[assignee_id] = None
+                    const.LOGGER.debug("Cleared date for %s", assignee_name)
                 else:
                     # Use individual date from form
-                    date_value = user_input.get(kid_name)
+                    date_value = user_input.get(assignee_name)
                     if date_value:
                         # Convert to UTC datetime, then to ISO string for storage
                         # Per quality specs: dates stored in UTC ISO format
@@ -1815,14 +1822,18 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                                 return_type=const.HELPER_RETURN_DATETIME_UTC,
                             )
                             if utc_dt and isinstance(utc_dt, datetime):
-                                per_kid_due_dates[kid_id] = utc_dt.isoformat()
+                                per_assignee_due_dates[assignee_id] = utc_dt.isoformat()
                         except ValueError as e:
-                            const.LOGGER.warning("Invalid date for %s: %s", kid_name, e)
-                            errors[kid_name] = const.TRANS_KEY_CFOF_INVALID_DUE_DATE
+                            const.LOGGER.warning(
+                                "Invalid date for %s: %s", assignee_name, e
+                            )
+                            errors[assignee_name] = (
+                                const.TRANS_KEY_CFOF_INVALID_DUE_DATE
+                            )
 
             # Validate: If ALL dates are cleared, check recurring frequency compatibility
             # Only none, daily, weekly frequencies work without due dates
-            if not errors and not per_kid_due_dates:
+            if not errors and not per_assignee_due_dates:
                 stored_chore = coordinator.chores_data.get(internal_id, {})
                 recurring_frequency = stored_chore.get(
                     const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
@@ -1841,19 +1852,21 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     )
 
             if not errors:
-                # Update the chore's per_kid_due_dates using Manager CRUD
+                # Update the chore's per_assignee_due_dates using Manager CRUD
                 chores_data = coordinator.chores_data
                 if internal_id in chores_data:
                     # Pass only the field to update; Manager merges with existing
                     coordinator.chore_manager.update_chore(
                         str(internal_id),
-                        {const.DATA_CHORE_PER_KID_DUE_DATES: per_kid_due_dates},
+                        {
+                            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: per_assignee_due_dates
+                        },
                         immediate_persist=True,
                     )
                     const.LOGGER.debug(
-                        "Updated per-kid due dates for chore %s: %s",
+                        "Updated per-assignee due dates for chore %s: %s",
                         internal_id,
-                        per_kid_due_dates,
+                        per_assignee_due_dates,
                     )
 
                 # Clear stored state
@@ -1862,10 +1875,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 self._mark_reload_needed()
                 return await self.async_step_init()
 
-        # Build dynamic schema with kid names as field keys (for readable labels)
+        # Build dynamic schema with assignee names as field keys (for readable labels)
         chore_name = chore_data.get(const.DATA_CHORE_NAME, "Unknown")
         schema_fields: dict[Any, Any] = {}
-        kid_names_list: list[str] = []
+        assignee_names_list: list[str] = []
 
         # Add "Apply template to all" checkbox if template date exists
         if template_date_display:
@@ -1875,11 +1888,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 )
             ] = selector.BooleanSelector()
 
-        for kid_name, kid_id in name_to_id.items():
-            kid_names_list.append(kid_name)
+        for assignee_name, assignee_id in name_to_id.items():
+            assignee_names_list.append(assignee_name)
 
-            # Get existing date for this kid from storage
-            existing_date = existing_per_kid_dates.get(kid_id)
+            # Get existing date for this assignee from storage
+            existing_date = existing_per_assignee_dates.get(assignee_id)
 
             # Convert to local datetime string for DateTimeSelector display
             # Storage is UTC ISO; display is local timezone
@@ -1892,26 +1905,26 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         return_type=const.HELPER_RETURN_SELECTOR_DATETIME,
                     )
 
-            # Use kid name as field key - HA will display it as the label
+            # Use assignee name as field key - HA will display it as the label
             # (field keys without translations are shown as-is)
-            schema_fields[vol.Optional(kid_name, default=default_value)] = vol.Any(
+            schema_fields[vol.Optional(assignee_name, default=default_value)] = vol.Any(
                 None, selector.DateTimeSelector()
             )
 
-            # Add clear checkbox for this kid if they have an existing date
+            # Add clear checkbox for this assignee if they have an existing date
             if existing_date:
-                clear_field_name = f"clear_due_date_{kid_name}"
+                clear_field_name = f"clear_due_date_{assignee_name}"
                 schema_fields[
                     vol.Optional(clear_field_name, default=False, description="🗑️")
                 ] = selector.BooleanSelector()
 
-        # Build description with kid names in order
-        kid_list_text = ", ".join(kid_names_list)
+        # Build description with assignee names in order
+        assignee_list_text = ", ".join(assignee_names_list)
 
         # Build description placeholders
         description_placeholders = {
             "chore_name": chore_name,
-            "kid_names": kid_list_text,
+            "assignee_names": assignee_list_text,
             const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHORES_ADVANCED,
         }
 
@@ -1919,30 +1932,30 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         if template_date_display:
             description_placeholders["template_date"] = (
                 f"\n\nTemplate date from main form: **{template_date_display}**. "
-                "Check 'Apply template date to all kids' to use this date for everyone."
+                "Check 'Apply template date to all assignees' to use this date for everyone."
             )
         else:
             description_placeholders["template_date"] = ""
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DATES,
+            step_id=const.OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DATES,
             data_schema=vol.Schema(schema_fields),
             errors=errors,
             description_placeholders=description_placeholders,
         )
 
-    # ----- Unified Per-Kid Details Helper -----
-    async def async_step_edit_chore_per_kid_details(
+    # ----- Unified Per-Assignee Details Helper -----
+    async def async_step_edit_chore_per_assignee_details(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Unified helper: per-kid days + times + due dates with templating.
+        """Unified helper: per-assignee days + times + due dates with templating.
 
         PKAD-2026-001: Consolidates configuration for INDEPENDENT chores.
 
         Features:
-        - Applicable days multi-select per kid (always shown for INDEPENDENT)
-        - Daily multi times text input per kid (if frequency = DAILY_MULTI)
-        - Due date picker per kid (existing functionality)
+        - Applicable days multi-select per assignee (always shown for INDEPENDENT)
+        - Daily multi times text input per assignee (if frequency = DAILY_MULTI)
+        - Due date picker per assignee (existing functionality)
         - Template section with "Apply to All" buttons
         - Pre-populates from main form values
         """
@@ -1952,26 +1965,28 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Get chore data from stored state
         chore_data = getattr(self, "_chore_being_edited", None)
         if not chore_data:
-            const.LOGGER.error("Per-kid details step called without chore data")
+            const.LOGGER.error("Per-assignee details step called without chore data")
             return await self.async_step_init()
 
         internal_id = chore_data.get(const.DATA_INTERNAL_ID)
         if not internal_id:
-            const.LOGGER.error("Per-kid details step: missing internal_id")
+            const.LOGGER.error("Per-assignee details step: missing internal_id")
             return await self.async_step_init()
 
         # Only for INDEPENDENT chores
         completion_criteria = chore_data.get(const.DATA_CHORE_COMPLETION_CRITERIA)
         if completion_criteria != const.COMPLETION_CRITERIA_INDEPENDENT:
             const.LOGGER.debug(
-                "Per-kid details step skipped - not INDEPENDENT (criteria: %s)",
+                "Per-assignee details step skipped - not INDEPENDENT (criteria: %s)",
                 completion_criteria,
             )
             return await self.async_step_init()
 
-        assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-        if not assigned_kids:
-            const.LOGGER.debug("Per-kid details step skipped - no assigned kids")
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        if not assigned_assignees:
+            const.LOGGER.debug(
+                "Per-assignee details step skipped - no assigned assignees"
+            )
             return await self.async_step_init()
 
         # Get frequency to determine if DAILY_MULTI times are needed
@@ -2021,23 +2036,23 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 raw_template_date = None
                 self._chore_template_date_raw = None
 
-        # Build name-to-id mapping for assigned kids
+        # Build name-to-id mapping for assigned assignees
         name_to_id: dict[str, str] = {}
-        for kid_id in assigned_kids:
-            kid_info = coordinator.kids_data.get(kid_id, {})
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
-            name_to_id[kid_name] = kid_id
+        for assignee_id in assigned_assignees:
+            assignee_info = coordinator.assignees_data.get(assignee_id, {})
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            name_to_id[assignee_name] = assignee_id
 
-        # Get existing per-kid data from storage
+        # Get existing per-assignee data from storage
         stored_chore = coordinator.chores_data.get(internal_id, {})
-        existing_per_kid_days = stored_chore.get(
-            const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {}
+        existing_per_assignee_days = stored_chore.get(
+            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
         )
-        existing_per_kid_times = stored_chore.get(
-            const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {}
+        existing_per_assignee_times = stored_chore.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
         )
-        existing_per_kid_dates = stored_chore.get(
-            const.DATA_CHORE_PER_KID_DUE_DATES, {}
+        existing_per_assignee_dates = stored_chore.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
         )
 
         if user_input is not None:
@@ -2052,24 +2067,24 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 const.CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL, False
             )
 
-            per_kid_applicable_days: dict[str, list[int]] = {}
-            per_kid_daily_multi_times: dict[str, str] = {}
-            per_kid_due_dates: dict[str, str | None] = {}
+            per_assignee_applicable_days: dict[str, list[int]] = {}
+            per_assignee_daily_multi_times: dict[str, str] = {}
+            per_assignee_due_dates: dict[str, str | None] = {}
 
-            for kid_name, kid_id in name_to_id.items():
+            for assignee_name, assignee_id in name_to_id.items():
                 # Process applicable days
                 if apply_days_to_all and template_applicable_days:
                     # Convert string day keys to integers for storage
-                    per_kid_applicable_days[kid_id] = [
+                    per_assignee_applicable_days[assignee_id] = [
                         list(const.WEEKDAY_OPTIONS.keys()).index(d)
                         for d in template_applicable_days
                         if d in const.WEEKDAY_OPTIONS
                     ]
                 else:
-                    days_field = f"applicable_days_{kid_name}"
+                    days_field = f"applicable_days_{assignee_name}"
                     raw_days = user_input.get(days_field, [])
                     # Convert string day keys (mon, tue...) to integers (0-6)
-                    per_kid_applicable_days[kid_id] = [
+                    per_assignee_applicable_days[assignee_id] = [
                         list(const.WEEKDAY_OPTIONS.keys()).index(d)
                         for d in raw_days
                         if d in const.WEEKDAY_OPTIONS
@@ -2078,23 +2093,25 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 # Process daily multi times (if applicable)
                 if is_daily_multi:
                     if apply_times_to_all and template_daily_multi_times:
-                        per_kid_daily_multi_times[kid_id] = template_daily_multi_times
+                        per_assignee_daily_multi_times[assignee_id] = (
+                            template_daily_multi_times
+                        )
                     else:
-                        times_field = f"daily_multi_times_{kid_name}"
-                        per_kid_daily_multi_times[kid_id] = user_input.get(
+                        times_field = f"daily_multi_times_{assignee_name}"
+                        per_assignee_daily_multi_times[assignee_id] = user_input.get(
                             times_field, ""
                         )
 
                 # Process due dates
-                clear_field_name = f"clear_due_date_{kid_name}"
-                clear_this_kid = user_input.get(clear_field_name, False)
+                clear_field_name = f"clear_due_date_{assignee_name}"
+                clear_this_assignee = user_input.get(clear_field_name, False)
 
                 if apply_date_to_all and template_date_str:
-                    per_kid_due_dates[kid_id] = template_date_str
-                elif clear_this_kid:
-                    per_kid_due_dates[kid_id] = None
+                    per_assignee_due_dates[assignee_id] = template_date_str
+                elif clear_this_assignee:
+                    per_assignee_due_dates[assignee_id] = None
                 else:
-                    date_value = user_input.get(f"due_date_{kid_name}")
+                    date_value = user_input.get(f"due_date_{assignee_name}")
                     if date_value:
                         try:
                             utc_dt = dt_parse(
@@ -2109,43 +2126,51 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                                         const.TRANS_KEY_CFOF_DUE_DATE_IN_PAST
                                     )
                                 else:
-                                    per_kid_due_dates[kid_id] = utc_dt.isoformat()
+                                    per_assignee_due_dates[assignee_id] = (
+                                        utc_dt.isoformat()
+                                    )
                         except (ValueError, TypeError):
                             errors[const.CFOP_ERROR_BASE] = (
                                 const.TRANS_KEY_CFOF_INVALID_DUE_DATE
                             )
                     else:
                         # Preserve existing date if field left blank
-                        per_kid_due_dates[kid_id] = existing_per_kid_dates.get(kid_id)
+                        per_assignee_due_dates[assignee_id] = (
+                            existing_per_assignee_dates.get(assignee_id)
+                        )
 
-            # Validate per-kid structures
-            is_valid_days, days_error = fh.validate_per_kid_applicable_days(
-                per_kid_applicable_days
+            # Validate per-assignee structures
+            is_valid_days, days_error = fh.validate_per_assignee_applicable_days(
+                per_assignee_applicable_days
             )
             if not is_valid_days and days_error:
                 errors[const.CFOP_ERROR_BASE] = days_error
 
             if is_daily_multi and not errors:
-                is_valid_times, times_error = fh.validate_per_kid_daily_multi_times(
-                    per_kid_daily_multi_times, recurring_frequency
+                is_valid_times, times_error = (
+                    fh.validate_per_assignee_daily_multi_times(
+                        per_assignee_daily_multi_times, recurring_frequency
+                    )
                 )
                 if not is_valid_times and times_error:
                     errors[const.CFOP_ERROR_BASE] = times_error
 
             if not errors:
-                # Store per-kid data in chore
-                chore_data[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = (
-                    per_kid_applicable_days
+                # Store per-assignee data in chore
+                chore_data[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS] = (
+                    per_assignee_applicable_days
                 )
-                chore_data[const.DATA_CHORE_PER_KID_DUE_DATES] = per_kid_due_dates
+                chore_data[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = (
+                    per_assignee_due_dates
+                )
 
                 if is_daily_multi:
-                    chore_data[const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES] = (
-                        per_kid_daily_multi_times
+                    chore_data[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES] = (
+                        per_assignee_daily_multi_times
                     )
 
                 # PKAD-2026-001: For INDEPENDENT chores, clear chore-level fields
-                # (per-kid structures are now the single source of truth)
+                # (per-assignee structures are now the single source of truth)
                 chore_data[const.DATA_CHORE_APPLICABLE_DAYS] = None
                 chore_data[const.DATA_CHORE_DUE_DATE] = None
                 if is_daily_multi:
@@ -2157,10 +2182,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
                 const.LOGGER.debug(
-                    "Updated per-kid details for chore %s: days=%s, dates=%s",
+                    "Updated per-assignee details for chore %s: days=%s, dates=%s",
                     internal_id,
-                    per_kid_applicable_days,
-                    per_kid_due_dates,
+                    per_assignee_applicable_days,
+                    per_assignee_due_dates,
                 )
 
                 # Clear stored state
@@ -2173,7 +2198,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Build form schema
         schema_fields: dict[Any, Any] = {}
-        kid_names_list: list[str] = []
+        assignee_names_list: list[str] = []
 
         # Template section - "Apply to All" checkboxes
         if template_applicable_days:
@@ -2193,29 +2218,29 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 )
             ] = selector.BooleanSelector()
 
-        # Per-kid fields
-        for kid_name, kid_id in name_to_id.items():
-            kid_names_list.append(kid_name)
+        # Per-assignee fields
+        for assignee_name, assignee_id in name_to_id.items():
+            assignee_names_list.append(assignee_name)
 
             # Applicable days multi-select
             # Convert stored integers back to string keys for selector default
-            existing_days_ints = existing_per_kid_days.get(kid_id, [])
+            existing_days_ints = existing_per_assignee_days.get(assignee_id, [])
             weekday_keys = list(const.WEEKDAY_OPTIONS.keys())
             default_days = [
                 weekday_keys[i]
                 for i in existing_days_ints
                 if 0 <= i < len(weekday_keys)
             ]
-            # If no existing per-kid days, use template
+            # If no existing per-assignee days, use template
             if not default_days and template_applicable_days:
                 default_days = template_applicable_days
 
             schema_fields[
-                vol.Optional(f"applicable_days_{kid_name}", default=default_days)
+                vol.Optional(f"applicable_days_{assignee_name}", default=default_days)
             ] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
-                        {"value": key, "label": f"{kid_name}: {label}"}
+                        {"value": key, "label": f"{assignee_name}: {label}"}
                         for key, label in const.WEEKDAY_OPTIONS.items()
                     ],
                     multiple=True,
@@ -2224,11 +2249,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Daily multi times text input (conditional on DAILY_MULTI)
             if is_daily_multi:
-                default_times = existing_per_kid_times.get(
-                    kid_id, template_daily_multi_times
+                default_times = existing_per_assignee_times.get(
+                    assignee_id, template_daily_multi_times
                 )
                 schema_fields[
-                    vol.Optional(f"daily_multi_times_{kid_name}", default=default_times)
+                    vol.Optional(
+                        f"daily_multi_times_{assignee_name}", default=default_times
+                    )
                 ] = selector.TextSelector(
                     selector.TextSelectorConfig(
                         type=selector.TextSelectorType.TEXT,
@@ -2237,7 +2264,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             # Due date picker
-            existing_date = existing_per_kid_dates.get(kid_id)
+            existing_date = existing_per_assignee_dates.get(assignee_id)
             default_date_value = None
             if existing_date:
                 with contextlib.suppress(ValueError, TypeError):
@@ -2248,18 +2275,18 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     )
 
             schema_fields[
-                vol.Optional(f"due_date_{kid_name}", default=default_date_value)
+                vol.Optional(f"due_date_{assignee_name}", default=default_date_value)
             ] = vol.Any(None, selector.DateTimeSelector())
 
             # Add clear checkbox if date exists
             if existing_date:
                 schema_fields[
-                    vol.Optional(f"clear_due_date_{kid_name}", default=False)
+                    vol.Optional(f"clear_due_date_{assignee_name}", default=False)
                 ] = selector.BooleanSelector()
 
         # Build description placeholders
         chore_name = chore_data.get(const.DATA_CHORE_NAME, "Unknown")
-        kid_list_text = ", ".join(kid_names_list)
+        assignee_list_text = ", ".join(assignee_names_list)
 
         # Build template info section for description
         template_info_parts: list[str] = []
@@ -2280,12 +2307,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             template_info = "\n\n" + "\n".join(template_info_parts)
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS,
+            step_id=const.OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS,
             data_schema=vol.Schema(schema_fields),
             errors=errors,
             description_placeholders={
                 "chore_name": chore_name,
-                "kid_names": kid_list_text,
+                "assignee_names": assignee_list_text,
                 "template_info": template_info,
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHORES_ADVANCED,
             },
@@ -2298,7 +2325,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Collect daily time slots for FREQUENCY_DAILY_MULTI chores.
 
         CFE-2026-001 Feature 2: Helper form to collect pipe-separated times.
-        Pattern follows edit_chore_per_kid_dates helper.
+        Pattern follows edit_chore_per_assignee_dates helper.
 
         Features:
         - Shows chore name in title
@@ -2537,7 +2564,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         coordinator = self._get_coordinator()
         badges_dict = coordinator.badges_data
         chores_dict = coordinator.chores_data
-        kids_dict = coordinator.kids_data
+        assignees_dict = coordinator.assignees_data
         rewards_dict = coordinator.rewards_data
         achievements_dict = coordinator.achievements_data
         challenges_dict = coordinator.challenges_data
@@ -2732,7 +2759,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         # Build schema without embedded defaults (values come from suggested_values)
         schema_fields = fh.build_badge_common_schema(
             default=None,
-            kids_dict=kids_dict,
+            assignees_dict=assignees_dict,
             chores_dict=chores_dict,
             rewards_dict=rewards_dict,
             achievements_dict=achievements_dict,
@@ -3415,25 +3442,32 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             if not errors:
                 try:
-                    # Build kids name to ID mapping for options flow
-                    kids_name_to_id = {
-                        kid[const.DATA_KID_NAME]: kid[const.DATA_KID_INTERNAL_ID]
-                        for kid in coordinator.data.get(const.DATA_KIDS, {}).values()
+                    # Build assignees name to ID mapping for options flow
+                    assignees_name_to_id = {
+                        assignee[const.DATA_ASSIGNEE_NAME]: assignee[
+                            const.DATA_ASSIGNEE_INTERNAL_ID
+                        ]
+                        for assignee in coordinator.data.get(
+                            const.DATA_ASSIGNEES, {}
+                        ).values()
                     }
 
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_achievement_data(user_input)
 
-                    # Convert assigned kids from names to IDs (options flow uses names)
-                    assigned_kids_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, []
+                    # Convert assigned assignees from names to IDs (options flow uses names)
+                    assigned_assignees_names = data_input.get(
+                        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, []
                     )
-                    if not isinstance(assigned_kids_names, list):
-                        assigned_kids_names = (
-                            [assigned_kids_names] if assigned_kids_names else []
+                    if not isinstance(assigned_assignees_names, list):
+                        assigned_assignees_names = (
+                            [assigned_assignees_names]
+                            if assigned_assignees_names
+                            else []
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_KIDS] = [
-                        kids_name_to_id.get(name, name) for name in assigned_kids_names
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES] = [
+                        assignees_name_to_id.get(name, name)
+                        for name in assigned_assignees_names
                     ]
 
                     # Use GamificationManager for achievement creation
@@ -3455,14 +3489,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 except EntityValidationError as err:
                     errors[err.field] = err.translation_key
 
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in coordinator.kids_data.items()
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
 
         # Build schema without defaults
         schema = fh.build_achievement_schema(
-            kids_dict=kids_dict, chores_dict=chores_dict
+            assignees_dict=assignees_dict, chores_dict=chores_dict
         )
 
         # On validation error, preserve user's attempted input
@@ -3501,10 +3535,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 if eid != internal_id
             }
 
-            # Build kids name to ID mapping for options flow
-            kids_name_to_id = {
-                kid[const.DATA_KID_NAME]: kid[const.DATA_KID_INTERNAL_ID]
-                for kid in coordinator.data.get(const.DATA_KIDS, {}).values()
+            # Build assignees name to ID mapping for options flow
+            assignees_name_to_id = {
+                assignee[const.DATA_ASSIGNEE_NAME]: assignee[
+                    const.DATA_ASSIGNEE_INTERNAL_ID
+                ]
+                for assignee in coordinator.data.get(const.DATA_ASSIGNEES, {}).values()
             }
 
             # Layer 2: UI validation (uniqueness + type-specific checks)
@@ -3519,16 +3555,19 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_achievement_data(user_input)
 
-                    # Convert assigned kids from names to IDs (options flow uses names)
-                    assigned_kids_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, []
+                    # Convert assigned assignees from names to IDs (options flow uses names)
+                    assigned_assignees_names = data_input.get(
+                        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, []
                     )
-                    if not isinstance(assigned_kids_names, list):
-                        assigned_kids_names = (
-                            [assigned_kids_names] if assigned_kids_names else []
+                    if not isinstance(assigned_assignees_names, list):
+                        assigned_assignees_names = (
+                            [assigned_assignees_names]
+                            if assigned_assignees_names
+                            else []
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_KIDS] = [
-                        kids_name_to_id.get(name, name) for name in assigned_kids_names
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES] = [
+                        assignees_name_to_id.get(name, name)
+                        for name in assigned_assignees_names
                     ]
 
                     # Use GamificationManager for achievement update
@@ -3548,24 +3587,25 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 except EntityValidationError as err:
                     errors[err.field] = err.translation_key
 
-        kids_dict = {
-            kid_data[const.DATA_KID_NAME]: kid_id
-            for kid_id, kid_data in coordinator.kids_data.items()
+        assignees_dict = {
+            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
         chores_dict = coordinator.chores_data
 
         # Create reverse mapping from internal_id to name
         id_to_name = {
-            kid_id: kid_data[const.DATA_KID_NAME]
-            for kid_id, kid_data in coordinator.kids_data.items()
+            assignee_id: assignee_data[const.DATA_ASSIGNEE_NAME]
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
 
-        # Convert assigned_kids from internal_ids to names for display
-        assigned_kids_ids = achievement_data.get(
-            const.DATA_ACHIEVEMENT_ASSIGNED_KIDS, []
+        # Convert assigned_assignees from internal_ids to names for display
+        assigned_assignees_ids = achievement_data.get(
+            const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, []
         )
-        assigned_kids_names = [
-            id_to_name.get(kid_id, kid_id) for kid_id in assigned_kids_ids
+        assigned_assignees_names = [
+            id_to_name.get(assignee_id, assignee_id)
+            for assignee_id in assigned_assignees_ids
         ]
 
         # Build suggested values for form (CFOF keys → existing DATA values)
@@ -3582,7 +3622,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_ACHIEVEMENTS_INPUT_ICON: achievement_data.get(
                 const.DATA_ACHIEVEMENT_ICON
             ),
-            const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS: assigned_kids_names,
+            const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees_names,
             const.CFOF_ACHIEVEMENTS_INPUT_TYPE: achievement_data.get(
                 const.DATA_ACHIEVEMENT_TYPE, const.ACHIEVEMENT_TYPE_STREAK
             ),
@@ -3607,7 +3647,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Build schema without defaults (suggestions provide the values)
         schema = fh.build_achievement_schema(
-            kids_dict=kids_dict,
+            assignees_dict=assignees_dict,
             chores_dict=chores_dict,
         )
         # Apply suggested values to schema
@@ -3677,25 +3717,32 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             if not errors:
                 try:
-                    # Build kids name to ID mapping for options flow
-                    kids_name_to_id = {
-                        kid[const.DATA_KID_NAME]: kid[const.DATA_KID_INTERNAL_ID]
-                        for kid in coordinator.data.get(const.DATA_KIDS, {}).values()
+                    # Build assignees name to ID mapping for options flow
+                    assignees_name_to_id = {
+                        assignee[const.DATA_ASSIGNEE_NAME]: assignee[
+                            const.DATA_ASSIGNEE_INTERNAL_ID
+                        ]
+                        for assignee in coordinator.data.get(
+                            const.DATA_ASSIGNEES, {}
+                        ).values()
                     }
 
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_challenge_data(user_input)
 
-                    # Convert assigned kids from names to IDs (options flow uses names)
-                    assigned_kids_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_KIDS, []
+                    # Convert assigned assignees from names to IDs (options flow uses names)
+                    assigned_assignees_names = data_input.get(
+                        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
                     )
-                    if not isinstance(assigned_kids_names, list):
-                        assigned_kids_names = (
-                            [assigned_kids_names] if assigned_kids_names else []
+                    if not isinstance(assigned_assignees_names, list):
+                        assigned_assignees_names = (
+                            [assigned_assignees_names]
+                            if assigned_assignees_names
+                            else []
                         )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_KIDS] = [
-                        kids_name_to_id.get(name, name) for name in assigned_kids_names
+                    data_input[const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES] = [
+                        assignees_name_to_id.get(name, name)
+                        for name in assigned_assignees_names
                     ]
 
                     # Parse dates using dt_parse (same pattern as chores)
@@ -3762,9 +3809,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     errors[err.field] = err.translation_key
 
         # Build schema - pass date defaults for DateTimeSelector to work correctly
-        kids_dict = {
-            data[const.DATA_KID_NAME]: eid
-            for eid, data in coordinator.kids_data.items()
+        assignees_dict = {
+            data[const.DATA_ASSIGNEE_NAME]: eid
+            for eid, data in coordinator.assignees_data.items()
         }
 
         # On error, pass user's date inputs as schema defaults (DateTimeSelector pattern)
@@ -3780,7 +3827,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             }
 
         challenge_schema = fh.build_challenge_schema(
-            kids_dict=kids_dict, chores_dict=chores_dict, default=date_defaults
+            assignees_dict=assignees_dict,
+            chores_dict=chores_dict,
+            default=date_defaults,
         )
 
         # On error, use suggested values to preserve other user input
@@ -3812,10 +3861,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         challenge_data = challenges_dict[internal_id]
 
         if user_input is not None:
-            # Build kids name to ID mapping for conversion
-            kids_name_to_id = {
-                kid[const.DATA_KID_NAME]: kid[const.DATA_KID_INTERNAL_ID]
-                for kid in coordinator.data.get(const.DATA_KIDS, {}).values()
+            # Build assignees name to ID mapping for conversion
+            assignees_name_to_id = {
+                assignee[const.DATA_ASSIGNEE_NAME]: assignee[
+                    const.DATA_ASSIGNEE_INTERNAL_ID
+                ]
+                for assignee in coordinator.data.get(const.DATA_ASSIGNEES, {}).values()
             }
 
             # Layer 2: UI validation (uniqueness + type-specific checks)
@@ -3830,16 +3881,19 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_challenge_data(user_input)
 
-                    # Convert assigned kids from names to IDs (form uses names)
-                    assigned_kids_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_KIDS, []
+                    # Convert assigned assignees from names to IDs (form uses names)
+                    assigned_assignees_names = data_input.get(
+                        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
                     )
-                    if not isinstance(assigned_kids_names, list):
-                        assigned_kids_names = (
-                            [assigned_kids_names] if assigned_kids_names else []
+                    if not isinstance(assigned_assignees_names, list):
+                        assigned_assignees_names = (
+                            [assigned_assignees_names]
+                            if assigned_assignees_names
+                            else []
                         )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_KIDS] = [
-                        kids_name_to_id.get(name, name) for name in assigned_kids_names
+                    data_input[const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES] = [
+                        assignees_name_to_id.get(name, name)
+                        for name in assigned_assignees_names
                     ]
 
                     # Parse dates using dt_parse (same pattern as chores)
@@ -3905,14 +3959,17 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Create reverse mapping from internal_id to name (for display)
         id_to_name = {
-            kid_id: data[const.DATA_KID_NAME]
-            for kid_id, data in coordinator.kids_data.items()
+            assignee_id: data[const.DATA_ASSIGNEE_NAME]
+            for assignee_id, data in coordinator.assignees_data.items()
         }
 
-        # Convert assigned_kids from IDs to names for display (schema uses names)
-        assigned_kids_ids = challenge_data.get(const.DATA_CHALLENGE_ASSIGNED_KIDS, [])
-        assigned_kids_names = [
-            id_to_name.get(kid_id, kid_id) for kid_id in assigned_kids_ids
+        # Convert assigned_assignees from IDs to names for display (schema uses names)
+        assigned_assignees_ids = challenge_data.get(
+            const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
+        )
+        assigned_assignees_names = [
+            id_to_name.get(assignee_id, assignee_id)
+            for assignee_id in assigned_assignees_ids
         ]
 
         # Convert stored start/end dates to selector format for display
@@ -3934,13 +3991,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Build schema with date defaults passed directly (like chores pattern)
         # This ensures DateTimeSelector works correctly when user only changes time
-        kids_dict = {
-            data[const.DATA_KID_NAME]: kid_id
-            for kid_id, data in coordinator.kids_data.items()
+        assignees_dict = {
+            data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            for assignee_id, data in coordinator.assignees_data.items()
         }
         chores_dict = coordinator.chores_data
         challenge_schema = fh.build_challenge_schema(
-            kids_dict=kids_dict,
+            assignees_dict=assignees_dict,
             chores_dict=chores_dict,
             default={
                 const.CFOF_CHALLENGES_INPUT_START_DATE: start_date_display,
@@ -3949,7 +4006,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
         # Build suggested values from existing data (using CFOF keys for form)
-        # Note: assigned_kids uses names (schema SelectSelector uses names like chores)
+        # Note: assigned_assignees uses names (schema SelectSelector uses names like chores)
         suggested_values: dict[str, Any] = {
             const.CFOF_CHALLENGES_INPUT_NAME: challenge_data.get(
                 const.DATA_CHALLENGE_NAME, ""
@@ -3963,7 +4020,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHALLENGES_INPUT_ICON: challenge_data.get(
                 const.DATA_CHALLENGE_ICON
             ),
-            const.CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS: assigned_kids_names,
+            const.CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees_names,
             const.CFOF_CHALLENGES_INPUT_TYPE: challenge_data.get(
                 const.DATA_CHALLENGE_TYPE, const.CHALLENGE_TYPE_DAILY_MIN
             ),
@@ -4185,7 +4242,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
             errors[const.CFOP_ERROR_BASE] = const.TRANS_KEY_CFOF_DASHBOARD_NO_DASHBOARDS
 
-        dedupe_removed = await builder.async_dedupe_kidschores_dashboards(self.hass)
+        dedupe_removed = await builder.async_dedupe_choreops_dashboards(self.hass)
         self._dashboard_dedupe_removed = dedupe_removed
 
         schema = dh.build_dashboard_update_selection_schema(self.hass)
@@ -4226,12 +4283,12 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             user_input = dh.normalize_dashboard_configure_input(user_input)
             self._dashboard_dedupe_removed = {}
-            selected_kids_input = user_input.get(
-                const.CFOF_DASHBOARD_INPUT_KID_SELECTION,
+            selected_assignees_input = user_input.get(
+                const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION,
                 [],
             )
-            selected_kids: list[str] = (
-                list(selected_kids_input) if selected_kids_input else []
+            selected_assignees: list[str] = (
+                list(selected_assignees_input) if selected_assignees_input else []
             )
 
             template_profile = str(
@@ -4250,8 +4307,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             has_admin_template_global_input = (
                 const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_GLOBAL in user_input
             )
-            has_admin_template_per_kid_input = (
-                const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_KID in user_input
+            has_admin_template_per_assignee_input = (
+                const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_ASSIGNEE in user_input
             )
             admin_template_global = str(
                 user_input.get(
@@ -4259,10 +4316,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_admin_template_global,
                 )
             ).strip()
-            admin_template_per_kid = str(
+            admin_template_per_assignee = str(
                 user_input.get(
-                    const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_KID,
-                    self._dashboard_admin_template_per_kid,
+                    const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_ASSIGNEE,
+                    self._dashboard_admin_template_per_assignee,
                 )
             ).strip()
             admin_view_visibility = str(
@@ -4307,8 +4364,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     const.DASHBOARD_ADMIN_MODE_GLOBAL,
                     const.DASHBOARD_ADMIN_MODE_BOTH,
                 )
-                needs_per_kid_template = admin_mode in (
-                    const.DASHBOARD_ADMIN_MODE_PER_KID,
+                needs_per_assignee_template = admin_mode in (
+                    const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
                     const.DASHBOARD_ADMIN_MODE_BOTH,
                 )
                 missing_global_template_selection = (
@@ -4316,20 +4373,22 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     and not has_admin_template_global_input
                     and not admin_template_global
                 )
-                missing_per_kid_template_selection = (
-                    needs_per_kid_template
-                    and not has_admin_template_per_kid_input
-                    and not admin_template_per_kid
+                missing_per_assignee_template_selection = (
+                    needs_per_assignee_template
+                    and not has_admin_template_per_assignee_input
+                    and not admin_template_per_assignee
                 )
                 if (
                     missing_global_template_selection
-                    or missing_per_kid_template_selection
+                    or missing_per_assignee_template_selection
                 ):
-                    self._dashboard_selected_kids = selected_kids
+                    self._dashboard_selected_assignees = selected_assignees
                     self._dashboard_template_profile = template_profile
                     self._dashboard_admin_mode = admin_mode
                     self._dashboard_admin_template_global = admin_template_global
-                    self._dashboard_admin_template_per_kid = admin_template_per_kid
+                    self._dashboard_admin_template_per_assignee = (
+                        admin_template_per_assignee
+                    )
                     self._dashboard_admin_view_visibility = admin_view_visibility
                     self._dashboard_show_in_sidebar = show_in_sidebar
                     self._dashboard_require_admin = require_admin
@@ -4338,9 +4397,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_include_prereleases = include_prereleases
                     return await self.async_step_dashboard_configure()
 
-            if not selected_kids and admin_mode == const.DASHBOARD_ADMIN_MODE_NONE:
+            if not selected_assignees and admin_mode == const.DASHBOARD_ADMIN_MODE_NONE:
                 errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_DASHBOARD_NO_KIDS_WITHOUT_ADMIN
+                    const.TRANS_KEY_CFOF_DASHBOARD_NO_ASSIGNEES_WITHOUT_ADMIN
                 )
             elif (
                 admin_mode
@@ -4356,24 +4415,24 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             elif (
                 admin_mode
                 in (
-                    const.DASHBOARD_ADMIN_MODE_PER_KID,
+                    const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
                     const.DASHBOARD_ADMIN_MODE_BOTH,
                 )
-                and not admin_template_per_kid
+                and not admin_template_per_assignee
             ):
                 errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_KID_TEMPLATE_REQUIRED
+                    const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_TEMPLATE_REQUIRED
                 )
             elif (
                 admin_mode
                 in (
-                    const.DASHBOARD_ADMIN_MODE_PER_KID,
+                    const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
                     const.DASHBOARD_ADMIN_MODE_BOTH,
                 )
-                and not selected_kids
+                and not selected_assignees
             ):
                 errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_KID_NEEDS_KIDS
+                    const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES
                 )
             elif (
                 is_update_flow
@@ -4395,11 +4454,13 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                     else None
                 )
 
-                self._dashboard_selected_kids = selected_kids
+                self._dashboard_selected_assignees = selected_assignees
                 self._dashboard_template_profile = template_profile
                 self._dashboard_admin_mode = admin_mode
                 self._dashboard_admin_template_global = admin_template_global
-                self._dashboard_admin_template_per_kid = admin_template_per_kid
+                self._dashboard_admin_template_per_assignee = (
+                    admin_template_per_assignee
+                )
                 self._dashboard_show_in_sidebar = show_in_sidebar
                 self._dashboard_require_admin = require_admin
                 self._dashboard_icon = icon or "mdi:clipboard-list"
@@ -4409,7 +4470,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 admin_visible_user_ids = (
                     self._get_user_ha_user_ids()
                     if admin_view_visibility
-                    == const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_PARENTS
+                    == const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS
                     else None
                 )
 
@@ -4419,10 +4480,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         if url_path is None:
                             return await self.async_step_dashboard_update_select()
 
-                        view_count = await builder.update_kidschores_dashboard_views(
+                        view_count = await builder.update_choreops_dashboard_views(
                             self.hass,
                             url_path=url_path,
-                            kid_names=selected_kids,
+                            assignee_names=selected_assignees,
                             template_profile=template_profile,
                             include_admin=include_admin,
                             admin_mode=admin_mode,
@@ -4436,25 +4497,23 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                         )
                         self._dashboard_status_message = f"Updated {url_path} (views={view_count}, release_selection={release_selection})"
                     else:
-                        dedupe_removed = (
-                            await builder.async_dedupe_kidschores_dashboards(
-                                self.hass,
-                                url_path=builder.get_multi_view_url_path(
-                                    self._dashboard_name
-                                ),
-                            )
+                        dedupe_removed = await builder.async_dedupe_choreops_dashboards(
+                            self.hass,
+                            url_path=builder.get_multi_view_url_path(
+                                self._dashboard_name
+                            ),
                         )
                         self._dashboard_dedupe_removed = dedupe_removed
 
-                        url_path = await builder.create_kidschores_dashboard(
+                        url_path = await builder.create_choreops_dashboard(
                             self.hass,
                             dashboard_name=self._dashboard_name,
-                            kid_names=selected_kids,
+                            assignee_names=selected_assignees,
                             style=template_profile,
-                            kid_template_profiles=dict.fromkeys(
-                                selected_kids, template_profile
+                            assignee_template_profiles=dict.fromkeys(
+                                selected_assignees, template_profile
                             )
-                            if selected_kids
+                            if selected_assignees
                             else None,
                             include_admin=include_admin,
                             admin_mode=admin_mode,
@@ -4465,7 +4524,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                             admin_view_visibility=admin_view_visibility,
                             admin_visible_user_ids=admin_visible_user_ids,
                         )
-                        self._dashboard_status_message = f"Created {url_path} (kids={len(selected_kids)}, admin_mode={admin_mode})"
+                        self._dashboard_status_message = f"Created {url_path} (assignees={len(selected_assignees)}, admin_mode={admin_mode})"
 
                     return await self.async_step_dashboard_generator()
                 except builder.DashboardTemplateError:
@@ -4495,11 +4554,11 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             coordinator,
             include_release_controls=is_update_flow,
             release_tags=available_release_tags,
-            selected_kids_default=self._dashboard_selected_kids,
+            selected_assignees_default=self._dashboard_selected_assignees,
             template_profile_default=self._dashboard_template_profile,
             admin_mode_default=self._dashboard_admin_mode,
             admin_template_global_default=self._dashboard_admin_template_global,
-            admin_template_per_kid_default=self._dashboard_admin_template_per_kid,
+            admin_template_per_assignee_default=self._dashboard_admin_template_per_assignee,
             admin_view_visibility_default=self._dashboard_admin_view_visibility,
             show_in_sidebar_default=self._dashboard_show_in_sidebar,
             require_admin_default=self._dashboard_require_admin,
@@ -4524,7 +4583,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> ConfigFlowResult:
         """Handle dashboard deletion selection.
 
-        Shows list of existing KidsChores dashboards for deletion.
+        Shows list of existing ChoreOps dashboards for deletion.
         """
         from .helpers import dashboard_builder as builder, dashboard_helpers as dh
 
@@ -4539,8 +4598,8 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_dashboard_delete_confirm()
             errors[const.CFOP_ERROR_BASE] = const.TRANS_KEY_CFOF_DASHBOARD_NO_DASHBOARDS
 
-        # Cleanup duplicate KidsChores dashboard entries before presenting delete list
-        dedupe_removed = await builder.async_dedupe_kidschores_dashboards(self.hass)
+        # Cleanup duplicate ChoreOps dashboard entries before presenting delete list
+        dedupe_removed = await builder.async_dedupe_choreops_dashboards(self.hass)
         self._dashboard_dedupe_removed = dedupe_removed
 
         # Reuse update selector to enforce single-select deletion contract
@@ -4565,7 +4624,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             url_path = self._dashboard_delete_selection[0]
             try:
-                await builder.delete_kidschores_dashboard(self.hass, url_path)
+                await builder.delete_choreops_dashboard(self.hass, url_path)
                 const.LOGGER.info("Deleted dashboard: %s", url_path)
                 self._dashboard_status_message = f"Deleted {url_path}"
             except Exception as err:
@@ -4808,10 +4867,10 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         import os
         from pathlib import Path
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         try:
-            store = KidsChoresStore(self.hass)
+            store = ChoreOpsStore(self.hass)
             storage_path = Path(store.get_storage_path())
 
             # Create safety backup if file exists
@@ -4974,7 +5033,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         from pathlib import Path
         import shutil
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         try:
             # Get storage path directly without creating storage manager yet
@@ -5012,7 +5071,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             )
             if storage_file_exists:
                 # Create storage manager only for safety backup creation
-                store = KidsChoresStore(self.hass)
+                store = ChoreOpsStore(self.hass)
                 safety_backup = await bh.create_timestamped_backup(
                     self.hass, store, const.BACKUP_TAG_RECOVERY
                 )
@@ -5033,7 +5092,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             else:
                 # Raw data format (like v30, v31, v40beta1 samples)
                 # Load through storage manager to add proper wrapper
-                store = KidsChoresStore(self.hass)
+                store = ChoreOpsStore(self.hass)
                 store.set_data(backup_data)
                 await store.async_save()
 
@@ -5049,7 +5108,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_backup_actions_menu(self, user_input=None):
         """Show backup management actions menu."""
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         if user_input is not None:
             action = user_input[const.CFOF_BACKUP_ACTION_SELECTION]
@@ -5064,7 +5123,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_init()
 
         # Discover backups to show count
-        store = KidsChoresStore(self.hass)
+        store = ChoreOpsStore(self.hass)
         backups = await bh.discover_backups(self.hass, store)
         backup_count = len(backups)
 
@@ -5105,9 +5164,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         from pathlib import Path
 
         from . import migration_pre_v50 as mp50
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
-        store = KidsChoresStore(self.hass)
+        store = ChoreOpsStore(self.hass)
 
         if user_input is not None:
             selection = user_input.get(const.CFOF_BACKUP_SELECTION)
@@ -5137,7 +5196,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         root_storage_dir = scoped_storage_dir.parent
 
         def _discover_legacy_root_files() -> list[dict[str, Any]]:
-            """Return legacy root kidschores_data* files from .storage/."""
+            """Return legacy root choreops_data* files from .storage/."""
             candidates: list[dict[str, Any]] = []
 
             if not root_storage_dir.exists():
@@ -5226,9 +5285,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_select_backup_to_restore(self, user_input=None):
         """Select a backup file to restore."""
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
-        store = KidsChoresStore(self.hass)
+        store = ChoreOpsStore(self.hass)
 
         if user_input is not None:
             selection = user_input.get(const.CFOF_BACKUP_SELECTION)
@@ -5309,9 +5368,9 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_create_manual_backup(self, user_input=None):
         """Create a manual backup."""
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
-        store = KidsChoresStore(self.hass)
+        store = ChoreOpsStore(self.hass)
 
         if user_input is not None:
             if user_input.get("confirm"):
@@ -5360,14 +5419,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         """Confirm backup deletion."""
         from pathlib import Path
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         # Get backup target path from context (set by select_backup_to_delete step)
         backup_target = getattr(self, "_backup_to_delete", None)
 
         if user_input is not None:
             if user_input.get("confirm"):
-                store = KidsChoresStore(self.hass)
+                store = ChoreOpsStore(self.hass)
                 storage_path = Path(store.get_storage_path())
                 # Type guard: ensure backup_target is a string before using in Path operation
                 if isinstance(backup_target, str):
@@ -5430,14 +5489,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         from pathlib import Path
         import shutil
 
-        from .store import KidsChoresStore
+        from .store import ChoreOpsStore
 
         # Get backup filename from context (set by select_backup_to_restore step)
         backup_filename = getattr(self, "_backup_to_restore", None)
 
         if user_input is not None:
             if user_input.get("confirm"):
-                store = KidsChoresStore(self.hass)
+                store = ChoreOpsStore(self.hass)
                 storage_path = Path(store.get_storage_path())
                 # Type guard: ensure backup_filename is a string before using in Path operation
                 if not isinstance(backup_filename, str):
@@ -5566,7 +5625,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             return coordinator.users_for_management
 
         entity_type_to_data = {
-            const.OPTIONS_FLOW_DIC_KID: const.DATA_KIDS,
+            const.OPTIONS_FLOW_DIC_ASSIGNEE: const.DATA_ASSIGNEES,
             const.OPTIONS_FLOW_DIC_CHORE: const.DATA_CHORES,
             const.OPTIONS_FLOW_DIC_BADGE: const.DATA_BADGES,
             const.OPTIONS_FLOW_DIC_REWARD: const.DATA_REWARDS,
@@ -5587,14 +5646,14 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
     def _get_user_ha_user_ids(self) -> list[str]:
         """Return distinct linked user Home Assistant user IDs."""
         coordinator = self._get_coordinator()
-        parents_data = coordinator.parents_data
+        approvers_data = coordinator.approvers_data
 
         user_ids: list[str] = []
         seen: set[str] = set()
-        for parent_data in parents_data.values():
-            if not isinstance(parent_data, dict):
+        for approver_data in approvers_data.values():
+            if not isinstance(approver_data, dict):
                 continue
-            user_id = parent_data.get(const.DATA_PARENT_HA_USER_ID)
+            user_id = approver_data.get(const.DATA_APPROVER_HA_USER_ID)
             if not isinstance(user_id, str):
                 continue
             normalized_user_id = user_id.strip()
@@ -5604,13 +5663,6 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
             user_ids.append(normalized_user_id)
 
         return user_ids
-
-    def _get_parent_ha_user_ids(self) -> list[str]:
-        """Compatibility wrapper for legacy parent naming.
-
-        Prefer `_get_user_ha_user_ids()` for runtime flow surfaces.
-        """
-        return self._get_user_ha_user_ids()
 
     def _mark_reload_needed(self):
         """Mark that a reload is needed after the current flow completes.
@@ -5624,7 +5676,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         self._reload_needed = True
 
     async def _reload_entry_after_entity_change(self):
-        """Reload config entry after entity data changes (kids, chores, badges, etc.).
+        """Reload config entry after entity data changes (assignees, chores, badges, etc.).
 
         Runs cleanup before reload to remove orphaned entities and entities disabled by flags.
         Complementary to async_update_options (in __init__.py) which handles system settings.
@@ -5683,7 +5735,7 @@ class KidsChoresOptionsFlowHandler(config_entries.OptionsFlow):
         )
         try:
             await self.hass.config_entries.async_reload(self.config_entry.entry_id)
-            const.LOGGER.debug("System settings updated and KidsChores reloaded")
+            const.LOGGER.debug("System settings updated and ChoreOps reloaded")
         except Exception as err:
             const.LOGGER.error(
                 "Failed to reload config entry after system settings update: %s",

@@ -1,4 +1,4 @@
-"""Modern test fixtures for KidsChores integration tests.
+"""Modern test fixtures for ChoreOps integration tests.
 
 This conftest provides ONLY the core fixtures needed for modern testing:
 1. pytest_plugins for HA test framework
@@ -74,15 +74,15 @@ async def mock_hass_users(hass: HomeAssistant) -> dict[str, Any]:
 
     User keys match ha_user values expected in test YAML files:
     - admin: System admin
-    - parent1-parent25: Parent users (can approve chores)
-    - kid1-kid100: Kid users (can claim chores)
+    - approver1-approver25: Approver users (can approve chores)
+    - assignee1-assignee100: Assignee users (can claim chores)
 
-    Supports scenarios from minimal (3 kids) to stress (100 kids, 25 parents).
+    Supports scenarios from minimal (3 assignees) to stress (100 assignees, 25 approvers).
 
     Usage in tests:
         from homeassistant.core import Context
-        kid_context = Context(user_id=mock_hass_users["kid1"].id)
-        parent_context = Context(user_id=mock_hass_users["parent1"].id)
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_context = Context(user_id=mock_hass_users["approver1"].id)
     """
     users: dict[str, Any] = {}
 
@@ -92,17 +92,17 @@ async def mock_hass_users(hass: HomeAssistant) -> dict[str, Any]:
         group_ids=["system-admin"],
     )
 
-    # Create 25 parent users (covers stress scenario)
+    # Create 25 approver users (covers stress scenario)
     for i in range(1, 26):
-        users[f"parent{i}"] = await hass.auth.async_create_user(
-            f"Parent {i}",
+        users[f"approver{i}"] = await hass.auth.async_create_user(
+            f"Approver {i}",
             group_ids=["system-users"],
         )
 
-    # Create 100 kid users (covers stress scenario)
+    # Create 100 assignee users (covers stress scenario)
     for i in range(1, 101):
-        users[f"kid{i}"] = await hass.auth.async_create_user(
-            f"Kid {i}",
+        users[f"assignee{i}"] = await hass.auth.async_create_user(
+            f"Assignee {i}",
             group_ids=["system-users"],
         )
 
@@ -116,14 +116,14 @@ async def mock_hass_users(hass: HomeAssistant) -> dict[str, Any]:
 
 @pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
-    """Create a minimal config entry for KidsChores.
+    """Create a minimal config entry for ChoreOps.
 
-    Note: KidsChores v4.2+ stores entity data in .storage/kidschores_data,
+    Note: ChoreOps v4.2+ stores entity data in .storage/choreops_data,
     NOT in config_entry.data. The config_entry only holds system settings.
     """
     return MockConfigEntry(
         domain=DOMAIN,
-        title="KidsChores",
+        title="ChoreOps",
         data={},  # Empty - data lives in storage
         options={},
         unique_id=None,
@@ -135,8 +135,8 @@ def mock_storage_data() -> dict[str, dict]:
     """Provide empty storage structure for testing initialization."""
     return {
         "meta": {"schema_version": 44},
-        "kids": {},
-        "parents": {},
+        "assignees": {},
+        "approvers": {},
         "chores": {},
         "badges": {},
         "rewards": {},
@@ -168,10 +168,10 @@ async def init_integration(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
 ) -> MockConfigEntry:
-    """Set up KidsChores integration with empty data.
+    """Set up ChoreOps integration with empty data.
 
     This loads the integration fully (coordinator + all entity platforms)
-    but with no kids, chores, etc. Use scenario fixtures for populated data.
+    but with no assignees, chores, etc. Use scenario fixtures for populated data.
 
     Returns the config entry after successful setup.
     """
@@ -188,8 +188,8 @@ async def init_integration(
         "homeassistant.helpers.storage.Store.async_load",
         return_value={
             "meta": {"schema_version": 44},
-            "kids": {},
-            "parents": {},
+            "assignees": {},
+            "approvers": {},
             "chores": {},
             "badges": {},
             "rewards": {},

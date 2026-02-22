@@ -1,7 +1,7 @@
 # File: helpers/auth_helpers.py
-"""Authorization helper functions for KidsChores.
+"""Authorization helper functions for ChoreOps.
 
-Functions that check user permissions for KidsChores operations.
+Functions that check user permissions for ChoreOps operations.
 All functions here require a `hass` object for auth system access.
 """
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from homeassistant.auth.models import User
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 # ==============================================================================
@@ -23,16 +23,16 @@ if TYPE_CHECKING:
 # ==============================================================================
 
 
-def _get_kidschores_coordinator(
+def _get_choreops_coordinator(
     hass: HomeAssistant,
-) -> KidsChoresDataCoordinator | None:
-    """Retrieve KidsChores coordinator from config entry runtime_data.
+) -> ChoreOpsDataCoordinator | None:
+    """Retrieve ChoreOps coordinator from config entry runtime_data.
 
     Args:
         hass: HomeAssistant instance
 
     Returns:
-        KidsChoresDataCoordinator if found, None otherwise
+        ChoreOpsDataCoordinator if found, None otherwise
     """
     entries = hass.config_entries.async_entries(const.DOMAIN)
     if not entries:
@@ -46,7 +46,7 @@ def _get_kidschores_coordinator(
 
 
 def is_kiosk_mode_enabled(hass: HomeAssistant) -> bool:
-    """Return whether kiosk mode is enabled in active KidsChores options.
+    """Return whether kiosk mode is enabled in active ChoreOps options.
 
     Args:
         hass: HomeAssistant instance
@@ -141,8 +141,8 @@ def _get_record_ha_user_ref(user_data: dict[str, object]) -> str | None:
     """Return HA user reference from canonical or compatibility keys."""
     for key in (
         const.DATA_USER_HA_USER_ID,
-        const.DATA_PARENT_HA_USER_ID,
-        const.DATA_KID_HA_USER_ID,
+        const.DATA_APPROVER_HA_USER_ID,
+        const.DATA_ASSIGNEE_HA_USER_ID,
     ):
         value = user_data.get(key)
         if isinstance(value, str) and value:
@@ -177,7 +177,7 @@ async def _has_management_authority(
     if user.is_admin:
         return True
 
-    coordinator: KidsChoresDataCoordinator | None = _get_kidschores_coordinator(hass)
+    coordinator: ChoreOpsDataCoordinator | None = _get_choreops_coordinator(hass)
     if not coordinator:
         return False
 
@@ -196,10 +196,10 @@ async def _has_management_authority(
                 return True
 
     # Legacy fallback during migration
-    for parent in coordinator.parents_data.values():
+    for approver_record in coordinator.approvers_data.values():
         if _ha_user_ref_matches(
-            user, parent.get(const.DATA_PARENT_HA_USER_ID)
-        ) and parent.get(const.DATA_USER_CAN_MANAGE, False):
+            user, approver_record.get(const.DATA_APPROVER_HA_USER_ID)
+        ) and approver_record.get(const.DATA_USER_CAN_MANAGE, False):
             return True
 
     return False
@@ -221,7 +221,7 @@ async def _has_approval_authority_for_target(
     if user.is_admin:
         return True
 
-    coordinator: KidsChoresDataCoordinator | None = _get_kidschores_coordinator(hass)
+    coordinator: ChoreOpsDataCoordinator | None = _get_choreops_coordinator(hass)
     if not coordinator:
         return False
 
@@ -243,10 +243,10 @@ async def _has_approval_authority_for_target(
             return True
 
     # Legacy fallback during migration
-    for parent in coordinator.parents_data.values():
+    for approver_record in coordinator.approvers_data.values():
         if _ha_user_ref_matches(
-            user, parent.get(const.DATA_PARENT_HA_USER_ID)
-        ) and parent.get(const.DATA_USER_CAN_APPROVE, False):
+            user, approver_record.get(const.DATA_APPROVER_HA_USER_ID)
+        ) and approver_record.get(const.DATA_USER_CAN_APPROVE, False):
             return True
 
     return False
@@ -268,7 +268,7 @@ async def _has_participation_authority_for_target(
     if user.is_admin:
         return True
 
-    coordinator: KidsChoresDataCoordinator | None = _get_kidschores_coordinator(hass)
+    coordinator: ChoreOpsDataCoordinator | None = _get_choreops_coordinator(hass)
     if not coordinator:
         return False
 
@@ -307,9 +307,9 @@ async def _has_participation_authority_for_target(
             if target_user_id in {user_key, user_internal_id}:
                 return True
 
-        kid_info = coordinator.kids_data.get(target_user_id)
-        if kid_info:
-            linked_ha_id = kid_info.get(const.DATA_KID_HA_USER_ID)
+        assignee_info = coordinator.assignees_data.get(target_user_id)
+        if assignee_info:
+            linked_ha_id = assignee_info.get(const.DATA_ASSIGNEE_HA_USER_ID)
             if _ha_user_ref_matches(user, linked_ha_id):
                 return True
             if linked_ha_id in (None, ""):
@@ -317,17 +317,17 @@ async def _has_participation_authority_for_target(
         return False
 
     # Legacy fallback during migration
-    for parent in coordinator.parents_data.values():
+    for approver_record in coordinator.approvers_data.values():
         if _ha_user_ref_matches(
-            user, parent.get(const.DATA_PARENT_HA_USER_ID)
-        ) and parent.get(const.DATA_USER_CAN_APPROVE, False):
+            user, approver_record.get(const.DATA_APPROVER_HA_USER_ID)
+        ) and approver_record.get(const.DATA_USER_CAN_APPROVE, False):
             return True
 
-    kid_info = coordinator.kids_data.get(target_user_id)
-    if not kid_info:
+    assignee_info = coordinator.assignees_data.get(target_user_id)
+    if not assignee_info:
         return False
 
-    linked_ha_id = kid_info.get(const.DATA_KID_HA_USER_ID)
+    linked_ha_id = assignee_info.get(const.DATA_ASSIGNEE_HA_USER_ID)
     if _ha_user_ref_matches(user, linked_ha_id):
         return True
     if linked_ha_id in (None, ""):

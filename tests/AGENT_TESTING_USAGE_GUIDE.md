@@ -1,6 +1,6 @@
 # Agent Test Validation Guide
 
-**Purpose**: Quick reference for validating production code changes using the KidsChores test suite.
+**Purpose**: Quick reference for validating production code changes using the ChoreOps test suite.
 
 > **⚠️ Terminal Requirement**: Always run commands (tests, lint) inside an actual terminal session so output is captured and visible. Never simulate command execution.
 
@@ -41,7 +41,7 @@ python -m pytest tests/ -x
 | --------------------- | --------------------------------------- | ------------------------------- |
 | UI flows work         | `test_config_flow*.py`                  | Setup and configuration         |
 | Business logic intact | `test_workflow*.py`                     | Core functionality              |
-| Multi-kid features    | `test_shared*.py` + `test_workflow*.py` | Coordination patterns           |
+| Multi-assignee features    | `test_shared*.py` + `test_workflow*.py` | Coordination patterns           |
 | Full integration      | `test_e2e*.py` + all workflow tests     | End-to-end workflows            |
 | Performance impact    | `test_performance*.py`                  | Badge computation & entity load |
 
@@ -54,7 +54,7 @@ python -m pytest tests/ -x
 ### Running Performance Tests
 
 ```bash
-# Default (uses scenario_stress.yaml - 19 kids, 510 entities)
+# Default (uses scenario_stress.yaml - 19 assignees, 510 entities)
 python -m pytest tests/test_performance_comprehensive.py -s --tb=short
 
 # Custom scenario via environment variable
@@ -63,7 +63,7 @@ PERF_SCENARIO=scenario_full.yaml python -m pytest tests/test_performance_compreh
 
 ### What the Performance Test Measures
 
-- **Badge computation time** - How long badge calculations take across all kids
+- **Badge computation time** - How long badge calculations take across all assignees
 - **Overdue checking** - Time to scan all chores for overdue status
 - **Entity persistence** - Storage queue processing time
 - **Entity count** - Total entities created for trend tracking
@@ -72,9 +72,9 @@ PERF_SCENARIO=scenario_full.yaml python -m pytest tests/test_performance_compreh
 
 | Scenario                         | Dataset                                      | Use Case                |
 | -------------------------------- | -------------------------------------------- | ----------------------- |
-| `scenario_stress.yaml` (default) | 19 kids, 19 chores, 5 badges (~510 entities) | Standard stress test    |
-| `scenario_full.yaml`             | 3 kids, 18 chores, 2 badges (~236 entities)  | Quick integration check |
-| `scenario_minimal.yaml`          | 1 kid, 1 chore                               | Fastest sanity check    |
+| `scenario_stress.yaml` (default) | 19 assignees, 19 chores, 5 badges (~510 entities) | Standard stress test    |
+| `scenario_full.yaml`             | 3 assignees, 18 chores, 2 badges (~236 entities)  | Quick integration check |
+| `scenario_minimal.yaml`          | 1 assignee, 1 chore                               | Fastest sanity check    |
 
 ### Performance Thresholds
 
@@ -138,7 +138,7 @@ from tests.helpers import setup_from_yaml, CHORE_STATE_PENDING
 
 ```python
 # Problem: Manually constructed entity IDs
-entity_id = f"sensor.kc_{kid_name.lower()}_points"  # ❌ Wrong
+entity_id = f"sensor.kc_{assignee_name.lower()}_points"  # ❌ Wrong
 
 # Solution: Get from dashboard helper
 helper_state = hass.states.get("sensor.kc_zoe_ui_dashboard_helper")
@@ -152,7 +152,7 @@ points_eid = helper_state.attributes["core_sensors"]["points_eid"]  # ✅ Correc
 await hass.services.async_call("button", "press", {"entity_id": button_id})  # ❌ Wrong
 
 # Solution: Add user context
-context = Context(user_id=mock_hass_users["parent1"].id)
+context = Context(user_id=mock_hass_users["approver1"].id)
 await hass.services.async_call("button", "press", {"entity_id": button_id}, context=context)  # ✅ Correct
 ```
 

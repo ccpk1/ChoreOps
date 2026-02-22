@@ -25,8 +25,8 @@ from . import const
 if TYPE_CHECKING:
     from homeassistant.core import Event, HomeAssistant
 
-    from .coordinator import KidsChoresDataCoordinator
-    from .type_defs import KidData
+    from .coordinator import ChoreOpsDataCoordinator
+    from .type_defs import AssigneeData
 
 
 # =============================================================================
@@ -79,7 +79,7 @@ class ParsedAction:
         return self.action_type in (
             const.ACTION_APPROVE_CHORE,
             const.ACTION_CLAIM_CHORE,
-            const.ACTION_COMPLETE_FOR_KID,
+            const.ACTION_COMPLETE_FOR_ASSIGNEE,
             const.ACTION_DISAPPROVE_CHORE,
             const.ACTION_SKIP_CHORE,
         )
@@ -150,7 +150,7 @@ def parse_notification_action(action_field: str) -> ParsedAction | None:
             const.ACTION_APPROVE_CHORE,
             const.ACTION_DISAPPROVE_CHORE,
             const.ACTION_CLAIM_CHORE,
-            const.ACTION_COMPLETE_FOR_KID,
+            const.ACTION_COMPLETE_FOR_ASSIGNEE,
             const.ACTION_SKIP_CHORE,
             const.ACTION_APPROVE_REWARD,
             const.ACTION_DISAPPROVE_REWARD,
@@ -233,16 +233,16 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
             break
     if not target_entry:
         const.LOGGER.error(
-            "KidsChores config entry not found for truncated ID: %s",
+            "ChoreOps config entry not found for truncated ID: %s",
             parsed.entry_id,
         )
         return
 
     # Get coordinator from runtime_data
-    coordinator: KidsChoresDataCoordinator = target_entry.runtime_data
+    coordinator: ChoreOpsDataCoordinator = target_entry.runtime_data
     if not coordinator:
         const.LOGGER.error(
-            "KidsChores coordinator not found in runtime_data for entry: %s",
+            "ChoreOps coordinator not found in runtime_data for entry: %s",
             target_entry.entry_id,
         )
         return
@@ -250,59 +250,59 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
     try:
         if parsed.action_type == const.ACTION_APPROVE_CHORE:
             await coordinator.chore_manager.approve_chore(
-                parent_name=approver_name,
-                kid_id=parsed.assignee_id,
+                approver_name,
+                assignee_id=parsed.assignee_id,
                 chore_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_CLAIM_CHORE:
-            # Kid claiming chore from notification (e.g., overdue reminder)
-            kid_info: KidData = cast(
-                "KidData", coordinator.kids_data.get(parsed.assignee_id, {})
+            # Assignee claiming chore from notification (e.g., overdue reminder)
+            assignee_info: AssigneeData = cast(
+                "AssigneeData", coordinator.assignees_data.get(parsed.assignee_id, {})
             )
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
             # Async method with lock protection
             await coordinator.chore_manager.claim_chore(
-                kid_id=parsed.assignee_id,
+                assignee_id=parsed.assignee_id,
                 chore_id=parsed.entity_id,
-                user_name=kid_name,
+                user_name=assignee_name,
             )
-        elif parsed.action_type == const.ACTION_COMPLETE_FOR_KID:
-            # Parent completes chore directly (no claim needed)
+        elif parsed.action_type == const.ACTION_COMPLETE_FOR_ASSIGNEE:
+            # Approver completes chore directly (no claim needed)
             await coordinator.chore_manager.approve_chore(
-                parent_name=approver_name,
-                kid_id=parsed.assignee_id,
+                approver_name,
+                assignee_id=parsed.assignee_id,
                 chore_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_DISAPPROVE_CHORE:
             await coordinator.chore_manager.disapprove_chore(
-                parent_name=approver_name,
-                kid_id=parsed.assignee_id,
+                approver_name,
+                assignee_id=parsed.assignee_id,
                 chore_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_SKIP_CHORE:
             # Reset overdue chore to pending and reschedule
             await coordinator.chore_manager.reset_overdue_chores(
                 chore_id=parsed.entity_id,
-                kid_id=parsed.assignee_id,
+                assignee_id=parsed.assignee_id,
             )
         elif parsed.action_type == const.ACTION_APPROVE_REWARD:
             await coordinator.reward_manager.approve(
-                parent_name=approver_name,
-                kid_id=parsed.assignee_id,
+                approver_name,
+                assignee_id=parsed.assignee_id,
                 reward_id=parsed.entity_id,
                 notif_id=parsed.notif_id,
             )
         elif parsed.action_type == const.ACTION_DISAPPROVE_REWARD:
             # Async method with lock protection
             await coordinator.reward_manager.disapprove(
-                parent_name=approver_name,
-                kid_id=parsed.assignee_id,
+                approver_name,
+                assignee_id=parsed.assignee_id,
                 reward_id=parsed.entity_id,
             )
         elif parsed.action_type == const.ACTION_REMIND_30:
             # Reminder can be for chore or reward - use computed properties
             await coordinator.notification_manager.remind_in_minutes(
-                kid_id=parsed.assignee_id,
+                assignee_id=parsed.assignee_id,
                 chore_id=parsed.chore_id,
                 reward_id=parsed.reward_id,
                 minutes=const.DEFAULT_REMINDER_DELAY,

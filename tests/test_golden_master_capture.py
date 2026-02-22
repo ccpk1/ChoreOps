@@ -66,7 +66,7 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
     - badges_data: All badge definitions
     - achievements_data: All achievement definitions
     - challenges_data: All challenge definitions
-    - per_kid_data: For each kid:
+    - per_assignee_data: For each assignee:
         - badge_progress: Progress toward each badge
         - badges_earned: Earned badge records
         - achievement_progress: Progress toward achievements
@@ -74,7 +74,7 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
         - chore_stats: Stats that feed into gamification (streaks, totals)
 
     Args:
-        coordinator: The KidsChoresCoordinator instance
+        coordinator: The ChoreOpsCoordinator instance
 
     Returns:
         Dict with gamification snapshot
@@ -88,7 +88,7 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
         "badges_data": {},
         "achievements_data": {},
         "challenges_data": {},
-        "per_kid_data": {},
+        "per_assignee_data": {},
     }
 
     # Extract badge definitions
@@ -103,12 +103,12 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
     for chal_id, chal_info in coordinator.challenges_data.items():
         result["challenges_data"][chal_id] = _sanitize_for_json(chal_info)
 
-    # Extract per-kid gamification state
-    for kid_id, kid_info in coordinator.kids_data.items():
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+    # Extract per-assignee gamification state
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
-        kid_gamification: dict[str, Any] = {
-            "kid_name": kid_name,
+        assignee_gamification: dict[str, Any] = {
+            "assignee_name": assignee_name,
             "badge_progress": {},
             "badges_earned": {},
             "cumulative_badge_progress": {},
@@ -116,38 +116,46 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
         }
 
         # Badge progress
-        badge_progress = kid_info.get(const.DATA_KID_BADGE_PROGRESS, {})
+        badge_progress = assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
         for badge_id, progress in badge_progress.items():
-            kid_gamification["badge_progress"][badge_id] = _sanitize_for_json(progress)
+            assignee_gamification["badge_progress"][badge_id] = _sanitize_for_json(
+                progress
+            )
 
         # Badges earned
-        badges_earned = kid_info.get(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         for badge_id, earned_data in badges_earned.items():
-            kid_gamification["badges_earned"][badge_id] = _sanitize_for_json(
+            assignee_gamification["badges_earned"][badge_id] = _sanitize_for_json(
                 earned_data
             )
 
         # Cumulative badge progress (for badge tier maintenance)
-        cumulative_progress = kid_info.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
-        kid_gamification["cumulative_badge_progress"] = _sanitize_for_json(
+        cumulative_progress = assignee_info.get(
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+        )
+        assignee_gamification["cumulative_badge_progress"] = _sanitize_for_json(
             cumulative_progress
         )
 
         # Chore stats (for achievement/challenge checking)
-        # Extract per-chore data for this kid
-        chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+        # Extract per-chore data for this assignee
+        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
         for chore_id, chore_info in chore_data.items():
             # Extract all chore info - sanitize to make JSON-safe
-            kid_gamification["chore_stats"][chore_id] = _sanitize_for_json(chore_info)
+            assignee_gamification["chore_stats"][chore_id] = _sanitize_for_json(
+                chore_info
+            )
 
         # Extract aggregate chore stats from chore_periods.all_time (v43+)
-        chore_periods = kid_info.get(const.DATA_KID_CHORE_PERIODS, {})
+        chore_periods = assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {})
         all_time_stats = chore_periods.get(
-            const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
-        kid_gamification["aggregate_chore_stats"] = _sanitize_for_json(all_time_stats)
+        assignee_gamification["aggregate_chore_stats"] = _sanitize_for_json(
+            all_time_stats
+        )
 
-        result["per_kid_data"][kid_id] = kid_gamification
+        result["per_assignee_data"][assignee_id] = assignee_gamification
 
     return result
 
@@ -244,32 +252,34 @@ class TestGoldenMasterCapture:
         """
         coordinator = full_scenario.coordinator
 
-        # Get kid and chore IDs for workflow
-        zoe_id = full_scenario.kid_ids["Zoë"]
-        max_id = full_scenario.kid_ids["Max!"]
+        # Get assignee and chore IDs for workflow
+        zoe_id = full_scenario.assignee_ids["Zoë"]
+        max_id = full_scenario.assignee_ids["Max!"]
 
         # Find some chores to complete
         chore_ids = list(coordinator.chores_data.keys())[:5]
 
         # Run claim/approve cycles to generate gamification progress
         for i, chore_id in enumerate(chore_ids):
-            # Alternate between kids
-            kid_id = zoe_id if i % 2 == 0 else max_id
-            kid_name = "Zoë" if i % 2 == 0 else "Max!"
+            # Alternate between assignees
+            assignee_id = zoe_id if i % 2 == 0 else max_id
+            assignee_name = "Zoë" if i % 2 == 0 else "Max!"
 
-            # Check if kid is assigned to this chore
+            # Check if assignee is assigned to this chore
             assigned = coordinator.chores_data[chore_id].get(
-                const.DATA_CHORE_ASSIGNED_KIDS, []
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
             )
-            if kid_id not in assigned:
+            if assignee_id not in assigned:
                 continue
 
             # Claim the chore
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, kid_name)
+            await coordinator.chore_manager.claim_chore(
+                assignee_id, chore_id, assignee_name
+            )
 
             # Approve the chore
             await coordinator.chore_manager.approve_chore(
-                "TestParent", kid_id, chore_id
+                "TestApprover", assignee_id, chore_id
             )
 
         # Now capture the gamification state
@@ -281,24 +291,26 @@ class TestGoldenMasterCapture:
             "Should have achievement definitions"
         )
         assert gamification_data["challenges_data"], "Should have challenge definitions"
-        assert gamification_data["per_kid_data"], "Should have per-kid data"
+        assert gamification_data["per_assignee_data"], "Should have per-assignee data"
 
-        # Check at least one kid has some progress (chore in approved state or points)
+        # Check at least one assignee has some progress (chore in approved state or points)
         has_progress = False
-        for kid_id, kid_data in gamification_data["per_kid_data"].items():
+        for assignee_id, assignee_data in gamification_data[
+            "per_assignee_data"
+        ].items():
             # Check chore_stats for any chores with "approved" state
-            for chore_id, stats in kid_data.get("chore_stats", {}).items():
+            for chore_id, stats in assignee_data.get("chore_stats", {}).items():
                 if stats.get("state") == "approved" or stats.get("total_points", 0) > 0:
                     has_progress = True
                     break
             # Also check aggregate stats
-            agg_stats = kid_data.get("aggregate_chore_stats", {})
+            agg_stats = assignee_data.get("aggregate_chore_stats", {})
             if agg_stats.get("approved_all_time", 0) > 0:
                 has_progress = True
             if has_progress:
                 break
 
-        assert has_progress, "At least one kid should have chore progress"
+        assert has_progress, "At least one assignee should have chore progress"
 
         # Save the golden master
         saved_path = save_golden_master(gamification_data)
@@ -312,21 +324,23 @@ class TestGoldenMasterCapture:
         print(f"Badges: {len(gamification_data['badges_data'])}")
         print(f"Achievements: {len(gamification_data['achievements_data'])}")
         print(f"Challenges: {len(gamification_data['challenges_data'])}")
-        print(f"Kids: {len(gamification_data['per_kid_data'])}")
+        print(f"Assignees: {len(gamification_data['per_assignee_data'])}")
 
-        for kid_id, kid_data in gamification_data["per_kid_data"].items():
-            kid_name = kid_data["kid_name"]
-            progress_count = len(kid_data.get("badge_progress", {}))
-            earned_count = len(kid_data.get("badges_earned", {}))
+        for assignee_id, assignee_data in gamification_data[
+            "per_assignee_data"
+        ].items():
+            assignee_name = assignee_data["assignee_name"]
+            progress_count = len(assignee_data.get("badge_progress", {}))
+            earned_count = len(assignee_data.get("badges_earned", {}))
             chores_with_stats = len(
                 [
                     s
-                    for s in kid_data.get("chore_stats", {}).values()
+                    for s in assignee_data.get("chore_stats", {}).values()
                     if s.get("state") == "approved" or s.get("total_points", 0) > 0
                 ]
             )
             print(
-                f"  - {kid_name}: {progress_count} badge progress, "
+                f"  - {assignee_name}: {progress_count} badge progress, "
                 f"{earned_count} earned, {chores_with_stats} chores completed"
             )
 
@@ -349,11 +363,11 @@ class TestGoldenMasterCapture:
         assert "badges_data" in data
         assert "achievements_data" in data
         assert "challenges_data" in data
-        assert "per_kid_data" in data
+        assert "per_assignee_data" in data
 
         # Validate has content
         assert data["badges_data"], "Should have badge definitions"
-        assert data["per_kid_data"], "Should have per-kid data"
+        assert data["per_assignee_data"], "Should have per-assignee data"
 
         print(f"\n✅ Golden master is valid: {GOLDEN_MASTER_FILE}")
 
@@ -376,19 +390,19 @@ class TestGoldenMasterCapture:
         assert "badges_data" in data
         assert "achievements_data" in data
         assert "challenges_data" in data
-        assert "per_kid_data" in data
+        assert "per_assignee_data" in data
 
         # Verify badge structure
         for badge_id, badge_info in data["badges_data"].items():
             assert isinstance(badge_id, str)
             assert isinstance(badge_info, dict)
 
-        # Verify kid data structure
-        for kid_data in data["per_kid_data"].values():
-            assert "kid_name" in kid_data
-            assert "badge_progress" in kid_data
-            assert "badges_earned" in kid_data
-            assert "chore_stats" in kid_data
+        # Verify assignee data structure
+        for assignee_data in data["per_assignee_data"].values():
+            assert "assignee_name" in assignee_data
+            assert "badge_progress" in assignee_data
+            assert "badges_earned" in assignee_data
+            assert "chore_stats" in assignee_data
 
 
 # =============================================================================

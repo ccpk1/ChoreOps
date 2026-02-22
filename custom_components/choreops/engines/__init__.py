@@ -1,4 +1,4 @@
-"""Engine modules for KidsChores integration.
+"""Engine modules for ChoreOps integration.
 
 Contains specialized computation engines:
 - chore_engine: Chore state machine, transitions, and validation

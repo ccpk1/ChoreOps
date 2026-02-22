@@ -1,9 +1,9 @@
-"""Tests for per-kid helper options flow (PKAD-2026-001).
+"""Tests for per-assignee helper options flow (PKAD-2026-001).
 
-These tests validate the edit_chore_per_kid_details step which handles:
-- Applicable days per kid
-- Daily multi times per kid (if DAILY_MULTI frequency)
-- Due dates per kid
+These tests validate the edit_chore_per_assignee_details step which handles:
+- Applicable days per assignee
+- Daily multi times per assignee (if DAILY_MULTI frequency)
+- Due dates per assignee
 - Template "Apply to All" checkboxes
 
 All tests use options flow as the single path for creating and editing chores.
@@ -27,7 +27,7 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL,
     CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL,
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
-    CFOF_CHORES_INPUT_ASSIGNED_KIDS,
+    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_DESCRIPTION,
@@ -37,9 +37,9 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
-    DATA_CHORE_PER_KID_APPLICABLE_DAYS,
-    DATA_CHORE_PER_KID_DAILY_MULTI_TIMES,
-    DATA_CHORE_PER_KID_DUE_DATES,
+    DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS,
+    DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES,
+    DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     FREQUENCY_DAILY,
     FREQUENCY_DAILY_MULTI,
     FREQUENCY_NONE,
@@ -51,7 +51,7 @@ from tests.helpers import (
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_STEP_ADD_CHORE,
     OPTIONS_FLOW_STEP_EDIT_CHORE,
-    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS,
+    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS,
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
 )
@@ -67,11 +67,11 @@ async def scenario_shared(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load scenario_shared with 3 kids (Zoë, Max!, Lila) and 1 parent.
+    """Load scenario_shared with 3 assignees (Zoë, Max!, Lila) and 1 approver.
 
     Uses scenario_shared.yaml which has:
-    - 3 kids: Zoë, Max!, Lila
-    - 1 parent: Môm Astrid Stârblüm
+    - 3 assignees: Zoë, Max!, Lila
+    - 1 approver: Môm Astrid Stârblüm
     - 8 shared chores (will add INDEPENDENT chores via flow)
     """
     return await setup_from_yaml(
@@ -86,10 +86,10 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load scenario_full with 3 kids and various chore types.
+    """Load scenario_full with 3 assignees and various chore types.
 
     Uses scenario_full.yaml which has INDEPENDENT chores assigned to
-    multiple kids that can be used for edit testing.
+    multiple assignees that can be used for edit testing.
     """
     return await setup_from_yaml(
         hass,
@@ -170,35 +170,35 @@ async def navigate_to_edit_chore(
 
 
 # =========================================================================
-# PKH-01: Add INDEPENDENT chore with 2 kids (no template)
+# PKH-01: Add INDEPENDENT chore with 2 assignees (no template)
 # =========================================================================
 
 
-class TestPerKidHelperAdd:
-    """Tests for adding INDEPENDENT chores that route to per-kid helper."""
+class TestPerAssigneeHelperAdd:
+    """Tests for adding INDEPENDENT chores that route to per-assignee helper."""
 
-    async def test_pkh01_add_independent_2kids_routes_to_per_kid_details(
+    async def test_pkh01_add_independent_2assignees_routes_to_per_assignee_details(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Test adding INDEPENDENT chore with 2+ kids routes to per-kid details step.
+        """Test adding INDEPENDENT chore with 2+ assignees routes to per-assignee details step.
 
-        PKH-01: When adding an INDEPENDENT chore assigned to 2+ kids,
-        the flow should route to edit_chore_per_kid_details after the main form.
+        PKH-01: When adding an INDEPENDENT chore assigned to 2+ assignees,
+        the flow should route to edit_chore_per_assignee_details after the main form.
         """
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        # Get kid names for assignment (need 2+)
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assert len(kid_names) >= 2, "Scenario should have at least 2 kids"
-        assigned_kids = kid_names[:2]  # Use first 2 kids
+        # Get assignee names for assignment (need 2+)
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assert len(assignee_names) >= 2, "Scenario should have at least 2 assignees"
+        assigned_assignees = assignee_names[:2]  # Use first 2 assignees
 
         # Navigate to add chore form
         result = await navigate_to_add_chore(hass, config_entry.entry_id)
 
-        # Submit add chore form with INDEPENDENT + 2 kids
+        # Submit add chore form with INDEPENDENT + 2 assignees
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
             user_input={
@@ -206,36 +206,40 @@ class TestPerKidHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 15.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:test-tube",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test chore for PKH-01",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "tue", "wed"],
             },
         )
 
-        # Should route to per-kid details step
+        # Should route to per-assignee details step
         assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS, (
-            f"Expected per-kid details step, got {result.get('step_id')}"
-        )
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        ), f"Expected per-assignee details step, got {result.get('step_id')}"
 
-        # Submit per-kid details with individual values (no template)
-        # Field names are: days_{kid_name}, date_{kid_name}
-        per_kid_input: dict[str, Any] = {}
-        for kid_name in assigned_kids:
-            per_kid_input[f"applicable_days_{kid_name}"] = ["mon", "wed", "fri"]
+        # Submit per-assignee details with individual values (no template)
+        # Field names are: days_{assignee_name}, date_{assignee_name}
+        per_assignee_input: dict[str, Any] = {}
+        for assignee_name in assigned_assignees:
+            per_assignee_input[f"applicable_days_{assignee_name}"] = [
+                "mon",
+                "wed",
+                "fri",
+            ]
             # No date specified - leave blank
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         # Should return to init after completion
         assert result.get("type") == FlowResultType.FORM
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-        # Verify chore was created with per-kid data
+        # Verify chore was created with per-assignee data
         chore_data = None
         for chore in coordinator.chores_data.values():
             if chore.get("name") == "PKH01 Test Chore":
@@ -243,27 +247,29 @@ class TestPerKidHelperAdd:
                 break
 
         assert chore_data is not None, "Chore should have been created"
-        per_kid_days = chore_data.get(DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
-        assert len(per_kid_days) == 2, "Should have per-kid days for 2 kids"
+        per_assignee_days = chore_data.get(DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {})
+        assert len(per_assignee_days) == 2, (
+            "Should have per-assignee days for 2 assignees"
+        )
 
-    async def test_pkh02_add_independent_2kids_with_template_date(
+    async def test_pkh02_add_independent_2assignees_with_template_date(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Test adding INDEPENDENT chore with 2+ kids using template date.
+        """Test adding INDEPENDENT chore with 2+ assignees using template date.
 
         PKH-02: When a date is entered in the main form and "Apply to All"
-        is checked, all kids should get the same date.
+        is checked, all assignees should get the same date.
         """
         from datetime import datetime, timedelta
 
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        # Get kid names for assignment
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assigned_kids = kid_names[:2]
+        # Get assignee names for assignment
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
 
         # Calculate a future date for due_date
         future_date = datetime.now(UTC) + timedelta(days=7)
@@ -279,23 +285,25 @@ class TestPerKidHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:calendar",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test template date",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_DUE_DATE: future_date,
             },
         )
 
-        # Should route to per-kid details step
+        # Should route to per-assignee details step
         assert result.get("type") == FlowResultType.FORM
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
         # Submit with "Apply template date to all" checked
-        per_kid_input: dict[str, Any] = {
+        per_assignee_input: dict[str, Any] = {
             CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL: True,
         }
-        for kid_name in assigned_kids:
-            per_kid_input[f"applicable_days_{kid_name}"] = [
+        for assignee_name in assigned_assignees:
+            per_assignee_input[f"applicable_days_{assignee_name}"] = [
                 "mon",
                 "tue",
                 "wed",
@@ -305,14 +313,14 @@ class TestPerKidHelperAdd:
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         # Should return to init
         assert result.get("type") == FlowResultType.FORM
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-        # Verify chore was created with same date for all kids
+        # Verify chore was created with same date for all assignees
         chore_data = None
         for chore in coordinator.chores_data.values():
             if chore.get("name") == "PKH02 Template Date Chore":
@@ -320,28 +328,28 @@ class TestPerKidHelperAdd:
                 break
 
         assert chore_data is not None
-        per_kid_dates = chore_data.get(DATA_CHORE_PER_KID_DUE_DATES, {})
+        per_assignee_dates = chore_data.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
 
         # All dates should be the same (applied from template)
-        date_values = list(per_kid_dates.values())
+        date_values = list(per_assignee_dates.values())
         assert len(date_values) == 2
-        assert date_values[0] == date_values[1], "All kids should have same date"
+        assert date_values[0] == date_values[1], "All assignees should have same date"
 
-    async def test_pkh03_add_independent_2kids_with_template_days(
+    async def test_pkh03_add_independent_2assignees_with_template_days(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Test adding INDEPENDENT chore with 2+ kids using template days.
+        """Test adding INDEPENDENT chore with 2+ assignees using template days.
 
         PKH-03: When applicable_days is entered in main form and
-        "Apply days to all" is checked, all kids get the same days.
+        "Apply days to all" is checked, all assignees get the same days.
         """
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assigned_kids = kid_names[:2]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
 
         # Navigate to add chore form
         result = await navigate_to_add_chore(hass, config_entry.entry_id)
@@ -354,33 +362,35 @@ class TestPerKidHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 15.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:calendar-week",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test template days",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "wed", "fri"],
             },
         )
 
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
         # Submit with "Apply days to all" checked
-        per_kid_input: dict[str, Any] = {
+        per_assignee_input: dict[str, Any] = {
             CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL: True,
         }
-        # Still need to provide per-kid fields (will be overwritten by template)
-        for kid_name in assigned_kids:
-            per_kid_input[
-                f"applicable_days_{kid_name}"
+        # Still need to provide per-assignee fields (will be overwritten by template)
+        for assignee_name in assigned_assignees:
+            per_assignee_input[
+                f"applicable_days_{assignee_name}"
             ] = []  # Will be replaced by template
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-        # Verify per-kid days match template
+        # Verify per-assignee days match template
         chore_data = None
         for chore in coordinator.chores_data.values():
             if chore.get("name") == "PKH03 Template Days Chore":
@@ -388,13 +398,15 @@ class TestPerKidHelperAdd:
                 break
 
         assert chore_data is not None
-        per_kid_days = chore_data.get(DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
+        per_assignee_days = chore_data.get(DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {})
 
-        # All kids should have [0, 2, 4] (mon=0, wed=2, fri=4)
-        for kid_id, days in per_kid_days.items():
-            assert sorted(days) == [0, 2, 4], f"Kid {kid_id} should have mon/wed/fri"
+        # All assignees should have [0, 2, 4] (mon=0, wed=2, fri=4)
+        for assignee_id, days in per_assignee_days.items():
+            assert sorted(days) == [0, 2, 4], (
+                f"Assignee {assignee_id} should have mon/wed/fri"
+            )
 
-    async def test_pkh04_add_independent_2kids_with_mixed_template_options(
+    async def test_pkh04_add_independent_2assignees_with_mixed_template_options(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
@@ -402,16 +414,16 @@ class TestPerKidHelperAdd:
         """Test adding INDEPENDENT chore with mixed template options.
 
         PKH-04: Some template checkboxes checked, others not.
-        - Apply days to all: checked (all kids get same days)
-        - Apply template date to all: unchecked (each kid gets own date)
+        - Apply days to all: checked (all assignees get same days)
+        - Apply template date to all: unchecked (each assignee gets own date)
         """
         from datetime import datetime, timedelta
 
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assigned_kids = kid_names[:2]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
 
         # Template date to be entered in main form
         template_date = datetime.now(UTC) + timedelta(days=14)
@@ -426,7 +438,7 @@ class TestPerKidHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 18.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:checkbox-multiple-marked",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test mixed template options",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["tue", "thu", "sat"],
@@ -434,26 +446,30 @@ class TestPerKidHelperAdd:
             },
         )
 
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
         # Submit with mixed options:
         # - Apply days to all: TRUE (use template days)
         # - Apply template to all (date): FALSE (allow different dates)
-        per_kid_input: dict[str, Any] = {
+        per_assignee_input: dict[str, Any] = {
             CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL: True,
             CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL: False,
         }
-        # Give each kid a different date
-        for i, kid_name in enumerate(assigned_kids):
-            per_kid_input[f"applicable_days_{kid_name}"] = []  # Will use template
-            # Different dates per kid
-            per_kid_input[f"due_date_{kid_name}"] = datetime.now(UTC) + timedelta(
-                days=7 + i * 5
-            )
+        # Give each assignee a different date
+        for i, assignee_name in enumerate(assigned_assignees):
+            per_assignee_input[
+                f"applicable_days_{assignee_name}"
+            ] = []  # Will use template
+            # Different dates per assignee
+            per_assignee_input[f"due_date_{assignee_name}"] = datetime.now(
+                UTC
+            ) + timedelta(days=7 + i * 5)
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
@@ -467,33 +483,33 @@ class TestPerKidHelperAdd:
 
         assert chore_data is not None
 
-        # All kids should have same days (applied from template)
-        per_kid_days = chore_data.get(DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
-        day_values = list(per_kid_days.values())
+        # All assignees should have same days (applied from template)
+        per_assignee_days = chore_data.get(DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {})
+        day_values = list(per_assignee_days.values())
         assert len(day_values) == 2
         assert day_values[0] == day_values[1], "Days should be same (template applied)"
 
         # But dates should be different (template NOT applied)
-        per_kid_dates = chore_data.get(DATA_CHORE_PER_KID_DUE_DATES, {})
-        date_values = list(per_kid_dates.values())
+        per_assignee_dates = chore_data.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        date_values = list(per_assignee_dates.values())
         assert len(date_values) == 2
         assert date_values[0] != date_values[1], "Dates should differ (no template)"
 
-    async def test_pkh05_add_independent_daily_multi_2kids(
+    async def test_pkh05_add_independent_daily_multi_2assignees(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Test adding INDEPENDENT DAILY_MULTI chore with 2+ kids.
+        """Test adding INDEPENDENT DAILY_MULTI chore with 2+ assignees.
 
-        PKH-05: When DAILY_MULTI frequency is selected, per-kid helper
-        should also collect times per kid.
+        PKH-05: When DAILY_MULTI frequency is selected, per-assignee helper
+        should also collect times per assignee.
         """
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assigned_kids = kid_names[:2]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
 
         # DAILY_MULTI requires a due date
         from datetime import datetime, timedelta
@@ -504,7 +520,7 @@ class TestPerKidHelperAdd:
 
         # Submit with DAILY_MULTI frequency
         # Note: daily_multi_times is NOT in the add_chore schema.
-        # For INDEPENDENT + 2 kids, times are collected in per-kid helper.
+        # For INDEPENDENT + 2 assignees, times are collected in per-assignee helper.
         # DAILY_MULTI requires:
         #   1. Compatible reset type (not at_midnight_*)
         #   2. A due date
@@ -515,14 +531,14 @@ class TestPerKidHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:clock-multiple",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test daily multi",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 # DAILY_MULTI needs upon_completion reset (not at_midnight_once)
                 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
                 # DAILY_MULTI requires a due date
                 CFOF_CHORES_INPUT_DUE_DATE: future_date,
-                # daily_multi_times collected in per-kid helper, not here
+                # daily_multi_times collected in per-assignee helper, not here
             },
         )
 
@@ -530,32 +546,36 @@ class TestPerKidHelperAdd:
         if result.get("errors"):
             raise AssertionError(f"Form had errors: {result.get('errors')}")
 
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
-        # Submit per-kid details with times
-        per_kid_input: dict[str, Any] = {}
-        for i, kid_name in enumerate(assigned_kids):
-            per_kid_input[f"applicable_days_{kid_name}"] = [
+        # Submit per-assignee details with times
+        per_assignee_input: dict[str, Any] = {}
+        for i, assignee_name in enumerate(assigned_assignees):
+            per_assignee_input[f"applicable_days_{assignee_name}"] = [
                 "mon",
                 "tue",
                 "wed",
                 "thu",
                 "fri",
             ]
-            # Give different times to each kid
+            # Give different times to each assignee
             if i == 0:
-                per_kid_input[f"daily_multi_times_{kid_name}"] = "09:00|13:00"
+                per_assignee_input[f"daily_multi_times_{assignee_name}"] = "09:00|13:00"
             else:
-                per_kid_input[f"daily_multi_times_{kid_name}"] = "08:00|12:00|18:00"
+                per_assignee_input[f"daily_multi_times_{assignee_name}"] = (
+                    "08:00|12:00|18:00"
+                )
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-        # Verify per-kid times
+        # Verify per-assignee times
         chore_data = None
         for chore in coordinator.chores_data.values():
             if chore.get("name") == "PKH05 Daily Multi Chore":
@@ -563,8 +583,10 @@ class TestPerKidHelperAdd:
                 break
 
         assert chore_data is not None
-        per_kid_times = chore_data.get(DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {})
-        assert len(per_kid_times) == 2, "Should have times for 2 kids"
+        per_assignee_times = chore_data.get(
+            DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
+        )
+        assert len(per_assignee_times) == 2, "Should have times for 2 assignees"
 
 
 # =========================================================================
@@ -572,8 +594,8 @@ class TestPerKidHelperAdd:
 # =========================================================================
 
 
-class TestPerKidHelperEdit:
-    """Tests for editing INDEPENDENT chores via per-kid helper."""
+class TestPerAssigneeHelperEdit:
+    """Tests for editing INDEPENDENT chores via per-assignee helper."""
 
     async def test_pkh06_edit_independent_with_none_applicable_days(
         self,
@@ -589,7 +611,7 @@ class TestPerKidHelperEdit:
         config_entry = scenario_full.config_entry
         coordinator = scenario_full.coordinator
 
-        # Find "Stär sweep" - INDEPENDENT chore with 3 kids in scenario_full
+        # Find "Stär sweep" - INDEPENDENT chore with 3 assignees in scenario_full
         chore_name = "Stär sweep"
         chore_id = None
         for cid, chore in coordinator.chores_data.items():
@@ -607,8 +629,8 @@ class TestPerKidHelperEdit:
         assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
 
         # Make a minor change and submit
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assigned_kids = kid_names[:3]  # Keep same 3 kids
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:3]  # Keep same 3 assignees
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -617,43 +639,49 @@ class TestPerKidHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 25.0,  # Change points
                 CFOF_CHORES_INPUT_ICON: "mdi:star",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Updated description",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "tue", "wed"],
             },
         )
 
-        # Should route to per-kid details (3 kids = multiple)
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        # Should route to per-assignee details (3 assignees = multiple)
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
-        # Submit per-kid details
-        per_kid_input: dict[str, Any] = {}
-        for kid_name in assigned_kids:
-            per_kid_input[f"applicable_days_{kid_name}"] = ["mon", "wed", "fri"]
+        # Submit per-assignee details
+        per_assignee_input: dict[str, Any] = {}
+        for assignee_name in assigned_assignees:
+            per_assignee_input[f"applicable_days_{assignee_name}"] = [
+                "mon",
+                "wed",
+                "fri",
+            ]
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    async def test_pkh09_edit_independent_different_dates_per_kid(
+    async def test_pkh09_edit_independent_different_dates_per_assignee(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test editing INDEPENDENT chore with different dates per kid.
+        """Test editing INDEPENDENT chore with different dates per assignee.
 
-        PKH-09: Each kid can have a different due date.
+        PKH-09: Each assignee can have a different due date.
         """
         from datetime import datetime, timedelta
 
         config_entry = scenario_full.config_entry
         coordinator = scenario_full.coordinator
 
-        # Find "Ørgänize Bookshelf" - 2-kid INDEPENDENT chore
+        # Find "Ørgänize Bookshelf" - 2-assignee INDEPENDENT chore
         chore_name = "Ørgänize Bookshelf"
         chore_id = None
         for cid, chore in coordinator.chores_data.items():
@@ -663,11 +691,12 @@ class TestPerKidHelperEdit:
 
         assert chore_id is not None, f"Chore '{chore_name}' not found"
 
-        # Get the assigned kids for this chore
+        # Get the assigned assignees for this chore
         chore_data = coordinator.chores_data[chore_id]
-        assigned_kid_ids = chore_data.get("assigned_kids", [])
-        assigned_kids = [
-            coordinator.kids_data[kid_id]["name"] for kid_id in assigned_kid_ids
+        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignees = [
+            coordinator.assignees_data[assignee_id]["name"]
+            for assignee_id in assigned_assignee_ids
         ]
 
         result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
@@ -680,52 +709,54 @@ class TestPerKidHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 18.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:bookshelf",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: "weekly",
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
             },
         )
 
-        # Should route to per-kid details (2 kids)
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        # Should route to per-assignee details (2 assignees)
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
-        # Set different dates for each kid using datetime objects
-        per_kid_input: dict[str, Any] = {}
-        for i, kid_name in enumerate(assigned_kids):
-            per_kid_input[f"applicable_days_{kid_name}"] = ["sat", "sun"]
-            # Different date offset for each kid
+        # Set different dates for each assignee using datetime objects
+        per_assignee_input: dict[str, Any] = {}
+        for i, assignee_name in enumerate(assigned_assignees):
+            per_assignee_input[f"applicable_days_{assignee_name}"] = ["sat", "sun"]
+            # Different date offset for each assignee
             future_date = datetime.now(UTC) + timedelta(days=7 + i * 3)
-            per_kid_input[f"due_date_{kid_name}"] = future_date
+            per_assignee_input[f"due_date_{assignee_name}"] = future_date
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
         # Verify different dates were saved
         updated_chore = coordinator.chores_data[chore_id]
-        per_kid_dates = updated_chore.get(DATA_CHORE_PER_KID_DUE_DATES, {})
-        date_values = list(per_kid_dates.values())
+        per_assignee_dates = updated_chore.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        date_values = list(per_assignee_dates.values())
 
         # Should have 2 different dates
         assert len(date_values) == 2
-        assert date_values[0] != date_values[1], "Kids should have different dates"
+        assert date_values[0] != date_values[1], "Assignees should have different dates"
 
-    async def test_pkh10_edit_independent_different_days_per_kid(
+    async def test_pkh10_edit_independent_different_days_per_assignee(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test editing INDEPENDENT chore with different days per kid.
+        """Test editing INDEPENDENT chore with different days per assignee.
 
-        PKH-10: Each kid can have different applicable days.
+        PKH-10: Each assignee can have different applicable days.
         """
         config_entry = scenario_full.config_entry
         coordinator = scenario_full.coordinator
 
-        # Find "Stär sweep" - 3-kid INDEPENDENT chore
+        # Find "Stär sweep" - 3-assignee INDEPENDENT chore
         chore_name = "Stär sweep"
         chore_id = None
         for cid, chore in coordinator.chores_data.items():
@@ -735,9 +766,10 @@ class TestPerKidHelperEdit:
 
         assert chore_id is not None
         chore_data = coordinator.chores_data[chore_id]
-        assigned_kid_ids = chore_data.get("assigned_kids", [])
-        assigned_kids = [
-            coordinator.kids_data[kid_id]["name"] for kid_id in assigned_kid_ids
+        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignees = [
+            coordinator.assignees_data[assignee_id]["name"]
+            for assignee_id in assigned_assignee_ids
         ]
 
         result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
@@ -749,60 +781,66 @@ class TestPerKidHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:star",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
             },
         )
 
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
-        # Set different days for each kid
+        # Set different days for each assignee
         day_sets = [
-            ["mon", "wed", "fri"],  # MWF for kid 1
-            ["tue", "thu"],  # TTh for kid 2
-            ["sat", "sun"],  # Weekend for kid 3
+            ["mon", "wed", "fri"],  # MWF for assignee 1
+            ["tue", "thu"],  # TTh for assignee 2
+            ["sat", "sun"],  # Weekend for assignee 3
         ]
 
-        per_kid_input: dict[str, Any] = {}
-        for i, kid_name in enumerate(assigned_kids):
-            per_kid_input[f"applicable_days_{kid_name}"] = day_sets[i % len(day_sets)]
+        per_assignee_input: dict[str, Any] = {}
+        for i, assignee_name in enumerate(assigned_assignees):
+            per_assignee_input[f"applicable_days_{assignee_name}"] = day_sets[
+                i % len(day_sets)
+            ]
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
         # Verify different days were saved
         updated_chore = coordinator.chores_data[chore_id]
-        per_kid_days = updated_chore.get(DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
-
-        # Should have entries for all assigned kids
-        assert len(per_kid_days) == len(assigned_kid_ids)
-
-        # Days should be different (converted to integers)
-        days_lists = list(per_kid_days.values())
-        # At least some should be different
-        assert not all(sorted(d) == sorted(days_lists[0]) for d in days_lists), (
-            "Kids should have different days"
+        per_assignee_days = updated_chore.get(
+            DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
         )
 
-    async def test_pkh07_edit_independent_to_shared_skips_per_kid(
+        # Should have entries for all assigned assignees
+        assert len(per_assignee_days) == len(assigned_assignee_ids)
+
+        # Days should be different (converted to integers)
+        days_lists = list(per_assignee_days.values())
+        # At least some should be different
+        assert not all(sorted(d) == sorted(days_lists[0]) for d in days_lists), (
+            "Assignees should have different days"
+        )
+
+    async def test_pkh07_edit_independent_to_shared_skips_per_assignee(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test changing INDEPENDENT chore to SHARED skips per-kid helper.
+        """Test changing INDEPENDENT chore to SHARED skips per-assignee helper.
 
         PKH-07: When completion_criteria changes from INDEPENDENT to SHARED,
-        the per-kid helper step should be skipped (SHARED doesn't need it).
+        the per-assignee helper step should be skipped (SHARED doesn't need it).
         """
         config_entry = scenario_full.config_entry
         coordinator = scenario_full.coordinator
 
-        # Find "Stär sweep" - 3-kid INDEPENDENT chore
+        # Find "Stär sweep" - 3-assignee INDEPENDENT chore
         chore_name = "Stär sweep"
         chore_id = None
         for cid, chore in coordinator.chores_data.items():
@@ -816,9 +854,10 @@ class TestPerKidHelperEdit:
         ), "Chore should start as INDEPENDENT"
 
         chore_data = coordinator.chores_data[chore_id]
-        assigned_kid_ids = chore_data.get("assigned_kids", [])
-        assigned_kids = [
-            coordinator.kids_data[kid_id]["name"] for kid_id in assigned_kid_ids
+        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignees = [
+            coordinator.assignees_data[assignee_id]["name"]
+            for assignee_id in assigned_assignee_ids
         ]
 
         result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
@@ -831,36 +870,36 @@ class TestPerKidHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:star",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Now a shared chore",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
             },
         )
 
-        # Should go directly to init (skip per-kid helper)
-        # SHARED chores don't need per-kid customization
+        # Should go directly to init (skip per-assignee helper)
+        # SHARED chores don't need per-assignee customization
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT, (
-            f"Expected init (skip per-kid), got {result.get('step_id')}"
+            f"Expected init (skip per-assignee), got {result.get('step_id')}"
         )
 
         # Verify chore was changed to SHARED
         updated_chore = coordinator.chores_data[chore_id]
         assert updated_chore.get("completion_criteria") == COMPLETION_CRITERIA_SHARED
 
-    async def test_pkh08_edit_shared_to_independent_routes_to_per_kid(
+    async def test_pkh08_edit_shared_to_independent_routes_to_per_assignee(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test changing SHARED chore to INDEPENDENT routes to per-kid helper.
+        """Test changing SHARED chore to INDEPENDENT routes to per-assignee helper.
 
         PKH-08: When completion_criteria changes from SHARED to INDEPENDENT
-        with 2+ kids, the per-kid helper step should be shown.
+        with 2+ assignees, the per-assignee helper step should be shown.
         """
         config_entry = scenario_full.config_entry
         coordinator = scenario_full.coordinator
 
-        # Find "Family Dinner Prep" - SHARED_ALL chore with 3 kids
+        # Find "Family Dinner Prep" - SHARED_ALL chore with 3 assignees
         chore_name = "Family Dinner Prep"
         chore_id = None
         for cid, chore in coordinator.chores_data.items():
@@ -874,11 +913,14 @@ class TestPerKidHelperEdit:
         ), "Chore should start as SHARED_ALL"
 
         chore_data = coordinator.chores_data[chore_id]
-        assigned_kid_ids = chore_data.get("assigned_kids", [])
-        assigned_kids = [
-            coordinator.kids_data[kid_id]["name"] for kid_id in assigned_kid_ids
+        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignees = [
+            coordinator.assignees_data[assignee_id]["name"]
+            for assignee_id in assigned_assignee_ids
         ]
-        assert len(assigned_kids) >= 2, "Need 2+ kids for per-kid routing"
+        assert len(assigned_assignees) >= 2, (
+            "Need 2+ assignees for per-assignee routing"
+        )
 
         result = await navigate_to_edit_chore(hass, config_entry.entry_id, chore_name)
 
@@ -890,25 +932,29 @@ class TestPerKidHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 15.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:food",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Now independent",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
             },
         )
 
-        # Should route to per-kid helper (INDEPENDENT with 2+ kids)
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS, (
-            f"Expected per-kid step, got {result.get('step_id')}"
-        )
+        # Should route to per-assignee helper (INDEPENDENT with 2+ assignees)
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        ), f"Expected per-assignee step, got {result.get('step_id')}"
 
-        # Complete the per-kid form
-        per_kid_input: dict[str, Any] = {}
-        for kid_name in assigned_kids:
-            per_kid_input[f"applicable_days_{kid_name}"] = ["mon", "wed", "fri"]
+        # Complete the per-assignee form
+        per_assignee_input: dict[str, Any] = {}
+        for assignee_name in assigned_assignees:
+            per_assignee_input[f"applicable_days_{assignee_name}"] = [
+                "mon",
+                "wed",
+                "fri",
+            ]
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
 
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
@@ -942,7 +988,7 @@ class TestSchemaEdgeCases:
         coordinator = scenario_shared.coordinator
 
         # First add a chore via flow
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         result = await navigate_to_add_chore(hass, config_entry.entry_id)
         result = await hass.config_entries.options.async_configure(
@@ -952,14 +998,14 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:test-tube",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: [kid_names[0]],
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 # Don't specify applicable_days - will be None
             },
         )
 
-        # For SHARED_ALL single kid, goes directly back
+        # For SHARED_ALL single assignee, goes directly back
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
         # Find the chore and verify applicable_days is None
@@ -980,23 +1026,23 @@ class TestSchemaEdgeCases:
         assert result.get("type") == FlowResultType.FORM
         assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
 
-    async def test_esv02_edit_chore_with_none_per_kid_due_dates(
+    async def test_esv02_edit_chore_with_none_per_assignee_due_dates(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Test editing a chore when per_kid_due_dates is None in storage.
+        """Test editing a chore when per_assignee_due_dates is None in storage.
 
-        ESV-02: Schema builder should handle per_kid_due_dates=None gracefully.
+        ESV-02: Schema builder should handle per_assignee_due_dates=None gracefully.
         This ensures the date field defaults work when no dates exist.
         """
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        assigned_kids = kid_names[:2]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
 
-        # Add an INDEPENDENT chore with 2 kids but no dates
+        # Add an INDEPENDENT chore with 2 assignees but no dates
         result = await navigate_to_add_chore(hass, config_entry.entry_id)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -1005,25 +1051,31 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:calendar-blank",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 # No due_date specified
             },
         )
 
-        # Routes to per-kid helper for 2+ kids INDEPENDENT
-        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS
+        # Routes to per-assignee helper for 2+ assignees INDEPENDENT
+        assert (
+            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
+        )
 
-        # Complete per-kid without dates
-        per_kid_input: dict[str, Any] = {}
-        for kid_name in assigned_kids:
-            per_kid_input[f"applicable_days_{kid_name}"] = ["mon", "wed", "fri"]
-            # No date_{kid_name} - leave blank
+        # Complete per-assignee without dates
+        per_assignee_input: dict[str, Any] = {}
+        for assignee_name in assigned_assignees:
+            per_assignee_input[f"applicable_days_{assignee_name}"] = [
+                "mon",
+                "wed",
+                "fri",
+            ]
+            # No date_{assignee_name} - leave blank
 
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
-            user_input=per_kid_input,
+            user_input=per_assignee_input,
         )
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
@@ -1036,13 +1088,13 @@ class TestSchemaEdgeCases:
 
         assert chore_id is not None
 
-        # Verify per_kid_due_dates has None values (or is empty)
+        # Verify per_assignee_due_dates has None values (or is empty)
         # The system may create entries with None values, which is valid
-        per_kid_dates = coordinator.chores_data[chore_id].get(
-            DATA_CHORE_PER_KID_DUE_DATES, {}
+        per_assignee_dates = coordinator.chores_data[chore_id].get(
+            DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
         )
         # All date values should be None (no actual dates set)
-        assert all(v is None for v in per_kid_dates.values()), (
+        assert all(v is None for v in per_assignee_dates.values()), (
             "Should have no actual dates (all None)"
         )
 
@@ -1070,13 +1122,13 @@ class TestSchemaEdgeCases:
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
-        # Use just 1 kid to avoid per-kid routing complexity
-        assigned_kids = [kid_names[0]]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        # Use just 1 assignee to avoid per-assignee routing complexity
+        assigned_assignees = [assignee_names[0]]
 
         future_date = datetime.now(UTC) + timedelta(days=7)
 
-        # Add a DAILY_MULTI chore (1 kid)
+        # Add a DAILY_MULTI chore (1 assignee)
         result = await navigate_to_add_chore(hass, config_entry.entry_id)
         result = await hass.config_entries.options.async_configure(
             result["flow_id"],
@@ -1085,7 +1137,7 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:clock",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: assigned_kids,
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -1094,7 +1146,7 @@ class TestSchemaEdgeCases:
             },
         )
 
-        # DAILY_MULTI routes to times step even with 1 kid
+        # DAILY_MULTI routes to times step even with 1 assignee
         # (times need to be specified for DAILY_MULTI)
         assert result.get("step_id") == "chores_daily_multi"
 
@@ -1139,7 +1191,7 @@ class TestSchemaEdgeCases:
         config_entry = scenario_shared.config_entry
         coordinator = scenario_shared.coordinator
 
-        kid_names = [k["name"] for k in coordinator.kids_data.values()]
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
 
         result = await navigate_to_add_chore(hass, config_entry.entry_id)
 
@@ -1152,7 +1204,7 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 5.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:check",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_KIDS: [kid_names[0]],
+                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_NONE,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 # All optional fields omitted

@@ -14,22 +14,22 @@ system:
   points_icon: "mdi:star"
   update_interval: 5
 
-kids:
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     points: 100
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     points: 100
     dashboard_language: "en"
     mobile_notify_service: ""
 
-parents:
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
+    ha_user: "approver1"
 
 chores:
   # Main test chore with AT_MIDNIGHT_ONCE + AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET
@@ -67,8 +67,8 @@ chores:
     pending_claim_action: "clear_pending"
     auto_approve: false
 
-  # Multi-kid INDEPENDENT chore for per-kid reset isolation testing
-  - name: "Multi Kid Reset Test"
+  # Multi-assignee INDEPENDENT chore for per-assignee reset isolation testing
+  - name: "Multi Assignee Reset Test"
     assigned_to: ["Zoë", "Max!"]
     points: 10.0
     icon: "mdi:account-multiple"

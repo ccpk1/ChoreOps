@@ -1,4 +1,4 @@
-"""Direct unit tests for KidsChoresStore.
+"""Direct unit tests for ChoreOpsStore.
 
 Tests store methods that are not fully covered by integration tests,
 including error handling and data persistence operations.
@@ -14,18 +14,18 @@ from homeassistant.core import HomeAssistant
 import pytest
 
 from custom_components.choreops import const
-from custom_components.choreops.store import KidsChoresStore
+from custom_components.choreops.store import ChoreOpsStore
 
 
 @pytest.fixture
-def store(hass: HomeAssistant) -> KidsChoresStore:
+def store(hass: HomeAssistant) -> ChoreOpsStore:
     """Return a store instance."""
-    return KidsChoresStore(hass)
+    return ChoreOpsStore(hass)
 
 
 async def test_async_initialize_creates_default_structure(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test that async_initialize creates default structure when no data exists."""
     with patch.object(store._store, "async_load", return_value=None):
@@ -52,11 +52,11 @@ async def test_async_initialize_creates_default_structure(
 
 async def test_async_initialize_loads_existing_data(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test that async_initialize loads existing storage data."""
     existing_data = {
-        const.DATA_KIDS: {"kid_1": {"name": "Alice"}},
+        const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}},
         const.DATA_CHORES: {"chore_1": {"name": "Clean room"}},
         const.DATA_SCHEMA_VERSION: 42,
     }
@@ -65,18 +65,18 @@ async def test_async_initialize_loads_existing_data(
         await store.async_initialize()
 
     assert store.data == existing_data
-    assert store.data[const.DATA_KIDS] == {"kid_1": {"name": "Alice"}}
+    assert store.data[const.DATA_ASSIGNEES] == {"assignee_1": {"name": "Alice"}}
     assert store.data[const.DATA_CHORES] == {"chore_1": {"name": "Clean room"}}
 
 
 async def test_getter_methods_return_correct_data(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test all getter methods return correct data."""
     test_data = {
-        const.DATA_KIDS: {"kid_1": {}},
-        const.DATA_PARENTS: {"parent_1": {}},
+        const.DATA_ASSIGNEES: {"assignee_1": {}},
+        const.DATA_APPROVERS: {"approver_1": {}},
         const.DATA_CHORES: {"chore_1": {}},
         const.DATA_BADGES: {"badge_1": {}},
         const.DATA_REWARDS: {"reward_1": {}},
@@ -84,13 +84,13 @@ async def test_getter_methods_return_correct_data(
         const.DATA_BONUSES: {"bonus_1": {}},
         const.DATA_ACHIEVEMENTS: {"achievement_1": {}},
         const.DATA_CHALLENGES: {"challenge_1": {}},
-        # Pending reward approvals now computed from kid reward_data
+        # Pending reward approvals now computed from assignee reward_data
     }
 
     store.set_data(test_data)
 
-    assert store.data[const.DATA_KIDS] == {"kid_1": {}}
-    assert store.data[const.DATA_PARENTS] == {"parent_1": {}}
+    assert store.data[const.DATA_ASSIGNEES] == {"assignee_1": {}}
+    assert store.data[const.DATA_APPROVERS] == {"approver_1": {}}
     assert store.data[const.DATA_CHORES] == {"chore_1": {}}
     assert store.data[const.DATA_BADGES] == {"badge_1": {}}
     assert store.data[const.DATA_REWARDS] == {"reward_1": {}}
@@ -103,13 +103,13 @@ async def test_getter_methods_return_correct_data(
 
 async def test_getter_methods_return_defaults_for_missing_keys(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test getter methods return empty defaults when keys don't exist."""
     store.set_data({})
 
-    assert store.data.get(const.DATA_KIDS, {}) == {}
-    assert store.data.get(const.DATA_PARENTS, {}) == {}
+    assert store.data.get(const.DATA_ASSIGNEES, {}) == {}
+    assert store.data.get(const.DATA_APPROVERS, {}) == {}
     assert store.data.get(const.DATA_CHORES, {}) == {}
     assert store.data.get(const.DATA_BADGES, {}) == {}
     assert store.data.get(const.DATA_REWARDS, {}) == {}
@@ -122,10 +122,10 @@ async def test_getter_methods_return_defaults_for_missing_keys(
 
 async def test_async_save_success(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test successful async_save operation."""
-    test_data = {const.DATA_KIDS: {"kid_1": {"name": "Alice"}}}
+    test_data = {const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}}}
     store.set_data(test_data)
 
     mock_store_save = AsyncMock()
@@ -137,11 +137,11 @@ async def test_async_save_success(
 
 async def test_async_save_handles_oserror(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_save handles OSError (file system errors)."""
-    store.set_data({const.DATA_KIDS: {}})
+    store.set_data({const.DATA_ASSIGNEES: {}})
 
     with patch.object(
         store._store,
@@ -157,11 +157,11 @@ async def test_async_save_handles_oserror(
 
 async def test_async_save_handles_typeerror(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_save handles TypeError (serialization errors)."""
-    store.set_data({const.DATA_KIDS: {}})
+    store.set_data({const.DATA_ASSIGNEES: {}})
 
     with patch.object(
         store._store,
@@ -177,11 +177,11 @@ async def test_async_save_handles_typeerror(
 
 async def test_async_save_handles_valueerror(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_save handles ValueError (validation errors)."""
-    store.set_data({const.DATA_KIDS: {}})
+    store.set_data({const.DATA_ASSIGNEES: {}})
 
     with patch.object(
         store._store,
@@ -197,14 +197,14 @@ async def test_async_save_handles_valueerror(
 
 async def test_async_clear_data_resets_to_default_structure(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_clear_data resets to default empty structure."""
     # Start with populated data
     store.set_data(
         {
-            const.DATA_KIDS: {"kid_1": {"name": "Alice"}},
+            const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}},
             const.DATA_CHORES: {"chore_1": {"name": "Clean"}},
             const.DATA_SCHEMA_VERSION: 42,
         }
@@ -222,7 +222,7 @@ async def test_async_clear_data_resets_to_default_structure(
     assert data[const.DATA_REWARDS] == {}
 
     # Verify warning logged
-    assert "Clearing all KidsChores data" in caplog.text
+    assert "Clearing all ChoreOps data" in caplog.text
 
     # Verify save was called
     mock_save.assert_called_once()
@@ -230,14 +230,14 @@ async def test_async_clear_data_resets_to_default_structure(
 
 async def test_async_clear_data_includes_schema_version(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test async_clear_data includes schema_version in reset structure.
 
     This is a regression test for the bug where schema_version was missing
     from async_clear_data but present in async_initialize.
     """
-    store.set_data({const.DATA_KIDS: {"kid_1": {}}})
+    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
 
     mock_save = AsyncMock()
     with patch.object(store, "async_save", mock_save):
@@ -250,11 +250,11 @@ async def test_async_clear_data_includes_schema_version(
 
 async def test_async_delete_storage_clears_and_removes_file(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_delete_storage clears data and removes file via Store API."""
-    store.set_data({const.DATA_KIDS: {"kid_1": {}}})
+    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
 
     mock_clear = AsyncMock()
     mock_store_remove = AsyncMock()
@@ -276,11 +276,11 @@ async def test_async_delete_storage_clears_and_removes_file(
 
 async def test_async_delete_storage_handles_missing_file(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_delete_storage handles FileNotFoundError from Store API."""
-    store.set_data({const.DATA_KIDS: {"kid_1": {}}})
+    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
 
     mock_clear = AsyncMock()
     # Store API raises FileNotFoundError (subclass of OSError) if file doesn't exist
@@ -303,11 +303,11 @@ async def test_async_delete_storage_handles_missing_file(
 
 async def test_async_delete_storage_handles_oserror(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_delete_storage handles OSError from Store API."""
-    store.set_data({const.DATA_KIDS: {"kid_1": {}}})
+    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
 
     mock_store_remove = AsyncMock(side_effect=OSError("Permission denied"))
     with (
@@ -323,25 +323,25 @@ async def test_async_delete_storage_handles_oserror(
 
 async def test_async_update_data_updates_and_saves(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_update_data updates specific key and saves."""
     store.set_data(
         {
-            const.DATA_KIDS: {"kid_1": {}},
+            const.DATA_ASSIGNEES: {"assignee_1": {}},
             const.DATA_CHORES: {},
         }
     )
 
-    new_kids_data = {"kid_1": {}, "kid_2": {"name": "Bob"}}
+    new_assignees_data = {"assignee_1": {}, "assignee_2": {"name": "Bob"}}
 
     mock_save = AsyncMock()
     with patch.object(store, "async_save", mock_save):
-        await store.async_update_data(const.DATA_KIDS, new_kids_data)
+        await store.async_update_data(const.DATA_ASSIGNEES, new_assignees_data)
 
     # Verify data was updated
-    assert store.data[const.DATA_KIDS] == new_kids_data
+    assert store.data[const.DATA_ASSIGNEES] == new_assignees_data
 
     # Verify save was called
     mock_save.assert_called_once()
@@ -352,11 +352,11 @@ async def test_async_update_data_updates_and_saves(
 
 async def test_async_update_data_warns_on_unknown_key(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_update_data warns when updating unknown key."""
-    store.set_data({const.DATA_KIDS: {}})
+    store.set_data({const.DATA_ASSIGNEES: {}})
 
     mock_save = AsyncMock()
     with patch.object(store, "async_save", mock_save):
@@ -372,17 +372,17 @@ async def test_async_update_data_warns_on_unknown_key(
 
 async def test_get_storage_path_returns_correct_path(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test get_storage_path returns the correct file path."""
 
 
 async def test_data_property_returns_internal_data(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test data property returns the internal data dictionary."""
-    test_data = {const.DATA_KIDS: {"kid_1": {"name": "Alice"}}}
+    test_data = {const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}}}
     store.set_data(test_data)
 
     assert store.data is store._data
@@ -391,14 +391,14 @@ async def test_data_property_returns_internal_data(
 
 async def test_set_data_replaces_entire_structure(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test set_data completely replaces the data structure."""
-    original_data = {const.DATA_KIDS: {"kid_1": {}}}
+    original_data = {const.DATA_ASSIGNEES: {"assignee_1": {}}}
     store.set_data(original_data)
 
     new_data = {
-        const.DATA_KIDS: {"kid_2": {}},
+        const.DATA_ASSIGNEES: {"assignee_2": {}},
         const.DATA_CHORES: {"chore_1": {}},
     }
     store.set_data(new_data)
@@ -410,7 +410,7 @@ async def test_set_data_replaces_entire_structure(
 async def test_custom_storage_key(hass: HomeAssistant) -> None:
     """Test store with custom storage key."""
     custom_key = "test_storage_key"
-    store = KidsChoresStore(hass, storage_key=custom_key)
+    store = ChoreOpsStore(hass, storage_key=custom_key)
 
     assert store._storage_key == custom_key
     assert custom_key in store.get_storage_path()
@@ -418,16 +418,16 @@ async def test_custom_storage_key(hass: HomeAssistant) -> None:
 
 async def test_pending_reward_approvals_modern_structure(
     hass: HomeAssistant,
-    store: KidsChoresStore,
+    store: ChoreOpsStore,
 ) -> None:
     """Test that pending reward approvals use modern structure.
 
     This test verifies the v0.4.0+ architecture:
     - No get_pending_reward_approvals() method in storage manager (removed)
-    - Pending reward approvals computed from kid reward_data by coordinator
-    - Modern structure: kid["reward_data"][reward_id]["pending_count"]
+    - Pending reward approvals computed from assignee reward_data by coordinator
+    - Modern structure: assignee["reward_data"][reward_id]["pending_count"]
     """
-    # Modern structure stores pending counts in kid reward_data, not a global list
+    # Modern structure stores pending counts in assignee reward_data, not a global list
     # The storage manager no longer has a getter method for this legacy field
     # Coordinator.get_pending_reward_approvals_computed() is the new approach
 

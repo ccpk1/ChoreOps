@@ -8,14 +8,14 @@ from freezegun import freeze_time
 from homeassistant.components.calendar import CalendarEvent
 
 from custom_components.choreops import const
-from custom_components.choreops.calendar import KidScheduleCalendar
+from custom_components.choreops.calendar import AssigneeScheduleCalendar
 
 
-def _build_calendar(duration_days: int) -> KidScheduleCalendar:
+def _build_calendar(duration_days: int) -> AssigneeScheduleCalendar:
     """Create a lightweight calendar instance for unit-level method tests."""
-    calendar = object.__new__(KidScheduleCalendar)
+    calendar = object.__new__(AssigneeScheduleCalendar)
     calendar._calendar_duration = datetime.timedelta(days=duration_days)
-    calendar._kid_id = "kid-1"
+    calendar._assignee_id = "assignee-1"
     calendar._events_cache = {}
     calendar._max_cache_entries = 8
     calendar._recurrence_engine_cache = {}
@@ -23,7 +23,7 @@ def _build_calendar(duration_days: int) -> KidScheduleCalendar:
     return calendar
 
 
-def _attach_fake_coordinator(calendar: KidScheduleCalendar) -> None:
+def _attach_fake_coordinator(calendar: AssigneeScheduleCalendar) -> None:
     """Attach minimal coordinator data needed by cache revision logic."""
     calendar.coordinator = type(
         "FakeCoordinator",
@@ -92,7 +92,7 @@ def test_event_window_cache_invalidates_when_chore_revision_changes() -> None:
     chore_id = "chore-1"
     calendar.coordinator.chores_data[chore_id] = {
         const.DATA_CHORE_INTERNAL_ID: chore_id,
-        const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1"],
+        const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1"],
         const.DATA_CHORE_SHOW_ON_CALENDAR: True,
         const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
         const.DATA_CHORE_DUE_DATE: "2025-01-01T10:00:00+00:00",

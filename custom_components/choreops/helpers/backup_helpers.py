@@ -1,4 +1,4 @@
-"""Backup utilities for KidsChores integration.
+"""Backup utilities for ChoreOps integration.
 
 Handles creating, discovering, validating, and cleaning up storage backups.
 """
@@ -438,7 +438,7 @@ def validate_backup_json(json_str: str) -> bool:
                 "custom_components": {...},
                 "integration_manifest": {...},
                 "data": {
-                    "kids": dict,
+                    "assignees": dict,
                     "users": dict,
                     ...
                 }
@@ -447,14 +447,14 @@ def validate_backup_json(json_str: str) -> bool:
         2. Modern format (schema_version 42):
             {
                 "schema_version": 42,
-                "kids": dict,
+                "assignees": dict,
                 "users": dict,
                 ...
             }
 
         3. Legacy format (no schema_version - KC 3.0/3.1/early 4.0beta):
             {
-                "kids": dict,
+                "assignees": dict,
                 "users": dict,
                 ...
             }
@@ -463,9 +463,9 @@ def validate_backup_json(json_str: str) -> bool:
             {
                 "version": 1,
                 "minor_version": 1,
-                "key": "kidschores_data",
+                "key": "choreops_data",
                 "data": {
-                    "kids": dict,
+                    "assignees": dict,
                     "users": dict,
                     ...
                 }
@@ -475,7 +475,7 @@ def validate_backup_json(json_str: str) -> bool:
         - Valid JSON syntax
         - Top-level object (dict)
         - If Store format, version must be 1 (only version supported)
-        - Contains at least one entity type key (kids, users, chores, rewards)
+        - Contains at least one entity type key (assignees, users, chores, rewards)
     """
     try:
         data = json.loads(json_str)
@@ -513,7 +513,7 @@ def validate_backup_json(json_str: str) -> bool:
 
         # Must have at least one entity type
         entity_keys = {
-            "kids",
+            "assignees",
             "users",
             "chores",
             "rewards",

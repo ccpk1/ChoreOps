@@ -1,4 +1,4 @@
-"""Workflow helpers for KidsChores integration tests.
+"""Workflow helpers for ChoreOps integration tests.
 
 All helpers use the dashboard helper sensor as the single source of truth.
 NEVER construct entity IDs manually - get them from the dashboard helper.
@@ -9,15 +9,15 @@ Usage:
         get_dashboard_helper, find_chore,
     )
 
-    # Get dashboard helper for a kid
+    # Get dashboard helper for a assignee
     dashboard = get_dashboard_helper(hass, "zoe")
 
     # Find chore by display name
     chore = find_chore(dashboard, "Feed the cats")
 
     # Claim and approve via service calls
-    result = await claim_chore(hass, "zoe", "Feed the cats", kid_context)
-    result = await approve_chore(hass, "zoe", "Feed the cats", parent_context)
+    result = await claim_chore(hass, "zoe", "Feed the cats", assignee_context)
+    result = await approve_chore(hass, "zoe", "Feed the cats", approver_context)
 """
 
 from __future__ import annotations
@@ -69,8 +69,8 @@ class WorkflowResult:
     due_date_before: str | None = None
     due_date_after: str | None = None
 
-    # Multi-kid scenarios
-    other_kids_states: dict[str, str] = field(default_factory=dict)
+    # Multi-assignee scenarios
+    other_assignees_states: dict[str, str] = field(default_factory=dict)
 
     @property
     def points_changed(self) -> float:
@@ -91,12 +91,12 @@ class WorkflowResult:
 # =============================================================================
 
 
-def get_dashboard_helper(hass: HomeAssistant, kid_slug: str) -> dict[str, Any]:
-    """Get dashboard helper attributes for a kid.
+def get_dashboard_helper(hass: HomeAssistant, assignee_slug: str) -> dict[str, Any]:
+    """Get dashboard helper attributes for a assignee.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe", "max") - the slugified name
+        assignee_slug: Assignee's slug (e.g., "zoe", "max") - the slugified name
 
     Returns:
         Dashboard helper attributes dict with: chores, rewards, bonuses,
@@ -106,8 +106,8 @@ def get_dashboard_helper(hass: HomeAssistant, kid_slug: str) -> dict[str, Any]:
         ValueError: If dashboard helper doesn't exist
     """
     helper_ids = [
-        f"sensor.{kid_slug}_choreops_ui_dashboard_helper",
-        f"sensor.{kid_slug}_kidschores_ui_dashboard_helper",
+        f"sensor.{assignee_slug}_choreops_ui_dashboard_helper",
+        f"sensor.{assignee_slug}_choreops_ui_dashboard_helper",
     ]
 
     for helper_id in helper_ids:
@@ -118,21 +118,21 @@ def get_dashboard_helper(hass: HomeAssistant, kid_slug: str) -> dict[str, Any]:
     raise ValueError(f"Dashboard helper not found: {helper_ids[0]}")
 
 
-def get_kid_points(hass: HomeAssistant, kid_slug: str) -> float:
-    """Get current points for a kid via dashboard helper.
+def get_assignee_points(hass: HomeAssistant, assignee_slug: str) -> float:
+    """Get current points for a assignee via dashboard helper.
 
     Uses the dashboard helper's core_sensors.points_eid to find the actual
     points sensor entity ID (which may vary based on points_label config).
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
 
     Returns:
         Current point balance
     """
     # Get points entity ID from dashboard helper (single source of truth)
-    helper = get_dashboard_helper(hass, kid_slug)
+    helper = get_dashboard_helper(hass, assignee_slug)
     core_sensors = helper.get("core_sensors", {})
     points_eid = core_sensors.get("points_eid")
 
@@ -334,13 +334,13 @@ async def press_button(
 
 async def claim_chore(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     chore_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
-    """Claim a chore for a kid via button press.
+    """Claim a chore for a assignee via button press.
 
-    1. Gets dashboard helper for kid
+    1. Gets dashboard helper for assignee
     2. Finds chore by name
     3. Gets claim button from chore sensor
     4. Captures before state
@@ -349,9 +349,9 @@ async def claim_chore(
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
         chore_name: Display name of chore
-        context: User context (should be kid's context)
+        context: User context (should be assignee's context)
 
     Returns:
         WorkflowResult with before/after state
@@ -360,7 +360,7 @@ async def claim_chore(
 
     try:
         # Get dashboard helper and find chore
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         chore = find_chore(dashboard, chore_name)
 
         if chore is None:
@@ -378,7 +378,7 @@ async def claim_chore(
             result.due_date_before = chore_state.attributes.get("due_date")
 
         # Get points before
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         # Get claim button and press it
         buttons = get_chore_buttons(hass, chore_sensor_eid)
@@ -402,7 +402,7 @@ async def claim_chore(
             result.global_state_after = chore_state.attributes.get("global_state", "")
             result.due_date_after = chore_state.attributes.get("due_date")
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -413,17 +413,17 @@ async def claim_chore(
 
 async def approve_chore(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     chore_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
-    """Approve a chore for a kid via button press.
+    """Approve a chore for a assignee via button press.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
         chore_name: Display name of chore
-        context: User context (should be parent's context)
+        context: User context (should be approver's context)
 
     Returns:
         WorkflowResult with before/after state
@@ -431,7 +431,7 @@ async def approve_chore(
     result = WorkflowResult()
 
     try:
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         chore = find_chore(dashboard, chore_name)
 
         if chore is None:
@@ -448,7 +448,7 @@ async def approve_chore(
             result.global_state_before = chore_state.attributes.get("global_state", "")
             result.due_date_before = chore_state.attributes.get("due_date")
 
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         # Get approve button and press it
         buttons = get_chore_buttons(hass, chore_sensor_eid)
@@ -472,7 +472,7 @@ async def approve_chore(
             result.global_state_after = chore_state.attributes.get("global_state", "")
             result.due_date_after = chore_state.attributes.get("due_date")
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -483,17 +483,17 @@ async def approve_chore(
 
 async def disapprove_chore(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     chore_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
-    """Disapprove a chore for a kid via button press.
+    """Disapprove a chore for a assignee via button press.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug (e.g., "zoe")
+        assignee_slug: Assignee's slug (e.g., "zoe")
         chore_name: Display name of chore
-        context: User context (should be parent's context)
+        context: User context (should be approver's context)
 
     Returns:
         WorkflowResult with before/after state
@@ -501,7 +501,7 @@ async def disapprove_chore(
     result = WorkflowResult()
 
     try:
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         chore = find_chore(dashboard, chore_name)
 
         if chore is None:
@@ -518,7 +518,7 @@ async def disapprove_chore(
             result.global_state_before = chore_state.attributes.get("global_state", "")
             result.due_date_before = chore_state.attributes.get("due_date")
 
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         # Get disapprove button and press it
         buttons = get_chore_buttons(hass, chore_sensor_eid)
@@ -542,7 +542,7 @@ async def disapprove_chore(
             result.global_state_after = chore_state.attributes.get("global_state", "")
             result.due_date_after = chore_state.attributes.get("due_date")
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -558,17 +558,17 @@ async def disapprove_chore(
 
 async def claim_reward(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     reward_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
-    """Claim a reward for a kid via button press.
+    """Claim a reward for a assignee via button press.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         reward_name: Display name of reward
-        context: User context (should be kid's context)
+        context: User context (should be assignee's context)
 
     Returns:
         WorkflowResult with before/after state
@@ -576,7 +576,7 @@ async def claim_reward(
     result = WorkflowResult()
 
     try:
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         reward = find_reward(dashboard, reward_name)
 
         if reward is None:
@@ -591,7 +591,7 @@ async def claim_reward(
         if reward_state:
             result.state_before = reward_state.state
 
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         # Get claim button and press it
         buttons = get_reward_buttons(hass, reward_sensor_eid)
@@ -613,7 +613,7 @@ async def claim_reward(
         if reward_state:
             result.state_after = reward_state.state
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -624,7 +624,7 @@ async def claim_reward(
 
 async def approve_reward(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     reward_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
@@ -632,9 +632,9 @@ async def approve_reward(
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         reward_name: Display name of reward
-        context: User context (should be parent's context)
+        context: User context (should be approver's context)
 
     Returns:
         WorkflowResult with before/after state
@@ -642,7 +642,7 @@ async def approve_reward(
     result = WorkflowResult()
 
     try:
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         reward = find_reward(dashboard, reward_name)
 
         if reward is None:
@@ -657,7 +657,7 @@ async def approve_reward(
         if reward_state:
             result.state_before = reward_state.state
 
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         # Get approve button and press it
         buttons = get_reward_buttons(hass, reward_sensor_eid)
@@ -679,7 +679,7 @@ async def approve_reward(
         if reward_state:
             result.state_after = reward_state.state
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -695,19 +695,19 @@ async def approve_reward(
 
 async def apply_bonus(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     bonus_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
-    """Apply a bonus to a kid via button press.
+    """Apply a bonus to a assignee via button press.
 
     NOTE: Bonus eid from dashboard helper is already a button entity.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         bonus_name: Display name of bonus
-        context: User context (should be parent's context)
+        context: User context (should be approver's context)
 
     Returns:
         WorkflowResult with points before/after
@@ -715,7 +715,7 @@ async def apply_bonus(
     result = WorkflowResult()
 
     try:
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         bonus = find_bonus(dashboard, bonus_name)
 
         if bonus is None:
@@ -726,7 +726,7 @@ async def apply_bonus(
         # Bonus eid is already a button entity
         bonus_button_eid = bonus["eid"]
 
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         success = await press_button(hass, bonus_button_eid, context)
         if not success:
@@ -734,7 +734,7 @@ async def apply_bonus(
             result.error = "Failed to press bonus button"
             return result
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -745,19 +745,19 @@ async def apply_bonus(
 
 async def apply_penalty(
     hass: HomeAssistant,
-    kid_slug: str,
+    assignee_slug: str,
     penalty_name: str,
     context: Context | None = None,
 ) -> WorkflowResult:
-    """Apply a penalty to a kid via button press.
+    """Apply a penalty to a assignee via button press.
 
     NOTE: Penalty eid from dashboard helper is already a button entity.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid's slug
+        assignee_slug: Assignee's slug
         penalty_name: Display name of penalty
-        context: User context (should be parent's context)
+        context: User context (should be approver's context)
 
     Returns:
         WorkflowResult with points before/after
@@ -765,7 +765,7 @@ async def apply_penalty(
     result = WorkflowResult()
 
     try:
-        dashboard = get_dashboard_helper(hass, kid_slug)
+        dashboard = get_dashboard_helper(hass, assignee_slug)
         penalty = find_penalty(dashboard, penalty_name)
 
         if penalty is None:
@@ -776,7 +776,7 @@ async def apply_penalty(
         # Penalty eid is already a button entity
         penalty_button_eid = penalty["eid"]
 
-        result.points_before = get_kid_points(hass, kid_slug)
+        result.points_before = get_assignee_points(hass, assignee_slug)
 
         success = await press_button(hass, penalty_button_eid, context)
         if not success:
@@ -784,7 +784,7 @@ async def apply_penalty(
             result.error = "Failed to press penalty button"
             return result
 
-        result.points_after = get_kid_points(hass, kid_slug)
+        result.points_after = get_assignee_points(hass, assignee_slug)
 
     except Exception as ex:
         result.success = False
@@ -798,34 +798,34 @@ async def apply_penalty(
 # =============================================================================
 
 
-async def get_chore_states_all_kids(
+async def get_chore_states_all_assignees(
     hass: HomeAssistant,
-    kid_slugs: list[str],
+    assignee_slugs: list[str],
     chore_name: str,
 ) -> dict[str, str]:
-    """Get chore state for multiple kids.
+    """Get chore state for multiple assignees.
 
     Args:
         hass: Home Assistant instance
-        kid_slugs: List of kid slugs (e.g., ["zoe", "max", "lila"])
+        assignee_slugs: List of assignee slugs (e.g., ["zoe", "max", "lila"])
         chore_name: Display name of chore
 
     Returns:
-        Dict mapping kid_slug -> chore state (e.g., {"zoe": "pending", "max": "claimed"})
+        Dict mapping assignee_slug -> chore state (e.g., {"zoe": "pending", "max": "claimed"})
     """
     states = {}
 
-    for kid_slug in kid_slugs:
+    for assignee_slug in assignee_slugs:
         try:
-            dashboard = get_dashboard_helper(hass, kid_slug)
+            dashboard = get_dashboard_helper(hass, assignee_slug)
             chore = find_chore(dashboard, chore_name)
 
             if chore:
                 chore_state = hass.states.get(chore["eid"])
-                states[kid_slug] = chore_state.state if chore_state else "unknown"
+                states[assignee_slug] = chore_state.state if chore_state else "unknown"
             else:
-                states[kid_slug] = "not_assigned"
+                states[assignee_slug] = "not_assigned"
         except ValueError:
-            states[kid_slug] = "error"
+            states[assignee_slug] = "error"
 
     return states

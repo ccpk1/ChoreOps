@@ -50,7 +50,7 @@ def sample_chore_data() -> dict[str, Any]:
     return {
         const.DATA_CHORE_NAME: "Wash Dishes",
         const.DATA_CHORE_DEFAULT_POINTS: 10.0,
-        const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"],
+        const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"],
         const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
         const.DATA_CHORE_AUTO_APPROVE: False,
@@ -59,27 +59,27 @@ def sample_chore_data() -> dict[str, Any]:
 
 
 @pytest.fixture
-def sample_kid_data() -> dict[str, Any]:
-    """Create sample kid data."""
+def sample_assignee_data() -> dict[str, Any]:
+    """Create sample assignee data."""
     return {
-        const.DATA_KID_NAME: "Alice",
-        const.DATA_KID_POINTS_MULTIPLIER: 1.0,
-        const.DATA_KID_CHORE_DATA: {},
+        const.DATA_ASSIGNEE_NAME: "Alice",
+        const.DATA_ASSIGNEE_POINTS_MULTIPLIER: 1.0,
+        const.DATA_ASSIGNEE_CHORE_DATA: {},
     }
 
 
 @pytest.fixture
-def mock_coordinator(sample_chore_data: dict, sample_kid_data: dict) -> MagicMock:
+def mock_coordinator(sample_chore_data: dict, sample_assignee_data: dict) -> MagicMock:
     """Create mock coordinator with sample data."""
     coordinator = MagicMock()
     coordinator.config_entry.entry_id = "test-entry-123"
     coordinator.chores_data = {"chore-1": sample_chore_data}
-    coordinator.kids_data = {
-        "kid-1": sample_kid_data.copy(),
-        "kid-2": {
-            const.DATA_KID_NAME: "Bob",
-            const.DATA_KID_POINTS_MULTIPLIER: 1.5,
-            const.DATA_KID_CHORE_DATA: {},
+    coordinator.assignees_data = {
+        "assignee-1": sample_assignee_data.copy(),
+        "assignee-2": {
+            const.DATA_ASSIGNEE_NAME: "Bob",
+            const.DATA_ASSIGNEE_POINTS_MULTIPLIER: 1.5,
+            const.DATA_ASSIGNEE_CHORE_DATA: {},
         },
     }
     coordinator._persist = MagicMock()
@@ -116,26 +116,28 @@ def chore_manager(
 class TestValidation:
     """Tests for entity validation."""
 
-    def test_validate_kid_and_chore_success(self, chore_manager: ChoreManager) -> None:
+    def test_validate_assignee_and_chore_success(
+        self, chore_manager: ChoreManager
+    ) -> None:
         """Test validation passes for existing entities."""
         # Should not raise
-        chore_manager._validate_kid_and_chore("kid-1", "chore-1")
+        chore_manager._validate_assignee_and_chore("assignee-1", "chore-1")
 
     def test_validate_chore_not_found(self, chore_manager: ChoreManager) -> None:
         """Test validation fails for missing chore."""
         from homeassistant.exceptions import HomeAssistantError
 
         with pytest.raises(HomeAssistantError) as exc_info:
-            chore_manager._validate_kid_and_chore("kid-1", "invalid-chore")
+            chore_manager._validate_assignee_and_chore("assignee-1", "invalid-chore")
 
         assert exc_info.value.translation_key == const.TRANS_KEY_ERROR_NOT_FOUND
 
-    def test_validate_kid_not_found(self, chore_manager: ChoreManager) -> None:
-        """Test validation fails for missing kid."""
+    def test_validate_assignee_not_found(self, chore_manager: ChoreManager) -> None:
+        """Test validation fails for missing assignee."""
         from homeassistant.exceptions import HomeAssistantError
 
         with pytest.raises(HomeAssistantError) as exc_info:
-            chore_manager._validate_kid_and_chore("invalid-kid", "chore-1")
+            chore_manager._validate_assignee_and_chore("invalid-assignee", "chore-1")
 
         assert exc_info.value.translation_key == const.TRANS_KEY_ERROR_NOT_FOUND
 
@@ -241,7 +243,7 @@ class TestResetPolicyDecision:
                     "overdue_handling_type": const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE,
                     "approval_after_reset": True,
                     "completion_criteria": const.COMPLETION_CRITERIA_SHARED,
-                    "all_kids_approved": True,
+                    "all_assignees_approved": True,
                 },
                 const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 id="approval-immediate-on-late-shared-all-approved",
@@ -263,7 +265,7 @@ class TestResetPolicyDecision:
                     "approval_reset_type": const.APPROVAL_RESET_UPON_COMPLETION,
                     "overdue_handling_type": const.DEFAULT_OVERDUE_HANDLING_TYPE,
                     "completion_criteria": const.COMPLETION_CRITERIA_SHARED,
-                    "all_kids_approved": False,
+                    "all_assignees_approved": False,
                 },
                 const.CHORE_RESET_DECISION_HOLD,
                 id="approval-upon-completion-shared-not-all-approved",
@@ -342,21 +344,23 @@ class TestResetExecutor:
 
         chore_manager._apply_reset_action(
             {
-                "kid_id": "kid-1",
+                "assignee_id": "assignee-1",
                 "chore_id": "chore-1",
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
-                "reschedule_kid_id": "kid-1",
+                "reschedule_assignee_id": "assignee-1",
             }
         )
 
         chore_manager._transition_chore_state.assert_called_once_with(
-            "kid-1",
+            "assignee-1",
             "chore-1",
             const.CHORE_STATE_PENDING,
             reset_approval_period=True,
             clear_ownership=True,
         )
-        chore_manager._reschedule_chore_due.assert_called_once_with("chore-1", "kid-1")
+        chore_manager._reschedule_chore_due.assert_called_once_with(
+            "chore-1", "assignee-1"
+        )
 
     def test_apply_reset_action_skips_reschedule_for_reset_only(
         self,
@@ -368,10 +372,10 @@ class TestResetExecutor:
 
         chore_manager._apply_reset_action(
             {
-                "kid_id": "kid-1",
+                "assignee_id": "assignee-1",
                 "chore_id": "chore-1",
                 "decision": const.CHORE_RESET_DECISION_RESET_ONLY,
-                "reschedule_kid_id": None,
+                "reschedule_assignee_id": None,
             }
         )
 
@@ -397,7 +401,7 @@ class TestResetExecutor:
         chore_manager._finalize_reset_batch(
             persist=True,
             reset_count=1,
-            rotation_payloads=[{"chore_id": "chore-1", "kid_id": "kid-1"}],
+            rotation_payloads=[{"chore_id": "chore-1", "assignee_id": "assignee-1"}],
         )
 
         assert calls == ["persist", "emit"]
@@ -409,8 +413,10 @@ class TestResetExecutor:
     ) -> None:
         """Approval reset processing routes through shared reset executor."""
         chore_manager._apply_reset_action = MagicMock()
-        chore_manager._get_kid_chore_data = MagicMock(
-            return_value={const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
+            }
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -420,7 +426,7 @@ class TestResetExecutor:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1"],
+                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1"],
                         const.DATA_CHORE_STATE: const.CHORE_STATE_PENDING,
                         const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
                             const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
@@ -459,7 +465,7 @@ class TestResetExecutor:
             )
 
         assert reset_count == 1
-        assert ("kid-1", "chore-1") in reset_pairs
+        assert ("assignee-1", "chore-1") in reset_pairs
         chore_manager._apply_reset_action.assert_called_once()
 
     @pytest.mark.asyncio
@@ -469,8 +475,10 @@ class TestResetExecutor:
     ) -> None:
         """Periodic shared reset routes through executor with chore-level reschedule."""
         chore_manager._apply_reset_action = MagicMock()
-        chore_manager._get_kid_chore_data = MagicMock(
-            return_value={const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
+            }
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -480,7 +488,10 @@ class TestResetExecutor:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"],
+                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                            "assignee-1",
+                            "assignee-2",
+                        ],
                         const.DATA_CHORE_STATE: const.CHORE_STATE_PENDING,
                         const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
                             const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
@@ -518,18 +529,20 @@ class TestResetExecutor:
         assert chore_manager._apply_reset_action.call_count == 2
         first_call = chore_manager._apply_reset_action.call_args_list[0].args[0]
         second_call = chore_manager._apply_reset_action.call_args_list[1].args[0]
-        assert first_call["reschedule_kid_id"] is None
-        assert second_call["reschedule_kid_id"] is None
+        assert first_call["reschedule_assignee_id"] is None
+        assert second_call["reschedule_assignee_id"] is None
 
     @pytest.mark.asyncio
-    async def test_process_approval_reset_entries_independent_uses_kid_reschedule(
+    async def test_process_approval_reset_entries_independent_uses_assignee_reschedule(
         self,
         chore_manager: ChoreManager,
     ) -> None:
-        """Periodic independent reset routes through executor with per-kid reschedule."""
+        """Periodic independent reset routes through executor with per-assignee reschedule."""
         chore_manager._apply_reset_action = MagicMock()
-        chore_manager._get_kid_chore_data = MagicMock(
-            return_value={const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
+            }
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -553,7 +566,7 @@ class TestResetExecutor:
                             const.COMPLETION_CRITERIA_INDEPENDENT
                         ),
                     },
-                    "kids": [{const.CHORE_SCAN_ENTRY_KID_ID: "kid-1"}],
+                    "assignees": [{const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: "assignee-1"}],
                 }
             ],
         }
@@ -575,10 +588,10 @@ class TestResetExecutor:
 
         chore_manager._apply_reset_action.assert_called_once_with(
             {
-                "kid_id": "kid-1",
+                "assignee_id": "assignee-1",
                 "chore_id": "chore-1",
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
-                "reschedule_kid_id": "kid-1",
+                "reschedule_assignee_id": "assignee-1",
             }
         )
 
@@ -588,13 +601,15 @@ class TestResetExecutor:
         chore_manager: ChoreManager,
     ) -> None:
         """Midnight missed boundary advances rotation once and emits once."""
-        chore_manager._get_kid_chore_data = MagicMock(
-            return_value={const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_MISSED}
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_MISSED
+            }
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
         chore_manager._advance_rotation = MagicMock(
-            return_value={"chore_id": "chore-1", "kid_id": "kid-2"}
+            return_value={"chore_id": "chore-1", "assignee_id": "assignee-2"}
         )
         chore_manager.emit = MagicMock()
 
@@ -603,9 +618,12 @@ class TestResetExecutor:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"],
+                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                            "assignee-1",
+                            "assignee-2",
+                        ],
                         const.DATA_CHORE_STATE: const.CHORE_STATE_MISSED,
-                        const.DATA_CHORE_ROTATION_CURRENT_KID_ID: "kid-1",
+                        const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: "assignee-1",
                         const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
                             const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
                         ),
@@ -644,7 +662,7 @@ class TestResetExecutor:
             )
 
         chore_manager._advance_rotation.assert_called_once_with(
-            "chore-1", "kid-1", method="auto"
+            "chore-1", "assignee-1", method="auto"
         )
         rotation_calls = [
             call
@@ -652,7 +670,10 @@ class TestResetExecutor:
             if call.args and call.args[0] == const.SIGNAL_SUFFIX_CHORE_ROTATION_ADVANCED
         ]
         assert len(rotation_calls) == 1
-        assert rotation_calls[0].kwargs == {"chore_id": "chore-1", "kid_id": "kid-2"}
+        assert rotation_calls[0].kwargs == {
+            "chore_id": "chore-1",
+            "assignee_id": "assignee-2",
+        }
 
 
 class TestApprovalResetExecutorLane:
@@ -664,7 +685,7 @@ class TestApprovalResetExecutorLane:
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Independent UPON_COMPLETION approval uses executor with kid reschedule."""
+        """Independent UPON_COMPLETION approval uses executor with assignee reschedule."""
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_INDEPENDENT
@@ -672,28 +693,28 @@ class TestApprovalResetExecutorLane:
             const.DATA_CHORE_APPROVAL_RESET_TYPE
         ] = const.APPROVAL_RESET_UPON_COMPLETION
 
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         chore_manager._apply_reset_action = MagicMock()
 
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
 
         chore_manager._apply_reset_action.assert_called_once_with(
             {
-                "kid_id": "kid-1",
+                "assignee_id": "assignee-1",
                 "chore_id": "chore-1",
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
-                "reschedule_kid_id": "kid-1",
+                "reschedule_assignee_id": "assignee-1",
             }
         )
 
     @pytest.mark.asyncio
-    async def test_approval_shared_resets_all_kids_and_reschedules_once(
+    async def test_approval_shared_resets_all_assignees_and_reschedules_once(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Shared UPON_COMPLETION reset applies per-kid reset then one reschedule."""
+        """Shared UPON_COMPLETION reset applies per-assignee reset then one reschedule."""
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_SHARED
@@ -701,13 +722,13 @@ class TestApprovalResetExecutorLane:
             const.DATA_CHORE_APPROVAL_RESET_TYPE
         ] = const.APPROVAL_RESET_UPON_COMPLETION
 
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
-        chore_manager._all_kids_approved = MagicMock(return_value=True)
+        chore_manager._all_assignees_approved = MagicMock(return_value=True)
         chore_manager._apply_reset_action = MagicMock()
         chore_manager._reschedule_chore_due = MagicMock()
 
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
 
         assert chore_manager._apply_reset_action.call_count == 2
         chore_manager._reschedule_chore_due.assert_called_once_with("chore-1")
@@ -726,15 +747,17 @@ class TestApprovalResetExecutorLane:
             const.DATA_CHORE_APPROVAL_RESET_TYPE
         ] = const.APPROVAL_RESET_UPON_COMPLETION
 
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         chore_manager._apply_reset_action = MagicMock()
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
         approval_payload = chore_manager._apply_reset_action.call_args.args[0]
 
         chore_manager._apply_reset_action.reset_mock()
-        chore_manager._get_kid_chore_data = MagicMock(
-            return_value={const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
+            }
         )
 
         scan: dict[str, list[dict[str, Any]]] = {
@@ -756,7 +779,7 @@ class TestApprovalResetExecutorLane:
                             const.COMPLETION_CRITERIA_INDEPENDENT
                         ),
                     },
-                    "kids": [{const.CHORE_SCAN_ENTRY_KID_ID: "kid-1"}],
+                    "assignees": [{const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: "assignee-1"}],
                 }
             ],
         }
@@ -784,7 +807,7 @@ class TestApprovalResetExecutorLane:
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Shared approval and periodic lanes produce equivalent per-kid reset payloads."""
+        """Shared approval and periodic lanes produce equivalent per-assignee reset payloads."""
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_SHARED
@@ -792,18 +815,20 @@ class TestApprovalResetExecutorLane:
             const.DATA_CHORE_APPROVAL_RESET_TYPE
         ] = const.APPROVAL_RESET_UPON_COMPLETION
 
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
-        chore_manager._all_kids_approved = MagicMock(return_value=True)
+        chore_manager._all_assignees_approved = MagicMock(return_value=True)
         chore_manager._apply_reset_action = MagicMock()
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
         approval_payloads = [
             call.args[0] for call in chore_manager._apply_reset_action.call_args_list
         ]
 
         chore_manager._apply_reset_action.reset_mock()
-        chore_manager._get_kid_chore_data = MagicMock(
-            return_value={const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
+        chore_manager._get_assignee_chore_data = MagicMock(
+            return_value={
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
+            }
         )
 
         scan: dict[str, list[dict[str, Any]]] = {
@@ -811,7 +836,10 @@ class TestApprovalResetExecutorLane:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"],
+                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                            "assignee-1",
+                            "assignee-2",
+                        ],
                         const.DATA_CHORE_STATE: const.CHORE_STATE_PENDING,
                         const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
                             const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
@@ -862,24 +890,27 @@ class TestClaimWorkflow:
     @pytest.mark.asyncio
     async def test_claim_chore_success(self, chore_manager: ChoreManager) -> None:
         """Test successful chore claim."""
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         # Verify state changed to claimed
-        kid_chore_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] == const.CHORE_STATE_CLAIMED
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            == const.CHORE_STATE_CLAIMED
         )
 
         # Verify pending count incremented
-        assert kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] == 1
+        assert (
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] == 1
+        )
 
         # Verify event emitted
         chore_manager.emit.assert_called()
         call_args = chore_manager.emit.call_args
         assert call_args[0][0] == const.SIGNAL_SUFFIX_CHORE_CLAIMED
-        assert call_args[1]["kid_id"] == "kid-1"
+        assert call_args[1]["assignee_id"] == "assignee-1"
         assert call_args[1]["chore_id"] == "chore-1"
 
         # Verify persist called
@@ -887,17 +918,17 @@ class TestClaimWorkflow:
 
     @pytest.mark.asyncio
     async def test_claim_chore_not_assigned(self, chore_manager: ChoreManager) -> None:
-        """Test claim fails when kid not assigned to chore."""
+        """Test claim fails when assignee not assigned to chore."""
         from homeassistant.exceptions import HomeAssistantError
 
-        # Kid-3 is not assigned
-        chore_manager._coordinator.kids_data["kid-3"] = {
-            const.DATA_KID_NAME: "Charlie",
-            const.DATA_KID_CHORE_DATA: {},
+        # Assignee-3 is not assigned
+        chore_manager._coordinator.assignees_data["assignee-3"] = {
+            const.DATA_ASSIGNEE_NAME: "Charlie",
+            const.DATA_ASSIGNEE_CHORE_DATA: {},
         }
 
         with pytest.raises(HomeAssistantError) as exc_info:
-            await chore_manager.claim_chore("kid-3", "chore-1", "Charlie")
+            await chore_manager.claim_chore("assignee-3", "chore-1", "Charlie")
 
         assert exc_info.value.translation_key == const.TRANS_KEY_ERROR_NOT_ASSIGNED
 
@@ -915,7 +946,7 @@ class TestClaimWorkflow:
         # Enable auto-approve
         mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_AUTO_APPROVE] = True
 
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         # Phase 1: Auto-approve happens inline - verify CHORE_APPROVED signal emitted
         chore_manager.emit.assert_called()
@@ -928,13 +959,13 @@ class TestClaimWorkflow:
         assert approved_call is not None, (
             "CHORE_APPROVED signal not emitted (auto-approve failed)"
         )
-        assert approved_call[1]["kid_id"] == "kid-1"
-        assert approved_call[1]["parent_name"] == "auto_approve"
+        assert approved_call[1]["assignee_id"] == "assignee-1"
+        assert approved_call[1]["approver_name"] == "auto_approve"
         assert (
             approved_call[1]["approval_origin"]
             == const.CHORE_APPROVAL_ORIGIN_AUTO_APPROVE
         )
-        assert approved_call[1]["notify_kid"] is True
+        assert approved_call[1]["notify_assignee"] is True
 
 
 # ============================================================================
@@ -952,23 +983,25 @@ class TestApproveWorkflow:
     ) -> None:
         """Test successful chore approval."""
         # First claim the chore
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
         chore_manager.emit.reset_mock()
 
         # Now approve
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
 
         # Verify state changed to approved
-        kid_chore_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
             == const.CHORE_STATE_APPROVED
         )
 
         # Verify pending count decremented
-        assert kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] == 0
+        assert (
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] == 0
+        )
 
         # Verify CHORE_APPROVED signal emitted with correct payload
         # (Signal-First Architecture: EconomyManager deposits points via signal listener)
@@ -980,13 +1013,13 @@ class TestApproveWorkflow:
                 approved_call = call
                 break
         assert approved_call is not None, "CHORE_APPROVED signal not emitted"
-        assert approved_call[1]["kid_id"] == "kid-1"
-        assert approved_call[1]["parent_name"] == "Parent"
+        assert approved_call[1]["assignee_id"] == "assignee-1"
+        assert approved_call[1]["approver_name"] == "Approver"
         # Signal includes base_points for EconomyManager to apply multiplier
         assert "base_points" in approved_call[1]
         assert approved_call[1]["base_points"] == 10.0  # From sample_chore_data
         assert approved_call[1]["approval_origin"] == const.CHORE_APPROVAL_ORIGIN_MANUAL
-        assert approved_call[1]["notify_kid"] is True
+        assert approved_call[1]["notify_assignee"] is True
 
     @pytest.mark.asyncio
     async def test_approve_race_condition_protection(
@@ -995,13 +1028,13 @@ class TestApproveWorkflow:
     ) -> None:
         """Test that race condition is handled gracefully."""
         # Claim first
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         # Mark as already approved in period
         chore_manager._coordinator.chore_is_approved_in_period.return_value = True
 
         # Should return gracefully without error
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
 
         # No error raised, graceful exit
 
@@ -1021,18 +1054,21 @@ class TestDisapproveWorkflow:
     ) -> None:
         """Test successful chore disapproval."""
         # First claim the chore
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
         chore_manager.emit.reset_mock()
 
         # Now disapprove
-        await chore_manager.disapprove_chore("Parent", "kid-1", "chore-1", "Try again")
+        await chore_manager.disapprove_chore(
+            "Approver", "assignee-1", "chore-1", "Try again"
+        )
 
         # Verify state changed back to pending
-        kid_chore_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] == const.CHORE_STATE_PENDING
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            == const.CHORE_STATE_PENDING
         )
 
         # Verify event emitted with reason
@@ -1054,12 +1090,12 @@ class TestResetAndOverdue:
     async def test_reset_chore(self, chore_manager: ChoreManager) -> None:
         """Test chore reset via _transition_chore_state."""
         # Claim and approve first
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
         chore_manager.emit.reset_mock()
 
         # Reset using _transition_chore_state (master method for state changes)
         chore_manager._transition_chore_state(
-            "kid-1",
+            "assignee-1",
             "chore-1",
             const.CHORE_STATE_PENDING,
             reset_approval_period=True,
@@ -1067,11 +1103,12 @@ class TestResetAndOverdue:
         )
 
         # Verify state reset to pending
-        kid_chore_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] == const.CHORE_STATE_PENDING
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            == const.CHORE_STATE_PENDING
         )
 
         # Verify event emitted
@@ -1090,7 +1127,7 @@ class TestResetAndOverdue:
         # Mock process_time_checks to return a known overdue entry
         mock_entry = {
             "chore_id": "chore-1",
-            "kid_id": "kid-1",
+            "assignee_id": "assignee-1",
             "due_dt": dt_now_utc() - timedelta(days=1),
             "time_until_due": timedelta(days=-1),
         }
@@ -1132,109 +1169,120 @@ class TestDataResetChores:
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Global reset clears runtime structures across chores and kids."""
+        """Global reset clears runtime structures across chores and assignees."""
         chore_info = mock_coordinator.chores_data["chore-1"]
-        chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = {
-            "kid-1": "2026-01-01T00:00:00+00:00",
-            "kid-2": "2026-01-02T00:00:00+00:00",
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            "assignee-1": "2026-01-01T00:00:00+00:00",
+            "assignee-2": "2026-01-02T00:00:00+00:00",
         }
-        chore_info[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = {
-            "kid-1": [1, 2],
-            "kid-2": [3, 4],
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS] = {
+            "assignee-1": [1, 2],
+            "assignee-2": [3, 4],
         }
-        chore_info[const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES] = {
-            "kid-1": ["09:00"],
-            "kid-2": ["18:00"],
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES] = {
+            "assignee-1": ["09:00"],
+            "assignee-2": ["18:00"],
         }
         chore_info[const.DATA_CHORE_LAST_CLAIMED] = "2026-01-01T00:00:00+00:00"
         chore_info[const.DATA_CHORE_LAST_COMPLETED] = "2026-01-01T01:00:00+00:00"
 
-        for field in db._CHORE_PER_KID_RUNTIME_LISTS:
-            chore_info[field] = ["kid-1", "kid-2"]
+        for field in db._CHORE_PER_ASSIGNEE_RUNTIME_LISTS:
+            chore_info[field] = ["assignee-1", "assignee-2"]
 
-        for kid_id in ("kid-1", "kid-2"):
-            kid_dict = mock_coordinator.kids_data[kid_id]
-            kid_dict[const.DATA_KID_CHORE_DATA] = {"chore-1": {"state": "claimed"}}
-            for field in db._CHORE_KID_RUNTIME_FIELDS:
-                if field == const.DATA_KID_CHORE_DATA:
+        for assignee_id in ("assignee-1", "assignee-2"):
+            assignee_dict = mock_coordinator.assignees_data[assignee_id]
+            assignee_dict[const.DATA_ASSIGNEE_CHORE_DATA] = {
+                "chore-1": {"state": "claimed"}
+            }
+            for field in db._CHORE_ASSIGNEE_RUNTIME_FIELDS:
+                if field == const.DATA_ASSIGNEE_CHORE_DATA:
                     continue
-                kid_dict[field] = {"marker": 1}
+                assignee_dict[field] = {"marker": 1}
 
         chore_manager.set_due_date = AsyncMock()
 
         await chore_manager.data_reset_chores(scope="global")
 
         chore_manager.set_due_date.assert_awaited_once_with(
-            "chore-1", None, kid_id=None
+            "chore-1", None, assignee_id=None
         )
 
-        for field in db._CHORE_PER_KID_RUNTIME_LISTS:
+        for field in db._CHORE_PER_ASSIGNEE_RUNTIME_LISTS:
             assert chore_info[field] == []
 
         assert chore_info[const.DATA_CHORE_LAST_CLAIMED] is None
         assert chore_info[const.DATA_CHORE_LAST_COMPLETED] is None
 
-        for kid_id in ("kid-1", "kid-2"):
-            kid_dict = mock_coordinator.kids_data[kid_id]
-            assert kid_dict.get(const.DATA_KID_CHORE_DATA) == {}
+        for assignee_id in ("assignee-1", "assignee-2"):
+            assignee_dict = mock_coordinator.assignees_data[assignee_id]
+            assert assignee_dict.get(const.DATA_ASSIGNEE_CHORE_DATA) == {}
 
         mock_coordinator._persist_and_update.assert_called_once()
         chore_manager.emit.assert_any_call(
             const.SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE,
             scope="global",
-            kid_id=None,
+            assignee_id=None,
             item_id=None,
         )
 
     @pytest.mark.asyncio
-    async def test_data_reset_chores_kid_scope_removes_only_target_kid(
+    async def test_data_reset_chores_assignee_scope_removes_only_target_assignee(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Kid scope reset only touches chores assigned to that kid and kid-scoped config."""
+        """Assignee scope reset only touches chores assigned to that assignee and assignee-scoped config."""
         chore_two = {
             const.DATA_CHORE_NAME: "Second chore",
-            const.DATA_CHORE_ASSIGNED_KIDS: ["kid-2"],
+            const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-2"],
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         }
         mock_coordinator.chores_data["chore-2"] = chore_two
 
         chore_one = mock_coordinator.chores_data["chore-1"]
-        chore_one[const.DATA_CHORE_PER_KID_DUE_DATES] = {
-            "kid-1": "2026-01-01T00:00:00+00:00",
-            "kid-2": "2026-01-02T00:00:00+00:00",
+        chore_one[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {
+            "assignee-1": "2026-01-01T00:00:00+00:00",
+            "assignee-2": "2026-01-02T00:00:00+00:00",
         }
-        chore_one[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS] = {
-            "kid-1": [1],
-            "kid-2": [2],
+        chore_one[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS] = {
+            "assignee-1": [1],
+            "assignee-2": [2],
         }
-        chore_one[const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES] = {
-            "kid-1": ["10:00"],
-            "kid-2": ["16:00"],
+        chore_one[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES] = {
+            "assignee-1": ["10:00"],
+            "assignee-2": ["16:00"],
         }
 
-        for field in db._CHORE_PER_KID_RUNTIME_LISTS:
-            chore_one[field] = ["kid-1", "kid-2"]
+        for field in db._CHORE_PER_ASSIGNEE_RUNTIME_LISTS:
+            chore_one[field] = ["assignee-1", "assignee-2"]
 
         chore_manager.set_due_date = AsyncMock()
 
-        await chore_manager.data_reset_chores(scope="kid", kid_id="kid-1")
-
-        chore_manager.set_due_date.assert_awaited_once_with(
-            "chore-1", None, kid_id="kid-1"
+        await chore_manager.data_reset_chores(
+            scope="assignee", assignee_id="assignee-1"
         )
 
-        for field in db._CHORE_PER_KID_RUNTIME_LISTS:
-            assert "kid-1" not in chore_one[field]
-            assert "kid-2" in chore_one[field]
+        chore_manager.set_due_date.assert_awaited_once_with(
+            "chore-1", None, assignee_id="assignee-1"
+        )
 
-        assert "kid-1" not in chore_one[const.DATA_CHORE_PER_KID_DUE_DATES]
-        assert "kid-2" in chore_one[const.DATA_CHORE_PER_KID_DUE_DATES]
-        assert "kid-1" not in chore_one[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS]
-        assert "kid-2" in chore_one[const.DATA_CHORE_PER_KID_APPLICABLE_DAYS]
-        assert "kid-1" not in chore_one[const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES]
-        assert "kid-2" in chore_one[const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES]
+        for field in db._CHORE_PER_ASSIGNEE_RUNTIME_LISTS:
+            assert "assignee-1" not in chore_one[field]
+            assert "assignee-2" in chore_one[field]
+
+        assert "assignee-1" not in chore_one[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES]
+        assert "assignee-2" in chore_one[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES]
+        assert (
+            "assignee-1" not in chore_one[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS]
+        )
+        assert "assignee-2" in chore_one[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS]
+        assert (
+            "assignee-1"
+            not in chore_one[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES]
+        )
+        assert (
+            "assignee-2" in chore_one[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES]
+        )
 
     @pytest.mark.asyncio
     async def test_data_reset_chores_item_scope_clears_single_item(
@@ -1242,9 +1290,11 @@ class TestDataResetChores:
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Item scope only removes the targeted chore record from kid chore data."""
-        for kid_id in ("kid-1", "kid-2"):
-            mock_coordinator.kids_data[kid_id][const.DATA_KID_CHORE_DATA] = {
+        """Item scope only removes the targeted chore record from assignee chore data."""
+        for assignee_id in ("assignee-1", "assignee-2"):
+            mock_coordinator.assignees_data[assignee_id][
+                const.DATA_ASSIGNEE_CHORE_DATA
+            ] = {
                 "chore-1": {"state": "approved"},
                 "chore-2": {"state": "pending"},
             }
@@ -1254,15 +1304,15 @@ class TestDataResetChores:
         await chore_manager.data_reset_chores(scope="item", item_id="chore-1")
 
         chore_manager.set_due_date.assert_awaited_once_with(
-            "chore-1", None, kid_id=None
+            "chore-1", None, assignee_id=None
         )
 
-        for kid_id in ("kid-1", "kid-2"):
-            kid_chore_data = mock_coordinator.kids_data[kid_id][
-                const.DATA_KID_CHORE_DATA
+        for assignee_id in ("assignee-1", "assignee-2"):
+            assignee_chore_data = mock_coordinator.assignees_data[assignee_id][
+                const.DATA_ASSIGNEE_CHORE_DATA
             ]
-            assert "chore-1" not in kid_chore_data
-            assert "chore-2" in kid_chore_data
+            assert "chore-1" not in assignee_chore_data
+            assert "chore-2" in assignee_chore_data
 
 
 # ============================================================================
@@ -1277,20 +1327,21 @@ class TestUndoWorkflow:
     async def test_undo_chore(self, chore_manager: ChoreManager) -> None:
         """Test chore undo."""
         # Set up approved state with points
-        kid_data = chore_manager._coordinator.kids_data["kid-1"]
-        kid_data[const.DATA_KID_CHORE_DATA] = {
+        assignee_data = chore_manager._coordinator.assignees_data["assignee-1"]
+        assignee_data[const.DATA_ASSIGNEE_CHORE_DATA] = {
             "chore-1": {
-                const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED,
-                const.DATA_KID_CHORE_DATA_TOTAL_POINTS: 10.0,
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED,
+                const.DATA_ASSIGNEE_CHORE_DATA_TOTAL_POINTS: 10.0,
             }
         }
 
-        await chore_manager.undo_chore("kid-1", "chore-1", "Parent")
+        await chore_manager.undo_chore("assignee-1", "chore-1", "Approver")
 
         # Verify state reset to pending
-        kid_chore_data = kid_data[const.DATA_KID_CHORE_DATA]["chore-1"]
+        assignee_chore_data = assignee_data[const.DATA_ASSIGNEE_CHORE_DATA]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] == const.CHORE_STATE_PENDING
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            == const.CHORE_STATE_PENDING
         )
 
 
@@ -1306,47 +1357,47 @@ class TestCompletionCriteria:
     async def test_independent_completion(self, chore_manager: ChoreManager) -> None:
         """Test INDEPENDENT completion sets completed_by for actor only."""
         # Claim and complete
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         # Set up for approval
-        chore_manager._handle_completion_criteria("chore-1", "kid-1", "Alice")
+        chore_manager._handle_completion_criteria("chore-1", "assignee-1", "Alice")
 
         # Verify Alice's completed_by is set
-        kid1_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee1_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
-        assert kid1_data.get(const.DATA_CHORE_COMPLETED_BY) == "Alice"
+        assert assignee1_data.get(const.DATA_CHORE_COMPLETED_BY) == "Alice"
 
         # Verify Bob's completed_by is not affected
-        kid2_chores = chore_manager._coordinator.kids_data["kid-2"].get(
-            const.DATA_KID_CHORE_DATA, {}
+        assignee2_chores = chore_manager._coordinator.assignees_data["assignee-2"].get(
+            const.DATA_ASSIGNEE_CHORE_DATA, {}
         )
-        kid2_chore_data = kid2_chores.get("chore-1", {})
-        assert const.DATA_CHORE_COMPLETED_BY not in kid2_chore_data
+        assignee2_chore_data = assignee2_chores.get("chore-1", {})
+        assert const.DATA_CHORE_COMPLETED_BY not in assignee2_chore_data
 
     def test_shared_first_completion(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Test SHARED_FIRST completion updates other kids' completed_by."""
+        """Test SHARED_FIRST completion updates other assignees' completed_by."""
         # Change to SHARED_FIRST
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_SHARED_FIRST
 
-        # Initialize both kids' chore data
-        chore_manager._get_kid_chore_data("kid-1", "chore-1")
-        chore_manager._get_kid_chore_data("kid-2", "chore-1")
+        # Initialize both assignees' chore data
+        chore_manager._get_assignee_chore_data("assignee-1", "chore-1")
+        chore_manager._get_assignee_chore_data("assignee-2", "chore-1")
 
         # Handle completion
-        chore_manager._handle_completion_criteria("chore-1", "kid-1", "Alice")
+        chore_manager._handle_completion_criteria("chore-1", "assignee-1", "Alice")
 
         # Bob's completed_by should show Alice
-        kid2_data = mock_coordinator.kids_data["kid-2"][const.DATA_KID_CHORE_DATA][
-            "chore-1"
-        ]
-        assert kid2_data.get(const.DATA_CHORE_COMPLETED_BY) == "Alice"
+        assignee2_data = mock_coordinator.assignees_data["assignee-2"][
+            const.DATA_ASSIGNEE_CHORE_DATA
+        ]["chore-1"]
+        assert assignee2_data.get(const.DATA_CHORE_COMPLETED_BY) == "Alice"
 
     def test_shared_completion_appends_to_list(
         self,
@@ -1359,30 +1410,30 @@ class TestCompletionCriteria:
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_SHARED
 
-        # Initialize both kids' chore data
-        chore_manager._get_kid_chore_data("kid-1", "chore-1")
-        chore_manager._get_kid_chore_data("kid-2", "chore-1")
+        # Initialize both assignees' chore data
+        chore_manager._get_assignee_chore_data("assignee-1", "chore-1")
+        chore_manager._get_assignee_chore_data("assignee-2", "chore-1")
 
         # First completion
-        chore_manager._handle_completion_criteria("chore-1", "kid-1", "Alice")
+        chore_manager._handle_completion_criteria("chore-1", "assignee-1", "Alice")
 
-        # Both kids should have Alice in their list
-        kid1_data = mock_coordinator.kids_data["kid-1"][const.DATA_KID_CHORE_DATA][
-            "chore-1"
-        ]
-        assert kid1_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
+        # Both assignees should have Alice in their list
+        assignee1_data = mock_coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
+        ]["chore-1"]
+        assert assignee1_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
 
-        kid2_data = mock_coordinator.kids_data["kid-2"][const.DATA_KID_CHORE_DATA][
-            "chore-1"
-        ]
-        assert kid2_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
+        assignee2_data = mock_coordinator.assignees_data["assignee-2"][
+            const.DATA_ASSIGNEE_CHORE_DATA
+        ]["chore-1"]
+        assert assignee2_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
 
         # Second completion by Bob
-        chore_manager._handle_completion_criteria("chore-1", "kid-2", "Bob")
+        chore_manager._handle_completion_criteria("chore-1", "assignee-2", "Bob")
 
         # Both should now have both names
-        assert "Alice" in kid1_data.get(const.DATA_CHORE_COMPLETED_BY, [])
-        assert "Bob" in kid1_data.get(const.DATA_CHORE_COMPLETED_BY, [])
+        assert "Alice" in assignee1_data.get(const.DATA_CHORE_COMPLETED_BY, [])
+        assert "Bob" in assignee1_data.get(const.DATA_CHORE_COMPLETED_BY, [])
 
 
 class TestCriteriaTransitions:
@@ -1394,9 +1445,9 @@ class TestCriteriaTransitions:
         mock_coordinator: MagicMock,
     ) -> None:
         """Transition applies engine changes, persists, and emits update signal."""
-        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_KIDS] = [
-            "kid-1",
-            "kid-2",
+        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_ASSIGNEES] = [
+            "assignee-1",
+            "assignee-2",
         ]
 
         chore_manager._handle_criteria_transition(
@@ -1410,27 +1461,27 @@ class TestCriteriaTransitions:
             chore[const.DATA_CHORE_COMPLETION_CRITERIA]
             == const.COMPLETION_CRITERIA_ROTATION_SIMPLE
         )
-        assert chore[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] == "kid-1"
+        assert chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-1"
         assert chore[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] is False
         mock_coordinator._persist_and_update.assert_called_once()
         chore_manager.emit.assert_any_call(
             const.SIGNAL_SUFFIX_CHORE_UPDATED,
             chore_id="chore-1",
             updated_fields=[
-                const.DATA_CHORE_ROTATION_CURRENT_KID_ID,
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
                 const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE,
                 const.DATA_CHORE_COMPLETION_CRITERIA,
             ],
         )
 
-    def test_handle_criteria_transition_rejects_rotation_with_one_kid(
+    def test_handle_criteria_transition_rejects_rotation_with_one_assignee(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Rotation criteria requires at least two assigned kids."""
-        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_KIDS] = [
-            "kid-1"
+        """Rotation criteria requires at least two assigned assignees."""
+        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_ASSIGNEES] = [
+            "assignee-1"
         ]
 
         with pytest.raises(ServiceValidationError) as exc:
@@ -1440,7 +1491,7 @@ class TestCriteriaTransitions:
                 new_criteria=const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             )
 
-        assert exc.value.translation_key == const.TRANS_KEY_ERROR_ROTATION_MIN_KIDS
+        assert exc.value.translation_key == const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
 
 
 class TestRotationManagementValidation:
@@ -1453,7 +1504,7 @@ class TestRotationManagementValidation:
     ) -> None:
         """set_rotation_turn rejects unknown chore id."""
         with pytest.raises(ServiceValidationError) as exc:
-            await chore_manager.set_rotation_turn("missing", "kid-1")
+            await chore_manager.set_rotation_turn("missing", "assignee-1")
         assert exc.value.translation_key == const.TRANS_KEY_ERROR_CHORE_NOT_FOUND
 
     @pytest.mark.asyncio
@@ -1468,44 +1519,44 @@ class TestRotationManagementValidation:
         ] = const.COMPLETION_CRITERIA_INDEPENDENT
 
         with pytest.raises(ServiceValidationError) as exc:
-            await chore_manager.set_rotation_turn("chore-1", "kid-1")
+            await chore_manager.set_rotation_turn("chore-1", "assignee-1")
         assert exc.value.translation_key == const.TRANS_KEY_ERROR_NOT_ROTATION
 
     @pytest.mark.asyncio
-    async def test_set_rotation_turn_rejects_unassigned_kid(
+    async def test_set_rotation_turn_rejects_unassigned_assignee(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """set_rotation_turn rejects kids not assigned to chore."""
+        """set_rotation_turn rejects assignees not assigned to chore."""
         mock_coordinator._data[const.DATA_CHORES]["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_ROTATION_SIMPLE
         mock_coordinator._data[const.DATA_CHORES]["chore-1"][
-            const.DATA_CHORE_ASSIGNED_KIDS
-        ] = ["kid-1", "kid-2"]
+            const.DATA_CHORE_ASSIGNED_ASSIGNEES
+        ] = ["assignee-1", "assignee-2"]
 
         with pytest.raises(ServiceValidationError) as exc:
-            await chore_manager.set_rotation_turn("chore-1", "kid-3")
-        assert exc.value.translation_key == const.TRANS_KEY_ERROR_KID_NOT_ASSIGNED
+            await chore_manager.set_rotation_turn("chore-1", "assignee-3")
+        assert exc.value.translation_key == const.TRANS_KEY_ERROR_ASSIGNEE_NOT_ASSIGNED
 
     @pytest.mark.asyncio
-    async def test_reset_rotation_rejects_no_assigned_kids(
+    async def test_reset_rotation_rejects_no_assigned_assignees(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """reset_rotation rejects rotation chores with no assigned kids."""
+        """reset_rotation rejects rotation chores with no assigned assignees."""
         mock_coordinator._data[const.DATA_CHORES]["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_ROTATION_SIMPLE
         mock_coordinator._data[const.DATA_CHORES]["chore-1"][
-            const.DATA_CHORE_ASSIGNED_KIDS
+            const.DATA_CHORE_ASSIGNED_ASSIGNEES
         ] = []
 
         with pytest.raises(ServiceValidationError) as exc:
             await chore_manager.reset_rotation("chore-1")
-        assert exc.value.translation_key == const.TRANS_KEY_ERROR_NO_ASSIGNED_KIDS
+        assert exc.value.translation_key == const.TRANS_KEY_ERROR_NO_ASSIGNED_ASSIGNEES
 
     @pytest.mark.asyncio
     async def test_open_rotation_cycle_rejects_non_rotation(
@@ -1534,7 +1585,7 @@ class TestEventPayloads:
     @pytest.mark.asyncio
     async def test_claim_event_has_labels(self, chore_manager: ChoreManager) -> None:
         """Test claim event includes chore labels."""
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
 
         call_args = chore_manager.emit.call_args
         assert call_args[1]["chore_labels"] == ["kitchen", "daily"]
@@ -1545,10 +1596,10 @@ class TestEventPayloads:
         chore_manager: ChoreManager,
     ) -> None:
         """Test approval event includes rich payload for gamification."""
-        await chore_manager.claim_chore("kid-1", "chore-1", "Alice")
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
         chore_manager.emit.reset_mock()
 
-        await chore_manager.approve_chore("Parent", "kid-1", "chore-1")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
 
         # Find the CHORE_APPROVED call in the list (CHORE_COMPLETED may also be emitted)
         approved_call = None
@@ -1579,21 +1630,21 @@ class TestLockManagement:
 
     def test_get_lock_creates_new_lock(self, chore_manager: ChoreManager) -> None:
         """Test that get_lock creates a new lock for new key."""
-        lock = chore_manager._get_lock("kid-1", "chore-1")
+        lock = chore_manager._get_lock("assignee-1", "chore-1")
         assert lock is not None
 
     def test_get_lock_returns_same_lock(self, chore_manager: ChoreManager) -> None:
         """Test that get_lock returns same lock for same key."""
-        lock1 = chore_manager._get_lock("kid-1", "chore-1")
-        lock2 = chore_manager._get_lock("kid-1", "chore-1")
+        lock1 = chore_manager._get_lock("assignee-1", "chore-1")
+        lock2 = chore_manager._get_lock("assignee-1", "chore-1")
         assert lock1 is lock2
 
-    def test_different_kids_get_different_locks(
+    def test_different_assignees_get_different_locks(
         self, chore_manager: ChoreManager
     ) -> None:
-        """Test that different kid+chore pairs get different locks."""
-        lock1 = chore_manager._get_lock("kid-1", "chore-1")
-        lock2 = chore_manager._get_lock("kid-2", "chore-1")
+        """Test that different assignee+chore pairs get different locks."""
+        lock1 = chore_manager._get_lock("assignee-1", "chore-1")
+        lock2 = chore_manager._get_lock("assignee-2", "chore-1")
         assert lock1 is not lock2
 
 
@@ -1604,19 +1655,20 @@ class TestStatePersistenceContract:
         self,
         chore_manager: ChoreManager,
     ) -> None:
-        """Derived display states must never be persisted in kid_chore_data."""
+        """Derived display states must never be persisted in assignee_chore_data."""
         effect = TransitionEffect(
-            kid_id="kid-1",
+            assignee_id="assignee-1",
             new_state=const.CHORE_STATE_WAITING,
         )
 
         chore_manager._apply_effect(effect, "chore-1")
 
-        kid_chore_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] == const.CHORE_STATE_PENDING
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            == const.CHORE_STATE_PENDING
         )
 
     def test_apply_effect_persists_missed_checkpoint_state(
@@ -1625,15 +1677,16 @@ class TestStatePersistenceContract:
     ) -> None:
         """Missed is a persisted lock/checkpoint state for boundary workflows."""
         effect = TransitionEffect(
-            kid_id="kid-1",
+            assignee_id="assignee-1",
             new_state=const.CHORE_STATE_MISSED,
         )
 
         chore_manager._apply_effect(effect, "chore-1")
 
-        kid_chore_data = chore_manager._coordinator.kids_data["kid-1"][
-            const.DATA_KID_CHORE_DATA
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_ASSIGNEE_CHORE_DATA
         ]["chore-1"]
         assert (
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] == const.CHORE_STATE_MISSED
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            == const.CHORE_STATE_MISSED
         )

@@ -32,8 +32,8 @@ from tests.helpers import (
     ACTION_DISAPPROVE_CHORE,
     ACTION_DISAPPROVE_REWARD,
     ACTION_REMIND_30,
+    DATA_ASSIGNEE_ID,
     DATA_CHORE_ID,
-    DATA_KID_ID,
     DATA_REWARD_ID,
     NOTIFY_ACTION,
     NOTIFY_NOTIFICATION_ID,
@@ -59,14 +59,14 @@ class TestBuildChoreActions:
 
     def test_returns_list_of_three_actions(self) -> None:
         """Test that function returns exactly 3 action dictionaries."""
-        actions = build_chore_actions("kid-123", "chore-456", "entry123")
+        actions = build_chore_actions("assignee-123", "chore-456", "entry123")
 
         assert isinstance(actions, list)
         assert len(actions) == 3
 
     def test_action_format_structure(self) -> None:
         """Test that each action has required 'action' and 'title' keys."""
-        actions = build_chore_actions("kid-123", "chore-456", "entry123")
+        actions = build_chore_actions("assignee-123", "chore-456", "entry123")
 
         for action_dict in actions:
             assert NOTIFY_ACTION in action_dict
@@ -75,35 +75,35 @@ class TestBuildChoreActions:
             assert isinstance(action_dict[NOTIFY_TITLE], str)
 
     def test_approve_action_pipe_format(self) -> None:
-        """Test approve action uses pipe-separated format: ACTION|entry_id|kid_id|chore_id."""
-        actions = build_chore_actions("kid-123", "chore-456", "entry123")
+        """Test approve action uses pipe-separated format: ACTION|entry_id|assignee_id|chore_id."""
+        actions = build_chore_actions("assignee-123", "chore-456", "entry123")
         approve_action = actions[0]
 
-        expected = f"{ACTION_APPROVE_CHORE}|entry123|kid-123|chore-456"
+        expected = f"{ACTION_APPROVE_CHORE}|entry123|assignee-123|chore-456"
         assert approve_action[NOTIFY_ACTION] == expected
         assert approve_action[NOTIFY_TITLE] == TRANS_KEY_NOTIF_ACTION_APPROVE
 
     def test_disapprove_action_pipe_format(self) -> None:
         """Test disapprove action uses pipe-separated format."""
-        actions = build_chore_actions("kid-123", "chore-456", "entry123")
+        actions = build_chore_actions("assignee-123", "chore-456", "entry123")
         disapprove_action = actions[1]
 
-        expected = f"{ACTION_DISAPPROVE_CHORE}|entry123|kid-123|chore-456"
+        expected = f"{ACTION_DISAPPROVE_CHORE}|entry123|assignee-123|chore-456"
         assert disapprove_action[NOTIFY_ACTION] == expected
         assert disapprove_action[NOTIFY_TITLE] == TRANS_KEY_NOTIF_ACTION_DISAPPROVE
 
     def test_remind_action_pipe_format(self) -> None:
         """Test remind action uses pipe-separated format."""
-        actions = build_chore_actions("kid-123", "chore-456", "entry123")
+        actions = build_chore_actions("assignee-123", "chore-456", "entry123")
         remind_action = actions[2]
 
-        expected = f"{ACTION_REMIND_30}|entry123|kid-123|chore-456"
+        expected = f"{ACTION_REMIND_30}|entry123|assignee-123|chore-456"
         assert remind_action[NOTIFY_ACTION] == expected
         assert remind_action[NOTIFY_TITLE] == TRANS_KEY_NOTIF_ACTION_REMIND_30
 
     def test_translation_keys_not_raw_strings(self) -> None:
         """Test that translation keys are constants, not hardcoded strings."""
-        actions = build_chore_actions("kid-123", "chore-456", "entry123")
+        actions = build_chore_actions("assignee-123", "chore-456", "entry123")
 
         # All title values should use translation key constants
         for action_dict in actions:
@@ -125,50 +125,52 @@ class TestBuildRewardActions:
 
     def test_returns_list_of_three_actions(self) -> None:
         """Test that function returns exactly 3 action dictionaries."""
-        actions = build_reward_actions("kid-123", "reward-456", "entry123")
+        actions = build_reward_actions("assignee-123", "reward-456", "entry123")
 
         assert isinstance(actions, list)
         assert len(actions) == 3
 
     def test_without_notif_id_three_parts(self) -> None:
-        """Test action format without notif_id: ACTION|entry_id|kid_id|reward_id."""
+        """Test action format without notif_id: ACTION|entry_id|assignee_id|reward_id."""
         actions = build_reward_actions(
-            "kid-123", "reward-456", "entry123", notif_id=None
+            "assignee-123", "reward-456", "entry123", notif_id=None
         )
 
         approve_action = actions[0]
-        expected = f"{ACTION_APPROVE_REWARD}|entry123|kid-123|reward-456"
+        expected = f"{ACTION_APPROVE_REWARD}|entry123|assignee-123|reward-456"
         assert approve_action[NOTIFY_ACTION] == expected
 
         disapprove_action = actions[1]
-        expected = f"{ACTION_DISAPPROVE_REWARD}|entry123|kid-123|reward-456"
+        expected = f"{ACTION_DISAPPROVE_REWARD}|entry123|assignee-123|reward-456"
         assert disapprove_action[NOTIFY_ACTION] == expected
 
         remind_action = actions[2]
-        expected = f"{ACTION_REMIND_30}|entry123|kid-123|reward-456"
+        expected = f"{ACTION_REMIND_30}|entry123|assignee-123|reward-456"
         assert remind_action[NOTIFY_ACTION] == expected
 
     def test_with_notif_id_four_parts(self) -> None:
-        """Test action format with notif_id: ACTION|entry_id|kid_id|reward_id|notif_id."""
+        """Test action format with notif_id: ACTION|entry_id|assignee_id|reward_id|notif_id."""
         actions = build_reward_actions(
-            "kid-123", "reward-456", "entry123", notif_id="notif-789"
+            "assignee-123", "reward-456", "entry123", notif_id="notif-789"
         )
 
         approve_action = actions[0]
-        expected = f"{ACTION_APPROVE_REWARD}|entry123|kid-123|reward-456|notif-789"
+        expected = f"{ACTION_APPROVE_REWARD}|entry123|assignee-123|reward-456|notif-789"
         assert approve_action[NOTIFY_ACTION] == expected
 
         disapprove_action = actions[1]
-        expected = f"{ACTION_DISAPPROVE_REWARD}|entry123|kid-123|reward-456|notif-789"
+        expected = (
+            f"{ACTION_DISAPPROVE_REWARD}|entry123|assignee-123|reward-456|notif-789"
+        )
         assert disapprove_action[NOTIFY_ACTION] == expected
 
         remind_action = actions[2]
-        expected = f"{ACTION_REMIND_30}|entry123|kid-123|reward-456|notif-789"
+        expected = f"{ACTION_REMIND_30}|entry123|assignee-123|reward-456|notif-789"
         assert remind_action[NOTIFY_ACTION] == expected
 
     def test_reward_uses_correct_translation_keys(self) -> None:
         """Test that reward actions use the same translation keys as chores."""
-        actions = build_reward_actions("kid-123", "reward-456", "entry123")
+        actions = build_reward_actions("assignee-123", "reward-456", "entry123")
 
         assert actions[0][NOTIFY_TITLE] == TRANS_KEY_NOTIF_ACTION_APPROVE
         assert actions[1][NOTIFY_TITLE] == TRANS_KEY_NOTIF_ACTION_DISAPPROVE
@@ -183,43 +185,45 @@ class TestBuildRewardActions:
 class TestBuildExtraData:
     """Tests for build_extra_data() function."""
 
-    def test_always_includes_kid_id(self) -> None:
-        """Test that kid_id is always present in returned dict."""
-        data = build_extra_data("kid-123")
+    def test_always_includes_assignee_id(self) -> None:
+        """Test that assignee_id is always present in returned dict."""
+        data = build_extra_data("assignee-123")
 
-        assert DATA_KID_ID in data
-        assert data[DATA_KID_ID] == "kid-123"
+        assert DATA_ASSIGNEE_ID in data
+        assert data[DATA_ASSIGNEE_ID] == "assignee-123"
 
     def test_includes_chore_id_when_provided(self) -> None:
         """Test that chore_id is included when not None."""
-        data = build_extra_data("kid-123", chore_id="chore-456")
+        data = build_extra_data("assignee-123", chore_id="chore-456")
 
-        assert DATA_KID_ID in data
+        assert DATA_ASSIGNEE_ID in data
         assert DATA_CHORE_ID in data
         assert data[DATA_CHORE_ID] == "chore-456"
 
     def test_includes_reward_id_when_provided(self) -> None:
         """Test that reward_id is included when not None."""
-        data = build_extra_data("kid-123", reward_id="reward-456")
+        data = build_extra_data("assignee-123", reward_id="reward-456")
 
-        assert DATA_KID_ID in data
+        assert DATA_ASSIGNEE_ID in data
         assert DATA_REWARD_ID in data
         assert data[DATA_REWARD_ID] == "reward-456"
 
     def test_includes_notif_id_when_provided(self) -> None:
         """Test that notification_id is included when not None."""
-        data = build_extra_data("kid-123", notif_id="notif-789")
+        data = build_extra_data("assignee-123", notif_id="notif-789")
 
-        assert DATA_KID_ID in data
+        assert DATA_ASSIGNEE_ID in data
         assert NOTIFY_NOTIFICATION_ID in data
         assert data[NOTIFY_NOTIFICATION_ID] == "notif-789"
 
     def test_omits_none_values(self) -> None:
         """Test that None values are not included in returned dict."""
-        data = build_extra_data("kid-123", chore_id=None, reward_id=None, notif_id=None)
+        data = build_extra_data(
+            "assignee-123", chore_id=None, reward_id=None, notif_id=None
+        )
 
-        assert len(data) == 1  # Only kid_id
-        assert DATA_KID_ID in data
+        assert len(data) == 1  # Only assignee_id
+        assert DATA_ASSIGNEE_ID in data
         assert DATA_CHORE_ID not in data
         assert DATA_REWARD_ID not in data
         assert NOTIFY_NOTIFICATION_ID not in data
@@ -227,14 +231,14 @@ class TestBuildExtraData:
     def test_includes_all_provided_values(self) -> None:
         """Test that all non-None values are included."""
         data = build_extra_data(
-            "kid-123",
+            "assignee-123",
             chore_id="chore-456",
             reward_id="reward-789",
             notif_id="notif-abc",
         )
 
         assert len(data) == 4
-        assert data[DATA_KID_ID] == "kid-123"
+        assert data[DATA_ASSIGNEE_ID] == "assignee-123"
         assert data[DATA_CHORE_ID] == "chore-456"
         assert data[DATA_REWARD_ID] == "reward-789"
         assert data[NOTIFY_NOTIFICATION_ID] == "notif-abc"
@@ -250,27 +254,29 @@ class TestParseNotificationAction:
 
     def test_parse_valid_chore_action_three_parts(self) -> None:
         """Test parsing valid chore action: ACTION|entry_id|assignee_id|chore_id."""
-        action_string = f"{ACTION_APPROVE_CHORE}|entry123|kid-123|chore-456"
+        action_string = f"{ACTION_APPROVE_CHORE}|entry123|assignee-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert isinstance(parsed, ParsedAction)
         assert parsed.action_type == ACTION_APPROVE_CHORE
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "kid-123"
+        assert parsed.assignee_id == "assignee-123"
         assert parsed.entity_id == "chore-456"
         assert parsed.notif_id is None
 
     def test_parse_valid_reward_action_four_parts(self) -> None:
         """Test parsing valid reward action: ACTION|entry_id|assignee_id|reward_id|notif_id."""
-        action_string = f"{ACTION_APPROVE_REWARD}|entry123|kid-123|reward-456|notif-789"
+        action_string = (
+            f"{ACTION_APPROVE_REWARD}|entry123|assignee-123|reward-456|notif-789"
+        )
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert isinstance(parsed, ParsedAction)
         assert parsed.action_type == ACTION_APPROVE_REWARD
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "kid-123"
+        assert parsed.assignee_id == "assignee-123"
         assert parsed.entity_id == "reward-456"
         assert parsed.notif_id == "notif-789"
 
@@ -289,7 +295,7 @@ class TestParseNotificationAction:
 
     def test_parse_unknown_action_type_returns_none(self) -> None:
         """Test that unrecognized action type returns None."""
-        action_string = "unknown_action|entry123|kid-123|chore-456"
+        action_string = "unknown_action|entry123|assignee-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is None
@@ -297,43 +303,43 @@ class TestParseNotificationAction:
     def test_parse_reward_without_notif_id_returns_none(self) -> None:
         """Test that reward action without notif_id returns None (invalid)."""
         # Reward actions require 4 parts (with notif_id)
-        action_string = f"{ACTION_APPROVE_REWARD}|entry123|kid-123|reward-456"
+        action_string = f"{ACTION_APPROVE_REWARD}|entry123|assignee-123|reward-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is None
 
     def test_parse_disapprove_chore_action(self) -> None:
         """Test parsing disapprove chore action."""
-        action_string = f"{ACTION_DISAPPROVE_CHORE}|entry123|kid-123|chore-456"
+        action_string = f"{ACTION_DISAPPROVE_CHORE}|entry123|assignee-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert parsed.action_type == ACTION_DISAPPROVE_CHORE
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "kid-123"
+        assert parsed.assignee_id == "assignee-123"
         assert parsed.entity_id == "chore-456"
 
     def test_parse_remind_action_chore_three_parts(self) -> None:
         """Test parsing remind action for chore (4 parts)."""
-        action_string = f"{ACTION_REMIND_30}|entry123|kid-123|chore-456"
+        action_string = f"{ACTION_REMIND_30}|entry123|assignee-123|chore-456"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert parsed.action_type == ACTION_REMIND_30
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "kid-123"
+        assert parsed.assignee_id == "assignee-123"
         assert parsed.entity_id == "chore-456"
         assert parsed.notif_id is None
 
     def test_parse_remind_action_reward_four_parts(self) -> None:
         """Test parsing remind action for reward (5 parts)."""
-        action_string = f"{ACTION_REMIND_30}|entry123|kid-123|reward-456|notif-789"
+        action_string = f"{ACTION_REMIND_30}|entry123|assignee-123|reward-456|notif-789"
         parsed = parse_notification_action(action_string)
 
         assert parsed is not None
         assert parsed.action_type == ACTION_REMIND_30
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "kid-123"
+        assert parsed.assignee_id == "assignee-123"
         assert parsed.entity_id == "reward-456"
         assert parsed.notif_id == "notif-789"
 
@@ -351,7 +357,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -364,7 +370,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_DISAPPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -377,7 +383,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -391,7 +397,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_DISAPPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -405,7 +411,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -418,7 +424,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -430,7 +436,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="chore-456",
             notif_id=None,
         )
@@ -443,7 +449,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -456,7 +462,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -469,7 +475,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -481,7 +487,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="kid-123",
+            assignee_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -498,21 +504,21 @@ class TestBuildNotificationTag:
 
     def test_single_identifier(self) -> None:
         """Test tag generation with single identifier (backwards compatible)."""
-        tag = build_notification_tag("status", "kid-123")
+        tag = build_notification_tag("status", "assignee-123")
         # Identifiers truncated to 8 chars for Apple's 64-byte limit
-        assert tag == f"{const.DOMAIN}-status-kid-123"
+        assert tag == f"{const.DOMAIN}-status-assignee-123"
 
     def test_multiple_identifiers(self) -> None:
-        """Test tag generation with chore_id + kid_id for uniqueness."""
-        tag = build_notification_tag("status", "chore-456", "kid-123")
-        # Identifiers truncated to 8 chars: "chore-456" -> "chore-45", "kid-123" -> "kid-123"
-        assert tag == f"{const.DOMAIN}-status-chore-45-kid-123"
+        """Test tag generation with chore_id + assignee_id for uniqueness."""
+        tag = build_notification_tag("status", "chore-456", "assignee-123")
+        # Identifiers truncated to 8 chars: "chore-456" -> "chore-45", "assignee-123" -> "assignee-123"
+        assert tag == f"{const.DOMAIN}-status-chore-45-assignee-123"
 
     def test_reward_identifiers(self) -> None:
         """Test tag generation for reward notifications."""
-        tag = build_notification_tag("status", "reward-789", "kid-123")
-        # Identifiers truncated: "reward-789" -> "reward-7", "kid-123" -> "kid-123"
-        assert tag == f"{const.DOMAIN}-status-reward-7-kid-123"
+        tag = build_notification_tag("status", "reward-789", "assignee-123")
+        # Identifiers truncated: "reward-789" -> "reward-7", "assignee-123" -> "assignee-123"
+        assert tag == f"{const.DOMAIN}-status-reward-7-assignee-123"
 
     def test_no_identifiers(self) -> None:
         """Test tag generation with just tag_type (fallback behavior)."""
@@ -523,24 +529,24 @@ class TestBuildNotificationTag:
         """Test that empty string identifiers are included (no filtering)."""
         # Note: Production code should not pass empty strings, but if it does
         # they are included in the tag (not filtered out)
-        tag = build_notification_tag("status", "chore-456", "", "kid-123")
-        # Identifiers truncated: "chore-456" -> "chore-45", "" -> "", "kid-123" -> "kid-123"
-        assert tag == f"{const.DOMAIN}-status-chore-45--kid-123"
+        tag = build_notification_tag("status", "chore-456", "", "assignee-123")
+        # Identifiers truncated: "chore-456" -> "chore-45", "" -> "", "assignee-123" -> "assignee-123"
+        assert tag == f"{const.DOMAIN}-status-chore-45--assignee-123"
 
     def test_tag_type_preserved(self) -> None:
         """Test different tag types produce different prefixes."""
         # Identifiers truncated to 8 chars
-        status_tag = build_notification_tag("status", "entity-1", "kid-1")
-        pending_tag = build_notification_tag("pending", "entity-1", "kid-1")
-        rewards_tag = build_notification_tag("rewards", "entity-1", "kid-1")
+        status_tag = build_notification_tag("status", "entity-1", "assignee-1")
+        pending_tag = build_notification_tag("pending", "entity-1", "assignee-1")
+        rewards_tag = build_notification_tag("rewards", "entity-1", "assignee-1")
 
         assert "status" in status_tag
         assert "pending" in pending_tag
         assert "rewards" in rewards_tag
         assert status_tag != pending_tag != rewards_tag
 
-    def test_same_kid_different_chores_unique(self) -> None:
-        """Test same kid with different chores produces unique tags.
+    def test_same_assignee_different_chores_unique(self) -> None:
+        """Test same assignee with different chores produces unique tags.
 
         NOTE: Truncation to 8 chars can cause collisions with short test IDs!
         Production uses UUIDs where first 8 chars provide sufficient uniqueness.
@@ -548,10 +554,10 @@ class TestBuildNotificationTag:
         """
         # Use realistic UUID-like identifiers (production format)
         tag1 = build_notification_tag(
-            "status", "abc12345-6789-abcd-ef01-234567890abc", "kid-123"
+            "status", "abc12345-6789-abcd-ef01-234567890abc", "assignee-123"
         )
         tag2 = build_notification_tag(
-            "status", "def67890-1234-5678-9abc-def012345678", "kid-123"
+            "status", "def67890-1234-5678-9abc-def012345678", "assignee-123"
         )
 
         assert tag1 != tag2
@@ -559,13 +565,13 @@ class TestBuildNotificationTag:
         assert "abc12345" in tag1
         assert "def67890" in tag2
 
-    def test_same_chore_different_kids_unique(self) -> None:
-        """Test shared chore with different kids produces unique tags."""
-        tag1 = build_notification_tag("status", "shared-chore", "kid-alice")
-        tag2 = build_notification_tag("status", "shared-chore", "kid-bob")
+    def test_same_chore_different_assignees_unique(self) -> None:
+        """Test shared chore with different assignees produces unique tags."""
+        tag1 = build_notification_tag("status", "shared-chore", "assignee-alice")
+        tag2 = build_notification_tag("status", "shared-chore", "assignee-bob")
 
         assert tag1 != tag2
-        # Truncated: "shared-chore" -> "shared-c", "kid-alice" -> "kid-alic", "kid-bob" -> "kid-bob"
+        # Truncated: "shared-chore" -> "shared-c", "assignee-alice" -> "assignee-alic", "assignee-bob" -> "assignee-bob"
         assert "shared-c" in tag1  # First 8 chars of "shared-chore"
-        assert "kid-alic" in tag1  # First 8 chars of "kid-alice"
-        assert "kid-bob" in tag2
+        assert "assignee-alic" in tag1  # First 8 chars of "assignee-alice"
+        assert "assignee-bob" in tag2

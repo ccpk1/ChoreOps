@@ -1,7 +1,7 @@
 """Gamification Manager - Debounced badge/achievement/challenge evaluation.
 
 This manager handles gamification evaluation with debouncing:
-- Pending tracking: Which kids need re-evaluation (persisted to storage)
+- Pending tracking: Which assignees need re-evaluation (persisted to storage)
 - Debounced evaluation: Batch evaluations to avoid redundant processing
 - Event listening: Responds to points_changed, chore_approved, etc.
 - Result application: Awards/revokes badges, achievements, challenges
@@ -14,7 +14,7 @@ ARCHITECTURE (v0.5.0+):
 RELIABILITY (Phase 7.4):
 - Pending evaluations are persisted to storage meta
 - On restart, pending evaluations are recovered and processed
-- Kid deletion removes kid from pending queue
+- Assignee deletion removes assignee from pending queue
 """
 
 from __future__ import annotations
@@ -36,17 +36,17 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
     from ..type_defs import (
         AchievementData,
         AchievementProgress,
+        AssigneeBadgeProgress,
         BadgeData,
         CanonicalTargetDefinition,
         ChallengeData,
         ChallengeProgress,
         EvaluationContext,
         EvaluationResult,
-        KidBadgeProgress,
         UserData,
     )
 
@@ -59,7 +59,7 @@ class GamificationManager(BaseManager):
     """Manager for gamification evaluation with debouncing.
 
     Responsibilities:
-    - Track which kids need gamification re-evaluation (dirty tracking)
+    - Track which assignees need gamification re-evaluation (dirty tracking)
     - Debounce evaluation to batch rapid changes
     - Build evaluation context from coordinator data
     - Apply evaluation results (badge awards, achievements, challenges)
@@ -74,17 +74,17 @@ class GamificationManager(BaseManager):
     def __init__(
         self,
         hass: HomeAssistant,
-        coordinator: KidsChoresDataCoordinator,
+        coordinator: ChoreOpsDataCoordinator,
     ) -> None:
         """Initialize the GamificationManager.
 
         Args:
             hass: Home Assistant instance
-            coordinator: The main KidsChores coordinator
+            coordinator: The main ChoreOps coordinator
         """
         super().__init__(hass, coordinator)
 
-        # Pending evaluations - kids needing re-evaluation (persisted to storage)
+        # Pending evaluations - assignees needing re-evaluation (persisted to storage)
         self._pending_evaluations: set[str] = set()
 
         # Debounce timer handle
@@ -126,7 +126,7 @@ class GamificationManager(BaseManager):
         self.listen(const.SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER, self._on_midnight_rollover)
 
         # Lifecycle events - reactive cleanup (Platinum Architecture)
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._on_kid_deleted)
+        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_assignee_deleted)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DELETED, self._on_chore_deleted)
         self.listen(const.SIGNAL_SUFFIX_CHORE_UPDATED, self._on_chore_updated)
 
@@ -160,15 +160,15 @@ class GamificationManager(BaseManager):
 
         For tracked-chores badge types, an empty selected_chores configuration
         means "all chores". Older data may have materialized all chore UUIDs into
-        kid badge progress, which becomes stale as chores are added/removed.
+        assignee badge progress, which becomes stale as chores are added/removed.
 
         Returns:
-            Number of kid badge_progress records normalized.
+            Number of assignee badge_progress records normalized.
         """
         normalized = 0
 
-        for kid_info in self.coordinator.kids_data.values():
-            badge_progress = kid_info.get(const.DATA_KID_BADGE_PROGRESS)
+        for assignee_info in self.coordinator.assignees_data.values():
+            badge_progress = assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS)
             if not isinstance(badge_progress, dict):
                 continue
 
@@ -191,7 +191,7 @@ class GamificationManager(BaseManager):
                     const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                 )
                 tracked_chores = progress.get(
-                    const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES
+                    const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES
                 )
 
                 if (
@@ -200,7 +200,7 @@ class GamificationManager(BaseManager):
                     and isinstance(tracked_chores, list)
                     and len(tracked_chores) > 0
                 ):
-                    progress[const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES] = []
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = []
                     normalized += 1
 
         return normalized
@@ -210,7 +210,7 @@ class GamificationManager(BaseManager):
 
         Cascade Position: STATS_READY → GamificationManager → GAMIFICATION_READY
 
-        Updates chore badge references for all kids, then signals completion
+        Updates chore badge references for all assignees, then signals completion
         of the startup cascade. UIManager can listen for dashboard finalization.
 
         Args:
@@ -222,7 +222,7 @@ class GamificationManager(BaseManager):
 
         # Signal cascade complete
         self.emit(const.SIGNAL_SUFFIX_GAMIFICATION_READY)
-        const.LOGGER.info("KidsChores initialization cascade complete")
+        const.LOGGER.info("ChoreOps initialization cascade complete")
 
     # =========================================================================
     # EVENT HANDLERS
@@ -236,9 +236,9 @@ class GamificationManager(BaseManager):
         → awards badge → awards points → ...).
 
         Args:
-            payload: Event data with kid_id, delta, source, etc.
+            payload: Event data with assignee_id, delta, source, etc.
         """
-        kid_id = payload.get("kid_id")
+        assignee_id = payload.get("assignee_id")
         source = payload.get("source", "")
 
         # Skip gamification-originated point changes to prevent loops
@@ -257,27 +257,29 @@ class GamificationManager(BaseManager):
 
         # Update cumulative badge progress (for positive deltas only)
         delta = payload.get("delta", 0.0)
-        if delta > 0 and kid_id:
-            kid_info = self.coordinator.kids_data.get(kid_id)
-            if kid_info:
-                progress = kid_info.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+        if delta > 0 and assignee_id:
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
+            if assignee_info:
+                progress = assignee_info.get(
+                    const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                )
                 cycle_points = progress.get(
-                    const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
+                    const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
                 )
                 cycle_points += delta
-                progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = round(
-                    cycle_points, const.DATA_FLOAT_PRECISION
+                progress[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = (
+                    round(cycle_points, const.DATA_FLOAT_PRECISION)
                 )
 
-        if kid_id:
-            self._mark_pending(kid_id)
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_chore_updated(self, payload: dict[str, Any]) -> None:
         """Handle chore_updated event (Platinum Architecture: event-driven).
 
         When a chore is updated (assignments changed, config modified), we need
-        to recalculate badges for all kids since badge criteria may reference
-        any chore and assignment changes affect which kids can earn badges.
+        to recalculate badges for all assignees since badge criteria may reference
+        any chore and assignment changes affect which assignees can earn badges.
 
         Args:
             payload: Event data with chore_id, chore_name, etc.
@@ -291,31 +293,31 @@ class GamificationManager(BaseManager):
         """Handle chore_approved event.
 
         Args:
-            payload: Event data with kid_id, chore_id, etc.
+            payload: Event data with assignee_id, chore_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_chore_disapproved(self, payload: dict[str, Any]) -> None:
         """Handle chore_disapproved event.
 
         Args:
-            payload: Event data with kid_id, chore_id, etc.
+            payload: Event data with assignee_id, chore_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_chore_status_reset(self, payload: dict[str, Any]) -> None:
         """Handle chore_status_reset event.
 
         Args:
-            payload: Event data with kid_id, chore_id, etc.
+            payload: Event data with assignee_id, chore_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_chore_overdue(self, payload: dict[str, Any]) -> None:
         """Handle chore_overdue event.
@@ -323,46 +325,46 @@ class GamificationManager(BaseManager):
         Overdue events can affect "perfect week" or streak-based badges.
 
         Args:
-            payload: Event data with kid_id, chore_id, etc.
+            payload: Event data with assignee_id, chore_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_reward_approved(self, payload: dict[str, Any]) -> None:
         """Handle reward_approved event.
 
         Args:
-            payload: Event data with kid_id, etc.
+            payload: Event data with assignee_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_bonus_applied(self, payload: dict[str, Any]) -> None:
         """Handle bonus_applied event.
 
         Args:
-            payload: Event data with kid_id, etc.
+            payload: Event data with assignee_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     def _on_penalty_applied(self, payload: dict[str, Any]) -> None:
         """Handle penalty_applied event.
 
         Args:
-            payload: Event data with kid_id, etc.
+            payload: Event data with assignee_id, etc.
         """
-        kid_id = payload.get("kid_id")
-        if kid_id:
-            self._mark_pending(kid_id)
+        assignee_id = payload.get("assignee_id")
+        if assignee_id:
+            self._mark_pending(assignee_id)
 
     async def _on_midnight_rollover(self, payload: dict[str, Any]) -> None:
         """Handle midnight rollover event.
 
-        Triggers re-evaluation of all kids' gamification criteria.
+        Triggers re-evaluation of all assignees' gamification criteria.
         Cumulative badge maintenance is evaluated via the unified
         date-aware state machine in _evaluate_cumulative_badge.
 
@@ -380,24 +382,26 @@ class GamificationManager(BaseManager):
     # =========================================================================
 
     def recalculate_all_badges(self) -> None:
-        """Global re-check of all badges for all kids.
+        """Global re-check of all badges for all assignees.
 
-        Marks all kids as dirty for re-evaluation. The debounced evaluation
+        Marks all assignees as dirty for re-evaluation. The debounced evaluation
         logic will handle persistence when changes are actually made.
         """
         const.LOGGER.info("Recalculate All Badges - Starting recalculation")
-        for kid_id in self.coordinator.kids_data:
-            self._mark_pending(kid_id)
-        const.LOGGER.info("Recalculate All Badges - All kids marked for evaluation")
+        for assignee_id in self.coordinator.assignees_data:
+            self._mark_pending(assignee_id)
+        const.LOGGER.info(
+            "Recalculate All Badges - All assignees marked for evaluation"
+        )
 
-    async def award_achievement(self, kid_id: str, achievement_id: str) -> None:
-        """Award the achievement to the kid.
+    async def award_achievement(self, assignee_id: str, achievement_id: str) -> None:
+        """Award the achievement to the assignee.
 
         Update the achievement progress to indicate it is earned,
-        and send notifications to both the kid and their parents.
+        and send notifications to both the assignee and their approvers.
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
             achievement_id: The internal UUID of the achievement
         """
         achievement_info = self.coordinator.achievements_data.get(achievement_id)
@@ -408,23 +412,24 @@ class GamificationManager(BaseManager):
             )
             return
 
-        # Get or create the existing progress dictionary for this kid
-        progress_for_kid = achievement_info.setdefault(
+        # Get or create the existing progress dictionary for this assignee
+        progress_for_assignee = achievement_info.setdefault(
             const.DATA_ACHIEVEMENT_PROGRESS, {}
-        ).get(kid_id)
-        if progress_for_kid is None:
-            # If it doesn't exist, initialize it with baseline from the kid's current total.
-            kid_info: UserData | dict[str, Any] = self.coordinator.kids_data.get(
-                kid_id, {}
+        ).get(assignee_id)
+        if progress_for_assignee is None:
+            # If it doesn't exist, initialize it with baseline from the assignee's current total.
+            assignee_info: UserData | dict[str, Any] = (
+                self.coordinator.assignees_data.get(assignee_id, {})
             )
             # Read approved_all_time from chore_periods.all_time bucket (v43+)
             # Cast to dict[str, Any] since chore_periods is a runtime-added bucket
             chore_periods: dict[str, Any] = cast(
-                "dict[str, Any]", kid_info.get(const.DATA_KID_CHORE_PERIODS, {})
+                "dict[str, Any]",
+                assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {}),
             )
             all_time_container: dict[str, Any] = cast(
                 "dict[str, Any]",
-                chore_periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}),
+                chore_periods.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
             )
             # All-time uses nested structure: periods["all_time"]["all_time"] = {data}
             all_time_data: dict[str, Any] = cast(
@@ -432,22 +437,22 @@ class GamificationManager(BaseManager):
             )
             progress_dict = {
                 const.DATA_ACHIEVEMENT_BASELINE: all_time_data.get(
-                    const.DATA_KID_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
+                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
                 ),
                 const.DATA_ACHIEVEMENT_CURRENT_VALUE: const.DEFAULT_ZERO,
                 const.DATA_ACHIEVEMENT_AWARDED: False,
             }
-            achievement_info[const.DATA_ACHIEVEMENT_PROGRESS][kid_id] = cast(
+            achievement_info[const.DATA_ACHIEVEMENT_PROGRESS][assignee_id] = cast(
                 "AchievementProgress", progress_dict
             )
-            progress_for_kid = cast("AchievementProgress", progress_dict)
+            progress_for_assignee = cast("AchievementProgress", progress_dict)
 
-        # Type narrow: progress_for_kid is now guaranteed to be AchievementProgress
-        progress_for_kid_checked: AchievementProgress = progress_for_kid
+        # Type narrow: progress_for_assignee is now guaranteed to be AchievementProgress
+        progress_for_assignee_checked: AchievementProgress = progress_for_assignee
 
-        # Mark achievement as earned for the kid
-        progress_for_kid_checked[const.DATA_ACHIEVEMENT_AWARDED] = True
-        progress_for_kid_checked[const.DATA_ACHIEVEMENT_CURRENT_VALUE] = (  # type: ignore[typeddict-unknown-key]
+        # Mark achievement as earned for the assignee
+        progress_for_assignee_checked[const.DATA_ACHIEVEMENT_AWARDED] = True
+        progress_for_assignee_checked[const.DATA_ACHIEVEMENT_CURRENT_VALUE] = (  # type: ignore[typeddict-unknown-key]
             achievement_info.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 1)
         )
 
@@ -457,9 +462,9 @@ class GamificationManager(BaseManager):
         )
 
         const.LOGGER.debug(
-            "DEBUG: Achievement Award - Achievement ID '%s' to Kid ID '%s'",
+            "DEBUG: Achievement Award - Achievement ID '%s' to Assignee ID '%s'",
             achievement_info.get(const.DATA_ACHIEVEMENT_NAME),
-            kid_id,
+            assignee_id,
         )
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
@@ -469,20 +474,21 @@ class GamificationManager(BaseManager):
         # EconomyManager listens to this and handles point deposit
         self.emit(
             const.SIGNAL_SUFFIX_ACHIEVEMENT_EARNED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             achievement_id=achievement_id,
-            kid_name=eh.get_kid_name_by_id(self.coordinator, kid_id) or "",
+            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+            or "",
             achievement_name=achievement_info.get(const.DATA_ACHIEVEMENT_NAME, ""),
             achievement_points=extra_points,
         )
 
-    async def award_challenge(self, kid_id: str, challenge_id: str) -> None:
-        """Award the challenge to the kid.
+    async def award_challenge(self, assignee_id: str, challenge_id: str) -> None:
+        """Award the challenge to the assignee.
 
-        Update progress and notify kid/parents.
+        Update progress and notify assignee/approvers.
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
             challenge_id: The internal UUID of the challenge
         """
         challenge_info = self.coordinator.challenges_data.get(challenge_id)
@@ -492,20 +498,20 @@ class GamificationManager(BaseManager):
             )
             return
 
-        # Get or create the existing progress dictionary for this kid
-        progress_for_kid = challenge_info.setdefault(
+        # Get or create the existing progress dictionary for this assignee
+        progress_for_assignee = challenge_info.setdefault(
             const.DATA_CHALLENGE_PROGRESS, {}
         ).setdefault(
-            kid_id,
+            assignee_id,
             {
                 const.DATA_CHALLENGE_COUNT: const.DEFAULT_ZERO,
                 const.DATA_CHALLENGE_AWARDED: False,
             },
         )
 
-        # Mark challenge as earned for the kid by storing progress
-        progress_for_kid[const.DATA_CHALLENGE_AWARDED] = True
-        progress_for_kid[const.DATA_CHALLENGE_COUNT] = challenge_info.get(
+        # Mark challenge as earned for the assignee by storing progress
+        progress_for_assignee[const.DATA_CHALLENGE_AWARDED] = True
+        progress_for_assignee[const.DATA_CHALLENGE_COUNT] = challenge_info.get(
             const.DATA_CHALLENGE_TARGET_VALUE, 1
         )
 
@@ -515,9 +521,9 @@ class GamificationManager(BaseManager):
         )
 
         const.LOGGER.debug(
-            "DEBUG: Challenge Award - Challenge ID '%s' to Kid ID '%s'",
+            "DEBUG: Challenge Award - Challenge ID '%s' to Assignee ID '%s'",
             challenge_info.get(const.DATA_CHALLENGE_NAME),
-            kid_id,
+            assignee_id,
         )
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
@@ -527,9 +533,10 @@ class GamificationManager(BaseManager):
         # EconomyManager listens to this and handles point deposit
         self.emit(
             const.SIGNAL_SUFFIX_CHALLENGE_COMPLETED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             challenge_id=challenge_id,
-            kid_name=eh.get_kid_name_by_id(self.coordinator, kid_id) or "",
+            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+            or "",
             challenge_name=challenge_info.get(const.DATA_CHALLENGE_NAME, ""),
             challenge_points=extra_points,
         )
@@ -547,7 +554,7 @@ class GamificationManager(BaseManager):
             today: Current date for streak calculation
         """
         last_date = None
-        last_date_str = progress.get(const.DATA_KID_LAST_STREAK_DATE)
+        last_date_str = progress.get(const.DATA_ASSIGNEE_LAST_STREAK_DATE)
         if last_date_str:
             try:
                 last_date = date.fromisoformat(last_date_str)
@@ -560,14 +567,14 @@ class GamificationManager(BaseManager):
 
         # If yesterday was the last update, increment the streak
         if last_date == today - timedelta(days=1):
-            current_streak = progress.get(const.DATA_KID_CURRENT_STREAK, 0)
-            progress[const.DATA_KID_CURRENT_STREAK] = current_streak + 1
+            current_streak = progress.get(const.DATA_ASSIGNEE_CURRENT_STREAK, 0)
+            progress[const.DATA_ASSIGNEE_CURRENT_STREAK] = current_streak + 1
 
         # Reset to 1 if not done yesterday
         else:
-            progress[const.DATA_KID_CURRENT_STREAK] = 1
+            progress[const.DATA_ASSIGNEE_CURRENT_STREAK] = 1
 
-        progress[const.DATA_KID_LAST_STREAK_DATE] = today.isoformat()
+        progress[const.DATA_ASSIGNEE_LAST_STREAK_DATE] = today.isoformat()
 
     # =========================================================================
     # PENDING TRACKING AND DEBOUNCE (Phase 7.4: Persisted Queue)
@@ -590,14 +597,14 @@ class GamificationManager(BaseManager):
         meta[const.DATA_META_PENDING_EVALUATIONS] = list(self._pending_evaluations)
         self.coordinator._persist()
 
-    def _mark_pending(self, kid_id: str) -> None:
-        """Mark a kid as needing re-evaluation (persisted).
+    def _mark_pending(self, assignee_id: str) -> None:
+        """Mark a assignee as needing re-evaluation (persisted).
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
         """
-        was_already_pending = kid_id in self._pending_evaluations
-        self._pending_evaluations.add(kid_id)
+        was_already_pending = assignee_id in self._pending_evaluations
+        self._pending_evaluations.add(assignee_id)
 
         # Only persist if this is a NEW addition (optimization for burst events)
         if not was_already_pending:
@@ -605,13 +612,13 @@ class GamificationManager(BaseManager):
 
         self._schedule_evaluation()
         const.LOGGER.debug(
-            "Kid %s marked pending for gamification evaluation, %d total pending",
-            kid_id,
+            "Assignee %s marked pending for gamification evaluation, %d total pending",
+            assignee_id,
             len(self._pending_evaluations),
         )
 
-    def _on_kid_deleted(self, payload: dict[str, Any]) -> None:
-        """Remove deleted kid from pending evaluations and gamification data.
+    def _on_assignee_deleted(self, payload: dict[str, Any]) -> None:
+        """Remove deleted assignee from pending evaluations and gamification data.
 
         Follows Platinum Architecture (Choreography): GamificationManager reacts
         to KID_DELETED signal and cleans its own domain data.
@@ -622,19 +629,19 @@ class GamificationManager(BaseManager):
         - Challenge progress/assignments
 
         Args:
-            payload: Event data containing kid_id
+            payload: Event data containing assignee_id
         """
-        kid_id = payload.get("kid_id", "")
-        if not kid_id:
+        assignee_id = payload.get("assignee_id", "")
+        if not assignee_id:
             return
 
         # 1. Clean up pending evaluation queue
-        if kid_id in self._pending_evaluations:
-            self._pending_evaluations.discard(kid_id)
+        if assignee_id in self._pending_evaluations:
+            self._pending_evaluations.discard(assignee_id)
             self._persist_pending()
             const.LOGGER.debug(
-                "GamificationManager: Removed deleted kid %s from pending queue",
-                kid_id,
+                "GamificationManager: Removed deleted assignee %s from pending queue",
+                assignee_id,
             )
 
         # 2. Clean up achievement/challenge progress and assignments (inline)
@@ -644,26 +651,28 @@ class GamificationManager(BaseManager):
             (self.coordinator._data.get(const.DATA_CHALLENGES, {}), "challenges"),
         ]:
             for entity in entities_data.values():
-                # Remove kid from progress dict
+                # Remove assignee from progress dict
                 progress = entity.get(const.DATA_PROGRESS, {})
-                if kid_id in progress:
-                    del progress[kid_id]
+                if assignee_id in progress:
+                    del progress[assignee_id]
                     const.LOGGER.debug(
-                        "Removed progress for deleted kid '%s' in %s",
-                        kid_id,
+                        "Removed progress for deleted assignee '%s' in %s",
+                        assignee_id,
                         section_name,
                     )
                     cleaned = True
 
-                # Remove kid from assigned_kids list
-                if const.DATA_ASSIGNED_KIDS in entity:
-                    original_assigned = entity[const.DATA_ASSIGNED_KIDS]
-                    if kid_id in original_assigned:
-                        entity[const.DATA_ASSIGNED_KIDS] = [
-                            k for k in original_assigned if k != kid_id
+                # Remove assignee from assigned_assignees list
+                if const.DATA_ASSIGNED_ASSIGNEES in entity:
+                    original_assigned = entity[const.DATA_ASSIGNED_ASSIGNEES]
+                    if assignee_id in original_assigned:
+                        entity[const.DATA_ASSIGNED_ASSIGNEES] = [
+                            entry_id
+                            for entry_id in original_assigned
+                            if entry_id != assignee_id
                         ]
                         const.LOGGER.debug(
-                            "Removed deleted kid from %s '%s' assigned_kids",
+                            "Removed deleted assignee from %s '%s' assigned_assignees",
                             section_name,
                             entity.get(const.DATA_NAME),
                         )
@@ -673,8 +682,8 @@ class GamificationManager(BaseManager):
             self.coordinator._persist()
 
         const.LOGGER.debug(
-            "GamificationManager: Cleaned gamification refs for deleted kid %s",
-            kid_id,
+            "GamificationManager: Cleaned gamification refs for deleted assignee %s",
+            assignee_id,
         )
 
     def _on_chore_deleted(self, payload: dict[str, Any]) -> None:
@@ -751,11 +760,11 @@ class GamificationManager(BaseManager):
 
         self._eval_timer = self.hass.loop.call_later(
             self._debounce_seconds,
-            lambda: self.hass.add_job(self._evaluate_pending_kids()),
+            lambda: self.hass.add_job(self._evaluate_pending_assignees()),
         )
 
-    async def _evaluate_pending_kids(self) -> None:
-        """Evaluate all pending kids in batch.
+    async def _evaluate_pending_assignees(self) -> None:
+        """Evaluate all pending assignees in batch.
 
         This is the main evaluation loop that runs after debounce timer fires.
         Clears the persistent queue after successful evaluation.
@@ -764,40 +773,40 @@ class GamificationManager(BaseManager):
         self._eval_timer = None
 
         # Capture and clear pending set atomically
-        kids_to_evaluate = self._pending_evaluations.copy()
+        assignees_to_evaluate = self._pending_evaluations.copy()
         self._pending_evaluations.clear()
         self._persist_pending()  # Clear from storage
 
-        if not kids_to_evaluate:
+        if not assignees_to_evaluate:
             return
 
         const.LOGGER.debug(
-            "Starting gamification evaluation for %d kids: %s",
-            len(kids_to_evaluate),
-            list(kids_to_evaluate),
+            "Starting gamification evaluation for %d assignees: %s",
+            len(assignees_to_evaluate),
+            list(assignees_to_evaluate),
         )
 
-        for kid_id in kids_to_evaluate:
+        for assignee_id in assignees_to_evaluate:
             try:
-                await self._evaluate_kid(kid_id)
+                await self._evaluate_assignee(assignee_id)
             except Exception:
                 const.LOGGER.exception(
-                    "Error evaluating gamification for kid %s",
-                    kid_id,
+                    "Error evaluating gamification for assignee %s",
+                    assignee_id,
                 )
 
-    async def _evaluate_kid(self, kid_id: str) -> None:
-        """Evaluate all gamification criteria for a single kid.
+    async def _evaluate_assignee(self, assignee_id: str) -> None:
+        """Evaluate all gamification criteria for a single assignee.
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
         """
         # Build evaluation context
-        context = self._build_evaluation_context(kid_id)
+        context = self._build_evaluation_context(assignee_id)
         if not context:
             const.LOGGER.warning(
-                "Could not build evaluation context for kid %s",
-                kid_id,
+                "Could not build evaluation context for assignee %s",
+                assignee_id,
             )
             return
 
@@ -806,14 +815,14 @@ class GamificationManager(BaseManager):
 
         # Evaluate each badge
         for badge_id, badge_data in badges_data.items():
-            await self._evaluate_badge_for_kid(context, badge_id, badge_data)
+            await self._evaluate_badge_for_assignee(context, badge_id, badge_data)
 
         # Get achievement data from coordinator
         achievements_data = self.coordinator.achievements_data
 
         # Evaluate each achievement
         for achievement_id, achievement_data in achievements_data.items():
-            await self._evaluate_achievement_for_kid(
+            await self._evaluate_achievement_for_assignee(
                 context, achievement_id, achievement_data
             )
 
@@ -822,7 +831,7 @@ class GamificationManager(BaseManager):
 
         # Evaluate each challenge
         for challenge_id, challenge_data in challenges_data.items():
-            await self._evaluate_challenge_for_kid(
+            await self._evaluate_challenge_for_assignee(
                 context, challenge_id, challenge_data
             )
 
@@ -833,7 +842,7 @@ class GamificationManager(BaseManager):
     # - Cumulative: Can be DEMOTED (lower multiplier) but never removed
     # - Periodic: Can be re-awarded (increment award_count) but never removed
 
-    async def _evaluate_badge_for_kid(
+    async def _evaluate_badge_for_assignee(
         self,
         context: EvaluationContext,
         badge_id: str,
@@ -842,29 +851,33 @@ class GamificationManager(BaseManager):
         """Route badge evaluation to type-specific handler.
 
         Args:
-            context: The evaluation context for the kid
+            context: The evaluation context for the assignee
             badge_id: Badge internal ID
             badge_data: Badge definition
         """
-        kid_id = context["kid_id"]
+        assignee_id = context["assignee_id"]
 
-        # Skip badges not assigned to this kid (empty list = assigned to all)
+        # Skip badges not assigned to this assignee (empty list = assigned to all)
         assigned_to = badge_data.get(const.DATA_BADGE_ASSIGNED_TO, [])
-        if assigned_to and kid_id not in assigned_to:
+        if assigned_to and assignee_id not in assigned_to:
             return
 
         badge_type = badge_data.get(const.DATA_BADGE_TYPE)
 
         # Route to type-specific evaluation (complete separation)
         if badge_type == const.BADGE_TYPE_CUMULATIVE:
-            await self._evaluate_cumulative_badge(kid_id, badge_id, badge_data, context)
+            await self._evaluate_cumulative_badge(
+                assignee_id, badge_id, badge_data, context
+            )
         else:
             # Periodic, special occasion, and any future badge types
-            await self._evaluate_periodic_badge(kid_id, badge_id, badge_data, context)
+            await self._evaluate_periodic_badge(
+                assignee_id, badge_id, badge_data, context
+            )
 
     async def _evaluate_cumulative_badge(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         context: EvaluationContext,
@@ -887,16 +900,16 @@ class GamificationManager(BaseManager):
         Lower-tier earned badges are always ACTIVE — their maintenance is never checked.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             context: Evaluation context
         """
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        if not kid_data:
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_data:
             return
 
-        badges_earned = kid_data.get(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         already_earned = badge_id in badges_earned
 
         if not already_earned:
@@ -905,14 +918,14 @@ class GamificationManager(BaseManager):
             result = GamificationEngine.evaluate_badge(context, badge_dict)
             if result.get("criteria_met", False):
                 await self._apply_cumulative_first_award(
-                    kid_id, badge_id, badge_data, result
+                    assignee_id, badge_id, badge_data, result
                 )
             return
 
         # ── ALREADY EARNED: maintenance state machine ──
 
         # Guard: only evaluate maintenance for the highest-earned cumulative badge
-        highest_earned, _, _, _, _ = self.get_cumulative_badge_levels(kid_id)
+        highest_earned, _, _, _, _ = self.get_cumulative_badge_levels(assignee_id)
         highest_badge_id = (
             highest_earned.get(const.DATA_BADGE_INTERNAL_ID) if highest_earned else None
         )
@@ -924,21 +937,21 @@ class GamificationManager(BaseManager):
             return  # No maintenance = always ACTIVE
 
         # Read maintenance state from cumulative_badge_progress
-        progress = kid_data.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_data.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
         progress_dict = cast("dict[str, Any]", progress)
         status = progress_dict.get(
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
             const.CUMULATIVE_BADGE_STATE_ACTIVE,
         )
         end_date_str: str | None = progress_dict.get(
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
         )
         grace_end_str: str | None = progress_dict.get(
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         )
         cycle_points = float(
             progress_dict.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
             )
         )
 
@@ -951,7 +964,7 @@ class GamificationManager(BaseManager):
         # 1. First-time dates (badge earned but no maintenance dates yet)
         if not end_date_str:
             self._apply_cumulative_init_maintenance_dates(
-                kid_id, badge_id, badge_data, progress_dict
+                assignee_id, badge_id, badge_data, progress_dict
             )
             return
 
@@ -960,7 +973,9 @@ class GamificationManager(BaseManager):
         # 2. DEMOTED + maintenance met -> immediate re-promotion to ACTIVE
         # Do not wait for period boundary once threshold is met in demoted state.
         if status == const.CUMULATIVE_BADGE_STATE_DEMOTED and met:
-            await self._apply_cumulative_maintenance_met(kid_id, badge_id, badge_data)
+            await self._apply_cumulative_maintenance_met(
+                assignee_id, badge_id, badge_data
+            )
             return
 
         # 3. Maintenance period still open — just accumulate points, no action
@@ -971,7 +986,9 @@ class GamificationManager(BaseManager):
 
         if met:
             # Maintenance met: confirm ACTIVE, reset cycle, advance dates, emit rewards
-            await self._apply_cumulative_maintenance_met(kid_id, badge_id, badge_data)
+            await self._apply_cumulative_maintenance_met(
+                assignee_id, badge_id, badge_data
+            )
             return
 
         # 5. Not met — check current state for grace/demotion
@@ -979,7 +996,7 @@ class GamificationManager(BaseManager):
             # In grace period — check if grace expired
             if grace_end_str and today_iso >= grace_end_str:
                 self._apply_cumulative_demotion(
-                    kid_id,
+                    assignee_id,
                     badge_id,
                     badge_data,
                     progress_dict,
@@ -997,7 +1014,7 @@ class GamificationManager(BaseManager):
 
         if grace_days > 0:
             self._apply_cumulative_enter_grace(
-                kid_id,
+                assignee_id,
                 badge_id,
                 badge_data,
                 progress_dict,
@@ -1006,7 +1023,7 @@ class GamificationManager(BaseManager):
             )
         else:
             self._apply_cumulative_demotion(
-                kid_id,
+                assignee_id,
                 badge_id,
                 badge_data,
                 progress_dict,
@@ -1016,7 +1033,7 @@ class GamificationManager(BaseManager):
 
     async def _evaluate_periodic_badge(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         context: EvaluationContext,
@@ -1030,17 +1047,17 @@ class GamificationManager(BaseManager):
            - Criteria not met → Do nothing (badge stays earned)
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             context: Evaluation context
         """
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        if not kid_data:
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_data:
             return
 
         canonical_target = self._map_badge_to_canonical_target(
-            kid_id,
+            assignee_id,
             badge_id,
             badge_data,
         )
@@ -1055,10 +1072,12 @@ class GamificationManager(BaseManager):
             return
 
         # Ensure periodic badge progress structure exists before evaluation.
-        self._ensure_kid_periodic_badge_structures(kid_id, badge_id, badge_data)
+        self._ensure_assignee_periodic_badge_structures(
+            assignee_id, badge_id, badge_data
+        )
 
         schedule_changed = self._advance_non_cumulative_badge_cycle_if_needed(
-            kid_id,
+            assignee_id,
             badge_id,
             badge_data,
             today_iso=context["today_iso"],
@@ -1066,7 +1085,7 @@ class GamificationManager(BaseManager):
         if schedule_changed:
             self.coordinator._persist_and_update()
 
-        badges_earned = kid_data.get(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         already_earned = badge_id in badges_earned
 
         # Cast TypedDict to dict for engine
@@ -1083,7 +1102,7 @@ class GamificationManager(BaseManager):
         result = GamificationEngine.evaluate_badge(runtime_context, badge_dict)
 
         if self._persist_target_progress_state(
-            kid_id,
+            assignee_id,
             source_item_id=badge_id,
             source_item_data=badge_data,
             result=result,
@@ -1095,7 +1114,7 @@ class GamificationManager(BaseManager):
 
         if result.get("criteria_met", False):
             await self._apply_target_award_effects(
-                kid_id,
+                assignee_id,
                 badge_id,
                 badge_data,
                 result,
@@ -1106,7 +1125,7 @@ class GamificationManager(BaseManager):
 
     def _map_badge_to_canonical_target(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
     ) -> CanonicalTargetDefinition:
@@ -1137,7 +1156,7 @@ class GamificationManager(BaseManager):
             "source_item_id": badge_id,
             "source_raw_type": target_type,
             "tracked_chore_ids": self.get_badge_in_scope_chores_list(
-                badge_data, kid_id
+                badge_data, assignee_id
             ),
         }
 
@@ -1172,7 +1191,7 @@ class GamificationManager(BaseManager):
 
     async def _apply_target_award_effects(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         result: EvaluationResult,
@@ -1182,52 +1201,58 @@ class GamificationManager(BaseManager):
     ) -> None:
         """Apply non-cumulative badge award effects through a shared adapter."""
         const.LOGGER.debug(
-            "Applying target award effects for kid %s source %s canonical_type %s",
-            kid_id,
+            "Applying target award effects for assignee %s source %s canonical_type %s",
+            assignee_id,
             canonical_target.get("source_item_id", badge_id),
             canonical_target.get("target_type", "unknown"),
         )
 
         if not already_earned:
-            await self._apply_periodic_first_award(kid_id, badge_id, badge_data, result)
+            await self._apply_periodic_first_award(
+                assignee_id, badge_id, badge_data, result
+            )
             return
 
-        if self._is_periodic_award_recorded_for_current_cycle(kid_id, badge_id):
+        if self._is_periodic_award_recorded_for_current_cycle(assignee_id, badge_id):
             const.LOGGER.debug(
-                "Skipping periodic re-award for kid %s badge %s "
+                "Skipping periodic re-award for assignee %s badge %s "
                 "(already awarded in current cycle)",
-                kid_id,
+                assignee_id,
                 badge_id,
             )
             return
 
-        await self._apply_periodic_reaward(kid_id, badge_id, badge_data)
+        await self._apply_periodic_reaward(assignee_id, badge_id, badge_data)
 
     def _is_periodic_award_recorded_for_current_cycle(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
     ) -> bool:
         """Return True if periodic badge already has an award recorded this cycle."""
-        kid_data: UserData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
+        assignee_data: UserData | dict[str, Any] = self.coordinator.assignees_data.get(
+            assignee_id, {}
+        )
 
         badges_earned = cast(
-            "dict[str, Any]", kid_data.get(const.DATA_KID_BADGES_EARNED, {})
+            "dict[str, Any]", assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         )
         badge_entry = cast("dict[str, Any]", badges_earned.get(badge_id, {}))
         last_awarded_raw = badge_entry.get(
-            const.DATA_KID_BADGES_EARNED_LAST_AWARDED, ""
+            const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED, ""
         )
         last_awarded_day = str(last_awarded_raw)[:10]
         if not last_awarded_day:
             return False
 
         badge_progress_all = cast(
-            "dict[str, Any]", kid_data.get(const.DATA_KID_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
         )
         progress = cast("dict[str, Any]", badge_progress_all.get(badge_id, {}))
-        start_date = str(progress.get(const.DATA_KID_BADGE_PROGRESS_START_DATE, ""))
-        end_date = str(progress.get(const.DATA_KID_BADGE_PROGRESS_END_DATE, ""))
+        start_date = str(
+            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE, "")
+        )
+        end_date = str(progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE, ""))
 
         if start_date and end_date:
             return start_date <= last_awarded_day <= end_date
@@ -1245,7 +1270,7 @@ class GamificationManager(BaseManager):
         """Build shared target runtime context using stats-owned period reads.
 
         Args:
-            base_context: Base evaluation context for the kid.
+            base_context: Base evaluation context for the assignee.
             badge_id: Badge internal ID.
             badge_data: Badge definition.
             canonical_target: Canonical target mapping for source item.
@@ -1254,13 +1279,15 @@ class GamificationManager(BaseManager):
             EvaluationContext augmented with runtime keys consumed
             by GamificationEngine.
         """
-        kid_id = base_context["kid_id"]
+        assignee_id = base_context["assignee_id"]
         today_iso = base_context["today_iso"]
 
-        kid_data: UserData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
+        assignee_data: UserData | dict[str, Any] = self.coordinator.assignees_data.get(
+            assignee_id, {}
+        )
         badge_progress = cast(
             "dict[str, Any]",
-            kid_data.get(const.DATA_KID_BADGE_PROGRESS, {}),
+            assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
         )
         current_badge_progress = cast(
             "dict[str, Any]", badge_progress.get(badge_id, {})
@@ -1268,17 +1295,17 @@ class GamificationManager(BaseManager):
 
         tracked_chores = canonical_target.get(
             "tracked_chore_ids"
-        ) or self.get_badge_in_scope_chores_list(badge_data, kid_id)
+        ) or self.get_badge_in_scope_chores_list(badge_data, assignee_id)
 
         today_stats = self.coordinator.statistics_manager.get_badge_scoped_today_stats(
-            kid_id,
+            assignee_id,
             tracked_chores,
             today_iso=today_iso,
             current_badge_progress=current_badge_progress,
         )
         today_completion = (
             self.coordinator.statistics_manager.get_badge_scoped_today_completion(
-                kid_id,
+                assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
                 only_due_today=False,
@@ -1286,7 +1313,7 @@ class GamificationManager(BaseManager):
         )
         today_completion_due = (
             self.coordinator.statistics_manager.get_badge_scoped_today_completion(
-                kid_id,
+                assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
                 only_due_today=True,
@@ -1295,16 +1322,16 @@ class GamificationManager(BaseManager):
 
         runtime_context = cast("EvaluationContext", dict(base_context))
         runtime_context["current_badge_progress"] = cast(
-            "KidBadgeProgress", current_badge_progress
+            "AssigneeBadgeProgress", current_badge_progress
         )
         runtime_context["today_stats"] = today_stats
         runtime_context["today_completion"] = today_completion
         runtime_context["today_completion_due"] = today_completion_due
         return runtime_context
 
-    def _ensure_kid_periodic_badge_structures(
+    def _ensure_assignee_periodic_badge_structures(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
     ) -> None:
@@ -1314,19 +1341,19 @@ class GamificationManager(BaseManager):
         creating missing containers before tenant/stat/evaluation logic reads them.
 
         Args:
-            kid_id: Kid internal ID.
+            assignee_id: Assignee internal ID.
             badge_id: Badge internal ID.
             badge_data: Badge definition.
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return
 
-        if const.DATA_KID_BADGE_PROGRESS not in kid_info:
-            kid_info[const.DATA_KID_BADGE_PROGRESS] = {}
+        if const.DATA_ASSIGNEE_BADGE_PROGRESS not in assignee_info:
+            assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS] = {}
 
         badge_progress = cast(
-            "dict[str, Any]", kid_info.get(const.DATA_KID_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
         )
         entry = cast("dict[str, Any]", badge_progress.setdefault(badge_id, {}))
 
@@ -1334,35 +1361,35 @@ class GamificationManager(BaseManager):
         target = cast("dict[str, Any]", badge_data.get(const.DATA_BADGE_TARGET, {}))
 
         entry.setdefault(
-            const.DATA_KID_BADGE_PROGRESS_NAME,
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_NAME,
             badge_data.get(const.DATA_BADGE_NAME),
         )
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_TYPE, badge_type)
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_TYPE, badge_type)
         entry.setdefault(
-            const.DATA_KID_BADGE_PROGRESS_STATUS,
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS,
             const.BADGE_STATE_IN_PROGRESS,
         )
         entry.setdefault(
-            const.DATA_KID_BADGE_PROGRESS_TARGET_TYPE,
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE,
             target.get(const.DATA_BADGE_TARGET_TYPE),
         )
         entry.setdefault(
-            const.DATA_KID_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE,
+            const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE,
             float(target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0.0)),
         )
 
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0)
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_CHORES_COMPLETED, {})
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_DAYS_COMPLETED, {})
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS, 0.0)
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_CRITERIA_MET, False)
-        entry.setdefault(const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0)
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED, {})
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED, {})
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS, 0.0)
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET, False)
+        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
 
     def _advance_non_cumulative_badge_cycle_if_needed(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         *,
@@ -1371,7 +1398,7 @@ class GamificationManager(BaseManager):
         """Advance expired daily/periodic cycle windows and reset cycle counters.
 
         Args:
-            kid_id: Kid internal ID.
+            assignee_id: Assignee internal ID.
             badge_id: Badge internal ID.
             badge_data: Badge definition.
             today_iso: Local date key for current evaluation cycle.
@@ -1379,12 +1406,12 @@ class GamificationManager(BaseManager):
         Returns:
             True if schedule/progress fields were updated.
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return False
 
         badge_progress = cast(
-            "dict[str, Any]", kid_info.get(const.DATA_KID_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
         )
         progress = cast("dict[str, Any]", badge_progress.get(badge_id, {}))
         if not progress:
@@ -1392,14 +1419,16 @@ class GamificationManager(BaseManager):
 
         recurring_frequency = str(
             progress.get(
-                const.DATA_KID_BADGE_PROGRESS_RECURRING_FREQUENCY,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY,
                 const.FREQUENCY_NONE,
             )
         )
         if recurring_frequency == const.FREQUENCY_NONE:
             return False
 
-        end_date_iso = str(progress.get(const.DATA_KID_BADGE_PROGRESS_END_DATE, ""))
+        end_date_iso = str(
+            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE, "")
+        )
         if not end_date_iso:
             return False
 
@@ -1423,22 +1452,22 @@ class GamificationManager(BaseManager):
         if rolled_cycles == 0:
             return False
 
-        progress[const.DATA_KID_BADGE_PROGRESS_END_DATE] = current_end
-        progress[const.DATA_KID_BADGE_PROGRESS_START_DATE] = previous_end
-        progress[const.DATA_KID_BADGE_PROGRESS_CYCLE_COUNT] = (
-            int(progress.get(const.DATA_KID_BADGE_PROGRESS_CYCLE_COUNT, 0))
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = current_end
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = previous_end
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT] = (
+            int(progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT, 0))
             + rolled_cycles
         )
-        progress[const.DATA_KID_BADGE_PROGRESS_PENALTY_APPLIED] = False
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_PENALTY_APPLIED] = False
 
-        progress[const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 0.0
-        progress[const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = 0
-        progress[const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = 0
-        progress[const.DATA_KID_BADGE_PROGRESS_CHORES_COMPLETED] = {}
-        progress[const.DATA_KID_BADGE_PROGRESS_DAYS_COMPLETED] = {}
-        progress[const.DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS] = 0.0
-        progress[const.DATA_KID_BADGE_PROGRESS_CRITERIA_MET] = False
-        progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = ""
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 0.0
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = 0
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = 0
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED] = {}
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED] = {}
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS] = 0.0
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET] = False
+        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = ""
 
         return True
 
@@ -1482,7 +1511,7 @@ class GamificationManager(BaseManager):
 
     def _persist_target_progress_state(
         self,
-        kid_id: str,
+        assignee_id: str,
         *,
         source_item_id: str,
         source_item_data: BadgeData,
@@ -1497,7 +1526,7 @@ class GamificationManager(BaseManager):
         source-shaped for future achievement/challenge wrapper reuse.
 
         Args:
-            kid_id: Kid internal ID.
+            assignee_id: Assignee internal ID.
             source_item_id: Source item UUID (badge for now).
             source_item_data: Source item data (badge for now).
             result: Evaluation result from engine.
@@ -1509,7 +1538,7 @@ class GamificationManager(BaseManager):
             True when any persisted field changed.
         """
         return self._persist_periodic_badge_progress(
-            kid_id,
+            assignee_id,
             source_item_id,
             source_item_data,
             result,
@@ -1520,7 +1549,7 @@ class GamificationManager(BaseManager):
 
     def _persist_periodic_badge_progress(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         result: EvaluationResult,
@@ -1529,14 +1558,14 @@ class GamificationManager(BaseManager):
         today_iso: str,
         canonical_target: CanonicalTargetDefinition | None = None,
     ) -> bool:
-        """Persist runtime periodic evaluation fields into kid badge progress.
+        """Persist runtime periodic evaluation fields into assignee badge progress.
 
         Args:
-            kid_id: Kid internal ID.
+            assignee_id: Assignee internal ID.
             badge_id: Badge internal ID.
             badge_data: Badge definition.
             result: Evaluation result from engine.
-            already_earned: Whether kid already has this badge in badges_earned.
+            already_earned: Whether assignee already has this badge in badges_earned.
             today_iso: Current local day ISO key.
             canonical_target: Canonical target mapping for this source.
                 Optional for backward-compatible direct calls.
@@ -1544,12 +1573,12 @@ class GamificationManager(BaseManager):
         Returns:
             True when any persisted field changed.
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return False
 
         badge_progress_all = cast(
-            "dict[str, Any]", kid_info.get(const.DATA_KID_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
         )
         progress = cast("dict[str, Any]", badge_progress_all.get(badge_id, {}))
         if not progress:
@@ -1563,21 +1592,26 @@ class GamificationManager(BaseManager):
         )
         criteria_met = bool(result.get("criteria_met", False))
         if (
-            progress.get(const.DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS)
+            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS)
             != overall_progress
         ):
-            progress[const.DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS] = overall_progress
+            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS] = (
+                overall_progress
+            )
             changed = True
-        if progress.get(const.DATA_KID_BADGE_PROGRESS_CRITERIA_MET) != criteria_met:
-            progress[const.DATA_KID_BADGE_PROGRESS_CRITERIA_MET] = criteria_met
+        if (
+            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET)
+            != criteria_met
+        ):
+            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET] = criteria_met
             changed = True
 
         expected_status = self._resolve_target_status_transition(
             criteria_met=criteria_met,
             already_earned=already_earned,
         )
-        if progress.get(const.DATA_KID_BADGE_PROGRESS_STATUS) != expected_status:
-            progress[const.DATA_KID_BADGE_PROGRESS_STATUS] = expected_status
+        if progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS) != expected_status:
+            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS] = expected_status
             changed = True
 
         if canonical_target is not None:
@@ -1605,55 +1639,69 @@ class GamificationManager(BaseManager):
         if persist_bucket == "points_cycle":
             if (
                 float(
-                    progress.get(const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
+                    progress.get(
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
+                    )
                 )
                 != criterion_current_value
             ):
-                progress[const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = (
+                progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = (
                     criterion_current_value
                 )
                 changed = True
                 if (
-                    progress.get(const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY)
+                    progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY)
                     != today_iso
                 ):
-                    progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = (
+                        today_iso
+                    )
                     changed = True
 
         elif persist_bucket == "chores_cycle":
             chores_count = int(criterion_current_value)
             if (
-                int(progress.get(const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0))
+                int(
+                    progress.get(
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
+                    )
+                )
                 != chores_count
             ):
-                progress[const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = (
+                progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = (
                     chores_count
                 )
                 changed = True
                 if (
-                    progress.get(const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY)
+                    progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY)
                     != today_iso
                 ):
-                    progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = (
+                        today_iso
+                    )
                     changed = True
 
         elif persist_bucket == "days_cycle":
             previous_days = int(
-                progress.get(const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
+                progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
             )
             days_count = int(criterion_current_value)
             if previous_days != days_count:
-                progress[const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days_count
+                progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = (
+                    days_count
+                )
                 changed = True
 
             previous_update_day = str(
-                progress.get(const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
+                progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
             )
             if days_count > 0 and (
                 days_count != previous_days or previous_update_day == today_iso
             ):
                 if previous_update_day != today_iso:
-                    progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = (
+                        today_iso
+                    )
                     changed = True
 
         elif persist_bucket == "unknown":
@@ -1670,7 +1718,7 @@ class GamificationManager(BaseManager):
 
     async def _apply_cumulative_first_award(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         result: EvaluationResult,
@@ -1678,22 +1726,24 @@ class GamificationManager(BaseManager):
         """Award cumulative badge for the first time.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             result: Evaluation result (unused but kept for signature consistency)
         """
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        if not kid_data:
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_data:
             return
 
-        const.LOGGER.info("Kid %s earned cumulative badge %s", kid_id, badge_id)
+        const.LOGGER.info(
+            "Assignee %s earned cumulative badge %s", assignee_id, badge_id
+        )
 
         # Initialize cumulative badge progress
-        progress = kid_data.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_data.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
         progress_dict = cast("dict[str, Any]", progress)
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_ACTIVE
         )
 
@@ -1702,29 +1752,30 @@ class GamificationManager(BaseManager):
         if maintenance_enabled:
             end_date, grace_end = self._calculate_maintenance_dates(badge_data)
             progress_dict[
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
             ] = end_date
             progress_dict[
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
             ] = grace_end
 
         # Update badge tracking (calls _persist_and_update)
-        await self._record_badge_earned(kid_id, badge_id, badge_data)
+        await self._record_badge_earned(assignee_id, badge_id, badge_data)
 
         # Build and emit Award Manifest
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             badge_id=badge_id,
-            kid_name=eh.get_kid_name_by_id(self.coordinator, kid_id) or "",
+            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+            or "",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
 
     def _apply_cumulative_init_maintenance_dates(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         progress_dict: dict[str, Any],
@@ -1735,25 +1786,27 @@ class GamificationManager(BaseManager):
         Sets the first maintenance window dates and persists.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             progress_dict: Mutable reference to cumulative_badge_progress
         """
         end_date, grace_end = self._calculate_maintenance_dates(badge_data)
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE] = (
-            end_date
-        )
         progress_dict[
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+        ] = end_date
+        progress_dict[
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = grace_end
         self.coordinator._persist_and_update()
 
-        kid_name = eh.get_kid_name_by_id(self.coordinator, kid_id) or kid_id
+        assignee_name = (
+            eh.get_assignee_name_by_id(self.coordinator, assignee_id) or assignee_id
+        )
         const.LOGGER.debug(
-            "Initialized maintenance dates for kid '%s' badge '%s': "
+            "Initialized maintenance dates for assignee '%s' badge '%s': "
             "end=%s, grace_end=%s",
-            kid_name,
+            assignee_name,
             badge_data.get(const.DATA_BADGE_NAME) or badge_id,
             end_date,
             grace_end,
@@ -1761,7 +1814,7 @@ class GamificationManager(BaseManager):
 
     def _apply_cumulative_enter_grace(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         progress_dict: dict[str, Any],
@@ -1774,14 +1827,14 @@ class GamificationManager(BaseManager):
         the maintenance end_date + grace_days.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             progress_dict: Mutable reference to cumulative_badge_progress
             end_date_str: The maintenance end date (ISO string) grace starts from
             grace_days: Number of grace days
         """
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_GRACE
         )
         grace_end = dt_add_interval(
@@ -1791,21 +1844,23 @@ class GamificationManager(BaseManager):
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
         progress_dict[
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = str(grace_end) if grace_end else None
         self.coordinator._persist_and_update()
 
-        kid_name = eh.get_kid_name_by_id(self.coordinator, kid_id) or kid_id
+        assignee_name = (
+            eh.get_assignee_name_by_id(self.coordinator, assignee_id) or assignee_id
+        )
         const.LOGGER.info(
-            "Kid '%s' entered grace period for badge '%s' (grace ends: %s)",
-            kid_name,
+            "Assignee '%s' entered grace period for badge '%s' (grace ends: %s)",
+            assignee_name,
             badge_data.get(const.DATA_BADGE_NAME) or badge_id,
             grace_end,
         )
 
     def _apply_cumulative_demotion(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         progress_dict: dict[str, Any],
@@ -1819,37 +1874,39 @@ class GamificationManager(BaseManager):
         BADGE_UPDATED signal.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             progress_dict: Mutable reference to cumulative_badge_progress
             cycle_points: Points earned this cycle (for logging)
             maintenance_threshold: Required threshold (for logging)
         """
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_DEMOTED
         )
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
 
         # Advance dates for next cycle (so demotion evaluation starts fresh)
         end_date, grace_end = self._calculate_maintenance_dates(badge_data)
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE] = (
-            end_date
-        )
         progress_dict[
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+        ] = end_date
+        progress_dict[
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = grace_end
 
         # Recalculate multiplier (uses next-lower badge)
-        self.update_point_multiplier_for_kid(kid_id)
+        self.update_point_multiplier_for_assignee(assignee_id)
 
         self.coordinator._persist_and_update()
 
-        kid_name = eh.get_kid_name_by_id(self.coordinator, kid_id) or kid_id
+        assignee_name = (
+            eh.get_assignee_name_by_id(self.coordinator, assignee_id) or assignee_id
+        )
         const.LOGGER.info(
-            "Kid '%s' demoted from badge '%s' — "
+            "Assignee '%s' demoted from badge '%s' — "
             "maintenance not met (cycle_points=%.1f, required=%.1f)",
-            kid_name,
+            assignee_name,
             badge_data.get(const.DATA_BADGE_NAME) or badge_id,
             cycle_points,
             maintenance_threshold,
@@ -1857,7 +1914,7 @@ class GamificationManager(BaseManager):
 
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_UPDATED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             badge_id=badge_id,
             status="demoted",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
@@ -1865,7 +1922,7 @@ class GamificationManager(BaseManager):
 
     async def _apply_cumulative_maintenance_met(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
     ) -> None:
@@ -1883,18 +1940,18 @@ class GamificationManager(BaseManager):
         6. If current status is DEMOTED: do not emit award manifest
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
         """
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        if not kid_data:
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_data:
             return
 
-        progress = kid_data.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_data.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
         progress_dict = cast("dict[str, Any]", progress)
         current_status = progress_dict.get(
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
             const.CUMULATIVE_BADGE_STATE_ACTIVE,
         )
         was_demoted = current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED
@@ -1905,48 +1962,50 @@ class GamificationManager(BaseManager):
             not maintenance_enabled
             and current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED
         ):
-            progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+            progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
                 const.CUMULATIVE_BADGE_STATE_ACTIVE
             )
             self.coordinator._persist_and_update()
             const.LOGGER.info(
-                "Repaired invalid DEMOTED status for kid %s badge %s "
+                "Repaired invalid DEMOTED status for assignee %s badge %s "
                 "(maintenance not enabled)",
-                kid_id,
+                assignee_id,
                 badge_id,
             )
             return
 
         # Set ACTIVE, reset cycle
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_ACTIVE
         )
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
+        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
 
         # Advance maintenance dates for next cycle
         end_date, grace_end = self._calculate_maintenance_dates(badge_data)
-        progress_dict[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE] = (
-            end_date
-        )
         progress_dict[
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+        ] = end_date
+        progress_dict[
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = grace_end
 
         # Update badge tracking (period stats) only for non-demoted maintenance cycles.
         # For DEMOTED -> ACTIVE reactivation we restore status/multiplier only.
         if not was_demoted:
-            self.update_badges_earned_for_kid(kid_id, badge_id)
+            self.update_badges_earned_for_assignee(assignee_id, badge_id)
 
         # Recalculate multiplier (restore full strength if was DEMOTED)
-        self.update_point_multiplier_for_kid(kid_id)
+        self.update_point_multiplier_for_assignee(assignee_id)
 
         # Persist changes
         self.coordinator._persist_and_update()
 
-        kid_name = eh.get_kid_name_by_id(self.coordinator, kid_id) or kid_id
+        assignee_name = (
+            eh.get_assignee_name_by_id(self.coordinator, assignee_id) or assignee_id
+        )
         const.LOGGER.info(
-            "Kid '%s' maintained badge '%s' — cycle reset, next maintenance: %s",
-            kid_name,
+            "Assignee '%s' maintained badge '%s' — cycle reset, next maintenance: %s",
+            assignee_name,
             badge_data.get(const.DATA_BADGE_NAME, badge_id),
             end_date,
         )
@@ -1954,7 +2013,7 @@ class GamificationManager(BaseManager):
         if was_demoted:
             self.emit(
                 const.SIGNAL_SUFFIX_BADGE_UPDATED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 badge_id=badge_id,
                 status=const.CUMULATIVE_BADGE_STATE_ACTIVE,
                 badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
@@ -1965,9 +2024,9 @@ class GamificationManager(BaseManager):
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             badge_id=badge_id,
-            kid_name=kid_name,
+            assignee_name=assignee_name,
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
@@ -1998,7 +2057,7 @@ class GamificationManager(BaseManager):
 
     async def _apply_periodic_first_award(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
         result: EvaluationResult,
@@ -2006,30 +2065,31 @@ class GamificationManager(BaseManager):
         """Award periodic badge for the first time.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
             result: Evaluation result (unused but kept for signature consistency)
         """
-        const.LOGGER.info("Kid %s earned periodic badge %s", kid_id, badge_id)
+        const.LOGGER.info("Assignee %s earned periodic badge %s", assignee_id, badge_id)
 
         # Update badge tracking (calls _persist_and_update)
-        await self._record_badge_earned(kid_id, badge_id, badge_data)
+        await self._record_badge_earned(assignee_id, badge_id, badge_data)
 
         # Build and emit Award Manifest
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             badge_id=badge_id,
-            kid_name=eh.get_kid_name_by_id(self.coordinator, kid_id) or "",
+            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+            or "",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
 
     async def _apply_periodic_reaward(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
         badge_data: BadgeData,
     ) -> None:
@@ -2039,45 +2099,48 @@ class GamificationManager(BaseManager):
         and updating period statistics.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
             badge_data: Badge definition
         """
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        if not kid_data:
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_data:
             return
 
-        badges_earned = kid_data.get(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         badge_entry = badges_earned.get(badge_id)
         if not badge_entry:
             return
 
         const.LOGGER.info(
-            "Kid %s re-earned periodic badge %s (incrementing award_count)",
-            kid_id,
+            "Assignee %s re-earned periodic badge %s (incrementing award_count)",
+            assignee_id,
             badge_id,
         )
 
         # Increment award_count (badge re-award)
         badge_entry_dict = cast("dict[str, Any]", badge_entry)
         current_count = badge_entry_dict.get(
-            const.DATA_KID_BADGES_EARNED_AWARD_COUNT, 1
+            const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT, 1
         )
-        badge_entry_dict[const.DATA_KID_BADGES_EARNED_AWARD_COUNT] = current_count + 1
+        badge_entry_dict[const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT] = (
+            current_count + 1
+        )
 
         # Update last award date
-        badge_entry_dict[const.DATA_KID_BADGES_EARNED_LAST_AWARDED] = dt_now_iso()
+        badge_entry_dict[const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED] = dt_now_iso()
 
         # Persist changes
         self.coordinator._persist_and_update()
 
-        # Build and emit Award Manifest (kid gets all badge rewards again)
+        # Build and emit Award Manifest (assignee gets all badge rewards again)
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             badge_id=badge_id,
-            kid_name=eh.get_kid_name_by_id(self.coordinator, kid_id) or "",
+            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+            or "",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
@@ -2086,41 +2149,41 @@ class GamificationManager(BaseManager):
     # ACHIEVEMENT EVALUATION
     # =========================================================================
 
-    async def _evaluate_achievement_for_kid(
+    async def _evaluate_achievement_for_assignee(
         self,
         context: EvaluationContext,
         achievement_id: str,
         achievement_data: AchievementData,
     ) -> None:
-        """Evaluate a single achievement for a kid.
+        """Evaluate a single achievement for a assignee.
 
         Args:
-            context: The evaluation context for the kid
+            context: The evaluation context for the assignee
             achievement_id: Achievement internal ID
             achievement_data: Achievement definition
         """
-        kid_id = context["kid_id"]
+        assignee_id = context["assignee_id"]
 
-        # Check if kid already has this achievement (awarded flag in progress)
+        # Check if assignee already has this achievement (awarded flag in progress)
         achievement_progress = achievement_data.get(const.DATA_ACHIEVEMENT_PROGRESS, {})
-        kid_progress = achievement_progress.get(kid_id, {})
-        already_awarded = kid_progress.get(const.DATA_ACHIEVEMENT_AWARDED, False)
+        assignee_progress = achievement_progress.get(assignee_id, {})
+        already_awarded = assignee_progress.get(const.DATA_ACHIEVEMENT_AWARDED, False)
 
         if already_awarded:
             # Achievements are permanent - no re-evaluation needed
             return
 
         canonical_target = self._map_achievement_to_canonical_target(
-            kid_id,
+            assignee_id,
             achievement_id,
             achievement_data,
-            kid_progress,
+            assignee_progress,
         )
         runtime_context = self._build_source_runtime_context(
             context,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             canonical_target=canonical_target,
-            current_achievement_progress=kid_progress,
+            current_achievement_progress=assignee_progress,
         )
         result = GamificationEngine.evaluate_canonical_target(
             runtime_context,
@@ -2134,12 +2197,12 @@ class GamificationManager(BaseManager):
 
         # Apply result
         await self._apply_achievement_result(
-            kid_id, achievement_id, achievement_data, result
+            assignee_id, achievement_id, achievement_data, result
         )
 
     async def _apply_achievement_result(
         self,
-        kid_id: str,
+        assignee_id: str,
         achievement_id: str,
         achievement_data: AchievementData,
         result: EvaluationResult,
@@ -2147,7 +2210,7 @@ class GamificationManager(BaseManager):
         """Apply achievement evaluation result.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             achievement_id: Achievement internal ID
             achievement_data: Achievement definition
             result: Evaluation result from engine
@@ -2156,17 +2219,17 @@ class GamificationManager(BaseManager):
 
         if criteria_met:
             const.LOGGER.info(
-                "Kid %s unlocked achievement %s",
-                kid_id,
+                "Assignee %s unlocked achievement %s",
+                assignee_id,
                 achievement_id,
             )
             # Persist achievement award (handles data update + notifications)
-            await self.award_achievement(kid_id, achievement_id)
+            await self.award_achievement(assignee_id, achievement_id)
 
             # Emit event for any additional listeners
             self.emit(
                 const.SIGNAL_SUFFIX_ACHIEVEMENT_EARNED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 achievement_id=achievement_id,
                 achievement_name=achievement_data.get(
                     const.DATA_ACHIEVEMENT_NAME, "Unknown"
@@ -2178,25 +2241,25 @@ class GamificationManager(BaseManager):
     # CHALLENGE EVALUATION
     # =========================================================================
 
-    async def _evaluate_challenge_for_kid(
+    async def _evaluate_challenge_for_assignee(
         self,
         context: EvaluationContext,
         challenge_id: str,
         challenge_data: ChallengeData,
     ) -> None:
-        """Evaluate a single challenge for a kid.
+        """Evaluate a single challenge for a assignee.
 
         Args:
-            context: The evaluation context for the kid
+            context: The evaluation context for the assignee
             challenge_id: Challenge internal ID
             challenge_data: Challenge definition
         """
-        kid_id = context["kid_id"]
+        assignee_id = context["assignee_id"]
 
-        # Check if kid already completed this challenge (awarded flag in progress)
+        # Check if assignee already completed this challenge (awarded flag in progress)
         challenge_progress = challenge_data.get(const.DATA_CHALLENGE_PROGRESS, {})
-        kid_progress = challenge_progress.get(kid_id, {})
-        already_awarded = kid_progress.get(const.DATA_CHALLENGE_AWARDED, False)
+        assignee_progress = challenge_progress.get(assignee_id, {})
+        already_awarded = assignee_progress.get(const.DATA_CHALLENGE_AWARDED, False)
 
         if already_awarded:
             # Challenges can only be completed once
@@ -2214,15 +2277,15 @@ class GamificationManager(BaseManager):
             return
 
         canonical_target = self._map_challenge_to_canonical_target(
-            kid_id,
+            assignee_id,
             challenge_id,
             challenge_data,
         )
         runtime_context = self._build_source_runtime_context(
             context,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             canonical_target=canonical_target,
-            current_challenge_progress=kid_progress,
+            current_challenge_progress=assignee_progress,
         )
         result = GamificationEngine.evaluate_canonical_target(
             runtime_context,
@@ -2235,14 +2298,16 @@ class GamificationManager(BaseManager):
         )
 
         # Apply result
-        await self._apply_challenge_result(kid_id, challenge_id, challenge_data, result)
+        await self._apply_challenge_result(
+            assignee_id, challenge_id, challenge_data, result
+        )
 
     def _map_achievement_to_canonical_target(
         self,
-        kid_id: str,
+        assignee_id: str,
         achievement_id: str,
         achievement_data: AchievementData,
-        kid_progress: AchievementProgress | dict[str, Any],
+        assignee_progress: AchievementProgress | dict[str, Any],
     ) -> CanonicalTargetDefinition:
         """Map Achievement Item definitions to canonical target definitions."""
         raw_type = str(achievement_data.get(const.DATA_ACHIEVEMENT_TYPE, ""))
@@ -2252,15 +2317,17 @@ class GamificationManager(BaseManager):
         source_badge_id = str(
             achievement_data.get(const.DATA_ACHIEVEMENT_SOURCE_BADGE_ID, "")
         )
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        kid_badges_earned = (
-            kid_data.get(const.DATA_KID_BADGES_EARNED, {}) if kid_data else {}
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        assignee_badges_earned = (
+            assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+            if assignee_data
+            else {}
         )
 
         if (
             raw_type == const.ACHIEVEMENT_TYPE_TOTAL
             and source_badge_id
-            and source_badge_id in kid_badges_earned
+            and source_badge_id in assignee_badges_earned
         ):
             canonical_type = const.CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT
 
@@ -2273,16 +2340,18 @@ class GamificationManager(BaseManager):
             "source_item_id": achievement_id,
             "source_raw_type": raw_type,
             "baseline_value": float(
-                cast("Any", kid_progress).get(const.DATA_ACHIEVEMENT_BASELINE, 0)
+                cast("Any", assignee_progress).get(const.DATA_ACHIEVEMENT_BASELINE, 0)
             ),
         }
         selected_chore_id = str(
             achievement_data.get(const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID, "")
         )
         if selected_chore_id:
-            kid_assigned_chores = self._get_kid_assigned_chores(kid_id)
+            assignee_assigned_chores = self._get_assignee_assigned_chores(assignee_id)
             mapped["tracked_chore_ids"] = (
-                [selected_chore_id] if selected_chore_id in kid_assigned_chores else []
+                [selected_chore_id]
+                if selected_chore_id in assignee_assigned_chores
+                else []
             )
         if source_badge_id:
             mapped["source_badge_id"] = source_badge_id
@@ -2290,7 +2359,7 @@ class GamificationManager(BaseManager):
 
     def _map_challenge_to_canonical_target(
         self,
-        kid_id: str,
+        assignee_id: str,
         challenge_id: str,
         challenge_data: ChallengeData,
     ) -> CanonicalTargetDefinition:
@@ -2313,9 +2382,11 @@ class GamificationManager(BaseManager):
             challenge_data.get(const.DATA_CHALLENGE_SELECTED_CHORE_ID, "")
         )
         if selected_chore_id:
-            kid_assigned_chores = self._get_kid_assigned_chores(kid_id)
+            assignee_assigned_chores = self._get_assignee_assigned_chores(assignee_id)
             mapped["tracked_chore_ids"] = (
-                [selected_chore_id] if selected_chore_id in kid_assigned_chores else []
+                [selected_chore_id]
+                if selected_chore_id in assignee_assigned_chores
+                else []
             )
         return mapped
 
@@ -2323,7 +2394,7 @@ class GamificationManager(BaseManager):
         self,
         base_context: EvaluationContext,
         *,
-        kid_id: str,
+        assignee_id: str,
         canonical_target: CanonicalTargetDefinition,
         current_achievement_progress: AchievementProgress
         | dict[str, Any]
@@ -2337,11 +2408,11 @@ class GamificationManager(BaseManager):
         if isinstance(tracked_chores_from_target, list):
             tracked_chores = tracked_chores_from_target
         else:
-            tracked_chores = self._get_kid_assigned_chores(kid_id)
+            tracked_chores = self._get_assignee_assigned_chores(assignee_id)
 
         runtime_context["today_stats"] = (
             self.coordinator.statistics_manager.get_badge_scoped_today_stats(
-                kid_id,
+                assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
                 current_badge_progress=None,
@@ -2349,7 +2420,7 @@ class GamificationManager(BaseManager):
         )
         runtime_context["today_completion"] = (
             self.coordinator.statistics_manager.get_badge_scoped_today_completion(
-                kid_id,
+                assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
                 only_due_today=False,
@@ -2357,7 +2428,7 @@ class GamificationManager(BaseManager):
         )
         runtime_context["today_completion_due"] = (
             self.coordinator.statistics_manager.get_badge_scoped_today_completion(
-                kid_id,
+                assignee_id,
                 tracked_chores,
                 today_iso=today_iso,
                 only_due_today=True,
@@ -2377,7 +2448,7 @@ class GamificationManager(BaseManager):
 
     async def _apply_challenge_result(
         self,
-        kid_id: str,
+        assignee_id: str,
         challenge_id: str,
         challenge_data: ChallengeData,
         result: EvaluationResult,
@@ -2385,7 +2456,7 @@ class GamificationManager(BaseManager):
         """Apply challenge evaluation result.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             challenge_id: Challenge internal ID
             challenge_data: Challenge definition
             result: Evaluation result from engine
@@ -2394,17 +2465,17 @@ class GamificationManager(BaseManager):
 
         if criteria_met:
             const.LOGGER.info(
-                "Kid %s completed challenge %s",
-                kid_id,
+                "Assignee %s completed challenge %s",
+                assignee_id,
                 challenge_id,
             )
             # Persist challenge completion (handles data update + notifications)
-            await self.award_challenge(kid_id, challenge_id)
+            await self.award_challenge(assignee_id, challenge_id)
 
             # Emit event for any additional listeners
             self.emit(
                 const.SIGNAL_SUFFIX_CHALLENGE_COMPLETED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 challenge_id=challenge_id,
                 challenge_name=challenge_data.get(const.DATA_CHALLENGE_NAME, "Unknown"),
                 result=result,
@@ -2414,78 +2485,80 @@ class GamificationManager(BaseManager):
     # CONTEXT BUILDING
     # =========================================================================
 
-    def _build_evaluation_context(self, kid_id: str) -> EvaluationContext | None:
+    def _build_evaluation_context(self, assignee_id: str) -> EvaluationContext | None:
         """Build evaluation context from coordinator data.
 
         This extracts minimal data needed for gamification evaluation.
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
 
         Returns:
-            EvaluationContext dict or None if kid not found
+            EvaluationContext dict or None if assignee not found
         """
-        kid_data = self.coordinator.kids_data.get(kid_id)
-        if not kid_data:
+        assignee_data = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_data:
             return None
 
         # Get today's ISO date using helper
         today_iso = dt_today_iso()
 
         # Get total earned from all_time period bucket using stats engine
-        point_periods = kid_data.get(const.DATA_KID_POINT_PERIODS, {})
+        point_periods = assignee_data.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
         period_key_mapping = {
-            const.PERIOD_ALL_TIME: const.DATA_KID_POINT_PERIODS_ALL_TIME
+            const.PERIOD_ALL_TIME: const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME
         }
         total_earned = float(
             self.coordinator.stats.get_period_total(
                 point_periods,
                 const.PERIOD_ALL_TIME,
-                const.DATA_KID_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
                 period_key_mapping=period_key_mapping,
             )
         )
 
-        # Get badge progress from kid data
-        badge_progress = kid_data.get(const.DATA_KID_BADGE_PROGRESS, {})
+        # Get badge progress from assignee data
+        badge_progress = assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
 
         # Build achievement progress from achievements_data
-        # (progress is stored in each achievement, keyed by kid_id)
+        # (progress is stored in each achievement, keyed by assignee_id)
         achievement_progress: dict[str, Any] = {}
         for ach_id, ach_data in self.coordinator.achievements_data.items():
             ach_progress = ach_data.get(const.DATA_ACHIEVEMENT_PROGRESS, {})
-            if kid_id in ach_progress:
-                achievement_progress[ach_id] = ach_progress[kid_id]
+            if assignee_id in ach_progress:
+                achievement_progress[ach_id] = ach_progress[assignee_id]
 
         # Build challenge progress from challenges_data
-        # (progress is stored in each challenge, keyed by kid_id)
+        # (progress is stored in each challenge, keyed by assignee_id)
         challenge_progress: dict[str, Any] = {}
         for chal_id, chal_data in self.coordinator.challenges_data.items():
             chal_progress = chal_data.get(const.DATA_CHALLENGE_PROGRESS, {})
-            if kid_id in chal_progress:
-                challenge_progress[chal_id] = chal_progress[kid_id]
+            if assignee_id in chal_progress:
+                challenge_progress[chal_id] = chal_progress[assignee_id]
 
         # Build context (using cast pattern for TypedDict compatibility)
         chore_periods = cast(
             "dict[str, Any]",
-            kid_data.get(const.DATA_KID_CHORE_PERIODS, {}),
+            assignee_data.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {}),
         )
         context: EvaluationContext = {
-            "kid_id": kid_id,
-            "kid_name": kid_data.get(const.DATA_KID_NAME, "Unknown"),
-            "current_points": float(kid_data.get(const.DATA_KID_POINTS, 0.0)),
+            "assignee_id": assignee_id,
+            "assignee_name": assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown"),
+            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
             "total_points_earned": total_earned,
             "badge_progress": badge_progress,
-            "cumulative_badge_progress": kid_data.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+            "cumulative_badge_progress": assignee_data.get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": kid_data.get(const.DATA_KID_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time for totals
             # Cast to dict[str, Any] since chore_periods is a runtime-added bucket
             # All-time uses nested structure: periods["all_time"]["all_time"] = {data}
             "chore_periods_all_time": cast(
                 "dict[str, Any]",
-                chore_periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {}).get(
+                chore_periods.get(
+                    const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+                ).get(
                     const.PERIOD_ALL_TIME,
                     {},
                 ),
@@ -2503,19 +2576,19 @@ class GamificationManager(BaseManager):
 
     def dry_run_badge(
         self,
-        kid_id: str,
+        assignee_id: str,
         badge_id: str,
     ) -> EvaluationResult | None:
         """Evaluate badge without applying results (for comparison/debugging).
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge internal ID
 
         Returns:
             EvaluationResult or None if context/badge not found
         """
-        context = self._build_evaluation_context(kid_id)
+        context = self._build_evaluation_context(assignee_id)
         if not context:
             return None
 
@@ -2529,19 +2602,19 @@ class GamificationManager(BaseManager):
 
     def dry_run_achievement(
         self,
-        kid_id: str,
+        assignee_id: str,
         achievement_id: str,
     ) -> EvaluationResult | None:
         """Evaluate achievement without applying results.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             achievement_id: Achievement internal ID
 
         Returns:
             EvaluationResult or None if context/achievement not found
         """
-        context = self._build_evaluation_context(kid_id)
+        context = self._build_evaluation_context(assignee_id)
         if not context:
             return None
 
@@ -2555,19 +2628,19 @@ class GamificationManager(BaseManager):
 
     def dry_run_challenge(
         self,
-        kid_id: str,
+        assignee_id: str,
         challenge_id: str,
     ) -> EvaluationResult | None:
         """Evaluate challenge without applying results.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             challenge_id: Challenge internal ID
 
         Returns:
             EvaluationResult or None if context/challenge not found
         """
-        context = self._build_evaluation_context(kid_id)
+        context = self._build_evaluation_context(assignee_id)
         if not context:
             return None
 
@@ -2659,31 +2732,31 @@ class GamificationManager(BaseManager):
     def get_badge_in_scope_chores_list(
         self,
         badge_info: BadgeData,
-        kid_id: str,
-        kid_assigned_chores: list[str] | None = None,
+        assignee_id: str,
+        assignee_assigned_chores: list[str] | None = None,
     ) -> list[str]:
         """Get the list of chore IDs that are in-scope for this badge evaluation.
 
         For badges with tracked chores:
-        - Returns only those specific chore IDs that are also assigned to the kid
+        - Returns only those specific chore IDs that are also assigned to the assignee
         For badges without tracked chores:
-        - Returns all chore IDs assigned to the kid
+        - Returns all chore IDs assigned to the assignee
 
         Args:
             badge_info: Badge configuration dictionary
-            kid_id: Kid's internal ID
-            kid_assigned_chores: Optional pre-computed list of chores assigned to kid
+            assignee_id: Assignee's internal ID
+            assignee_assigned_chores: Optional pre-computed list of chores assigned to assignee
                                 (optimization to avoid re-iterating all chores)
 
         Returns:
-            List of chore IDs in scope for this badge/kid combination
+            List of chore IDs in scope for this badge/assignee combination
         """
         badge_type = badge_info.get(const.DATA_BADGE_TYPE, const.BADGE_TYPE_PERIODIC)
         include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
 
         # OPTIMIZATION: Use pre-computed list if provided, otherwise compute
-        if kid_assigned_chores is None:
-            kid_assigned_chores = self._get_kid_assigned_chores(kid_id)
+        if assignee_assigned_chores is None:
+            assignee_assigned_chores = self._get_assignee_assigned_chores(assignee_id)
 
         # If badge does not include tracked chores, return empty list
         if include_tracked_chores:
@@ -2693,28 +2766,28 @@ class GamificationManager(BaseManager):
             )
 
             if tracked_chore_ids:
-                # Badge has specific tracked chores, return only those assigned to the kid
+                # Badge has specific tracked chores, return only those assigned to the assignee
                 return [
                     chore_id
                     for chore_id in tracked_chore_ids
-                    if chore_id in kid_assigned_chores
+                    if chore_id in assignee_assigned_chores
                 ]
-            # Badge considers all chores, return all chores assigned to the kid
-            return kid_assigned_chores
+            # Badge considers all chores, return all chores assigned to the assignee
+            return assignee_assigned_chores
         # Badge does not include tracked chores component, return empty list
         return []
 
-    def _get_kid_assigned_chores(self, kid_id: str) -> list[str]:
-        """Return all chore IDs currently assigned to the kid."""
-        kid_assigned_chores: list[str] = []
+    def _get_assignee_assigned_chores(self, assignee_id: str) -> list[str]:
+        """Return all chore IDs currently assigned to the assignee."""
+        assignee_assigned_chores: list[str] = []
         for chore_id, chore_info in self.coordinator.chores_data.items():
-            chore_assigned_to = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            if not chore_assigned_to or kid_id in chore_assigned_to:
-                kid_assigned_chores.append(chore_id)
-        return kid_assigned_chores
+            chore_assigned_to = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            if not chore_assigned_to or assignee_id in chore_assigned_to:
+                assignee_assigned_chores.append(chore_id)
+        return assignee_assigned_chores
 
     def get_cumulative_badge_levels(
-        self, kid_id: str
+        self, assignee_id: str
     ) -> tuple[
         dict[str, Any] | None,
         dict[str, Any] | None,
@@ -2725,7 +2798,7 @@ class GamificationManager(BaseManager):
         """Determine the highest earned cumulative badge and adjacent tier badges.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
 
         Returns:
             Tuple of:
@@ -2735,35 +2808,37 @@ class GamificationManager(BaseManager):
             - baseline (float) - DEPRECATED, returns 0.0
             - cycle_points (float)
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return None, None, None, 0.0, 0.0
 
         # Get total earned from point_periods using stats engine
-        point_periods = kid_info.get(const.DATA_KID_POINT_PERIODS, {})
+        point_periods = assignee_info.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
         period_key_mapping = {
-            const.PERIOD_ALL_TIME: const.DATA_KID_POINT_PERIODS_ALL_TIME
+            const.PERIOD_ALL_TIME: const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME
         }
         total_points_earned = float(
             self.coordinator.stats.get_period_total(
                 point_periods,
                 const.PERIOD_ALL_TIME,
-                const.DATA_KID_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
                 period_key_mapping=period_key_mapping,
             )
         )
 
         # Get cycle_points for maintenance tracking
-        progress = kid_info.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_info.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
         cycle_points = round(
             float(
-                progress.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0)
+                progress.get(
+                    const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0
+                )
             ),
             const.DATA_FLOAT_PRECISION,
         )
 
-        # Get badges this kid has earned (from badges_earned dict)
-        badges_earned = kid_info.get(const.DATA_KID_BADGES_EARNED, {})
+        # Get badges this assignee has earned (from badges_earned dict)
+        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
 
         # Get sorted list of cumulative badges (lowest to highest threshold)
         cumulative_badges = sorted(
@@ -2795,10 +2870,10 @@ class GamificationManager(BaseManager):
                 )
             )
 
-            # Check if badge is assigned to this kid (empty list = assigned to all)
+            # Check if badge is assigned to this assignee (empty list = assigned to all)
             is_assigned_to = not badge_info.get(
                 const.DATA_BADGE_ASSIGNED_TO, []
-            ) or kid_id in badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+            ) or assignee_id in badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
 
             if not is_assigned_to:
                 continue
@@ -2824,8 +2899,8 @@ class GamificationManager(BaseManager):
             cycle_points,
         )
 
-    def update_point_multiplier_for_kid(self, kid_id: str) -> None:
-        """Update the kid's points multiplier based on current cumulative badge.
+    def update_point_multiplier_for_assignee(self, assignee_id: str) -> None:
+        """Update the assignee's points multiplier based on current cumulative badge.
 
         Phase 3A: Use get_cumulative_badge_progress to compute current badge
         (demotion-aware, no storage reads).
@@ -2834,26 +2909,26 @@ class GamificationManager(BaseManager):
         but emits a signal for EconomyManager (the Landlord) to perform the write.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return
 
         old_multiplier = float(
-            kid_info.get(
-                const.DATA_KID_POINTS_MULTIPLIER,
-                const.DEFAULT_KID_POINTS_MULTIPLIER,
+            assignee_info.get(
+                const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
+                const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
             )
         )
 
         # Phase 3A: Get current badge via computed progress (demotion-aware)
-        cumulative_badge_progress = self.get_cumulative_badge_progress(kid_id)
+        cumulative_badge_progress = self.get_cumulative_badge_progress(assignee_id)
         current_badge_id = cumulative_badge_progress.get(
             const.CUMULATIVE_BADGE_PROGRESS_CURRENT_BADGE_ID
         )
 
-        multiplier: float = const.DEFAULT_KID_POINTS_MULTIPLIER
+        multiplier: float = const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER
 
         if current_badge_id:
             badge_data = self.coordinator.badges_data.get(current_badge_id)
@@ -2861,7 +2936,7 @@ class GamificationManager(BaseManager):
                 badge_awards = badge_data.get(const.DATA_BADGE_AWARDS, {})
                 raw_multiplier = badge_awards.get(
                     const.DATA_BADGE_AWARDS_POINT_MULTIPLIER,
-                    const.DEFAULT_KID_POINTS_MULTIPLIER,
+                    const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
                 )
                 if isinstance(raw_multiplier, (int, float)):
                     multiplier = float(raw_multiplier)
@@ -2869,7 +2944,7 @@ class GamificationManager(BaseManager):
         # Phase 3B: Emit signal for EconomyManager (Landlord) to write
         self.emit(
             const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             multiplier=multiplier,
             old_multiplier=old_multiplier,
             new_multiplier=multiplier,
@@ -2879,35 +2954,39 @@ class GamificationManager(BaseManager):
     # =========================================================================
     # BADGE CORE OPERATIONS (State-Modifying Methods)
     # =========================================================================
-    # These methods award/demote/remove badges and modify kid/badge state.
+    # These methods award/demote/remove badges and modify assignee/badge state.
     # Migrated from coordinator.py as Tier 2/3 (depend on utilities above).
 
-    def update_badges_earned_for_kid(self, kid_id: str, badge_id: str) -> None:
-        """Update the kid's badges-earned tracking for the given badge.
+    def update_badges_earned_for_assignee(
+        self, assignee_id: str, badge_id: str
+    ) -> None:
+        """Update the assignee's badges-earned tracking for the given badge.
 
         Updates period stats (daily, weekly, etc.) for badge award tracking.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge's internal ID
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             const.LOGGER.error(
-                "ERROR: Update Kid Badges Earned - Kid ID '%s' not found", kid_id
+                "ERROR: Update Assignee Badges Earned - Assignee ID '%s' not found",
+                assignee_id,
             )
             return
 
         badge_info = self.coordinator.badges_data.get(badge_id)
         if not badge_info:
             const.LOGGER.error(
-                "ERROR: Update Kid Badges Earned - Badge ID '%s' not found", badge_id
+                "ERROR: Update Assignee Badges Earned - Badge ID '%s' not found",
+                badge_id,
             )
             return
 
         today_local_iso = dt_today_iso()
 
-        badges_earned = kid_info.setdefault(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = assignee_info.setdefault(const.DATA_ASSIGNEE_BADGES_EARNED, {})
 
         # Phase 4: GamificationManager (Landlord) creates/updates structure only
         # StatisticsManager (Tenant) handles period updates via _on_badge_earned listener
@@ -2918,44 +2997,48 @@ class GamificationManager(BaseManager):
             # Top-level award_count is manager-owned for periodic re-awards.
             # Tenant-owned period aggregates remain in periods buckets.
             badges_earned[badge_id] = {  # pyright: ignore[reportArgumentType]
-                const.DATA_KID_BADGES_EARNED_NAME: badge_info.get(
+                const.DATA_ASSIGNEE_BADGES_EARNED_NAME: badge_info.get(
                     const.DATA_BADGE_NAME, ""
                 ),
-                const.DATA_KID_BADGES_EARNED_LAST_AWARDED: today_local_iso,
-                const.DATA_KID_BADGES_EARNED_PERIODS: {},  # Tenant populates sub-keys
+                const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: today_local_iso,
+                const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS: {},  # Tenant populates sub-keys
             }
             const.LOGGER.info(
-                "Update Kid Badges Earned - Created new tracking for badge '%s' for kid '%s'",
+                "Update Assignee Badges Earned - Created new tracking for badge '%s' for assignee '%s'",
                 badge_info.get(const.DATA_BADGE_NAME, badge_id),
-                kid_info.get(const.DATA_KID_NAME, kid_id),
+                assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
             )
         else:
             # Update existing badge tracking (Landlord updates metadata fields only)
             # award_count increment for periodic re-award is manager-owned.
             # Tenant-owned period aggregates are still handled in periods buckets.
             tracking_entry = badges_earned[badge_id]
-            tracking_entry[const.DATA_KID_BADGES_EARNED_NAME] = badge_info.get(
+            tracking_entry[const.DATA_ASSIGNEE_BADGES_EARNED_NAME] = badge_info.get(
                 const.DATA_BADGE_NAME, ""
             )
-            tracking_entry[const.DATA_KID_BADGES_EARNED_LAST_AWARDED] = today_local_iso
+            tracking_entry[const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED] = (
+                today_local_iso
+            )
 
             # Ensure periods structure exists (Landlord ensures container)
             # StatisticsEngine creates daily/weekly/monthly/yearly keys on-demand
             tracking_entry.setdefault(
-                const.DATA_KID_BADGES_EARNED_PERIODS,
+                const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS,
                 {},  # type: ignore[typeddict-item]  # Tenant populates sub-keys
             )
 
             const.LOGGER.info(
-                "Update Kid Badges Earned - Updated tracking for badge '%s' for kid '%s'",
+                "Update Assignee Badges Earned - Updated tracking for badge '%s' for assignee '%s'",
                 badge_info.get(const.DATA_BADGE_NAME, badge_id),
-                kid_info.get(const.DATA_KID_NAME, kid_id),
+                assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
             )
 
         # Phase 4: Periods updated by StatisticsManager._on_badge_earned listener
         # No direct StatisticsEngine calls - clean Landlord/Tenant separation
 
-    def _ensure_kid_badge_structures(self, kid_id: str, badge_id: str) -> None:
+    def _ensure_assignee_badge_structures(
+        self, assignee_id: str, badge_id: str
+    ) -> None:
         """Ensure badge periods structure exists (Landlord responsibility).
 
         Creates ONLY the empty periods dict. StatisticsManager (Tenant) populates
@@ -2972,23 +3055,23 @@ class GamificationManager(BaseManager):
         3. StatisticsManager._on_badge_earned finds periods structure ready
 
         Pattern matches:
-        - ChoreManager._ensure_kid_structures() - creates empty periods: {}
-        - RewardManager._ensure_kid_structures() - creates empty periods: {}
+        - ChoreManager._ensure_assignee_structures() - creates empty periods: {}
+        - RewardManager._ensure_assignee_structures() - creates empty periods: {}
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
             badge_id: Badge's internal ID
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return
 
-        badges_earned = kid_info.get(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         badge_entry = badges_earned.get(badge_id)
         if not badge_entry:
             const.LOGGER.warning(
-                "_ensure_kid_badge_structures: Badge entry not found for kid=%s, badge=%s",
-                kid_id,
+                "_ensure_assignee_badge_structures: Badge entry not found for assignee=%s, badge=%s",
+                assignee_id,
                 badge_id,
             )
             return
@@ -2998,21 +3081,21 @@ class GamificationManager(BaseManager):
 
         # Landlord creates ONLY empty periods container
         # Tenant (StatisticsEngine.record_transaction) creates ALL sub-keys on-demand
-        if const.DATA_KID_BADGES_EARNED_PERIODS not in badge_entry_dict:
-            badge_entry_dict[const.DATA_KID_BADGES_EARNED_PERIODS] = {}
+        if const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS not in badge_entry_dict:
+            badge_entry_dict[const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS] = {}
 
         const.LOGGER.debug(
-            "_ensure_kid_badge_structures: Ensured periods container for kid=%s, badge=%s",
-            kid_id,
+            "_ensure_assignee_badge_structures: Ensured periods container for assignee=%s, badge=%s",
+            assignee_id,
             badge_id,
         )
 
         self.coordinator._persist_and_update()
 
-    def update_chore_badge_references_for_kid(
+    def update_chore_badge_references_for_assignee(
         self, include_cumulative_badges: bool = False
     ) -> None:
-        """Update badge reference lists in kid chore data.
+        """Update badge reference lists in assignee chore data.
 
         Legacy helper retained for diagnostics and migration parity.
 
@@ -3024,12 +3107,12 @@ class GamificationManager(BaseManager):
                 Default False since cumulative badges are points-only.
         """
         # Clear existing badge references
-        for _kid_id, kid_info in self.coordinator.kids_data.items():
-            if const.DATA_KID_CHORE_DATA not in kid_info:
+        for _assignee_id, assignee_info in self.coordinator.assignees_data.items():
+            if const.DATA_ASSIGNEE_CHORE_DATA not in assignee_info:
                 continue
 
-            for chore_data in kid_info[const.DATA_KID_CHORE_DATA].values():
-                chore_data[const.DATA_KID_CHORE_DATA_BADGE_REFS] = []
+            for chore_data in assignee_info[const.DATA_ASSIGNEE_CHORE_DATA].values():
+                chore_data[const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS] = []
 
         # Add badge references to relevant chores
         for badge_id, badge_info in self.coordinator.badges_data.items():
@@ -3040,35 +3123,40 @@ class GamificationManager(BaseManager):
             ):
                 continue
 
-            # For each kid this badge is assigned to
+            # For each assignee this badge is assigned to
             assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
-            for kid_id in (
-                assigned_to or self.coordinator.kids_data.keys()
-            ):  # If empty, apply to all kids
-                kid_info_loop = self.coordinator.kids_data.get(kid_id)
-                if not kid_info_loop or const.DATA_KID_CHORE_DATA not in kid_info_loop:
+            for assignee_id in (
+                assigned_to or self.coordinator.assignees_data.keys()
+            ):  # If empty, apply to all assignees
+                assignee_info_loop = self.coordinator.assignees_data.get(assignee_id)
+                if (
+                    not assignee_info_loop
+                    or const.DATA_ASSIGNEE_CHORE_DATA not in assignee_info_loop
+                ):
                     continue
 
                 # Use the helper function to get the correct in-scope chores
                 in_scope_chores_list = self.get_badge_in_scope_chores_list(
-                    badge_info, kid_id
+                    badge_info, assignee_id
                 )
 
                 # Add badge reference to each tracked chore
                 for chore_id in in_scope_chores_list:
-                    if chore_id in kid_info_loop[const.DATA_KID_CHORE_DATA]:
-                        chore_entry = kid_info_loop[const.DATA_KID_CHORE_DATA][chore_id]
+                    if chore_id in assignee_info_loop[const.DATA_ASSIGNEE_CHORE_DATA]:
+                        chore_entry = assignee_info_loop[
+                            const.DATA_ASSIGNEE_CHORE_DATA
+                        ][chore_id]
                         badge_refs: list[str] = chore_entry.get(
-                            const.DATA_KID_CHORE_DATA_BADGE_REFS, []
+                            const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS, []
                         )
                         if badge_id not in badge_refs:
                             badge_refs.append(badge_id)
-                            chore_entry[const.DATA_KID_CHORE_DATA_BADGE_REFS] = (
+                            chore_entry[const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS] = (
                                 badge_refs
                             )
 
-    def get_cumulative_badge_progress(self, kid_id: str) -> dict[str, Any]:
-        """Build and return the full cumulative badge progress block for a kid.
+    def get_cumulative_badge_progress(self, assignee_id: str) -> dict[str, Any]:
+        """Build and return the full cumulative badge progress block for a assignee.
 
         Phase 3A: Returns dict with CUMULATIVE_BADGE_PROGRESS_* constant keys.
         All derived fields computed on-read, only state fields read from storage.
@@ -3077,35 +3165,35 @@ class GamificationManager(BaseManager):
         Does not mutate state.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
 
         Returns:
             Dictionary with cumulative badge progress data (state + computed fields)
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             return {}
 
         # Get stored state fields (only 4 fields remain in storage)
-        stored_progress = kid_info.get(
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+        stored_progress = assignee_info.get(
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
         ).copy()
 
         # Compute values from badge level logic
         (highest_earned, next_higher, next_lower, _, cycle_points) = (
-            self.get_cumulative_badge_levels(kid_id)
+            self.get_cumulative_badge_levels(assignee_id)
         )
 
-        # Get kid's total points from point_periods using stats engine
-        point_periods = kid_info.get(const.DATA_KID_POINT_PERIODS, {})
+        # Get assignee's total points from point_periods using stats engine
+        point_periods = assignee_info.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
         period_key_mapping = {
-            const.PERIOD_ALL_TIME: const.DATA_KID_POINT_PERIODS_ALL_TIME
+            const.PERIOD_ALL_TIME: const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME
         }
         total_points = float(
             self.coordinator.stats.get_period_total(
                 point_periods,
                 const.PERIOD_ALL_TIME,
-                const.DATA_KID_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
                 period_key_mapping=period_key_mapping,
             )
         )
@@ -3131,7 +3219,7 @@ class GamificationManager(BaseManager):
         else:
             # Has reset schedule → use stored status and cycle_points
             current_status = stored_progress.get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS,
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
                 const.CUMULATIVE_BADGE_STATE_ACTIVE,
             )
             if current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED:
@@ -3227,51 +3315,51 @@ class GamificationManager(BaseManager):
 
         return cast("dict[str, Any]", stored_progress)
 
-    def demote_cumulative_badge(self, kid_id: str) -> None:
+    def demote_cumulative_badge(self, assignee_id: str) -> None:
         """Update cumulative badge status to DEMOTED when maintenance fails.
 
         Called when a cumulative badge's maintenance requirements are no longer met.
-        The badge is not removed, but the kid's status is set to DEMOTED which
+        The badge is not removed, but the assignee's status is set to DEMOTED which
         affects their multiplier.
 
         Args:
-            kid_id: Kid's internal ID
+            assignee_id: Assignee's internal ID
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             const.LOGGER.error(
-                "Demote Cumulative Badge - Kid ID '%s' not found", kid_id
+                "Demote Cumulative Badge - Assignee ID '%s' not found", assignee_id
             )
             return
 
-        progress = kid_info.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS)
+        progress = assignee_info.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS)
         if not progress:
             const.LOGGER.debug(
-                "Demote Cumulative Badge - No cumulative badge progress for kid '%s'",
-                kid_id,
+                "Demote Cumulative Badge - No cumulative badge progress for assignee '%s'",
+                assignee_id,
             )
             return
 
         # Only update if not already demoted
         current_status = progress.get(
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
             const.CUMULATIVE_BADGE_STATE_ACTIVE,
         )
         if current_status != const.CUMULATIVE_BADGE_STATE_DEMOTED:
-            progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+            progress[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
                 const.CUMULATIVE_BADGE_STATE_DEMOTED
             )
 
             # Recalculate multiplier immediately so the penalty takes effect
-            self.update_point_multiplier_for_kid(kid_id)
+            self.update_point_multiplier_for_assignee(assignee_id)
 
             self.coordinator._persist_and_update()
 
-            kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
             const.LOGGER.info(
-                "Demoted cumulative badge status for kid '%s' (%s)",
-                kid_name,
-                kid_id,
+                "Demoted cumulative badge status for assignee '%s' (%s)",
+                assignee_name,
+                assignee_id,
             )
 
     def _calculate_maintenance_dates(
@@ -3351,32 +3439,33 @@ class GamificationManager(BaseManager):
         return (next_end_date, next_grace_end_date)
 
     def remove_awarded_badges(
-        self, kid_name: str | None = None, badge_name: str | None = None
+        self, assignee_name: str | None = None, badge_name: str | None = None
     ) -> None:
-        """Remove awarded badges based on provided kid_name and badge_name.
+        """Remove awarded badges based on provided assignee_name and badge_name.
 
         This is the public API that accepts names and converts to IDs.
 
         Args:
-            kid_name: Kid's display name (optional)
+            assignee_name: Assignee's display name (optional)
             badge_name: Badge's display name (optional)
         """
-        # Convert kid_name to kid_id if provided
-        kid_id: str | None = None
-        if kid_name:
-            kid_id = get_item_id_by_name(
-                self.coordinator, const.ENTITY_TYPE_KID, kid_name
+        # Convert assignee_name to assignee_id if provided
+        assignee_id: str | None = None
+        if assignee_name:
+            assignee_id = get_item_id_by_name(
+                self.coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
             )
-            if kid_id is None:
+            if assignee_id is None:
                 const.LOGGER.error(
-                    "ERROR: Remove Awarded Badges - Kid name '%s' not found", kid_name
+                    "ERROR: Remove Awarded Badges - Assignee name '%s' not found",
+                    assignee_name,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
                     translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
                     translation_placeholders={
-                        "entity_type": const.LABEL_KID,
-                        "name": kid_name,
+                        "entity_type": const.LABEL_ASSIGNEE,
+                        "name": assignee_name,
                     },
                 )
 
@@ -3387,32 +3476,36 @@ class GamificationManager(BaseManager):
                 self.coordinator, const.ENTITY_TYPE_BADGE, badge_name
             )
             if not badge_id:
-                # Badge isn't found, may have been deleted - clean up kid data only
+                # Badge isn't found, may have been deleted - clean up assignee data only
                 const.LOGGER.warning(
                     "Remove Awarded Badges - Badge name '%s' not found in badges_data. "
-                    "Removing from kid data only",
+                    "Removing from assignee data only",
                     badge_name,
                 )
-                # Remove badge name from specific kid or all kids
-                if kid_id:
-                    kid_info = self.coordinator.kids_data.get(kid_id)
-                    if kid_info:
-                        badges_earned = kid_info.get(const.DATA_KID_BADGES_EARNED, {})
+                # Remove badge name from specific assignee or all assignees
+                if assignee_id:
+                    assignee_info = self.coordinator.assignees_data.get(assignee_id)
+                    if assignee_info:
+                        badges_earned = assignee_info.get(
+                            const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                        )
                         to_remove = [
                             bid
                             for bid, entry in badges_earned.items()
-                            if entry.get(const.DATA_KID_BADGES_EARNED_NAME)
+                            if entry.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME)
                             == badge_name
                         ]
                         for bid in to_remove:
                             del badges_earned[bid]
                 else:
-                    for kid_info in self.coordinator.kids_data.values():
-                        badges_earned = kid_info.get(const.DATA_KID_BADGES_EARNED, {})
+                    for assignee_info in self.coordinator.assignees_data.values():
+                        badges_earned = assignee_info.get(
+                            const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                        )
                         to_remove = [
                             bid
                             for bid, entry in badges_earned.items()
-                            if entry.get(const.DATA_KID_BADGES_EARNED_NAME)
+                            if entry.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME)
                             == badge_name
                         ]
                         for bid in to_remove:
@@ -3421,36 +3514,37 @@ class GamificationManager(BaseManager):
                 self.coordinator._persist_and_update()
                 return
 
-        self.remove_awarded_badges_by_id(kid_id, badge_id)
+        self.remove_awarded_badges_by_id(assignee_id, badge_id)
 
     def remove_awarded_badges_by_id(
-        self, kid_id: str | None = None, badge_id: str | None = None
+        self, assignee_id: str | None = None, badge_id: str | None = None
     ) -> None:
-        """Remove awarded badges based on provided kid_id and badge_id.
+        """Remove awarded badges based on provided assignee_id and badge_id.
 
         This is the internal method that operates on IDs directly.
 
         Args:
-            kid_id: Kid's internal ID (optional)
+            assignee_id: Assignee's internal ID (optional)
             badge_id: Badge's internal ID (optional)
         """
         const.LOGGER.info("Remove Awarded Badges - Starting removal process")
         found = False
 
-        if badge_id and kid_id:
-            # Reset a specific badge for a specific kid
-            kid_info = self.coordinator.kids_data.get(kid_id)
+        if badge_id and assignee_id:
+            # Reset a specific badge for a specific assignee
+            assignee_info = self.coordinator.assignees_data.get(assignee_id)
             badge_info = self.coordinator.badges_data.get(badge_id)
-            if not kid_info:
+            if not assignee_info:
                 const.LOGGER.error(
-                    "ERROR: Remove Awarded Badges - Kid ID '%s' not found", kid_id
+                    "ERROR: Remove Awarded Badges - Assignee ID '%s' not found",
+                    assignee_id,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
                     translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
                     translation_placeholders={
-                        "entity_type": const.LABEL_KID,
-                        "name": kid_id,
+                        "entity_type": const.LABEL_ASSIGNEE,
+                        "name": assignee_id,
                     },
                 )
             if not badge_info:
@@ -3466,40 +3560,42 @@ class GamificationManager(BaseManager):
                     },
                 )
             badge_name = badge_info.get(const.DATA_BADGE_NAME, badge_id)
-            kid_name_str = kid_info.get(const.DATA_KID_NAME, kid_id)
+            assignee_name_str = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
             badge_type = badge_info.get(const.DATA_BADGE_TYPE)
 
-            # Remove the badge from the kid's badges_earned
-            badges_earned = kid_info.setdefault(const.DATA_KID_BADGES_EARNED, {})
+            # Remove the badge from the assignee's badges_earned
+            badges_earned = assignee_info.setdefault(
+                const.DATA_ASSIGNEE_BADGES_EARNED, {}
+            )
             if badge_id in badges_earned:
                 found = True
                 const.LOGGER.warning(
-                    "Remove Awarded Badges - Removing badge '%s' from kid '%s'",
+                    "Remove Awarded Badges - Removing badge '%s' from assignee '%s'",
                     badge_name,
-                    kid_name_str,
+                    assignee_name_str,
                 )
                 del badges_earned[badge_id]
 
-            # Remove the kid from the badge earned_by list
+            # Remove the assignee from the badge earned_by list
             earned_by_list = badge_info.get(const.DATA_BADGE_EARNED_BY, [])
-            if kid_id in earned_by_list:
-                earned_by_list.remove(kid_id)
+            if assignee_id in earned_by_list:
+                earned_by_list.remove(assignee_id)
 
             # Update multiplier if cumulative badge was removed
             if found and badge_type == const.BADGE_TYPE_CUMULATIVE:
-                self.update_point_multiplier_for_kid(kid_id)
+                self.update_point_multiplier_for_assignee(assignee_id)
 
             if not found:
                 const.LOGGER.warning(
-                    "Remove Awarded Badges - Badge '%s' ('%s') not found in kid '%s' ('%s') data",
+                    "Remove Awarded Badges - Badge '%s' ('%s') not found in assignee '%s' ('%s') data",
                     badge_id,
                     badge_name,
-                    kid_id,
-                    kid_name_str,
+                    assignee_id,
+                    assignee_name_str,
                 )
 
         elif badge_id:
-            # Remove a specific awarded badge for all kids
+            # Remove a specific awarded badge for all assignees
             badge_info_elif = self.coordinator.badges_data.get(badge_id)
             if not badge_info_elif:
                 const.LOGGER.warning(
@@ -3509,31 +3605,36 @@ class GamificationManager(BaseManager):
             else:
                 badge_name = badge_info_elif.get(const.DATA_BADGE_NAME, badge_id)
                 badge_type = badge_info_elif.get(const.DATA_BADGE_TYPE)
-                kids_affected: list[str] = []
-                for loop_kid_id, kid_info in self.coordinator.kids_data.items():
-                    kid_name_str = kid_info.get(const.DATA_KID_NAME, "Unknown Kid")
-                    badges_earned = kid_info.setdefault(
-                        const.DATA_KID_BADGES_EARNED, {}
+                assignees_affected: list[str] = []
+                for (
+                    loop_assignee_id,
+                    assignee_info,
+                ) in self.coordinator.assignees_data.items():
+                    assignee_name_str = assignee_info.get(
+                        const.DATA_ASSIGNEE_NAME, "Unknown Assignee"
+                    )
+                    badges_earned = assignee_info.setdefault(
+                        const.DATA_ASSIGNEE_BADGES_EARNED, {}
                     )
                     if badge_id in badges_earned:
                         found = True
-                        kids_affected.append(loop_kid_id)
+                        assignees_affected.append(loop_assignee_id)
                         const.LOGGER.warning(
-                            "Remove Awarded Badges - Removing badge '%s' from kid '%s'",
+                            "Remove Awarded Badges - Removing badge '%s' from assignee '%s'",
                             badge_name,
-                            kid_name_str,
+                            assignee_name_str,
                         )
                         del badges_earned[badge_id]
 
-                    # Remove the kid from the badge earned_by list
+                    # Remove the assignee from the badge earned_by list
                     earned_by_list = badge_info_elif.get(const.DATA_BADGE_EARNED_BY, [])
-                    if loop_kid_id in earned_by_list:
-                        earned_by_list.remove(loop_kid_id)
+                    if loop_assignee_id in earned_by_list:
+                        earned_by_list.remove(loop_assignee_id)
 
-                # Update multiplier for all affected kids if cumulative badge
+                # Update multiplier for all affected assignees if cumulative badge
                 if badge_type == const.BADGE_TYPE_CUMULATIVE:
-                    for affected_kid_id in kids_affected:
-                        self.update_point_multiplier_for_kid(affected_kid_id)
+                    for affected_assignee_id in assignees_affected:
+                        self.update_point_multiplier_for_assignee(affected_assignee_id)
 
                 # Clear orphan earned_by references
                 if const.DATA_BADGE_EARNED_BY in badge_info_elif:
@@ -3541,107 +3642,115 @@ class GamificationManager(BaseManager):
 
                 if not found:
                     const.LOGGER.warning(
-                        "Remove Awarded Badges - Badge '%s' ('%s') not found in any kid's data",
+                        "Remove Awarded Badges - Badge '%s' ('%s') not found in any assignee's data",
                         badge_id,
                         badge_name,
                     )
 
-        elif kid_id:
-            # Remove all awarded badges for a specific kid
-            kid_info_elif = self.coordinator.kids_data.get(kid_id)
-            if not kid_info_elif:
+        elif assignee_id:
+            # Remove all awarded badges for a specific assignee
+            assignee_info_elif = self.coordinator.assignees_data.get(assignee_id)
+            if not assignee_info_elif:
                 const.LOGGER.error(
-                    "ERROR: Remove Awarded Badges - Kid ID '%s' not found", kid_id
+                    "ERROR: Remove Awarded Badges - Assignee ID '%s' not found",
+                    assignee_id,
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
                     translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
                     translation_placeholders={
-                        "entity_type": const.LABEL_KID,
-                        "name": kid_id,
+                        "entity_type": const.LABEL_ASSIGNEE,
+                        "name": assignee_id,
                     },
                 )
-            kid_name_str = kid_info_elif.get(const.DATA_KID_NAME, "Unknown Kid")
+            assignee_name_str = assignee_info_elif.get(
+                const.DATA_ASSIGNEE_NAME, "Unknown Assignee"
+            )
             had_cumulative = False
             for loop_badge_id, badge_info in self.coordinator.badges_data.items():
                 badge_name = badge_info.get(const.DATA_BADGE_NAME, "")
                 badge_type = badge_info.get(const.DATA_BADGE_TYPE)
                 earned_by_list = badge_info.get(const.DATA_BADGE_EARNED_BY, [])
-                badges_earned = kid_info_elif.setdefault(
-                    const.DATA_KID_BADGES_EARNED, {}
+                badges_earned = assignee_info_elif.setdefault(
+                    const.DATA_ASSIGNEE_BADGES_EARNED, {}
                 )
-                if kid_id in earned_by_list:
+                if assignee_id in earned_by_list:
                     found = True
                     if badge_type == const.BADGE_TYPE_CUMULATIVE:
                         had_cumulative = True
-                    earned_by_list.remove(kid_id)
+                    earned_by_list.remove(assignee_id)
                     if loop_badge_id in badges_earned:
                         const.LOGGER.warning(
-                            "Remove Awarded Badges - Removing badge '%s' from kid '%s'",
+                            "Remove Awarded Badges - Removing badge '%s' from assignee '%s'",
                             badge_name,
-                            kid_name_str,
+                            assignee_name_str,
                         )
                         del badges_earned[loop_badge_id]
 
             # Clear orphan badges_earned
-            if const.DATA_KID_BADGES_EARNED in kid_info_elif:
-                kid_info_elif[const.DATA_KID_BADGES_EARNED].clear()
+            if const.DATA_ASSIGNEE_BADGES_EARNED in assignee_info_elif:
+                assignee_info_elif[const.DATA_ASSIGNEE_BADGES_EARNED].clear()
 
             # Update multiplier if any cumulative badges were removed
             if had_cumulative:
-                self.update_point_multiplier_for_kid(kid_id)
+                self.update_point_multiplier_for_assignee(assignee_id)
 
             if not found:
                 const.LOGGER.warning(
-                    "Remove Awarded Badges - No badge found for kid '%s'",
-                    kid_info_elif.get(const.DATA_KID_NAME, kid_id),
+                    "Remove Awarded Badges - No badge found for assignee '%s'",
+                    assignee_info_elif.get(const.DATA_ASSIGNEE_NAME, assignee_id),
                 )
 
         else:
-            # Remove all awarded badges for all kids
+            # Remove all awarded badges for all assignees
             const.LOGGER.info(
-                "Remove Awarded Badges - Removing all awarded badges for all kids"
+                "Remove Awarded Badges - Removing all awarded badges for all assignees"
             )
-            kids_with_cumulative: set[str] = set()
+            assignees_with_cumulative: set[str] = set()
             for loop_badge_id, badge_info in self.coordinator.badges_data.items():
                 badge_name = badge_info.get(const.DATA_BADGE_NAME, "")
                 badge_type = badge_info.get(const.DATA_BADGE_TYPE)
-                for loop_kid_id, kid_info in self.coordinator.kids_data.items():
-                    kid_name_str = kid_info.get(const.DATA_KID_NAME, "Unknown Kid")
-                    badges_earned = kid_info.setdefault(
-                        const.DATA_KID_BADGES_EARNED, {}
+                for (
+                    loop_assignee_id,
+                    assignee_info,
+                ) in self.coordinator.assignees_data.items():
+                    assignee_name_str = assignee_info.get(
+                        const.DATA_ASSIGNEE_NAME, "Unknown Assignee"
+                    )
+                    badges_earned = assignee_info.setdefault(
+                        const.DATA_ASSIGNEE_BADGES_EARNED, {}
                     )
                     if loop_badge_id in badges_earned:
                         found = True
                         if badge_type == const.BADGE_TYPE_CUMULATIVE:
-                            kids_with_cumulative.add(loop_kid_id)
+                            assignees_with_cumulative.add(loop_assignee_id)
                         const.LOGGER.warning(
-                            "Remove Awarded Badges - Removing badge '%s' from kid '%s'",
+                            "Remove Awarded Badges - Removing badge '%s' from assignee '%s'",
                             badge_name,
-                            kid_name_str,
+                            assignee_name_str,
                         )
                         del badges_earned[loop_badge_id]
 
-                    # Remove the kid from the badge earned_by list
+                    # Remove the assignee from the badge earned_by list
                     earned_by_list = badge_info.get(const.DATA_BADGE_EARNED_BY, [])
-                    if loop_kid_id in earned_by_list:
-                        earned_by_list.remove(loop_kid_id)
+                    if loop_assignee_id in earned_by_list:
+                        earned_by_list.remove(loop_assignee_id)
 
                     # Clear orphan badges_earned
-                    if const.DATA_KID_BADGES_EARNED in kid_info:
-                        kid_info[const.DATA_KID_BADGES_EARNED].clear()
+                    if const.DATA_ASSIGNEE_BADGES_EARNED in assignee_info:
+                        assignee_info[const.DATA_ASSIGNEE_BADGES_EARNED].clear()
 
                 # Clear orphan earned_by references
                 if const.DATA_BADGE_EARNED_BY in badge_info:
                     badge_info[const.DATA_BADGE_EARNED_BY].clear()
 
-            # Update multiplier for all kids who had cumulative badges removed
-            for affected_kid_id in kids_with_cumulative:
-                self.update_point_multiplier_for_kid(affected_kid_id)
+            # Update multiplier for all assignees who had cumulative badges removed
+            for affected_assignee_id in assignees_with_cumulative:
+                self.update_point_multiplier_for_assignee(affected_assignee_id)
 
             if not found:
                 const.LOGGER.warning(
-                    "Remove Awarded Badges - No awarded badges found in any kid's data"
+                    "Remove Awarded Badges - No awarded badges found in any assignee's data"
                 )
 
         const.LOGGER.info("Remove Awarded Badges - Badge removal process completed")
@@ -3652,9 +3761,9 @@ class GamificationManager(BaseManager):
     # =========================================================================
 
     async def _record_badge_earned(
-        self, kid_id: str, badge_id: str, badge_data: BadgeData
+        self, assignee_id: str, badge_id: str, badge_data: BadgeData
     ) -> None:
-        """Record that a kid earned a badge (GamificationManager's domain only).
+        """Record that a assignee earned a badge (GamificationManager's domain only).
 
         Phase 7 Signal-First Logic: This method ONLY updates badge tracking data.
         All award processing (points, multiplier, rewards, bonuses, penalties)
@@ -3663,41 +3772,43 @@ class GamificationManager(BaseManager):
         - RewardManager: reward grants
 
         Args:
-            kid_id: The kid's internal UUID
+            assignee_id: The assignee's internal UUID
             badge_id: The badge's internal UUID
             badge_data: Badge definition
         """
-        kid_info = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
-            const.LOGGER.error("_record_badge_earned: Kid ID '%s' not found", kid_id)
+        assignee_info = self.coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
+            const.LOGGER.error(
+                "_record_badge_earned: Assignee ID '%s' not found", assignee_id
+            )
             return
 
         badge_name = badge_data.get(const.DATA_BADGE_NAME, badge_id)
-        kid_name = kid_info.get(const.DATA_KID_NAME, kid_id)
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
 
         # Update badge's earned_by list
         earned_by_list = badge_data.setdefault(const.DATA_BADGE_EARNED_BY, [])
-        if kid_id not in earned_by_list:
-            earned_by_list.append(kid_id)
+        if assignee_id not in earned_by_list:
+            earned_by_list.append(assignee_id)
 
-        # Update kid's badges_earned dict (Landlord creates structure)
-        self.update_badges_earned_for_kid(kid_id, badge_id)
+        # Update assignee's badges_earned dict (Landlord creates structure)
+        self.update_badges_earned_for_assignee(assignee_id, badge_id)
 
         # Phase 4: Ensure badge periods structure exists before emitting signal
         # This ensures StatisticsManager (Tenant) has structure ready when signal fires
-        self._ensure_kid_badge_structures(kid_id, badge_id)
+        self._ensure_assignee_badge_structures(assignee_id, badge_id)
 
         const.LOGGER.info(
-            "Badge recorded: '%s' earned by kid '%s'",
+            "Badge recorded: '%s' earned by assignee '%s'",
             badge_name,
-            kid_name,
+            assignee_name,
         )
 
         # Persist badge tracking data
         self.coordinator._persist_and_update()
 
-    async def award_badge(self, kid_id: str, badge_id: str) -> None:
-        """Award a badge to a kid (public API, emits full manifest).
+    async def award_badge(self, assignee_id: str, badge_id: str) -> None:
+        """Award a badge to a assignee (public API, emits full manifest).
 
         This is the public method for manually awarding badges (e.g., special occasion).
         It delegates to _record_badge_earned for tracking and emits the Award Manifest
@@ -3705,16 +3816,18 @@ class GamificationManager(BaseManager):
         - EconomyManager: points, multiplier, bonuses, penalties
         - RewardManager: reward grants (free)
 
-        For automatic badge evaluation, use _evaluate_badge_for_kid instead.
+        For automatic badge evaluation, use _evaluate_badge_for_assignee instead.
 
         Args:
-            kid_id: The kid's internal UUID
+            assignee_id: The assignee's internal UUID
             badge_id: The badge's internal UUID
         """
         badge_info: BadgeData | None = self.coordinator.badges_data.get(badge_id)
-        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
-            const.LOGGER.error("award_badge: Kid ID '%s' not found", kid_id)
+        assignee_info: UserData | None = self.coordinator.assignees_data.get(
+            assignee_id
+        )
+        if not assignee_info:
+            const.LOGGER.error("award_badge: Assignee ID '%s' not found", assignee_id)
             return
         if not badge_info:
             const.LOGGER.error(
@@ -3724,7 +3837,7 @@ class GamificationManager(BaseManager):
             return
 
         # Record badge in GamificationManager's domain
-        await self._record_badge_earned(kid_id, badge_id, badge_info)
+        await self._record_badge_earned(assignee_id, badge_id, badge_info)
 
         # Build and emit Award Manifest for domain experts
         award_data = badge_info.get(const.DATA_BADGE_AWARDS, {})
@@ -3739,7 +3852,7 @@ class GamificationManager(BaseManager):
         # Emit the Award Manifest
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             badge_id=badge_id,
             badge_name=badge_info.get(const.DATA_BADGE_NAME, "Unknown"),
             points=award_data.get(
@@ -3751,8 +3864,8 @@ class GamificationManager(BaseManager):
             penalty_ids=to_penalize,
         )
 
-    def sync_badge_progress_for_kid(self, kid_id: str) -> None:
-        """Sync badge progress for a specific kid.
+    def sync_badge_progress_for_assignee(self, assignee_id: str) -> None:
+        """Sync badge progress for a specific assignee.
 
         Initializes badge progress for new badges and updates existing progress
         for configuration changes. Handles all non-cumulative badge types.
@@ -3760,39 +3873,41 @@ class GamificationManager(BaseManager):
         This method does NOT persist - caller is responsible for persistence.
 
         Args:
-            kid_id: The kid's internal UUID
+            assignee_id: The assignee's internal UUID
         """
-        kid_info: UserData | None = self.coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info: UserData | None = self.coordinator.assignees_data.get(
+            assignee_id
+        )
+        if not assignee_info:
             return
 
-        # Phase 4: Clean up badge_progress for badges no longer assigned to this kid
-        if const.DATA_KID_BADGE_PROGRESS in kid_info:
+        # Phase 4: Clean up badge_progress for badges no longer assigned to this assignee
+        if const.DATA_ASSIGNEE_BADGE_PROGRESS in assignee_info:
             badges_to_remove = []
-            for progress_badge_id in kid_info[const.DATA_KID_BADGE_PROGRESS]:
+            for progress_badge_id in assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS]:
                 badge_info: BadgeData | None = self.coordinator.badges_data.get(
                     progress_badge_id
                 )
-                # Remove if badge deleted OR kid not in assigned_to list
-                if not badge_info or kid_id not in badge_info.get(
+                # Remove if badge deleted OR assignee not in assigned_to list
+                if not badge_info or assignee_id not in badge_info.get(
                     const.DATA_BADGE_ASSIGNED_TO, []
                 ):
                     badges_to_remove.append(progress_badge_id)
 
             for badge_id in badges_to_remove:
-                del kid_info[const.DATA_KID_BADGE_PROGRESS][badge_id]
+                del assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS][badge_id]
                 const.LOGGER.debug(
-                    "DEBUG: Removed badge_progress for badge '%s' from kid '%s' "
+                    "DEBUG: Removed badge_progress for badge '%s' from assignee '%s' "
                     "(unassigned or deleted)",
                     badge_id,
-                    kid_info.get(const.DATA_KID_NAME, kid_id),
+                    assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
                 )
 
         for badge_id, badge_info in self.coordinator.badges_data.items():
             # Feature Change v4.2: Badges now require explicit assignment.
-            # Empty assigned_to means badge is not assigned to any kid.
+            # Empty assigned_to means badge is not assigned to any assignee.
             assigned_to_list = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
-            is_assigned_to = kid_id in assigned_to_list
+            is_assigned_to = assignee_id in assigned_to_list
             if not is_assigned_to:
                 continue
 
@@ -3801,8 +3916,8 @@ class GamificationManager(BaseManager):
                 continue
 
             # Initialize progress structure if it doesn't exist
-            if const.DATA_KID_BADGE_PROGRESS not in kid_info:
-                kid_info[const.DATA_KID_BADGE_PROGRESS] = {}
+            if const.DATA_ASSIGNEE_BADGE_PROGRESS not in assignee_info:
+                assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS] = {}
 
             badge_type = badge_info.get(const.DATA_BADGE_TYPE)
 
@@ -3824,15 +3939,17 @@ class GamificationManager(BaseManager):
             # ===============================================================
             # SECTION 1: NEW BADGE SETUP - Create initial progress structure
             # ===============================================================
-            badge_progress_dict = kid_info.get(const.DATA_KID_BADGE_PROGRESS, {})
+            badge_progress_dict = assignee_info.get(
+                const.DATA_ASSIGNEE_BADGE_PROGRESS, {}
+            )
             if badge_id not in badge_progress_dict:
                 # --- Common fields ---
                 progress: dict[str, Any] = {
-                    const.DATA_KID_BADGE_PROGRESS_NAME: badge_info.get(
+                    const.DATA_ASSIGNEE_BADGE_PROGRESS_NAME: badge_info.get(
                         const.DATA_BADGE_NAME
                     ),
-                    const.DATA_KID_BADGE_PROGRESS_TYPE: badge_type,
-                    const.DATA_KID_BADGE_PROGRESS_STATUS: const.BADGE_STATE_IN_PROGRESS,
+                    const.DATA_ASSIGNEE_BADGE_PROGRESS_TYPE: badge_type,
+                    const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS: const.BADGE_STATE_IN_PROGRESS,
                 }
 
                 # --- Target fields ---
@@ -3845,26 +3962,28 @@ class GamificationManager(BaseManager):
                             const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0
                         )
                     )
-                    progress[const.DATA_KID_BADGE_PROGRESS_TARGET_TYPE] = target_type
-                    progress[const.DATA_KID_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE] = (
-                        threshold_value
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE] = (
+                        target_type
                     )
+                    progress[
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
+                    ] = threshold_value
 
                     # Initialize all possible progress fields to their defaults
                     progress.setdefault(
-                        const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
                     )
                     progress.setdefault(
-                        const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
                     )
                     progress.setdefault(
-                        const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0
                     )
                     progress.setdefault(
-                        const.DATA_KID_BADGE_PROGRESS_CHORES_COMPLETED, {}
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED, {}
                     )
                     progress.setdefault(
-                        const.DATA_KID_BADGE_PROGRESS_DAYS_COMPLETED, {}
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED, {}
                     )
 
                 # --- Achievement Linked fields ---
@@ -3891,7 +4010,7 @@ class GamificationManager(BaseManager):
                     selected_chores = tracked_chores_cfg.get(
                         const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                     )
-                    progress[const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES] = list(
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = list(
                         selected_chores
                     )
 
@@ -3913,20 +4032,20 @@ class GamificationManager(BaseManager):
                     end_date_iso = reset_schedule.get(
                         const.DATA_BADGE_RESET_SCHEDULE_END_DATE
                     )
-                    progress[const.DATA_KID_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
+                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
                         recurring_frequency
                     )
 
                     # Set initial schedule if there is a frequency and no end date
                     if recurring_frequency != const.FREQUENCY_NONE:
                         if end_date_iso:
-                            progress[const.DATA_KID_BADGE_PROGRESS_START_DATE] = (
+                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = (
                                 start_date_iso
                             )
-                            progress[const.DATA_KID_BADGE_PROGRESS_END_DATE] = (
+                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = (
                                 end_date_iso
                             )
-                            progress[const.DATA_KID_BADGE_PROGRESS_CYCLE_COUNT] = (
+                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT] = (
                                 const.DEFAULT_ZERO
                             )
                         else:
@@ -3982,20 +4101,20 @@ class GamificationManager(BaseManager):
                                     return_type=const.HELPER_RETURN_ISO_DATE,
                                 )
 
-                            progress[const.DATA_KID_BADGE_PROGRESS_START_DATE] = (
+                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = (
                                 start_date_iso
                             )
-                            progress[const.DATA_KID_BADGE_PROGRESS_END_DATE] = (
+                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = (
                                 new_end_date_iso
                             )
-                            progress[const.DATA_KID_BADGE_PROGRESS_CYCLE_COUNT] = (
+                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT] = (
                                 const.DEFAULT_ZERO
                             )
 
                             # Set penalty applied to False
-                            progress[const.DATA_KID_BADGE_PROGRESS_PENALTY_APPLIED] = (
-                                False
-                            )
+                            progress[
+                                const.DATA_ASSIGNEE_BADGE_PROGRESS_PENALTY_APPLIED
+                            ] = False
 
                 # --- Special Occasion fields ---
                 if has_special_occasion:
@@ -4004,8 +4123,8 @@ class GamificationManager(BaseManager):
                         progress[const.DATA_BADGE_OCCASION_TYPE] = occasion_type
 
                 # Store the progress data
-                kid_info[const.DATA_KID_BADGE_PROGRESS][badge_id] = cast(  # pyright: ignore[reportTypedDictNotRequiredAccess]
-                    "KidBadgeProgress", progress
+                assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS][badge_id] = cast(  # pyright: ignore[reportTypedDictNotRequiredAccess]
+                    "AssigneeBadgeProgress", progress
                 )
 
             # ===============================================================
@@ -4015,15 +4134,16 @@ class GamificationManager(BaseManager):
                 # Remove badge progress if badge no longer available or not assigned
                 if badge_id not in self.coordinator.badges_data or (
                     badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
-                    and kid_id not in badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+                    and assignee_id
+                    not in badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
                 ):
                     if badge_id in badge_progress_dict:
                         del badge_progress_dict[badge_id]
                         const.LOGGER.info(
                             "INFO: Badge Maintenance - Removed badge progress for "
-                            "badge '%s' from kid '%s' (badge deleted or unassigned).",
+                            "badge '%s' from assignee '%s' (badge deleted or unassigned).",
                             badge_id,
-                            kid_info.get(const.DATA_KID_NAME, kid_id),
+                            assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
                         )
                     continue
 
@@ -4033,10 +4153,10 @@ class GamificationManager(BaseManager):
                 )
 
                 # --- Common fields ---
-                progress_sync[const.DATA_KID_BADGE_PROGRESS_NAME] = badge_info.get(
+                progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_NAME] = badge_info.get(
                     const.DATA_BADGE_NAME, "Unknown Badge"
                 )
-                progress_sync[const.DATA_KID_BADGE_PROGRESS_TYPE] = badge_type
+                progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_TYPE] = badge_type
 
                 # --- Target fields ---
                 if has_target:
@@ -4044,12 +4164,12 @@ class GamificationManager(BaseManager):
                         const.DATA_BADGE_TARGET_TYPE,
                         const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
                     )
-                    progress_sync[const.DATA_KID_BADGE_PROGRESS_TARGET_TYPE] = (
+                    progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE] = (
                         target_type
                     )
 
                     progress_sync[
-                        const.DATA_KID_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
                     ] = badge_info.get(const.DATA_BADGE_TARGET, {}).get(
                         const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0
                     )
@@ -4086,8 +4206,8 @@ class GamificationManager(BaseManager):
                     selected_chores = tracked_chores_cfg.get(
                         const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                     )
-                    progress_sync[const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES] = list(
-                        selected_chores
+                    progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = (
+                        list(selected_chores)
                     )
 
                 # --- Assigned To fields ---
@@ -4108,16 +4228,16 @@ class GamificationManager(BaseManager):
                     end_date_iso = reset_schedule.get(
                         const.DATA_BADGE_RESET_SCHEDULE_END_DATE
                     )
-                    progress_sync[const.DATA_KID_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
-                        recurring_frequency
-                    )
+                    progress_sync[
+                        const.DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY
+                    ] = recurring_frequency
                     # Only update start and end dates if they have values
                     if start_date_iso:
-                        progress_sync[const.DATA_KID_BADGE_PROGRESS_START_DATE] = (
+                        progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = (
                             start_date_iso
                         )
                     if end_date_iso:
-                        progress_sync[const.DATA_KID_BADGE_PROGRESS_END_DATE] = (
+                        progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = (
                             end_date_iso
                         )
 
@@ -4164,9 +4284,9 @@ class GamificationManager(BaseManager):
         # Store in coordinator data
         self.coordinator._data[const.DATA_BADGES][final_id] = badge_data
 
-        # Sync badge progress for all kids (creates progress sensors)
-        for kid_id in self.coordinator.kids_data:
-            self.sync_badge_progress_for_kid(kid_id)
+        # Sync badge progress for all assignees (creates progress sensors)
+        for assignee_id in self.coordinator.assignees_data:
+            self.sync_badge_progress_for_assignee(assignee_id)
         # Recalculate badges to trigger initial evaluation
         self.recalculate_all_badges()
 
@@ -4235,9 +4355,9 @@ class GamificationManager(BaseManager):
         # Store updated badge
         self.coordinator._data[const.DATA_BADGES][badge_id] = updated_badge
 
-        # Sync badge progress for all kids after badge update
-        for kid_id in self.coordinator.kids_data:
-            self.sync_badge_progress_for_kid(kid_id)
+        # Sync badge progress for all assignees after badge update
+        for assignee_id in self.coordinator.assignees_data:
+            self.sync_badge_progress_for_assignee(assignee_id)
         self.recalculate_all_badges()
 
         self.coordinator._persist(immediate=immediate_persist)
@@ -4289,13 +4409,13 @@ class GamificationManager(BaseManager):
         # Delete from storage
         del self.coordinator._data[const.DATA_BADGES][badge_id]
 
-        # Remove awarded badges from kids (this manager has the method)
+        # Remove awarded badges from assignees (this manager has the method)
         self.remove_awarded_badges_by_id(badge_id=badge_id)
 
-        # Sync badge progress for all kids after badge deletion
+        # Sync badge progress for all assignees after badge deletion
         # Phase 3A: cumulative progress computed on-read (no storage write needed)
-        for kid_id in self.coordinator.kids_data:
-            self.sync_badge_progress_for_kid(kid_id)
+        for assignee_id in self.coordinator.assignees_data:
+            self.sync_badge_progress_for_assignee(assignee_id)
 
         # Remove badge-related entities from Home Assistant registry
         remove_entities_by_item_id(
@@ -4680,49 +4800,49 @@ class GamificationManager(BaseManager):
     async def data_reset_badges(
         self,
         scope: str,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
         item_id: str | None = None,
     ) -> None:
         """Reset runtime data for badges domain.
 
-        Clears per-kid badge state including badge_data tracking and
+        Clears per-assignee badge state including badge_data tracking and
         badge-related lists while preserving badge definitions.
 
         Args:
-            scope: Reset scope (global, kid, item_type, item)
-            kid_id: Target kid ID for kid scope (optional)
+            scope: Reset scope (global, assignee, item_type, item)
+            assignee_id: Target assignee ID for assignee scope (optional)
             item_id: Target badge ID for item scope (optional)
 
         Emits:
-            SIGNAL_SUFFIX_BADGE_DATA_RESET_COMPLETE with scope, kid_id, item_id
+            SIGNAL_SUFFIX_BADGE_DATA_RESET_COMPLETE with scope, assignee_id, item_id
         """
         const.LOGGER.info(
-            "Data reset: badges domain - scope=%s, kid_id=%s, item_id=%s",
+            "Data reset: badges domain - scope=%s, assignee_id=%s, item_id=%s",
             scope,
-            kid_id,
+            assignee_id,
             item_id,
         )
 
-        kids_data = self.coordinator.users_data
+        assignees_data = self.coordinator.users_data
 
-        # Determine which kids to process
-        if kid_id:
-            kid_ids = [kid_id] if kid_id in kids_data else []
+        # Determine which assignees to process
+        if assignee_id:
+            assignee_ids = [assignee_id] if assignee_id in assignees_data else []
         else:
-            kid_ids = list(kids_data.keys())
+            assignee_ids = list(assignees_data.keys())
 
-        for loop_kid_id in kid_ids:
-            kid_info = kids_data.get(loop_kid_id)
-            if not kid_info:
+        for loop_assignee_id in assignee_ids:
+            assignee_info = assignees_data.get(loop_assignee_id)
+            if not assignee_info:
                 continue
 
-            kid_info_dict = cast("dict[str, Any]", kid_info)
+            assignee_info_dict = cast("dict[str, Any]", assignee_info)
 
             # Reset badge-related fields from _BADGE_KID_RUNTIME_FIELDS
-            for field in db._BADGE_KID_RUNTIME_FIELDS:
-                if field not in kid_info_dict:
+            for field in db._BADGE_ASSIGNEE_RUNTIME_FIELDS:
+                if field not in assignee_info_dict:
                     continue
-                field_data = kid_info_dict[field]
+                field_data = assignee_info_dict[field]
                 if item_id and isinstance(field_data, dict):
                     # Item scope - only clear specific badge
                     field_data.pop(item_id, None)
@@ -4732,53 +4852,53 @@ class GamificationManager(BaseManager):
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self.coordinator._persist_and_update()
 
-        # Recalculate multiplier for affected kids after clearing badge data
+        # Recalculate multiplier for affected assignees after clearing badge data
         # With cumulative badge progress cleared, this will emit signal with 1.0
         # (same pattern as demote_cumulative_badge)
-        for loop_kid_id in kid_ids:
-            self.update_point_multiplier_for_kid(loop_kid_id)
+        for loop_assignee_id in assignee_ids:
+            self.update_point_multiplier_for_assignee(loop_assignee_id)
 
         # Emit completion signal
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_DATA_RESET_COMPLETE,
             scope=scope,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             item_id=item_id,
         )
 
         const.LOGGER.info(
-            "Data reset: badges domain complete - %d kids affected",
-            len(kid_ids),
+            "Data reset: badges domain complete - %d assignees affected",
+            len(assignee_ids),
         )
 
     async def data_reset_achievements(
         self,
         scope: str,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
         item_id: str | None = None,
     ) -> None:
         """Reset runtime data for achievements domain.
 
-        Clears per-kid achievement progress stored in the achievement's
+        Clears per-assignee achievement progress stored in the achievement's
         progress dict while preserving achievement definitions.
 
         Args:
-            scope: Reset scope (global, kid, item_type, item)
-            kid_id: Target kid ID for kid scope (optional)
+            scope: Reset scope (global, assignee, item_type, item)
+            assignee_id: Target assignee ID for assignee scope (optional)
             item_id: Target achievement ID for item scope (optional)
 
         Emits:
-            SIGNAL_SUFFIX_ACHIEVEMENT_DATA_RESET_COMPLETE with scope, kid_id, item_id
+            SIGNAL_SUFFIX_ACHIEVEMENT_DATA_RESET_COMPLETE with scope, assignee_id, item_id
         """
         const.LOGGER.info(
-            "Data reset: achievements domain - scope=%s, kid_id=%s, item_id=%s",
+            "Data reset: achievements domain - scope=%s, assignee_id=%s, item_id=%s",
             scope,
-            kid_id,
+            assignee_id,
             item_id,
         )
 
         achievements_data = self.coordinator._data.get(const.DATA_ACHIEVEMENTS, {})
-        kids_data = self.coordinator.users_data
+        assignees_data = self.coordinator.users_data
 
         # Determine which achievements to process
         if item_id:
@@ -4786,11 +4906,11 @@ class GamificationManager(BaseManager):
         else:
             achievement_ids = list(achievements_data.keys())
 
-        # Validate kid_id if provided
-        if kid_id and kid_id not in kids_data:
+        # Validate assignee_id if provided
+        if assignee_id and assignee_id not in assignees_data:
             const.LOGGER.warning(
-                "Data reset: achievements - kid_id '%s' not found",
-                kid_id,
+                "Data reset: achievements - assignee_id '%s' not found",
+                assignee_id,
             )
             return
 
@@ -4801,10 +4921,10 @@ class GamificationManager(BaseManager):
                 continue
 
             progress = achievement_info.get(const.DATA_ACHIEVEMENT_PROGRESS, {})
-            if kid_id:
-                # Kid scope - only clear this kid's progress
-                if kid_id in progress:
-                    del progress[kid_id]
+            if assignee_id:
+                # Assignee scope - only clear this assignee's progress
+                if assignee_id in progress:
+                    del progress[assignee_id]
                     affected_count += 1
             else:
                 # Global/item_type/item scope - clear all progress
@@ -4818,7 +4938,7 @@ class GamificationManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_ACHIEVEMENT_DATA_RESET_COMPLETE,
             scope=scope,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             item_id=item_id,
         )
 
@@ -4830,26 +4950,26 @@ class GamificationManager(BaseManager):
     async def data_reset_challenges(
         self,
         scope: str,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
         item_id: str | None = None,
     ) -> None:
         """Reset runtime data for challenges domain.
 
         Clears challenge progress while preserving challenge definitions.
-        Progress is stored in challenge[progress][kid_id].
+        Progress is stored in challenge[progress][assignee_id].
 
         Args:
-            scope: Reset scope (global, kid, item_type, item)
-            kid_id: Target kid ID for kid scope (optional)
+            scope: Reset scope (global, assignee, item_type, item)
+            assignee_id: Target assignee ID for assignee scope (optional)
             item_id: Target challenge ID for item scope (optional)
 
         Emits:
-            SIGNAL_SUFFIX_CHALLENGE_DATA_RESET_COMPLETE with scope, kid_id, item_id
+            SIGNAL_SUFFIX_CHALLENGE_DATA_RESET_COMPLETE with scope, assignee_id, item_id
         """
         const.LOGGER.info(
-            "Data reset: challenges domain - scope=%s, kid_id=%s, item_id=%s",
+            "Data reset: challenges domain - scope=%s, assignee_id=%s, item_id=%s",
             scope,
-            kid_id,
+            assignee_id,
             item_id,
         )
 
@@ -4869,10 +4989,10 @@ class GamificationManager(BaseManager):
                 continue
 
             progress = challenge_info.get(const.DATA_CHALLENGE_PROGRESS, {})
-            if kid_id:
-                # Kid scope - only clear this kid's progress
-                if kid_id in progress:
-                    del progress[kid_id]
+            if assignee_id:
+                # Assignee scope - only clear this assignee's progress
+                if assignee_id in progress:
+                    del progress[assignee_id]
                     affected_count += 1
             else:
                 # Global/item_type/item scope - reset all progress
@@ -4886,7 +5006,7 @@ class GamificationManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHALLENGE_DATA_RESET_COMPLETE,
             scope=scope,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             item_id=item_id,
         )
 

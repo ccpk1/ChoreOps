@@ -72,7 +72,7 @@ async def setup_badges(
     - 2 cumulative badges:
       - "Chore Stär Champion" (Zoë): threshold=100 total points earned
       - "Team Player Badge" (Max!, Lila): threshold=500 total points earned
-    - 3 kids: Zoë, Max!, Lila
+    - 3 assignees: Zoë, Max!, Lila
     - 18 chores with various points
     - 2 bonuses: "Extra Effort" (20pts), "Helping Sibling" (15pts)
     """
@@ -88,30 +88,30 @@ async def setup_badges(
 # ============================================================================
 
 
-def get_kid_by_name(coordinator: Any, kid_name: str) -> str:
-    """Get kid internal_id by name.
+def get_assignee_by_name(coordinator: Any, assignee_name: str) -> str:
+    """Get assignee internal_id by name.
 
     Args:
-        coordinator: KidsChoresCoordinator instance
-        kid_name: Display name of the kid (e.g., "Zoë", "Max!")
+        coordinator: ChoreOpsCoordinator instance
+        assignee_name: Display name of the assignee (e.g., "Zoë", "Max!")
 
     Returns:
-        Kid's internal_id (UUID string)
+        Assignee's internal_id (UUID string)
 
     Raises:
-        ValueError: If kid not found
+        ValueError: If assignee not found
     """
-    for kid_id, kid_data in coordinator.kids_data.items():
-        if kid_data.get("name") == kid_name:
-            return kid_id
-    raise ValueError(f"Kid not found: {kid_name}")
+    for assignee_id, assignee_data in coordinator.assignees_data.items():
+        if assignee_data.get("name") == assignee_name:
+            return assignee_id
+    raise ValueError(f"Assignee not found: {assignee_name}")
 
 
 def get_chore_by_name(coordinator: Any, chore_name: str) -> str:
     """Get chore internal_id by name.
 
     Args:
-        coordinator: KidsChoresCoordinator instance
+        coordinator: ChoreOpsCoordinator instance
         chore_name: Display name of the chore
 
     Returns:
@@ -130,7 +130,7 @@ def get_badge_by_name(coordinator: Any, badge_name: str) -> str:
     """Get badge internal_id by name.
 
     Args:
-        coordinator: KidsChoresCoordinator instance
+        coordinator: ChoreOpsCoordinator instance
         badge_name: Display name of the badge
 
     Returns:
@@ -149,7 +149,7 @@ def get_bonus_by_name(coordinator: Any, bonus_name: str) -> str:
     """Get bonus internal_id by name.
 
     Args:
-        coordinator: KidsChoresCoordinator instance
+        coordinator: ChoreOpsCoordinator instance
         bonus_name: Display name of the bonus
 
     Returns:
@@ -164,22 +164,22 @@ def get_bonus_by_name(coordinator: Any, bonus_name: str) -> str:
     raise ValueError(f"Bonus not found: {bonus_name}")
 
 
-def get_dashboard_helper_eid(hass: HomeAssistant, kid_name: str) -> str:
-    """Get dashboard helper entity ID for a kid by name.
+def get_dashboard_helper_eid(hass: HomeAssistant, assignee_name: str) -> str:
+    """Get dashboard helper entity ID for a assignee by name.
 
     Args:
         hass: Home Assistant instance
-        kid_name: Display name of the kid
+        assignee_name: Display name of the assignee
 
     Returns:
-        Entity ID of the kid's dashboard helper sensor
+        Entity ID of the assignee's dashboard helper sensor
 
     Raises:
         ValueError: If dashboard helper not found
     """
-    # Slugify the kid name (lowercase, replace special chars)
+    # Slugify the assignee name (lowercase, replace special chars)
     slug = (
-        kid_name.lower()
+        assignee_name.lower()
         .replace("!", "")
         .replace("ë", "e")
         .replace("å", "a")
@@ -187,12 +187,12 @@ def get_dashboard_helper_eid(hass: HomeAssistant, kid_name: str) -> str:
     )
     for eid in (
         f"sensor.{slug}_choreops_ui_dashboard_helper",
-        f"sensor.{slug}_kidschores_ui_dashboard_helper",
+        f"sensor.{slug}_choreops_ui_dashboard_helper",
     ):
         state = hass.states.get(eid)
         if state:
             return eid
-    raise ValueError(f"Dashboard helper not found for kid: {kid_name}")
+    raise ValueError(f"Dashboard helper not found for assignee: {assignee_name}")
 
 
 def find_chore_in_dashboard(

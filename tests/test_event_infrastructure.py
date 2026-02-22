@@ -59,7 +59,7 @@ class TestGetEventSignal:
             (const.SIGNAL_SUFFIX_POINTS_CHANGED, "points_changed"),
             (const.SIGNAL_SUFFIX_CHORE_CLAIMED, "chore_claimed"),
             (const.SIGNAL_SUFFIX_BADGE_EARNED, "badge_earned"),
-            (const.SIGNAL_SUFFIX_KID_CREATED, "kid_created"),
+            (const.SIGNAL_SUFFIX_ASSIGNEE_CREATED, "assignee_created"),
         ]
 
         for suffix, expected_suffix in signals:
@@ -104,7 +104,7 @@ class TestBaseManager:
         ) as mock_send:
             manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_CHANGED,
-                kid_id="kid1",
+                assignee_id="assignee1",
                 old_balance=50.0,
                 new_balance=60.0,
                 delta=10.0,
@@ -125,7 +125,7 @@ class TestBaseManager:
 
             # Verify payload was passed as third positional arg (dict)
             payload = mock_send.call_args[0][2]
-            assert payload["kid_id"] == "kid1"
+            assert payload["assignee_id"] == "assignee1"
             assert payload["delta"] == 10.0
 
     def test_listen_subscribes_and_registers_cleanup(

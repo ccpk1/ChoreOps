@@ -16,6 +16,19 @@ All remaining implementation work is tracked in:
 
 This file remains as historical translation-contract evidence only.
 
+## Historical reference-only checklist freeze
+
+- All phase tables, completion percentages, and checklist-style entries below are frozen historical snapshots.
+- No unchecked item in this file is actionable execution work.
+- Authoritative execution ownership is exclusively in `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`.
+- Keep translation-contract evidence intact for audit traceability only.
+
+## Transfer acknowledgment
+
+- Transfer locked date: `2026-02-22`
+- PM initials/date: `____ / ____`
+- Builder lead initials/date: `____ / ____`
+
 ## Why this plan exists
 
 A compatibility audit found that translation/runtime contract safety must be handled as a lockstep program gate (not isolated text replacement):

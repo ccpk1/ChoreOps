@@ -2,29 +2,29 @@
 # SCENARIO: Daily Multi Upon Completion Reset (SHARED_ALL Completion)
 # ============================================================================
 #
-# Tests daily_multi chores with upon_completion reset where ALL kids must
+# Tests daily_multi chores with upon_completion reset where ALL assignees must
 # complete before the chore resets (shared_all completion criteria).
 #
-# Kids: Zoë, Max!, Lila, Parent: Môm
+# Assignees: Zoë, Max!, Lila, Approver: Môm
 # ============================================================================
 
 system:
   schema_version: 43
 
-kids:
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
 
   - name: "Lila"
-    ha_user: "kid3"
+    ha_user: "assignee3"
 
-parents:
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids:
+    ha_user: "approver1"
+    assignees:
       - "Zoë"
       - "Max!"
       - "Lila"

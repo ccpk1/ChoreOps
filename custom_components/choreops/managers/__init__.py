@@ -1,4 +1,4 @@
-"""Manager modules for KidsChores integration.
+"""Manager modules for ChoreOps integration.
 
 Managers orchestrate workflows and coordinate between engines.
 They are stateful, event-aware, and handle cross-cutting concerns.

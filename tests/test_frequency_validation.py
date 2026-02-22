@@ -1,7 +1,7 @@
 """Validation and parsing tests for enhanced frequency features (CFE-2026-001).
 
 Tests for:
-- DAILY_MULTI validation (incompatible reset types, kid restrictions)
+- DAILY_MULTI validation (incompatible reset types, assignee restrictions)
 - parse_daily_multi_times() function unit tests
 
 Test Organization:
@@ -60,7 +60,7 @@ async def scenario_shared(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load shared scenario for multi-kid validation tests."""
+    """Load shared scenario for multi-assignee validation tests."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -79,7 +79,7 @@ class TestDailyMultiValidation:
     Validation rules:
     - V-01 to V-03: Compatible reset types (allowed)
     - V-04 to V-05: Incompatible reset types (rejected)
-    - V-06 to V-08: Kid assignment restrictions
+    - V-06 to V-08: Assignee assignment restrictions
     - V-09 to V-12: Time format validation
     """
 
@@ -157,48 +157,52 @@ class TestDailyMultiValidation:
         )
 
     @pytest.mark.asyncio
-    async def test_v06_daily_multi_independent_single_kid_ok(
+    async def test_v06_daily_multi_independent_single_assignee_ok(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """V-06: DAILY_MULTI + INDEPENDENT + 1 kid is valid."""
-        errors = flow_helpers.validate_daily_multi_kids(
+        """V-06: DAILY_MULTI + INDEPENDENT + 1 assignee is valid."""
+        errors = flow_helpers.validate_daily_multi_assignees(
             FREQUENCY_DAILY_MULTI,
             COMPLETION_CRITERIA_INDEPENDENT,
-            ["kid1_id"],  # Single kid
+            ["assignee1_id"],  # Single assignee
         )
         assert errors == {}
 
     @pytest.mark.asyncio
-    async def test_v07_daily_multi_independent_multi_kids_rejected(
+    async def test_v07_daily_multi_independent_multi_assignees_rejected(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """V-07: DAILY_MULTI + INDEPENDENT + multiple kids is rejected."""
-        errors = flow_helpers.validate_daily_multi_kids(
+        """V-07: DAILY_MULTI + INDEPENDENT + multiple assignees is rejected."""
+        errors = flow_helpers.validate_daily_multi_assignees(
             FREQUENCY_DAILY_MULTI,
             COMPLETION_CRITERIA_INDEPENDENT,
-            ["kid1_id", "kid2_id"],  # Multiple kids
+            ["assignee1_id", "assignee2_id"],  # Multiple assignees
         )
-        assert const.CFOP_ERROR_DAILY_MULTI_KIDS in errors
+        assert const.CFOP_ERROR_DAILY_MULTI_ASSIGNEES in errors
         assert (
-            errors[const.CFOP_ERROR_DAILY_MULTI_KIDS]
-            == const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_KIDS
+            errors[const.CFOP_ERROR_DAILY_MULTI_ASSIGNEES]
+            == const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_ASSIGNEES
         )
 
     @pytest.mark.asyncio
-    async def test_v08_daily_multi_shared_multi_kids_ok(
+    async def test_v08_daily_multi_shared_multi_assignees_ok(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """V-08: DAILY_MULTI + SHARED + multiple kids is valid."""
-        errors = flow_helpers.validate_daily_multi_kids(
+        """V-08: DAILY_MULTI + SHARED + multiple assignees is valid."""
+        errors = flow_helpers.validate_daily_multi_assignees(
             FREQUENCY_DAILY_MULTI,
             COMPLETION_CRITERIA_SHARED,
-            ["kid1_id", "kid2_id", "kid3_id"],  # Multiple kids OK for shared
+            [
+                "assignee1_id",
+                "assignee2_id",
+                "assignee3_id",
+            ],  # Multiple assignees OK for shared
         )
         assert errors == {}
 
@@ -385,16 +389,16 @@ class TestValidationEdgeCases:
         assert errors == {}
 
     @pytest.mark.asyncio
-    async def test_non_daily_multi_no_kids_restriction(
+    async def test_non_daily_multi_no_assignees_restriction(
         self,
         hass: HomeAssistant,
     ) -> None:
-        """Non-DAILY_MULTI frequencies have no kid restrictions."""
-        # DAILY + INDEPENDENT + multiple kids should work
-        errors = flow_helpers.validate_daily_multi_kids(
+        """Non-DAILY_MULTI frequencies have no assignee restrictions."""
+        # DAILY + INDEPENDENT + multiple assignees should work
+        errors = flow_helpers.validate_daily_multi_assignees(
             const.FREQUENCY_DAILY,
             COMPLETION_CRITERIA_INDEPENDENT,
-            ["kid1_id", "kid2_id"],
+            ["assignee1_id", "assignee2_id"],
         )
         assert errors == {}
 
@@ -468,8 +472,8 @@ class TestAtDueDateResetRequiresDueDate:
 
     Test Scenarios:
     - Shared chores: Must have due date (no exception)
-    - Independent 1-kid: Must have due date (no exception)
-    - Independent 2+ kids: May skip due date (per-kid dates set in helper/Configure)
+    - Independent 1-assignee: Must have due date (no exception)
+    - Independent 2+ assignees: May skip due date (per-assignee dates set in helper/Configure)
     """
 
     @pytest.mark.asyncio
@@ -479,11 +483,11 @@ class TestAtDueDateResetRequiresDueDate:
         scenario_minimal: SetupResult,
     ) -> None:
         """SHARED + AT_DUE_DATE_ONCE without due date → error."""
-        zoe_id = scenario_minimal.kid_ids["Zoë"]
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_KIDS: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
@@ -491,25 +495,25 @@ class TestAtDueDateResetRequiresDueDate:
             # No due_date provided
         }
 
-        kids_dict = {"Zoë": zoe_id}
+        assignees_dict = {"Zoë": zoe_id}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
-            user_input, kids_dict, {}
+            user_input, assignees_dict, {}
         )
 
         assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE in errors
 
     @pytest.mark.asyncio
-    async def test_independent_single_kid_at_due_date_multi_requires_due_date(
+    async def test_independent_single_assignee_at_due_date_multi_requires_due_date(
         self,
         hass: HomeAssistant,
         scenario_minimal: SetupResult,
     ) -> None:
-        """INDEPENDENT (1 kid) + AT_DUE_DATE_MULTI without due date → error."""
-        zoe_id = scenario_minimal.kid_ids["Zoë"]
+        """INDEPENDENT (1 assignee) + AT_DUE_DATE_MULTI without due date → error."""
+        zoe_id = scenario_minimal.assignee_ids["Zoë"]
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_KIDS: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
@@ -517,70 +521,70 @@ class TestAtDueDateResetRequiresDueDate:
             # No due_date provided
         }
 
-        kids_dict = {"Zoë": zoe_id}
+        assignees_dict = {"Zoë": zoe_id}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
-            user_input, kids_dict, {}
+            user_input, assignees_dict, {}
         )
 
         assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE in errors
 
     @pytest.mark.asyncio
-    async def test_independent_multikid_at_due_date_once_allows_missing_due_date(
+    async def test_independent_multiassignee_at_due_date_once_allows_missing_due_date(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """INDEPENDENT (2+ kids) + AT_DUE_DATE_ONCE without due date → allowed.
+        """INDEPENDENT (2+ assignees) + AT_DUE_DATE_ONCE without due date → allowed.
 
-        Exception: Per-kid due dates will be set in helper step or via Configure.
+        Exception: Per-assignee due dates will be set in helper step or via Configure.
         """
-        kid_ids = scenario_shared.kid_ids
-        zoe_id = kid_ids["Zoë"]
-        max_id = kid_ids["Max!"]
+        assignee_ids = scenario_shared.assignee_ids
+        zoe_id = assignee_ids["Zoë"]
+        max_id = assignee_ids["Max!"]
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_KIDS: ["Zoë", "Max!"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë", "Max!"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
             const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
-            # No due_date provided - should be allowed for Independent multi-kid
+            # No due_date provided - should be allowed for Independent multi-assignee
         }
 
-        kids_dict = {"Zoë": zoe_id, "Max!": max_id}
+        assignees_dict = {"Zoë": zoe_id, "Max!": max_id}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
-            user_input, kids_dict, {}
+            user_input, assignees_dict, {}
         )
 
         # Should NOT have validation error
         assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE not in errors
 
     @pytest.mark.asyncio
-    async def test_independent_multikid_at_due_date_multi_allows_missing_due_date(
+    async def test_independent_multiassignee_at_due_date_multi_allows_missing_due_date(
         self,
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """INDEPENDENT (2+ kids) + AT_DUE_DATE_MULTI without due date → allowed."""
+        """INDEPENDENT (2+ assignees) + AT_DUE_DATE_MULTI without due date → allowed."""
 
-        kid_ids = scenario_shared.kid_ids
-        zoe_id = kid_ids["Zoë"]
-        max_id = kid_ids["Max!"]
+        assignee_ids = scenario_shared.assignee_ids
+        zoe_id = assignee_ids["Zoë"]
+        max_id = assignee_ids["Max!"]
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_KIDS: ["Zoë", "Max!"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë", "Max!"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
             const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
-            # No due_date provided - should be allowed for Independent multi-kid
+            # No due_date provided - should be allowed for Independent multi-assignee
         }
 
-        kids_dict = {"Zoë": zoe_id, "Max!": max_id}
+        assignees_dict = {"Zoë": zoe_id, "Max!": max_id}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
-            user_input, kids_dict, {}
+            user_input, assignees_dict, {}
         )
 
         # Should NOT have validation error

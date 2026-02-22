@@ -1,19 +1,19 @@
-# KidsChores Testing Suite
+# ChoreOps Testing Suite
 
-Welcome to the KidsChores Home Assistant integration testing suite! This framework validates the integration's functionality through user workflow testing, business logic verification, and dashboard template validation.
+Welcome to the ChoreOps Home Assistant integration testing suite! This framework validates the integration's functionality through user workflow testing, business logic verification, and dashboard template validation.
 
 ## 🌟 The Stårblüm Family
 
-All tests follow the magical **Stårblüm Family**, who use the KidsChores integration to manage their household chores and earn rewards. Unless specifically testing edge cases (like stress scenarios), all test data should come from this consistent storyline.
+All tests follow the magical **Stårblüm Family**, who use the ChoreOps integration to manage their household chores and earn rewards. Unless specifically testing edge cases (like stress scenarios), all test data should come from this consistent storyline.
 
 ### Meet the Family
 
-**Parents**:
+**Approvers**:
 
 - **Môm Astrid Stårblüm** (@Astrid) - The family organizer who approves chores and rewards
-- **Dad Leo Stårblüm** (@Leo) - The fun parent who creates bonus opportunities
+- **Dad Leo Stårblüm** (@Leo) - The fun approver who creates bonus opportunities
 
-**Kids**:
+**Assignees**:
 
 - **Zoë Stårblüm** (Age 8, avatar: mdi:star-face) - The responsible oldest, loves earning badges
 - **Max! Stårblüm** (Age 6, avatar: mdi:rocket) - The energetic middle child, always claiming chores
@@ -30,7 +30,7 @@ All names include special characters (å, ï, ë, ø, @, !) to ensure robust Uni
 Tests use pre-built scenarios that tell coherent stories within the Stårblüm family universe:
 
 - **scenario_minimal.yaml**: Zoë's first week with basic chores (simple tests)
-- **scenario_shared.yaml**: Multi-kid shared chore coordination
+- **scenario_shared.yaml**: Multi-assignee shared chore coordination
 - **scenario_full.yaml**: Complete family with all features
 - **scenario_notifications.yaml**: Notification-focused testing
 - **scenario_scheduling.yaml**: Recurring chore patterns

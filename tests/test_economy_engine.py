@@ -38,12 +38,12 @@ class TestInsufficientFundsError:
     def test_error_attributes(self) -> None:
         """Test that error captures all relevant attributes."""
         error = InsufficientFundsError(
-            kid_id="kid-123",
+            assignee_id="assignee-123",
             current_balance=25.0,
             requested_amount=50.0,
         )
 
-        assert error.kid_id == "kid-123"
+        assert error.assignee_id == "assignee-123"
         assert error.current_balance == 25.0
         assert error.requested_amount == 50.0
         assert error.shortfall == 25.0  # 50 - 25
@@ -51,20 +51,20 @@ class TestInsufficientFundsError:
     def test_error_message(self) -> None:
         """Test that error message is descriptive."""
         error = InsufficientFundsError(
-            kid_id="kid-456",
+            assignee_id="assignee-456",
             current_balance=10.0,
             requested_amount=100.0,
         )
 
         message = str(error)
-        assert "kid-456" in message
+        assert "assignee-456" in message
         assert "10.0" in message or "10" in message
         assert "100.0" in message or "100" in message
         assert "90.0" in message or "90" in message  # shortfall
 
     def test_error_is_exception(self) -> None:
         """Test that InsufficientFundsError is a proper exception."""
-        error = InsufficientFundsError("kid", 0.0, 10.0)
+        error = InsufficientFundsError("assignee", 0.0, 10.0)
         assert isinstance(error, Exception)
 
         # Should be raisable

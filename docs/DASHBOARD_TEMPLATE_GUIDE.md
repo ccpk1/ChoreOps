@@ -14,26 +14,26 @@ ChoreOps generates a **single dashboard** with **multiple views (tabs)**:
 
 ```
 kcd-chores (Dashboard)
-├── Kid1 (View/Tab)         ← kid template rendered with kid context
-├── Kid2 (View/Tab)         ← kid template rendered with kid context
+├── Assignee1 (View/Tab)    ← assignee template rendered with assignee context
+├── Assignee2 (View/Tab)    ← assignee template rendered with assignee context
 ├── Admin (Shared, optional)← path: admin
-└── Admin-<kid> (optional)  ← path: admin-<kid-slug>
+└── Admin-<assignee> (optional)  ← path: admin-<assignee-slug>
 ```
 
 **Key Points**:
 
 - One dashboard per installation (user names it, e.g., "Chores")
 - URL path: `kcd-{slugified-name}` (e.g., `kcd-chores`)
-- Each kid gets their own view/tab
+- Each assignee gets their own view/tab
 - Optional admin views based on admin layout mode (`none`, `global`, `per_kid`, `both`)
-- Style (full/minimal/compact) applies to all kid views
+- Style (full/minimal/compact) applies to all assignee views
 
 ### Admin layout modes
 
 - `none`: no admin views
 - `global`: one shared admin view (`path: admin`)
-- `per_kid`: one admin view per selected kid (`path: admin-<kid-slug>`)
-- `both`: includes shared plus per-kid admin views
+- `per_kid`: one admin view per selected assignee (`path: admin-<assignee-slug>`)
+- `both`: includes shared plus per-assignee admin views
 
 ---
 

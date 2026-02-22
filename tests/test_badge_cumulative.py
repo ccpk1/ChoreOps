@@ -12,13 +12,13 @@ Uses scenario_full (Stårblüm family):
 - 2 cumulative badges:
   - "Chore Stär Champion" (Zoë): threshold=100 total points earned, awards 50pts
   - "Team Player Badge" (Max!, Lila): threshold=500 total points earned, awards 30pts
-- 3 kids: Zoë, Max!, Lila
+- 3 assignees: Zoë, Max!, Lila
 - 18 chores with various points
 
 Test organization:
 - Section 1: Badge Loading & Entity Creation
 - Section 2: Cumulative Badge Progress (total points earned tracking)
-- Section 3: Multi-Kid Badge Progress
+- Section 3: Multi-Assignee Badge Progress
 - Section 4: Badge Assignment Filtering
 - Section 5: Dashboard Helper Badge Data
 """
@@ -33,15 +33,15 @@ from tests.helpers import (
     ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID,
     ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID,
     ATTR_DASHBOARD_BADGES,
-    DATA_KID_CUMULATIVE_BADGE_PROGRESS,
-    DATA_KID_POINTS,
+    DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS,
+    DATA_ASSIGNEE_POINTS,
 )
 from tests.helpers.flow_test_helpers import FlowTestHelper
 from tests.test_badge_helpers import (
     find_chore_in_dashboard,
+    get_assignee_by_name,
     get_badge_by_name,
     get_dashboard_helper_eid,
-    get_kid_by_name,
     setup_badges,  # noqa: F401 - pytest fixture
 )
 
@@ -51,7 +51,7 @@ async def _add_cumulative_badge_via_options_flow(
     config_entry_id: str,
     *,
     name: str,
-    kid_id: str,
+    assignee_id: str,
     threshold: int,
 ) -> None:
     """Add one cumulative badge through options flow."""
@@ -86,7 +86,7 @@ async def _add_cumulative_badge_via_options_flow(
             "type": const.BADGE_TYPE_CUMULATIVE,
             "name": name,
             "icon": "mdi:medal",
-            "assigned_to": [kid_id],
+            "assigned_to": [assignee_id],
             "award_points": 0,
             "threshold_value": threshold,
             "maintenance_rules": 0,
@@ -171,13 +171,13 @@ class TestCumulativeBadgeLoading:
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
     ) -> None:
-        """Test that cumulative badge assigned_to lists are resolved to kid IDs."""
+        """Test that cumulative badge assigned_to lists are resolved to assignee IDs."""
         coordinator = setup_badges.coordinator
 
-        # Get kid IDs
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
-        max_id = get_kid_by_name(coordinator, "Max!")
-        lila_id = get_kid_by_name(coordinator, "Lila")
+        # Get assignee IDs
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
+        max_id = get_assignee_by_name(coordinator, "Max!")
+        lila_id = get_assignee_by_name(coordinator, "Lila")
 
         # Chore Stär Champion should be assigned to Zoë only
         champion_id = get_badge_by_name(coordinator, "Chore Stär Champion")
@@ -225,11 +225,11 @@ class TestCumulativeBadgeProgress:
         coordinator = setup_badges.coordinator
 
         # Get IDs
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
 
         # Get initial cumulative badge progress
-        initial_progress = coordinator.kids_data[zoe_id].get(
-            DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+        initial_progress = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
         )
         initial_chores_completed = initial_progress.get("cycle_chores_completed", 0)
 
@@ -246,29 +246,29 @@ class TestCumulativeBadgeProgress:
             ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID
         )
 
-        # Kid claims chore
+        # Assignee claims chore
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": claim_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["kid1"].id),
+            context=Context(user_id=mock_hass_users["assignee1"].id),
         )
         await hass.async_block_till_done()
 
-        # Parent approves chore
+        # Approver approves chore
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": approve_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["parent1"].id),
+            context=Context(user_id=mock_hass_users["approver1"].id),
         )
         await hass.async_block_till_done()
 
         # Verify badge progress increased
-        updated_progress = coordinator.kids_data[zoe_id].get(
-            DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}
+        updated_progress = coordinator.assignees_data[zoe_id].get(
+            DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
         )
         updated_chores_completed = updated_progress.get("cycle_chores_completed", 0)
 
@@ -278,7 +278,7 @@ class TestCumulativeBadgeProgress:
         )
 
         # Verify points were awarded
-        zoe_points = coordinator.kids_data[zoe_id].get(DATA_KID_POINTS, 0)
+        zoe_points = coordinator.assignees_data[zoe_id].get(DATA_ASSIGNEE_POINTS, 0)
         assert zoe_points == 10, f"Expected 10 points, got {zoe_points}"
 
     async def test_demoted_current_badge_multiplier_is_applied(
@@ -293,7 +293,7 @@ class TestCumulativeBadgeProgress:
         demotion-aware current badge (lower badge), not the highest earned badge.
         """
         coordinator = setup_badges.coordinator
-        max_id = get_kid_by_name(coordinator, "Max!")
+        max_id = get_assignee_by_name(coordinator, "Max!")
 
         # Reuse existing badge definitions with test multipliers.
         lower_badge_id = get_badge_by_name(coordinator, "Team Player Badge")
@@ -325,10 +325,12 @@ class TestCumulativeBadgeProgress:
             _mock_progress,
         )
 
-        coordinator.gamification_manager.update_point_multiplier_for_kid(max_id)
+        coordinator.gamification_manager.update_point_multiplier_for_assignee(max_id)
         await hass.async_block_till_done()
 
-        multiplier = coordinator.kids_data[max_id].get(const.DATA_KID_POINTS_MULTIPLIER)
+        multiplier = coordinator.assignees_data[max_id].get(
+            const.DATA_ASSIGNEE_POINTS_MULTIPLIER
+        )
         assert multiplier == 1.25, (
             f"Expected multiplier from demotion-aware current badge, got {multiplier}"
         )
@@ -339,20 +341,20 @@ class TestCumulativeBadgeProgress:
 # ============================================================================
 
 
-class TestMultiKidCumulativeBadgeProgress:
-    """Test cumulative badge progress for badges assigned to multiple kids.
+class TestMultiAssigneeCumulativeBadgeProgress:
+    """Test cumulative badge progress for badges assigned to multiple assignees.
 
     "Team Player Badge" is assigned to both Max! and Lila.
-    Each kid tracks their own independent progress toward the threshold.
+    Each assignee tracks their own independent progress toward the threshold.
     """
 
-    async def test_chore_approval_updates_multi_kid_badge_progress(
+    async def test_chore_approval_updates_multi_assignee_badge_progress(
         self,
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test that approving a chore updates progress for multi-kid cumulative badges.
+        """Test that approving a chore updates progress for multi-assignee cumulative badges.
 
         When Max! completes "Pick up Lëgo!" (15 pts), his total points earned
         increases, progressing toward "Team Player Badge" (threshold=500).
@@ -362,10 +364,10 @@ class TestMultiKidCumulativeBadgeProgress:
         coordinator = setup_badges.coordinator
 
         # Get IDs
-        max_id = get_kid_by_name(coordinator, "Max!")
+        max_id = get_assignee_by_name(coordinator, "Max!")
 
         # Get initial points
-        initial_points = coordinator.kids_data[max_id].get(DATA_KID_POINTS, 0)
+        initial_points = coordinator.assignees_data[max_id].get(DATA_ASSIGNEE_POINTS, 0)
 
         # Get dashboard helper to find chore entity
         dashboard_eid = get_dashboard_helper_eid(hass, "Max!")
@@ -380,28 +382,28 @@ class TestMultiKidCumulativeBadgeProgress:
             ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID
         )
 
-        # Kid claims chore
+        # Assignee claims chore
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": claim_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["kid2"].id),
+            context=Context(user_id=mock_hass_users["assignee2"].id),
         )
         await hass.async_block_till_done()
 
-        # Parent approves chore
+        # Approver approves chore
         await hass.services.async_call(
             "button",
             "press",
             {"entity_id": approve_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["parent1"].id),
+            context=Context(user_id=mock_hass_users["approver1"].id),
         )
         await hass.async_block_till_done()
 
         # Verify points were awarded (Pick up Lëgo! is 15 points)
-        final_points = coordinator.kids_data[max_id].get(DATA_KID_POINTS, 0)
+        final_points = coordinator.assignees_data[max_id].get(DATA_ASSIGNEE_POINTS, 0)
         assert final_points == initial_points + 15, (
             f"Expected {initial_points + 15} points, got {final_points}"
         )
@@ -415,12 +417,12 @@ class TestMultiKidCumulativeBadgeProgress:
 class TestCumulativeBadgeAssignment:
     """Test cumulative badge assigned_to filtering behavior."""
 
-    async def test_cumulative_badge_only_tracks_assigned_kids(
+    async def test_cumulative_badge_only_tracks_assigned_assignees(
         self,
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
     ) -> None:
-        """Test that cumulative badges only track progress for assigned kids.
+        """Test that cumulative badges only track progress for assigned assignees.
 
         Chore Stär Champion is assigned to Zoë only.
         Team Player Badge is assigned to Max! and Lila only.
@@ -428,9 +430,9 @@ class TestCumulativeBadgeAssignment:
         coordinator = setup_badges.coordinator
 
         # Get IDs
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
-        max_id = get_kid_by_name(coordinator, "Max!")
-        lila_id = get_kid_by_name(coordinator, "Lila")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
+        max_id = get_assignee_by_name(coordinator, "Max!")
+        lila_id = get_assignee_by_name(coordinator, "Lila")
 
         # Get badge IDs
         champion_id = get_badge_by_name(coordinator, "Chore Stär Champion")
@@ -462,7 +464,7 @@ class TestDashboardHelperCumulativeBadges:
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
     ) -> None:
-        """Test that dashboard helper includes cumulative badges assigned to each kid.
+        """Test that dashboard helper includes cumulative badges assigned to each assignee.
 
         Zoë should see "Chore Stär Champion" in her badges list.
         Max! should see "Team Player Badge" in his badges list.
@@ -527,9 +529,9 @@ class TestDashboardHelperCumulativeBadges:
 
 
 class TestCumulativeThreeBadgeSensorAttributes:
-    """Simple baseline: create 3 cumulative badges and verify kid badges sensor attrs."""
+    """Simple baseline: create 3 cumulative badges and verify assignee badges sensor attrs."""
 
-    async def test_three_cumulative_badges_update_kid_badges_sensor_attrs(
+    async def test_three_cumulative_badges_update_assignee_badges_sensor_attrs(
         self,
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
@@ -537,13 +539,13 @@ class TestCumulativeThreeBadgeSensorAttributes:
         """Use 3 cumulative badges (2 existing + 1 new) and verify sensor attrs."""
         coordinator = setup_badges.coordinator
         config_entry = setup_badges.config_entry
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
 
         await _add_cumulative_badge_via_options_flow(
             hass,
             config_entry.entry_id,
             name="Bronze Tier",
-            kid_id=zoe_id,
+            assignee_id=zoe_id,
             threshold=5,
         )
         await hass.async_block_till_done()
@@ -558,7 +560,7 @@ class TestCumulativeThreeBadgeSensorAttributes:
 
         badges_sensor_state = hass.states.get(badges_eid)
         assert badges_sensor_state is not None, (
-            f"Expected kid badges sensor state for entity_id={badges_eid}"
+            f"Expected assignee badges sensor state for entity_id={badges_eid}"
         )
 
         attrs = badges_sensor_state.attributes
@@ -597,7 +599,7 @@ class TestCumulativeThreeBadgeSensorAttributes:
 
 
 class TestCumulativeBadgePromotionValues:
-    """Validate cumulative promotion updates concrete kid badges sensor values."""
+    """Validate cumulative promotion updates concrete assignee badges sensor values."""
 
     async def test_cumulative_promotion_sets_current_and_highest_badge_attrs(
         self,
@@ -608,13 +610,13 @@ class TestCumulativeBadgePromotionValues:
         """Promote Zoë to Bronze tier and verify concrete badges sensor attrs."""
         coordinator = setup_badges.coordinator
         config_entry = setup_badges.config_entry
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
 
         await _add_cumulative_badge_via_options_flow(
             hass,
             config_entry.entry_id,
             name="Bronze Tier",
-            kid_id=zoe_id,
+            assignee_id=zoe_id,
             threshold=5,
         )
         await hass.async_block_till_done()
@@ -649,7 +651,7 @@ class TestCumulativeBadgePromotionValues:
             "press",
             {"entity_id": claim_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["kid1"].id),
+            context=Context(user_id=mock_hass_users["assignee1"].id),
         )
         await hass.async_block_till_done()
 
@@ -658,7 +660,7 @@ class TestCumulativeBadgePromotionValues:
             "press",
             {"entity_id": approve_button_eid},
             blocking=True,
-            context=Context(user_id=mock_hass_users["parent1"].id),
+            context=Context(user_id=mock_hass_users["approver1"].id),
         )
         await hass.async_block_till_done()
 
@@ -679,7 +681,7 @@ class TestCumulativeBadgePromotionValues:
 
 
 class TestCumulativeBadgeDemotionValues:
-    """Validate demotion-aware cumulative progress in kid badges sensor attrs."""
+    """Validate demotion-aware cumulative progress in assignee badges sensor attrs."""
 
     async def test_demoted_progress_surfaces_current_vs_highest_badges(
         self,
@@ -689,7 +691,7 @@ class TestCumulativeBadgeDemotionValues:
     ) -> None:
         """Show demoted state where current badge is lower than highest earned."""
         coordinator = setup_badges.coordinator
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
 
         lower_badge_id = get_badge_by_name(coordinator, "Team Player Badge")
         higher_badge_id = get_badge_by_name(coordinator, "Chore Stär Champion")
@@ -705,9 +707,9 @@ class TestCumulativeBadgeDemotionValues:
             coordinator.gamification_manager.get_cumulative_badge_progress
         )
 
-        def _mock_progress(kid_id: str) -> dict[str, Any]:
-            if kid_id != zoe_id:
-                return original_get_progress(kid_id)
+        def _mock_progress(assignee_id: str) -> dict[str, Any]:
+            if assignee_id != zoe_id:
+                return original_get_progress(assignee_id)
 
             return {
                 const.CUMULATIVE_BADGE_PROGRESS_CURRENT_BADGE_ID: lower_badge_id,
@@ -787,7 +789,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         """Promotion should move multiplier from base to higher badge value."""
         coordinator = setup_badges.coordinator
         gamification_manager = coordinator.gamification_manager
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
 
         higher_badge_id = get_badge_by_name(coordinator, "Chore Stär Champion")
         higher_badge_awards = coordinator.badges_data[higher_badge_id].setdefault(
@@ -795,7 +797,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         )
         higher_badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 2.0
 
-        coordinator.kids_data[zoe_id][const.DATA_KID_POINTS_MULTIPLIER] = 1.0
+        coordinator.assignees_data[zoe_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 1.0
 
         def _mock_progress(_: str) -> dict[str, Any]:
             return {
@@ -814,10 +816,13 @@ class TestCumulativeBadgeMultiplierTransitions:
             _mock_progress,
         )
 
-        gamification_manager.update_point_multiplier_for_kid(zoe_id)
+        gamification_manager.update_point_multiplier_for_assignee(zoe_id)
         await hass.async_block_till_done()
 
-        assert coordinator.kids_data[zoe_id][const.DATA_KID_POINTS_MULTIPLIER] == 2.0
+        assert (
+            coordinator.assignees_data[zoe_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER]
+            == 2.0
+        )
 
     async def test_multiplier_changes_correctly_on_demotion(
         self,
@@ -828,7 +833,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         """Demotion should move multiplier from higher to lower badge value."""
         coordinator = setup_badges.coordinator
         gamification_manager = coordinator.gamification_manager
-        max_id = get_kid_by_name(coordinator, "Max!")
+        max_id = get_assignee_by_name(coordinator, "Max!")
 
         lower_badge_id = get_badge_by_name(coordinator, "Team Player Badge")
         higher_badge_id = get_badge_by_name(coordinator, "Chore Stär Champion")
@@ -842,7 +847,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         lower_badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 1.25
         higher_badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 2.0
 
-        coordinator.kids_data[max_id][const.DATA_KID_POINTS_MULTIPLIER] = 2.0
+        coordinator.assignees_data[max_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 2.0
 
         def _mock_progress(_: str) -> dict[str, Any]:
             return {
@@ -861,10 +866,13 @@ class TestCumulativeBadgeMultiplierTransitions:
             _mock_progress,
         )
 
-        gamification_manager.update_point_multiplier_for_kid(max_id)
+        gamification_manager.update_point_multiplier_for_assignee(max_id)
         await hass.async_block_till_done()
 
-        assert coordinator.kids_data[max_id][const.DATA_KID_POINTS_MULTIPLIER] == 1.25
+        assert (
+            coordinator.assignees_data[max_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER]
+            == 1.25
+        )
 
     async def test_demoted_state_reactivates_and_restores_higher_multiplier(
         self,
@@ -875,7 +883,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         """DEMOTED should reactivate immediately when maintenance threshold is met."""
         coordinator = setup_badges.coordinator
         gamification_manager = coordinator.gamification_manager
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
 
         lower_badge_id = get_badge_by_name(coordinator, "Team Player Badge")
         higher_badge_id = get_badge_by_name(coordinator, "Chore Stär Champion")
@@ -900,38 +908,46 @@ class TestCumulativeBadgeMultiplierTransitions:
             const.FREQUENCY_WEEKLY
         )
 
-        kid_data = coordinator.kids_data[zoe_id]
-        kid_data[const.DATA_KID_POINTS_MULTIPLIER] = 1.25
-        initial_points = float(kid_data.get(const.DATA_KID_POINTS, 0.0))
-        kid_badges_earned = kid_data.setdefault(const.DATA_KID_BADGES_EARNED, {})
-        kid_badges_earned[higher_badge_id] = {
-            const.DATA_KID_BADGES_EARNED_NAME: coordinator.badges_data[higher_badge_id][
-                const.DATA_BADGE_NAME
-            ],
-            const.DATA_KID_BADGES_EARNED_LAST_AWARDED: "2026-02-01",
-            const.DATA_KID_BADGES_EARNED_PERIODS: {},
+        assignee_data = coordinator.assignees_data[zoe_id]
+        assignee_data[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 1.25
+        initial_points = float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0))
+        assignee_badges_earned = assignee_data.setdefault(
+            const.DATA_ASSIGNEE_BADGES_EARNED, {}
+        )
+        assignee_badges_earned[higher_badge_id] = {
+            const.DATA_ASSIGNEE_BADGES_EARNED_NAME: coordinator.badges_data[
+                higher_badge_id
+            ][const.DATA_BADGE_NAME],
+            const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: "2026-02-01",
+            const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS: {},
         }
 
-        kid_progress = kid_data.setdefault(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {})
-        kid_progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        assignee_progress = assignee_data.setdefault(
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+        )
+        assignee_progress[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_DEMOTED
         )
-        kid_progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 6.0
-        kid_progress[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE] = (
-            "2099-01-01"
-        )
-        kid_progress[
-            const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+        assignee_progress[
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
+        ] = 6.0
+        assignee_progress[
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+        ] = "2099-01-01"
+        assignee_progress[
+            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = None
 
         original_get_progress = gamification_manager.get_cumulative_badge_progress
 
-        def _mock_progress(kid_id: str) -> dict[str, Any]:
-            if kid_id != zoe_id:
-                return original_get_progress(kid_id)
+        def _mock_progress(assignee_id: str) -> dict[str, Any]:
+            if assignee_id != zoe_id:
+                return original_get_progress(assignee_id)
 
-            status = kid_data.get(const.DATA_KID_CUMULATIVE_BADGE_PROGRESS, {}).get(
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            status = assignee_data.get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+            ).get(
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
                 const.CUMULATIVE_BADGE_STATE_ACTIVE,
             )
             current_badge_id = (
@@ -978,22 +994,24 @@ class TestCumulativeBadgeMultiplierTransitions:
         await hass.async_block_till_done()
 
         assert (
-            kid_data[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS][
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS
+            assignee_data[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS][
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS
             ]
             == const.CUMULATIVE_BADGE_STATE_ACTIVE
         )
         assert (
-            kid_data[const.DATA_KID_CUMULATIVE_BADGE_PROGRESS][
-                const.DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
+            assignee_data[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS][
+                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
             ]
             == 0.0
         )
-        assert kid_data[const.DATA_KID_POINTS_MULTIPLIER] == 2.0
-        assert float(kid_data.get(const.DATA_KID_POINTS, 0.0)) == initial_points
+        assert assignee_data[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] == 2.0
         assert (
-            kid_data[const.DATA_KID_BADGES_EARNED][higher_badge_id][
-                const.DATA_KID_BADGES_EARNED_LAST_AWARDED
+            float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)) == initial_points
+        )
+        assert (
+            assignee_data[const.DATA_ASSIGNEE_BADGES_EARNED][higher_badge_id][
+                const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED
             ]
             == "2026-02-01"
         )

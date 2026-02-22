@@ -1,4 +1,4 @@
-"""Reporting helper functions for KidsChores services.
+"""Reporting helper functions for ChoreOps services.
 
 This module provides read-only data shaping for report and export services.
 Service handlers should delegate heavy composition logic here and remain thin.
@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 
 
 DEFAULT_REPORT_TRANSLATIONS: dict[str, str] = {
-    "title_default": "🌈 Your KidsChores Weekly Highlights",
-    "intro": "Hey {kid_heading}! Here is what you accomplished this period:",
+    "title_default": "🌈 Your ChoreOps Weekly Highlights",
+    "intro": "Hey {assignee_heading}! Here is what you accomplished this period:",
     "section_big_picture": "## ✨ Big picture",
     "section_weekly_summary": "## 📊 Weekly summary",
     "section_highlights": "## 🌟 Highlights",
@@ -47,11 +47,11 @@ DEFAULT_REPORT_TRANSLATIONS: dict[str, str] = {
     "day_net_change": "📊 Net change",
     "day_activities": "✅ Activities",
     "footer": "Great effort this week — keep it up! 🎉",
-    "automation_title": "# KidsChores Activity Report",
+    "automation_title": "# ChoreOps Activity Report",
     "automation_summary": "## Summary",
     "automation_daily": "## Daily",
     "automation_no_activity": "- no_activity",
-    "automation_kids": "kids",
+    "automation_assignees": "assignees",
     "automation_range_start": "range_start",
     "automation_range_end": "range_end",
     "automation_total_earned": "total_earned",
@@ -64,7 +64,7 @@ DEFAULT_REPORT_TRANSLATIONS: dict[str, str] = {
 def normalize_report_style(raw_style: Any) -> str:
     """Normalize report style input into a supported style value.
 
-    Handles common UI/service-call shapes and falls back to kid style.
+    Handles common UI/service-call shapes and falls back to assignee style.
     """
     style_value: str
     if isinstance(raw_style, str):
@@ -78,13 +78,13 @@ def normalize_report_style(raw_style: Any) -> str:
 
     normalized = style_value.strip().lower()
     if normalized in {
-        const.REPORT_STYLE_KID,
+        const.REPORT_STYLE_ASSIGNEE,
         const.REPORT_STYLE_AUTOMATION,
         const.REPORT_STYLE_BOTH,
     }:
         return normalized
 
-    return const.REPORT_STYLE_KID
+    return const.REPORT_STYLE_ASSIGNEE
 
 
 def normalize_report_range_mode(
@@ -171,11 +171,11 @@ def resolve_report_range(
 
 
 def build_activity_report(
-    kids_data: dict[str, Any],
+    assignees_data: dict[str, Any],
     range_result: ReportRangeResult,
-    kid_id: str | None = None,
+    assignee_id: str | None = None,
     report_title: str | None = None,
-    report_style: str = const.REPORT_STYLE_KID,
+    report_style: str = const.REPORT_STYLE_ASSIGNEE,
     stats_manager: Any | None = None,
     report_translations: dict[str, str] | None = None,
     include_supplemental: bool = True,
@@ -190,16 +190,16 @@ def build_activity_report(
         raise ValueError("Invalid report range")
     local_tz = _resolve_timezone(range_result.get("timezone", "UTC"))
 
-    kid_ids = [kid_id] if kid_id else list(kids_data.keys())
-    kid_names = [
+    assignee_ids = [assignee_id] if assignee_id else list(assignees_data.keys())
+    assignee_names = [
         str(
-            kids_data.get(candidate_kid_id, {}).get(
-                const.DATA_KID_NAME, candidate_kid_id
+            assignees_data.get(candidate_assignee_id, {}).get(
+                const.DATA_ASSIGNEE_NAME, candidate_assignee_id
             )
         )
-        for candidate_kid_id in kid_ids
+        for candidate_assignee_id in assignee_ids
     ]
-    single_kid_scope = len(kid_ids) == 1
+    single_assignee_scope = len(assignee_ids) == 1
 
     daily_aggregate: dict[str, dict[str, Any]] = defaultdict(
         lambda: {
@@ -214,10 +214,12 @@ def build_activity_report(
     total_spent = 0.0
     transactions_count = 0
 
-    for candidate_kid_id in kid_ids:
-        kid_info = kids_data.get(candidate_kid_id, {})
-        kid_name = str(kid_info.get(const.DATA_KID_NAME, candidate_kid_id))
-        for entry in _iter_ledger_entries_in_range(kid_info, start_dt, end_dt):
+    for candidate_assignee_id in assignee_ids:
+        assignee_info = assignees_data.get(candidate_assignee_id, {})
+        assignee_name = str(
+            assignee_info.get(const.DATA_ASSIGNEE_NAME, candidate_assignee_id)
+        )
+        for entry in _iter_ledger_entries_in_range(assignee_info, start_dt, end_dt):
             amount = float(entry.get(const.DATA_LEDGER_AMOUNT, 0.0))
             timestamp = str(entry.get(const.DATA_LEDGER_TIMESTAMP, ""))
             parsed_timestamp = _coerce_datetime(timestamp)
@@ -244,8 +246,8 @@ def build_activity_report(
             daily_aggregate[day]["events"].append(
                 _format_ledger_event_line(
                     entry,
-                    kid_name=kid_name,
-                    single_kid_scope=single_kid_scope,
+                    assignee_name=assignee_name,
+                    single_assignee_scope=single_assignee_scope,
                     timezone=local_tz,
                 )
             )
@@ -282,17 +284,17 @@ def build_activity_report(
         )
 
     supplemental_rollup = _build_supplemental_period_rollup(
-        kids_data,
-        kid_ids,
+        assignees_data,
+        assignee_ids,
         start_iso=range_result["start_iso"],
         end_iso=range_result["end_iso"],
         stats_manager=stats_manager,
     )
     start_local_date = start_dt.astimezone(local_tz).date()
     end_local_date = end_dt.astimezone(local_tz).date()
-    badge_highlights = _build_badge_highlights_from_kids_data(
-        kids_data,
-        kid_ids,
+    badge_highlights = _build_badge_highlights_from_assignees_data(
+        assignees_data,
+        assignee_ids,
         start_local_date,
         end_local_date,
     )
@@ -306,7 +308,7 @@ def build_activity_report(
         report_title=report_title,
         range_result=range_result,
         daily_blocks=daily_blocks,
-        kid_names=kid_names,
+        assignee_names=assignee_names,
         report_style=report_style,
         report_translations=report_translations,
         supplemental=supplemental_rollup,
@@ -324,8 +326,8 @@ def build_activity_report(
     return {
         "range": range_result,
         "scope": {
-            "kid_filter_applied": kid_id is not None,
-            "kid_ids": kid_ids,
+            "assignee_filter_applied": assignee_id is not None,
+            "assignee_ids": assignee_ids,
         },
         "summary": {
             "total_earned": round(total_earned, const.DATA_FLOAT_PRECISION),
@@ -411,12 +413,12 @@ def convert_markdown_to_html(markdown_text: str) -> str:
 
 
 def _iter_ledger_entries_in_range(
-    kid_info: dict[str, Any],
+    assignee_info: dict[str, Any],
     start_dt: datetime,
     end_dt: datetime,
 ) -> list[dict[str, Any]]:
-    """Return ledger entries for a kid in the requested datetime range."""
-    ledger = kid_info.get(const.DATA_KID_LEDGER, [])
+    """Return ledger entries for an assignee in the requested datetime range."""
+    ledger = assignee_info.get(const.DATA_ASSIGNEE_LEDGER, [])
     if not isinstance(ledger, list):
         return []
 
@@ -438,8 +440,8 @@ def _iter_ledger_entries_in_range(
 
 
 def _build_supplemental_period_rollup(
-    kids_data: dict[str, Any],
-    kid_ids: list[str],
+    assignees_data: dict[str, Any],
+    assignee_ids: list[str],
     start_iso: str,
     end_iso: str,
     stats_manager: Any | None,
@@ -487,13 +489,13 @@ def _build_supplemental_period_rollup(
     total_badge_awards = 0
     earned_badge_names: set[str] = set()
     all_badges_by_id: dict[str, dict[str, Any]] = {}
-    kid_breakdown: list[dict[str, Any]] = []
+    assignee_breakdown: list[dict[str, Any]] = []
 
-    for kid_id in kid_ids:
-        kid_info = kids_data.get(kid_id, {})
+    for assignee_id in assignee_ids:
+        assignee_info = assignees_data.get(assignee_id, {})
         manager_rollup = cast(
             "dict[str, Any]",
-            stats_manager.get_report_rollup(kid_id, start_iso, end_iso),
+            stats_manager.get_report_rollup(assignee_id, start_iso, end_iso),
         )
         points_rollup = cast("dict[str, Any]", manager_rollup.get("points", {}))
         chores_rollup = cast("dict[str, Any]", manager_rollup.get("chores", {}))
@@ -561,22 +563,24 @@ def _build_supplemental_period_rollup(
         ).items():
             if badge_id not in all_badges_by_id:
                 all_badges_by_id[badge_id] = dict(badge_info)
-                all_badges_by_id[badge_id]["kid_ids"] = [kid_id]
+                all_badges_by_id[badge_id]["assignee_ids"] = [assignee_id]
                 continue
 
             existing_badge = all_badges_by_id[badge_id]
             existing_badge["all_time_award_count"] = int(
                 existing_badge.get("all_time_award_count", 0)
             ) + int(badge_info.get("all_time_award_count", 0))
-            kid_ids = cast("list[str]", existing_badge.get("kid_ids", []))
-            if kid_id not in kid_ids:
-                kid_ids.append(kid_id)
-                existing_badge["kid_ids"] = kid_ids
+            assignee_ids = cast("list[str]", existing_badge.get("assignee_ids", []))
+            if assignee_id not in assignee_ids:
+                assignee_ids.append(assignee_id)
+                existing_badge["assignee_ids"] = assignee_ids
 
-        kid_breakdown.append(
+        assignee_breakdown.append(
             {
-                "kid_id": kid_id,
-                "kid_name": str(kid_info.get(const.DATA_KID_NAME, kid_id)),
+                "assignee_id": assignee_id,
+                "assignee_name": str(
+                    assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+                ),
                 "streaks": streaks,
                 "badges": badges,
             }
@@ -652,7 +656,7 @@ def _build_supplemental_period_rollup(
             "earned_badge_names": sorted(earned_badge_names),
             "by_badge": all_badges_by_id,
         },
-        "kids": kid_breakdown,
+        "assignees": assignee_breakdown,
     }
 
 
@@ -679,7 +683,7 @@ def _render_report_markdown(
     report_title: str | None,
     range_result: ReportRangeResult,
     daily_blocks: list[ReportDailyBlock],
-    kid_names: list[str],
+    assignee_names: list[str],
     report_style: str,
     report_translations: dict[str, str] | None,
     summary: dict[str, float | int],
@@ -692,17 +696,17 @@ def _render_report_markdown(
         return _render_automation_markdown(
             range_result,
             daily_blocks,
-            kid_names,
+            assignee_names,
             summary,
             translations,
         )
 
     if report_style == const.REPORT_STYLE_BOTH:
-        kid_section = _render_kid_markdown(
+        assignee_section = _render_assignee_markdown(
             report_title=report_title,
             range_result=range_result,
             daily_blocks=daily_blocks,
-            kid_names=kid_names,
+            assignee_names=assignee_names,
             translations=translations,
             summary=summary,
             supplemental=supplemental,
@@ -710,39 +714,39 @@ def _render_report_markdown(
         automation_section = _render_automation_markdown(
             range_result,
             daily_blocks,
-            kid_names,
+            assignee_names,
             summary,
             translations,
         )
-        return f"{kid_section}\n\n---\n\n{automation_section}".strip()
+        return f"{assignee_section}\n\n---\n\n{automation_section}".strip()
 
-    return _render_kid_markdown(
+    return _render_assignee_markdown(
         report_title=report_title,
         range_result=range_result,
         daily_blocks=daily_blocks,
-        kid_names=kid_names,
+        assignee_names=assignee_names,
         translations=translations,
         summary=summary,
         supplemental=supplemental,
     )
 
 
-def _render_kid_markdown(
+def _render_assignee_markdown(
     report_title: str | None,
     range_result: ReportRangeResult,
     daily_blocks: list[ReportDailyBlock],
-    kid_names: list[str],
+    assignee_names: list[str],
     translations: dict[str, str],
     summary: dict[str, float | int],
     supplemental: dict[str, Any],
 ) -> str:
-    """Render kid-friendly markdown report."""
+    """Render assignee-friendly markdown report."""
     title = report_title or translations["title_default"]
-    kid_heading = "Family"
-    if len(kid_names) == 1:
-        kid_heading = kid_names[0]
-    elif kid_names:
-        kid_heading = ", ".join(kid_names)
+    assignee_heading = "Family"
+    if len(assignee_names) == 1:
+        assignee_heading = assignee_names[0]
+    elif assignee_names:
+        assignee_heading = ", ".join(assignee_names)
 
     total_earned = float(summary.get("total_earned", 0.0))
     total_spent = float(summary.get("total_spent", 0.0))
@@ -816,7 +820,7 @@ def _render_kid_markdown(
 
     lines = [
         f"# {title}",
-        translations["intro"].format(kid_heading=kid_heading),
+        translations["intro"].format(assignee_heading=assignee_heading),
         translations["section_weekly_summary"],
         f"- {translations['range_label']}: "
         f"{translations['range_short'].format(start_date=start_short, end_date=end_short)}",
@@ -855,18 +859,20 @@ def _render_kid_markdown(
 def _render_automation_markdown(
     range_result: ReportRangeResult,
     daily_blocks: list[ReportDailyBlock],
-    kid_names: list[str],
+    assignee_names: list[str],
     summary: dict[str, float | int],
     translations: dict[str, str],
 ) -> str:
     """Render compact automation-oriented markdown summary."""
-    kids_label = "all_kids" if not kid_names else ", ".join(kid_names)
+    assignees_label = (
+        "all_assignees" if not assignee_names else ", ".join(assignee_names)
+    )
 
     lines = [
         translations["automation_title"],
         "",
         translations["automation_summary"],
-        f"- {translations['automation_kids']}: {kids_label}",
+        f"- {translations['automation_assignees']}: {assignees_label}",
         f"- {translations['automation_range_start']}: {range_result['start_iso']}",
         f"- {translations['automation_range_end']}: {range_result['end_iso']}",
         f"- {translations['automation_total_earned']}: {round(float(summary.get('total_earned', 0.0)), const.DATA_FLOAT_PRECISION)}",
@@ -930,11 +936,11 @@ def _render_daily_block(
 
 def _format_ledger_event_line(
     entry: dict[str, Any],
-    kid_name: str,
-    single_kid_scope: bool,
+    assignee_name: str,
+    single_assignee_scope: bool,
     timezone: ZoneInfo,
 ) -> str:
-    """Format one ledger entry into a kid-friendly markdown bullet line."""
+    """Format one ledger entry into an assignee-friendly markdown bullet line."""
     amount = float(entry.get(const.DATA_LEDGER_AMOUNT, 0.0))
     source = str(entry.get(const.DATA_LEDGER_SOURCE, const.POINTS_SOURCE_OTHER))
     item_name = str(entry.get(const.DATA_LEDGER_ITEM_NAME, "Activity")).strip()
@@ -965,7 +971,7 @@ def _format_ledger_event_line(
     if parsed_time is not None:
         time_label = parsed_time.astimezone(timezone).strftime("%H:%M")
 
-    name_prefix = "" if single_kid_scope else f"{kid_name}: "
+    name_prefix = "" if single_assignee_scope else f"{assignee_name}: "
     if time_label:
         return f"{icon} {name_prefix}{time_label} — {source_label}: {item_name} ({signed_amount} pts)"
     return f"{icon} {name_prefix}{source_label}: {item_name} ({signed_amount} pts)"
@@ -987,28 +993,30 @@ def _to_local_short_date(value: str, timezone: ZoneInfo) -> str:
     return parsed.astimezone(timezone).strftime("%Y-%m-%d")
 
 
-def _build_badge_highlights_from_kids_data(
-    kids_data: dict[str, Any],
-    kid_ids: list[str],
+def _build_badge_highlights_from_assignees_data(
+    assignees_data: dict[str, Any],
+    assignee_ids: list[str],
     start_local_date: date,
     end_local_date: date,
 ) -> list[str]:
-    """Build badge highlight lines from kid badge records using local date buckets."""
-    single_kid_scope = len(kid_ids) == 1
+    """Build badge highlight lines from assignee badge records using local date buckets."""
+    single_assignee_scope = len(assignee_ids) == 1
     lines: list[str] = []
-    for kid_id in kid_ids:
-        kid_info = cast("dict[str, Any]", kids_data.get(kid_id, {}))
-        kid_name = str(kid_info.get(const.DATA_KID_NAME, kid_id))
+    for assignee_id in assignee_ids:
+        assignee_info = cast("dict[str, Any]", assignees_data.get(assignee_id, {}))
+        assignee_name = str(assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id))
         badges_earned = cast(
             "dict[str, dict[str, Any]]",
-            kid_info.get(const.DATA_KID_BADGES_EARNED, {}),
+            assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
         )
 
         for badge_info in badges_earned.values():
-            badge_name = str(badge_info.get(const.DATA_KID_BADGES_EARNED_NAME, "Badge"))
+            badge_name = str(
+                badge_info.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME, "Badge")
+            )
             last_awarded = cast(
                 "str | None",
-                badge_info.get(const.DATA_KID_BADGES_EARNED_LAST_AWARDED),
+                badge_info.get(const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED),
             )
             if not last_awarded:
                 continue
@@ -1024,10 +1032,12 @@ def _build_badge_highlights_from_kids_data(
             if awarded_date < start_local_date or awarded_date > end_local_date:
                 continue
 
-            if single_kid_scope:
+            if single_assignee_scope:
                 lines.append(f"{badge_name} ({awarded_date.isoformat()})")
             else:
-                lines.append(f"{kid_name}: {badge_name} ({awarded_date.isoformat()})")
+                lines.append(
+                    f"{assignee_name}: {badge_name} ({awarded_date.isoformat()})"
+                )
 
     lines.sort()
     return lines

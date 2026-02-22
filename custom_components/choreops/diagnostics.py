@@ -1,8 +1,8 @@
-"""Diagnostics support for KidsChores integration.
+"""Diagnostics support for ChoreOps integration.
 
 Provides comprehensive data export for troubleshooting and backup/restore.
 The diagnostics JSON returns raw storage data - byte-for-byte identical to
-the kidschores_data file for direct paste during data recovery.
+the choreops_data file for direct paste during data recovery.
 """
 
 from typing import Any
@@ -11,16 +11,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
 from . import const
-from .coordinator import KidsChoresConfigEntry
+from .coordinator import ChoreOpsConfigEntry
 
 
 async def async_get_config_entry_diagnostics(
-    hass: HomeAssistant, entry: KidsChoresConfigEntry
+    hass: HomeAssistant, entry: ChoreOpsConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry.
 
     Returns the raw storage data directly - byte-for-byte identical to the
-    kidschores_data file. This can be pasted directly during data recovery
+    choreops_data file. This can be pasted directly during data recovery
     with no transformation needed.
 
     Benefits:
@@ -44,30 +44,30 @@ async def async_get_config_entry_diagnostics(
 
 
 async def async_get_device_diagnostics(
-    hass: HomeAssistant, entry: KidsChoresConfigEntry, device: DeviceEntry
+    hass: HomeAssistant, entry: ChoreOpsConfigEntry, device: DeviceEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a device entry.
 
-    Provides kid-specific view of data for troubleshooting individual kids.
+    Provides assignee-specific view of data for troubleshooting individual assignees.
     """
     coordinator = entry.runtime_data
 
-    # Extract kid_id from device identifiers
-    kid_id = None
+    # Extract assignee_id from device identifiers
+    assignee_id = None
     for identifier in device.identifiers:
         if identifier[0] == const.DOMAIN:
-            kid_id = identifier[1]
+            assignee_id = identifier[1]
             break
 
-    if not kid_id:
-        return {"error": "Could not determine kid_id from device identifiers"}
+    if not assignee_id:
+        return {"error": "Could not determine assignee_id from device identifiers"}
 
-    kid_data = coordinator.kids_data.get(kid_id)
-    if not kid_data:
-        return {"error": f"Kid data not found for kid_id: {kid_id}"}
+    assignee_data = coordinator.assignees_data.get(assignee_id)
+    if not assignee_data:
+        return {"error": f"Assignee data not found for assignee_id: {assignee_id}"}
 
-    # Return kid-specific data snapshot
+    # Return assignee-specific data snapshot
     return {
-        "kid_id": kid_id,
-        "kid_data": kid_data,
+        "assignee_id": assignee_id,
+        "assignee_data": assignee_data,
     }

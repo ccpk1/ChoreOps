@@ -26,19 +26,19 @@ from tests.helpers import (
     APPROVAL_RESET_AT_DUE_DATE_ONCE,
     CHORE_STATE_OVERDUE,
     CHORE_STATE_PENDING,
+    DATA_ASSIGNEE_CHORE_DATA,
+    DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED,
+    DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED,
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS,
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY,
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY,
+    DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY,
+    DATA_ASSIGNEE_CHORE_PERIODS,
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_KIDS,
+    DATA_CHORE_ASSIGNED_ASSIGNEES,
     DATA_CHORE_OVERDUE_HANDLING_TYPE,
     DATA_CHORE_STATE,
-    DATA_KID_CHORE_DATA,
-    DATA_KID_CHORE_DATA_LAST_MISSED,
-    DATA_KID_CHORE_DATA_PERIOD_MISSED,
-    DATA_KID_CHORE_DATA_PERIODS,
-    DATA_KID_CHORE_DATA_PERIODS_DAILY,
-    DATA_KID_CHORE_DATA_PERIODS_MONTHLY,
-    DATA_KID_CHORE_DATA_PERIODS_WEEKLY,
-    DATA_KID_CHORE_DATA_PERIODS_YEARLY,
-    DATA_KID_CHORE_PERIODS,
     DOMAIN,
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED,
     SERVICE_SKIP_CHORE_DUE_DATE,
@@ -73,15 +73,17 @@ async def setup_missed_tracking_scenario(
 # ============================================================================
 
 
-def get_kid_by_name(result: SetupResult, kid_name: str) -> dict[str, Any] | None:
-    """Get kid dict by name from SetupResult.
+def get_assignee_by_name(
+    result: SetupResult, assignee_name: str
+) -> dict[str, Any] | None:
+    """Get assignee dict by name from SetupResult.
 
-    Returns a dict with internal_id key matching the kid.
+    Returns a dict with internal_id key matching the assignee.
     """
-    kid_id = result.kid_ids.get(kid_name)
-    if not kid_id:
+    assignee_id = result.assignee_ids.get(assignee_name)
+    if not assignee_id:
         return None
-    return {"internal_id": kid_id, "name": kid_name}
+    return {"internal_id": assignee_id, "name": assignee_name}
 
 
 def get_chore_by_name(result: SetupResult, chore_name: str) -> dict[str, Any] | None:
@@ -95,19 +97,19 @@ def get_chore_by_name(result: SetupResult, chore_name: str) -> dict[str, Any] | 
     return {"internal_id": chore_id, "name": chore_name}
 
 
-def get_kid_chore_last_missed(
-    coordinator: Any, kid_id: str, chore_id: str
+def get_assignee_chore_last_missed(
+    coordinator: Any, assignee_id: str, chore_id: str
 ) -> str | None:
-    """Get last_missed timestamp for a kid's chore."""
-    kid_info = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_info.get(DATA_KID_CHORE_DATA, {})
-    kid_chore_data = chore_data.get(chore_id, {})
-    return kid_chore_data.get(DATA_KID_CHORE_DATA_LAST_MISSED)
+    """Get last_missed timestamp for a assignee's chore."""
+    assignee_info = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    assignee_chore_data = chore_data.get(chore_id, {})
+    return assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED)
 
 
 def get_missed_count_from_period(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     chore_id: str,
     period_type: str,
     period_key: str,
@@ -116,45 +118,45 @@ def get_missed_count_from_period(
 
     Args:
         coordinator: The coordinator instance
-        kid_id: Kid's internal ID
+        assignee_id: Assignee's internal ID
         chore_id: Chore's internal ID
-        period_type: Period type constant (DATA_KID_CHORE_DATA_PERIODS_DAILY, etc.)
+        period_type: Period type constant (DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, etc.)
         period_key: Period key (e.g., "2026-02-09" for daily)
 
     Returns:
         Missed count from the specified bucket, or 0 if not found
     """
-    kid_info = coordinator.kids_data.get(kid_id, {})
-    chore_data = kid_info.get(DATA_KID_CHORE_DATA, {})
-    kid_chore_data = chore_data.get(chore_id, {})
-    periods = kid_chore_data.get(DATA_KID_CHORE_DATA_PERIODS, {})
+    assignee_info = coordinator.assignees_data.get(assignee_id, {})
+    chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    assignee_chore_data = chore_data.get(chore_id, {})
+    periods = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
     period_buckets = periods.get(period_type, {})
     bucket = period_buckets.get(period_key, {})
-    return bucket.get(DATA_KID_CHORE_DATA_PERIOD_MISSED, 0)
+    return bucket.get(DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0)
 
 
-def get_kid_level_missed_count(
+def get_assignee_level_missed_count(
     coordinator: Any,
-    kid_id: str,
+    assignee_id: str,
     period_type: str,
     period_key: str,
 ) -> int:
-    """Get missed count from kid-level chore_periods bucket (aggregated across all chores).
+    """Get missed count from assignee-level chore_periods bucket (aggregated across all chores).
 
     Args:
         coordinator: The coordinator instance
-        kid_id: Kid's internal ID
-        period_type: Period type constant (DATA_KID_CHORE_DATA_PERIODS_DAILY, etc.)
+        assignee_id: Assignee's internal ID
+        period_type: Period type constant (DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, etc.)
         period_key: Period key (e.g., "2026-02-09" for daily)
 
     Returns:
-        Missed count from kid-level bucket, or 0 if not found
+        Missed count from assignee-level bucket, or 0 if not found
     """
-    kid_info = coordinator.kids_data.get(kid_id, {})
-    kid_chore_periods = kid_info.get(DATA_KID_CHORE_PERIODS, {})
-    period_buckets = kid_chore_periods.get(period_type, {})
+    assignee_info = coordinator.assignees_data.get(assignee_id, {})
+    assignee_chore_periods = assignee_info.get(DATA_ASSIGNEE_CHORE_PERIODS, {})
+    period_buckets = assignee_chore_periods.get(period_type, {})
     bucket = period_buckets.get(period_key, {})
-    return bucket.get(DATA_KID_CHORE_DATA_PERIOD_MISSED, 0)
+    return bucket.get(DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0)
 
 
 # ============================================================================
@@ -176,7 +178,7 @@ class TestRecordChoreMissedHelper:
         chore_manager = coordinator.chore_manager
 
         # Get Zoë's ID and first chore ID
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -186,13 +188,13 @@ class TestRecordChoreMissedHelper:
         chore_id = feed_cats_chore["internal_id"]
 
         # Verify last_missed is initially None
-        assert get_kid_chore_last_missed(coordinator, zoe_id, chore_id) is None
+        assert get_assignee_chore_last_missed(coordinator, zoe_id, chore_id) is None
 
         # Record a miss
         chore_manager._record_chore_missed(zoe_id, chore_id)
 
         # Verify last_missed timestamp was set
-        last_missed = get_kid_chore_last_missed(coordinator, zoe_id, chore_id)
+        last_missed = get_assignee_chore_last_missed(coordinator, zoe_id, chore_id)
         assert last_missed is not None
         assert isinstance(last_missed, str)
 
@@ -215,7 +217,7 @@ class TestRecordChoreMissedHelper:
         chore_manager = coordinator.chore_manager
 
         # Get Zoë's ID and chore ID
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -234,13 +236,13 @@ class TestRecordChoreMissedHelper:
             mock_dispatcher.assert_called_once()
             call_args = mock_dispatcher.call_args
             # BaseManager.emit() adds coordinator entry_id to signal name
-            # Signal name format: kidschores_{entry_id}_{SIGNAL_SUFFIX}
+            # Signal name format: choreops_{entry_id}_{SIGNAL_SUFFIX}
             signal_name = call_args[0][1]
             assert signal_name.endswith(SIGNAL_SUFFIX_CHORE_MISSED)
             payload = call_args[0][2]  # Third arg is the payload dict
-            assert payload["kid_id"] == zoe_id
+            assert payload["assignee_id"] == zoe_id
             assert payload["chore_id"] == chore_id
-            assert payload["kid_name"] == "Zoë"
+            assert payload["assignee_name"] == "Zoë"
             assert payload["missed_streak_tally"] == 1  # First miss
 
 
@@ -257,7 +259,7 @@ class TestAutomatedMissRecording:
         hass: HomeAssistant,
         setup_missed_tracking_scenario: SetupResult,
     ) -> None:
-        """Test SHARED chore reset with CLEAR_AND_MARK_MISSED marks all assigned kids as missed."""
+        """Test SHARED chore reset with CLEAR_AND_MARK_MISSED marks all assigned assignees as missed."""
         result = setup_missed_tracking_scenario
         coordinator = result.coordinator
 
@@ -277,49 +279,58 @@ class TestAutomatedMissRecording:
             APPROVAL_RESET_AT_DUE_DATE_ONCE
         )
 
-        # Get all assigned kids
-        assigned_kids = coordinator.chores_data[chore_id][DATA_CHORE_ASSIGNED_KIDS]
-        assert len(assigned_kids) == 3  # Zoë, Max, Lila
+        # Get all assigned assignees
+        assigned_assignees = coordinator.chores_data[chore_id][
+            DATA_CHORE_ASSIGNED_ASSIGNEES
+        ]
+        assert len(assigned_assignees) == 3  # Zoë, Max, Lila
 
-        # Set past due date for all kids (required for shared chores to trigger overdue)
+        # Set past due date for all assignees (required for shared chores to trigger overdue)
         past_date = (dt_now_local() - timedelta(days=1)).isoformat()
-        # For shared chores, set BOTH due_date and per_kid_due_dates
+        # For shared chores, set BOTH due_date and per_assignee_due_dates
         coordinator.chores_data[chore_id][const.DATA_CHORE_DUE_DATE] = past_date
-        coordinator.chores_data[chore_id][const.DATA_CHORE_PER_KID_DUE_DATES] = (
-            dict.fromkeys(assigned_kids, past_date)
+        coordinator.chores_data[chore_id][const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = (
+            dict.fromkeys(assigned_assignees, past_date)
         )
         # Pre-set chore state to OVERDUE so Phase A (approval reset) finds it
         # and calls _record_chore_missed. The two-phase lifecycle is:
         # Phase B marks overdue -> Phase A resets and records miss.
         # We simulate the chore already being in overdue state.
         coordinator.chores_data[chore_id][DATA_CHORE_STATE] = CHORE_STATE_OVERDUE
-        for kid_id in assigned_kids:
-            kid_chore = coordinator.kids_data[kid_id].get("chore_data", {})
-            if chore_id in kid_chore:
-                kid_chore[chore_id]["state"] = CHORE_STATE_OVERDUE
+        for assignee_id in assigned_assignees:
+            assignee_chore = coordinator.assignees_data[assignee_id].get(
+                "chore_data", {}
+            )
+            if chore_id in assignee_chore:
+                assignee_chore[chore_id]["state"] = CHORE_STATE_OVERDUE
         coordinator._persist()
 
         # Verify no misses recorded yet
-        for kid_id in assigned_kids:
-            assert get_kid_chore_last_missed(coordinator, kid_id, chore_id) is None
+        for assignee_id in assigned_assignees:
+            assert (
+                get_assignee_chore_last_missed(coordinator, assignee_id, chore_id)
+                is None
+            )
 
         # Trigger periodic update - Phase A finds overdue chore and records miss
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
         await hass.async_block_till_done()
         today_key = coordinator.stats.get_period_keys()["daily"]
 
-        # Verify all kids have last_missed timestamp
-        for kid_id in assigned_kids:
-            last_missed = get_kid_chore_last_missed(coordinator, kid_id, chore_id)
+        # Verify all assignees have last_missed timestamp
+        for assignee_id in assigned_assignees:
+            last_missed = get_assignee_chore_last_missed(
+                coordinator, assignee_id, chore_id
+            )
             assert last_missed is not None
             assert isinstance(last_missed, str)
 
             # Verify missed_streak_tally written to daily bucket (Phase 5)
             missed_count = get_missed_count_from_period(
                 coordinator,
-                kid_id,
+                assignee_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             assert missed_count == 1  # First miss recorded
@@ -334,7 +345,7 @@ class TestAutomatedMissRecording:
         hass: HomeAssistant,
         setup_missed_tracking_scenario: SetupResult,
     ) -> None:
-        """Test INDEPENDENT chore reset with CLEAR_AND_MARK_MISSED marks assigned kid as missed."""
+        """Test INDEPENDENT chore reset with CLEAR_AND_MARK_MISSED marks assigned assignee as missed."""
         result = setup_missed_tracking_scenario
         coordinator = result.coordinator
 
@@ -344,7 +355,7 @@ class TestAutomatedMissRecording:
         chore_id = feed_cats["internal_id"]
 
         # Get Zoë's ID
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -359,23 +370,28 @@ class TestAutomatedMissRecording:
 
         # Set past due date for Zoë (required to trigger overdue)
         past_date = (dt_now_local() - timedelta(days=1)).isoformat()
-        # For independent chores, set due_date and per_kid_due_dates
+        # For independent chores, set due_date and per_assignee_due_dates
         coordinator.chores_data[chore_id][const.DATA_CHORE_DUE_DATE] = past_date
-        if const.DATA_CHORE_PER_KID_DUE_DATES not in coordinator.chores_data[chore_id]:
-            coordinator.chores_data[chore_id][const.DATA_CHORE_PER_KID_DUE_DATES] = {}
-        coordinator.chores_data[chore_id][const.DATA_CHORE_PER_KID_DUE_DATES][
+        if (
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES
+            not in coordinator.chores_data[chore_id]
+        ):
+            coordinator.chores_data[chore_id][
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES
+            ] = {}
+        coordinator.chores_data[chore_id][const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES][
             zoe_id
         ] = past_date
-        # Pre-set chore and kid-level state to OVERDUE so Phase A (approval reset)
+        # Pre-set chore and assignee-level state to OVERDUE so Phase A (approval reset)
         # finds it and calls _record_chore_missed.
         coordinator.chores_data[chore_id][DATA_CHORE_STATE] = CHORE_STATE_OVERDUE
-        kid_chore = coordinator.kids_data[zoe_id].get("chore_data", {})
-        if chore_id in kid_chore:
-            kid_chore[chore_id]["state"] = CHORE_STATE_OVERDUE
+        assignee_chore = coordinator.assignees_data[zoe_id].get("chore_data", {})
+        if chore_id in assignee_chore:
+            assignee_chore[chore_id]["state"] = CHORE_STATE_OVERDUE
         coordinator._persist()
 
         # Verify no miss recorded yet
-        assert get_kid_chore_last_missed(coordinator, zoe_id, chore_id) is None
+        assert get_assignee_chore_last_missed(coordinator, zoe_id, chore_id) is None
 
         # Trigger periodic update - Phase A finds overdue chore and records miss
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
@@ -383,7 +399,7 @@ class TestAutomatedMissRecording:
         today_key = coordinator.stats.get_period_keys()["daily"]
 
         # Verify last_missed timestamp was set
-        last_missed = get_kid_chore_last_missed(coordinator, zoe_id, chore_id)
+        last_missed = get_assignee_chore_last_missed(coordinator, zoe_id, chore_id)
         assert last_missed is not None
         assert isinstance(last_missed, str)
 
@@ -392,7 +408,7 @@ class TestAutomatedMissRecording:
             coordinator,
             zoe_id,
             chore_id,
-            DATA_KID_CHORE_DATA_PERIODS_DAILY,
+            DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
             today_key,
         )
         assert missed_count == 1  # First miss recorded
@@ -416,7 +432,7 @@ class TestSkipChoreWithMissMarking:
         coordinator = result.coordinator
 
         # Get Zoë and her chore
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -425,7 +441,7 @@ class TestSkipChoreWithMissMarking:
         chore_id = feed_cats["internal_id"]
 
         # Verify no miss recorded yet
-        assert get_kid_chore_last_missed(coordinator, zoe_id, chore_id) is None
+        assert get_assignee_chore_last_missed(coordinator, zoe_id, chore_id) is None
 
         # Call skip_chore_due_date with mark_as_missed=True
         await hass.services.async_call(
@@ -440,7 +456,7 @@ class TestSkipChoreWithMissMarking:
         )
 
         # Verify miss was recorded
-        last_missed = get_kid_chore_last_missed(coordinator, zoe_id, chore_id)
+        last_missed = get_assignee_chore_last_missed(coordinator, zoe_id, chore_id)
         assert last_missed is not None
         assert isinstance(last_missed, str)
 
@@ -451,17 +467,17 @@ class TestSkipChoreWithMissMarking:
             coordinator,
             zoe_id,
             chore_id,
-            DATA_KID_CHORE_DATA_PERIODS_DAILY,
+            DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
             today_key,
         )
         assert missed_count == 1  # First miss recorded
 
-    async def test_skip_shared_chore_with_mark_as_missed_all_kids(
+    async def test_skip_shared_chore_with_mark_as_missed_all_assignees(
         self,
         hass: HomeAssistant,
         setup_missed_tracking_scenario: SetupResult,
     ) -> None:
-        """Test skip_chore_due_date with mark_as_missed=True for SHARED chore marks all kids."""
+        """Test skip_chore_due_date with mark_as_missed=True for SHARED chore marks all assignees."""
         result = setup_missed_tracking_scenario
         coordinator = result.coordinator
 
@@ -470,23 +486,28 @@ class TestSkipChoreWithMissMarking:
         assert dinner_prep is not None
         chore_id = dinner_prep["internal_id"]
 
-        # Get assigned kids
-        assigned_kids = coordinator.chores_data[chore_id][DATA_CHORE_ASSIGNED_KIDS]
-        assert len(assigned_kids) == 3
+        # Get assigned assignees
+        assigned_assignees = coordinator.chores_data[chore_id][
+            DATA_CHORE_ASSIGNED_ASSIGNEES
+        ]
+        assert len(assigned_assignees) == 3
 
         # Set a due_date so skip_due_date validation passes (shared chores require due_date)
         past_date = (dt_now_local() - timedelta(days=1)).isoformat()
         coordinator.chores_data[chore_id][const.DATA_CHORE_DUE_DATE] = past_date
-        coordinator.chores_data[chore_id][const.DATA_CHORE_PER_KID_DUE_DATES] = (
-            dict.fromkeys(assigned_kids, past_date)
+        coordinator.chores_data[chore_id][const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = (
+            dict.fromkeys(assigned_assignees, past_date)
         )
         coordinator._persist()
 
         # Verify no misses recorded yet
-        for kid_id in assigned_kids:
-            assert get_kid_chore_last_missed(coordinator, kid_id, chore_id) is None
+        for assignee_id in assigned_assignees:
+            assert (
+                get_assignee_chore_last_missed(coordinator, assignee_id, chore_id)
+                is None
+            )
 
-        # Call skip_chore_due_date without kid_id (SHARED chore behavior)
+        # Call skip_chore_due_date without assignee_id (SHARED chore behavior)
         await hass.services.async_call(
             DOMAIN,
             SERVICE_SKIP_CHORE_DUE_DATE,
@@ -497,20 +518,22 @@ class TestSkipChoreWithMissMarking:
             blocking=True,
         )
 
-        # Verify all kids have miss recorded
+        # Verify all assignees have miss recorded
         await hass.async_block_till_done()  # Allow signal processing
         today_key = coordinator.stats.get_period_keys()["daily"]
-        for kid_id in assigned_kids:
-            last_missed = get_kid_chore_last_missed(coordinator, kid_id, chore_id)
+        for assignee_id in assigned_assignees:
+            last_missed = get_assignee_chore_last_missed(
+                coordinator, assignee_id, chore_id
+            )
             assert last_missed is not None
             assert isinstance(last_missed, str)
 
             # Verify missed_streak_tally written to daily bucket (Phase 5)
             missed_count = get_missed_count_from_period(
                 coordinator,
-                kid_id,
+                assignee_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             assert missed_count == 1  # First miss recorded
@@ -525,7 +548,7 @@ class TestSkipChoreWithMissMarking:
         coordinator = result.coordinator
 
         # Get Zoë and her chore
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -534,7 +557,7 @@ class TestSkipChoreWithMissMarking:
         chore_id = feed_cats["internal_id"]
 
         # Verify no miss recorded yet
-        assert get_kid_chore_last_missed(coordinator, zoe_id, chore_id) is None
+        assert get_assignee_chore_last_missed(coordinator, zoe_id, chore_id) is None
 
         # Call skip_chore_due_date with mark_as_missed=False (default)
         await hass.services.async_call(
@@ -549,7 +572,7 @@ class TestSkipChoreWithMissMarking:
         )
 
         # Verify NO miss was recorded
-        assert get_kid_chore_last_missed(coordinator, zoe_id, chore_id) is None
+        assert get_assignee_chore_last_missed(coordinator, zoe_id, chore_id) is None
 
 
 # ============================================================================
@@ -571,7 +594,7 @@ class TestMissedPeriodBuckets:
         stats_engine = coordinator.stats
 
         # Get Zoë and chore
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -588,7 +611,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 0
@@ -604,7 +627,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 1
@@ -621,7 +644,7 @@ class TestMissedPeriodBuckets:
         stats_engine = coordinator.stats
 
         # Get Zoë and chore
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -642,7 +665,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 period_keys["daily"],
             )
             == 1
@@ -652,7 +675,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_WEEKLY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY,
                 period_keys["weekly"],
             )
             == 1
@@ -662,7 +685,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_MONTHLY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY,
                 period_keys["monthly"],
             )
             == 1
@@ -672,24 +695,24 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_KID_CHORE_DATA_PERIODS_YEARLY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY,
                 period_keys["yearly"],
             )
             == 1
         )
 
-    async def test_missed_count_written_to_kid_level_bucket(
+    async def test_missed_count_written_to_assignee_level_bucket(
         self,
         hass: HomeAssistant,
         setup_missed_tracking_scenario: SetupResult,
     ) -> None:
-        """Test that missed count is also written to kid-level chore_periods bucket."""
+        """Test that missed count is also written to assignee-level chore_periods bucket."""
         result = setup_missed_tracking_scenario
         coordinator = result.coordinator
         stats_engine = coordinator.stats
 
         # Get Zoë and chore
-        zoe = get_kid_by_name(result, "Zoë")
+        zoe = get_assignee_by_name(result, "Zoë")
         assert zoe is not None
         zoe_id = zoe["internal_id"]
 
@@ -700,12 +723,12 @@ class TestMissedPeriodBuckets:
         # Get today's period key
         today_key = stats_engine.get_period_keys()["daily"]
 
-        # Verify kid-level missed count is 0 initially
+        # Verify assignee-level missed count is 0 initially
         assert (
-            get_kid_level_missed_count(
+            get_assignee_level_missed_count(
                 coordinator,
                 zoe_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 0
@@ -715,12 +738,12 @@ class TestMissedPeriodBuckets:
         coordinator.chore_manager._record_chore_missed(zoe_id, chore_id)
         await hass.async_block_till_done()
 
-        # Verify kid-level missed count is now 1
+        # Verify assignee-level missed count is now 1
         assert (
-            get_kid_level_missed_count(
+            get_assignee_level_missed_count(
                 coordinator,
                 zoe_id,
-                DATA_KID_CHORE_DATA_PERIODS_DAILY,
+                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 1
@@ -745,7 +768,7 @@ class TestMissedPeriodBuckets:
 #         coordinator = result.coordinator
 #
 #         # Get Zoë and chore
-#         zoe = get_kid_by_name(result, "Zoë")
+#         zoe = get_assignee_by_name(result, "Zoë")
 #         assert zoe is not None
 #         zoe_id = zoe["internal_id"]
 #
@@ -754,7 +777,7 @@ class TestMissedPeriodBuckets:
 #         chore_id = feed_cats["internal_id"]
 #
 #         # Mock the notification method
-#         with patch.object(coordinator, "_notify_kid", new=AsyncMock()) as mock_notify:
+#         with patch.object(coordinator, "_notify_assignee", new=AsyncMock()) as mock_notify:
 #             # Record a miss
 #             coordinator.chore_manager._record_chore_missed(zoe_id, chore_id)
 #             await hass.async_block_till_done()
@@ -762,5 +785,5 @@ class TestMissedPeriodBuckets:
 #             # Verify notification was sent to Zoë
 #             mock_notify.assert_called_once()
 #             call_args = mock_notify.call_args
-#             assert call_args[0][0] == zoe_id  # Kid ID
+#             assert call_args[0][0] == zoe_id  # Assignee ID
 # Note: Exact notification keys depend on const.py translation keys

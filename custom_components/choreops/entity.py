@@ -1,15 +1,15 @@
-"""Base entity classes for KidsChores integration."""
+"""Base entity classes for ChoreOps integration."""
 
 from __future__ import annotations
 
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import const
-from .coordinator import KidsChoresDataCoordinator
+from .coordinator import ChoreOpsDataCoordinator
 
 
-class KidsChoresCoordinatorEntity(CoordinatorEntity[KidsChoresDataCoordinator]):
-    """Base entity class for KidsChores sensors with typed coordinator access.
+class ChoreOpsCoordinatorEntity(CoordinatorEntity[ChoreOpsDataCoordinator]):
+    """Base entity class for ChoreOps sensors with typed coordinator access.
 
     This base class provides:
     - Typed coordinator property pattern eliminating duplication across 30+ entity classes
@@ -21,21 +21,21 @@ class KidsChoresCoordinatorEntity(CoordinatorEntity[KidsChoresDataCoordinator]):
     _unavailable_logged: bool = False
 
     @property
-    def coordinator(self) -> KidsChoresDataCoordinator:
+    def coordinator(self) -> ChoreOpsDataCoordinator:
         """Return typed coordinator.
 
         Uses object.__getattribute__ to access the private _coordinator attribute
-        set by the parent CoordinatorEntity class, providing strong typing for
+        set by the base CoordinatorEntity class, providing strong typing for
         autocomplete and type checking throughout sensor implementations.
         """
         return object.__getattribute__(self, "_coordinator")
 
     @coordinator.setter
-    def coordinator(self, value: KidsChoresDataCoordinator) -> None:
+    def coordinator(self, value: ChoreOpsDataCoordinator) -> None:
         """Set coordinator with proper typing.
 
         Args:
-            value: The KidsChoresDataCoordinator instance to set.
+            value: The ChoreOpsDataCoordinator instance to set.
         """
         object.__setattr__(self, "_coordinator", value)
 

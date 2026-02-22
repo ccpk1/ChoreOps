@@ -18,8 +18,8 @@ from custom_components.choreops import const
 
 # Note: We import from const.py for attribute keys (not tests.helpers)
 from tests.test_badge_helpers import (
+    get_assignee_by_name,
     get_badge_by_name,
-    get_kid_by_name,
     setup_badges,  # noqa: F401 - pytest fixture
 )
 
@@ -31,7 +31,7 @@ from tests.test_badge_helpers import (
 class TestBadgePeriodStructureCreation:
     """Test that badge period structures follow Landlord-Tenant pattern."""
 
-    async def test_ensure_kid_badge_structures_creates_empty_periods(
+    async def test_ensure_assignee_badge_structures_creates_empty_periods(
         self,
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
@@ -40,7 +40,7 @@ class TestBadgePeriodStructureCreation:
 
         Landlord (GamificationManager) responsibility:
         - Create badge entry with empty periods: {}
-        - Call _ensure_kid_badge_structures before persist
+        - Call _ensure_assignee_badge_structures before persist
         - Emit BADGE_EARNED signal AFTER persist
 
         This test verifies Step 1 of the contract.
@@ -48,32 +48,32 @@ class TestBadgePeriodStructureCreation:
         coordinator = setup_badges.coordinator
 
         # Get Zoë (has cumulative badges in scenario_full)
-        zoe_id = get_kid_by_name(coordinator, "Zoë")
-        zoe_data = coordinator.kids_data[zoe_id]
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
+        zoe_data = coordinator.assignees_data[zoe_id]
 
         # Get Chore Stär Champion badge ID
         champion_id = get_badge_by_name(coordinator, "Chore Stär Champion")
 
         # Manually create badge entry WITHOUT periods (simulate pre-fix bug)
-        badges_earned = zoe_data.setdefault(const.DATA_KID_BADGES_EARNED, {})
+        badges_earned = zoe_data.setdefault(const.DATA_ASSIGNEE_BADGES_EARNED, {})
         badges_earned[champion_id] = {
-            const.DATA_KID_BADGES_EARNED_NAME: "Chore Stär Champion",
-            const.DATA_KID_BADGES_EARNED_LAST_AWARDED: "2026-02-11",
+            const.DATA_ASSIGNEE_BADGES_EARNED_NAME: "Chore Stär Champion",
+            const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: "2026-02-11",
             # Intentionally missing periods key to test structure creation
         }
 
         # Call Landlord's structure creation method
-        coordinator.gamification_manager._ensure_kid_badge_structures(
+        coordinator.gamification_manager._ensure_assignee_badge_structures(
             zoe_id, champion_id
         )
 
         # Verify Landlord created ONLY empty dict (Tenant populates later)
         champion_entry = badges_earned[champion_id]
-        assert const.DATA_KID_BADGES_EARNED_PERIODS in champion_entry, (
+        assert const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS in champion_entry, (
             "Landlord should create periods key"
         )
 
-        periods = champion_entry[const.DATA_KID_BADGES_EARNED_PERIODS]
+        periods = champion_entry[const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS]
         assert isinstance(periods, dict), "periods should be dict type"
         assert periods == {}, (
             "Landlord should create ONLY empty dict, Tenant populates via signal"

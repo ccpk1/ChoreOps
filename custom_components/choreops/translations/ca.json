@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Benvinguts a KidsChores",
-        "description": "Aquest assistent us guiarà a través de la configuració de KidsChores.\n\n[📖 Guia d'inici ràpid]({documentation_url})"
+        "title": "Benvinguts a ChoreOps",
+        "description": "Aquest assistent us guiarà a través de la configuració de ChoreOps.\n\n[📖 Guia d'inici ràpid]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opcions de recuperació de dades",
-        "description": "Dades de KidsChores existents trobades a:\n{storage_path}\n\nS'han trobat {backup_count} fitxers de còpia de seguretat.\n\nQuè vols fer?\n\n[📖 Més informació sobre Còpia de seguretat i restauració]({documentation_url})",
+        "description": "Dades de ChoreOps existents trobades a:\n{storage_path}\n\nS'han trobat {backup_count} fitxers de còpia de seguretat.\n\nQuè vols fer?\n\n[📖 Més informació sobre Còpia de seguretat i restauració]({documentation_url})",
         "data": {
           "backup_selection": "Selecciona l'opció"
         }
       },
       "paste_json_input": {
         "title": "Importa dades JSON",
-        "description": "Enganxa el contingut JSON complet des de:\n\n• Un fitxer de dades KidsChores (kidschores_data)\n• Una descàrrega de diagnòstics\n\nEl sistema detectarà automàticament el format i el descomprimirà segons sigui necessari. S'admeten tant les dades d'emmagatzematge sense processar com els formats d'exportació de diagnòstics.",
+        "description": "Enganxa el contingut JSON complet des de:\n\n• Un fitxer de dades ChoreOps (choreops_data)\n• Una descàrrega de diagnòstics\n\nEl sistema detectarà automàticament el format i el descomprimirà segons sigui necessari. S'admeten tant les dades d'emmagatzematge sense processar com els formats d'exportació de diagnòstics.",
         "data": {
           "json_data": "Dades JSON"
         },
         "data_description": {
-          "json_data": "Enganxa aquí tot el contingut JSON. Accepta dades del fitxer kidschores_data o de l'exportació de diagnòstics (desembolica automàticament l'estructura addicional)."
+          "json_data": "Enganxa aquí tot el contingut JSON. Accepta dades del fitxer choreops_data o de l'exportació de diagnòstics (desembolica automàticament l'estructura addicional)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Valors de punts separats per barres verticals per a botons d'ajust manual (per exemple, +1.0|-1.0|+10.0|-10.0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Nombre de nens",
         "description": "Quants nens vols gestionar?",
         "data": {
-          "kid_count": "Nombre de nens"
+          "assignee_count": "Nombre de nens"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Defineix el nen",
         "description": "Introduïu el nom de cada nen/a.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "Idioma utilitzat per al tauler de control i les notificacions de les tasques."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Nombre de pares",
         "description": "Quants pares vols definir inicialment?",
         "data": {
-          "parent_count": "Nombre de pares"
+          "approver_count": "Nombre de pares"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Defineix el pare",
         "description": "Introduïu les dades de cada progenitor.",
         "data": {
           "name": "Nom del pare/mare",
           "ha_user_id": "Usuari de l'Assistent de la Llar",
-          "associated_kids": "Nens associats",
+          "associated_assignees": "Nens associats",
           "mobile_notify_service": "Notificacions",
           "dashboard_language": "Llengua"
         },
         "data_description": {
           "name": "Nom únic per a aquest pare, utilitzat a tot el sistema.",
           "ha_user_id": "Opcional: Enllaça aquest pare o mare a un usuari de Home Assistant per a notificacions i accés al tauler de control.",
-          "associated_kids": "Selecciona quins nens aquest pare supervisa per a notificacions i accions d'aprovació.",
+          "associated_assignees": "Selecciona quins nens aquest pare supervisa per a notificacions i accions d'aprovació.",
           "mobile_notify_service": "Seleccioneu un servei de notificacions per activar les notificacions per a aquest pare o deixeu-ho en blanc per desactivar-les.",
           "dashboard_language": "Idioma utilitzat per al tauler de control i les notificacions de les tasques."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Descripció (opcional)",
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punts atorgats",
-              "assigned_kids": "👥 Nens assignats",
+              "assigned_assignees": "👥 Nens assignats",
               "completion_criteria": "👥 Criteris de finalització"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Instruccions o detalls opcionals sobre com completar aquesta tasca.",
               "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
               "default_points": "Punts guanyats en completar-se.",
-              "assigned_kids": "Nens que poden veure i reclamar aquesta tasca.",
+              "assigned_assignees": "Nens que poden veure i reclamar aquesta tasca.",
               "completion_criteria": "Controla com es completa la tasca quan s'assignen diversos nens: seguiment individual, finalització compartida o rotació per torns."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "📋 Icona (mdi:xxx)",
           "chore_labels": "📋 Etiquetes (opcional)",
           "default_points": "💰 Punts atorgats",
-          "assigned_kids": "👥 Nens assignats",
+          "assigned_assignees": "👥 Nens assignats",
           "completion_criteria": "👥 Criteris de finalització",
           "approval_reset_type": "➡️ Finalitzacions permeses i temps de restabliment de l'aprovació",
           "approval_reset_pending_claim_action": "➡️ Gestió de reclamacions pendents en el moment de l'aprovació. Restabliment",
@@ -212,7 +212,7 @@
           "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari.",
           "default_points": "Punts guanyats en completar-se.",
-          "assigned_kids": "Nens que poden veure i reclamar aquesta tasca.",
+          "assigned_assignees": "Nens que poden veure i reclamar aquesta tasca.",
           "completion_criteria": "Controla com es completa la tasca quan s'assignen diversos nens: seguiment individual, finalització compartida o rotació per torns.",
           "approval_reset_type": "Controla quan s'activa el límit del cicle d'aprovació de la tasca (mitjanit, data de venciment, en finalitzar-se o activació manual).",
           "approval_reset_pending_claim_action": "Això és el que passa amb les reclamacions que encara estan pendents d'aprovació quan es produeix el restabliment de l'aprovació.",
@@ -359,7 +359,7 @@
           "description": "Descripció (opcional)",
           "achievement_labels": "Etiquetes d'assoliment",
           "icon": "Icona (mdi:xxx)",
-          "assigned_kids": "Nens assignats",
+          "assigned_assignees": "Nens assignats",
           "type": "Tipus d'assoliment",
           "selected_chore_id": "Selecciona la tasca associada",
           "criteria": "Criteris (opcional)",
@@ -383,7 +383,7 @@
           "description": "Descripció (opcional)",
           "challenge_labels": "Etiquetes de repte",
           "icon": "Icona (mdi:xxx)",
-          "assigned_kids": "Nens assignats",
+          "assigned_assignees": "Nens assignats",
           "type": "Tipus de repte",
           "selected_chore_id": "Selecciona la tasca associada al repte (opcional)",
           "criteria": "Criteris (opcional)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Ja existeix una insígnia amb aquest nom",
       "duplicate_challenge": "Ja existeix un repte amb aquest nom",
       "duplicate_chore": "Ja existeix una tasca amb aquest nom",
-      "duplicate_kid": "Ja existeix un nen amb aquest nom",
-      "duplicate_parent": "Ja existeix un pare o mare amb aquest nom",
+      "duplicate_assignee": "Ja existeix un nen amb aquest nom",
+      "duplicate_approver": "Ja existeix un pare o mare amb aquest nom",
       "duplicate_penalty": "Ja existeix una penalització amb aquest nom",
       "duplicate_reward": "Ja existeix una recompensa amb aquest nom",
       "duplicate_bonus": "Ja existeix un bonus amb aquest nom",
-      "shadow_kid_name_conflict": "No es pot activar l'assignació de tasques: ja existeix un nen amb el vostre nom. Primer canvieu el nom del nen existent.",
+      "shadow_assignee_name_conflict": "No es pot activar l'assignació de tasques: ja existeix un nen amb el vostre nom. Primer canvieu el nom del nen existent.",
       "due_date_in_past": "La data de venciment ha de ser en el futur.",
       "end_date_in_past": "La data de finalització ha de ser en el futur.",
       "end_date_not_after_start_date": "La data de finalització ha de ser posterior a la data d'inici",
       "err_end_before_start": "La data de finalització ha de ser posterior a la data d'inici",
       "err_name_duplicate": "Ja existeix un repte amb aquest nom",
-      "achievement_no_kids_assigned": "Com a mínim un nen ha d'estar assignat a l'assoliment.",
-      "challenge_no_kids_assigned": "Com a mínim un nen ha d'estar assignat al repte",
+      "achievement_no_assignees_assigned": "Com a mínim un nen ha d'estar assignat a l'assoliment.",
+      "challenge_no_assignees_assigned": "Com a mínim un nen ha d'estar assignat al repte",
       "invalid_achievement_count": "Recompte d'assoliments no vàlid",
       "invalid_achievement_name": "Nom d'assoliment no vàlid",
       "invalid_badge": "Insígnia no vàlida",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Nom de repte no vàlid",
       "invalid_chore": "Tasca no vàlida",
       "invalid_chore_count": "Recompte de tasques no vàlid",
-      "rotation_min_kids": "Les tasques de rotació requereixen almenys 2 nens assignats",
+      "rotation_min_assignees": "Les tasques de rotació requereixen almenys 2 nens assignats",
       "invalid_chore_name": "Nom de tasca no vàlid",
       "invalid_points": "Els punts han de ser zero o superiors",
       "invalid_overdue_reset_combination": "La gestió de venciments \"A la data de venciment, després es reinicia\" només funciona amb els tipus de restabliment a mitjanit. Seleccioneu \"A mitjanit (una vegada)\" o \"A mitjanit (repetint)\" per al tipus de restabliment d'aprovació.",
       "invalid_due_date": "Data de venciment no vàlida",
       "date_required_for_frequency": "Cal una data de venciment per a aquesta freqüència recurrent. L'opció \"Esborrar dates\" només funciona amb la freqüència Cap, Diària o Setmanal.",
       "invalid_end_date": "Data de finalització no vàlida.",
-      "invalid_kid_count": "Recompte de nens no vàlid",
-      "invalid_kid_name": "Nom de nen no vàlid",
-      "invalid_parent_count": "Recompte de pares no vàlid",
-      "invalid_parent_name": "Nom del pare no vàlid",
-      "no_kids_assigned": "Com a mínim un nen ha de tenir assignat la tasca",
+      "invalid_assignee_count": "Recompte de nens no vàlid",
+      "invalid_assignee_name": "Nom de nen no vàlid",
+      "invalid_approver_count": "Recompte de pares no vàlid",
+      "invalid_approver_name": "Nom del pare no vàlid",
+      "no_assignees_assigned": "Com a mínim un nen ha de tenir assignat la tasca",
       "invalid_penalty": "Penalització no vàlida",
       "invalid_penalty_count": "Recompte de penalitzacions no vàlid",
       "invalid_penalty_name": "Nom de penalització no vàlid",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Valors d'ajust de punts no vàlids. Ha de ser una llista."
     },
     "abort": {
-      "single_instance_allowed": "Només es pot configurar una única instància de KidsChores.",
-      "already_configured": "Les dades de KidsChores s'han restaurat correctament. Ara podeu tornar a carregar la integració.",
+      "single_instance_allowed": "Només es pot configurar una única instància de ChoreOps.",
+      "already_configured": "Les dades de ChoreOps s'han restaurat correctament. Ara podeu tornar a carregar la integració.",
       "file_not_found": "No s'ha pogut trobar el fitxer de còpia de seguretat seleccionat.",
       "corrupt_file": "El fitxer seleccionat conté un JSON no vàlid i no es pot llegir.",
-      "invalid_structure": "Al fitxer seleccionat li falta l'estructura de dades KidsChores obligatòria.",
+      "invalid_structure": "Al fitxer seleccionat li falta l'estructura de dades ChoreOps obligatòria.",
       "reconfigure_failed": "La reconfiguració ha fallat. Torneu-ho a intentar.",
       "reconfigure_successful": "La configuració del sistema s'ha actualitzat correctament."
     }
@@ -509,7 +509,7 @@
           "points_icon": "Icona de punts"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Afegeix un nen/a",
         "description": "Proporcioneu els detalls per al nouvingut.\n\n📖 [Guia de configuració]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "Idioma utilitzat per al tauler de control i les notificacions de les tasques."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Afegeix un pare",
         "description": "Proporcioneu els detalls del nou pare.\n\n📖 [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom del pare/mare",
           "ha_user_id": "Usuari de l'Assistent de la Llar",
-          "associated_kids": "Nens associats",
+          "associated_assignees": "Nens associats",
           "mobile_notify_service": "Notificacions",
           "dashboard_language": "Llengua",
           "allow_chore_assignment": "Permet que m'assignin tasques",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Nom únic per a aquest pare, utilitzat a tot el sistema.",
           "ha_user_id": "Opcional: Enllaça aquest pare o mare a un usuari de Home Assistant per a notificacions i accés al tauler de control.",
-          "associated_kids": "Selecciona quins nens aquest pare supervisa per a notificacions i accions d'aprovació.",
+          "associated_assignees": "Selecciona quins nens aquest pare supervisa per a notificacions i accions d'aprovació.",
           "mobile_notify_service": "Seleccioneu un servei de notificacions per activar les notificacions per a aquest pare o deixeu-ho en blanc per desactivar-les.",
           "allow_chore_assignment": "Crea un perfil perquè se us puguin assignar tasques. Per defecte, només es mostra un botó Aprova per completar-les amb un sol clic. Nota: Si desmarqueu aquesta opció, es conserva el perfil infantil amb el sufix \"_unlinked\" per a la neteja manual.",
           "enable_chore_workflow": "Afegeix els botons Reclama i Rebutja per al flux de treball complet (reclama → aprova/rebutja).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Descripció (opcional)",
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punts atorgats",
-              "assigned_kids": "👥 Nens assignats",
+              "assigned_assignees": "👥 Nens assignats",
               "completion_criteria": "👥 Criteris de finalització"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Instruccions o detalls opcionals sobre com completar aquesta tasca.",
               "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
               "default_points": "Punts guanyats en completar-se.",
-              "assigned_kids": "Nens que poden veure i reclamar aquesta tasca.",
+              "assigned_assignees": "Nens que poden veure i reclamar aquesta tasca.",
               "completion_criteria": "Controla com es completa la tasca quan s'assignen diversos nens: seguiment individual, finalització compartida o rotació per torns."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "📋 Icona (mdi:xxx)",
           "chore_labels": "📋 Etiquetes (opcional)",
           "default_points": "💰 Punts atorgats",
-          "assigned_kids": "👥 Nens assignats",
+          "assigned_assignees": "👥 Nens assignats",
           "completion_criteria": "👥 Criteris de finalització",
           "approval_reset_type": "➡️ Finalitzacions permeses i temps de restabliment de l'aprovació",
           "approval_reset_pending_claim_action": "➡️ Gestió de reclamacions pendents en el moment de l'aprovació. Restabliment",
@@ -654,7 +654,7 @@
           "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari.",
           "default_points": "Punts guanyats en completar-se.",
-          "assigned_kids": "Nens que poden veure i reclamar aquesta tasca.",
+          "assigned_assignees": "Nens que poden veure i reclamar aquesta tasca.",
           "completion_criteria": "Controla com es completa la tasca quan s'assignen diversos nens: seguiment individual, finalització compartida o rotació per torns.",
           "approval_reset_type": "Controla quan s'activa el límit del cicle d'aprovació de la tasca (mitjanit, data de venciment, en finalitzar-se o activació manual).",
           "approval_reset_pending_claim_action": "Controla què passa amb les reclamacions no aprovades quan s'activa el límit de restabliment d'aprovació.",
@@ -932,7 +932,7 @@
           "description": "Descripció (opcional)",
           "achievement_labels": "Etiquetes d'assoliment",
           "icon": "Icona (mdi:xxx)",
-          "assigned_kids": "Nens assignats",
+          "assigned_assignees": "Nens assignats",
           "type": "Tipus d'assoliment",
           "selected_chore_id": "Selecciona la tasca associada",
           "criteria": "Criteris (opcional)",
@@ -949,7 +949,7 @@
           "description": "Descripció (opcional)",
           "challenge_labels": "Etiquetes de repte",
           "icon": "Icona (mdi:xxx)",
-          "assigned_kids": "Nens assignats",
+          "assigned_assignees": "Nens assignats",
           "type": "Tipus de repte",
           "selected_chore_id": "Selecciona la tasca associada al repte (opcional)",
           "criteria": "Criteris (opcional)",
@@ -960,7 +960,7 @@
           "internal_id": "ID intern"
         }
       },
-      "edit_kid": {
+      "edit_assignee": {
         "title": "Edita el nen/a",
         "description": "Modifiqueu els detalls del nen seleccionat.\n\n📖 [Guia de configuració]({documentation_url})",
         "data": {
@@ -977,7 +977,7 @@
           "dashboard_language": "Idioma utilitzat per al tauler de control i les notificacions de les tasques."
         }
       },
-      "edit_kid_shadow": {
+      "edit_assignee_shadow": {
         "title": "Edita el nen de l'ombra",
         "description": "Modifiqueu els detalls del nen ombra seleccionat. ⚠️ Aquest nen està vinculat a un pare o mare. Canviar el nom incomplirà el requisit de coincidència de noms per desenllaçar mitjançant el servei.",
         "data": {
@@ -994,13 +994,13 @@
           "dashboard_language": "Idioma utilitzat per al tauler de control i les notificacions de les tasques."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Edita el pare",
         "description": "Modifiqueu els detalls del pare seleccionat.\n\n📖 [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom del pare/mare",
           "ha_user_id": "Usuari de l'Assistent de la Llar",
-          "associated_kids": "Nens associats",
+          "associated_assignees": "Nens associats",
           "mobile_notify_service": "Notificacions",
           "dashboard_language": "Llengua",
           "allow_chore_assignment": "Permet que m'assignin tasques",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Nom únic per a aquest pare, utilitzat a tot el sistema.",
           "ha_user_id": "Opcional: Enllaça aquest pare o mare a un usuari de Home Assistant per a notificacions i accés al tauler de control.",
-          "associated_kids": "Selecciona quins nens aquest pare supervisa per a notificacions i accions d'aprovació.",
+          "associated_assignees": "Selecciona quins nens aquest pare supervisa per a notificacions i accions d'aprovació.",
           "mobile_notify_service": "Seleccioneu un servei de notificacions per activar les notificacions per a aquest pare o deixeu-ho en blanc per desactivar-les.",
           "allow_chore_assignment": "Crea un perfil perquè se us puguin assignar tasques. Per defecte, només es mostra un botó Aprova per completar-les amb un sol clic. Nota: Si desmarqueu aquesta opció, es conserva el perfil infantil amb el sufix \"_unlinked\" per a la neteja manual.",
           "enable_chore_workflow": "Afegeix els botons Reclama i Rebutja per al flux de treball complet (reclama → aprova/rebutja).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Descripció (opcional)",
               "icon": "📋 Icona (mdi:xxx)",
               "default_points": "💰 Punts atorgats",
-              "assigned_kids": "👥 Nens assignats",
+              "assigned_assignees": "👥 Nens assignats",
               "completion_criteria": "👥 Criteris de finalització"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Instruccions o detalls opcionals sobre com completar aquesta tasca.",
               "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
               "default_points": "Punts guanyats en completar-se.",
-              "assigned_kids": "Nens que poden veure i reclamar aquesta tasca.",
+              "assigned_assignees": "Nens que poden veure i reclamar aquesta tasca.",
               "completion_criteria": "Controla com es completa la tasca quan s'assignen diversos nens: seguiment individual, finalització compartida o rotació per torns."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋 Etiquetes (opcional)",
           "internal_id": "ID intern",
           "default_points": "💰 Punts atorgats",
-          "assigned_kids": "👥 Nens assignats",
+          "assigned_assignees": "👥 Nens assignats",
           "completion_criteria": "👥 Criteris de finalització",
           "approval_reset_type": "➡️ Finalitzacions permeses i temps de restabliment de l'aprovació",
           "approval_reset_pending_claim_action": "➡️ Gestió de reclamacions pendents en el moment de l'aprovació. Restabliment",
@@ -1123,7 +1123,7 @@
           "icon": "Icona de disseny de materials (per exemple, mdi:broom, mdi:dishwasher).",
           "chore_labels": "Etiquetes per organitzar les tasques (per exemple, \"cuina\", \"exterior\"). Deixeu-ho en blanc si no és necessari.",
           "default_points": "Punts guanyats en completar-se.",
-          "assigned_kids": "Nens que poden veure i reclamar aquesta tasca.",
+          "assigned_assignees": "Nens que poden veure i reclamar aquesta tasca.",
           "completion_criteria": "Controla com es completa la tasca quan s'assignen diversos nens: seguiment individual, finalització compartida o rotació per torns.",
           "approval_reset_type": "Controla quan s'activa el límit del cicle d'aprovació de la tasca (mitjanit, data de venciment, en finalitzar-se o activació manual).",
           "approval_reset_pending_claim_action": "Controla què passa amb les reclamacions no aprovades quan s'activa el límit de restabliment d'aprovació.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "Quan enviar notificacions: En cas de reclamació, aprovació, rebuig o qualsevol combinació."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Edita les dates de venciment per nen/a: {chore_name}",
-        "description": "Establiu dates de venciment individuals per a cada nen assignat. El camp de data del formulari d'edició principal actua com a **plantilla** per comoditat: utilitzeu-lo per aplicar ràpidament la mateixa data a tots els nens mitjançant la casella de selecció següent o deixeu-lo en blanc i definiu les dates individualment aquí.\n\nEs mostren camps per a: {kid_names}. Deixeu-ho en blanc si no hi ha data límit.{template_date}\n\n📖 [Guia avançada]({documentation_url})",
+        "description": "Establiu dates de venciment individuals per a cada nen assignat. El camp de data del formulari d'edició principal actua com a **plantilla** per comoditat: utilitzeu-lo per aplicar ràpidament la mateixa data a tots els nens mitjançant la casella de selecció següent o deixeu-lo en blanc i definiu les dates individualment aquí.\n\nEs mostren camps per a: {assignee_names}. Deixeu-ho en blanc si no hi ha data límit.{template_date}\n\n📖 [Guia avançada]({documentation_url})",
         "data": {
           "apply_template_to_all": "Aplica la data de la plantilla a tots els nens"
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Introduïu de 2 a 6 vegades en format de 24 hores separats per | (barra vertical). Exemple: 08:00|17:00 per al matí i el vespre."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Horari per nen: {chore_name}",
-        "description": "Configureu la configuració de la programació individual per a cada nen assignat a aquesta tasca. Els valors principals del formulari actuen com a **plantilles**: utilitzeu les caselles de selecció per aplicar-los a tots els nens o personalitzeu la configuració de cada nen individualment.\n\n**Nota:** No tots els camps següents s'apliquen a totes les tasques. El formulari mostra dinàmicament les opcions rellevants en funció del mode de finalització, la freqüència i si hi ha dates de venciment definides.\n\n**Format d'hores diàries (múltiples):** Si es mostra, introduïu de 2 a 6 hores en format de 24 hores separades per | (barra vertical). Exemple: 08:00|17:00\n\nNens: {kid_names}{template_info}\n\n📖 [Guia avançada]({documentation_url})",
+        "description": "Configureu la configuració de la programació individual per a cada nen assignat a aquesta tasca. Els valors principals del formulari actuen com a **plantilles**: utilitzeu les caselles de selecció per aplicar-los a tots els nens o personalitzeu la configuració de cada nen individualment.\n\n**Nota:** No tots els camps següents s'apliquen a totes les tasques. El formulari mostra dinàmicament les opcions rellevants en funció del mode de finalització, la freqüència i si hi ha dates de venciment definides.\n\n**Format d'hores diàries (múltiples):** Si es mostra, introduïu de 2 a 6 hores en format de 24 hores separades per | (barra vertical). Exemple: 08:00|17:00\n\nNens: {assignee_names}{template_info}\n\n📖 [Guia avançada]({documentation_url})",
         "data": {
           "apply_days_to_all": "Aplica els dies de plantilla a tots els nens",
           "apply_times_to_all": "Aplica els horaris de plantilla a tots els nens",
@@ -1428,7 +1428,7 @@
           "description": "Descripció (opcional)",
           "achievement_labels": "Etiquetes d'assoliment",
           "icon": "Icona (mdi:xxx)",
-          "assigned_kids": "Nens assignats",
+          "assigned_assignees": "Nens assignats",
           "type": "Tipus d'assoliment",
           "selected_chore_id": "Selecciona la tasca associada",
           "criteria": "Criteris (opcional)",
@@ -1445,7 +1445,7 @@
           "description": "Descripció (opcional)",
           "challenge_labels": "Etiquetes de repte",
           "icon": "Icona (mdi:xxx)",
-          "assigned_kids": "Nens assignats",
+          "assigned_assignees": "Nens assignats",
           "type": "Tipus de repte",
           "selected_chore_id": "Selecciona la tasca associada al repte (opcional)",
           "criteria": "Criteris (opcional)",
@@ -1456,14 +1456,14 @@
           "internal_id": "ID intern"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Suprimeix el nen/a",
-        "description": "Esteu segur que voleu eliminar el nen {kid_name}?",
+        "description": "Esteu segur que voleu eliminar el nen {assignee_name}?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Suprimeix el pare",
-        "description": "Esteu segur que voleu suprimir el parany {parent_name}?",
+        "description": "Esteu segur que voleu suprimir el parany {approver_name}?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Gestiona el tauler de control",
-        "description": "Creeu, actualitzeu o suprimiu els quadres de comandament de KidsChores Lovelace.\n\n**Targetes personalitzades necessàries** (instal·lades mitjançant el frontend de HACS):\n- Targetes de bolets (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nSense aquestes targetes, els quadres de comandament mostraran errors. Instal·leu-los primer des de HACS abans de generar els quadres de comandament.",
+        "description": "Creeu, actualitzeu o suprimiu els quadres de comandament de ChoreOps Lovelace.\n\n**Targetes personalitzades necessàries** (instal·lades mitjançant el frontend de HACS):\n- Targetes de bolets (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nSense aquestes targetes, els quadres de comandament mostraran errors. Instal·leu-los primer des de HACS abans de generar els quadres de comandament.",
         "data": {
           "dashboard_action": "Acció",
           "dashboard_check_cards": "Comprovar la instal·lació de la targeta"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Crear/Actualitzar el tauler de control",
-        "description": "Genera un tauler de control de KidsChores amb pestanyes per a cada nen.\n\nTria un nom per al tauler de control, selecciona els nens que vulguis incloure i, opcionalment, afegeix una pestanya d'administració per a la gestió dels pares.\n\n[📖 Guia de generació de taulers de control]({documentation_url})",
+        "description": "Genera un tauler de control de ChoreOps amb pestanyes per a cada nen.\n\nTria un nom per al tauler de control, selecciona els nens que vulguis incloure i, opcionalment, afegeix una pestanya d'administració per a la gestió dels pares.\n\n[📖 Guia de generació de taulers de control]({documentation_url})",
         "data": {
           "dashboard_name": "Nom del tauler de control",
           "dashboard_style": "Estil del tauler de control",
-          "dashboard_kid_selection": "Nens (una pestanya per nen)",
+          "dashboard_assignee_selection": "Nens (una pestanya per nen)",
           "dashboard_include_admin": "Inclou la pestanya Administrador",
           "dashboard_force_rebuild": "Reconstrucció forçada (sobreescriure l'existent)"
         },
         "data_description": {
           "dashboard_name": "Nom del tauler de control (apareix a la barra lateral). Suggerit: Tasques",
           "dashboard_style": "Trieu el disseny del tauler de control: Complet (totes les funcions), Minimal (només les essencials) o Compacte (disseny dens).",
-          "dashboard_kid_selection": "Seleccioneu per a quins nens voleu crear pestanyes. Cada nen té la seva pròpia vista/pestanya.",
-          "dashboard_include_admin": "Afegeix una pestanya d'administració amb controls parentals per a aprovacions i gestió.",
+          "dashboard_assignee_selection": "Seleccioneu per a quins nens voleu crear pestanyes. Cada nen té la seva pròpia vista/pestanya.",
+          "dashboard_include_admin": "Afegeix una pestanya d'administració amb controls approverals per a aprovacions i gestió.",
           "dashboard_force_rebuild": "Si està habilitat, el tauler de control existent se sobreescriurà. En cas contrari, la generació fallarà si el tauler de control existeix."
         }
       },
       "dashboard_delete": {
         "title": "Suprimeix el tauler de control",
-        "description": "Seleccioneu els taulers de control de KidsChores per suprimir-los.\n\n⚠️ Aquesta acció no es pot desfer.",
+        "description": "Seleccioneu els taulers de control de ChoreOps per suprimir-los.\n\n⚠️ Aquesta acció no es pot desfer.",
         "data": {
           "dashboard_delete_selection": "Taulers de control per suprimir"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Opcions generals",
-        "description": "Gestiona la configuració general per a la integració de KidsChores.\n\n[📖 Més informació sobre Còpia de seguretat i restauració]({documentation_url})",
+        "description": "Gestiona la configuració general per a la integració de ChoreOps.\n\n[📖 Més informació sobre Còpia de seguretat i restauració]({documentation_url})",
         "data": {
           "points_adjust_values": "Valors del botó d'ajust manual de punts",
           "update_interval": "Interval d'actualització",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Llista de valors per als botons d'ajust manual de punts. Cada valor està separat per '|'.",
-          "update_interval": "Interval en minuts per actualitzar l'estat intern de KidsChores.",
+          "update_interval": "Interval en minuts per actualitzar l'estat intern de ChoreOps.",
           "calendar_show_period": "Nombre de dies en el futur per mostrar les tasques i els reptes programats al calendari.",
           "retention_periods": "Períodes de retenció de dades en format Diari|Setmanal|Mensual|Anual (per exemple, '7|4|12|3'). Cada valor ha de ser un nombre enter positiu.",
           "retention_daily": "Nombre de dies de dades històriques diàries que cal conservar abans de la neteja. Mínim 1, màxim 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Gestió de còpies de seguretat",
-        "description": "Gestiona les còpies de seguretat de les teves dades de KidsChores. Estat actual: {backup_count} còpies de seguretat amb {storage_size} MB.",
+        "description": "Gestiona les còpies de seguretat de les teves dades de ChoreOps. Estat actual: {backup_count} còpies de seguretat amb {storage_size} MB.",
         "data": {
           "backup_action_selection": "Selecciona una acció"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Accions de còpia de seguretat",
-        "description": "Gestiona les teves còpies de seguretat de dades de KidsChores.",
+        "description": "Gestiona les teves còpies de seguretat de dades de ChoreOps.",
         "data": {
           "backup_action_selection": "Selecciona una acció"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Crea una còpia de seguretat manual",
-        "description": "Crea una nova còpia de seguretat de les teves dades de KidsChores.\n\nCòpies de seguretat actuals: {backup_count}\nConfiguració de retenció: {retention} còpies de seguretat",
+        "description": "Crea una nova còpia de seguretat de les teves dades de ChoreOps.\n\nCòpies de seguretat actuals: {backup_count}\nConfiguració de retenció: {retention} còpies de seguretat",
         "data": {
           "confirm": "Confirma la creació de la còpia de seguretat"
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Opcions de recuperació de dades",
-        "description": "Dades de KidsChores existents trobades a:\n{storage_path}\n\nS'han trobat {backup_count} fitxers de còpia de seguretat.\n\nQuè vols fer?",
+        "description": "Dades de ChoreOps existents trobades a:\n{storage_path}\n\nS'han trobat {backup_count} fitxers de còpia de seguretat.\n\nQuè vols fer?",
         "data": {
           "backup_selection": "Selecciona l'opció"
         }
       },
       "paste_json_restore": {
         "title": "Importa dades JSON",
-        "description": "Enganxa el contingut JSON complet des de:\n\n• Un fitxer de dades de KidsChores (kidschores_data)\n• Una descàrrega de diagnòstics\n\nEl sistema detectarà i desembolicarà automàticament el format segons calgui. S'admeten tant els formats d'emmagatzematge en brut com els d'exportació de diagnòstics.",
+        "description": "Enganxa el contingut JSON complet des de:\n\n• Un fitxer de dades de ChoreOps (choreops_data)\n• Una descàrrega de diagnòstics\n\nEl sistema detectarà i desembolicarà automàticament el format segons calgui. S'admeten tant els formats d'emmagatzematge en brut com els d'exportació de diagnòstics.",
         "data": {
           "json_data": "Dades JSON"
         },
         "data_description": {
-          "json_data": "Enganxa aquí tot el contingut JSON. Accepta dades del fitxer kidschores_data o de l'exportació de diagnòstics (desembolica automàticament l'estructura addicional)."
+          "json_data": "Enganxa aquí tot el contingut JSON. Accepta dades del fitxer choreops_data o de l'exportació de diagnòstics (desembolica automàticament l'estructura addicional)."
         }
       },
       "create_backup_confirm": {
         "title": "Crea una còpia de seguretat manual",
-        "description": "Crear una còpia de seguretat manual de les dades actuals de KidsChores?",
+        "description": "Crear una còpia de seguretat manual de les dades actuals de ChoreOps?",
         "data": {
           "confirm": "Confirma"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Ja existeix una insígnia amb aquest nom",
       "duplicate_challenge": "Ja existeix un repte amb aquest nom",
       "duplicate_chore": "Ja existeix una tasca amb aquest nom",
-      "duplicate_kid": "Ja existeix un nen amb aquest nom",
-      "duplicate_parent": "Ja existeix un pare o mare amb aquest nom",
+      "duplicate_assignee": "Ja existeix un nen amb aquest nom",
+      "duplicate_approver": "Ja existeix un pare o mare amb aquest nom",
       "duplicate_penalty": "Ja existeix una penalització amb aquest nom",
       "duplicate_reward": "Ja existeix una recompensa amb aquest nom",
       "duplicate_bonus": "Ja existeix un bonus amb aquest nom",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Data de venciment no vàlida",
       "date_required_for_frequency": "Cal una data de venciment per a aquesta freqüència recurrent. L'opció \"Esborrar dates\" només funciona amb la freqüència Cap, Diària o Setmanal.",
       "invalid_end_date": "Data de finalització no vàlida.",
-      "invalid_kid_count": "Recompte de nens no vàlid",
-      "invalid_kid_name": "Nom de nen no vàlid",
-      "no_kids_assigned": "Com a mínim un nen ha de tenir assignat la tasca",
-      "achievement_no_kids_assigned": "Com a mínim un nen ha d'estar assignat a l'assoliment.",
-      "challenge_no_kids_assigned": "Com a mínim un nen ha d'estar assignat al repte",
+      "invalid_assignee_count": "Recompte de nens no vàlid",
+      "invalid_assignee_name": "Nom de nen no vàlid",
+      "no_assignees_assigned": "Com a mínim un nen ha de tenir assignat la tasca",
+      "achievement_no_assignees_assigned": "Com a mínim un nen ha d'estar assignat a l'assoliment.",
+      "challenge_no_assignees_assigned": "Com a mínim un nen ha d'estar assignat al repte",
       "invalid_penalty": "Penalització no vàlida",
       "invalid_penalty_count": "Recompte de penalitzacions no vàlid",
       "invalid_bonus": "Bonificació no vàlida",
@@ -1721,23 +1721,23 @@
       "file_not_found": "No s'ha pogut trobar el fitxer seleccionat.",
       "invalid_selection": "Si us plau, seleccioneu una opció vàlida.",
       "error_daily_multi_requires_compatible_reset": "La freqüència de \"Diverses vegades al dia\" és incompatible amb els tipus de restabliment de mitjanit perquè només restableixen les aprovacions una vegada a mitjanit.",
-      "error_daily_multi_independent_multi_kids": "La freqüència de \"Diverses vegades al dia\" amb una finalització INDEPENDENT requereix exactament un nen, tret que es configuren horaris per nen. Configureu horaris diferents per a cada nen a la configuració per nen.",
+      "error_daily_multi_independent_multi_assignees": "La freqüència de \"Diverses vegades al dia\" amb una finalització INDEPENDENT requereix exactament un nen, tret que es configuren horaris per nen. Configureu horaris diferents per a cada nen a la configuració per nen.",
       "error_daily_multi_times_required": "Cal una llista d'hores per a la freqüència \"Diverses vegades al dia\".",
       "error_daily_multi_times_invalid_format": "Format d'hora no vàlid. Feu servir el format de 24 hores (HH:MM) separats per | (p. ex., 08:00|17:00).",
       "error_daily_multi_times_too_few": "Calen com a mínim 2 vegades per a la freqüència \"Diverses vegades al dia\". Per a una sola vegada, utilitzeu la freqüència \"Diària\" habitual.",
       "error_daily_multi_times_too_many": "Màxim de 6 vegades per dia per a la freqüència \"Diverses vegades per dia\".",
       "error_daily_multi_due_date_required": "La freqüència de \"Diverses vegades al dia\" requereix que s'estableixi una data de venciment. La data determina quan comença la programació i els horaris determinen les finestres de disponibilitat cada dia.",
-      "rotation_min_kids": "Les tasques de rotació requereixen almenys 2 nens assignats",
+      "rotation_min_assignees": "Les tasques de rotació requereixen almenys 2 nens assignats",
       "error_allow_steal_incompatible": "Permetre la gestió de retards de robatori només és compatible amb les tasques de rotació (rotation_simple o rotation_smart), tipus de restabliment \"Un cop al dia\" i requereix una data de venciment per definir quan s'obre la finestra de robatori.",
       "error_at_due_date_reset_requires_due_date": "Els tipus de restabliment d'aprovació \"A la data de venciment\" (Una o Múltiple) requereixen que s'estableixi una data de venciment. Sense una data de venciment, el restabliment d'aprovació no s'activarà mai i la tasca romandrà aprovada indefinidament.",
-      "error_per_kid_applicable_days_invalid": "Format de dies aplicable no vàlid per a un o més fills. Els dies han de ser nombres enters del 0 al 6 (de dilluns a diumenge) sense duplicats.",
-      "error_per_kid_daily_multi_times_invalid": "Format d'hora diària no vàlid per a un o més nens. Utilitzeu el format de 24 hores separat per | (p. ex., 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Format de dies aplicable no vàlid per a un o més fills. Els dies han de ser nombres enters del 0 al 6 (de dilluns a diumenge) sense duplicats.",
+      "error_per_assignee_daily_multi_times_invalid": "Format d'hora diària no vàlid per a un o més nens. Utilitzeu el format de 24 hores separat per | (p. ex., 08:00|17:00).",
       "dashboard_exists": "Ja existeix un tauler de control amb aquesta ruta d'URL. Activeu \"Força la reconstrucció\" per sobreescriure-ho.",
       "dashboard_template_error": "No s'ha pogut obtenir la plantilla del tauler de control. Comproveu la connexió de xarxa o torneu-ho a provar més tard.",
       "dashboard_render_error": "No s'ha pogut renderitzar la plantilla del tauler de control. Això pot indicar un error de plantilla.",
       "dashboard_save_error": "No s'ha pogut desar el tauler de control a Home Assistant. Consulta els registres del sistema per obtenir més informació.",
       "dashboard_no_name": "Si us plau, introduïu un nom per al tauler de control.",
-      "dashboard_no_kids": "Seleccioneu com a mínim un nen o activeu \"Inclou la pestanya d'administració\".",
+      "dashboard_no_assignees": "Seleccioneu com a mínim un nen o activeu \"Inclou la pestanya d'administració\".",
       "dashboard_no_dashboards": "Seleccioneu com a mínim un tauler de control per suprimir."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Desafiament no vàlid",
       "invalid_chore": "Tasca no vàlida",
       "invalid_entity": "Entitat no vàlida",
-      "invalid_kid": "Nen no vàlid",
-      "invalid_parent": "Pare no vàlid",
+      "invalid_assignee": "Nen no vàlid",
+      "invalid_approver": "Pare no vàlid",
       "invalid_penalty": "Penalització no vàlida",
       "invalid_reward": "Recompensa no vàlida",
       "invalid_bonus": "Bonificació no vàlida",
-      "no_kid": "No hi ha cap infant configurat per editar. Afegeix primer una entrada.",
-      "no_parent": "No hi ha cap pare configurat per editar. Primer afegeix una entrada.",
+      "no_assignee": "No hi ha cap infant configurat per editar. Afegeix primer una entrada.",
+      "no_approver": "No hi ha cap pare configurat per editar. Primer afegeix una entrada.",
       "no_chore": "No hi ha cap tasca configurada per editar. Afegeix primer una entrada.",
       "no_badge": "No hi ha cap distintiu configurat per editar. Primer cal afegir una entrada.",
       "no_reward": "No hi ha cap recompensa configurada per editar. Primer cal afegir una entrada.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "No hi ha cap repte configurat per editar. Primer cal afegir una entrada.",
       "setup_complete": "Configuració completada",
       "backup_restored": "Còpia de seguretat restaurada correctament. La integració s'ha tornat a carregar amb les dades restaurades.",
-      "no_dashboards_to_delete": "No s'han trobat taulers de control de KidsChores. Primer creeu-ne un amb Gestiona el tauler de control."
+      "no_dashboards_to_delete": "No s'han trobat taulers de control de ChoreOps. Primer creeu-ne un amb Gestiona el tauler de control."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Gestiona punts",
-        "manage_kid": "Gestiona el nen/a",
-        "manage_parent": "Gestiona el pare",
+        "manage_assignee": "Gestiona el nen/a",
+        "manage_approver": "Gestiona el pare",
         "manage_chore": "Gestiona les tasques",
         "manage_badge": "Gestiona la insígnia",
         "manage_reward": "Gestiona la recompensa",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Administrador (tauler de control principal)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2021,7 +2021,7 @@
       "name": "Tasca de reclamació",
       "description": "Un nen reclama una tasca i la marca com a \"reclamada\" per a l'aprovació dels pares.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nom del nen que reclama la tasca.",
           "example": "Alícia"
@@ -2037,12 +2037,12 @@
       "name": "Aprova la tasca",
       "description": "El pare o la mare aprova la tasca i atorga punts.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El pare o la mare aprovant la tasca.",
           "example": "Mare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nom del nen que va fer la tasca.",
           "example": "Alícia"
@@ -2063,12 +2063,12 @@
       "name": "Desaprovar tasca",
       "description": "Un pare o una mare desaprova una tasca per a un fill, i li canvia l'estat.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El pare o la mare desaprovant la tasca.",
           "example": "Mare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nom del nen a qui s'està desaprovant la tasca.",
           "example": "Alícia"
@@ -2084,12 +2084,12 @@
       "name": "Bescanvia la recompensa",
       "description": "Un pare o una mare bescanvia una recompensa per a un fill, restant punts.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El progenitor que autoritza el bescanvi de la recompensa.",
           "example": "Mare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen bescanviant la recompensa.",
           "example": "Alícia"
@@ -2105,12 +2105,12 @@
       "name": "Aprova la recompensa",
       "description": "Un pare o una mare aprova una recompensa reclamada per un nen.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El pare o la mare aprovant la recompensa.",
           "example": "Mare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen que està bescanviant la recompensa.",
           "example": "Alícia"
@@ -2130,12 +2130,12 @@
       "name": "Rebutja la recompensa",
       "description": "Un pare o una mare no aproven el bescanvi de recompenses per a un fill.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El pare o la mare desaprovant la recompensa.",
           "example": "Pare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen el bescanvi del qual de recompensa s'està rebutjant.",
           "example": "Alícia"
@@ -2151,12 +2151,12 @@
       "name": "Aplica la penalització",
       "description": "Un pare o una mare aplica una penalització per restar punts.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El progenitor que aplica la sanció.",
           "example": "Pare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen que rep la sanció.",
           "example": "Alícia"
@@ -2172,12 +2172,12 @@
       "name": "Aplica la bonificació",
       "description": "Un pare aplica una bonificació a un fill, atorgant punts.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Nom del pare/mare",
           "description": "El progenitor que aplica la bonificació.",
           "example": "Mare"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen que rep la bonificació.",
           "example": "Alícia"
@@ -2281,7 +2281,7 @@
           "description": "El nom de la tasca que es vol crear.",
           "example": "Sala blanca"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Nens assignats",
           "description": "Llista de noms de nens per assignar a aquesta tasca.",
           "example": "['Emma', 'Jack']"
@@ -2377,7 +2377,7 @@
           "description": "El nom de la tasca que s'ha d'actualitzar (alternativa a id). Més fàcil d'usar que id.",
           "example": "Sala blanca"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Nens assignats",
           "description": "Nova llista de noms de nens per assignar a aquesta tasca.",
           "example": "['Emma', 'Jack']"
@@ -2484,14 +2484,14 @@
           "description": "Nom de la tasca de rotació. Opcional si es proporciona chore_id.",
           "example": "Dormitori net"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "ID de nen",
-          "description": "ID intern del nen a qui assignar el torn. S'ha d'assignar a aquesta tasca. Opcional si es proporciona kid_name.",
+          "description": "ID intern del nen a qui assignar el torn. S'ha d'assignar a aquesta tasca. Opcional si es proporciona assignee_name.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
-          "description": "Nom del nen a qui s'assigna el torn. S'ha d'assignar a aquesta tasca. Opcional si es proporciona kid_id.",
+          "description": "Nom del nen a qui s'assigna el torn. S'ha d'assignar a aquesta tasca. Opcional si es proporciona assignee_id.",
           "example": "Alícia"
         }
       }
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Restableix les dades transaccionals",
-      "description": "Restableix les dades de temps d'execució/transaccionals tot conservant la configuració (fills, tasques, recompenses, etc.). Es crea una còpia de seguretat automàtica abans del restabliment com a kidschores_data_timestamp_reset al directori .storage. Utilitza l'abast per orientar-te a nens o dominis específics. Requereix el paràmetre confirm_destructive definit com a true com a mecanisme de seguretat.",
+      "description": "Restableix les dades de temps d'execució/transaccionals tot conservant la configuració (fills, tasques, recompenses, etc.). Es crea una còpia de seguretat automàtica abans del restabliment com a choreops_data_timestamp_reset al directori .storage. Utilitza l'abast per orientar-te a nens o dominis específics. Requereix el paràmetre confirm_destructive definit com a true com a mecanisme de seguretat.",
       "fields": {
         "confirm_destructive": {
           "name": "Confirmar destructiu",
@@ -2542,11 +2542,11 @@
         },
         "scope": {
           "name": "Àmbit",
-          "description": "Restableix l'abast: 'global' restableix totes les dades, 'kid' restableix les dades només per a un nen específic."
+          "description": "Restableix l'abast: 'global' restableix totes les dades, 'assignee' restableix les dades només per a un nen específic."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
-          "description": "Obligatori si l'àmbit és 'kid'. El nom del nen les dades del qual s'han de restablir."
+          "description": "Obligatori si l'àmbit és 'assignee'. El nom del nen les dades del qual s'han de restablir."
         },
         "item_type": {
           "name": "Tipus d'element",
@@ -2560,7 +2560,7 @@
     },
     "reset_overdue_chores": {
       "name": "Restableix tasques endarrerides",
-      "description": "Restableix les tasques endarrerides a l'estat Pendent i reprograma-les en funció de la seva freqüència recurrent i la data de venciment anterior. Opcionalment, pots proporcionar un chore_id (o chore_name) per restablir una tasca específica i opcionalment un kid_name per restablir la tasca només per a aquest nen.",
+      "description": "Restableix les tasques endarrerides a l'estat Pendent i reprograma-les en funció de la seva freqüència recurrent i la data de venciment anterior. Opcionalment, pots proporcionar un chore_id (o chore_name) per restablir una tasca específica i opcionalment un assignee_name per restablir la tasca només per a aquest nen.",
       "fields": {
         "chore_id": {
           "name": "ID de la tasca",
@@ -2572,7 +2572,7 @@
           "description": "El nom de la tasca que es restablirà (opcional si es proporciona chore_id).",
           "example": "Rentar plats"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen que rep la sanció.",
           "example": "Alícia"
@@ -2581,7 +2581,7 @@
     },
     "set_chore_due_date": {
       "name": "Establir/restablir la data de venciment de les tasques",
-      "description": "Estableix (o esborra) la data de venciment d'una tasca. Proporciona el nom de la tasca i, si ho desitges, una nova data de venciment. Si no es proporciona cap data de venciment, s'esborrarà la data de venciment existent. El servei rebutjarà les dates de venciment establertes en el passat. Per a tasques independents, opcionalment, proporciona un kid_name per establir la data de venciment només per a aquest nen.",
+      "description": "Estableix (o esborra) la data de venciment d'una tasca. Proporciona el nom de la tasca i, si ho desitges, una nova data de venciment. Si no es proporciona cap data de venciment, s'esborrarà la data de venciment existent. El servei rebutjarà les dates de venciment establertes en el passat. Per a tasques independents, opcionalment, proporciona un assignee_name per establir la data de venciment només per a aquest nen.",
       "fields": {
         "chore_name": {
           "name": "Nom de la tasca",
@@ -2593,21 +2593,21 @@
           "description": "La nova data de venciment de la tasca. Utilitzeu el selector de data/hora per triar una data i hora vàlides (a la vostra zona horària local). Deixeu-ho en blanc per esborrar la data de venciment.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "Per a tasques independents, especifiqueu el nen per al qual voleu establir la data de venciment. Si s'omet, estableix la data de venciment per a tots els nens assignats.",
           "example": "Alícia"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "ID de nen",
-          "description": "L'ID intern del nen. Només per a usuaris avançats: feu servir kid_name en comptes d'això.",
+          "description": "L'ID intern del nen. Només per a usuaris avançats: feu servir assignee_name en comptes d'això.",
           "example": "abc123-def456"
         }
       }
     },
     "skip_chore_due_date": {
       "name": "Omet la data de venciment de les tasques",
-      "description": "Omet la data de venciment actual d'una tasca recurrent. Aquest servei reprograma immediatament la data de venciment de la tasca en funció de la seva freqüència recurrent i restableix el seu estat a pendent. Qualsevol reclamació o aprovació pendent s'eliminarà. Per a tasques independents, opcionalment, proporcioneu un kid_name per ometre només per a aquest nen.",
+      "description": "Omet la data de venciment actual d'una tasca recurrent. Aquest servei reprograma immediatament la data de venciment de la tasca en funció de la seva freqüència recurrent i restableix el seu estat a pendent. Qualsevol reclamació o aprovació pendent s'eliminarà. Per a tasques independents, opcionalment, proporcioneu un assignee_name per ometre només per a aquest nen.",
       "fields": {
         "chore_id": {
           "name": "ID de la tasca",
@@ -2619,14 +2619,14 @@
           "description": "El nom de la tasca que es restablirà (opcional si es proporciona chore_id).",
           "example": "Rentar plats"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "Per a tasques independents, especifiqueu el nen per al qual voleu ometre la data de venciment. Si s'omet, omet la data de venciment per a tots els nens assignats.",
           "example": "Alícia"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "ID de nen",
-          "description": "L'ID intern del nen. Només per a usuaris avançats: feu servir kid_name en comptes d'això.",
+          "description": "L'ID intern del nen. Només per a usuaris avançats: feu servir assignee_name en comptes d'això.",
           "example": "abc123-def456"
         },
         "mark_as_missed": {
@@ -2639,7 +2639,7 @@
       "name": "Eliminar les insígnies atorgades",
       "description": "Elimina totes les insígnies atorgades per a tots els nens. Opcionalment, proporciona el nom de la insígnia per restablir una insígnia específica per a tots els nens. Fes servir el nom del nen per restablir totes les insígnies per a un nen específic. Combina tots dos per restablir una insígnia específica per a un nen específic.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Nom del nen/a",
           "description": "El nen o nena amb insígnies guardonades serà retirat/da.",
           "example": "Bob"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Estat de les tasques - {chore_name}",
         "state": {
           "pending": "Pendent",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Estats del cicle de vida de les tasques específiques per a nens, estadístiques de rendiment i metadades de configuració"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Descripció"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Nens assignats"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Perdut"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Canvia el nom del nen"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Saldo de punts actual amb estadístiques detallades de guanys i despeses"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Màxim {points} Sempre"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Tasques completades - Mensual"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Tasques domèstiques",
         "unit_of_measurement": "Tasques domèstiques",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Total de tasques completades de tots els temps amb estadístiques detallades"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Insígnies",
         "state_attributes": {
           "purpose": {
             "name": "Propòsit",
             "state": {
-              "purpose_kid_badges": "Insígnia més alta obtinguda i progrés acumulat en temps real, incloent-hi cicles actius i historial de premis en tots els tipus d'insígnia"
+              "purpose_assignee_badges": "Insígnia més alta obtinguda i progrés acumulat en temps real, incloent-hi cicles actius i historial de premis en tots els tipus d'insígnia"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Etiquetes"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Nens guanyats"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Nens assignats"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Progrés de la insígnia - {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Percentatge de progrés de la insígnia (0-100) que fa un seguiment de la finalització per obtenir aquesta insígnia, amb l'estat dels criteris, les dates i l'historial de premis"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Descripció"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Nens assignats"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Estat de la recompensa - {reward_name}",
         "state": {
           "locked": "Bloquejat",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Estat del bescanvi de recompenses amb historial de reclamacions i botons d'acció"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Penalitzacions aplicades - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "S'aplica la bonificació - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Punts guanyats - Diaris"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Punts guanyats - Setmanalment"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Punts guanyats - Mensualment"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Descripció"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Nens assignats"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Punts de recompensa"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Guanyat per"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Descripció"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Nens assignats"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Data de finalització"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Guanyat per"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Progrés - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Percentatge de progrés individual de cada nen (0-100) per aconseguir aquest assoliment, amb el recompte de progrés actual en brut i l'estat del premi"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Descripció"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Nens assignats"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Progrés - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Percentatge de progrés individual de cada nen (0-100) per completar aquest repte dins del període de temps, amb el recompte de progrés actual i l'estat del premi."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Descripció"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Nens assignats"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Ratxa de tasques més alta",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "Ajudant del tauler de control de la interfície d'usuari",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Tasques per segell discogràfic"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Selecciona el bonus"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Selector infantil del tauler d'administració",
         "state_attributes": {
           "purpose": {
             "name": "Propòsit",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Selector de fill a nivell de sistema per a targetes de tauler de control d'administració"
+              "purpose_system_dashboard_admin_assignee": "Selector de fill a nivell de sistema per a targetes de tauler de control d'administració"
             }
           },
           "dashboard_helper_eid": {
             "name": "ID d'entitat d'ajuda del tauler de control"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Llimac infantil seleccionat"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Nom del nen seleccionat"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "Ajudant de llista de tasques del tauler de control de la interfície d'usuari",
         "state_attributes": {
           "purpose": {
             "name": "Propòsit",
             "state": {
-              "purpose_select_kid_chores": "Selecció de tasques infantils per al filtratge del tauler de control"
+              "purpose_select_assignee_chores": "Selecció de tasques infantils per al filtratge del tauler de control"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Calendari",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Calendari que mostra l'horari de les tasques dels nens i les dates de venciment"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "Ajudant de dates del tauler de control de la interfície d'usuari",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Assistent de selecció de dates per al filtratge i la navegació de la interfície d'usuari del tauler de control"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Reclamació de la tasca - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "Un nen afirma haver acabat la tasca assignada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Aprova la tasca - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "El pare o la mare aprova la tasca reclamada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Desaprovar la tasca - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "El pare o la mare desaprova la tasca reclamada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Reclama la recompensa - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "El nen bescanvia la recompensa amb punts"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Aprova la recompensa - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "El pare o la mare aprova la recompensa bescanviada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Recompensa desaprovada - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "El pare o la mare no aproven la recompensa bescanviada"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Aplica la penalització - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "El pare aplica la penalització (resta punts)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Aplica la bonificació - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "El pare aplica la bonificació (afegeix punts)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Ajusta {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "El pare o la mare ajusta manualment els punts del nen/a"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Nom del nen/a"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Increment {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Disminueix {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "No s'ha trobat cap nen amb el nom {name}"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "No s'ha trobat cap pare amb el nom {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "El nen {name} ja està vinculat a un pare o mare"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "El nen {name} no està vinculat a cap pare."
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "El pare {name} ja està vinculat a un altre fill/a"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} no s'ha trobat"
     },
     "not_assigned": {
-      "message": "{entity} no assignat a {kid}"
+      "message": "{entity} no assignat a {assignee}"
     },
     "rotation_no_turn_holder": {
       "message": "Les tasques de rotació han de tenir un torn assignat"
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Tots els nens per ordre de rotació han de ser assignats a la tasca"
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Les tasques de rotació requereixen almenys 2 nens assignats"
     },
     "not_rotation": {
       "message": "Aquesta tasca no està en mode de rotació"
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "El nen no té aquesta tasca assignada"
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "No hi ha nens assignats a aquesta tasca"
     },
     "insufficient_points": {
-      "message": "{kid} té {current} punts però necessita {required} punts"
+      "message": "{assignee} té {current} punts però necessita {required} punts"
     },
     "already_claimed": {
       "message": "{entity} ja ha estat reclamat"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "La freqüència recurrent {frequency} no és vàlida"
     },
-    "chore_overdue_for_kid": {
-      "message": "La tasca {chore_name} està endarrerida per a {kid_name}"
+    "chore_overdue_for_assignee": {
+      "message": "La tasca {chore_name} està endarrerida per a {assignee_name}"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "El nen {kid_name} no té assignada la tasca {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "El nen {assignee_name} no té assignada la tasca {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "No es pot especificar un nen per a la tasca compartida {chore_name}. Les tasques compartides tenen una data de venciment per a tots els nens."
     },
     "reward_not_found": {
@@ -4471,14 +4471,14 @@
     "data_reset_confirmation_required": {
       "message": "Heu de definir confirm_destructive: true per continuar amb el restabliment de dades."
     },
-    "data_reset_kid_not_found": {
-      "message": "No s'ha trobat el nen {kid_name}"
+    "data_reset_assignee_not_found": {
+      "message": "No s'ha trobat el nen {assignee_name}"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} no s'ha trobat"
     },
     "data_reset_invalid_scope": {
-      "message": "Àmbit no vàlid {scope}. Ha de ser: global, kid, item_type o item."
+      "message": "Àmbit no vàlid {scope}. Ha de ser: global, assignee, item_type o item."
     },
     "data_reset_invalid_item_type": {
       "message": "Tipus d'element {item_type}no vàlid. Ha de ser: nens, tasques, recompenses, insígnies, assoliments, reptes, penalitzacions o bonificacions."
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "S'han reiniciat totes les dades d'execució. S'ha conservat la configuració."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Restabliment de dades complet per a {kid_name}. Punts, estadístiques i progrés esborrats."
+    "notif_message_data_reset_assignee": {
+      "message": "Restabliment de dades complet per a {assignee_name}. Punts, estadístiques i progrés esborrats."
     },
     "notif_message_data_reset_item_type": {
       "message": "Restabliment de dades complet per a tots els {item_type}. Dades d'execució esborrades."
@@ -4502,7 +4502,7 @@
       "message": "Tasca perduda"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} no he pogut fer la feina: {chore_name}"
+      "message": "{assignee_name} no he pogut fer la feina: {chore_name}"
     }
   }
 }

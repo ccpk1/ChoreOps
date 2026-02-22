@@ -1,5 +1,5 @@
 # Home Assistant Integration Quality Scale
-# KidsChores Integration - Quality Scale Compliance
+# ChoreOps Integration - Quality Scale Compliance
 # Last Updated: 2026-01-24
 # Target Level: Platinum (achieved)
 #
@@ -91,14 +91,14 @@ rules:
 
   entity-event-setup:
     status: done
-    # All entities inherit from KidsChoresCoordinatorEntity (entity.py)
+    # All entities inherit from ChoreOpsCoordinatorEntity (entity.py)
     # Base class extends CoordinatorEntity which handles event subscription
     # Coordinator listeners set up automatically via HA framework
 
   entity-unique-id:
     status: done
     # All entities use _attr_unique_id with format:
-    # f"{entry_id}_{kid_id}_{entity_type}_{suffix}"
+    # f"{entry_id}_{assignee_id}_{entity_type}_{suffix}"
     # Consistent across: sensor.py, button.py, select.py, calendar.py, datetime.py
     # Verified: All entity classes set unique_id in __init__
 
@@ -112,7 +112,7 @@ rules:
     status: done
     # Fully migrated to ConfigEntry.runtime_data pattern (Jan 2026)
     # Type alias in coordinator.py line 259:
-    #   type KidsChoresConfigEntry = ConfigEntry[KidsChoresDataCoordinator]
+    #   type ChoreOpsConfigEntry = ConfigEntry[ChoreOpsDataCoordinator]
     # All coordinator access via entry.runtime_data
     # Zero instances of legacy hass.data[DOMAIN][entry_id] pattern
     # Verification: grep -r "hass.data\[const.DOMAIN\]" returns 0 results
@@ -170,7 +170,7 @@ rules:
 
   entity-unavailable:
     status: done
-    # entity.py KidsChoresCoordinatorEntity base class:
+    # entity.py ChoreOpsCoordinatorEntity base class:
     # - Explicit @property available() checking coordinator.last_update_success
     # - All 37 entity classes inherit from base (verified via grep)
     # - calendar.py and datetime.py don't use CoordinatorEntity (N/A)
@@ -221,16 +221,16 @@ rules:
   devices:
     status: done
     # device_helpers.py provides:
-    # - create_kid_device_info_from_coordinator()
+    # - create_assignee_device_info_from_coordinator()
     # - create_system_device_info()
-    # All kid entities associated with kid device
+    # All assignee entities associated with assignee device
     # System entities associated with system device
 
   diagnostics:
     status: done
     # diagnostics.py provides:
     # - async_get_config_entry_diagnostics() - returns storage data
-    # - async_get_device_diagnostics() - kid-specific data
+    # - async_get_device_diagnostics() - assignee-specific data
     # Returns raw storage data for direct restore capability
     # No sensitive data exposed (no passwords/tokens)
 
@@ -285,7 +285,7 @@ rules:
 
   dynamic-devices:
     status: done
-    # Kids added/removed dynamically update device registry
+    # Assignees added/removed dynamically update device registry
     # coordinator.py manages dynamic device creation/removal
 
   entity-category:
@@ -296,7 +296,7 @@ rules:
 
   entity-device-class:
     status: exempt
-    # KidsChores entities represent custom domain concepts (points, chores, badges)
+    # ChoreOps entities represent custom domain concepts (points, chores, badges)
     # No standard HA device classes apply to these entity types
     # Points are not monetary values, chores are not standard sensors
 
@@ -340,7 +340,7 @@ rules:
 
   stale-devices:
     status: done
-    # coordinator.py removes kid devices when kid is deleted
+    # coordinator.py removes assignee devices when assignee is deleted
     # Device registry updated automatically
 
   # ============================================================================

@@ -2,7 +2,7 @@
 # ^ Suppresses Pylance warnings about @property overriding @cached_property from base classes.
 #   This is intentional: our entities compute dynamic values on each access,
 #   so we use @property instead of @cached_property to avoid stale cached data.
-"""DateTime platform for KidsChores integration.
+"""DateTime platform for ChoreOps integration.
 
 Provides datetime helper entities for UI date/time selection in dashboards.
 """
@@ -17,8 +17,8 @@ from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
 from . import const
-from .coordinator import KidsChoresConfigEntry, KidsChoresDataCoordinator
-from .helpers.device_helpers import create_kid_device_info_from_coordinator
+from .coordinator import ChoreOpsConfigEntry, ChoreOpsDataCoordinator
+from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import is_linked_profile, should_create_entity
 
 # Platinum requirement: Parallel Updates
@@ -28,59 +28,63 @@ PARALLEL_UPDATES = 1
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: KidsChoresConfigEntry,
+    entry: ChoreOpsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up KidsChores datetime entities."""
-    coordinator: KidsChoresDataCoordinator = entry.runtime_data
+    """Set up ChoreOps datetime entities."""
+    coordinator: ChoreOpsDataCoordinator = entry.runtime_data
 
     entities = []
-    for kid_id, kid_info in coordinator.kids_data.items():
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
         # Use registry-based creation decision for future flexibility
         if should_create_entity(
             const.DATETIME_KC_UID_SUFFIX_DATE_HELPER,
-            is_feature_gated_profile=is_linked_profile(coordinator, kid_id),
+            is_feature_gated_profile=is_linked_profile(coordinator, assignee_id),
         ):
-            kid_name = kid_info.get(const.DATA_KID_NAME, f"Kid {kid_id}")
+            assignee_name = assignee_info.get(
+                const.DATA_ASSIGNEE_NAME, f"Assignee {assignee_id}"
+            )
             entities.append(
-                KidDashboardHelperDateTimePicker(coordinator, entry, kid_id, kid_name)
+                AssigneeDashboardHelperDateTimePicker(
+                    coordinator, entry, assignee_id, assignee_name
+                )
             )
 
     async_add_entities(entities)
 
 
-class KidDashboardHelperDateTimePicker(DateTimeEntity, RestoreEntity):
-    """DateTime helper entity for kid-specific date/time selection."""
+class AssigneeDashboardHelperDateTimePicker(DateTimeEntity, RestoreEntity):
+    """DateTime helper entity for assignee-specific date/time selection."""
 
     _attr_has_entity_name = True
     _attr_translation_key = const.TRANS_KEY_DATETIME_DATE_HELPER
 
     def __init__(
         self,
-        coordinator: KidsChoresDataCoordinator,
-        entry: KidsChoresConfigEntry,
-        kid_id: str,
-        kid_name: str,
+        coordinator: ChoreOpsDataCoordinator,
+        entry: ChoreOpsConfigEntry,
+        assignee_id: str,
+        assignee_name: str,
     ) -> None:
         """Initialize the datetime helper.
 
         Args:
-            coordinator: KidsChoresDataCoordinator instance for data access.
+            coordinator: ChoreOpsDataCoordinator instance for data access.
             entry: ConfigEntry for this integration instance.
-            kid_id: Unique identifier for the kid.
-            kid_name: Display name of the kid.
+            assignee_id: Unique identifier for the assignee.
+            assignee_name: Display name of the assignee.
         """
         self.coordinator = coordinator
-        self._kid_id = kid_id
-        self._kid_name = kid_name
+        self._assignee_id = assignee_id
+        self._assignee_name = assignee_name
         self._attr_unique_id = (
-            f"{entry.entry_id}_{kid_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
+            f"{entry.entry_id}_{assignee_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
         )
         self._attr_translation_placeholders = {
-            const.TRANS_KEY_SENSOR_ATTR_KID_NAME: kid_name
+            const.TRANS_KEY_SENSOR_ATTR_ASSIGNEE_NAME: assignee_name
         }
-        self._attr_device_info = create_kid_device_info_from_coordinator(
-            self.coordinator, kid_id, kid_name, entry
+        self._attr_device_info = create_assignee_device_info_from_coordinator(
+            self.coordinator, assignee_id, assignee_name, entry
         )
 
         # Default to tomorrow at noon
@@ -92,7 +96,7 @@ class KidDashboardHelperDateTimePicker(DateTimeEntity, RestoreEntity):
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)
         # self.entity_id = (
-        #     f"{const.DATETIME_KC_PREFIX}{kid_name}"
+        #     f"{const.DATETIME_KC_PREFIX}{assignee_name}"
         #     f"{const.DATETIME_KC_EID_MIDFIX_UI_DASHBOARD}"
         #     f"{const.DATETIME_KC_EID_SUFFIX_DATE_HELPER}"
         # )
@@ -134,5 +138,5 @@ class KidDashboardHelperDateTimePicker(DateTimeEntity, RestoreEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DATETIME_DASHBOARD_HELPER,
-            const.ATTR_KID_NAME: self._kid_name,
+            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
         }

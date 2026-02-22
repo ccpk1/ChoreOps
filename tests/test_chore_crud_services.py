@@ -4,11 +4,11 @@ This module tests:
 - create_chore service with schema validation
 - update_chore service with schema validation and immutable field protection
 - delete_chore service
-- E2E verification via kid chore status sensors
+- E2E verification via assignee chore status sensors
 
 Testing approach:
 - Schema validation with literal field names (not constants)
-- E2E verification through chore status sensors (sensor.kc_{kid}_chore_status_{chore})
+- E2E verification through chore status sensors (sensor.kc_{assignee}_chore_status_{chore})
 - Both positive (accepts valid data) and negative (rejects invalid data) cases
 
 Key difference from reward tests: ALL E2E tests verify via chore status sensors,
@@ -48,7 +48,7 @@ async def scenario_full(
     hass: HomeAssistant,
     mock_hass_users: dict[str, Any],
 ) -> SetupResult:
-    """Load full scenario: 3 kids, 2 parents, 8 chores, 3 rewards."""
+    """Load full scenario: 3 assignees, 2 approvers, 8 chores, 3 rewards."""
     return await setup_from_yaml(
         hass,
         mock_hass_users,
@@ -62,40 +62,40 @@ async def scenario_full(
 
 
 def get_chore_status_sensor(
-    hass: HomeAssistant, kid_slug: str, chore_slug: str
+    hass: HomeAssistant, assignee_slug: str, chore_slug: str
 ) -> State | None:
-    """Get chore status sensor for a kid/chore combination.
+    """Get chore status sensor for a assignee/chore combination.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid slug (e.g., "zoe", "max", "lila")
+        assignee_slug: Assignee slug (e.g., "zoe", "max", "lila")
         chore_slug: Chore slug (chore name lowercased with spaces → underscores)
 
     Returns:
         Entity state object or None if sensor doesn't exist
 
-    Entity ID pattern: sensor.kc_{kid}_chore_status_{chore}
+    Entity ID pattern: sensor.kc_{assignee}_chore_status_{chore}
     """
-    eid = f"sensor.kc_{kid_slug}_chore_status_{chore_slug}"
+    eid = f"sensor.kc_{assignee_slug}_chore_status_{chore_slug}"
     return hass.states.get(eid)
 
 
 def find_chore_in_dashboard_helper(
-    hass: HomeAssistant, kid_slug: str, chore_name: str
+    hass: HomeAssistant, assignee_slug: str, chore_name: str
 ) -> dict[str, Any] | None:
-    """Find chore in kid's dashboard helper chores list.
+    """Find chore in assignee's dashboard helper chores list.
 
     Args:
         hass: Home Assistant instance
-        kid_slug: Kid slug (e.g., "zoe", "max", "lila")
+        assignee_slug: Assignee slug (e.g., "zoe", "max", "lila")
         chore_name: Chore name to search for
 
     Returns:
         Chore dict if found, None otherwise
     """
     helper_state = hass.states.get(
-        f"sensor.{kid_slug}_choreops_ui_dashboard_helper"
-    ) or hass.states.get(f"sensor.{kid_slug}_kidschores_ui_dashboard_helper")
+        f"sensor.{assignee_slug}_choreops_ui_dashboard_helper"
+    ) or hass.states.get(f"sensor.{assignee_slug}_choreops_ui_dashboard_helper")
 
     if helper_state is None:
         return None
@@ -135,7 +135,7 @@ class TestCreateChoreSchemaValidation:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Test Chore Schema",
-                    "assigned_kids": ["Zoë", "Max!"],
+                    "assigned_assignees": ["Zoë", "Max!"],
                     "points": 15,
                     "description": "Testing schema validation",
                     "icon": "mdi:test-tube",
@@ -155,31 +155,31 @@ class TestCreateChoreSchemaValidation:
         assert isinstance(chore_id, str)
 
     @pytest.mark.asyncio
-    async def test_requires_name_and_assigned_kids(
+    async def test_requires_name_and_assigned_assignees(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test create_chore requires name and assigned_kids fields."""
+        """Test create_chore requires name and assigned_assignees fields."""
         # Missing name
         with pytest.raises(vol.Invalid):
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CREATE_CHORE,
                 {
-                    "assigned_kids": ["Zoë"],
+                    "assigned_assignees": ["Zoë"],
                     "points": 10,
                 },
                 blocking=True,
             )
 
-        # Missing assigned_kids
+        # Missing assigned_assignees
         with pytest.raises(vol.Invalid):
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CREATE_CHORE,
                 {
-                    "name": "Missing Kids",
+                    "name": "Missing Assignees",
                     "points": 10,
                 },
                 blocking=True,
@@ -198,7 +198,7 @@ class TestCreateChoreSchemaValidation:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Test Chore",
-                    "assigned_kids": ["Zoë"],
+                    "assigned_assignees": ["Zoë"],
                     "points": 10,
                     "invalid_field": "should fail",  # ❌ Not in schema
                 },
@@ -225,7 +225,7 @@ class TestCreateChoreEndToEnd:
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test created chore appears in kids' dashboard helper chores list.
+        """Test created chore appears in assignees' dashboard helper chores list.
 
         E2E Pattern: Service call → Storage → Dashboard helper → Verify
         """
@@ -235,7 +235,7 @@ class TestCreateChoreEndToEnd:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Service Test Chore",
-                    "assigned_kids": ["Zoë", "Max!"],
+                    "assigned_assignees": ["Zoë", "Max!"],
                     "points": 15,
                 },
                 blocking=True,
@@ -280,7 +280,7 @@ class TestCreateChoreEndToEnd:
         """Test created chore dashboard helper attributes match service input.
 
         E2E Pattern: Service call → Dashboard helper attributes validation
-        Validates: points, description, labels, assigned_kids, completion_criteria
+        Validates: points, description, labels, assigned_assignees, completion_criteria
         """
         with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
             await hass.services.async_call(
@@ -288,7 +288,7 @@ class TestCreateChoreEndToEnd:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Attribute Test Chore",
-                    "assigned_kids": ["Zoë", "Max!", "Lila"],
+                    "assigned_assignees": ["Zoë", "Max!", "Lila"],
                     "points": 25,
                     "description": "Verifying all attributes",
                     "labels": ["test", "e2e"],
@@ -438,7 +438,7 @@ class TestDeleteChoreEndToEnd:
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test deleted chore removed from dashboard helper for all assigned kids.
+        """Test deleted chore removed from dashboard helper for all assigned assignees.
 
         E2E Pattern: Service call → Storage deletion → Dashboard helper removal → Verify
         """
@@ -452,7 +452,7 @@ class TestDeleteChoreEndToEnd:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Delete Test Chore",
-                    "assigned_kids": ["Zoë", "Max!"],
+                    "assigned_assignees": ["Zoë", "Max!"],
                     "points": 10,
                 },
                 blocking=True,

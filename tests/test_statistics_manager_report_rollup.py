@@ -25,8 +25,8 @@ def test_get_report_rollup_returns_normalized_reward_keys() -> None:
     """Public rollup contract returns reward points_spent keys."""
     manager = StatisticsManager.__new__(StatisticsManager)
 
-    def _get_kid(_self: StatisticsManager, _kid_id: str) -> dict[str, Any]:
-        return {"kid_data": True}
+    def _get_assignee(_self: StatisticsManager, _assignee_id: str) -> dict[str, Any]:
+        return {"assignee_data": True}
 
     def _rollup_period_metrics(
         _self: StatisticsManager,
@@ -49,7 +49,7 @@ def test_get_report_rollup_returns_normalized_reward_keys() -> None:
         return {"in_range": defaults, "all_time": defaults}
 
     def _get_badge_rollup(
-        _self: StatisticsManager, _kid_info: dict[str, Any]
+        _self: StatisticsManager, _assignee_info: dict[str, Any]
     ) -> dict[str, Any]:
         return {
             "earned_unique_count": 0,
@@ -60,7 +60,7 @@ def test_get_report_rollup_returns_normalized_reward_keys() -> None:
 
     def _get_streak_rollup(
         _self: StatisticsManager,
-        _kid_info: dict[str, Any],
+        _assignee_info: dict[str, Any],
         _chore_periods: dict[str, Any],
     ) -> dict[str, int]:
         return {
@@ -70,7 +70,7 @@ def test_get_report_rollup_returns_normalized_reward_keys() -> None:
             "all_time_longest_missed_streak": 0,
         }
 
-    manager._get_kid = MethodType(_get_kid, manager)
+    manager._get_assignee = MethodType(_get_assignee, manager)
     manager._rollup_period_metrics = MethodType(_rollup_period_metrics, manager)
     manager._rollup_period_collections = MethodType(_rollup_period_collections, manager)
     manager._get_badge_rollup = MethodType(_get_badge_rollup, manager)
@@ -78,7 +78,7 @@ def test_get_report_rollup_returns_normalized_reward_keys() -> None:
 
     rollup = StatisticsManager.get_report_rollup(
         manager,
-        kid_id="kid-1",
+        assignee_id="assignee-1",
         start_iso="2026-02-10T00:00:00+00:00",
         end_iso="2026-02-17T00:00:00+00:00",
     )

@@ -3,7 +3,7 @@
 # Purpose: Test approval_reset_type=upon_completion for daily_multi chores
 #
 # Key Test Cases:
-# 1. Reset triggers ONLY when ALL kids complete their instances
+# 1. Reset triggers ONLY when ALL assignees complete their instances
 # 2. Partial completions do NOT trigger reset
 # 3. Reset happens immediately upon last approval
 # =============================================================================
@@ -13,28 +13,28 @@ system:
   points_label: "Points"
   points_icon: "mdi:star"
 
-# Kids (3 kids for multi-instance testing)
-kids:
+# Assignees (3 assignees for multi-instance testing)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Lila"
-    ha_user: "kid3"
+    ha_user: "assignee3"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (1 parent can approve all)
-parents:
+# Approvers (1 approver can approve all)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Max!", "Lila"]
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!", "Lila"]
     mobile_notify_service: ""
 
 chores:

@@ -1,4 +1,4 @@
-"""UI Manager for KidsChores dashboard and translation sensor features.
+"""UI Manager for ChoreOps dashboard and translation sensor features.
 
 Responsible for:
 - Translation sensor lifecycle (creation, lookup, cleanup)
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
 
 
 class UIManager(BaseManager):
@@ -36,13 +36,13 @@ class UIManager(BaseManager):
     """
 
     def __init__(
-        self, hass: HomeAssistant, coordinator: KidsChoresDataCoordinator
+        self, hass: HomeAssistant, coordinator: ChoreOpsDataCoordinator
     ) -> None:
         """Initialize UI manager.
 
         Args:
             hass: Home Assistant instance
-            coordinator: Parent coordinator managing this integration instance
+            coordinator: Approver coordinator managing this integration instance
         """
         super().__init__(hass, coordinator)
 
@@ -67,8 +67,8 @@ class UIManager(BaseManager):
         # Listen for user deletion to clean up translation sensors
         # Follows Platinum Architecture: UIManager reacts to signals instead of
         # being called directly by UserManager
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._on_user_deleted)
-        self.listen(const.SIGNAL_SUFFIX_PARENT_DELETED, self._on_user_deleted)
+        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_user_deleted)
+        self.listen(const.SIGNAL_SUFFIX_APPROVER_DELETED, self._on_user_deleted)
 
         # Listen for chore state changes that affect pending approvals
         # These signals are already emitted by ChoreManager - no coupling needed
@@ -114,7 +114,7 @@ class UIManager(BaseManager):
         (translation sensors that are no longer needed).
 
         Args:
-            payload: Event data (kid_id/parent_id - not used, we scan all users)
+            payload: Event data (assignee_id/approver_id - not used, we scan all users)
         """
         # Don't need payload data - just check if any languages are now unused
         self.remove_unused_translation_sensors()
@@ -234,7 +234,7 @@ class UIManager(BaseManager):
         If the sensor doesn't exist, creates it dynamically using the stored
         async_add_entities callback. Returns the entity ID.
 
-        This is called when a kid's dashboard language changes to a new language
+        This is called when an assignee's dashboard language changes to a new language
         that doesn't have a translation sensor yet.
 
         Args:
@@ -297,7 +297,7 @@ class UIManager(BaseManager):
         )
 
     def get_languages_in_use(self) -> set[str]:
-        """Get all unique dashboard languages currently in use by kids and parents.
+        """Get all unique dashboard languages currently in use by assignees and approvers.
 
         Used to determine which translation sensors are needed.
 
@@ -305,14 +305,14 @@ class UIManager(BaseManager):
             Set of ISO language codes in use (always includes 'en' as fallback)
         """
         languages: set[str] = set()
-        for kid_info in self.coordinator.kids_data.values():
-            lang = kid_info.get(
-                const.DATA_KID_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        for assignee_info in self.coordinator.assignees_data.values():
+            lang = assignee_info.get(
+                const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             )
             languages.add(lang)
-        for parent_info in self.coordinator.parents_data.values():
-            lang = parent_info.get(
-                const.DATA_PARENT_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+        for approver_info in self.coordinator.approvers_data.values():
+            lang = approver_info.get(
+                const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             )
             languages.add(lang)
         # Always include English as fallback
@@ -323,7 +323,7 @@ class UIManager(BaseManager):
         """Remove translation sensors for languages no longer in use.
 
         This is an optimization to avoid keeping unused sensors in memory.
-        Called when a kid/parent is deleted or their language is changed.
+        Called when an assignee/approver is deleted or their language is changed.
 
         Note: Entity removal is handled via entity registry; we just update tracking.
         """
@@ -359,7 +359,7 @@ class UIManager(BaseManager):
         to the next day at 9 AM, regardless of current value.
 
         This is a Dashboard UX feature to ensure datetime helpers always show
-        a future date when kids check their dashboard in the morning.
+        a future date when assignees check their dashboard in the morning.
 
         Args:
             _now: Current datetime (provided by async_track_time_change, unused)
@@ -371,13 +371,15 @@ class UIManager(BaseManager):
         entity_registry = er.async_get(self.hass)
 
         # Find all datetime helper entities using unique_id pattern
-        for kid_id, kid_info in self.coordinator.kids_data.items():
-            kid_name = kid_info.get(const.DATA_KID_NAME, f"Kid {kid_id}")
+        for assignee_id, assignee_info in self.coordinator.assignees_data.items():
+            assignee_name = assignee_info.get(
+                const.DATA_ASSIGNEE_NAME, f"Assignee {assignee_id}"
+            )
 
             # Construct unique_id pattern (matches datetime.py)
             expected_unique_id = (
                 f"{self.coordinator.config_entry.entry_id}_"
-                f"{kid_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
+                f"{assignee_id}{const.DATETIME_KC_UID_SUFFIX_DATE_HELPER}"
             )
 
             # Find entity by unique_id
@@ -403,6 +405,6 @@ class UIManager(BaseManager):
             )
             const.LOGGER.debug(
                 "Advanced datetime helper for %s to %s",
-                kid_name,
+                assignee_name,
                 tomorrow_9am.isoformat(),
             )

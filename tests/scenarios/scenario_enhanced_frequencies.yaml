@@ -6,8 +6,8 @@
 #   - F3: CUSTOM + hours unit (hourly intervals)
 #
 # Contents:
-#   - 2 parents: Môm Astrid Stârblüm, Dad Leo Stårblüm (standard Stårblüm family)
-#   - 2 kids: Zoë, Max! (tests multi-kid scenarios)
+#   - 2 approvers: Môm Astrid Stârblüm, Dad Leo Stårblüm (standard Stårblüm family)
+#   - 2 assignees: Zoë, Max! (tests multi-assignee scenarios)
 #   - 9 chores: Feature-specific test chores
 #
 # Use case:
@@ -24,28 +24,28 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-# Kids (2 kids for multi-kid testing)
-kids:
+# Assignees (2 assignees for multi-assignee testing)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
   - name: "Max!"
-    ha_user: "kid2"
+    ha_user: "assignee2"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (2 parents)
-parents:
+# Approvers (2 approvers)
+approvers:
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent1"
-    kids: ["Zoë", "Max!"]
+    ha_user: "approver1"
+    assignees: ["Zoë", "Max!"]
     mobile_notify_service: ""
 
   - name: "Dad Leo Stårblüm"
-    ha_user: "parent2"
-    kids: ["Zoë", "Max!"]
+    ha_user: "approver2"
+    assignees: ["Zoë", "Max!"]
     mobile_notify_service: ""
 
 # =============================================================================
@@ -88,7 +88,7 @@ chores:
     approval_reset_pending_claim_action: "clear_pending"
     due_date: "+3d17:00"
 
-  # EF-03: Custom From Complete - Single kid test
+  # EF-03: Custom From Complete - Single assignee test
   - name: "Custom From Complete Single"
     assigned_to: ["Zoë"]
     points: 8.0
@@ -136,8 +136,8 @@ chores:
     approval_reset_pending_claim_action: "clear_pending"
     due_date: "+0d08:00"
 
-  # EF-06: Daily Multi - Single kid INDEPENDENT (allowed case)
-  - name: "Daily Multi Single Kid"
+  # EF-06: Daily Multi - Single assignee INDEPENDENT (allowed case)
+  - name: "Daily Multi Single Assignee"
     assigned_to: ["Zoë"]
     points: 4.0
     icon: "mdi:clock-time-two"
@@ -243,13 +243,13 @@ chores:
 # F1: CUSTOM_FROM_COMPLETE (4 chores)
 #   - EF-01: "Custom From Complete SHARED" - shared, upon_completion, 10 days
 #   - EF-02: "Custom From Complete INDEPENDENT" - independent, at_due_date_once, 7 days
-#   - EF-03: "Custom From Complete Single" - single kid, upon_completion, 5 days
+#   - EF-03: "Custom From Complete Single" - single assignee, upon_completion, 5 days
 #   - EF-11: "Shared First Custom From Complete" - shared_first, upon_completion, 5 days
 #
 # F2: DAILY_MULTI (4 chores)
 #   - EF-04: "Daily Multi Morning Evening" - 2 times (07:00|18:00), upon_completion
 #   - EF-05: "Daily Multi Three Times" - 3 times (08:00|12:00|17:00), at_due_date_multi
-#   - EF-06: "Daily Multi Single Kid" - single kid, 2 times (09:00|21:00)
+#   - EF-06: "Daily Multi Single Assignee" - single assignee, 2 times (09:00|21:00)
 #   - EF-10: "Shared First Daily Multi" - shared_first, 2 times (08:00|17:00)
 #
 # F3: CUSTOM HOURS (2 chores)

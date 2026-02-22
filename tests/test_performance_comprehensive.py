@@ -1,4 +1,4 @@
-"""Performance testing for KidsChores.
+"""Performance testing for ChoreOps.
 
 Measures actual expensive operations:
 - Badge checking operations
@@ -88,21 +88,23 @@ async def run_performance_test(
     config_entry = setup_result.config_entry
     coordinator = config_entry.runtime_data
 
-    # Test badge checking for all kids (via GamificationManager)
+    # Test badge checking for all assignees (via GamificationManager)
     badge_start = time.perf_counter()
-    for kid_id in coordinator.kids_data:
-        coordinator.gamification_manager._mark_dirty(kid_id)
-    coordinator.gamification_manager._evaluate_pending_kids()
+    for assignee_id in coordinator.assignees_data:
+        coordinator.gamification_manager._mark_dirty(assignee_id)
+    coordinator.gamification_manager._evaluate_pending_assignees()
     badge_duration_ms = (time.perf_counter() - badge_start) * 1000
 
     # Test overdue checking
     with (
         patch.object(
-            coordinator.notification_manager, "notify_kid_translated", new=AsyncMock()
+            coordinator.notification_manager,
+            "notify_assignee_translated",
+            new=AsyncMock(),
         ),
         patch.object(
             coordinator.notification_manager,
-            "notify_parents_translated",
+            "notify_approvers_translated",
             new=AsyncMock(),
         ),
     ):
@@ -124,10 +126,10 @@ async def run_performance_test(
         "overdue_duration_ms": round(overdue_duration_ms, 2),
         "persist_queue_us": round(persist_queue_us, 1),
         "entity_count": len(entities),
-        "kids_count": len(coordinator.kids_data),
+        "assignees_count": len(coordinator.assignees_data),
         "chores_count": len(coordinator.chores_data),
         "badges_count": len(coordinator.badges_data),
-        "parents_count": len(coordinator.parents_data),
+        "approvers_count": len(coordinator.approvers_data),
         "rewards_count": len(coordinator.rewards_data),
     }
 
@@ -177,7 +179,7 @@ async def test_scenario_performance(
             f"Persist: {results['persist_queue_us']:.1f}µs"
         )
         print(
-            f"   Dataset: {results['kids_count']} kids, "
+            f"   Dataset: {results['assignees_count']} assignees, "
             f"{results['chores_count']} chores, "
             f"{results['badges_count']} badges"
         )

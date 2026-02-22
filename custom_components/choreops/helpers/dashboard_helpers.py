@@ -1,8 +1,8 @@
 # File: helpers/dashboard_helpers.py
-"""Dashboard generation helper functions for KidsChores.
+"""Dashboard generation helper functions for ChoreOps.
 
 Provides context building and template rendering support for generating
-Lovelace dashboards via the KidsChores Options Flow.
+Lovelace dashboards via the ChoreOps Options Flow.
 
 All functions here require a `hass` object or interact with HA APIs.
 """
@@ -19,12 +19,12 @@ import voluptuous as vol
 from .. import const
 
 if TYPE_CHECKING:
-    from ..coordinator import KidsChoresDataCoordinator
-    from ..type_defs import KidData
+    from ..coordinator import ChoreOpsDataCoordinator
+    from ..type_defs import AssigneeData
 
 
 DASHBOARD_CONFIGURE_SECTION_KEYS = (
-    const.CFOF_DASHBOARD_SECTION_KID_VIEWS,
+    const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS,
     const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS,
     const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR,
     const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION,
@@ -70,8 +70,8 @@ def resolve_template_display_label(style_key: str) -> str:
 # ==============================================================================
 
 
-class DashboardKidContext(TypedDict):
-    """Minimal context for a kid in dashboard generation.
+class DashboardAssigneeContext(TypedDict):
+    """Minimal context for an assignee in dashboard generation.
 
     The dashboard templates only need these two values - all other data
     (entity IDs, points, chores) is discovered at runtime via HA Jinja2
@@ -86,11 +86,11 @@ class DashboardContext(TypedDict):
     """Full context for dashboard template rendering.
 
     Passed to the Python Jinja2 environment with << >> delimiters.
-    For kid dashboards, only `kid` is used.
+    For assignee dashboards, only the context key is used.
     For admin dashboard, no context is needed (fully dynamic).
     """
 
-    kid: DashboardKidContext
+    assignee: DashboardAssigneeContext
 
 
 # ==============================================================================
@@ -98,29 +98,29 @@ class DashboardContext(TypedDict):
 # ==============================================================================
 
 
-def build_kid_context(kid_name: str) -> DashboardKidContext:
-    """Build minimal context for a single kid dashboard.
+def build_assignee_context(assignee_name: str) -> DashboardAssigneeContext:
+    """Build minimal context for a single assignee dashboard.
 
     Args:
-        kid_name: The kid's exact display name from storage.
+        assignee_name: The assignee's exact display name from storage.
 
     Returns:
-        DashboardKidContext with name and URL-safe slug.
+        DashboardAssigneeContext with name and URL-safe slug.
 
     Example:
-        >>> build_kid_context("Alice")
+        >>> build_assignee_context("Alice")
         {"name": "Alice", "slug": "alice"}
-        >>> build_kid_context("María José")
+        >>> build_assignee_context("María José")
         {"name": "María José", "slug": "maria_jose"}
     """
-    return DashboardKidContext(
-        name=kid_name,
-        slug=slugify(kid_name),
+    return DashboardAssigneeContext(
+        name=assignee_name,
+        slug=slugify(assignee_name),
     )
 
 
 def build_dashboard_context(
-    kid_name: str,
+    assignee_name: str,
     *,
     template_profile: str | None = None,
 ) -> DashboardContext:
@@ -129,7 +129,7 @@ def build_dashboard_context(
     This is the dict passed to the Jinja2 template engine with << >> delimiters.
 
     Args:
-        kid_name: The kid's exact display name from storage.
+        assignee_name: The assignee's exact display name from storage.
         template_profile: Optional template profile for future granular flows.
             Phase 2 scaffolding keeps context shape unchanged.
 
@@ -138,57 +138,57 @@ def build_dashboard_context(
 
     Example:
         >>> ctx = build_dashboard_context("Alice")
-        >>> ctx["kid"]["name"]
+        >>> ctx["assignee"]["name"]
         'Alice'
-        >>> ctx["kid"]["slug"]
+        >>> ctx["assignee"]["slug"]
         'alice'
     """
     _ = template_profile
 
     return DashboardContext(
-        kid=build_kid_context(kid_name),
+        assignee=build_assignee_context(assignee_name),
     )
 
 
-def resolve_kid_template_profile(
-    kid_name: str,
+def resolve_assignee_template_profile(
+    assignee_name: str,
     default_style: str,
-    kid_template_profiles: dict[str, str] | None = None,
+    assignee_template_profiles: dict[str, str] | None = None,
 ) -> str:
-    """Resolve template profile for a kid with safe fallback.
+    """Resolve template profile for an assignee with safe fallback.
 
     Args:
-        kid_name: Kid display name.
+        assignee_name: Assignee display name.
         default_style: Default selected style.
-        kid_template_profiles: Optional per-kid profile mapping.
+        assignee_template_profiles: Optional per-assignee profile mapping.
 
     Returns:
-        Resolved style/profile for this kid.
+        Resolved style/profile for this assignee.
     """
-    if not kid_template_profiles:
+    if not assignee_template_profiles:
         return default_style
 
-    resolved = kid_template_profiles.get(kid_name, default_style)
+    resolved = assignee_template_profiles.get(assignee_name, default_style)
     if resolved in const.DASHBOARD_STYLES:
         return resolved
 
     return default_style
 
 
-def get_all_kid_names(coordinator: KidsChoresDataCoordinator) -> list[str]:
-    """Get list of all kid names from coordinator.
+def get_all_assignee_names(coordinator: ChoreOpsDataCoordinator) -> list[str]:
+    """Get list of all assignee names from coordinator.
 
     Args:
-        coordinator: KidsChoresDataCoordinator instance.
+        coordinator: ChoreOpsDataCoordinator instance.
 
     Returns:
-        List of kid display names, sorted alphabetically.
+        List of assignee display names, sorted alphabetically.
     """
-    kids_data = coordinator.kids_data
+    assignees_data = coordinator.assignees_data
     names: list[str] = []
-    for kid_info in kids_data.values():
-        kid_info_typed: KidData = kid_info
-        name = kid_info_typed.get(const.DATA_KID_NAME, "")
+    for assignee_info in assignees_data.values():
+        assignee_info_typed: AssigneeData = assignee_info
+        name = assignee_info_typed.get(const.DATA_ASSIGNEE_NAME, "")
         if name:
             names.append(name)
     return sorted(names)
@@ -228,8 +228,8 @@ def build_dashboard_admin_mode_options() -> list[selector.SelectOptionDict]:
             label=const.DASHBOARD_ADMIN_MODE_GLOBAL,
         ),
         selector.SelectOptionDict(
-            value=const.DASHBOARD_ADMIN_MODE_PER_KID,
-            label=const.DASHBOARD_ADMIN_MODE_PER_KID,
+            value=const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
+            label=const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
         ),
         selector.SelectOptionDict(
             value=const.DASHBOARD_ADMIN_MODE_BOTH,
@@ -259,8 +259,8 @@ def build_dashboard_admin_view_visibility_options() -> list[selector.SelectOptio
             label=const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL,
         ),
         selector.SelectOptionDict(
-            value=const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_PARENTS,
-            label=const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_PARENTS,
+            value=const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS,
+            label=const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS,
         ),
     ]
 
@@ -287,19 +287,21 @@ def build_dashboard_release_selection_options(
     return options
 
 
-def build_dashboard_kid_options(
-    coordinator: KidsChoresDataCoordinator,
+def build_dashboard_assignee_options(
+    coordinator: ChoreOpsDataCoordinator,
 ) -> list[selector.SelectOptionDict]:
-    """Build kid selection options for dashboard generator form.
+    """Build assignee selection options for dashboard generator form.
 
     Args:
-        coordinator: KidsChoresDataCoordinator instance.
+        coordinator: ChoreOpsDataCoordinator instance.
 
     Returns:
-        List of SelectOptionDict for kid multi-selector.
+        List of SelectOptionDict for assignee multi-selector.
     """
-    kid_names = get_all_kid_names(coordinator)
-    return [selector.SelectOptionDict(value=name, label=name) for name in kid_names]
+    assignee_names = get_all_assignee_names(coordinator)
+    return [
+        selector.SelectOptionDict(value=name, label=name) for name in assignee_names
+    ]
 
 
 def build_dashboard_create_name_schema() -> vol.Schema:
@@ -317,15 +319,15 @@ def build_dashboard_create_name_schema() -> vol.Schema:
 
 
 def build_dashboard_configure_schema(
-    coordinator: KidsChoresDataCoordinator,
+    coordinator: ChoreOpsDataCoordinator,
     *,
     include_release_controls: bool,
     release_tags: list[str] | None = None,
-    selected_kids_default: list[str] | None = None,
+    selected_assignees_default: list[str] | None = None,
     template_profile_default: str = const.DASHBOARD_STYLE_FULL,
     admin_mode_default: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
     admin_template_global_default: str = const.DASHBOARD_STYLE_ADMIN,
-    admin_template_per_kid_default: str = const.DASHBOARD_STYLE_ADMIN,
+    admin_template_per_assignee_default: str = const.DASHBOARD_STYLE_ADMIN,
     admin_view_visibility_default: str = const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL,
     show_in_sidebar_default: bool = True,
     require_admin_default: bool = False,
@@ -336,11 +338,11 @@ def build_dashboard_configure_schema(
     release_selection_default: str = const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
 ) -> vol.Schema:
     """Build unified Step 2 dashboard configuration schema."""
-    kid_options = build_dashboard_kid_options(coordinator)
-    kid_names = get_all_kid_names(coordinator)
-    default_selected_kids = selected_kids_default or kid_names
+    assignee_options = build_dashboard_assignee_options(coordinator)
+    assignee_names = get_all_assignee_names(coordinator)
+    default_selected_assignees = selected_assignees_default or assignee_names
 
-    kid_view_fields: dict[vol.Marker, Any] = {
+    assignee_view_fields: dict[vol.Marker, Any] = {
         vol.Optional(
             const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE,
             default=template_profile_default,
@@ -353,18 +355,18 @@ def build_dashboard_configure_schema(
         ),
     }
 
-    if kid_options:
-        kid_view_fields[
+    if assignee_options:
+        assignee_view_fields[
             vol.Optional(
-                const.CFOF_DASHBOARD_INPUT_KID_SELECTION,
-                default=default_selected_kids,
+                const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION,
+                default=default_selected_assignees,
             )
         ] = selector.SelectSelector(
             selector.SelectSelectorConfig(
-                options=kid_options,
+                options=assignee_options,
                 mode=selector.SelectSelectorMode.DROPDOWN,
                 multiple=True,
-                translation_key=const.TRANS_KEY_CFOF_DASHBOARD_KID_SELECTION,
+                translation_key=const.TRANS_KEY_CFOF_DASHBOARD_ASSIGNEE_SELECTION,
             )
         )
 
@@ -409,19 +411,19 @@ def build_dashboard_configure_schema(
         )
 
     if not include_release_controls or admin_mode_default in (
-        const.DASHBOARD_ADMIN_MODE_PER_KID,
+        const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
         const.DASHBOARD_ADMIN_MODE_BOTH,
     ):
         admin_view_fields[
             vol.Optional(
-                const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_KID,
-                default=admin_template_per_kid_default,
+                const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_ASSIGNEE,
+                default=admin_template_per_assignee_default,
             )
         ] = selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=build_dashboard_admin_template_options(),
                 mode=selector.SelectSelectorMode.DROPDOWN,
-                translation_key=const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_TEMPLATE_PER_KID,
+                translation_key=const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_TEMPLATE_PER_ASSIGNEE,
             )
         )
 
@@ -463,8 +465,8 @@ def build_dashboard_configure_schema(
         )
 
     sectioned_schema_fields: dict[vol.Marker, Any] = {
-        vol.Optional(const.CFOF_DASHBOARD_SECTION_KID_VIEWS): section(
-            vol.Schema(kid_view_fields)
+        vol.Optional(const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS): section(
+            vol.Schema(assignee_view_fields)
         ),
         vol.Optional(const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS): section(
             vol.Schema(admin_view_fields)
@@ -501,10 +503,10 @@ def normalize_dashboard_configure_input(user_input: dict[str, Any]) -> dict[str,
 # ==============================================================================
 
 
-def get_existing_kidschores_dashboards(
+def get_existing_choreops_dashboards(
     hass: Any,
 ) -> list[dict[str, str]]:
-    """Get list of existing KidsChores dashboards.
+    """Get list of existing ChoreOps dashboards.
 
     Scans the lovelace dashboards collection for dashboards
     with url_path starting with cod-/kcd- (our namespace).
@@ -611,7 +613,7 @@ def build_dashboard_update_selection_schema(
     hass: Any,
 ) -> vol.Schema | None:
     """Build schema for selecting one existing dashboard to update."""
-    dashboards = get_existing_kidschores_dashboards(hass)
+    dashboards = get_existing_choreops_dashboards(hass)
 
     if not dashboards:
         return None

@@ -21,6 +21,19 @@ Program alignment note:
 - Cross-plan sequencing and completion truth are governed by `REBRAND_ROLEMODEL_CLOSEOUT_IN-PROCESS.md`.
 - Terminal terminology boundaries are governed by `REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`.
 
+## Historical reference-only checklist freeze
+
+- All phase tables, completion percentages, and checklist-style entries below are frozen historical snapshots.
+- No unchecked item in this file is actionable execution work.
+- Authoritative execution ownership is exclusively in `HARD_FORK_TERMINOLOGY_FINALIZATION_IN-PROCESS.md`.
+- Keep implementation evidence and decisions intact for audit traceability only.
+
+## Transfer acknowledgment
+
+- Transfer locked date: `2026-02-22`
+- PM initials/date: `____ / ____`
+- Builder lead initials/date: `____ / ____`
+
 ## Critical implementation expectation (hard fork)
 
 - This initiative is a **hard fork** for runtime/API contracts. Do not add new compatibility code.

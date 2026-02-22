@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 def make_context(
     *,
-    kid_id: str = "test-kid-123",
+    assignee_id: str = "test-assignee-123",
     current_points: float = 0.0,
     total_points_earned: float = 0.0,
     points_cycle_count: int = 0,
@@ -56,14 +56,14 @@ def make_context(
     return cast(
         "EvaluationContext",
         {
-            "kid_id": kid_id,
+            "assignee_id": assignee_id,
             "current_points": current_points,
             "total_points_earned": total_points_earned,
             "current_badge_progress": {
-                const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT: points_cycle_count,
-                const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT: chores_cycle_count,
-                const.DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT: days_cycle_count,
-                const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY: last_update_day,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT: points_cycle_count,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT: chores_cycle_count,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT: days_cycle_count,
+                const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY: last_update_day,
             },
             "today_stats": {
                 "today_points": today_points,
@@ -83,7 +83,7 @@ def make_context(
             },
             # v43+: chore_stats deleted, use chore_periods_all_time
             "chore_periods_all_time": {
-                const.DATA_KID_CHORE_DATA_PERIOD_APPROVED: approved_all_time,
+                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: approved_all_time,
             },
             "achievement_progress": {},
             "today_iso": today_iso or datetime.now(UTC).date().isoformat(),
@@ -708,8 +708,8 @@ class TestEvaluateAchievement:
         # Add achievement progress with streak tracking
         context["achievement_progress"] = {
             "achieve-123": {
-                context["kid_id"]: {
-                    const.DATA_KID_CURRENT_STREAK: 5,
+                context["assignee_id"]: {
+                    const.DATA_ASSIGNEE_CURRENT_STREAK: 5,
                 }
             }
         }
@@ -727,7 +727,7 @@ class TestEvaluateAchievement:
         context = make_context()
         context["badges_earned"] = {
             "badge-hero": {
-                const.DATA_KID_BADGES_EARNED_AWARD_COUNT: 3,
+                const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 3,
             }
         }
         achievement = make_achievement(
@@ -756,17 +756,17 @@ class TestEvaluateChallenge:
     def test_challenge_within_date_window_met(self) -> None:
         """Challenge criteria met when within date window and count reached."""
         today = datetime.now(UTC).date().isoformat()
-        context = make_context(kid_id="test-kid-123", today_iso=today)
+        context = make_context(assignee_id="test-assignee-123", today_iso=today)
         challenge = make_challenge(
             challenge_id="challenge-123",
             target_value=5,
             start_date=today,
             end_date=today,
         )
-        # Challenge progress is nested: {challenge_id: {kid_id: tracking}}
+        # Challenge progress is nested: {challenge_id: {assignee_id: tracking}}
         context["challenge_progress"] = {
             "challenge-123": {
-                "test-kid-123": {const.DATA_CHALLENGE_COUNT: 5},
+                "test-assignee-123": {const.DATA_CHALLENGE_COUNT: 5},
             },
         }
 
@@ -793,17 +793,17 @@ class TestEvaluateChallenge:
     def test_challenge_progress_calculation(self) -> None:
         """Challenge progress calculated correctly."""
         today = datetime.now(UTC).date().isoformat()
-        context = make_context(kid_id="test-kid-123", today_iso=today)
+        context = make_context(assignee_id="test-assignee-123", today_iso=today)
         challenge = make_challenge(
             challenge_id="challenge-123",
             target_value=10,
             start_date=today,
             end_date=today,
         )
-        # Challenge progress is nested: {challenge_id: {kid_id: tracking}}
+        # Challenge progress is nested: {challenge_id: {assignee_id: tracking}}
         context["challenge_progress"] = {
             "challenge-123": {
-                "test-kid-123": {const.DATA_CHALLENGE_COUNT: 3},
+                "test-assignee-123": {const.DATA_CHALLENGE_COUNT: 3},
             },
         }
 
@@ -815,17 +815,17 @@ class TestEvaluateChallenge:
     def test_challenge_below_target(self) -> None:
         """Challenge not met when below target value."""
         today = datetime.now(UTC).date().isoformat()
-        context = make_context(kid_id="test-kid-123", today_iso=today)
+        context = make_context(assignee_id="test-assignee-123", today_iso=today)
         challenge = make_challenge(
             challenge_id="challenge-123",
             target_value=5,
             start_date=today,
             end_date=today,
         )
-        # Challenge progress is nested: {challenge_id: {kid_id: tracking}}
+        # Challenge progress is nested: {challenge_id: {assignee_id: tracking}}
         context["challenge_progress"] = {
             "challenge-123": {
-                "test-kid-123": {const.DATA_CHALLENGE_COUNT: 2},
+                "test-assignee-123": {const.DATA_CHALLENGE_COUNT: 2},
             },
         }
 

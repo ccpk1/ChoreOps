@@ -18,7 +18,7 @@ import pytest
 
 from tests.helpers import (
     DATA_CHORE_APPLICABLE_DAYS,
-    DATA_CHORE_ASSIGNED_KIDS,
+    DATA_CHORE_ASSIGNED_ASSIGNEES,
     DATA_CHORE_DEFAULT_POINTS,
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_INTERNAL_ID,
@@ -55,7 +55,7 @@ async def test_show_on_calendar_true_chore_appears(
 ) -> None:
     """Test that calendar includes chores with show_on_calendar=True."""
     coordinator = scenario_minimal.coordinator
-    zoe_id = scenario_minimal.kid_ids["Zoë"]
+    zoe_id = scenario_minimal.assignee_ids["Zoë"]
 
     # Create chore with show_on_calendar=True
     visible_chore_id = str(uuid4())
@@ -64,7 +64,7 @@ async def test_show_on_calendar_true_chore_appears(
         DATA_CHORE_NAME: "Visible Chore",
         DATA_CHORE_DEFAULT_POINTS: 10,
         DATA_CHORE_SHOW_ON_CALENDAR: True,
-        DATA_CHORE_ASSIGNED_KIDS: [zoe_id],
+        DATA_CHORE_ASSIGNED_ASSIGNEES: [zoe_id],
         DATA_CHORE_RECURRING_FREQUENCY: FREQUENCY_NONE,
         DATA_CHORE_DUE_DATE: "2025-01-20T15:00:00-05:00",
         DATA_CHORE_APPLICABLE_DAYS: [],
@@ -90,7 +90,7 @@ async def test_show_on_calendar_false_chore_hidden(
 ) -> None:
     """Test that calendar excludes chores with show_on_calendar=False."""
     coordinator = scenario_minimal.coordinator
-    zoe_id = scenario_minimal.kid_ids["Zoë"]
+    zoe_id = scenario_minimal.assignee_ids["Zoë"]
 
     # Create chore with show_on_calendar=False
     hidden_chore_id = str(uuid4())
@@ -99,7 +99,7 @@ async def test_show_on_calendar_false_chore_hidden(
         DATA_CHORE_NAME: "Hidden Chore",
         DATA_CHORE_DEFAULT_POINTS: 20,
         DATA_CHORE_SHOW_ON_CALENDAR: False,
-        DATA_CHORE_ASSIGNED_KIDS: [zoe_id],
+        DATA_CHORE_ASSIGNED_ASSIGNEES: [zoe_id],
         DATA_CHORE_RECURRING_FREQUENCY: FREQUENCY_NONE,
         DATA_CHORE_DUE_DATE: "2025-01-25T15:00:00-05:00",
         DATA_CHORE_APPLICABLE_DAYS: [],
@@ -119,7 +119,7 @@ async def test_default_show_on_calendar_value(
 ) -> None:
     """Test backward compatibility: missing show_on_calendar defaults to True."""
     coordinator = scenario_minimal.coordinator
-    zoe_id = scenario_minimal.kid_ids["Zoë"]
+    zoe_id = scenario_minimal.assignee_ids["Zoë"]
 
     # Create chore WITHOUT show_on_calendar field (legacy data)
     legacy_chore_id = str(uuid4())
@@ -128,7 +128,7 @@ async def test_default_show_on_calendar_value(
         DATA_CHORE_NAME: "Legacy Chore",
         DATA_CHORE_DEFAULT_POINTS: 5,
         # NOTE: No show_on_calendar field - should default to True
-        DATA_CHORE_ASSIGNED_KIDS: [zoe_id],
+        DATA_CHORE_ASSIGNED_ASSIGNEES: [zoe_id],
         DATA_CHORE_RECURRING_FREQUENCY: FREQUENCY_NONE,
         DATA_CHORE_DUE_DATE: "2025-01-22T15:00:00-05:00",
         DATA_CHORE_APPLICABLE_DAYS: [],

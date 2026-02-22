@@ -1,20 +1,20 @@
 """Notification workflow tests using YAML scenarios.
 
 These tests verify that notifications are sent correctly during
-chore workflows and that they use the kid's configured language.
+chore workflows and that they use the assignee's configured language.
 
 Test Organization:
 - TestChoreClaimNotifications: Notifications sent when chores are claimed
-- TestNotificationLanguage: Verify notifications use kid's language preference
+- TestNotificationLanguage: Verify notifications use assignee's language preference
 - TestNotificationActions: Verify action buttons are translated
 
 Coordinator API Reference:
-- claim_chore(kid_id, chore_id, user_name)
-- approve_chore(parent_name, kid_id, chore_id, points_awarded=None)
+- claim_chore(assignee_id, chore_id, user_name)
+- approve_chore(approver_name, assignee_id, chore_id, points_awarded=None)
 
 Notification System:
 - async_send_notification(hass, service, title, message, actions, extra_data)
-- _notify_parents_translated() - Uses kid's dashboard_language for translations
+- _notify_approvers_translated() - Uses assignee's dashboard_language for translations
 """
 
 # pylint: disable=redefined-outer-name
@@ -34,16 +34,16 @@ import pytest
 from custom_components.choreops import const
 from tests.helpers import (
     ACTION_APPROVE_CHORE,
-    DATA_KID_DASHBOARD_LANGUAGE,
-    DATA_PARENT_DASHBOARD_LANGUAGE,
-    DATA_PARENT_MOBILE_NOTIFY_SERVICE,
+    DATA_APPROVER_DASHBOARD_LANGUAGE,
+    DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
+    DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-    from custom_components.choreops.coordinator import KidsChoresDataCoordinator
+    from custom_components.choreops.coordinator import ChoreOpsDataCoordinator
 
 # =============================================================================
 # FIXTURES
@@ -76,8 +76,8 @@ async def scenario_notifications(
     """Load notification testing scenario.
 
     Contains:
-    - 2 kids: Zoë (English), Max (Slovak)
-    - 1 parent: Mom (notifications enabled)
+    - 2 assignees: Zoë (English), Max (Slovak)
+    - 1 approver: Mom (notifications enabled)
     - 4 chores: Feed the cat (Zoë), Clean room (Max), Walk the dog (shared), Auto chore
     """
     # Register mock notify services BEFORE config flow runs
@@ -132,11 +132,11 @@ def get_action_titles(language: str) -> dict[str, str]:
     return translations.get("actions", {})
 
 
-def enable_parent_notifications(
-    coordinator: KidsChoresDataCoordinator,
-    parent_id: str,
+def enable_approver_notifications(
+    coordinator: ChoreOpsDataCoordinator,
+    approver_id: str,
 ) -> None:
-    """Enable notifications for a parent in coordinator data.
+    """Enable notifications for a approver in coordinator data.
 
     NOTE: This helper is only needed for scenarios that DON'T register mock notify
     services before setup. For scenario_notifications.yaml, mock services are
@@ -147,10 +147,10 @@ def enable_parent_notifications(
 
     Args:
         coordinator: The coordinator instance
-        parent_id: Internal ID of the parent to enable notifications for
+        approver_id: Internal ID of the approver to enable notifications for
     """
     # Set a mock notify service (presence of service enables notifications)
-    coordinator.parents_data[parent_id][DATA_PARENT_MOBILE_NOTIFY_SERVICE] = (
+    coordinator.approvers_data[approver_id][DATA_APPROVER_MOBILE_NOTIFY_SERVICE] = (
         "notify.notify"
     )
 
@@ -159,7 +159,7 @@ def enable_parent_notifications(
 
 
 def set_ha_user_capabilities(
-    coordinator: KidsChoresDataCoordinator,
+    coordinator: ChoreOpsDataCoordinator,
     ha_user_id: str,
     *,
     can_approve: bool,
@@ -170,8 +170,8 @@ def set_ha_user_capabilities(
     def _record_ha_user_ref(user_data: dict[str, Any]) -> str | None:
         for key in (
             const.DATA_USER_HA_USER_ID,
-            const.DATA_PARENT_HA_USER_ID,
-            const.DATA_KID_HA_USER_ID,
+            const.DATA_APPROVER_HA_USER_ID,
+            const.DATA_ASSIGNEE_HA_USER_ID,
         ):
             value = user_data.get(key)
             if isinstance(value, str) and value:
@@ -255,17 +255,17 @@ class TestChoreClaimNotifications:
         and the config flow accepted the notification settings.
         """
         coordinator = scenario_notifications.coordinator
-        parent_id = scenario_notifications.parent_ids["Môm Astrid Stârblüm"]
+        approver_id = scenario_notifications.approver_ids["Môm Astrid Stârblüm"]
 
-        # Get parent data from coordinator
-        parent_data = coordinator.parents_data[parent_id]
+        # Get approver data from coordinator
+        approver_data = coordinator.approvers_data[approver_id]
 
         # Verify notifications were enabled through config flow (via mobile service)
-        assert parent_data.get(DATA_PARENT_MOBILE_NOTIFY_SERVICE), (
+        assert approver_data.get(DATA_APPROVER_MOBILE_NOTIFY_SERVICE), (
             "Notifications enabled when mobile_notify_service is set"
         )
         assert (
-            parent_data.get(DATA_PARENT_MOBILE_NOTIFY_SERVICE)
+            approver_data.get(DATA_APPROVER_MOBILE_NOTIFY_SERVICE)
             == "notify.mobile_app_mom_astrid_starblum"
         ), "Mobile notify service should be set through config flow"
 
@@ -277,14 +277,14 @@ class TestChoreClaimNotifications:
         )
 
     @pytest.mark.asyncio
-    async def test_claim_sends_notification_to_parent(
+    async def test_claim_sends_notification_to_approver(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
         """Claiming a chore with notify_on_claim=true sends notification."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -294,7 +294,7 @@ class TestChoreClaimNotifications:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
         # Notification should be sent
@@ -308,7 +308,7 @@ class TestChoreClaimNotifications:
     ) -> None:
         """Chore claim notification includes approve/disapprove action buttons."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -318,7 +318,7 @@ class TestChoreClaimNotifications:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
         # Should have notification with actions
@@ -344,15 +344,15 @@ class TestAuthorizationAcceptance:
     ) -> None:
         """Assigned/linked user without can_approve is denied approve service."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         with patch.object(
-            coordinator.notification_manager, "notify_kid", new=AsyncMock()
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
 
-        actor_user = mock_hass_users["kid2"]
+        actor_user = mock_hass_users["assignee2"]
         set_ha_user_capabilities(
             coordinator,
             actor_user.id,
@@ -374,14 +374,14 @@ class TestAuthorizationAcceptance:
             )
 
     @pytest.mark.asyncio
-    async def test_auto_approve_chore_no_parent_notification(
+    async def test_auto_approve_chore_no_approver_notification(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Auto-approve chores don't send parent notifications (already approved)."""
+        """Auto-approve chores don't send approver notifications (already approved)."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Auto chore"]
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -391,15 +391,15 @@ class TestAuthorizationAcceptance:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
-        # Auto-approve should send kid notification (approval) but no parent notification
-        # Filter for parent notifications (those with action buttons for approve/disapprove)
-        parent_notifs = capture.get_with_actions()
-        assert len(parent_notifs) == 0, (
-            f"Auto-approve chore should not send parent notification with actions. "
-            f"Got: {parent_notifs}"
+        # Auto-approve should send assignee notification (approval) but no approver notification
+        # Filter for approver notifications (those with action buttons for approve/disapprove)
+        approver_notifs = capture.get_with_actions()
+        assert len(approver_notifs) == 0, (
+            f"Auto-approve chore should not send approver notification with actions. "
+            f"Got: {approver_notifs}"
         )
 
 
@@ -409,22 +409,26 @@ class TestAuthorizationAcceptance:
 
 
 class TestNotificationLanguage:
-    """Tests for notification language based on kid's dashboard_language."""
+    """Tests for notification language based on assignee's dashboard_language."""
 
     @pytest.mark.asyncio
-    async def test_english_kid_gets_english_actions(
+    async def test_english_assignee_gets_english_actions(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Kid with dashboard_language='en' triggers English action buttons."""
+        """Assignee with dashboard_language='en' triggers English action buttons."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]  # English language
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]  # English language
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
-        # Verify kid is configured for English
-        kid_lang = coordinator.kids_data[kid_id].get(DATA_KID_DASHBOARD_LANGUAGE)
-        assert kid_lang == "en", f"Expected kid language 'en', got '{kid_lang}'"
+        # Verify assignee is configured for English
+        assignee_lang = coordinator.assignees_data[assignee_id].get(
+            DATA_ASSIGNEE_DASHBOARD_LANGUAGE
+        )
+        assert assignee_lang == "en", (
+            f"Expected assignee language 'en', got '{assignee_lang}'"
+        )
 
         # Notifications enabled through config flow (mock services registered by fixture)
         capture = NotificationCapture()
@@ -433,7 +437,7 @@ class TestNotificationLanguage:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
         # Get expected English action titles
@@ -450,27 +454,33 @@ class TestNotificationLanguage:
         )
 
     @pytest.mark.asyncio
-    async def test_parent_gets_parent_language_not_kid_language(
+    async def test_approver_gets_approver_language_not_assignee_language(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Parent notifications use parent's language, not kid's language."""
+        """Approver notifications use approver's language, not assignee's language."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Max!"]  # Slovak language kid
+        assignee_id = scenario_notifications.assignee_ids[
+            "Max!"
+        ]  # Slovak language assignee
         chore_id = scenario_notifications.chore_ids["Clean room"]
 
-        # Verify kid is configured for Slovak
-        kid_lang = coordinator.kids_data[kid_id].get(DATA_KID_DASHBOARD_LANGUAGE)
-        assert kid_lang == "sk", f"Expected kid language 'sk', got '{kid_lang}'"
-
-        # Verify parent is configured for English
-        parent_id = next(iter(coordinator.parents_data.keys()))
-        parent_lang = coordinator.parents_data[parent_id].get(
-            DATA_PARENT_DASHBOARD_LANGUAGE
+        # Verify assignee is configured for Slovak
+        assignee_lang = coordinator.assignees_data[assignee_id].get(
+            DATA_ASSIGNEE_DASHBOARD_LANGUAGE
         )
-        assert parent_lang == "en", (
-            f"Expected parent language 'en', got '{parent_lang}'"
+        assert assignee_lang == "sk", (
+            f"Expected assignee language 'sk', got '{assignee_lang}'"
+        )
+
+        # Verify approver is configured for English
+        approver_id = next(iter(coordinator.approvers_data.keys()))
+        approver_lang = coordinator.approvers_data[approver_id].get(
+            DATA_APPROVER_DASHBOARD_LANGUAGE
+        )
+        assert approver_lang == "en", (
+            f"Expected approver language 'en', got '{approver_lang}'"
         )
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -480,48 +490,48 @@ class TestNotificationLanguage:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Max!")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Max!")
             await hass.async_block_till_done()
 
-        # Get expected English action titles (parent's language, not kid's)
+        # Get expected English action titles (approver's language, not assignee's)
         try:
             expected_actions = get_action_titles("en")
             expected_titles = set(expected_actions.values())
         except FileNotFoundError:
             pytest.skip("English translations not available")
 
-        # Verify action buttons are in English (parent's language)
+        # Verify action buttons are in English (approver's language)
         actual_titles = capture.get_action_titles()
 
         # At least one expected English title should appear
         matching = actual_titles & expected_titles
         assert len(matching) > 0, (
-            f"Expected English action titles (parent's language) {expected_titles}, but got {actual_titles}"
+            f"Expected English action titles (approver's language) {expected_titles}, but got {actual_titles}"
         )
 
     @pytest.mark.asyncio
-    async def test_notification_uses_parent_language_not_system(
+    async def test_notification_uses_approver_language_not_system(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Parent notifications use parent's language, not HA system language."""
+        """Approver notifications use approver's language, not HA system language."""
         coordinator = scenario_notifications.coordinator
 
         # Verify HA system language is English (default)
         assert hass.config.language == "en", "Test expects HA system to be English"
 
-        # Claim chore for Slovak kid, but parent should get English notification
-        kid_id = scenario_notifications.kid_ids["Max!"]  # Slovak
+        # Claim chore for Slovak assignee, but approver should get English notification
+        assignee_id = scenario_notifications.assignee_ids["Max!"]  # Slovak
         chore_id = scenario_notifications.chore_ids["Clean room"]
 
-        # Verify parent is configured for English (same as system in this case)
-        parent_id = next(iter(coordinator.parents_data.keys()))
-        parent_lang = coordinator.parents_data[parent_id].get(
-            DATA_PARENT_DASHBOARD_LANGUAGE
+        # Verify approver is configured for English (same as system in this case)
+        approver_id = next(iter(coordinator.approvers_data.keys()))
+        approver_lang = coordinator.approvers_data[approver_id].get(
+            DATA_APPROVER_DASHBOARD_LANGUAGE
         )
-        assert parent_lang == "en", (
-            f"Expected parent language 'en', got '{parent_lang}'"
+        assert approver_lang == "en", (
+            f"Expected approver language 'en', got '{approver_lang}'"
         )
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -531,11 +541,11 @@ class TestNotificationLanguage:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Max!")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Max!")
             await hass.async_block_till_done()
 
-        # Actions should be English (parent's language)
-        # They should NOT be Slovak (kid's language)
+        # Actions should be English (approver's language)
+        # They should NOT be Slovak (assignee's language)
         try:
             english_actions = get_action_titles("en")
             english_titles = set(english_actions.values())
@@ -547,14 +557,14 @@ class TestNotificationLanguage:
 
         actual_titles = capture.get_action_titles()
 
-        # Verify English titles are used (parent's language), not Slovak
+        # Verify English titles are used (approver's language), not Slovak
         english_match = actual_titles & english_titles
         slovak_match = actual_titles & slovak_titles
 
         # If languages have different translations, English should match
         if english_titles != slovak_titles:
             assert len(english_match) > len(slovak_match), (
-                f"Expected English titles (parent's language), not Slovak (kid's language). "
+                f"Expected English titles (approver's language), not Slovak (assignee's language). "
                 f"Got: {actual_titles}, English: {english_titles}, Slovak: {slovak_titles}"
             )
 
@@ -575,7 +585,7 @@ class TestNotificationActions:
     ) -> None:
         """Action button titles should be translated, not raw keys."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -585,7 +595,7 @@ class TestNotificationActions:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
         action_titles = capture.get_action_titles()
@@ -611,7 +621,7 @@ class TestNotificationActions:
     ) -> None:
         """Chore claim notifications include approve and disapprove actions."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Notifications enabled through config flow (mock services registered by fixture)
@@ -621,7 +631,7 @@ class TestNotificationActions:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
         notifs_with_actions = capture.get_with_actions()
@@ -658,7 +668,7 @@ class TestNotificationTagging:
     ) -> None:
         """Pending chore notifications include tag in extra_data for smart replacement."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         capture = NotificationCapture()
@@ -667,12 +677,12 @@ class TestNotificationTagging:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
         assert len(capture.notifications) > 0, "No notification was sent on chore claim"
 
-        # Verify tag is present and has correct format: {domain}-status-{chore_id[:8]}-{kid_id[:8]}
+        # Verify tag is present and has correct format: {domain}-status-{chore_id[:8]}-{assignee_id[:8]}
         # UUIDs are truncated to 8 chars to stay under Apple's 64-byte limit (v0.5.0+)
         notif = capture.notifications[0]
         extra_data = notif.get("extra_data", {})
@@ -685,7 +695,9 @@ class TestNotificationTagging:
         assert chore_id[:8] in tag, (
             f"Expected chore_id[:8] '{chore_id[:8]}' in tag '{tag}'"
         )
-        assert kid_id[:8] in tag, f"Expected kid_id[:8] '{kid_id[:8]}' in tag '{tag}'"
+        assert assignee_id[:8] in tag, (
+            f"Expected assignee_id[:8] '{assignee_id[:8]}' in tag '{tag}'"
+        )
 
 
 class TestDueDateReminders:
@@ -698,40 +710,40 @@ class TestDueDateReminders:
         scenario_notifications: SetupResult,
         freezer: Any,
     ) -> None:
-        """Chore due within 30 minutes triggers kid reminder notification."""
+        """Chore due within 30 minutes triggers assignee reminder notification."""
         from datetime import timedelta
 
         from homeassistant.util import dt as dt_util
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Set a due date 25 minutes from now (within 30-min window)
         now = dt_util.utcnow()
         due_in_25_min = now + timedelta(minutes=25)
 
-        # Set per-kid due date for independent chore
+        # Set per-assignee due date for independent chore
         chore_info = coordinator.chores_data[chore_id]
-        if "per_kid_due_dates" not in chore_info:
-            chore_info["per_kid_due_dates"] = {}
-        chore_info["per_kid_due_dates"][kid_id] = due_in_25_min.isoformat()
+        if "per_assignee_due_dates" not in chore_info:
+            chore_info["per_assignee_due_dates"] = {}
+        chore_info["per_assignee_due_dates"][assignee_id] = due_in_25_min.isoformat()
         # Enable reminders for this chore (per-chore control v0.5.0+)
         chore_info["notify_due_reminder"] = True
         coordinator._persist()
 
-        # Track notifications to kid
-        kid_notifications: list[dict[str, Any]] = []
+        # Track notifications to assignee
+        assignee_notifications: list[dict[str, Any]] = []
 
-        async def capture_kid_notification(
-            kid_id_arg: str,
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            kid_notifications.append(
+            assignee_notifications.append(
                 {
-                    "kid_id": kid_id_arg,
+                    "assignee_id": assignee_id_arg,
                     "title_key": title_key,
                     "message_key": message_key,
                     **kwargs,
@@ -740,15 +752,15 @@ class TestDueDateReminders:
 
         with patch.object(
             coordinator.notification_manager,
-            "notify_kid_translated",
-            new=capture_kid_notification,
+            "notify_assignee_translated",
+            new=capture_assignee_notification,
         ):
             await coordinator.chore_manager._on_periodic_update({})
 
         # Verify reminder was sent (Phase 2: renamed due_soon → chore_due_reminder)
-        assert len(kid_notifications) > 0, "No due-reminder notification was sent"
-        assert kid_notifications[0]["kid_id"] == kid_id
-        assert "chore_due_reminder" in kid_notifications[0]["title_key"].lower()
+        assert len(assignee_notifications) > 0, "No due-reminder notification was sent"
+        assert assignee_notifications[0]["assignee_id"] == assignee_id
+        assert "chore_due_reminder" in assignee_notifications[0]["title_key"].lower()
 
     @pytest.mark.asyncio
     async def test_due_soon_reminder_not_duplicated(
@@ -756,13 +768,13 @@ class TestDueDateReminders:
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Same chore+kid combo only gets one reminder until cleared."""
+        """Same chore+assignee combo only gets one reminder until cleared."""
         from datetime import timedelta
 
         from homeassistant.util import dt as dt_util
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Set a due date 25 minutes from now
@@ -770,9 +782,9 @@ class TestDueDateReminders:
         due_in_25_min = now + timedelta(minutes=25)
 
         chore_info = coordinator.chores_data[chore_id]
-        if "per_kid_due_dates" not in chore_info:
-            chore_info["per_kid_due_dates"] = {}
-        chore_info["per_kid_due_dates"][kid_id] = due_in_25_min.isoformat()
+        if "per_assignee_due_dates" not in chore_info:
+            chore_info["per_assignee_due_dates"] = {}
+        chore_info["per_assignee_due_dates"][assignee_id] = due_in_25_min.isoformat()
         # Enable reminders for this chore (per-chore control v0.5.0+)
         chore_info["notify_due_reminder"] = True
         coordinator._persist()
@@ -785,7 +797,7 @@ class TestDueDateReminders:
 
         with patch.object(
             coordinator.notification_manager,
-            "notify_kid_translated",
+            "notify_assignee_translated",
             new=count_notifications,
         ):
             # First check - should send reminder
@@ -817,28 +829,30 @@ class TestDueDateReminders:
         from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Simulate a notification was sent by recording it in storage
         notifications = coordinator._data.setdefault(const.DATA_NOTIFICATIONS, {})
-        kid_notifs = notifications.setdefault(kid_id, {})
-        kid_notifs[chore_id] = {
+        assignee_notifs = notifications.setdefault(assignee_id, {})
+        assignee_notifs[chore_id] = {
             const.DATA_NOTIF_LAST_DUE_START: "2026-01-29T10:00:00+00:00",
             const.DATA_NOTIF_LAST_DUE_REMINDER: "2026-01-29T14:00:00+00:00",
         }
 
         # Verify the notification record exists
-        assert chore_id in notifications.get(kid_id, {}), (
+        assert chore_id in notifications.get(assignee_id, {}), (
             "Notification record should exist"
         )
 
         # Advance the approval_period_start (simulates chore reset after approval)
-        kid_info = coordinator.kids_data.get(kid_id)
-        assert kid_info is not None
-        kid_chore_data = kid_info.setdefault(const.DATA_KID_CHORE_DATA, {})
-        chore_data = kid_chore_data.setdefault(chore_id, {})
-        chore_data[const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = (
+        assignee_info = coordinator.assignees_data.get(assignee_id)
+        assert assignee_info is not None
+        assignee_chore_data = assignee_info.setdefault(
+            const.DATA_ASSIGNEE_CHORE_DATA, {}
+        )
+        chore_data = assignee_chore_data.setdefault(chore_id, {})
+        chore_data[const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
             "2026-01-30T00:00:00+00:00"  # Period advances past the timestamps
         )
 
@@ -870,7 +884,7 @@ class TestDueDateReminders:
         from homeassistant.util import dt as dt_util
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Set up chore with due window (1 hour before due date)
@@ -878,27 +892,27 @@ class TestDueDateReminders:
         due_in_45_min = now + timedelta(minutes=45)
 
         chore_info = coordinator.chores_data[chore_id]
-        if "per_kid_due_dates" not in chore_info:
-            chore_info["per_kid_due_dates"] = {}
-        chore_info["per_kid_due_dates"][kid_id] = due_in_45_min.isoformat()
+        if "per_assignee_due_dates" not in chore_info:
+            chore_info["per_assignee_due_dates"] = {}
+        chore_info["per_assignee_due_dates"][assignee_id] = due_in_45_min.isoformat()
 
         # Enable due window notifications (v0.6.0+)
         chore_info["notify_on_due_window"] = True
         chore_info["chore_due_window_offset"] = "1h"  # Window starts 1 hour before
         coordinator._persist()
 
-        # Track kid notifications
-        kid_notifications: list[dict[str, Any]] = []
+        # Track assignee notifications
+        assignee_notifications: list[dict[str, Any]] = []
 
-        async def capture_kid_notification(
-            kid_id_arg: str,
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            kid_notifications.append(
+            assignee_notifications.append(
                 {
-                    "kid_id": kid_id_arg,
+                    "assignee_id": assignee_id_arg,
                     "title_key": title_key,
                     "message_key": message_key,
                     **kwargs,
@@ -907,16 +921,16 @@ class TestDueDateReminders:
 
         with patch.object(
             coordinator.notification_manager,
-            "notify_kid_translated",
-            new=capture_kid_notification,
+            "notify_assignee_translated",
+            new=capture_assignee_notification,
         ):
             # Check for due window transitions
             await coordinator.chore_manager._on_periodic_update({})
 
         # Verify due window notification was sent
-        assert len(kid_notifications) > 0, "No due window notification was sent"
-        assert kid_notifications[0]["kid_id"] == kid_id
-        assert "due_window" in kid_notifications[0]["title_key"].lower()
+        assert len(assignee_notifications) > 0, "No due window notification was sent"
+        assert assignee_notifications[0]["assignee_id"] == assignee_id
+        assert "due_window" in assignee_notifications[0]["title_key"].lower()
 
     @pytest.mark.asyncio
     async def test_configurable_reminder_offset_respected(
@@ -930,7 +944,7 @@ class TestDueDateReminders:
         from homeassistant.util import dt as dt_util
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Set due date 50 minutes from now
@@ -938,9 +952,9 @@ class TestDueDateReminders:
         due_in_50_min = now + timedelta(minutes=50)
 
         chore_info = coordinator.chores_data[chore_id]
-        if "per_kid_due_dates" not in chore_info:
-            chore_info["per_kid_due_dates"] = {}
-        chore_info["per_kid_due_dates"][kid_id] = due_in_50_min.isoformat()
+        if "per_assignee_due_dates" not in chore_info:
+            chore_info["per_assignee_due_dates"] = {}
+        chore_info["per_assignee_due_dates"][assignee_id] = due_in_50_min.isoformat()
 
         # Set custom reminder offset (1 hour before due)
         chore_info["notify_due_reminder"] = True
@@ -948,17 +962,17 @@ class TestDueDateReminders:
         coordinator._persist()
 
         # Track notifications
-        kid_notifications: list[dict[str, Any]] = []
+        assignee_notifications: list[dict[str, Any]] = []
 
-        async def capture_kid_notification(
-            kid_id_arg: str,
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            kid_notifications.append(
+            assignee_notifications.append(
                 {
-                    "kid_id": kid_id_arg,
+                    "assignee_id": assignee_id_arg,
                     "title_key": title_key,
                     "message_key": message_key,
                     **kwargs,
@@ -967,61 +981,61 @@ class TestDueDateReminders:
 
         with patch.object(
             coordinator.notification_manager,
-            "notify_kid_translated",
-            new=capture_kid_notification,
+            "notify_assignee_translated",
+            new=capture_assignee_notification,
         ):
             # Check for reminders - should trigger because we're within 1-hour window
             await coordinator.chore_manager._on_periodic_update({})
 
         # Verify reminder was sent (custom 1h offset, not hardcoded 30min)
-        assert len(kid_notifications) > 0, (
+        assert len(assignee_notifications) > 0, (
             "No reminder sent with custom 1h offset (50min until due)"
         )
-        assert kid_notifications[0]["kid_id"] == kid_id
+        assert assignee_notifications[0]["assignee_id"] == assignee_id
 
 
 class TestMultiplierChangeNotifications:
-    """Tests for multiplier-change notifications to kid and parents."""
+    """Tests for multiplier-change notifications to assignee and approvers."""
 
     @pytest.mark.asyncio
-    async def test_multiplier_change_notifies_kid_and_parents(
+    async def test_multiplier_change_notifies_assignee_and_approvers(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Changed multiplier sends neutral notifications to kid and parents."""
+        """Changed multiplier sends neutral notifications to assignee and approvers."""
         from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
 
-        kid_calls: list[dict[str, Any]] = []
-        parent_calls: list[dict[str, Any]] = []
+        assignee_calls: list[dict[str, Any]] = []
+        approver_calls: list[dict[str, Any]] = []
 
-        async def capture_kid_notification(
-            kid_id_arg: str,
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            kid_calls.append(
+            assignee_calls.append(
                 {
-                    "kid_id": kid_id_arg,
+                    "assignee_id": assignee_id_arg,
                     "title_key": title_key,
                     "message_key": message_key,
                     **kwargs,
                 }
             )
 
-        async def capture_parent_notification(
-            kid_id_arg: str,
+        async def capture_approver_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            parent_calls.append(
+            approver_calls.append(
                 {
-                    "kid_id": kid_id_arg,
+                    "assignee_id": assignee_id_arg,
                     "title_key": title_key,
                     "message_key": message_key,
                     **kwargs,
@@ -1031,46 +1045,46 @@ class TestMultiplierChangeNotifications:
         with (
             patch.object(
                 coordinator.notification_manager,
-                "notify_kid_translated",
-                new=capture_kid_notification,
+                "notify_assignee_translated",
+                new=capture_assignee_notification,
             ),
             patch.object(
                 coordinator.notification_manager,
-                "notify_parents_translated",
-                new=capture_parent_notification,
+                "notify_approvers_translated",
+                new=capture_approver_notification,
             ),
         ):
             coordinator.gamification_manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 old_multiplier=1.0,
                 new_multiplier=0.8,
                 multiplier=0.8,
             )
             await hass.async_block_till_done()
 
-        assert len(kid_calls) == 1
-        assert kid_calls[0]["kid_id"] == kid_id
+        assert len(assignee_calls) == 1
+        assert assignee_calls[0]["assignee_id"] == assignee_id
         assert (
-            kid_calls[0]["title_key"]
-            == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_KID
+            assignee_calls[0]["title_key"]
+            == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_ASSIGNEE
         )
         assert (
-            kid_calls[0]["message_key"]
-            == const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_KID
+            assignee_calls[0]["message_key"]
+            == const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_ASSIGNEE
         )
-        assert kid_calls[0]["message_data"]["old_multiplier"] == 1.0
-        assert kid_calls[0]["message_data"]["new_multiplier"] == 0.8
+        assert assignee_calls[0]["message_data"]["old_multiplier"] == 1.0
+        assert assignee_calls[0]["message_data"]["new_multiplier"] == 0.8
 
-        assert len(parent_calls) == 1
-        assert parent_calls[0]["kid_id"] == kid_id
+        assert len(approver_calls) == 1
+        assert approver_calls[0]["assignee_id"] == assignee_id
         assert (
-            parent_calls[0]["title_key"]
-            == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_PARENT
+            approver_calls[0]["title_key"]
+            == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_APPROVER
         )
         assert (
-            parent_calls[0]["message_key"]
-            == const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_PARENT
+            approver_calls[0]["message_key"]
+            == const.TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_APPROVER
         )
 
     @pytest.mark.asyncio
@@ -1079,46 +1093,46 @@ class TestMultiplierChangeNotifications:
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Unchanged multiplier does not send kid or parent notifications."""
+        """Unchanged multiplier does not send assignee or approver notifications."""
         from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
 
-        kid_calls = 0
-        parent_calls = 0
+        assignee_calls = 0
+        approver_calls = 0
 
-        async def capture_kid_notification(*args: Any, **kwargs: Any) -> None:
-            nonlocal kid_calls
-            kid_calls += 1
+        async def capture_assignee_notification(*args: Any, **kwargs: Any) -> None:
+            nonlocal assignee_calls
+            assignee_calls += 1
 
-        async def capture_parent_notification(*args: Any, **kwargs: Any) -> None:
-            nonlocal parent_calls
-            parent_calls += 1
+        async def capture_approver_notification(*args: Any, **kwargs: Any) -> None:
+            nonlocal approver_calls
+            approver_calls += 1
 
         with (
             patch.object(
                 coordinator.notification_manager,
-                "notify_kid_translated",
-                new=capture_kid_notification,
+                "notify_assignee_translated",
+                new=capture_assignee_notification,
             ),
             patch.object(
                 coordinator.notification_manager,
-                "notify_parents_translated",
-                new=capture_parent_notification,
+                "notify_approvers_translated",
+                new=capture_approver_notification,
             ),
         ):
             coordinator.gamification_manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 old_multiplier=1.0,
                 new_multiplier=1.0,
                 multiplier=1.0,
             )
             await hass.async_block_till_done()
 
-        assert kid_calls == 0
-        assert parent_calls == 0
+        assert assignee_calls == 0
+        assert approver_calls == 0
 
     @pytest.mark.asyncio
     async def test_badge_earned_multiplier_change_triggers_notifications(
@@ -1130,39 +1144,41 @@ class TestMultiplierChangeNotifications:
         from custom_components.choreops import const
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
 
-        coordinator.kids_data[kid_id][const.DATA_KID_POINTS_MULTIPLIER] = 1.0
+        coordinator.assignees_data[assignee_id][
+            const.DATA_ASSIGNEE_POINTS_MULTIPLIER
+        ] = 1.0
 
-        kid_calls: list[dict[str, Any]] = []
-        parent_calls: list[dict[str, Any]] = []
+        assignee_calls: list[dict[str, Any]] = []
+        approver_calls: list[dict[str, Any]] = []
 
-        async def capture_kid_notification(
-            kid_id_arg: str,
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            if title_key == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_KID:
-                kid_calls.append(
+            if title_key == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_ASSIGNEE:
+                assignee_calls.append(
                     {
-                        "kid_id": kid_id_arg,
+                        "assignee_id": assignee_id_arg,
                         "title_key": title_key,
                         "message_key": message_key,
                         **kwargs,
                     }
                 )
 
-        async def capture_parent_notification(
-            kid_id_arg: str,
+        async def capture_approver_notification(
+            assignee_id_arg: str,
             title_key: str,
             message_key: str,
             **kwargs: Any,
         ) -> None:
-            if title_key == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_PARENT:
-                parent_calls.append(
+            if title_key == const.TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_APPROVER:
+                approver_calls.append(
                     {
-                        "kid_id": kid_id_arg,
+                        "assignee_id": assignee_id_arg,
                         "title_key": title_key,
                         "message_key": message_key,
                         **kwargs,
@@ -1172,18 +1188,18 @@ class TestMultiplierChangeNotifications:
         with (
             patch.object(
                 coordinator.notification_manager,
-                "notify_kid_translated",
-                new=capture_kid_notification,
+                "notify_assignee_translated",
+                new=capture_assignee_notification,
             ),
             patch.object(
                 coordinator.notification_manager,
-                "notify_parents_translated",
-                new=capture_parent_notification,
+                "notify_approvers_translated",
+                new=capture_approver_notification,
             ),
         ):
             await coordinator.economy_manager._on_badge_earned(
                 {
-                    "kid_id": kid_id,
+                    "assignee_id": assignee_id,
                     "badge_id": "test_badge",
                     "badge_name": "Test Badge",
                     "points": 0.0,
@@ -1195,11 +1211,16 @@ class TestMultiplierChangeNotifications:
             )
             await hass.async_block_till_done()
 
-        assert coordinator.kids_data[kid_id][const.DATA_KID_POINTS_MULTIPLIER] == 1.2
-        assert len(kid_calls) == 1
-        assert len(parent_calls) == 1
-        assert kid_calls[0]["message_data"]["old_multiplier"] == 1.0
-        assert kid_calls[0]["message_data"]["new_multiplier"] == 1.2
+        assert (
+            coordinator.assignees_data[assignee_id][
+                const.DATA_ASSIGNEE_POINTS_MULTIPLIER
+            ]
+            == 1.2
+        )
+        assert len(assignee_calls) == 1
+        assert len(approver_calls) == 1
+        assert assignee_calls[0]["message_data"]["old_multiplier"] == 1.0
+        assert assignee_calls[0]["message_data"]["new_multiplier"] == 1.2
 
 
 class TestRaceConditionPrevention:
@@ -1215,31 +1236,31 @@ class TestRaceConditionPrevention:
         import asyncio
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         # Claim the chore first
-        await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+        await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
 
         # Get initial points
-        initial_points = coordinator.kids_data[kid_id].get("points", 0)
+        initial_points = coordinator.assignees_data[assignee_id].get("points", 0)
         chore_points = coordinator.chores_data[chore_id].get("default_points", 10)
 
-        # Mock parent notification to prevent actual sends
+        # Mock approver notification to prevent actual sends
         with patch.object(
             coordinator.notification_manager,
-            "notify_parents_translated",
+            "notify_approvers_translated",
             new=AsyncMock(),
         ):
-            # Simulate two parents clicking approve at the same time
+            # Simulate two approvers clicking approve at the same time
             results = await asyncio.gather(
-                coordinator.chore_manager.approve_chore("Mom", kid_id, chore_id),
-                coordinator.chore_manager.approve_chore("Dad", kid_id, chore_id),
+                coordinator.chore_manager.approve_chore("Mom", assignee_id, chore_id),
+                coordinator.chore_manager.approve_chore("Dad", assignee_id, chore_id),
                 return_exceptions=True,
             )
 
         # Get final points
-        final_points = coordinator.kids_data[kid_id].get("points", 0)
+        final_points = coordinator.assignees_data[assignee_id].get("points", 0)
         points_awarded = final_points - initial_points
 
         # Only one approval should succeed (points awarded once)
@@ -1257,17 +1278,17 @@ class TestRaceConditionPrevention:
 
 
 class TestConcurrentNotifications:
-    """Tests for concurrent parent notification sending (v0.5.0+)."""
+    """Tests for concurrent approver notification sending (v0.5.0+)."""
 
     @pytest.mark.asyncio
-    async def test_multiple_parents_receive_notifications_concurrently(
+    async def test_multiple_approvers_receive_notifications_concurrently(
         self,
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """Multiple parents with notifications enabled all receive them."""
+        """Multiple approvers with notifications enabled all receive them."""
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         chore_id = scenario_notifications.chore_ids["Feed the cat"]
 
         capture = NotificationCapture()
@@ -1276,11 +1297,11 @@ class TestConcurrentNotifications:
             "custom_components.choreops.managers.notification_manager.async_send_notification",
             new=capture.capture,
         ):
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             await hass.async_block_till_done()
 
-        # At least one parent should receive notification
-        assert len(capture.notifications) >= 1, "No notifications sent to any parent"
+        # At least one approver should receive notification
+        assert len(capture.notifications) >= 1, "No notifications sent to any approver"
 
     @pytest.mark.asyncio
     async def test_notification_failure_isolated_from_others(
@@ -1288,28 +1309,28 @@ class TestConcurrentNotifications:
         hass: HomeAssistant,
         scenario_notifications: SetupResult,
     ) -> None:
-        """One parent notification failure doesn't prevent others from receiving."""
+        """One approver notification failure doesn't prevent others from receiving."""
         from custom_components.choreops.managers import notification_manager
 
         coordinator = scenario_notifications.coordinator
-        kid_id = scenario_notifications.kid_ids["Zoë"]
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
         # Use "Walk the dog" which hasn't been claimed yet (shared chore)
         chore_id = scenario_notifications.chore_ids["Walk the dog"]
 
-        # Register the mock notify service for the second parent BEFORE adding them
+        # Register the mock notify service for the second approver BEFORE adding them
         async def mock_notify_service(call: Any) -> None:
             """Mock notify service handler."""
 
         hass.services.async_register("notify", "mobile_app_dad", mock_notify_service)
 
-        # Add a second parent with notifications enabled
-        parent_id_2 = "test_parent_2"
-        coordinator._data[const.DATA_USERS][parent_id_2] = {
+        # Add a second approver with notifications enabled
+        approver_id_2 = "test_approver_2"
+        coordinator._data[const.DATA_USERS][approver_id_2] = {
             "name": "Test Dad",
-            const.DATA_PARENT_ASSOCIATED_KIDS: [kid_id],
+            const.DATA_APPROVER_ASSOCIATED_USERS: [assignee_id],
             "enable_notifications": True,
-            const.DATA_PARENT_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_dad",
-            const.DATA_PARENT_DASHBOARD_LANGUAGE: "en",
+            const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_dad",
+            const.DATA_APPROVER_DASHBOARD_LANGUAGE: "en",
             const.DATA_USER_CAN_APPROVE: True,
         }
 
@@ -1339,7 +1360,7 @@ class TestConcurrentNotifications:
             new=mixed_success_notification,
         ):
             # This should not raise - failures are logged but don't propagate
-            await coordinator.chore_manager.claim_chore(kid_id, chore_id, "Zoë")
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
             # CRITICAL: async_block_till_done() MUST be inside the patch context
             # because claim_chore() schedules notification tasks that run AFTER
             # the sync method returns. If we await outside the patch, the tasks

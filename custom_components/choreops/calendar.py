@@ -2,7 +2,7 @@
 # ^ Suppresses Pylance warnings about @property overriding @cached_property from base classes.
 #   This is intentional: our entities compute dynamic values on each access,
 #   so we use @property instead of @cached_property to avoid stale cached data.
-"""Calendar platform for KidsChores integration.
+"""Calendar platform for ChoreOps integration.
 
 Provides a read-only calendar view of chore due dates and schedule information.
 """
@@ -18,9 +18,9 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from . import const
-from .coordinator import KidsChoresConfigEntry
+from .coordinator import ChoreOpsConfigEntry
 from .engines.schedule_engine import RecurrenceEngine
-from .helpers.device_helpers import create_kid_device_info_from_coordinator
+from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_event_signal,
     is_linked_profile,
@@ -38,10 +38,10 @@ PARALLEL_UPDATES = 0
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: KidsChoresConfigEntry,
+    entry: ChoreOpsConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the KidsChores calendar platform."""
+    """Set up the ChoreOps calendar platform."""
     coordinator = entry.runtime_data
     if not coordinator:
         const.LOGGER.error("Coordinator not found for entry %s", entry.entry_id)
@@ -53,58 +53,62 @@ async def async_setup_entry(
     calendar_duration = datetime.timedelta(days=calendar_show_period_days)
 
     entities = []
-    for kid_id, kid_info in coordinator.kids_data.items():
+    for assignee_id, assignee_info in coordinator.assignees_data.items():
         # Use registry-based creation decision for future flexibility
         if should_create_entity(
             const.CALENDAR_KC_UID_SUFFIX_CALENDAR,
-            is_feature_gated_profile=is_linked_profile(coordinator, kid_id),
+            is_feature_gated_profile=is_linked_profile(coordinator, assignee_id),
         ):
-            kid_name = kid_info.get(
-                const.DATA_KID_NAME, f"{const.TRANS_KEY_LABEL_KID} {kid_id}"
+            assignee_name = assignee_info.get(
+                const.DATA_ASSIGNEE_NAME,
+                f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
             )
             entities.append(
-                KidScheduleCalendar(
-                    coordinator, kid_id, kid_name, entry, calendar_duration
+                AssigneeScheduleCalendar(
+                    coordinator, assignee_id, assignee_name, entry, calendar_duration
                 )
             )
     async_add_entities(entities)
 
 
-class KidScheduleCalendar(CalendarEntity):
-    """Calendar entity representing a kid's combined chores + challenges."""
+class AssigneeScheduleCalendar(CalendarEntity):
+    """Calendar entity representing an assignee's combined chores + challenges."""
 
     _attr_has_entity_name = True
     _attr_translation_key = const.TRANS_KEY_CALENDAR_NAME
 
     def __init__(
-        self, coordinator, kid_id: str, kid_name: str, config_entry, calendar_duration
+        self,
+        coordinator,
+        assignee_id: str,
+        assignee_name: str,
+        config_entry,
+        calendar_duration,
     ):
         """Initialize the calendar entity.
 
         Args:
-            coordinator: KidsChoresDataCoordinator instance for data access.
-            kid_id: Unique identifier for the kid.
-            kid_name: Display name of the kid.
+            coordinator: ChoreOpsDataCoordinator instance for data access.
+            assignee_id: Unique identifier for the assignee.
+            assignee_name: Display name of the assignee.
             config_entry: ConfigEntry for this integration instance.
             calendar_duration: Duration (in days) for calendar event generation window.
         """
         super().__init__()
         self.coordinator = coordinator
-        self._kid_id = kid_id
-        self._kid_name = kid_name
+        self._assignee_id = assignee_id
+        self._assignee_name = assignee_name
         self._config_entry = config_entry
         self._calendar_duration = calendar_duration
-        self._attr_unique_id = (
-            f"{config_entry.entry_id}_{kid_id}{const.CALENDAR_KC_UID_SUFFIX_CALENDAR}"
-        )
+        self._attr_unique_id = f"{config_entry.entry_id}_{assignee_id}{const.CALENDAR_KC_UID_SUFFIX_CALENDAR}"
         self._attr_translation_placeholders = {
-            const.TRANS_KEY_SENSOR_ATTR_KID_NAME: kid_name
+            const.TRANS_KEY_SENSOR_ATTR_ASSIGNEE_NAME: assignee_name
         }
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)
-        # self.entity_id = f"{const.CALENDAR_KC_PREFIX}{kid_name}"
-        self._attr_device_info = create_kid_device_info_from_coordinator(
-            self.coordinator, kid_id, kid_name, config_entry
+        # self.entity_id = f"{const.CALENDAR_KC_PREFIX}{assignee_name}"
+        self._attr_device_info = create_assignee_device_info_from_coordinator(
+            self.coordinator, assignee_id, assignee_name, config_entry
         )
         self._events_cache: dict[tuple[str, str, int], list[CalendarEvent]] = {}
         self._max_cache_entries = 8
@@ -149,11 +153,13 @@ class KidScheduleCalendar(CalendarEntity):
         self.async_write_ha_state()
 
     def _build_cache_revision(self) -> int:
-        """Build a lightweight revision token for this kid's visible calendar data."""
+        """Build a lightweight revision token for this assignee's visible calendar data."""
         revision = 0
 
         for chore in self.coordinator.chores_data.values():
-            if self._kid_id not in chore.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
+            if self._assignee_id not in chore.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            ):
                 continue
             if not chore.get(const.DATA_CHORE_SHOW_ON_CALENDAR, True):
                 continue
@@ -162,12 +168,12 @@ class KidScheduleCalendar(CalendarEntity):
                 const.DATA_CHORE_COMPLETION_CRITERIA, const.SENTINEL_EMPTY
             )
             if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                due_date = chore.get(const.DATA_CHORE_PER_KID_DUE_DATES, {}).get(
-                    self._kid_id
+                due_date = chore.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}).get(
+                    self._assignee_id
                 )
                 applicable_days = tuple(
-                    chore.get(const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {}).get(
-                        self._kid_id, []
+                    chore.get(const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}).get(
+                        self._assignee_id, []
                     )
                 )
             else:
@@ -189,8 +195,8 @@ class KidScheduleCalendar(CalendarEntity):
             revision ^= hash(chore_token)
 
         for challenge in self.coordinator.challenges_data.values():
-            if self._kid_id not in challenge.get(
-                const.DATA_CHALLENGE_ASSIGNED_KIDS, []
+            if self._assignee_id not in challenge.get(
+                const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
             ):
                 continue
 
@@ -234,8 +240,8 @@ class KidScheduleCalendar(CalendarEntity):
     ) -> list[CalendarEvent]:
         """
         Return CalendarEvent objects for:
-         - chores assigned to this kid
-         - challenges assigned to this kid
+         - chores assigned to this assignee
+         - challenges assigned to this assignee
         overlapping [start_date, end_date].
         """
         local_tz = dt_util.get_time_zone(self.hass.config.time_zone)
@@ -307,10 +313,10 @@ class KidScheduleCalendar(CalendarEntity):
         if self._event_overlaps_window(event, window_start, window_end):
             events.append(event)
 
-    def _get_applicable_days_for_kid(self, chore: dict) -> list[int]:
-        """Get applicable days for this calendar's kid.
+    def _get_applicable_days_for_assignee(self, chore: dict) -> list[int]:
+        """Get applicable days for this calendar's assignee.
 
-        PKAD-2026-001: For INDEPENDENT chores, use per_kid_applicable_days.
+        PKAD-2026-001: For INDEPENDENT chores, use per_assignee_applicable_days.
         For SHARED chores, use chore-level applicable_days.
         Empty list = all days applicable (fallback behavior preserved).
 
@@ -325,9 +331,11 @@ class KidScheduleCalendar(CalendarEntity):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            per_kid_days = chore.get(const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
-            if self._kid_id in per_kid_days:
-                return per_kid_days[self._kid_id]
+            per_assignee_days = chore.get(
+                const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
+            )
+            if self._assignee_id in per_assignee_days:
+                return per_assignee_days[self._assignee_id]
             # Fallback to chore-level (backward compat for un-migrated data)
             return chore.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
 
@@ -751,18 +759,20 @@ class KidScheduleCalendar(CalendarEntity):
         recurring = chore.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         )
-        # PKAD-2026-001: Use per-kid applicable_days for INDEPENDENT chores
-        applicable_days = self._get_applicable_days_for_kid(chore)
+        # PKAD-2026-001: Use per-assignee applicable_days for INDEPENDENT chores
+        applicable_days = self._get_applicable_days_for_assignee(chore)
 
         # Parse chore due_date using battle-tested helper
-        # For INDEPENDENT chores, use per-kid due date only; for SHARED, use chore-level
+        # For INDEPENDENT chores, use per-assignee due date only; for SHARED, use chore-level
         completion_criteria = chore.get(
             const.DATA_CHORE_COMPLETION_CRITERIA, const.SENTINEL_EMPTY
         )
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            per_kid_due_dates = chore.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-            due_date_str = per_kid_due_dates.get(self._kid_id)
-            # No fallback - INDEPENDENT chores must have per-kid due dates
+            per_assignee_due_dates = chore.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+            )
+            due_date_str = per_assignee_due_dates.get(self._assignee_id)
+            # No fallback - INDEPENDENT chores must have per-assignee due dates
         else:
             due_date_str = chore.get(const.DATA_CHORE_DUE_DATE)
         due_dt: datetime.datetime | None = None
@@ -1010,11 +1020,11 @@ class KidScheduleCalendar(CalendarEntity):
     def _generate_all_events(
         self, window_start: datetime.datetime, window_end: datetime.datetime
     ) -> list[CalendarEvent]:
-        """Generate chores + challenges for this kid in the given window."""
+        """Generate chores + challenges for this assignee in the given window."""
         events = []
         # chores
         for chore in self.coordinator.chores_data.values():
-            if self._kid_id in chore.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
+            if self._assignee_id in chore.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
                 if not chore.get(const.DATA_CHORE_SHOW_ON_CALENDAR, True):
                     continue
                 events.extend(
@@ -1022,7 +1032,9 @@ class KidScheduleCalendar(CalendarEntity):
                 )
         # challenges
         for challenge in self.coordinator.challenges_data.values():
-            if self._kid_id in challenge.get(const.DATA_CHALLENGE_ASSIGNED_KIDS, []):
+            if self._assignee_id in challenge.get(
+                const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
+            ):
                 events.extend(
                     self._generate_events_for_challenge(
                         challenge, window_start, window_end
@@ -1035,5 +1047,5 @@ class KidScheduleCalendar(CalendarEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_CALENDAR_SCHEDULE,
-            const.ATTR_KID_NAME: self._kid_name,
+            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
         }

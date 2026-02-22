@@ -34,7 +34,7 @@ from tests.helpers import (
     DATA_CHORE_CUSTOM_INTERVAL,
     DATA_CHORE_DAILY_MULTI_TIMES,
     DATA_CHORE_DUE_DATE,
-    DATA_CHORE_PER_KID_DUE_DATES,
+    DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_CHORE_RECURRING_FREQUENCY,
     FREQUENCY_CUSTOM_FROM_COMPLETE,
     FREQUENCY_DAILY_MULTI,
@@ -74,13 +74,13 @@ def get_chore_due_date(coordinator: Any, chore_id: str) -> str | None:
     return chore_info.get(DATA_CHORE_DUE_DATE)
 
 
-def get_kid_due_date_for_chore(
-    coordinator: Any, chore_id: str, kid_id: str
+def get_assignee_due_date_for_chore(
+    coordinator: Any, chore_id: str, assignee_id: str
 ) -> str | None:
-    """Get per-kid due date (for independent chores)."""
+    """Get per-assignee due date (for independent chores)."""
     chore_info = coordinator.chores_data.get(chore_id, {})
-    per_kid_due_dates = chore_info.get(DATA_CHORE_PER_KID_DUE_DATES, {})
-    return per_kid_due_dates.get(kid_id)
+    per_assignee_due_dates = chore_info.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+    return per_assignee_due_dates.get(assignee_id)
 
 
 def parse_iso_datetime(iso_str: str | None) -> datetime | None:
@@ -117,7 +117,7 @@ class TestDailyMultiDueDateServices:
     """
 
     @pytest.mark.asyncio
-    async def test_dm_ind_set_single_kid_daily_multi(
+    async def test_dm_ind_set_single_assignee_daily_multi(
         self,
         hass: HomeAssistant,
         setup_enhanced_frequencies: SetupResult,
@@ -128,8 +128,8 @@ class TestDailyMultiDueDateServices:
         preserving hour and minute.
         """
         coordinator = setup_enhanced_frequencies.coordinator
-        zoe_id = setup_enhanced_frequencies.kid_ids["Zoë"]
-        chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Single Kid"]
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
+        chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Single Assignee"]
 
         chore_info = coordinator.chores_data.get(chore_id, {})
 
@@ -143,13 +143,15 @@ class TestDailyMultiDueDateServices:
         # Set a specific due date for Zoë (10:30 AM tomorrow)
         new_due = datetime.now(UTC) + timedelta(days=1)
         new_due = new_due.replace(hour=10, minute=30, second=0, microsecond=0)
-        await coordinator.chore_manager.set_due_date(chore_id, new_due, kid_id=zoe_id)
+        await coordinator.chore_manager.set_due_date(
+            chore_id, new_due, assignee_id=zoe_id
+        )
 
-        # Verify per-kid due date was set with EXACT time
-        kid_due = get_kid_due_date_for_chore(coordinator, chore_id, zoe_id)
-        assert kid_due is not None, "Per-kid due date should be set"
+        # Verify per-assignee due date was set with EXACT time
+        assignee_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert assignee_due is not None, "Per-assignee due date should be set"
 
-        parsed_due = parse_iso_datetime(kid_due)
+        parsed_due = parse_iso_datetime(assignee_due)
         assert parsed_due is not None
         assert parsed_due.hour == 10, f"Hour should be 10, got {parsed_due.hour}"
         assert parsed_due.minute == 30, f"Minute should be 30, got {parsed_due.minute}"
@@ -157,29 +159,29 @@ class TestDailyMultiDueDateServices:
         assert parsed_due.date() == new_due.date(), "Date should match what was set"
 
     @pytest.mark.asyncio
-    async def test_dm_ind_skip_single_kid_daily_multi(
+    async def test_dm_ind_skip_single_assignee_daily_multi(
         self,
         hass: HomeAssistant,
         setup_enhanced_frequencies: SetupResult,
     ) -> None:
         """DM-IND-SKIP: Test skip_chore_due_date for INDEPENDENT DAILY_MULTI chore.
 
-        EF-06 "Daily Multi Single Kid" has times: "09:00|21:00"
+        EF-06 "Daily Multi Single Assignee" has times: "09:00|21:00"
         Skip should advance to next available slot strictly after NOW.
 
         Note: Actual hour in UTC depends on timezone conversion - the key assertion
         is that the due date is strictly in the future after skip.
         """
         coordinator = setup_enhanced_frequencies.coordinator
-        zoe_id = setup_enhanced_frequencies.kid_ids["Zoë"]
-        chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Single Kid"]
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
+        chore_id = setup_enhanced_frequencies.chore_ids["Daily Multi Single Assignee"]
 
         # Verify time slots configured: "09:00|21:00"
         times_str = get_daily_multi_times(coordinator, chore_id)
         assert times_str == "09:00|21:00", f"Expected '09:00|21:00', got '{times_str}'"
 
         # Get initial due date
-        initial_due = get_kid_due_date_for_chore(coordinator, chore_id, zoe_id)
+        initial_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
         assert initial_due is not None, "Scenario should have initial due date set"
         initial_dt = parse_iso_datetime(initial_due)
         assert initial_dt is not None
@@ -187,10 +189,10 @@ class TestDailyMultiDueDateServices:
         now_before_skip = datetime.now(UTC)
 
         # Skip to next occurrence
-        await coordinator.chore_manager.skip_due_date(chore_id, kid_id=zoe_id)
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id=zoe_id)
 
         # Verify due date advanced to a FUTURE time
-        new_due = get_kid_due_date_for_chore(coordinator, chore_id, zoe_id)
+        new_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
         assert new_due is not None, "Due date should still exist after skip"
         new_dt = parse_iso_datetime(new_due)
         assert new_dt is not None
@@ -404,10 +406,10 @@ class TestCustomFromCompleteDueDateServices:
     ) -> None:
         """CFC-IND-SET: Test set_chore_due_date for INDEPENDENT CUSTOM_FROM_COMPLETE.
 
-        Verifies exact datetime is stored for per-kid due date.
+        Verifies exact datetime is stored for per-assignee due date.
         """
         coordinator = setup_enhanced_frequencies.coordinator
-        zoe_id = setup_enhanced_frequencies.kid_ids["Zoë"]
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
         chore_id = setup_enhanced_frequencies.chore_ids[
             "Custom From Complete INDEPENDENT"
         ]
@@ -427,13 +429,15 @@ class TestCustomFromCompleteDueDateServices:
         # Set a specific due date for Zoë (2:30 PM, 5 days from now)
         new_due = datetime.now(UTC) + timedelta(days=5)
         new_due = new_due.replace(hour=14, minute=30, second=0, microsecond=0)
-        await coordinator.chore_manager.set_due_date(chore_id, new_due, kid_id=zoe_id)
+        await coordinator.chore_manager.set_due_date(
+            chore_id, new_due, assignee_id=zoe_id
+        )
 
-        # Verify per-kid due date was set with EXACT time
-        kid_due = get_kid_due_date_for_chore(coordinator, chore_id, zoe_id)
-        assert kid_due is not None, "Per-kid due date should be set"
+        # Verify per-assignee due date was set with EXACT time
+        assignee_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert assignee_due is not None, "Per-assignee due date should be set"
 
-        parsed_due = parse_iso_datetime(kid_due)
+        parsed_due = parse_iso_datetime(assignee_due)
         assert parsed_due is not None
         assert parsed_due.hour == 14, f"Hour should be 14, got {parsed_due.hour}"
         assert parsed_due.minute == 30, f"Minute should be 30, got {parsed_due.minute}"
@@ -456,7 +460,7 @@ class TestCustomFromCompleteDueDateServices:
         a future date. The key assertion is that skip produces a future date.
         """
         coordinator = setup_enhanced_frequencies.coordinator
-        zoe_id = setup_enhanced_frequencies.kid_ids["Zoë"]
+        zoe_id = setup_enhanced_frequencies.assignee_ids["Zoë"]
         chore_id = setup_enhanced_frequencies.chore_ids[
             "Custom From Complete INDEPENDENT"
         ]
@@ -466,7 +470,7 @@ class TestCustomFromCompleteDueDateServices:
         assert interval == 7, f"Expected custom_interval=7, got {interval}"
 
         # Get initial due date
-        initial_due = get_kid_due_date_for_chore(coordinator, chore_id, zoe_id)
+        initial_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
         assert initial_due is not None, "Scenario should have initial due date set"
         initial_dt = parse_iso_datetime(initial_due)
         assert initial_dt is not None
@@ -475,10 +479,10 @@ class TestCustomFromCompleteDueDateServices:
         now_before_skip = datetime.now(UTC)
 
         # Skip to next occurrence
-        await coordinator.chore_manager.skip_due_date(chore_id, kid_id=zoe_id)
+        await coordinator.chore_manager.skip_due_date(chore_id, assignee_id=zoe_id)
 
         # Verify due date advanced
-        new_due = get_kid_due_date_for_chore(coordinator, chore_id, zoe_id)
+        new_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
         assert new_due is not None, "Due date should still exist after skip"
 
         # Parse and verify

@@ -44,7 +44,7 @@ from tests.helpers import (
     CFOF_BADGES_INPUT_TARGET_TYPE,
     CFOF_BADGES_INPUT_TYPE,
     # Data keys
-    DATA_KID_BADGE_PROGRESS,
+    DATA_ASSIGNEE_BADGE_PROGRESS,
     # Options flow constants
     OPTIONS_FLOW_ACTIONS_ADD,
     OPTIONS_FLOW_BADGES,
@@ -67,8 +67,8 @@ async def setup_minimal(
     """Load minimal scenario for badge testing.
 
     Uses scenario_minimal.yaml which provides:
-    - 1 kid (Zoë)
-    - 1 parent (Mom)
+    - 1 assignee (Zoë)
+    - 1 approver (Mom)
     - 5 chores
     """
     return await setup_from_yaml(
@@ -136,7 +136,7 @@ def get_badge_by_name(coordinator: Any, badge_name: str) -> tuple[str, dict[str,
     """Get badge ID and data by name.
 
     Args:
-        coordinator: KidsChoresCoordinator instance
+        coordinator: ChoreOpsCoordinator instance
         badge_name: Display name of the badge
 
     Returns:
@@ -181,8 +181,8 @@ class TestDailyBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        # Get existing kid and chore IDs
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        # Get existing assignee and chore IDs
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         chore_id = next(iter(coordinator.chores_data.keys()))
 
         # Daily badge form data - requires target_type (unlike cumulative)
@@ -191,7 +191,7 @@ class TestDailyBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:star-circle",
             CFOF_BADGES_INPUT_TARGET_TYPE: "chore_count",  # Required for daily
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 3,  # Complete 3 chores
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [chore_id],  # Track specific chore
             CFOF_BADGES_INPUT_AWARD_POINTS: 10.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -226,7 +226,7 @@ class TestDailyBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         # Create daily badge with chore_count target of 2
         badge_data = {
@@ -234,7 +234,7 @@ class TestDailyBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:medal",
             CFOF_BADGES_INPUT_TARGET_TYPE: "chore_count",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 2,  # Need 2 chores
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],  # All chores
             CFOF_BADGES_INPUT_AWARD_POINTS: 15.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -247,9 +247,11 @@ class TestDailyBadgeTargetTypes:
         # After badge creation, coordinator should have synced progress
         badge_id, _ = get_badge_by_name(coordinator, "Daily Chore Hero")
 
-        # Verify badge progress structure was initialized for kid
-        kid_progress = coordinator.kids_data[kid_id].get(DATA_KID_BADGE_PROGRESS, {})
-        assert badge_id in kid_progress, "Badge progress should be initialized"
+        # Verify badge progress structure was initialized for assignee
+        assignee_progress = coordinator.assignees_data[assignee_id].get(
+            DATA_ASSIGNEE_BADGE_PROGRESS, {}
+        )
+        assert badge_id in assignee_progress, "Badge progress should be initialized"
 
 
 # ============================================================================
@@ -281,7 +283,7 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         # Periodic badge with points_chores target
         badge_data = {
@@ -289,7 +291,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:trophy",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points_chores",  # Points from chores only
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,  # Earn 50 points
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],  # All chores
             CFOF_BADGES_INPUT_AWARD_POINTS: 25.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -324,7 +326,7 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         # Periodic badge tracking days_all_chores
         badge_data = {
@@ -332,7 +334,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:calendar-check",
             CFOF_BADGES_INPUT_TARGET_TYPE: "days_all_chores",  # Days with all done
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 5,  # Need 5 perfect days
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],  # All chores
             CFOF_BADGES_INPUT_AWARD_POINTS: 50.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -366,14 +368,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Progress Write Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:progress-check",
             CFOF_BADGES_INPUT_TARGET_TYPE: "chore_count",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 99,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 10.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -388,15 +390,17 @@ class TestPeriodicBadgeTargetTypes:
 
         badge_id, _ = get_badge_by_name(coordinator, "Progress Write Guard")
 
-        await coordinator.gamification_manager._evaluate_kid(kid_id)
+        await coordinator.gamification_manager._evaluate_assignee(assignee_id)
 
-        kid_progress = coordinator.kids_data[kid_id].get(DATA_KID_BADGE_PROGRESS, {})
-        badge_progress = kid_progress.get(badge_id, {})
+        assignee_progress = coordinator.assignees_data[assignee_id].get(
+            DATA_ASSIGNEE_BADGE_PROGRESS, {}
+        )
+        badge_progress = assignee_progress.get(badge_id, {})
 
-        assert const.DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS in badge_progress
-        assert const.DATA_KID_BADGE_PROGRESS_CRITERIA_MET in badge_progress
-        assert const.DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT in badge_progress
-        assert const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY in badge_progress
+        assert const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS in badge_progress
+        assert const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET in badge_progress
+        assert const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT in badge_progress
+        assert const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY in badge_progress
 
     async def test_periodic_badge_all_scope_does_not_materialize_all_chores(
         self,
@@ -407,14 +411,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "All Scope Storage Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:format-list-bulleted",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -428,11 +432,12 @@ class TestPeriodicBadgeTargetTypes:
         )
 
         badge_id, _ = get_badge_by_name(coordinator, "All Scope Storage Guard")
-        badge_progress = coordinator.kids_data[kid_id][DATA_KID_BADGE_PROGRESS][
-            badge_id
-        ]
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_ASSIGNEE_BADGE_PROGRESS
+        ][badge_id]
         assert (
-            badge_progress.get(const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES, []) == []
+            badge_progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES, [])
+            == []
         )
 
     async def test_periodic_badge_rollover_updates_stale_end_date(
@@ -444,14 +449,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Rollover Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:calendar-refresh",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 999,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -465,9 +470,9 @@ class TestPeriodicBadgeTargetTypes:
         )
 
         badge_id, badge_info = get_badge_by_name(coordinator, "Rollover Guard")
-        badge_progress = coordinator.kids_data[kid_id][DATA_KID_BADGE_PROGRESS][
-            badge_id
-        ]
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_ASSIGNEE_BADGE_PROGRESS
+        ][badge_id]
 
         today_iso = dt_today_iso()
         stale_end = dt_add_interval(
@@ -476,18 +481,21 @@ class TestPeriodicBadgeTargetTypes:
             delta=-2,
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
-        badge_progress[const.DATA_KID_BADGE_PROGRESS_END_DATE] = stale_end
-        badge_progress[const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 42.0
+        badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = stale_end
+        badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 42.0
 
         changed = coordinator.gamification_manager._advance_non_cumulative_badge_cycle_if_needed(
-            kid_id,
+            assignee_id,
             badge_id,
             badge_info,
             today_iso=today_iso,
         )
 
         assert changed is True
-        assert str(badge_progress[const.DATA_KID_BADGE_PROGRESS_END_DATE]) >= today_iso
+        assert (
+            str(badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE])
+            >= today_iso
+        )
         expected_start = dt_add_interval(
             today_iso,
             interval_unit=const.TIME_UNIT_DAYS,
@@ -495,9 +503,12 @@ class TestPeriodicBadgeTargetTypes:
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
         assert (
-            badge_progress[const.DATA_KID_BADGE_PROGRESS_START_DATE] == expected_start
+            badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE]
+            == expected_start
         )
-        assert badge_progress[const.DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT] == 0.0
+        assert (
+            badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT] == 0.0
+        )
 
     async def test_points_badge_persist_sets_last_update_day_and_rounds_progress(
         self,
@@ -508,14 +519,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Points Persist Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:counter",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -532,7 +543,7 @@ class TestPeriodicBadgeTargetTypes:
         today_iso = dt_today_iso()
 
         changed = coordinator.gamification_manager._persist_periodic_badge_progress(
-            kid_id,
+            assignee_id,
             badge_id,
             badge_info,
             {
@@ -555,13 +566,16 @@ class TestPeriodicBadgeTargetTypes:
 
         assert changed is True
 
-        badge_progress = coordinator.kids_data[kid_id][DATA_KID_BADGE_PROGRESS][
-            badge_id
-        ]
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_ASSIGNEE_BADGE_PROGRESS
+        ][badge_id]
         assert (
-            badge_progress[const.DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY] == today_iso
+            badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY]
+            == today_iso
         )
-        assert badge_progress[const.DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS] == 0.57
+        assert (
+            badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS] == 0.57
+        )
 
     async def test_periodic_badge_status_earned_when_criteria_met(
         self,
@@ -572,14 +586,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Status Earned Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:check-decagram",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 10,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -596,7 +610,7 @@ class TestPeriodicBadgeTargetTypes:
         today_iso = dt_today_iso()
 
         changed = coordinator.gamification_manager._persist_periodic_badge_progress(
-            kid_id,
+            assignee_id,
             badge_id,
             badge_info,
             {
@@ -618,11 +632,11 @@ class TestPeriodicBadgeTargetTypes:
         )
 
         assert changed is True
-        badge_progress = coordinator.kids_data[kid_id][DATA_KID_BADGE_PROGRESS][
-            badge_id
-        ]
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_ASSIGNEE_BADGE_PROGRESS
+        ][badge_id]
         assert (
-            badge_progress[const.DATA_KID_BADGE_PROGRESS_STATUS]
+            badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS]
             == const.BADGE_STATE_EARNED
         )
 
@@ -635,14 +649,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Reaward Cycle Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:repeat-once",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 1,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -658,17 +672,19 @@ class TestPeriodicBadgeTargetTypes:
         badge_id, _ = get_badge_by_name(coordinator, "Reaward Cycle Guard")
         today_iso = dt_today_iso()
 
-        coordinator.gamification_manager.update_badges_earned_for_kid(kid_id, badge_id)
+        coordinator.gamification_manager.update_badges_earned_for_assignee(
+            assignee_id, badge_id
+        )
 
-        badge_progress = coordinator.kids_data[kid_id][DATA_KID_BADGE_PROGRESS][
-            badge_id
-        ]
-        badge_progress[const.DATA_KID_BADGE_PROGRESS_START_DATE] = today_iso
-        badge_progress[const.DATA_KID_BADGE_PROGRESS_END_DATE] = today_iso
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_ASSIGNEE_BADGE_PROGRESS
+        ][badge_id]
+        badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = today_iso
+        badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = today_iso
 
         assert (
             coordinator.gamification_manager._is_periodic_award_recorded_for_current_cycle(
-                kid_id,
+                assignee_id,
                 badge_id,
             )
             is True
@@ -683,14 +699,14 @@ class TestPeriodicBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Legacy Scope Normalize Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:restore-alert",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -704,11 +720,11 @@ class TestPeriodicBadgeTargetTypes:
         )
 
         badge_id, _ = get_badge_by_name(coordinator, "Legacy Scope Normalize Guard")
-        badge_progress = coordinator.kids_data[kid_id][DATA_KID_BADGE_PROGRESS][
-            badge_id
-        ]
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_ASSIGNEE_BADGE_PROGRESS
+        ][badge_id]
 
-        badge_progress[const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES] = [
+        badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = [
             "legacy-1",
             "legacy-2",
         ]
@@ -716,24 +732,24 @@ class TestPeriodicBadgeTargetTypes:
         normalized = coordinator.gamification_manager._normalize_all_scope_tracked_chores_storage()
 
         assert normalized == 1
-        assert badge_progress[const.DATA_KID_BADGE_PROGRESS_TRACKED_CHORES] == []
+        assert badge_progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] == []
 
     async def test_scope_filter_empty_selected_includes_all_assigned(
         self,
         hass: HomeAssistant,
         setup_minimal: SetupResult,
     ) -> None:
-        """Empty selected chores means all chores assigned to kid are in scope."""
+        """Empty selected chores means all chores assigned to assignee are in scope."""
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Scope All Assigned Guard",
             CFOF_BADGES_INPUT_ICON: "mdi:playlist-check",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -752,12 +768,12 @@ class TestPeriodicBadgeTargetTypes:
         assigned_chores = [
             chore_id
             for chore_id, chore_info in coordinator.chores_data.items()
-            if not chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            or kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            if not chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            or assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
         ]
         in_scope = coordinator.gamification_manager.get_badge_in_scope_chores_list(
             badge_info,
-            kid_id,
+            assignee_id,
         )
 
         assert sorted(in_scope) == sorted(assigned_chores)
@@ -766,10 +782,10 @@ class TestPeriodicBadgeTargetTypes:
         self,
         setup_minimal: SetupResult,
     ) -> None:
-        """Selected chores are intersected with kid-assigned chores."""
+        """Selected chores are intersected with assignee-assigned chores."""
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
         all_chore_ids = list(coordinator.chores_data.keys())
         assert len(all_chore_ids) >= 2
         selected_valid = all_chore_ids[0]
@@ -787,8 +803,8 @@ class TestPeriodicBadgeTargetTypes:
 
         in_scope = coordinator.gamification_manager.get_badge_in_scope_chores_list(
             badge_info,
-            kid_id,
-            kid_assigned_chores=[selected_valid],
+            assignee_id,
+            assignee_assigned_chores=[selected_valid],
         )
         assert in_scope == [selected_valid]
 
@@ -799,7 +815,7 @@ class TestPeriodicBadgeTargetTypes:
     ) -> None:
         """Unknown target types warn and map to explicit unknown_target."""
         coordinator = setup_minimal.coordinator
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         badge_data = {
             const.DATA_BADGE_NAME: "Unknown Mapper Guard",
@@ -811,12 +827,12 @@ class TestPeriodicBadgeTargetTypes:
             const.DATA_BADGE_TRACKED_CHORES: {
                 const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES: [],
             },
-            const.DATA_BADGE_ASSIGNED_TO: [kid_id],
+            const.DATA_BADGE_ASSIGNED_TO: [assignee_id],
         }
 
         caplog.set_level(logging.WARNING)
         mapped = coordinator.gamification_manager._map_badge_to_canonical_target(
-            kid_id,
+            assignee_id,
             "badge-unknown",
             badge_data,
         )
@@ -854,14 +870,14 @@ class TestSpecialOccasionBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         # Special occasion badge - NO target_type or threshold
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Birthday Star",
             CFOF_BADGES_INPUT_ICON: "mdi:cake-variant",
             CFOF_BADGES_INPUT_OCCASION_TYPE: "birthday",  # Required for special
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_AWARD_POINTS: 100.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
         }
@@ -890,14 +906,14 @@ class TestSpecialOccasionBadgeTargetTypes:
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
-        kid_id = next(iter(coordinator.kids_data.keys()))
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
 
         # Holiday special occasion badge
         badge_data = {
             CFOF_BADGES_INPUT_NAME: "Holiday Helper",
             CFOF_BADGES_INPUT_ICON: "mdi:gift",
             CFOF_BADGES_INPUT_OCCASION_TYPE: "holiday",  # Holiday occasion
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [kid_id],
+            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
             CFOF_BADGES_INPUT_AWARD_POINTS: 50.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
         }

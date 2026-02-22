@@ -1,4 +1,4 @@
-"""Performance baseline test for KidsChores coordinator.
+"""Performance baseline test for ChoreOps coordinator.
 
 Measures performance of instrumented coordinator methods to establish baseline
 metrics before optimization work begins.
@@ -31,7 +31,7 @@ async def test_performance_baseline_with_scenario_full(
 ) -> None:
     """Capture baseline performance with full scenario data.
 
-    Uses scenario_full fixture: 3 kids, 7 chores, 5 badges, realistic data.
+    Uses scenario_full fixture: 3 assignees, 7 chores, 5 badges, realistic data.
 
     Run with: pytest tests/test_performance.py -v -s -m performance
     """
@@ -40,53 +40,58 @@ async def test_performance_baseline_with_scenario_full(
 
     with (
         patch.object(
-            coordinator.notification_manager, "notify_kid_translated", new=AsyncMock()
+            coordinator.notification_manager,
+            "notify_assignee_translated",
+            new=AsyncMock(),
         ),
         patch.object(
             coordinator.notification_manager,
-            "notify_parents_translated",
+            "notify_approvers_translated",
             new=AsyncMock(),
         ),
     ):
-        # Test 1: Check overdue chores (O(chores × kids))
+        # Test 1: Check overdue chores (O(chores × assignees))
         await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
 
         # Test 2: Persist operation
         coordinator._persist()
 
-        # Test 3: Badge evaluation for each kid (via GamificationManager)
-        for kid_id in coordinator.kids_data:
-            coordinator.gamification_manager._mark_dirty(kid_id)
+        # Test 3: Badge evaluation for each assignee (via GamificationManager)
+        for assignee_id in coordinator.assignees_data:
+            coordinator.gamification_manager._mark_dirty(assignee_id)
         # Trigger immediate evaluation
-        coordinator.gamification_manager._evaluate_pending_kids()
+        coordinator.gamification_manager._evaluate_pending_assignees()
 
-        # Test 4: Parent notifications (via NotificationManager directly)
-        if coordinator.parents_data and coordinator.kids_data:
-            first_kid_id = list(coordinator.kids_data.keys())[0]
-            await coordinator.notification_manager.notify_parents_translated(
-                first_kid_id,
+        # Test 4: Approver notifications (via NotificationManager directly)
+        if coordinator.approvers_data and coordinator.assignees_data:
+            first_assignee_id = list(coordinator.assignees_data.keys())[0]
+            await coordinator.notification_manager.notify_approvers_translated(
+                first_assignee_id,
                 "notification_title_chore_claimed",
                 "notification_message_chore_claimed",
-                message_data={"kid_name": "Test", "chore_name": "Performance Test"},
+                message_data={
+                    "assignee_name": "Test",
+                    "chore_name": "Performance Test",
+                },
             )
 
         # Test 5: Entity cleanup
-        await coordinator._remove_orphaned_kid_chore_entities()
+        await coordinator._remove_orphaned_assignee_chore_entities()
 
         # Test 6: Chore claim operation
-        if coordinator.chores_data and coordinator.kids_data:
+        if coordinator.chores_data and coordinator.assignees_data:
             # Find a claimable chore (one not already claimed/approved)
-            kid_id = list(coordinator.kids_data.keys())[0]
-            kid_info = coordinator.kids_data[kid_id]
-            chore_data = kid_info.get("chore_data", {})
+            assignee_id = list(coordinator.assignees_data.keys())[0]
+            assignee_info = coordinator.assignees_data[assignee_id]
+            chore_data = assignee_info.get("chore_data", {})
 
-            # Find a chore assigned to this kid that isn't already claimed/approved
+            # Find a chore assigned to this assignee that isn't already claimed/approved
             claimable_chore_id = None
             for chore_id, chore_info in coordinator.chores_data.items():
-                kid_chore_state = chore_data.get(chore_id, {}).get("state")
-                if kid_id in chore_info.get(
-                    "assigned_kids", []
-                ) and kid_chore_state not in (
+                assignee_chore_state = chore_data.get(chore_id, {}).get("state")
+                if assignee_id in chore_info.get(
+                    "assigned_assignees", []
+                ) and assignee_chore_state not in (
                     CHORE_STATE_CLAIMED,
                     CHORE_STATE_APPROVED,
                 ):
@@ -95,15 +100,15 @@ async def test_performance_baseline_with_scenario_full(
 
             if claimable_chore_id:
                 await coordinator.chore_manager.claim_chore(
-                    kid_id, claimable_chore_id, "test_user"
+                    assignee_id, claimable_chore_id, "test_user"
                 )
 
         # Test 7: Chore approval and point addition
-        if coordinator.chores_data and coordinator.kids_data:
+        if coordinator.chores_data and coordinator.assignees_data:
             # Find a claimed chore to approve
-            kid_id = list(coordinator.kids_data.keys())[0]
-            kid_info = coordinator.kids_data[kid_id]
-            chore_data = kid_info.get("chore_data", {})
+            assignee_id = list(coordinator.assignees_data.keys())[0]
+            assignee_info = coordinator.assignees_data[assignee_id]
+            chore_data = assignee_info.get("chore_data", {})
 
             # Find a chore in claimed state
             chore_id_to_approve = None
@@ -114,34 +119,38 @@ async def test_performance_baseline_with_scenario_full(
 
             if chore_id_to_approve:
                 await coordinator.chore_manager.approve_chore(
-                    "test_user", kid_id, chore_id_to_approve
+                    "test_user", assignee_id, chore_id_to_approve
                 )
 
         # Test 8: Bulk operations - approve multiple chores
-        if len(coordinator.kids_data) >= 2 and len(coordinator.chores_data) >= 2:
+        if len(coordinator.assignees_data) >= 2 and len(coordinator.chores_data) >= 2:
             operations_count = 0
-            for kid_id in list(coordinator.kids_data.keys())[:2]:  # Just first 2 kids
-                kid_info = coordinator.kids_data[kid_id]
-                chore_data = kid_info.get("chore_data", {})
+            for assignee_id in list(coordinator.assignees_data.keys())[
+                :2
+            ]:  # Just first 2 assignees
+                assignee_info = coordinator.assignees_data[assignee_id]
+                chore_data = assignee_info.get("chore_data", {})
 
-                # Find up to 2 chores per kid we can work with
+                # Find up to 2 chores per assignee we can work with
                 for chore_id, chore_info in list(coordinator.chores_data.items())[:2]:
-                    kid_chore_state = chore_data.get(chore_id, {}).get("state")
-                    if kid_id in chore_info.get(
-                        "assigned_kids", []
-                    ) and kid_chore_state not in (
+                    assignee_chore_state = chore_data.get(chore_id, {}).get("state")
+                    if assignee_id in chore_info.get(
+                        "assigned_assignees", []
+                    ) and assignee_chore_state not in (
                         CHORE_STATE_CLAIMED,
                         CHORE_STATE_APPROVED,
                     ):
                         # Reset chore state to pending first
-                        coordinator._process_chore_state(kid_id, chore_id, "pending")
+                        coordinator._process_chore_state(
+                            assignee_id, chore_id, "pending"
+                        )
                         # Claim it
                         await coordinator.chore_manager.claim_chore(
-                            kid_id, chore_id, "test_user"
+                            assignee_id, chore_id, "test_user"
                         )
                         # Approve it
                         await coordinator.chore_manager.approve_chore(
-                            "test_user", kid_id, chore_id
+                            "test_user", assignee_id, chore_id
                         )
                         operations_count += 2
                         if (

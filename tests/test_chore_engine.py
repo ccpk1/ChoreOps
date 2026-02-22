@@ -73,13 +73,13 @@ class TestStateTransitions:
         )
 
     def test_overdue_to_claimed_allowed(self) -> None:
-        """OVERDUE → CLAIMED is valid (kid claims overdue chore)."""
+        """OVERDUE → CLAIMED is valid (assignee claims overdue chore)."""
         assert ChoreEngine.can_transition(
             const.CHORE_STATE_OVERDUE, const.CHORE_STATE_CLAIMED
         )
 
     def test_overdue_to_approved_allowed(self) -> None:
-        """OVERDUE → APPROVED is valid (parent completes on behalf)."""
+        """OVERDUE → APPROVED is valid (approver completes on behalf)."""
         assert ChoreEngine.can_transition(
             const.CHORE_STATE_OVERDUE, const.CHORE_STATE_APPROVED
         )
@@ -103,7 +103,7 @@ class TestCalculateTransitionClaim:
     """Test transition effect planning for claim actions."""
 
     def test_claim_independent_affects_only_actor(self) -> None:
-        """INDEPENDENT: Claim only affects the claiming kid."""
+        """INDEPENDENT: Claim only affects the claiming assignee."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.DATA_CHORE_DEFAULT_POINTS: 10.0,
@@ -111,20 +111,20 @@ class TestCalculateTransitionClaim:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_CLAIM,
-            kids_assigned=["kid-1", "kid-2", "kid-3"],
-            kid_name="Sarah",
+            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
+            assignee_name="Sarah",
         )
 
         assert len(effects) == 1
-        assert effects[0].kid_id == "kid-1"
+        assert effects[0].assignee_id == "assignee-1"
         assert effects[0].new_state == const.CHORE_STATE_CLAIMED
         assert effects[0].update_stats is True
         assert effects[0].set_claimed_by == "Sarah"
 
     def test_claim_shared_affects_only_actor(self) -> None:
-        """SHARED: Claim only affects the claiming kid."""
+        """SHARED: Claim only affects the claiming assignee."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
             const.DATA_CHORE_DEFAULT_POINTS: 10.0,
@@ -132,18 +132,18 @@ class TestCalculateTransitionClaim:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_CLAIM,
-            kids_assigned=["kid-1", "kid-2"],
-            kid_name="Sarah",
+            assignees_assigned=["assignee-1", "assignee-2"],
+            assignee_name="Sarah",
         )
 
         assert len(effects) == 1
-        assert effects[0].kid_id == "kid-1"
+        assert effects[0].assignee_id == "assignee-1"
         assert effects[0].new_state == const.CHORE_STATE_CLAIMED
 
-    def test_claim_shared_first_affects_all_kids(self) -> None:
-        """SHARED_FIRST: Claiming kid → CLAIMED (Phase 2: no state change for others)."""
+    def test_claim_shared_first_affects_all_assignees(self) -> None:
+        """SHARED_FIRST: Claiming assignee → CLAIMED (Phase 2: no state change for others)."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
             const.DATA_CHORE_DEFAULT_POINTS: 10.0,
@@ -151,18 +151,18 @@ class TestCalculateTransitionClaim:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_CLAIM,
-            kids_assigned=["kid-1", "kid-2", "kid-3"],
-            kid_name="Sarah",
+            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
+            assignee_name="Sarah",
         )
 
-        # Phase 2: Only 1 effect (actor), other kids remain in their current state
+        # Phase 2: Only 1 effect (actor), other assignees remain in their current state
         assert len(effects) == 1
 
-        # Actor kid gets CLAIMED state
+        # Actor assignee gets CLAIMED state
         actor_effect = effects[0]
-        assert actor_effect.kid_id == "kid-1"
+        assert actor_effect.assignee_id == "assignee-1"
         assert actor_effect.new_state == const.CHORE_STATE_CLAIMED
         assert actor_effect.update_stats is True
         assert actor_effect.set_claimed_by == "Sarah"
@@ -185,14 +185,14 @@ class TestCalculateTransitionApprove:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_APPROVE,
-            kids_assigned=["kid-1", "kid-2"],
-            kid_name="Sarah",
+            assignees_assigned=["assignee-1", "assignee-2"],
+            assignee_name="Sarah",
         )
 
         assert len(effects) == 1
-        assert effects[0].kid_id == "kid-1"
+        assert effects[0].assignee_id == "assignee-1"
         assert effects[0].new_state == const.CHORE_STATE_APPROVED
         assert effects[0].update_stats is True
         assert effects[0].points == 15.0
@@ -207,17 +207,17 @@ class TestCalculateTransitionApprove:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_APPROVE,
-            kids_assigned=["kid-1", "kid-2"],
-            kid_name="Sarah",
+            assignees_assigned=["assignee-1", "assignee-2"],
+            assignee_name="Sarah",
         )
 
         # Phase 2: Only 1 effect (actor), blocking is computed not stored
         assert len(effects) == 1
 
         actor_effect = effects[0]
-        assert actor_effect.kid_id == "kid-1"
+        assert actor_effect.assignee_id == "assignee-1"
         assert actor_effect.new_state == const.CHORE_STATE_APPROVED
         assert actor_effect.points == 20.0
         assert actor_effect.update_stats is True
@@ -240,27 +240,27 @@ class TestCalculateTransitionDisapprove:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_DISAPPROVE,
-            kids_assigned=["kid-1", "kid-2"],
+            assignees_assigned=["assignee-1", "assignee-2"],
         )
 
         assert len(effects) == 1
-        assert effects[0].kid_id == "kid-1"
+        assert effects[0].assignee_id == "assignee-1"
         assert effects[0].new_state == const.CHORE_STATE_PENDING
         assert effects[0].update_stats is True
 
     def test_disapprove_shared_first_resets_all(self) -> None:
-        """SHARED_FIRST: Disapprove resets ALL kids to pending."""
+        """SHARED_FIRST: Disapprove resets ALL assignees to pending."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
         }
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_DISAPPROVE,
-            kids_assigned=["kid-1", "kid-2", "kid-3"],
+            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
         )
 
         assert len(effects) == 3
@@ -271,10 +271,10 @@ class TestCalculateTransitionDisapprove:
             assert effect.clear_completed_by is True
 
         # Only actor gets stat update
-        actor_effect = next(e for e in effects if e.kid_id == "kid-1")
+        actor_effect = next(e for e in effects if e.assignee_id == "assignee-1")
         assert actor_effect.update_stats is True
 
-        other_effects = [e for e in effects if e.kid_id != "kid-1"]
+        other_effects = [e for e in effects if e.assignee_id != "assignee-1"]
         for effect in other_effects:
             assert effect.update_stats is False
 
@@ -295,24 +295,24 @@ class TestCalculateTransitionUndo:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_UNDO,
-            kids_assigned=["kid-1"],
+            assignees_assigned=["assignee-1"],
         )
 
         assert all(e.update_stats is False for e in effects)
 
     def test_undo_shared_first_resets_all(self) -> None:
-        """SHARED_FIRST: Undo resets ALL kids."""
+        """SHARED_FIRST: Undo resets ALL assignees."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
         }
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_UNDO,
-            kids_assigned=["kid-1", "kid-2"],
+            assignees_assigned=["assignee-1", "assignee-2"],
         )
 
         assert len(effects) == 2
@@ -330,17 +330,17 @@ class TestCalculateTransitionUndo:
 class TestCalculateTransitionReset:
     """Test transition effect planning for reset actions."""
 
-    def test_reset_affects_all_kids(self) -> None:
-        """Reset transitions all assigned kids to pending."""
+    def test_reset_affects_all_assignees(self) -> None:
+        """Reset transitions all assigned assignees to pending."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         }
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",  # Actor doesn't matter for reset
+            actor_assignee_id="assignee-1",  # Actor doesn't matter for reset
             action=CHORE_ACTION_RESET,
-            kids_assigned=["kid-1", "kid-2", "kid-3"],
+            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
         )
 
         assert len(effects) == 3
@@ -360,20 +360,20 @@ class TestCalculateTransitionOverdue:
     """Test transition effect planning for overdue actions."""
 
     def test_overdue_affects_only_actor(self) -> None:
-        """Overdue only marks the specified kid as overdue."""
+        """Overdue only marks the specified assignee as overdue."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         }
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_OVERDUE,
-            kids_assigned=["kid-1", "kid-2"],
+            assignees_assigned=["assignee-1", "assignee-2"],
         )
 
         assert len(effects) == 1
-        assert effects[0].kid_id == "kid-1"
+        assert effects[0].assignee_id == "assignee-1"
         assert effects[0].new_state == const.CHORE_STATE_OVERDUE
         assert effects[0].update_stats is True
 
@@ -395,9 +395,9 @@ class TestSkipStatsFlag:
 
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id="kid-1",
+            actor_assignee_id="assignee-1",
             action=CHORE_ACTION_APPROVE,
-            kids_assigned=["kid-1", "kid-2"],
+            assignees_assigned=["assignee-1", "assignee-2"],
             skip_stats=True,
         )
 
@@ -409,7 +409,7 @@ class TestSkipStatsFlag:
 # =============================================================================
 
 
-class TestResolveKidChoreStateWaiting:
+class TestResolveAssigneeChoreStateWaiting:
     """Test P6 waiting lock behavior in chore state resolution."""
 
     def test_pre_window_returns_waiting_with_lock_reason(self) -> None:
@@ -422,9 +422,9 @@ class TestResolveKidChoreStateWaiting:
             const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: True,
         }
 
-        state, lock_reason = ChoreEngine.resolve_kid_chore_state(
+        state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
             chore_data=chore_data,
-            kid_id="kid-1",
+            assignee_id="assignee-1",
             now=now,
             is_approved_in_period=False,
             has_pending_claim=False,
@@ -445,9 +445,9 @@ class TestResolveKidChoreStateWaiting:
             const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: True,
         }
 
-        state, lock_reason = ChoreEngine.resolve_kid_chore_state(
+        state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
             chore_data=chore_data,
-            kid_id="kid-1",
+            assignee_id="assignee-1",
             now=now,
             is_approved_in_period=False,
             has_pending_claim=False,
@@ -468,9 +468,9 @@ class TestResolveKidChoreStateWaiting:
             const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: False,
         }
 
-        state, lock_reason = ChoreEngine.resolve_kid_chore_state(
+        state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
             chore_data=chore_data,
-            kid_id="kid-1",
+            assignee_id="assignee-1",
             now=now,
             is_approved_in_period=False,
             has_pending_claim=False,
@@ -491,22 +491,22 @@ class TestCanClaimChore:
     """Test claim validation logic."""
 
     def test_completed_by_other_blocks_claim(self) -> None:
-        """Phase 2: SHARED_FIRST with other kid CLAIMED/APPROVED blocks claim."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        """Phase 2: SHARED_FIRST with other assignee CLAIMED/APPROVED blocks claim."""
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
         }
-        # Phase 2: Blocking computed from other kids' states
-        other_kid_states = {"other-kid": const.CHORE_STATE_CLAIMED}
+        # Phase 2: Blocking computed from other assignees' states
+        other_assignee_states = {"other-assignee": const.CHORE_STATE_CLAIMED}
 
         can_claim, error = ChoreEngine.can_claim_chore(
-            kid_chore_data,
+            assignee_chore_data,
             chore_data,
             has_pending_claim=False,
             is_approved_in_period=False,
-            other_kid_states=other_kid_states,
+            other_assignee_states=other_assignee_states,
         )
 
         assert can_claim is False
@@ -514,15 +514,15 @@ class TestCanClaimChore:
 
     def test_pending_claim_blocks_new_claim(self) -> None:
         """Cannot claim if there's already a pending claim (single-claim)."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
         }
 
         can_claim, error = ChoreEngine.can_claim_chore(
-            kid_chore_data,
+            assignee_chore_data,
             chore_data,
             has_pending_claim=True,
             is_approved_in_period=False,
@@ -533,15 +533,15 @@ class TestCanClaimChore:
 
     def test_already_approved_blocks_claim(self) -> None:
         """Cannot claim if already approved in period (single-claim)."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
         }
 
         can_claim, error = ChoreEngine.can_claim_chore(
-            kid_chore_data,
+            assignee_chore_data,
             chore_data,
             has_pending_claim=False,
             is_approved_in_period=True,
@@ -552,15 +552,15 @@ class TestCanClaimChore:
 
     def test_multi_claim_allows_pending(self) -> None:
         """Multi-claim chore allows claiming even with pending claim."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_MULTI,
         }
 
         can_claim, error = ChoreEngine.can_claim_chore(
-            kid_chore_data,
+            assignee_chore_data,
             chore_data,
             has_pending_claim=True,
             is_approved_in_period=False,
@@ -571,15 +571,15 @@ class TestCanClaimChore:
 
     def test_upon_completion_allows_pending(self) -> None:
         """UPON_COMPLETION chore allows claiming even with pending."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
         }
 
         can_claim, error = ChoreEngine.can_claim_chore(
-            kid_chore_data,
+            assignee_chore_data,
             chore_data,
             has_pending_claim=True,
             is_approved_in_period=True,
@@ -590,13 +590,13 @@ class TestCanClaimChore:
 
     def test_valid_claim_succeeds(self) -> None:
         """Normal claim with no blockers succeeds."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data: dict[str, object] = {}
 
         can_claim, error = ChoreEngine.can_claim_chore(
-            kid_chore_data,
+            assignee_chore_data,
             chore_data,
             has_pending_claim=False,
             is_approved_in_period=False,
@@ -619,15 +619,15 @@ class TestCanApproveChore:
 
     def test_already_approved_blocks_single_claim(self) -> None:
         """Single-claim chore cannot be approved twice in period."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
         }
 
         can_approve, error = ChoreEngine.can_approve_chore(
-            kid_chore_data, chore_data, is_approved_in_period=True
+            assignee_chore_data, chore_data, is_approved_in_period=True
         )
 
         assert can_approve is False
@@ -635,15 +635,15 @@ class TestCanApproveChore:
 
     def test_multi_claim_allows_multiple_approvals(self) -> None:
         """Multi-claim chore allows multiple approvals in period."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_MULTI,
         }
 
         can_approve, error = ChoreEngine.can_approve_chore(
-            kid_chore_data, chore_data, is_approved_in_period=True
+            assignee_chore_data, chore_data, is_approved_in_period=True
         )
 
         assert can_approve is True
@@ -651,13 +651,13 @@ class TestCanApproveChore:
 
     def test_valid_approve_succeeds(self) -> None:
         """Normal approval with no blockers succeeds."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
         }
         chore_data: dict[str, object] = {}
 
         can_approve, error = ChoreEngine.can_approve_chore(
-            kid_chore_data, chore_data, is_approved_in_period=False
+            assignee_chore_data, chore_data, is_approved_in_period=False
         )
 
         assert can_approve is True
@@ -674,34 +674,34 @@ class TestQueryFunctions:
 
     def test_chore_has_pending_claim_true(self) -> None:
         """Returns True when pending_claim_count > 0."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT: 2,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: 2,
         }
-        assert ChoreEngine.chore_has_pending_claim(kid_chore_data) is True
+        assert ChoreEngine.chore_has_pending_claim(assignee_chore_data) is True
 
     def test_chore_has_pending_claim_false(self) -> None:
         """Returns False when pending_claim_count is 0 or missing."""
         assert ChoreEngine.chore_has_pending_claim({}) is False
         assert (
             ChoreEngine.chore_has_pending_claim(
-                {const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT: 0}
+                {const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: 0}
             )
             is False
         )
 
     def test_chore_is_overdue_true(self) -> None:
         """Returns True when state is OVERDUE."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE,
         }
-        assert ChoreEngine.chore_is_overdue(kid_chore_data) is True
+        assert ChoreEngine.chore_is_overdue(assignee_chore_data) is True
 
     def test_chore_is_overdue_false(self) -> None:
         """Returns False when state is not OVERDUE."""
-        kid_chore_data = {
-            const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+        assignee_chore_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
-        assert ChoreEngine.chore_is_overdue(kid_chore_data) is False
+        assert ChoreEngine.chore_is_overdue(assignee_chore_data) is False
 
     def test_chore_allows_multiple_claims_midnight_multi(self) -> None:
         """AT_MIDNIGHT_MULTI allows multiple claims."""
@@ -754,26 +754,26 @@ class TestQueryFunctions:
         }
         assert ChoreEngine.is_shared_chore(chore_data) is False
 
-    def test_get_chore_data_for_kid_exists(self) -> None:
+    def test_get_chore_data_for_assignee_exists(self) -> None:
         """Returns chore data when it exists."""
-        kid_data = {
-            const.DATA_KID_CHORE_DATA: {
+        assignee_data = {
+            const.DATA_ASSIGNEE_CHORE_DATA: {
                 "chore-123": {"state": "claimed", "streak": 5},
             }
         }
-        result = ChoreEngine.get_chore_data_for_kid(kid_data, "chore-123")
+        result = ChoreEngine.get_chore_data_for_assignee(assignee_data, "chore-123")
         assert result == {"state": "claimed", "streak": 5}
 
-    def test_get_chore_data_for_kid_not_exists(self) -> None:
+    def test_get_chore_data_for_assignee_not_exists(self) -> None:
         """Returns empty dict when chore data doesn't exist."""
-        kid_data = {const.DATA_KID_CHORE_DATA: {}}
-        result = ChoreEngine.get_chore_data_for_kid(kid_data, "chore-999")
+        assignee_data = {const.DATA_ASSIGNEE_CHORE_DATA: {}}
+        result = ChoreEngine.get_chore_data_for_assignee(assignee_data, "chore-999")
         assert result == {}
 
-    def test_get_chore_data_for_kid_no_tracking(self) -> None:
-        """Returns empty dict when kid has no chore_data."""
-        kid_data: dict[str, object] = {}
-        result = ChoreEngine.get_chore_data_for_kid(kid_data, "chore-123")
+    def test_get_chore_data_for_assignee_no_tracking(self) -> None:
+        """Returns empty dict when assignee has no chore_data."""
+        assignee_data: dict[str, object] = {}
+        result = ChoreEngine.get_chore_data_for_assignee(assignee_data, "chore-123")
         assert result == {}
 
 
@@ -817,35 +817,35 @@ class TestPointCalculations:
 
 
 class TestComputeGlobalChoreState:
-    """Test global state calculation from per-kid states."""
+    """Test global state calculation from per-assignee states."""
 
     def test_empty_states_returns_unknown(self) -> None:
-        """Empty kid_states returns UNKNOWN."""
+        """Empty assignee_states returns UNKNOWN."""
         result = ChoreEngine.compute_global_chore_state({}, {})
         assert result == const.CHORE_STATE_UNKNOWN
 
-    def test_single_kid_returns_their_state(self) -> None:
-        """Single kid: global state is their state."""
-        kid_states = {"kid-1": const.CHORE_STATE_CLAIMED}
-        result = ChoreEngine.compute_global_chore_state({}, kid_states)
+    def test_single_assignee_returns_their_state(self) -> None:
+        """Single assignee: global state is their state."""
+        assignee_states = {"assignee-1": const.CHORE_STATE_CLAIMED}
+        result = ChoreEngine.compute_global_chore_state({}, assignee_states)
         assert result == const.CHORE_STATE_CLAIMED
 
     def test_all_pending_returns_pending(self) -> None:
-        """All kids pending: global state is PENDING."""
-        kid_states = {
-            "kid-1": const.CHORE_STATE_PENDING,
-            "kid-2": const.CHORE_STATE_PENDING,
+        """All assignees pending: global state is PENDING."""
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_PENDING,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
-        result = ChoreEngine.compute_global_chore_state({}, kid_states)
+        result = ChoreEngine.compute_global_chore_state({}, assignee_states)
         assert result == const.CHORE_STATE_PENDING
 
     def test_all_approved_returns_approved(self) -> None:
-        """All kids approved: global state is APPROVED."""
-        kid_states = {
-            "kid-1": const.CHORE_STATE_APPROVED,
-            "kid-2": const.CHORE_STATE_APPROVED,
+        """All assignees approved: global state is APPROVED."""
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_APPROVED,
+            "assignee-2": const.CHORE_STATE_APPROVED,
         }
-        result = ChoreEngine.compute_global_chore_state({}, kid_states)
+        result = ChoreEngine.compute_global_chore_state({}, assignee_states)
         assert result == const.CHORE_STATE_APPROVED
 
     def test_shared_first_with_claimed_returns_claimed(self) -> None:
@@ -853,11 +853,11 @@ class TestComputeGlobalChoreState:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_CLAIMED,
-            "kid-2": const.CHORE_STATE_PENDING,  # Phase 2: no longer COMPLETED_BY_OTHER
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_CLAIMED,
+            "assignee-2": const.CHORE_STATE_PENDING,  # Phase 2: no longer COMPLETED_BY_OTHER
         }
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_CLAIMED
 
     def test_shared_first_with_approved_returns_approved(self) -> None:
@@ -865,11 +865,11 @@ class TestComputeGlobalChoreState:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_APPROVED,
-            "kid-2": const.CHORE_STATE_PENDING,  # Phase 2: no longer COMPLETED_BY_OTHER
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_APPROVED,
+            "assignee-2": const.CHORE_STATE_PENDING,  # Phase 2: no longer COMPLETED_BY_OTHER
         }
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_APPROVED
 
     def test_shared_partial_claimed_returns_claimed_in_part(self) -> None:
@@ -877,11 +877,11 @@ class TestComputeGlobalChoreState:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_CLAIMED,
-            "kid-2": const.CHORE_STATE_PENDING,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_CLAIMED,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_CLAIMED_IN_PART
 
     def test_shared_partial_approved_returns_approved_in_part(self) -> None:
@@ -889,11 +889,11 @@ class TestComputeGlobalChoreState:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_APPROVED,
-            "kid-2": const.CHORE_STATE_PENDING,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_APPROVED,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_APPROVED_IN_PART
 
     def test_independent_mixed_returns_independent(self) -> None:
@@ -901,23 +901,23 @@ class TestComputeGlobalChoreState:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_APPROVED,
-            "kid-2": const.CHORE_STATE_PENDING,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_APPROVED,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_INDEPENDENT
 
     def test_overdue_takes_precedence_in_shared(self) -> None:
-        """SHARED: If any kid is overdue, global is OVERDUE."""
+        """SHARED: If any assignee is overdue, global is OVERDUE."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_OVERDUE,
-            "kid-2": const.CHORE_STATE_PENDING,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_OVERDUE,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_OVERDUE
 
 
@@ -1281,26 +1281,28 @@ class TestGetBoundaryCategory:
     # INDEPENDENT vs SHARED due date detection
     # -------------------------------------------------------------------------
 
-    def test_independent_chore_checks_per_kid_due_dates(self) -> None:
-        """INDEPENDENT chore checks per_kid_due_dates for has_due_date."""
+    def test_independent_chore_checks_per_assignee_due_dates(self) -> None:
+        """INDEPENDENT chore checks per_assignee_due_dates for has_due_date."""
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
             const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
-            const.DATA_CHORE_PER_KID_DUE_DATES: {"kid-1": "2025-01-31T10:00:00"},
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: {
+                "assignee-1": "2025-01-31T10:00:00"
+            },
         }
         result = ChoreEngine.get_boundary_category(
             chore_data, const.CHORE_STATE_APPROVED, "midnight"
         )
         assert result == "reset_and_reschedule"
 
-    def test_independent_chore_without_per_kid_due_dates_resets_only(self) -> None:
-        """INDEPENDENT chore without per_kid_due_dates → reset_only."""
+    def test_independent_chore_without_per_assignee_due_dates_resets_only(self) -> None:
+        """INDEPENDENT chore without per_assignee_due_dates → reset_only."""
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
             const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
-            const.DATA_CHORE_PER_KID_DUE_DATES: {},
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: {},
         }
         result = ChoreEngine.get_boundary_category(
             chore_data, const.CHORE_STATE_APPROVED, "midnight"
@@ -1407,9 +1409,9 @@ class TestGetDueWindowStart:
 class TestCriteriaTransitionActions:
     """Test field-change planning for mutable completion criteria."""
 
-    def test_non_rotation_to_rotation_with_kids_initializes_turn(self) -> None:
+    def test_non_rotation_to_rotation_with_assignees_initializes_turn(self) -> None:
         """Transition to rotation initializes current turn and override flag."""
-        chore_data = {const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"]}
+        chore_data = {const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"]}
 
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -1418,13 +1420,15 @@ class TestCriteriaTransitionActions:
         )
 
         assert changes == {
-            const.DATA_CHORE_ROTATION_CURRENT_KID_ID: "kid-1",
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: "assignee-1",
             const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE: False,
         }
 
-    def test_non_rotation_to_rotation_without_kids_sets_override_only(self) -> None:
-        """No assigned kids means no current turn id is set."""
-        chore_data: dict[str, object] = {const.DATA_CHORE_ASSIGNED_KIDS: []}
+    def test_non_rotation_to_rotation_without_assignees_sets_override_only(
+        self,
+    ) -> None:
+        """No assigned assignees means no current turn id is set."""
+        chore_data: dict[str, object] = {const.DATA_CHORE_ASSIGNED_ASSIGNEES: []}
 
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_SHARED,
@@ -1439,11 +1443,11 @@ class TestCriteriaTransitionActions:
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_SHARED,
-            {const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"]},
+            {const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"]},
         )
 
         assert changes == {
-            const.DATA_CHORE_ROTATION_CURRENT_KID_ID: None,
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: None,
             const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE: False,
         }
 
@@ -1452,7 +1456,7 @@ class TestCriteriaTransitionActions:
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
-            {const.DATA_CHORE_ASSIGNED_KIDS: ["kid-1", "kid-2"]},
+            {const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"]},
         )
 
         assert changes == {}
@@ -1467,16 +1471,16 @@ class TestComputeGlobalChoreStateEdges:
     """Cover mixed-state edge cases for global state aggregation."""
 
     def test_single_claimer_not_my_turn_with_pending_shows_pending(self) -> None:
-        """If any kid can claim, single-claimer mode remains globally pending."""
+        """If any assignee can claim, single-claimer mode remains globally pending."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_NOT_MY_TURN,
-            "kid-2": const.CHORE_STATE_PENDING,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_NOT_MY_TURN,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
 
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_PENDING
 
     def test_single_claimer_all_not_my_turn_shows_not_my_turn(self) -> None:
@@ -1484,12 +1488,12 @@ class TestComputeGlobalChoreStateEdges:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_NOT_MY_TURN,
-            "kid-2": const.CHORE_STATE_NOT_MY_TURN,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_NOT_MY_TURN,
+            "assignee-2": const.CHORE_STATE_NOT_MY_TURN,
         }
 
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_NOT_MY_TURN
 
     def test_shared_due_and_pending_returns_unknown(self) -> None:
@@ -1497,10 +1501,10 @@ class TestComputeGlobalChoreStateEdges:
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
         }
-        kid_states = {
-            "kid-1": const.CHORE_STATE_DUE,
-            "kid-2": const.CHORE_STATE_PENDING,
+        assignee_states = {
+            "assignee-1": const.CHORE_STATE_DUE,
+            "assignee-2": const.CHORE_STATE_PENDING,
         }
 
-        result = ChoreEngine.compute_global_chore_state(chore_data, kid_states)
+        result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_UNKNOWN

@@ -25,7 +25,7 @@ claim_chore:
 
 approve_chore:
   name: "Approve Chore"
-  description: "Parent approves a chore, awarding points (full or partial)."
+  description: "Approver approves a chore, awarding points (full or partial)."
   fields:
     approver_name:
       name: "Approver Name"
@@ -228,7 +228,7 @@ apply_bonus:
 generate_activity_report:
   name: "Generate Activity Report"
   description: >
-    Build a 7-day activity report from kid ledger data. This service is
+    Build a 7-day activity report from assignee ledger data. This service is
     response-first and returns markdown, with optional HTML conversion for
     email-oriented workflows, when called with return_response: true.
   fields:
@@ -286,9 +286,9 @@ reset_chores_to_pending_state:
 reset_transactional_data:
   name: "Reset Transactional Data"
   description: >
-    Reset runtime/transactional data while preserving configuration (kids, chores, rewards, etc.).
-    An automatic backup is created before reset as kidschores_data_<timestamp>_reset in the .storage directory.
-    Use scope to target specific kids or domains.
+    Reset runtime/transactional data while preserving configuration (assignees, chores, rewards, etc.).
+    An automatic backup is created before reset as choreops_data_<timestamp>_reset in the .storage directory.
+    Use scope to target specific assignees or domains.
     IMPORTANT: Requires confirm_destructive: true as a safety mechanism.
   fields:
     confirm_destructive:
@@ -300,7 +300,7 @@ reset_transactional_data:
         boolean:
     scope:
       name: "Scope"
-      description: "Reset scope: 'global' resets all data, 'kid' resets data for a specific kid only."
+      description: "Reset scope: 'global' resets all data, 'assignee' resets data for a specific assignee only."
       required: false
       default: "global"
       example: "global"
@@ -308,10 +308,10 @@ reset_transactional_data:
         select:
           options:
             - "global"
-            - "kid"
+            - "assignee"
     assignee_name:
       name: "Assignee Name"
-      description: "Required if scope is 'kid'. The name of the assignee whose data should be reset."
+      description: "Required if scope is 'assignee'. The name of the assignee whose data should be reset."
       required: false
       example: "Alice"
       selector:
@@ -458,7 +458,7 @@ skip_chore_due_date:
     mark_as_missed:
       name: "Mark as Missed"
       description: >
-        When true, records this skip as a missed chore in the kid's statistics.
+        When true, records this skip as a missed chore in the assignee's statistics.
         Useful for tracking intentional skips separately from automated overdue resets.
       required: false
       default: false
@@ -468,7 +468,7 @@ skip_chore_due_date:
 remove_awarded_badges:
   name: "Remove Awarded Badges"
   description: >
-    Remove all awarded badges for all kids. Optionally, provide badge_name to reset a
+    Remove all awarded badges for all assignees. Optionally, provide badge_name to reset a
     specific badge across all assignees. Use assignee_name to reset all badges for a specific assignee.
     Combine both to reset a specific badge for a specific assignee.
   fields:
@@ -489,7 +489,7 @@ remove_awarded_badges:
 
 create_reward:
   name: "Create Reward"
-  description: "Create a new reward that kids can redeem using their points. Returns the reward_id of the created reward."
+  description: "Create a new reward that assignees can redeem using their points. Returns the reward_id of the created reward."
   fields:
     name:
       name: "Reward Name"
@@ -614,9 +614,9 @@ create_chore:
       required: true
       selector:
         text:
-    assigned_kids:
-      name: "Assigned Kids"
-      description: "List of kid names to assign to this chore."
+    assigned_assignees:
+      name: "Assigned Assignees"
+      description: "List of assignee names to assign to this chore."
       example: "['Emma', 'Jack']"
       required: true
       selector:
@@ -694,7 +694,7 @@ create_chore:
             - "sun"
     completion_criteria:
       name: "Completion Criteria"
-      description: "How the chore is completed when multiple kids are assigned: independent (each kid completes separately), shared_first (first kid to complete earns points), or shared_all (all kids must complete)."
+      description: "How the chore is completed when multiple assignees are assigned: independent (each assignee completes separately), shared_first (first assignee to complete earns points), or shared_all (all assignees must complete)."
       example: "independent"
       required: false
       selector:
@@ -741,7 +741,7 @@ create_chore:
             - "at_due_date_clear_immediate_on_late"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
-      description: "If enabled, kids cannot claim this chore before the due window begins."
+      description: "If enabled, assignees cannot claim this chore before the due window begins."
       example: false
       required: false
       selector:
@@ -755,7 +755,7 @@ create_chore:
         boolean:
     due_date:
       name: "Due Date"
-      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assigned kids."
+      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assigned assignees."
       example: "2026-01-15T17:00:00"
       required: false
       selector:
@@ -793,9 +793,9 @@ update_chore:
       required: false
       selector:
         text:
-    assigned_kids:
-      name: "Assigned Kids"
-      description: "New list of kid names to assign to this chore."
+    assigned_assignees:
+      name: "Assigned Assignees"
+      description: "New list of assignee names to assign to this chore."
       example: "['Emma', 'Jack', 'Sophia']"
       required: false
       selector:
@@ -909,7 +909,7 @@ update_chore:
             - "at_due_date_clear_immediate_on_late"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
-      description: "If enabled, kids cannot claim this chore before the due window begins."
+      description: "If enabled, assignees cannot claim this chore before the due window begins."
       example: true
       required: false
       selector:
@@ -923,7 +923,7 @@ update_chore:
         boolean:
     due_date:
       name: "Due Date"
-      description: "New due date. For INDEPENDENT chores, updates the due date for all assigned kids."
+      description: "New due date. For INDEPENDENT chores, updates the due date for all assigned assignees."
       example: "2026-01-20T17:00:00"
       required: false
       selector:
@@ -945,7 +945,7 @@ update_chore:
 
 delete_chore:
   name: "Delete Chore"
-  description: "Delete a chore by ID or name. Cleans up all references in achievements, challenges, and kids."
+  description: "Delete a chore by ID or name. Cleans up all references in achievements, challenges, and assignees."
   fields:
     id:
       name: "Chore ID"
@@ -964,7 +964,7 @@ delete_chore:
 
 set_rotation_turn:
   name: "Set Rotation Turn"
-  description: "Manually assign the current turn to a specific kid in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  description: "Manually assign the current turn to a specific assignee in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
   fields:
     chore_id:
       name: "Chore ID"
@@ -997,7 +997,7 @@ set_rotation_turn:
 
 reset_rotation:
   name: "Reset Rotation"
-  description: "Reset rotation turn to the first assigned kid. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
+  description: "Reset rotation turn to the first assigned assignee. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification."
   fields:
     chore_id:
       name: "Chore ID"
@@ -1016,7 +1016,7 @@ reset_rotation:
 
 open_rotation_cycle:
   name: "Open Rotation Cycle"
-  description: "Enable rotation cycle override for one cycle, allowing any assigned kid to claim regardless of turn. Override clears after next approval. Use either ID or name for identification."
+  description: "Enable rotation cycle override for one cycle, allowing any assigned assignee to claim regardless of turn. Override clears after next approval. Use either ID or name for identification."
   fields:
     chore_id:
       name: "Chore ID"

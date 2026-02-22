@@ -1,5 +1,5 @@
 # File: helpers/__init__.py
-"""Home Assistant-bound helper functions for KidsChores.
+"""Home Assistant-bound helper functions for ChoreOps.
 
 This module contains functions that REQUIRE Home Assistant dependencies.
 These helpers interact with the HA entity registry, device registry, auth,

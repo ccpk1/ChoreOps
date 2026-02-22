@@ -1,4 +1,4 @@
-"""Type definitions for KidsChores data structures.
+"""Type definitions for ChoreOps data structures.
 
 ARCHITECTURE DECISION: HYBRID APPROACH (TypedDict + dict[str, Any])
 ===================================================================
@@ -7,12 +7,12 @@ This file uses a **hybrid type strategy** to balance type safety with practical
 code patterns:
 
 1. **TypedDict for STATIC structures** (fixed keys known at design time):
-   - Entity definitions: ParentData, ChoreData, BadgeData, etc.
+   - Entity definitions: ApproverData, ChoreData, BadgeData, etc.
    - Configuration objects: ScheduleConfig, BadgeTarget, etc.
    - ✅ Benefit: Full type safety, IDE autocomplete, catch bugs early
 
 2. **dict[str, Any] for DYNAMIC structures** (keys determined at runtime):
-   - Per-kid tracking: kid_chore_data[chore_id][dynamic_field]
+   - Per-assignee tracking: assignee_chore_data[chore_id][dynamic_field]
    - Period aggregations: stats_data[period_key][dynamic_stat_type]
    - ✅ Benefit: Honest about runtime patterns, no type: ignore noise
 
@@ -50,8 +50,10 @@ from typing import Any, Literal, NotRequired, TypedDict
 # Type Aliases (for readability)
 # =============================================================================
 
-KidId = str  # UUID string
+AssigneeId = str  # UUID string
 UserId = str  # UUID string (canonical schema45+ identity)
+AssigneeIdAlias = UserId  # Role alias for assignment workflows
+ApproverId = UserId  # Role alias for approval workflows
 ChoreId = str  # UUID string
 BadgeId = str  # UUID string
 RewardId = str  # UUID string
@@ -64,23 +66,23 @@ ISODate = str  # ISO 8601 date string (no time) "2026-01-18"
 # =============================================================================
 
 
-class ParentData(TypedDict):
-    """Type definition for a parent entity.
+class ApproverData(TypedDict):
+    """Type definition for a approver entity.
 
-    Parent fields are all required once created via _create_parent().
+    Approver fields are all required once created via _create_approver().
     """
 
-    internal_id: str  # Always present (set in _create_parent)
+    internal_id: str  # Always present (set in _create_approver)
     name: str
     ha_user_id: str
-    associated_kids: list[str]  # List of kid UUIDs
+    associated_assignees: list[str]  # List of assignee UUIDs
     mobile_notify_service: str
     use_persistent_notifications: bool
     dashboard_language: str
     allow_chore_assignment: bool
     enable_chore_workflow: bool
     enable_gamification: bool
-    linked_shadow_kid_id: NotRequired[
+    linked_shadow_assignee_id: NotRequired[
         str | None
     ]  # Legacy persisted key retained until dedicated schema migration
 
@@ -174,27 +176,27 @@ class BonusData(TypedDict):
 # =============================================================================
 
 
-class ChorePerKidDueDates(TypedDict, total=False):
-    """Per-kid due date mapping.
+class ChorePerAssigneeDueDates(TypedDict, total=False):
+    """Per-assignee due date mapping.
 
-    Keys are kid_id (UUID string), values are ISO datetime string or None.
-    Using total=False because keys are dynamic (kid UUIDs).
+    Keys are assignee_id (UUID string), values are ISO datetime string or None.
+    Using total=False because keys are dynamic (assignee UUIDs).
     """
 
 
-class ChorePerKidApplicableDays(TypedDict, total=False):
-    """Per-kid applicable weekdays.
+class ChorePerAssigneeApplicableDays(TypedDict, total=False):
+    """Per-assignee applicable weekdays.
 
-    Keys are kid_id (UUID string), values are list of weekday ints (0=Mon, 6=Sun).
-    Using total=False because keys are dynamic (kid UUIDs).
+    Keys are assignee_id (UUID string), values are list of weekday ints (0=Mon, 6=Sun).
+    Using total=False because keys are dynamic (assignee UUIDs).
     """
 
 
-class ChorePerKidDailyMultiTimes(TypedDict, total=False):
-    """Per-kid daily multi times.
+class ChorePerAssigneeDailyMultiTimes(TypedDict, total=False):
+    """Per-assignee daily multi times.
 
-    Keys are kid_id (UUID string), values are list of time strings "HH:MM".
-    Using total=False because keys are dynamic (kid UUIDs).
+    Keys are assignee_id (UUID string), values are list of time strings "HH:MM".
+    Using total=False because keys are dynamic (assignee UUIDs).
     """
 
 
@@ -222,7 +224,7 @@ class ChoreData(TypedDict):
     icon: str
 
     # Assignment
-    assigned_kids: list[str]  # List of kid UUIDs
+    assigned_assignees: list[str]  # List of assignee UUIDs
 
     # Scheduling
     recurring_frequency: str
@@ -232,10 +234,10 @@ class ChoreData(TypedDict):
 
     # Due dates
     due_date: NotRequired[str | None]  # ISO datetime
-    per_kid_due_dates: dict[str, str | None]  # kid_id -> ISO datetime
+    per_assignee_due_dates: dict[str, str | None]  # assignee_id -> ISO datetime
     applicable_days: list[str]  # Weekday names or ints
-    per_kid_applicable_days: NotRequired[dict[str, list[str]]]
-    per_kid_daily_multi_times: NotRequired[dict[str, list[str]]]
+    per_assignee_applicable_days: NotRequired[dict[str, list[str]]]
+    per_assignee_daily_multi_times: NotRequired[dict[str, list[str]]]
 
     # Due window configuration (per-chore offsets)
     due_window_offset: NotRequired[
@@ -249,8 +251,8 @@ class ChoreData(TypedDict):
     last_completed: NotRequired[str | None]  # ISO datetime
     last_claimed: NotRequired[str | None]  # ISO datetime
     approval_period_start: NotRequired[str | None]  # ISO datetime
-    claimed_by: NotRequired[list[str]]  # List of kid UUIDs
-    completed_by: NotRequired[list[str]]  # List of kid UUIDs (for shared chores)
+    claimed_by: NotRequired[list[str]]  # List of assignee UUIDs
+    completed_by: NotRequired[list[str]]  # List of assignee UUIDs (for shared chores)
 
     # Notifications
     notify_on_claim: bool
@@ -266,12 +268,12 @@ class ChoreData(TypedDict):
     completion_criteria: str  # SHARED, SHARED_FIRST, INDEPENDENT, ROTATION_*
 
     # Rotation tracking (v0.5.0 Chore Logic - only for rotation_* criteria)
-    rotation_current_kid_id: NotRequired[
+    rotation_current_assignee_id: NotRequired[
         str | None
-    ]  # kid_id UUID of current turn holder
+    ]  # assignee_id UUID of current turn holder
     rotation_cycle_override: NotRequired[
         bool
-    ]  # Boolean: temp allow any kid to claim (cleared on advancement)
+    ]  # Boolean: temp allow any assignee to claim (cleared on advancement)
 
     # Claims restriction (v0.5.0 Chore Logic - blocks claims before due window)
     chore_claim_lock_until_window: NotRequired[bool]
@@ -304,7 +306,7 @@ class ResetContext(TypedDict, total=False):
     approval_reset_type: str
     overdue_handling_type: str
     completion_criteria: str
-    all_kids_approved: bool
+    all_assignees_approved: bool
     approval_after_reset: bool
     boundary_category: ResetBoundaryCategory | None
     has_pending_claim: bool
@@ -314,10 +316,10 @@ class ResetContext(TypedDict, total=False):
 class ResetApplyContext(TypedDict, total=False):
     """Execution contract for applying a reset action."""
 
-    kid_id: str
+    assignee_id: str
     chore_id: str
     decision: ResetDecision
-    reschedule_kid_id: str | None
+    reschedule_assignee_id: str | None
     allow_reschedule: bool
 
 
@@ -410,8 +412,8 @@ class BadgeData(TypedDict):
     occasion_type: NotRequired[str]
 
     # Assignment
-    assigned_to: list[str]  # List of kid UUIDs
-    earned_by: list[str]  # List of kid UUIDs who earned it
+    assigned_to: list[str]  # List of assignee UUIDs
+    earned_by: list[str]  # List of assignee UUIDs who earned it
 
     # Configuration
     target: BadgeTarget
@@ -425,11 +427,11 @@ class BadgeData(TypedDict):
 
 
 # =============================================================================
-# Kid Nested Types (chore tracking - deepest nesting)
+# Assignee Nested Types (chore tracking - deepest nesting)
 # =============================================================================
 
 
-class KidChoreDataPeriodEntry(TypedDict, total=False):
+class AssigneeChoreDataPeriodEntry(TypedDict, total=False):
     """Period-level stats for a single chore (daily/weekly/monthly/yearly/all_time)."""
 
     approved: int
@@ -441,11 +443,11 @@ class KidChoreDataPeriodEntry(TypedDict, total=False):
 
 
 # Dynamic structure - keys are period types accessed via period_key variable
-KidChoreDataPeriods = dict[str, Any]
+AssigneeChoreDataPeriods = dict[str, Any]
 """Period containers for chore tracking.
 
 Keys: 'daily', 'weekly', 'monthly', 'yearly', 'all_time'
-Values: dict[date_str, KidChoreDataPeriodEntry] or KidChoreDataPeriodEntry
+Values: dict[date_str, AssigneeChoreDataPeriodEntry] or AssigneeChoreDataPeriodEntry
 
 Used dynamically as: periods_data[period_key] where period_key is a variable.
 """
@@ -454,8 +456,8 @@ Used dynamically as: periods_data[period_key] where period_key is a variable.
 # Dynamic structure - accessed with variable keys (field_name, etc.)
 # Using dict[str, Any] instead of TypedDict because code uses patterns like:
 #   chore_entry[field_name] = value  # where field_name is a variable
-KidChoreDataEntry = dict[str, Any]
-"""Per-chore tracking data for a single kid-chore combination.
+AssigneeChoreDataEntry = dict[str, Any]
+"""Per-chore tracking data for a single assignee-chore combination.
 
 Created dynamically via setdefault() in coordinator methods.
 Key fields are added incrementally as chore is claimed/approved.
@@ -472,7 +474,7 @@ Common keys (not exhaustive, keys added at runtime):
 - approval_period_start: str (ISO datetime)
 - total_count: int
 - total_points: float
-- periods: KidChoreDataPeriods
+- periods: AssigneeChoreDataPeriods
 - last_longest_streak_all_time: int
 - claimed_by: str | list[str] (who claimed)
 - completed_by: str | list[str] (who completed)
@@ -484,12 +486,12 @@ are stored in a separate DATA_NOTIFICATIONS bucket owned by NotificationManager
 
 
 # =============================================================================
-# Kid Nested Types (badge progress)
+# Assignee Nested Types (badge progress)
 # =============================================================================
 
 
-class KidBadgeProgress(TypedDict, total=False):
-    """Per-badge progress tracking for a kid.
+class AssigneeBadgeProgress(TypedDict, total=False):
+    """Per-badge progress tracking for a assignee.
 
     Created dynamically in _manage_badge_maintenance().
     """
@@ -536,10 +538,10 @@ class KidBadgeProgress(TypedDict, total=False):
     associated_challenge: NotRequired[str]  # Challenge UUID
 
 
-class KidCumulativeBadgeProgress(TypedDict, total=False):
-    """Cumulative badge progress tracking for a kid.
+class AssigneeCumulativeBadgeProgress(TypedDict, total=False):
+    """Cumulative badge progress tracking for a assignee.
 
-    Single structure per kid (not per-badge).
+    Single structure per assignee (not per-badge).
 
     Phase 3A: Compute-on-Read architecture - only store state fields.
     All derived fields (current/next/highest badge info) computed on-read
@@ -554,7 +556,7 @@ class KidCumulativeBadgeProgress(TypedDict, total=False):
 
 
 # =============================================================================
-# Kid Nested Types (reward/point tracking)
+# Assignee Nested Types (reward/point tracking)
 # =============================================================================
 
 
@@ -568,7 +570,7 @@ Common keys: 'claimed' (int), 'approved' (int), 'disapproved' (int)
 """
 
 
-class KidRewardDataPeriods(TypedDict, total=False):
+class AssigneeRewardDataPeriods(TypedDict, total=False):
     """Period containers for reward tracking.
 
     Keys within each period dict are date strings.
@@ -581,8 +583,8 @@ class KidRewardDataPeriods(TypedDict, total=False):
     all_time: NotRequired[dict[str, PeriodicStatsEntry]]
 
 
-class KidRewardDataEntry(TypedDict, total=False):
-    """Per-reward tracking data for a single kid-reward combination."""
+class AssigneeRewardDataEntry(TypedDict, total=False):
+    """Per-reward tracking data for a single assignee-reward combination."""
 
     name: NotRequired[str]  # Denormalized reward name
     pending_count: int
@@ -594,14 +596,14 @@ class KidRewardDataEntry(TypedDict, total=False):
     last_approved: NotRequired[str]  # ISO datetime
     last_disapproved: NotRequired[str]  # ISO datetime
     notification_ids: NotRequired[list[str]]  # For persistent notifications
-    periods: NotRequired[KidRewardDataPeriods]
+    periods: NotRequired[AssigneeRewardDataPeriods]
 
 
-# === Kid Data Structure ===
+# === Assignee Data Structure ===
 
 
 # Dynamic structure - aggregated stats accessed with variable keys
-KidChoreStats = dict[str, Any]
+AssigneeChoreStats = dict[str, Any]
 """Chore completion statistics.
 
 Common keys (added dynamically at runtime):
@@ -624,18 +626,18 @@ class BadgesEarnedEntry(TypedDict, total=False):
     badge_name: str
     last_awarded_date: NotRequired[str]  # ISO datetime
     award_count: int
-    periods: NotRequired[KidRewardDataPeriods]  # Reuse structure
+    periods: NotRequired[AssigneeRewardDataPeriods]  # Reuse structure
 
 
 # =============================================================================
-# KidData Main Type (the largest one)
+# AssigneeData Main Type (the largest one)
 # =============================================================================
 
 
-class KidData(TypedDict):
-    """Type definition for a kid entity.
+class AssigneeData(TypedDict):
+    """Type definition for a assignee entity.
 
-    Created via _create_kid() in coordinator.py.
+    Created via _create_assignee() in coordinator.py.
     Many fields are added incrementally via setdefault() during runtime.
     """
 
@@ -649,8 +651,8 @@ class KidData(TypedDict):
 
     # Linkage
     ha_user_id: NotRequired[str | None]
-    is_shadow_kid: NotRequired[bool]
-    linked_parent_id: NotRequired[str | None]
+    is_shadow_assignee: NotRequired[bool]
+    linked_approver_id: NotRequired[str | None]
 
     # Notifications
     mobile_notify_service: str
@@ -659,15 +661,17 @@ class KidData(TypedDict):
 
     # Badge tracking
     badges_earned: dict[str, BadgesEarnedEntry]  # badge_id -> entry
-    badge_progress: NotRequired[dict[str, KidBadgeProgress]]  # badge_id -> progress
-    cumulative_badge_progress: NotRequired[KidCumulativeBadgeProgress]
+    badge_progress: NotRequired[
+        dict[str, AssigneeBadgeProgress]
+    ]  # badge_id -> progress
+    cumulative_badge_progress: NotRequired[AssigneeCumulativeBadgeProgress]
 
     # Chore tracking (the big nested structure)
-    chore_data: NotRequired[dict[str, KidChoreDataEntry]]  # chore_id -> entry
-    chore_stats: NotRequired[KidChoreStats]
+    chore_data: NotRequired[dict[str, AssigneeChoreDataEntry]]  # chore_id -> entry
+    chore_stats: NotRequired[AssigneeChoreStats]
 
     # Reward tracking
-    reward_data: dict[str, KidRewardDataEntry]  # reward_id -> entry
+    reward_data: dict[str, AssigneeRewardDataEntry]  # reward_id -> entry
     reward_stats: NotRequired[dict[str, Any]]  # Aggregated reward statistics
 
     # Penalty/bonus application tracking (v43+: transformed to period dicts)
@@ -684,15 +688,18 @@ class KidData(TypedDict):
     # Overdue tracking
     overdue_chores: NotRequired[list[str]]  # Chore UUIDs
     # completed_by_other_chores removed in v0.5.0+ (Phase 2)
-    # SHARED_FIRST blocking computed dynamically, not tracked in kid lists
+    # SHARED_FIRST blocking computed dynamically, not tracked in assignee lists
 
 
-class UserData(KidData):
+class UserData(AssigneeData):
     """Canonical user record type for schema45+ unified model.
 
-    Phase 3 bridge: `UserData` currently reuses the `KidData` shape so
+    Phase 3 bridge: `UserData` currently reuses the `AssigneeData` shape so
     runtime refactors can migrate manager/platform code incrementally.
     """
+
+
+AssigneeDataAlias = UserData
 
 
 # =============================================================================
@@ -701,9 +708,9 @@ class UserData(KidData):
 
 
 class AchievementProgress(TypedDict, total=False):
-    """Per-kid achievement progress tracking.
+    """Per-assignee achievement progress tracking.
 
-    Stored in achievement_info["progress"][kid_id].
+    Stored in achievement_info["progress"][assignee_id].
     Used for streak-based and count-based achievements.
     """
 
@@ -735,15 +742,15 @@ class AchievementData(TypedDict):
     selected_chore_id: NotRequired[str]  # Chore UUID for chore-specific
 
     # Assignment
-    assigned_kids: list[str]  # Kid UUIDs
+    assigned_assignees: list[str]  # Assignee UUIDs
 
-    # Progress tracking (per-kid)
-    progress: dict[str, AchievementProgress]  # kid_id -> progress data
-    current_value: NotRequired[dict[str, int]]  # kid_id -> current value
+    # Progress tracking (per-assignee)
+    progress: dict[str, AchievementProgress]  # assignee_id -> progress data
+    current_value: NotRequired[dict[str, int]]  # assignee_id -> current value
 
     # Award status
-    awarded: dict[str, bool]  # kid_id -> awarded?
-    last_awarded_date: NotRequired[dict[str, str]]  # kid_id -> ISO datetime
+    awarded: dict[str, bool]  # assignee_id -> awarded?
+    last_awarded_date: NotRequired[dict[str, str]]  # assignee_id -> ISO datetime
     reward_points: float
 
 
@@ -753,17 +760,17 @@ class AchievementData(TypedDict):
 
 
 class ChallengeDailyCounts(TypedDict, total=False):
-    """Per-kid daily counts for challenges.
+    """Per-assignee daily counts for challenges.
 
-    Keys are kid_id (UUID string), values are dict[date_str, int].
+    Keys are assignee_id (UUID string), values are dict[date_str, int].
     Using total=False because keys are dynamic.
     """
 
 
 class ChallengeProgress(TypedDict, total=False):
-    """Per-kid challenge progress tracking.
+    """Per-assignee challenge progress tracking.
 
-    Stored in challenge_info["progress"][kid_id].
+    Stored in challenge_info["progress"][assignee_id].
     Used for count-based and daily minimum challenges.
     """
 
@@ -794,19 +801,19 @@ class ChallengeData(TypedDict):
     selected_chore_id: NotRequired[str]  # Chore UUID
 
     # Assignment
-    assigned_kids: list[str]
+    assigned_assignees: list[str]
 
     # Schedule
     start_date: str  # ISO date
     end_date: str  # ISO date
 
     # Progress tracking
-    progress: dict[str, ChallengeProgress]  # kid_id -> progress data
-    count: NotRequired[dict[str, int]]  # kid_id -> count
-    daily_counts: NotRequired[dict[str, dict[str, int]]]  # kid_id -> date -> count
+    progress: dict[str, ChallengeProgress]  # assignee_id -> progress data
+    count: NotRequired[dict[str, int]]  # assignee_id -> count
+    daily_counts: NotRequired[dict[str, dict[str, int]]]  # assignee_id -> date -> count
 
     # Award status
-    awarded: dict[str, bool]  # kid_id -> awarded?
+    awarded: dict[str, bool]  # assignee_id -> awarded?
     reward_points: float
 
 
@@ -835,19 +842,19 @@ class ScheduleConfig(TypedDict, total=False):
 # Collection Type Aliases (for coordinator data properties)
 # =============================================================================
 
-KidsCollection = dict[KidId, KidData]
+AssigneesCollection = dict[AssigneeId, AssigneeData]
 UsersCollection = dict[UserId, UserData]
+ApproversCollection = dict[ApproverId, ApproverData]
 ChoresCollection = dict[ChoreId, ChoreData]
 BadgesCollection = dict[BadgeId, BadgeData]
 RewardsCollection = dict[RewardId, RewardData]
 PenaltiesCollection = dict[str, PenaltyData]
 BonusesCollection = dict[str, BonusData]
-ParentsCollection = dict[str, ParentData]
 AchievementsCollection = dict[str, AchievementData]
 ChallengesCollection = dict[str, ChallengeData]
 
-# Per-kid progress type aliases (used in sensor.py for type annotations)
-# These are the per-kid progress entries from the progress dict
+# Per-assignee progress type aliases (used in sensor.py for type annotations)
+# These are the per-assignee progress entries from the progress dict
 # Using union with dict[str, Any] to handle empty dict {} default values
 AchievementProgressData = AchievementProgress | dict[str, Any]
 ChallengeProgressData = ChallengeProgress | dict[str, Any]
@@ -863,9 +870,9 @@ ChallengeProgressData = ChallengeProgress | dict[str, Any]
 class _EvaluationContextRequired(TypedDict):
     """Required fields for EvaluationContext."""
 
-    # Required: Core kid identifiers
-    kid_id: str  # Kid UUID
-    kid_name: str  # For logging/debugging
+    # Required: Core assignee identifiers
+    assignee_id: str  # Assignee UUID
+    assignee_name: str  # For logging/debugging
 
     # Required: Point data
     current_points: float  # Current point balance
@@ -874,8 +881,8 @@ class _EvaluationContextRequired(TypedDict):
     # Required: Progress tracking
     # v43+: chore_stats deleted from storage, now use chore_periods.all_time bucket
     chore_periods_all_time: dict[str, Any]  # Aggregated chore period stats (all_time)
-    badge_progress: dict[str, KidBadgeProgress]  # Per-badge progress tracking
-    cumulative_badge_progress: KidCumulativeBadgeProgress  # Cumulative badge state
+    badge_progress: dict[str, AssigneeBadgeProgress]  # Per-badge progress tracking
+    cumulative_badge_progress: AssigneeCumulativeBadgeProgress  # Cumulative badge state
     badges_earned: dict[str, BadgesEarnedEntry]  # Already earned badges
     achievement_progress: dict[str, AchievementProgress]  # Per-achievement progress
     challenge_progress: dict[str, ChallengeProgress]  # Per-challenge progress
@@ -888,17 +895,17 @@ class EvaluationContext(_EvaluationContextRequired, total=False):
     """Minimal data needed to evaluate gamification criteria.
 
     This is the input to GamificationEngine.evaluate_* methods.
-    Contains only the data needed for evaluation - NOT the full KidData.
+    Contains only the data needed for evaluation - NOT the full AssigneeData.
     Built by GamificationManager._build_evaluation_context() from coordinator data.
 
-    Design principle: Pass only what's needed. Don't pass entire KidData object.
+    Design principle: Pass only what's needed. Don't pass entire AssigneeData object.
 
     Inherits required fields from _EvaluationContextRequired.
     Additional optional fields defined below.
     """
 
     # Optional: Current entity being evaluated (set by Manager before calling engine)
-    current_badge_progress: KidBadgeProgress  # Progress for badge being evaluated
+    current_badge_progress: AssigneeBadgeProgress  # Progress for badge being evaluated
     current_achievement_progress: AchievementProgress  # Progress for achievement
     current_challenge_progress: ChallengeProgress  # Progress for challenge
 
@@ -962,14 +969,14 @@ class EvaluationResult(TypedDict):
 
 
 class GamificationBatchResult(TypedDict):
-    """Results from evaluating all gamification for a kid.
+    """Results from evaluating all gamification for a assignee.
 
-    Returned by GamificationEngine.evaluate_all() or GamificationManager._evaluate_pending_kids().
-    Provides a complete picture of what changed for a single kid.
+    Returned by GamificationEngine.evaluate_all() or GamificationManager._evaluate_pending_assignees().
+    Provides a complete picture of what changed for a single assignee.
     """
 
-    kid_id: str
-    kid_name: str
+    assignee_id: str
+    assignee_name: str
     badge_results: list[EvaluationResult]
     achievement_results: list[EvaluationResult]
     challenge_results: list[EvaluationResult]
@@ -990,10 +997,10 @@ class GamificationBatchResult(TypedDict):
 
 
 class LedgerEntry(TypedDict):
-    """A single transaction record in a kid's point ledger.
+    """A single transaction record in a assignee's point ledger.
 
     Created by: EconomyEngine.create_ledger_entry()
-    Stored in: KidData["ledger"] (list of entries)
+    Stored in: AssigneeData["ledger"] (list of entries)
     Managed by: EconomyManager (append, prune, persist)
     """
 
@@ -1017,7 +1024,7 @@ class PointsChangedEvent(TypedDict, total=False):
     Consumed by: GamificationManager (badge evaluation), NotificationManager
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     old_balance: float  # Required
     new_balance: float  # Required
     delta: float  # Required (positive for deposit, negative for withdraw)
@@ -1032,7 +1039,7 @@ class TransactionFailedEvent(TypedDict, total=False):
     Consumed by: NotificationManager (alert user)
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     attempted_amount: float  # Required
     current_balance: float  # Required
     failure_reason: str  # Required: "insufficient_funds", "daily_limit_exceeded", etc.
@@ -1043,14 +1050,14 @@ class ChoreClaimedEvent(TypedDict, total=False):
     """Event payload for SIGNAL_SUFFIX_CHORE_CLAIMED.
 
     Emitted by: ChoreManager.claim()
-    Consumed by: NotificationManager (parent notification)
+    Consumed by: NotificationManager (approver notification)
 
     Phase 5 additions: chore_labels, update_stats for badge/achievement filtering.
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     chore_id: str  # Required
-    kid_name: str  # Required: For notification display
+    assignee_name: str  # Required: For notification display
     chore_name: str  # Required
     user_name: str  # Required (who initiated claim)
     chore_labels: list[str]  # For badge criteria filtering (e.g., "kitchen", "daily")
@@ -1064,13 +1071,13 @@ class ChoreApprovedEvent(TypedDict, total=False):
     Consumed by: EconomyManager (point deposit), StatisticsManager (approval count)
 
     Phase 5 additions: chore_labels, multiplier_applied, previous_state, update_stats.
-    Phase 6 additions: effective_date (when kid did work, for parent-lag proof stats).
+    Phase 6 additions: effective_date (when assignee did work, for approver-lag proof stats).
     Phase 8 change: Removed streak_tally (moved to ChoreCompletedEvent).
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     chore_id: str  # Required
-    parent_name: str  # Required
+    approver_name: str  # Required
     points_awarded: float  # Required
     is_shared: bool  # Required
     is_multi_claim: bool  # Required
@@ -1079,9 +1086,13 @@ class ChoreApprovedEvent(TypedDict, total=False):
     multiplier_applied: float  # For point calculation verification
     previous_state: str  # To detect re-approvals vs new approvals
     update_stats: bool  # Whether to update statistics (False for corrections)
-    effective_date: str  # ISO timestamp when kid did work (last_claimed with fallbacks)
+    effective_date: (
+        str  # ISO timestamp when assignee did work (last_claimed with fallbacks)
+    )
     approval_origin: str  # Optional origin hint (manual, auto_approve, auto_reset)
-    notify_kid: bool  # Whether kid-facing approval notification should be sent
+    notify_assignee: (
+        bool  # Whether assignee-facing approval notification should be sent
+    )
 
 
 class ChoreCompletedEvent(TypedDict, total=False):
@@ -1090,19 +1101,19 @@ class ChoreCompletedEvent(TypedDict, total=False):
     Emitted by: ChoreManager.approve() (after completion criteria satisfied)
     Consumed by: StatisticsManager (completion count + streak tracking)
 
-    Completion criteria determines kid_ids:
-    - INDEPENDENT: [approving_kid_id]
-    - SHARED_FIRST: [approving_kid_id]
-    - SHARED (all): [all assigned kid_ids] when last kid approved
+    Completion criteria determines assignee_ids:
+    - INDEPENDENT: [approving_assignee_id]
+    - SHARED_FIRST: [approving_assignee_id]
+    - SHARED (all): [all assigned assignee_ids] when last assignee approved
 
-    streak_tallies maps each kid_id to their calculated streak value.
+    streak_tallies maps each assignee_id to their calculated streak value.
     StatisticsManager writes these to period buckets with max-1-per-day guard.
     """
 
     chore_id: str  # Required
-    kid_ids: list[str]  # Required: Kids who get completion credit
+    assignee_ids: list[str]  # Required: Assignees who get completion credit
     effective_date: str  # Required: ISO timestamp when work was done
-    streak_tallies: dict[str, int]  # Required: kid_id -> streak value
+    streak_tallies: dict[str, int]  # Required: assignee_id -> streak value
 
 
 class ChoreMissedEvent(TypedDict, total=False):
@@ -1116,9 +1127,9 @@ class ChoreMissedEvent(TypedDict, total=False):
     and written to daily buckets by StatisticsManager.
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     chore_id: str  # Required
-    kid_name: str  # Required: For notification display (standard)
+    assignee_name: str  # Required: For notification display (standard)
     missed_streak_tally: int  # Required: Consecutive missed count
 
 
@@ -1131,9 +1142,9 @@ class ChoreDisapprovedEvent(TypedDict, total=False):
     Phase 5 additions: chore_labels, previous_state, update_stats.
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     chore_id: str  # Required
-    parent_name: str  # Required
+    approver_name: str  # Required
     reason: str | None  # Optional: disapproval reason
     chore_name: str  # For notification/display
     chore_labels: list[str]  # For badge criteria filtering
@@ -1150,9 +1161,9 @@ class ChoreOverdueEvent(TypedDict, total=False):
     Phase 5 addition: chore_labels for badge criteria filtering.
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     chore_id: str  # Required
-    kid_name: str  # Required: For notification display
+    assignee_name: str  # Required: For notification display
     chore_name: str  # Required
     days_overdue: int  # Required
     due_date: str  # Required: ISO format
@@ -1166,24 +1177,26 @@ class ChoreRescheduledEvent(TypedDict, total=False):
     Consumed by: NotificationManager (optional notification)
     """
 
-    kid_id: str | None  # Optional: If kid-specific, else null for all assigned kids
+    assignee_id: (
+        str | None
+    )  # Optional: If assignee-specific, else null for all assigned assignees
     chore_id: str  # Required
     chore_name: str  # Required
     old_due_date: str  # Required: ISO format
     new_due_date: str  # Required: ISO format
-    rescheduled_by: str  # Required: parent_name or "system"
+    rescheduled_by: str  # Required: approver_name or "system"
 
 
 class RewardClaimedEvent(TypedDict, total=False):
     """Event payload for SIGNAL_SUFFIX_REWARD_CLAIMED.
 
     Emitted by: RewardManager.claim()
-    Consumed by: NotificationManager (parent notification)
+    Consumed by: NotificationManager (approver notification)
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     reward_id: str  # Required
-    kid_name: str  # Required: For notification display
+    assignee_name: str  # Required: For notification display
     reward_name: str  # Required
     points: float  # Required: Cost of reward
     actions: list[dict[str, str]]  # Notification action buttons
@@ -1197,11 +1210,11 @@ class RewardApprovedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, GamificationManager (milestone tracking?)
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     reward_id: str  # Required
     reward_name: str  # Required
     points_spent: float  # Required
-    parent_name: str  # Required
+    approver_name: str  # Required
 
 
 class RewardDisapprovedEvent(TypedDict, total=False):
@@ -1211,10 +1224,10 @@ class RewardDisapprovedEvent(TypedDict, total=False):
     Consumed by: NotificationManager
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     reward_id: str  # Required
     reward_name: str  # Required
-    parent_name: str  # Required
+    approver_name: str  # Required
     reason: str | None  # Optional: disapproval reason
 
 
@@ -1225,16 +1238,16 @@ class BadgeEarnedEvent(TypedDict, total=False):
     Consumed by:
         - EconomyManager: points, multiplier, bonuses, penalties
         - RewardManager: reward grants (free)
-        - NotificationManager: kid/parent notifications
+        - NotificationManager: assignee/approver notifications
 
     This is the "Award Manifest" - GamificationManager builds it and domain
     experts (Banker, Inventory) pick up their respective items.
     """
 
     # Required fields
-    kid_id: str
+    assignee_id: str
     badge_id: str
-    kid_name: str  # For notification display
+    assignee_name: str  # For notification display
     badge_name: str
 
     # The Award Manifest (all handled by listeners, not GamificationManager)
@@ -1252,7 +1265,7 @@ class BadgeRevokedEvent(TypedDict, total=False):
     Consumed by: NotificationManager
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     badge_id: str  # Required
     badge_name: str  # Required
     reason: str  # Required: "maintenance_decay", "manual_removal", etc.
@@ -1265,9 +1278,9 @@ class AchievementUnlockedEvent(TypedDict, total=False):
     Consumed by: NotificationManager
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     achievement_id: str  # Required
-    kid_name: str  # Required: For notification display
+    assignee_name: str  # Required: For notification display
     achievement_name: str  # Required
     milestone_reached: str  # Required: Description of what was achieved
 
@@ -1279,9 +1292,9 @@ class ChallengeCompletedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, EconomyManager (challenge rewards)
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     challenge_id: str  # Required
-    kid_name: str  # Required: For notification display
+    assignee_name: str  # Required: For notification display
     challenge_name: str  # Required
     points_awarded: float  # Required
     completion_date: str  # Required: ISO format
@@ -1294,11 +1307,11 @@ class PenaltyAppliedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, GamificationManager (badge impacts?)
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     penalty_id: str  # Required
     penalty_name: str  # Required
     points_deducted: float  # Required
-    parent_name: str  # Required
+    approver_name: str  # Required
     reason: str | None  # Optional
 
 
@@ -1309,11 +1322,11 @@ class BonusAppliedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, GamificationManager (badge impacts?)
     """
 
-    kid_id: str  # Required
+    assignee_id: str  # Required
     bonus_id: str  # Required
     bonus_name: str  # Required
     points_added: float  # Required
-    parent_name: str  # Required
+    approver_name: str  # Required
     reason: str | None  # Optional
 
 
@@ -1323,20 +1336,30 @@ class BonusAppliedEvent(TypedDict, total=False):
 
 __all__ = [
     "AchievementData",
-    # Achievement/Challenge nested types
     "AchievementProgress",
     "AchievementProgressData",
-    # Event Payload Types
     "AchievementUnlockedEvent",
     "AchievementsCollection",
     "ActivityReportResponse",
+    "ApproverData",
+    "ApproversCollection",
+    "AssigneeBadgeProgress",
+    "AssigneeChoreDataEntry",
+    "AssigneeChoreDataPeriodEntry",
+    "AssigneeChoreDataPeriods",
+    "AssigneeChoreStats",
+    "AssigneeCumulativeBadgeProgress",
+    "AssigneeData",
+    "AssigneeId",
+    "AssigneeRewardDataEntry",
+    "AssigneeRewardDataPeriods",
+    "AssigneesCollection",
     "BadgeAwards",
     "BadgeData",
     "BadgeEarnedEvent",
     "BadgeId",
     "BadgeResetSchedule",
     "BadgeRevokedEvent",
-    # Badge nested types
     "BadgeTarget",
     "BadgesCollection",
     "BadgesEarnedEntry",
@@ -1356,38 +1379,18 @@ __all__ = [
     "ChoreDisapprovedEvent",
     "ChoreId",
     "ChoreOverdueEvent",
-    "ChorePerKidApplicableDays",
-    "ChorePerKidDailyMultiTimes",
-    # Chore nested types
-    "ChorePerKidDueDates",
+    "ChorePerAssigneeApplicableDays",
+    "ChorePerAssigneeDailyMultiTimes",
+    "ChorePerAssigneeDueDates",
     "ChoreRescheduledEvent",
     "ChoresCollection",
-    # Gamification Engine types (Phase 5)
     "CriterionResult",
     "EvaluationContext",
     "EvaluationResult",
     "GamificationBatchResult",
     "ISODate",
     "ISODatetime",
-    "KidBadgeProgress",
-    # Kid nested types
-    "KidChoreDataEntry",
-    "KidChoreDataPeriodEntry",
-    "KidChoreDataPeriods",
-    "KidChoreStats",
-    "KidCumulativeBadgeProgress",
-    # Main entity types
-    "KidData",
-    # ID type aliases
-    "KidId",
-    "KidRewardDataEntry",
-    "KidRewardDataPeriods",
-    # Collection aliases
-    "KidsCollection",
-    # Ledger types (Economy Stack)
     "LedgerEntry",
-    "ParentData",
-    "ParentsCollection",
     "PenaltiesCollection",
     "PenaltyAppliedEvent",
     "PenaltyData",
@@ -1406,7 +1409,6 @@ __all__ = [
     "RewardDisapprovedEvent",
     "RewardId",
     "RewardsCollection",
-    # Schedule Engine
     "ScheduleConfig",
     "TransactionFailedEvent",
 ]

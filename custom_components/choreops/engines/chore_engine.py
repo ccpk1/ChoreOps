@@ -2,7 +2,7 @@
 
 This engine provides stateless, pure Python functions for:
 - State transition validation and calculation
-- TransitionEffect planning for multi-kid scenarios
+- TransitionEffect planning for multi-assignee scenarios
 - Point calculations with multipliers
 - Completion criteria logic (SHARED, INDEPENDENT, SHARED_FIRST)
 - Query functions for chore status checks
@@ -25,7 +25,7 @@ from ..utils.dt_utils import dt_parse_duration, dt_to_utc
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from ..type_defs import ChoreData, KidData, ScheduleConfig
+    from ..type_defs import AssigneeData, ChoreData, ScheduleConfig
 
 
 # =============================================================================
@@ -59,14 +59,14 @@ _RELAXED_OVERDUE_TYPES: frozenset[str] = frozenset(
 
 @dataclass
 class TransitionEffect:
-    """Effect of a chore state transition for a single kid.
+    """Effect of a chore state transition for a single assignee.
 
     Returned by ChoreEngine.calculate_transition() to describe
-    what should happen for each affected kid.
+    what should happen for each affected assignee.
 
     Attributes:
-        kid_id: The kid affected by this transition
-        new_state: Target chore state for this kid
+        assignee_id: The assignee affected by this transition
+        new_state: Target chore state for this assignee
         update_stats: Whether this transition counts toward stats (streaks, totals)
                      True for normal actions, False for undo/corrections
         points: Points to award (positive) or deduct (negative), 0 for no change
@@ -76,7 +76,7 @@ class TransitionEffect:
         set_completed_by: Name to set as completed_by (or None)
     """
 
-    kid_id: str
+    assignee_id: str
     new_state: str
     update_stats: bool = True
     points: float = 0.0
@@ -105,7 +105,7 @@ class ChoreEngine:
             const.CHORE_STATE_CLAIMED,
             const.CHORE_STATE_OVERDUE,
         ],
-        # From CLAIMED: Awaiting parent decision
+        # From CLAIMED: Awaiting approver decision
         const.CHORE_STATE_CLAIMED: [
             const.CHORE_STATE_APPROVED,
             const.CHORE_STATE_PENDING,  # Disapproved or undo
@@ -117,11 +117,11 @@ class ChoreEngine:
         ],
         # From OVERDUE: Can still be claimed or reset
         const.CHORE_STATE_OVERDUE: [
-            const.CHORE_STATE_CLAIMED,  # Kid claims overdue chore
+            const.CHORE_STATE_CLAIMED,  # Assignee claims overdue chore
             const.CHORE_STATE_PENDING,  # Manual/scheduled reset
-            const.CHORE_STATE_APPROVED,  # Parent completes on behalf
+            const.CHORE_STATE_APPROVED,  # Approver completes on behalf
         ],
-        # Global states (multi-kid aggregation)
+        # Global states (multi-assignee aggregation)
         const.CHORE_STATE_CLAIMED_IN_PART: [
             const.CHORE_STATE_APPROVED_IN_PART,
             const.CHORE_STATE_CLAIMED,
@@ -154,30 +154,30 @@ class ChoreEngine:
     @staticmethod
     def calculate_transition(
         chore_data: ChoreData | dict[str, Any],
-        actor_kid_id: str,
+        actor_assignee_id: str,
         action: str,
-        kids_assigned: list[str],
-        kid_name: str = "Unknown",
+        assignees_assigned: list[str],
+        assignee_name: str = "Unknown",
         skip_stats: bool = False,
         is_overdue: bool = False,
     ) -> list[TransitionEffect]:
-        """Calculate transition effects for ALL kids based on ONE action.
+        """Calculate transition effects for ALL assignees based on ONE action.
 
         This is the core planning method. It determines what state changes
-        and side effects should occur for each assigned kid when one kid
+        and side effects should occur for each assigned assignee when one assignee
         performs an action.
 
         Args:
             chore_data: The chore being acted upon
-            actor_kid_id: The kid performing the action
+            actor_assignee_id: The assignee performing the action
             action: One of CHORE_ACTION_* values
-            kids_assigned: All kids assigned to this chore
-            kid_name: Display name of actor kid (for claimed_by/completed_by)
+            assignees_assigned: All assignees assigned to this chore
+            assignee_name: Display name of actor assignee (for claimed_by/completed_by)
             skip_stats: If True, mark effects as update_stats=False
             is_overdue: If True, chore is past due (for disapprove action)
 
         Returns:
-            List of TransitionEffect describing changes for each affected kid
+            List of TransitionEffect describing changes for each affected assignee
         """
         effects: list[TransitionEffect] = []
         completion_criteria = chore_data.get(
@@ -190,18 +190,18 @@ class ChoreEngine:
         if action == CHORE_ACTION_CLAIM:
             effects = ChoreEngine._plan_claim_effects(
                 completion_criteria,
-                actor_kid_id,
-                kids_assigned,
-                kid_name,
+                actor_assignee_id,
+                assignees_assigned,
+                assignee_name,
             )
 
         # === APPROVE ACTION ===
         elif action == CHORE_ACTION_APPROVE:
             effects = ChoreEngine._plan_approve_effects(
                 completion_criteria,
-                actor_kid_id,
-                kids_assigned,
-                kid_name,
+                actor_assignee_id,
+                assignees_assigned,
+                assignee_name,
                 points,
             )
 
@@ -209,8 +209,8 @@ class ChoreEngine:
         elif action == CHORE_ACTION_DISAPPROVE:
             effects = ChoreEngine._plan_disapprove_effects(
                 completion_criteria,
-                actor_kid_id,
-                kids_assigned,
+                actor_assignee_id,
+                assignees_assigned,
                 is_overdue,
             )
 
@@ -218,8 +218,8 @@ class ChoreEngine:
         elif action == CHORE_ACTION_UNDO:
             effects = ChoreEngine._plan_undo_effects(
                 completion_criteria,
-                actor_kid_id,
-                kids_assigned,
+                actor_assignee_id,
+                assignees_assigned,
                 is_overdue,
             )
             # Undo never updates stats
@@ -227,13 +227,13 @@ class ChoreEngine:
 
         # === RESET ACTION (scheduled) ===
         elif action == CHORE_ACTION_RESET:
-            effects = ChoreEngine._plan_reset_effects(kids_assigned)
+            effects = ChoreEngine._plan_reset_effects(assignees_assigned)
 
         # === OVERDUE ACTION ===
         elif action == CHORE_ACTION_OVERDUE:
             effects.append(
                 TransitionEffect(
-                    kid_id=actor_kid_id,
+                    assignee_id=actor_assignee_id,
                     new_state=const.CHORE_STATE_OVERDUE,
                     update_stats=True,
                 )
@@ -249,9 +249,9 @@ class ChoreEngine:
     @staticmethod
     def _plan_claim_effects(
         criteria: str,
-        actor_kid_id: str,
-        kids_assigned: list[str],
-        kid_name: str,
+        actor_assignee_id: str,
+        assignees_assigned: list[str],
+        assignee_name: str,
     ) -> list[TransitionEffect]:
         """Plan effects for a claim action.
 
@@ -264,10 +264,10 @@ class ChoreEngine:
         # SHARED_FIRST blocking is computed in validation, not stored
         effects.append(
             TransitionEffect(
-                kid_id=actor_kid_id,
+                assignee_id=actor_assignee_id,
                 new_state=const.CHORE_STATE_CLAIMED,
                 update_stats=True,
-                set_claimed_by=kid_name,
+                set_claimed_by=assignee_name,
             )
         )
 
@@ -276,30 +276,30 @@ class ChoreEngine:
     @staticmethod
     def _plan_approve_effects(
         criteria: str,
-        actor_kid_id: str,
-        kids_assigned: list[str],
-        kid_name: str,
+        actor_assignee_id: str,
+        assignees_assigned: list[str],
+        assignee_name: str,
         points: float,
     ) -> list[TransitionEffect]:
         """Plan effects for an approve action.
 
         Phase 2: SHARED_FIRST no longer sets completed_by_other state.
-        Other kids remain in their current state (pending/overdue).
+        Other assignees remain in their current state (pending/overdue).
         """
         effects: list[TransitionEffect] = []
 
-        # Only the approving kid transitions to APPROVED
+        # Only the approving assignee transitions to APPROVED
         effects.append(
             TransitionEffect(
-                kid_id=actor_kid_id,
+                assignee_id=actor_assignee_id,
                 new_state=const.CHORE_STATE_APPROVED,
                 update_stats=True,
                 points=points,
-                set_completed_by=kid_name,
+                set_completed_by=assignee_name,
             )
         )
 
-        # SHARED_FIRST: No state changes for other kids
+        # SHARED_FIRST: No state changes for other assignees
         # They stay pending/overdue and are blocked by computed logic
 
         return effects
@@ -307,16 +307,16 @@ class ChoreEngine:
     @staticmethod
     def _plan_disapprove_effects(
         criteria: str,
-        actor_kid_id: str,
-        kids_assigned: list[str],
+        actor_assignee_id: str,
+        assignees_assigned: list[str],
         is_overdue: bool,
     ) -> list[TransitionEffect]:
         """Plan effects for a disapprove action.
 
         Args:
             criteria: Completion criteria (SHARED, INDEPENDENT, SHARED_FIRST)
-            actor_kid_id: The kid being disapproved
-            kids_assigned: All kids assigned to chore
+            actor_assignee_id: The assignee being disapproved
+            assignees_assigned: All assignees assigned to chore
             is_overdue: If True, chore is past due (return to overdue state)
         """
         effects: list[TransitionEffect] = []
@@ -327,13 +327,15 @@ class ChoreEngine:
         )
 
         if criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            # SHARED_FIRST: Reset ALL kids to target state (overdue or pending)
-            for kid_id in kids_assigned:
+            # SHARED_FIRST: Reset ALL assignees to target state (overdue or pending)
+            for assignee_id in assignees_assigned:
                 effects.append(
                     TransitionEffect(
-                        kid_id=kid_id,
+                        assignee_id=assignee_id,
                         new_state=target_state,
-                        update_stats=(kid_id == actor_kid_id),  # Only actor gets stat
+                        update_stats=(
+                            assignee_id == actor_assignee_id
+                        ),  # Only actor gets stat
                         clear_claimed_by=True,
                         clear_completed_by=True,
                     )
@@ -342,7 +344,7 @@ class ChoreEngine:
             # INDEPENDENT or SHARED: Only actor transitions
             effects.append(
                 TransitionEffect(
-                    kid_id=actor_kid_id,
+                    assignee_id=actor_assignee_id,
                     new_state=target_state,
                     update_stats=True,
                 )
@@ -353,16 +355,16 @@ class ChoreEngine:
     @staticmethod
     def _plan_undo_effects(
         criteria: str,
-        actor_kid_id: str,
-        kids_assigned: list[str],
+        actor_assignee_id: str,
+        assignees_assigned: list[str],
         is_overdue: bool,
     ) -> list[TransitionEffect]:
-        """Plan effects for an undo (kid self-undo) action.
+        """Plan effects for an undo (assignee self-undo) action.
 
         Args:
             criteria: Completion criteria (SHARED, INDEPENDENT, SHARED_FIRST)
-            actor_kid_id: The kid performing the undo
-            kids_assigned: All kids assigned to chore
+            actor_assignee_id: The assignee performing the undo
+            assignees_assigned: All assignees assigned to chore
             is_overdue: If True, chore is past due (return to overdue state)
         """
         effects: list[TransitionEffect] = []
@@ -373,11 +375,11 @@ class ChoreEngine:
         )
 
         if criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            # SHARED_FIRST: Reset ALL kids to target state (overdue or pending)
-            for kid_id in kids_assigned:
+            # SHARED_FIRST: Reset ALL assignees to target state (overdue or pending)
+            for assignee_id in assignees_assigned:
                 effects.append(
                     TransitionEffect(
-                        kid_id=kid_id,
+                        assignee_id=assignee_id,
                         new_state=target_state,
                         update_stats=False,  # Undo never updates stats
                         clear_claimed_by=True,
@@ -387,7 +389,7 @@ class ChoreEngine:
         else:
             effects.append(
                 TransitionEffect(
-                    kid_id=actor_kid_id,
+                    assignee_id=actor_assignee_id,
                     new_state=target_state,
                     update_stats=False,
                 )
@@ -396,17 +398,17 @@ class ChoreEngine:
         return effects
 
     @staticmethod
-    def _plan_reset_effects(kids_assigned: list[str]) -> list[TransitionEffect]:
+    def _plan_reset_effects(assignees_assigned: list[str]) -> list[TransitionEffect]:
         """Plan effects for a scheduled reset."""
         return [
             TransitionEffect(
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 new_state=const.CHORE_STATE_PENDING,
                 update_stats=False,
                 clear_claimed_by=True,
                 clear_completed_by=True,
             )
-            for kid_id in kids_assigned
+            for assignee_id in assignees_assigned
         ]
 
     # =========================================================================
@@ -415,29 +417,29 @@ class ChoreEngine:
 
     @staticmethod
     def can_claim_chore(
-        kid_chore_data: dict[str, Any],
+        assignee_chore_data: dict[str, Any],
         chore_data: ChoreData | dict[str, Any],
         has_pending_claim: bool,
         is_approved_in_period: bool,
-        other_kid_states: dict[str, str] | None = None,
+        other_assignee_states: dict[str, str] | None = None,
         *,
         resolved_state: str | None = None,
         lock_reason: str | None = None,
     ) -> tuple[bool, str | None]:
-        """Check if a chore can be claimed by a specific kid.
+        """Check if a chore can be claimed by a specific assignee.
 
         v0.5.0 FSM integration: If resolved_state is provided (from
-        resolve_kid_chore_state), check for blocking states first.
+        resolve_assignee_chore_state), check for blocking states first.
 
         Args:
-            kid_chore_data: The kid's tracking data for this chore
+            assignee_chore_data: The assignee's tracking data for this chore
             chore_data: The chore definition
             has_pending_claim: Result of chore_has_pending_claim()
             is_approved_in_period: Result of chore_is_approved_in_period()
-            other_kid_states: Dict mapping kid_id -> state for single-claimer check
+            other_assignee_states: Dict mapping assignee_id -> state for single-claimer check
                             (optional, only needed for single-claimer chores)
-            resolved_state: Pre-calculated state from resolve_kid_chore_state()
-            lock_reason: Lock reason from resolve_kid_chore_state()
+            resolved_state: Pre-calculated state from resolve_assignee_chore_state()
+            lock_reason: Lock reason from resolve_assignee_chore_state()
 
         Returns:
             Tuple of (can_claim: bool, error_key: str | None)
@@ -462,8 +464,8 @@ class ChoreEngine:
 
         # Check 1: single-claimer blocking (shared_first + rotation via adapter)
         if ChoreEngine.is_single_claimer_mode(chore_data):
-            if other_kid_states:
-                for other_state in other_kid_states.values():
+            if other_assignee_states:
+                for other_state in other_assignee_states.values():
                     if other_state in (
                         const.CHORE_STATE_CLAIMED,
                         const.CHORE_STATE_APPROVED,
@@ -482,17 +484,17 @@ class ChoreEngine:
 
     @staticmethod
     def can_approve_chore(
-        kid_chore_data: dict[str, Any],
+        assignee_chore_data: dict[str, Any],
         chore_data: ChoreData | dict[str, Any],
         is_approved_in_period: bool,
     ) -> tuple[bool, str | None]:
-        """Check if a chore can be approved for a specific kid.
+        """Check if a chore can be approved for a specific assignee.
 
         Phase 2: completed_by_other check removed - SHARED_FIRST blocking
-        only affects claims, not approvals (parent can still approve anyone).
+        only affects claims, not approvals (approver can still approve anyone).
 
         Args:
-            kid_chore_data: The kid's tracking data for this chore
+            assignee_chore_data: The assignee's tracking data for this chore
             chore_data: The chore definition
             is_approved_in_period: Result of chore_is_approved_in_period()
 
@@ -508,24 +510,24 @@ class ChoreEngine:
 
     @staticmethod
     def chore_has_pending_claim(
-        kid_chore_data: dict[str, Any],
+        assignee_chore_data: dict[str, Any],
     ) -> bool:
         """Check if a chore has a pending claim.
 
         Uses the pending_count counter which is incremented on claim and
         decremented on approve/disapprove.
         """
-        pending_count = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+        pending_count = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
         )
         return pending_count > 0
 
     @staticmethod
     def chore_is_overdue(
-        kid_chore_data: dict[str, Any],
+        assignee_chore_data: dict[str, Any],
     ) -> bool:
-        """Check if a chore is in overdue state for a specific kid."""
-        current_state = kid_chore_data.get(const.DATA_KID_CHORE_DATA_STATE)
+        """Check if a chore is in overdue state for a specific assignee."""
+        current_state = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_STATE)
         return current_state == const.CHORE_STATE_OVERDUE
 
     @staticmethod
@@ -571,13 +573,13 @@ class ChoreEngine:
 
     @staticmethod
     def is_single_claimer_mode(chore_data: ChoreData | dict[str, Any]) -> bool:
-        """Check if chore allows only one kid to claim per cycle.
+        """Check if chore allows only one assignee to claim per cycle.
 
         Returns True for shared_first and all rotation types.
         Part of Logic Adapter pattern (D-12) - prevents gremlin code across
         ~60 existing shared_first check sites.
 
-        This adapter enables rotation types to transparently inherit the
+        This adapter enables rotation types to transapproverly inherit the
         "single claimer" behavior without modifying existing three-way branches.
         """
         criteria = chore_data.get(
@@ -591,12 +593,12 @@ class ChoreEngine:
         )
 
     @staticmethod
-    def get_chore_data_for_kid(
-        kid_data: KidData | dict[str, Any],
+    def get_chore_data_for_assignee(
+        assignee_data: AssigneeData | dict[str, Any],
         chore_id: str,
     ) -> dict[str, Any]:
-        """Get the chore data dict for a specific kid+chore combination."""
-        chore_tracking = kid_data.get(const.DATA_KID_CHORE_DATA, {})
+        """Get the chore data dict for a specific assignee+chore combination."""
+        chore_tracking = assignee_data.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
         return (
             chore_tracking.get(chore_id, {}) if isinstance(chore_tracking, dict) else {}
         )
@@ -606,9 +608,9 @@ class ChoreEngine:
     # =========================================================================
 
     @staticmethod
-    def resolve_kid_chore_state(
+    def resolve_assignee_chore_state(
         chore_data: ChoreData | dict[str, Any],
-        kid_id: str,
+        assignee_id: str,
         now: datetime,
         *,
         is_approved_in_period: bool,
@@ -616,7 +618,7 @@ class ChoreEngine:
         due_date: datetime | None,
         due_window_start: datetime | None,
     ) -> tuple[str, str | None]:
-        """Resolve the calculated display state for a kid's chore.
+        """Resolve the calculated display state for an assignee's chore.
 
         8-tier FSM evaluates conditions in priority order (first match wins).
         Returns (state, lock_reason) tuple. lock_reason is non-None only
@@ -628,10 +630,10 @@ class ChoreEngine:
 
         Args:
             chore_data: The chore definition
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             now: Current datetime (timezone-aware)
-            is_approved_in_period: Whether kid already approved this cycle
-            has_pending_claim: Whether kid has unapproved claim
+            is_approved_in_period: Whether assignee already approved this cycle
+            has_pending_claim: Whether assignee has unapproved claim
             due_date: Chore due date (timezone-aware), or None
             due_window_start: Claim window start (timezone-aware), or None
 
@@ -642,22 +644,22 @@ class ChoreEngine:
         if is_approved_in_period:
             return (const.CHORE_STATE_APPROVED, None)
 
-        # P2 — Pending claim awaiting parent action
+        # P2 — Pending claim awaiting approver action
         if has_pending_claim:
             return (const.CHORE_STATE_CLAIMED, None)
 
-        # P3 — Rotation: not this kid's turn
+        # P3 — Rotation: not this assignee's turn
         if ChoreEngine.is_rotation_mode(chore_data):
-            current_turn = chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_KID_ID)
+            current_turn = chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
             override = chore_data.get(const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE, False)
 
-            if kid_id != current_turn and not override:
+            if assignee_id != current_turn and not override:
                 overdue_handling = chore_data.get(
                     const.DATA_CHORE_OVERDUE_HANDLING_TYPE
                 )
 
                 # STEAL EXCEPTION: overdue handling is allow_steal + past due date
-                # In that case, not_my_turn blocking lifts — any kid can claim
+                # In that case, not_my_turn blocking lifts — any assignee can claim
                 if overdue_handling == const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL:
                     if due_date is not None and now > due_date:
                         pass  # Fall through — steal window is active
@@ -731,25 +733,25 @@ class ChoreEngine:
     # =========================================================================
 
     @staticmethod
-    def get_due_date_for_kid(
+    def get_due_date_for_assignee(
         chore_data: ChoreData | dict[str, Any],
-        kid_id: str | None,
+        assignee_id: str | None,
     ) -> str | None:
         """Get the due date ISO string for a chore, handling completion criteria.
 
         For SHARED/SHARED_FIRST chores: Returns chore-level due date.
-        For INDEPENDENT chores: Returns per-kid due date if kid_id provided.
-        If kid_id is None: Always returns chore-level due date.
+        For INDEPENDENT chores: Returns per-assignee due date if assignee_id provided.
+        If assignee_id is None: Always returns chore-level due date.
 
         Args:
             chore_data: The chore definition
-            kid_id: The kid's internal ID, or None for chore-level due date
+            assignee_id: The assignee's internal ID, or None for chore-level due date
 
         Returns:
             ISO timestamp string of due date, or None if not configured.
         """
-        if kid_id is None:
-            # No kid specified - use chore-level due date
+        if assignee_id is None:
+            # No assignee specified - use chore-level due date
             return chore_data.get(const.DATA_CHORE_DUE_DATE)
 
         # Check completion criteria
@@ -759,35 +761,37 @@ class ChoreEngine:
         )
 
         if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: Use per-kid due dates
-            per_kid_due_dates = chore_data.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-            return per_kid_due_dates.get(kid_id)
+            # INDEPENDENT: Use per-assignee due dates
+            per_assignee_due_dates = chore_data.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+            )
+            return per_assignee_due_dates.get(assignee_id)
 
         # SHARED or SHARED_FIRST: Use chore-level due date
         return chore_data.get(const.DATA_CHORE_DUE_DATE)
 
     @staticmethod
-    def get_last_completed_for_kid(
+    def get_last_completed_for_assignee(
         chore_data: ChoreData | dict[str, Any],
-        kid_data: KidData | dict[str, Any],
-        kid_id: str | None,
+        assignee_data: AssigneeData | dict[str, Any],
+        assignee_id: str | None,
     ) -> str | None:
-        """Get the last_completed timestamp for a kid+chore combination.
+        """Get the last_completed timestamp for an assignee+chore combination.
 
         For SHARED/SHARED_FIRST chores: Returns chore-level last_completed.
-        For INDEPENDENT chores: Returns per-kid last_completed from kid_data.
-        If kid_id is None: Always returns chore-level last_completed.
+        For INDEPENDENT chores: Returns per-assignee last_completed from assignee_data.
+        If assignee_id is None: Always returns chore-level last_completed.
 
         Args:
             chore_data: The chore definition
-            kid_data: The kid's data dict (needed for INDEPENDENT)
-            kid_id: The kid's internal ID, or None for chore-level
+            assignee_data: The assignee's data dict (needed for INDEPENDENT)
+            assignee_id: The assignee's internal ID, or None for chore-level
 
         Returns:
             ISO timestamp string of last completion, or None if never completed.
         """
-        if kid_id is None:
-            # No kid specified - use chore-level last_completed
+        if assignee_id is None:
+            # No assignee specified - use chore-level last_completed
             return chore_data.get(const.DATA_CHORE_LAST_COMPLETED)
 
         # Check completion criteria
@@ -797,10 +801,14 @@ class ChoreEngine:
         )
 
         if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: Use per-kid last_completed from kid_chore_data
+            # INDEPENDENT: Use per-assignee last_completed from assignee_chore_data
             chore_id = chore_data.get(const.DATA_CHORE_INTERNAL_ID, "")
-            kid_chore_data = ChoreEngine.get_chore_data_for_kid(kid_data, chore_id)
-            return kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_COMPLETED)
+            assignee_chore_data = ChoreEngine.get_chore_data_for_assignee(
+                assignee_data, chore_id
+            )
+            return assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
+            )
 
         # SHARED or SHARED_FIRST: Use chore-level last_completed
         return chore_data.get(const.DATA_CHORE_LAST_COMPLETED)
@@ -882,7 +890,7 @@ class ChoreEngine:
 
     @staticmethod
     def is_approved_in_period(
-        kid_chore_data: dict[str, Any],
+        assignee_chore_data: dict[str, Any],
         period_start_iso: str | None,
     ) -> bool:
         """Check if a chore is already approved in the current approval period.
@@ -893,14 +901,16 @@ class ChoreEngine:
           b. last_approved >= period_start
 
         Args:
-            kid_chore_data: The kid's tracking data for this chore
+            assignee_chore_data: The assignee's tracking data for this chore
             period_start_iso: ISO timestamp of approval period start, or None
 
         Returns:
             True if approved in current period, False otherwise.
         """
 
-        last_approved = kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_APPROVED)
+        last_approved = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED
+        )
         if not last_approved:
             return False
 
@@ -923,68 +933,68 @@ class ChoreEngine:
 
     @staticmethod
     def calculate_next_turn_simple(
-        assigned_kids: list[str],
-        current_kid_id: str,
+        assigned_assignees: list[str],
+        current_assignee_id: str,
     ) -> str:
         """Calculate next turn for rotation_simple (strict round-robin).
 
         Args:
-            assigned_kids: Ordered list of kid UUIDs assigned to the chore
-            current_kid_id: UUID of the current turn holder
+            assigned_assignees: Ordered list of assignee UUIDs assigned to the chore
+            current_assignee_id: UUID of the current turn holder
 
         Returns:
             UUID of the next turn holder (wraps around at end of list)
         """
-        if not assigned_kids:
-            # Should never happen (rotation requires ≥2 kids), but defensive
-            return current_kid_id
+        if not assigned_assignees:
+            # Should never happen (rotation requires ≥2 assignees), but defensive
+            return current_assignee_id
 
         try:
-            current_index = assigned_kids.index(current_kid_id)
-            next_index = (current_index + 1) % len(assigned_kids)
-            return assigned_kids[next_index]
+            current_index = assigned_assignees.index(current_assignee_id)
+            next_index = (current_index + 1) % len(assigned_assignees)
+            return assigned_assignees[next_index]
         except ValueError:
-            # Resilience: current_kid_id not in list → reset to first
-            return assigned_kids[0]
+            # Resilience: current_assignee_id not in list → reset to first
+            return assigned_assignees[0]
 
     @staticmethod
     def calculate_next_turn_smart(
-        assigned_kids: list[str],
+        assigned_assignees: list[str],
         completed_counts: dict[str, int],
         last_completed_timestamps: dict[str, str | None],
     ) -> str:
         """Calculate next turn for rotation_smart (fairness-weighted).
 
-        Sorts kids by:
+        Sorts assignees by:
         1. Ascending completion count (fewest completions first)
         2. Ascending last_completed timestamp (oldest work date first, None = never = first)
         3. List-order position (tie-breaker)
 
         Uses completed counts (work done) and last_completed timestamps (work dates)
-        for fair rotation based on actual work performed, not parent approval delays.
+        for fair rotation based on actual work performed, not approver approval delays.
 
         Args:
-            assigned_kids: Ordered list of kid UUIDs assigned to the chore
-            completed_counts: Dict mapping kid_id -> completion count for this chore
-            last_completed_timestamps: Dict mapping kid_id -> last_completed ISO timestamp or None
+            assigned_assignees: Ordered list of assignee UUIDs assigned to the chore
+            completed_counts: Dict mapping assignee_id -> completion count for this chore
+            last_completed_timestamps: Dict mapping assignee_id -> last_completed ISO timestamp or None
 
         Returns:
-            UUID of the kid who should get the next turn
+            UUID of the assignee who should get the next turn
         """
-        if not assigned_kids:
+        if not assigned_assignees:
             # Should never happen, but defensive
-            return assigned_kids[0] if assigned_kids else ""
+            return assigned_assignees[0] if assigned_assignees else ""
 
-        def sort_key(kid_id: str) -> tuple[int, str, int]:
-            count = completed_counts.get(kid_id, 0)
-            timestamp = last_completed_timestamps.get(kid_id)
+        def sort_key(assignee_id: str) -> tuple[int, str, int]:
+            count = completed_counts.get(assignee_id, 0)
+            timestamp = last_completed_timestamps.get(assignee_id)
             # None sorts first (never completed)
             timestamp_str = timestamp if timestamp is not None else ""
-            position = assigned_kids.index(kid_id)
+            position = assigned_assignees.index(assignee_id)
             return (count, timestamp_str, position)
 
-        sorted_kids = sorted(assigned_kids, key=sort_key)
-        return sorted_kids[0]
+        sorted_assignees = sorted(assigned_assignees, key=sort_key)
+        return sorted_assignees[0]
 
     @staticmethod
     def get_criteria_transition_actions(
@@ -1000,7 +1010,7 @@ class ChoreEngine:
         Args:
             old_criteria: Current completion_criteria value
             new_criteria: Target completion_criteria value
-            chore_data: The chore definition (for assigned_kids access)
+            chore_data: The chore definition (for assigned_assignees access)
 
         Returns:
             Dict of field changes to apply (field_name -> new_value)
@@ -1018,14 +1028,16 @@ class ChoreEngine:
 
         # Non-rotation → rotation: Initialize rotation fields
         if not old_is_rotation and new_is_rotation:
-            assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            if assigned_kids:
-                changes[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = assigned_kids[0]
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            if assigned_assignees:
+                changes[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = (
+                    assigned_assignees[0]
+                )
             changes[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
 
         # Rotation → non-rotation: Clear rotation fields
         elif old_is_rotation and not new_is_rotation:
-            changes[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = None
+            changes[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = None
             changes[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
 
         # Rotation → different rotation: Keep existing turn (no reset)
@@ -1063,49 +1075,51 @@ class ChoreEngine:
     @staticmethod
     def compute_global_chore_state(
         chore_data: ChoreData | dict[str, Any],
-        kid_states: dict[str, str],
+        assignee_states: dict[str, str],
     ) -> str:
-        """Compute the aggregate chore state from per-kid states.
+        """Compute the aggregate chore state from per-assignee states.
 
         Args:
             chore_data: The chore definition
-            kid_states: Dict mapping kid_id to their current state
+            assignee_states: Dict mapping assignee_id to their current state
 
         Returns:
             The global chore state string
         """
-        if not kid_states:
+        if not assignee_states:
             return const.CHORE_STATE_UNKNOWN
 
-        assigned_kids = list(kid_states.keys())
-        total = len(assigned_kids)
+        assigned_assignees = list(assignee_states.keys())
+        total = len(assigned_assignees)
 
         if total == 1:
-            return next(iter(kid_states.values()))
+            return next(iter(assignee_states.values()))
 
         # Count states (v0.5.0: added waiting, not_my_turn, missed, due)
         count_pending = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_PENDING
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_PENDING
         )
         count_claimed = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_CLAIMED
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_CLAIMED
         )
         count_approved = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_APPROVED
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_APPROVED
         )
         count_overdue = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_OVERDUE
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_OVERDUE
         )
         count_waiting = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_WAITING
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_WAITING
         )
         count_not_my_turn = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_NOT_MY_TURN
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_NOT_MY_TURN
         )
         count_missed = sum(
-            1 for s in kid_states.values() if s == const.CHORE_STATE_MISSED
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_MISSED
         )
-        count_due = sum(1 for s in kid_states.values() if s == const.CHORE_STATE_DUE)
+        count_due = sum(
+            1 for s in assignee_states.values() if s == const.CHORE_STATE_DUE
+        )
 
         # All same state
         if count_pending == total:
@@ -1128,7 +1142,7 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_SHARED,
         )
 
-        # SINGLE_CLAIMER (shared_first + rotation): Track active kid's state
+        # SINGLE_CLAIMER (shared_first + rotation): Track active assignee's state
         if ChoreEngine.is_single_claimer_mode(chore_data):
             if count_approved > 0:
                 return const.CHORE_STATE_APPROVED
@@ -1144,7 +1158,7 @@ class ChoreEngine:
                 return const.CHORE_STATE_WAITING
             # Rotation: not_my_turn is cosmetic for non-turn-holders
             if count_not_my_turn > 0:
-                # If ANY kid can claim (not all blocked), show pending
+                # If ANY assignee can claim (not all blocked), show pending
                 if count_pending > 0 or count_due > 0:
                     return const.CHORE_STATE_PENDING
                 # All blocked by rotation → show not_my_turn
@@ -1379,7 +1393,7 @@ class ChoreEngine:
     @staticmethod
     def get_boundary_category(
         chore_data: ChoreData | dict[str, Any],
-        kid_state: str,
+        assignee_state: str,
         trigger: str,
     ) -> str | None:
         """Get categorization for batch approval boundary processing.
@@ -1389,7 +1403,7 @@ class ChoreEngine:
 
         Args:
             chore_data: Chore configuration dict
-            kid_state: Current state for this kid (or chore-level for SHARED)
+            assignee_state: Current state for this assignee (or chore-level for SHARED)
             trigger: Current trigger type ("midnight" or "due_date")
 
         Returns:
@@ -1427,16 +1441,18 @@ class ChoreEngine:
             const.COMPLETION_CRITERIA_SHARED,
         )
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: check per_kid_due_dates
-            per_kid_due_dates = chore_data.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-            has_due_date = bool(per_kid_due_dates)
+            # INDEPENDENT: check per_assignee_due_dates
+            per_assignee_due_dates = chore_data.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+            )
+            has_due_date = bool(per_assignee_due_dates)
         else:
             # SHARED/SHARED_FIRST: check chore-level due_date
             has_due_date = bool(chore_data.get(const.DATA_CHORE_DUE_DATE))
 
         # Calculate action
         action = ChoreEngine.calculate_boundary_action(
-            current_state=kid_state,
+            current_state=assignee_state,
             overdue_handling=overdue_handling,
             pending_claims_handling=pending_claims_handling,
             recurring_frequency=recurring_frequency,

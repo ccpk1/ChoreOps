@@ -1,26 +1,26 @@
 {
-  "title": "KidsChores",
+  "title": "ChoreOps",
   "config": {
     "step": {
       "intro": {
-        "title": "Welkom bij KidsChores",
-        "description": "Deze wizard helpt je bij het instellen van KidsChores.\n\n[📖 Snelstartgids]({documentation_url})"
+        "title": "Welkom bij ChoreOps",
+        "description": "Deze wizard helpt je bij het instellen van ChoreOps.\n\n[📖 Snelstartgids]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opties voor gegevensherstel",
-        "description": "Bestaande KidsChores-gegevens gevonden in:\n{storage_path}\n\nEr zijn {backup_count} back-upbestanden gevonden.\n\nWat wilt u doen?\n\n[📖 Meer informatie over back-up en herstel]({documentation_url})",
+        "description": "Bestaande ChoreOps-gegevens gevonden in:\n{storage_path}\n\nEr zijn {backup_count} back-upbestanden gevonden.\n\nWat wilt u doen?\n\n[📖 Meer informatie over back-up en herstel]({documentation_url})",
         "data": {
           "backup_selection": "Selecteer optie"
         }
       },
       "paste_json_input": {
         "title": "JSON-gegevens importeren",
-        "description": "Plak de volledige JSON-inhoud van een van de volgende bronnen:\n\n• Een KidsChores-gegevensbestand (kidschores_data)\n• Een diagnostische download\n\nHet systeem detecteert en decodeert het formaat automatisch indien nodig. Zowel onbewerkte opslaggegevens als diagnostische exportformaten worden ondersteund.",
+        "description": "Plak de volledige JSON-inhoud van een van de volgende bronnen:\n\n• Een ChoreOps-gegevensbestand (choreops_data)\n• Een diagnostische download\n\nHet systeem detecteert en decodeert het formaat automatisch indien nodig. Zowel onbewerkte opslaggegevens als diagnostische exportformaten worden ondersteund.",
         "data": {
           "json_data": "JSON-gegevens"
         },
         "data_description": {
-          "json_data": "Plak hier de volledige JSON-inhoud. Accepteert gegevens uit het bestand kidschores_data of de diagnostische export (extra structuren worden automatisch uitgepakt)."
+          "json_data": "Plak hier de volledige JSON-inhoud. Accepteert gegevens uit het bestand choreops_data of de diagnostische export (extra structuren worden automatisch uitgepakt)."
         }
       },
       "points_label": {
@@ -57,14 +57,14 @@
           "points_adjust_values": "Puntwaarden gescheiden door pijpen voor handmatige instelknoppen (bijv. +1,0|-1,0|+10,0|-10,0)"
         }
       },
-      "kid_count": {
+      "assignee_count": {
         "title": "Aantal kinderen",
         "description": "Hoeveel kinderen wilt u begeleiden?",
         "data": {
-          "kid_count": "Aantal kinderen"
+          "assignee_count": "Aantal kinderen"
         }
       },
-      "kids": {
+      "assignees": {
         "title": "Definieer kind",
         "description": "Vul de naam van elk kind in.",
         "data": {
@@ -78,27 +78,27 @@
           "dashboard_language": "De taal die wordt gebruikt voor je takenoverzicht en meldingen."
         }
       },
-      "parent_count": {
+      "approver_count": {
         "title": "Aantal ouders",
         "description": "Hoeveel ouders wilt u in eerste instantie definiëren?",
         "data": {
-          "parent_count": "Aantal ouders"
+          "approver_count": "Aantal ouders"
         }
       },
-      "parents": {
+      "approvers": {
         "title": "Definieer ouder",
         "description": "Vul de gegevens voor elke ouder in.",
         "data": {
           "name": "Naam van de ouder",
           "ha_user_id": "Home Assistant-gebruiker",
-          "associated_kids": "Associated Kids",
+          "associated_assignees": "Associated Assignees",
           "mobile_notify_service": "Meldingen",
           "dashboard_language": "Taal"
         },
         "data_description": {
           "name": "Unieke naam voor deze ouder, die in het hele systeem wordt gebruikt.",
           "ha_user_id": "Optioneel: Koppel deze ouder aan een Home Assistant-gebruiker voor meldingen en toegang tot het dashboard.",
-          "associated_kids": "Selecteer voor welke kinderen deze ouder toezicht houdt om meldingen en goedkeuringsacties te ontvangen.",
+          "associated_assignees": "Selecteer voor welke kinderen deze ouder toezicht houdt om meldingen en goedkeuringsacties te ontvangen.",
           "mobile_notify_service": "Selecteer een notificatieservice om meldingen voor deze ouder in te schakelen, of laat het veld leeg om meldingen uit te schakelen.",
           "dashboard_language": "De taal die wordt gebruikt voor je takenoverzicht en meldingen."
         }
@@ -122,7 +122,7 @@
               "chore_description": "📋 Beschrijving (optioneel)",
               "icon": "📋 Pictogram (mdi:xxx)",
               "default_points": "💰 Toegekende punten",
-              "assigned_kids": "👥 Toegewezen kinderen",
+              "assigned_assignees": "👥 Toegewezen kinderen",
               "completion_criteria": "👥 Voltooiingscriteria"
             },
             "data_description": {
@@ -130,7 +130,7 @@
               "chore_description": "Optionele instructies of details over hoe deze taak moet worden uitgevoerd.",
               "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
               "default_points": "Punten worden verdiend na voltooiing.",
-              "assigned_kids": "Kinderen die dit klusje kunnen zien en op zich nemen.",
+              "assigned_assignees": "Kinderen die dit klusje kunnen zien en op zich nemen.",
               "completion_criteria": "Hiermee kunt u bepalen hoe de taak wordt uitgevoerd wanneer meerdere kinderen eraan zijn toegewezen: individuele voortgangsregistratie, gezamenlijke uitvoering of beurtelings rouleren."
             }
           },
@@ -189,7 +189,7 @@
           "icon": "📋 Pictogram (mdi:xxx)",
           "chore_labels": "📋 Etiketten (optioneel)",
           "default_points": "💰 Toegekende punten",
-          "assigned_kids": "👥 Toegewezen kinderen",
+          "assigned_assignees": "👥 Toegewezen kinderen",
           "completion_criteria": "👥 Voltooiingscriteria",
           "approval_reset_type": "➡️ Voltooiingen toegestaan en goedkeuringstijd opnieuw instellen",
           "approval_reset_pending_claim_action": "➡️ Afhandeling van openstaande claims bij goedkeuring reset",
@@ -212,7 +212,7 @@
           "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
           "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is.",
           "default_points": "Punten worden verdiend na voltooiing.",
-          "assigned_kids": "Kinderen die dit klusje kunnen zien en op zich nemen.",
+          "assigned_assignees": "Kinderen die dit klusje kunnen zien en op zich nemen.",
           "completion_criteria": "Hiermee kunt u bepalen hoe de taak wordt uitgevoerd wanneer meerdere kinderen eraan zijn toegewezen: individuele voortgangsregistratie, gezamenlijke uitvoering of beurtelings rouleren.",
           "approval_reset_type": "Hiermee wordt bepaald wanneer de grens van de goedkeuringscyclus voor de taak wordt bereikt (middernacht, vervaldatum, na voltooiing of handmatige trigger).",
           "approval_reset_pending_claim_action": "Dit is wat er gebeurt met aanvragen die nog wachten op goedkeuring wanneer de goedkeuringsperiode wordt gereset.",
@@ -359,7 +359,7 @@
           "description": "Beschrijving (optioneel)",
           "achievement_labels": "Prestatielabels",
           "icon": "Pictogram (mdi:xxx)",
-          "assigned_kids": "Toegewezen kinderen",
+          "assigned_assignees": "Toegewezen kinderen",
           "type": "Soort prestatie",
           "selected_chore_id": "Selecteer de bijbehorende taak",
           "criteria": "Criteria (optioneel)",
@@ -383,7 +383,7 @@
           "description": "Beschrijving (optioneel)",
           "challenge_labels": "Uitdagingslabels",
           "icon": "Pictogram (mdi:xxx)",
-          "assigned_kids": "Toegewezen kinderen",
+          "assigned_assignees": "Toegewezen kinderen",
           "type": "Soort uitdaging",
           "selected_chore_id": "Selecteer de taak die bij de uitdaging hoort (optioneel)",
           "criteria": "Criteria (optioneel)",
@@ -406,19 +406,19 @@
       "duplicate_badge": "Er bestaat al een badge met deze naam.",
       "duplicate_challenge": "Er bestaat al een challenge met deze naam.",
       "duplicate_chore": "Er bestaat al een klus met deze naam.",
-      "duplicate_kid": "Er bestaat al een kind met deze naam.",
-      "duplicate_parent": "Er bestaat al een ouder met deze naam.",
+      "duplicate_assignee": "Er bestaat al een kind met deze naam.",
+      "duplicate_approver": "Er bestaat al een ouder met deze naam.",
       "duplicate_penalty": "Er bestaat al een straf met deze naam.",
       "duplicate_reward": "Er bestaat al een beloning met deze naam.",
       "duplicate_bonus": "Er bestaat al een bonus met deze naam.",
-      "shadow_kid_name_conflict": "Het is niet mogelijk om een taak toe te wijzen: er bestaat al een kind met uw naam. Hernoem eerst het bestaande kind.",
+      "shadow_assignee_name_conflict": "Het is niet mogelijk om een taak toe te wijzen: er bestaat al een kind met uw naam. Hernoem eerst het bestaande kind.",
       "due_date_in_past": "De uiterste inleverdatum moet in de toekomst liggen.",
       "end_date_in_past": "De einddatum moet in de toekomst liggen.",
       "end_date_not_after_start_date": "De einddatum moet later zijn dan de startdatum.",
       "err_end_before_start": "De einddatum moet na de startdatum liggen.",
       "err_name_duplicate": "Er bestaat al een challenge met deze naam.",
-      "achievement_no_kids_assigned": "Er moet minstens één kind aan de prestatie worden toegewezen.",
-      "challenge_no_kids_assigned": "Er moet minstens één kind aan de uitdaging worden toegewezen.",
+      "achievement_no_assignees_assigned": "Er moet minstens één kind aan de prestatie worden toegewezen.",
+      "challenge_no_assignees_assigned": "Er moet minstens één kind aan de uitdaging worden toegewezen.",
       "invalid_achievement_count": "Ongeldig aantal behaalde resultaten",
       "invalid_achievement_name": "Ongeldige prestatienaam",
       "invalid_badge": "Ongeldige badge",
@@ -428,18 +428,18 @@
       "invalid_challenge_name": "Ongeldige uitdagingnaam",
       "invalid_chore": "Ongeldige taak",
       "invalid_chore_count": "Ongeldig aantal taken",
-      "rotation_min_kids": "Voor de roulerende klusjes zijn minimaal 2 toegewezen kinderen nodig.",
+      "rotation_min_assignees": "Voor de roulerende klusjes zijn minimaal 2 toegewezen kinderen nodig.",
       "invalid_chore_name": "Ongeldige taaknaam",
       "invalid_points": "Het aantal punten moet nul of hoger zijn.",
       "invalid_overdue_reset_combination": "De optie 'Op de vervaldatum en dan opnieuw instellen' voor het afhandelen van te late betalingen werkt alleen met resettypes die om middernacht plaatsvinden. Selecteer 'Om middernacht (eenmalig)' of 'Om middernacht (herhalend)' voor het type goedkeuringsreset.",
       "invalid_due_date": "Ongeldige vervaldatum",
       "date_required_for_frequency": "Voor deze terugkerende frequentie is een vervaldatum vereist. De optie 'Vrijgemaakte datums' werkt alleen met de frequenties 'Geen', 'Dagelijks' of 'Wekelijks'.",
       "invalid_end_date": "Ongeldige einddatum.",
-      "invalid_kid_count": "Ongeldig aantal kinderen",
-      "invalid_kid_name": "Ongeldige kindernaam",
-      "invalid_parent_count": "Ongeldig aantal ouders",
-      "invalid_parent_name": "Ongeldige oudernaam",
-      "no_kids_assigned": "Er moet minstens één kind worden aangewezen voor deze taak.",
+      "invalid_assignee_count": "Ongeldig aantal kinderen",
+      "invalid_assignee_name": "Ongeldige kindernaam",
+      "invalid_approver_count": "Ongeldig aantal ouders",
+      "invalid_approver_name": "Ongeldige oudernaam",
+      "no_assignees_assigned": "Er moet minstens één kind worden aangewezen voor deze taak.",
       "invalid_penalty": "Ongeldige straf",
       "invalid_penalty_count": "Ongeldig aantal strafpunten",
       "invalid_penalty_name": "Ongeldige naam voor de straf",
@@ -469,11 +469,11 @@
       "invalid_points_adjust_values": "Ongeldige punten passen waarden aan. Moet een lijst zijn."
     },
     "abort": {
-      "single_instance_allowed": "Er kan slechts één KidsChores-instantie worden geconfigureerd.",
-      "already_configured": "De KidsChores-gegevens zijn succesvol hersteld. U kunt de integratie nu opnieuw laden.",
+      "single_instance_allowed": "Er kan slechts één ChoreOps-instantie worden geconfigureerd.",
+      "already_configured": "De ChoreOps-gegevens zijn succesvol hersteld. U kunt de integratie nu opnieuw laden.",
       "file_not_found": "Het geselecteerde back-upbestand kon niet worden gevonden.",
       "corrupt_file": "Het geselecteerde bestand bevat ongeldige JSON en kan niet worden gelezen.",
-      "invalid_structure": "Het geselecteerde bestand mist de vereiste KidsChores-datastructuur.",
+      "invalid_structure": "Het geselecteerde bestand mist de vereiste ChoreOps-datastructuur.",
       "reconfigure_failed": "De herconfiguratie is mislukt. Probeer het opnieuw.",
       "reconfigure_successful": "Systeeminstellingen succesvol bijgewerkt."
     }
@@ -481,7 +481,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "KidsChorks Opties",
+        "title": "AssigneesChorks Opties",
         "description": "Beheer kinderen, klusjes, badges, beloningen, straffen, bonussen of voltooi taken.\n\n[📖 Documentatie bekijken]({documentation_url})",
         "data": {
           "menu_selection": "Selecteer een optie"
@@ -509,7 +509,7 @@
           "points_icon": "Puntenpictogram"
         }
       },
-      "add_kid": {
+      "add_assignee": {
         "title": "Voeg kind toe",
         "description": "Geef de details voor het nieuwe kind op.\n\n📖 [Configuratiehandleiding]({documentation_url})",
         "data": {
@@ -526,13 +526,13 @@
           "dashboard_language": "De taal die wordt gebruikt voor je takenoverzicht en meldingen."
         }
       },
-      "add_parent": {
+      "add_approver": {
         "title": "Ouder toevoegen",
         "description": "Geef de gegevens voor de nieuwe ouder op.\n\n📖 [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de ouder",
           "ha_user_id": "Home Assistant-gebruiker",
-          "associated_kids": "Associated Kids",
+          "associated_assignees": "Associated Assignees",
           "mobile_notify_service": "Meldingen",
           "dashboard_language": "Taal",
           "allow_chore_assignment": "Sta toe dat er taken aan mij worden toegewezen",
@@ -543,7 +543,7 @@
         "data_description": {
           "name": "Unieke naam voor deze ouder, die in het hele systeem wordt gebruikt.",
           "ha_user_id": "Optioneel: Koppel deze ouder aan een Home Assistant-gebruiker voor meldingen en toegang tot het dashboard.",
-          "associated_kids": "Selecteer voor welke kinderen deze ouder toezicht houdt om meldingen en goedkeuringsacties te ontvangen.",
+          "associated_assignees": "Selecteer voor welke kinderen deze ouder toezicht houdt om meldingen en goedkeuringsacties te ontvangen.",
           "mobile_notify_service": "Selecteer een notificatieservice om meldingen voor deze ouder in te schakelen, of laat het veld leeg om meldingen uit te schakelen.",
           "allow_chore_assignment": "Hiermee wordt een profiel aangemaakt zodat taken aan u kunnen worden toegewezen. Standaard wordt alleen een knop 'Goedkeuren' weergegeven voor voltooiing met één klik. Opmerking: Als u dit uitschakelt, blijft het kinderprofiel met het achtervoegsel '_unlinked' behouden voor handmatige verwijdering.",
           "enable_chore_workflow": "Voegt knoppen 'Accepteren' en 'Afwijzen' toe voor een volledige workflow (accepteren → goedkeuren/afwijzen).",
@@ -563,7 +563,7 @@
               "chore_description": "📋 Beschrijving (optioneel)",
               "icon": "📋 Pictogram (mdi:xxx)",
               "default_points": "💰 Toegekende punten",
-              "assigned_kids": "👥 Toegewezen kinderen",
+              "assigned_assignees": "👥 Toegewezen kinderen",
               "completion_criteria": "👥 Voltooiingscriteria"
             },
             "data_description": {
@@ -571,7 +571,7 @@
               "chore_description": "Optionele instructies of details over hoe deze taak moet worden uitgevoerd.",
               "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
               "default_points": "Punten worden verdiend na voltooiing.",
-              "assigned_kids": "Kinderen die dit klusje kunnen zien en op zich nemen.",
+              "assigned_assignees": "Kinderen die dit klusje kunnen zien en op zich nemen.",
               "completion_criteria": "Hiermee kunt u bepalen hoe de taak wordt uitgevoerd wanneer meerdere kinderen eraan zijn toegewezen: individuele voortgangsregistratie, gezamenlijke uitvoering of beurtelings rouleren."
             }
           },
@@ -630,7 +630,7 @@
           "icon": "📋 Pictogram (mdi:xxx)",
           "chore_labels": "📋 Etiketten (optioneel)",
           "default_points": "💰 Toegekende punten",
-          "assigned_kids": "👥 Toegewezen kinderen",
+          "assigned_assignees": "👥 Toegewezen kinderen",
           "completion_criteria": "👥 Voltooiingscriteria",
           "approval_reset_type": "➡️ Voltooiingen toegestaan en goedkeuringstijd opnieuw instellen",
           "approval_reset_pending_claim_action": "➡️ Afhandeling van openstaande claims bij goedkeuring reset",
@@ -654,7 +654,7 @@
           "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
           "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is.",
           "default_points": "Punten worden verdiend na voltooiing.",
-          "assigned_kids": "Kinderen die dit klusje kunnen zien en op zich nemen.",
+          "assigned_assignees": "Kinderen die dit klusje kunnen zien en op zich nemen.",
           "completion_criteria": "Hiermee kunt u bepalen hoe de taak wordt uitgevoerd wanneer meerdere kinderen eraan zijn toegewezen: individuele voortgangsregistratie, gezamenlijke uitvoering of beurtelings rouleren.",
           "approval_reset_type": "Hiermee wordt bepaald wanneer de grens van de goedkeuringscyclus voor de taak wordt bereikt (middernacht, vervaldatum, na voltooiing of handmatige trigger).",
           "approval_reset_pending_claim_action": "Bepaalt wat er gebeurt met niet-goedgekeurde claims wanneer de grens voor het opnieuw instellen van de goedkeuring wordt bereikt.",
@@ -932,7 +932,7 @@
           "description": "Beschrijving (optioneel)",
           "achievement_labels": "Prestatielabels",
           "icon": "Pictogram (mdi:xxx)",
-          "assigned_kids": "Toegewezen kinderen",
+          "assigned_assignees": "Toegewezen kinderen",
           "type": "Soort prestatie",
           "selected_chore_id": "Selecteer de bijbehorende taak",
           "criteria": "Criteria (optioneel)",
@@ -949,7 +949,7 @@
           "description": "Beschrijving (optioneel)",
           "challenge_labels": "Uitdagingslabels",
           "icon": "Pictogram (mdi:xxx)",
-          "assigned_kids": "Toegewezen kinderen",
+          "assigned_assignees": "Toegewezen kinderen",
           "type": "Soort uitdaging",
           "selected_chore_id": "Selecteer de taak die bij de uitdaging hoort (optioneel)",
           "criteria": "Criteria (optioneel)",
@@ -960,8 +960,8 @@
           "internal_id": "Interne ID"
         }
       },
-      "edit_kid": {
-        "title": "Edit Kid",
+      "edit_assignee": {
+        "title": "Edit Assignee",
         "description": "Wijzig de gegevens van het geselecteerde kind.\n\n📖 [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van het kind",
@@ -977,7 +977,7 @@
           "dashboard_language": "De taal die wordt gebruikt voor je takenoverzicht en meldingen."
         }
       },
-      "edit_kid_shadow": {
+      "edit_assignee_shadow": {
         "title": "Bewerk Schaduwkind",
         "description": "Wijzig de gegevens van het geselecteerde schaduwkind. ⚠️ Dit kind is gekoppeld aan een ouder. Het wijzigen van de naam zorgt ervoor dat niet langer aan de naamvereiste voor het ontkoppelen via de service wordt voldaan.",
         "data": {
@@ -994,13 +994,13 @@
           "dashboard_language": "De taal die wordt gebruikt voor je takenoverzicht en meldingen."
         }
       },
-      "edit_parent": {
+      "edit_approver": {
         "title": "Ouder bewerken",
         "description": "Wijzig de details van het geselecteerde bovenliggende element.\n\n📖 [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de ouder",
           "ha_user_id": "Home Assistant-gebruiker",
-          "associated_kids": "Associated Kids",
+          "associated_assignees": "Associated Assignees",
           "mobile_notify_service": "Meldingen",
           "dashboard_language": "Taal",
           "allow_chore_assignment": "Sta toe dat er taken aan mij worden toegewezen",
@@ -1011,7 +1011,7 @@
         "data_description": {
           "name": "Unieke naam voor deze ouder, die in het hele systeem wordt gebruikt.",
           "ha_user_id": "Optioneel: Koppel deze ouder aan een Home Assistant-gebruiker voor meldingen en toegang tot het dashboard.",
-          "associated_kids": "Selecteer voor welke kinderen deze ouder toezicht houdt om meldingen en goedkeuringsacties te ontvangen.",
+          "associated_assignees": "Selecteer voor welke kinderen deze ouder toezicht houdt om meldingen en goedkeuringsacties te ontvangen.",
           "mobile_notify_service": "Selecteer een notificatieservice om meldingen voor deze ouder in te schakelen, of laat het veld leeg om meldingen uit te schakelen.",
           "allow_chore_assignment": "Hiermee wordt een profiel aangemaakt zodat taken aan u kunnen worden toegewezen. Standaard wordt alleen een knop 'Goedkeuren' weergegeven voor voltooiing met één klik. Opmerking: Als u dit uitschakelt, blijft het kinderprofiel met het achtervoegsel '_unlinked' behouden voor handmatige verwijdering.",
           "enable_chore_workflow": "Voegt knoppen 'Accepteren' en 'Afwijzen' toe voor een volledige workflow (accepteren → goedkeuren/afwijzen).",
@@ -1031,7 +1031,7 @@
               "chore_description": "📋 Beschrijving (optioneel)",
               "icon": "📋 Pictogram (mdi:xxx)",
               "default_points": "💰 Toegekende punten",
-              "assigned_kids": "👥 Toegewezen kinderen",
+              "assigned_assignees": "👥 Toegewezen kinderen",
               "completion_criteria": "👥 Voltooiingscriteria"
             },
             "data_description": {
@@ -1039,7 +1039,7 @@
               "chore_description": "Optionele instructies of details over hoe deze taak moet worden uitgevoerd.",
               "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
               "default_points": "Punten worden verdiend na voltooiing.",
-              "assigned_kids": "Kinderen die dit klusje kunnen zien en op zich nemen.",
+              "assigned_assignees": "Kinderen die dit klusje kunnen zien en op zich nemen.",
               "completion_criteria": "Hiermee kunt u bepalen hoe de taak wordt uitgevoerd wanneer meerdere kinderen eraan zijn toegewezen: individuele voortgangsregistratie, gezamenlijke uitvoering of beurtelings rouleren."
             }
           },
@@ -1099,7 +1099,7 @@
           "chore_labels": "📋 Etiketten (optioneel)",
           "internal_id": "Interne ID",
           "default_points": "💰 Toegekende punten",
-          "assigned_kids": "👥 Toegewezen kinderen",
+          "assigned_assignees": "👥 Toegewezen kinderen",
           "completion_criteria": "👥 Voltooiingscriteria",
           "approval_reset_type": "➡️ Voltooiingen toegestaan en goedkeuringstijd opnieuw instellen",
           "approval_reset_pending_claim_action": "➡️ Afhandeling van openstaande claims bij goedkeuring reset",
@@ -1123,7 +1123,7 @@
           "icon": "Material Design-pictogrammen (bijv. mdi:bezem, mdi:afwasmachine).",
           "chore_labels": "Labels om klusjes te organiseren (bijv. 'keuken', 'buiten'). Laat leeg als dit niet nodig is.",
           "default_points": "Punten worden verdiend na voltooiing.",
-          "assigned_kids": "Kinderen die dit klusje kunnen zien en op zich nemen.",
+          "assigned_assignees": "Kinderen die dit klusje kunnen zien en op zich nemen.",
           "completion_criteria": "Hiermee kunt u bepalen hoe de taak wordt uitgevoerd wanneer meerdere kinderen eraan zijn toegewezen: individuele voortgangsregistratie, gezamenlijke uitvoering of beurtelings rouleren.",
           "approval_reset_type": "Hiermee wordt bepaald wanneer de grens van de goedkeuringscyclus voor de taak wordt bereikt (middernacht, vervaldatum, na voltooiing of handmatige trigger).",
           "approval_reset_pending_claim_action": "Bepaalt wat er gebeurt met niet-goedgekeurde claims wanneer de grens voor het opnieuw instellen van de goedkeuring wordt bereikt.",
@@ -1142,9 +1142,9 @@
           "chore_notifications": "Wanneer moeten meldingen worden verzonden: Bij een aanvraag, bij goedkeuring, bij afwijzing, of een combinatie hiervan."
         }
       },
-      "edit_chore_per_kid_dates": {
+      "edit_chore_per_assignee_dates": {
         "title": "Bewerk de vervaldatums per kind: {chore_name}",
-        "description": "Stel individuele vervaldatums in voor elk toegewezen kind. Het datumveld op het hoofdbewerkingsformulier fungeert als een **sjabloon** voor het gemak. Gebruik het om snel dezelfde datum voor alle kinderen in te stellen via het selectievakje hieronder, of laat het leeg en stel hier individuele datums in.\n\nVelden worden weergegeven voor: {kid_names}. Laat leeg voor geen deadline.{template_date}\n\n📖 [Geavanceerde handleiding]({documentation_url})",
+        "description": "Stel individuele vervaldatums in voor elk toegewezen kind. Het datumveld op het hoofdbewerkingsformulier fungeert als een **sjabloon** voor het gemak. Gebruik het om snel dezelfde datum voor alle kinderen in te stellen via het selectievakje hieronder, of laat het leeg en stel hier individuele datums in.\n\nVelden worden weergegeven voor: {assignee_names}. Laat leeg voor geen deadline.{template_date}\n\n📖 [Geavanceerde handleiding]({documentation_url})",
         "data": {
           "apply_template_to_all": "Pas de sjabloondatum toe op alle kinderen."
         },
@@ -1162,9 +1162,9 @@
           "daily_multi_times": "Voer 2 tot 6 tijden in in 24-uursformaat, gescheiden door een | (pipe). Voorbeeld: 08:00|17:00 voor ochtend en avond."
         }
       },
-      "edit_chore_per_kid_details": {
+      "edit_chore_per_assignee_details": {
         "title": "Schema per kind: {chore_name}",
-        "description": "Configureer individuele schema-instellingen voor elk kind dat aan deze taak is toegewezen. De hoofdwaarden van het formulier fungeren als **sjablonen** - gebruik de selectievakjes om ze op alle kinderen toe te passen, of pas de instellingen voor elk kind afzonderlijk aan.\n\n**Opmerking:** Niet alle onderstaande velden zijn van toepassing op elke taak. Het formulier toont dynamisch relevante opties op basis van de voltooiingsmodus, frequentie en of er vervaldatums zijn ingesteld.\n\n**Dagelijkse (meerdere) tijden:** Voer, indien weergegeven, 2-6 tijden in in 24-uursformaat, gescheiden door | (pipe). Voorbeeld: 08:00|17:00\n\nKinderen: {kid_names}{template_info}\n\n📖 [Geavanceerde handleiding]({documentation_url})",
+        "description": "Configureer individuele schema-instellingen voor elk kind dat aan deze taak is toegewezen. De hoofdwaarden van het formulier fungeren als **sjablonen** - gebruik de selectievakjes om ze op alle kinderen toe te passen, of pas de instellingen voor elk kind afzonderlijk aan.\n\n**Opmerking:** Niet alle onderstaande velden zijn van toepassing op elke taak. Het formulier toont dynamisch relevante opties op basis van de voltooiingsmodus, frequentie en of er vervaldatums zijn ingesteld.\n\n**Dagelijkse (meerdere) tijden:** Voer, indien weergegeven, 2-6 tijden in in 24-uursformaat, gescheiden door | (pipe). Voorbeeld: 08:00|17:00\n\nKinderen: {assignee_names}{template_info}\n\n📖 [Geavanceerde handleiding]({documentation_url})",
         "data": {
           "apply_days_to_all": "Pas de sjabloondagen toe op alle kinderen.",
           "apply_times_to_all": "Pas de sjabloontijden toe op alle kinderen.",
@@ -1428,7 +1428,7 @@
           "description": "Beschrijving (optioneel)",
           "achievement_labels": "Prestatielabels",
           "icon": "Pictogram (mdi:xxx)",
-          "assigned_kids": "Toegewezen kinderen",
+          "assigned_assignees": "Toegewezen kinderen",
           "type": "Soort prestatie",
           "selected_chore_id": "Selecteer de bijbehorende taak",
           "criteria": "Criteria (optioneel)",
@@ -1445,7 +1445,7 @@
           "description": "Beschrijving (optioneel)",
           "challenge_labels": "Uitdagingslabels",
           "icon": "Pictogram (mdi:xxx)",
-          "assigned_kids": "Toegewezen kinderen",
+          "assigned_assignees": "Toegewezen kinderen",
           "type": "Soort uitdaging",
           "selected_chore_id": "Selecteer de taak die bij de uitdaging hoort (optioneel)",
           "criteria": "Criteria (optioneel)",
@@ -1456,14 +1456,14 @@
           "internal_id": "Interne ID"
         }
       },
-      "delete_kid": {
+      "delete_assignee": {
         "title": "Verwijder kind",
-        "description": "Weet je zeker dat je het kind {kid_name}wilt verwijderen?",
+        "description": "Weet je zeker dat je het kind {assignee_name}wilt verwijderen?",
         "data": {}
       },
-      "delete_parent": {
+      "delete_approver": {
         "title": "Ouder verwijderen",
-        "description": "Weet je zeker dat je het bovenliggende element {parent_name}wilt verwijderen?",
+        "description": "Weet je zeker dat je het bovenliggende element {approver_name}wilt verwijderen?",
         "data": {}
       },
       "delete_chore": {
@@ -1503,7 +1503,7 @@
       },
       "dashboard_generator": {
         "title": "Dashboard beheren",
-        "description": "KidsChores Lovelace-dashboards maken, bijwerken of verwijderen.\n\n**Vereiste aangepaste kaarten** (installeren via HACS Frontend):\n- Mushroom Cards (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nZonder deze kaarten zullen dashboards fouten weergeven. Installeer ze eerst via HACS voordat u dashboards genereert.",
+        "description": "ChoreOps Lovelace-dashboards maken, bijwerken of verwijderen.\n\n**Vereiste aangepaste kaarten** (installeren via HACS Frontend):\n- Mushroom Cards (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nZonder deze kaarten zullen dashboards fouten weergeven. Installeer ze eerst via HACS voordat u dashboards genereert.",
         "data": {
           "dashboard_action": "Actie",
           "dashboard_check_cards": "Controlekaartinstallatie"
@@ -1515,25 +1515,25 @@
       },
       "dashboard_create": {
         "title": "Dashboard aanmaken/bijwerken",
-        "description": "Genereer een KidsChores-dashboard met tabbladen voor elk kind.\n\nKies een naam voor het dashboard, selecteer de kinderen die u wilt opnemen en voeg optioneel een beheerderstabblad toe voor ouderbeheer.\n\n[📖 Handleiding voor het genereren van dashboards]({documentation_url})",
+        "description": "Genereer een ChoreOps-dashboard met tabbladen voor elk kind.\n\nKies een naam voor het dashboard, selecteer de kinderen die u wilt opnemen en voeg optioneel een beheerderstabblad toe voor ouderbeheer.\n\n[📖 Handleiding voor het genereren van dashboards]({documentation_url})",
         "data": {
           "dashboard_name": "Dashboardnaam",
           "dashboard_style": "Dashboardstijl",
-          "dashboard_kid_selection": "Kinderen (één tablet per kind)",
+          "dashboard_assignee_selection": "Kinderen (één tablet per kind)",
           "dashboard_include_admin": "Voeg het beheerderstabblad toe",
           "dashboard_force_rebuild": "Geforceerde heropbouw (bestaande versie overschrijven)"
         },
         "data_description": {
           "dashboard_name": "Naam voor het dashboard (verschijnt in de zijbalk). Voorgesteld: Taken",
           "dashboard_style": "Kies de lay-out van het dashboard: Volledig (alle functies), Minimaal (alleen de essentie) of Compact (overzichtelijke lay-out).",
-          "dashboard_kid_selection": "Selecteer voor welke kinderen je tabbladen wilt aanmaken. Elk kind krijgt zijn of haar eigen weergave/tabblad.",
+          "dashboard_assignee_selection": "Selecteer voor welke kinderen je tabbladen wilt aanmaken. Elk kind krijgt zijn of haar eigen weergave/tabblad.",
           "dashboard_include_admin": "Voeg een beheerderstabblad toe met bovenliggende beheeropties voor goedkeuringen en beheer.",
           "dashboard_force_rebuild": "Indien ingeschakeld, wordt het bestaande dashboard overschreven. Anders mislukt de generatie als het dashboard al bestaat."
         }
       },
       "dashboard_delete": {
         "title": "Dashboard verwijderen",
-        "description": "Selecteer de KidsChores-dashboards die u wilt verwijderen.\n\n⚠️ Deze actie kan niet ongedaan worden gemaakt.",
+        "description": "Selecteer de ChoreOps-dashboards die u wilt verwijderen.\n\n⚠️ Deze actie kan niet ongedaan worden gemaakt.",
         "data": {
           "dashboard_delete_selection": "Dashboards die verwijderd moeten worden"
         },
@@ -1558,7 +1558,7 @@
       },
       "manage_general_options": {
         "title": "Algemene opties",
-        "description": "Beheer de algemene instellingen voor de KidsChores-integratie.\n\n[📖 Meer informatie over back-up en herstel]({documentation_url})",
+        "description": "Beheer de algemene instellingen voor de ChoreOps-integratie.\n\n[📖 Meer informatie over back-up en herstel]({documentation_url})",
         "data": {
           "points_adjust_values": "Handmatige puntaanpassingsknopwaarden",
           "update_interval": "Update-interval",
@@ -1575,7 +1575,7 @@
         },
         "data_description": {
           "points_adjust_values": "Lijst met waarden voor de knoppen voor handmatige puntafstelling. Elke waarde wordt gescheiden door een '|'.",
-          "update_interval": "Het interval in minuten voor het bijwerken van de interne status van KidsChores.",
+          "update_interval": "Het interval in minuten voor het bijwerken van de interne status van ChoreOps.",
           "calendar_show_period": "Aantal dagen in de toekomst om geplande klusjes en uitdagingen in de kalender weer te geven.",
           "retention_periods": "Bewaartermijnen van gegevens in het formaat Dagelijks|Wekelijks|Maandelijks|Jaarlijks (bijv. '7|4|12|3'). Elke waarde moet een positief geheel getal zijn.",
           "retention_daily": "Aantal dagen met dagelijkse historische gegevens die bewaard moeten worden vóór opschoning. Minimum 1, maximum 90.",
@@ -1590,7 +1590,7 @@
       },
       "backup_actions": {
         "title": "Back-upbeheer",
-        "description": "Beheer uw KidsChores-gegevensback-ups. Huidige status: {backup_count} back-ups met {storage_size} MB.",
+        "description": "Beheer uw ChoreOps-gegevensback-ups. Huidige status: {backup_count} back-ups met {storage_size} MB.",
         "data": {
           "backup_action_selection": "Selecteer een actie"
         },
@@ -1600,7 +1600,7 @@
       },
       "backup_actions_menu": {
         "title": "Back-upacties",
-        "description": "Beheer de back-ups van uw KidsChores-gegevens.",
+        "description": "Beheer de back-ups van uw ChoreOps-gegevens.",
         "data": {
           "backup_action_selection": "Selecteer een actie"
         },
@@ -1610,7 +1610,7 @@
       },
       "create_manual_backup": {
         "title": "Handmatige back-up maken",
-        "description": "Maak een nieuwe back-up van uw KidsChores-gegevens.\n\nHuidige back-ups: {backup_count}\nBewaartermijn: {retention} back-ups",
+        "description": "Maak een nieuwe back-up van uw ChoreOps-gegevens.\n\nHuidige back-ups: {backup_count}\nBewaartermijn: {retention} back-ups",
         "data": {
           "confirm": "Bevestig het aanmaken van de back-up."
         }
@@ -1631,24 +1631,24 @@
       },
       "restore_backup": {
         "title": "Opties voor gegevensherstel",
-        "description": "Bestaande KidsChores-gegevens gevonden in:\n{storage_path}\n\nEr zijn {backup_count} back-upbestanden gevonden.\n\nWat wilt u doen?",
+        "description": "Bestaande ChoreOps-gegevens gevonden in:\n{storage_path}\n\nEr zijn {backup_count} back-upbestanden gevonden.\n\nWat wilt u doen?",
         "data": {
           "backup_selection": "Selecteer optie"
         }
       },
       "paste_json_restore": {
         "title": "JSON-gegevens importeren",
-        "description": "Plak de volledige JSON-inhoud van een van de volgende bronnen:\n\n• Een KidsChores-gegevensbestand (kidschores_data)\n• Een diagnostische download\n\nHet systeem detecteert en decodeert het formaat automatisch indien nodig. Zowel onbewerkte opslaggegevens als diagnostische exportformaten worden ondersteund.",
+        "description": "Plak de volledige JSON-inhoud van een van de volgende bronnen:\n\n• Een ChoreOps-gegevensbestand (choreops_data)\n• Een diagnostische download\n\nHet systeem detecteert en decodeert het formaat automatisch indien nodig. Zowel onbewerkte opslaggegevens als diagnostische exportformaten worden ondersteund.",
         "data": {
           "json_data": "JSON-gegevens"
         },
         "data_description": {
-          "json_data": "Plak hier de volledige JSON-inhoud. Accepteert gegevens uit het bestand kidschores_data of de diagnostische export (extra structuren worden automatisch uitgepakt)."
+          "json_data": "Plak hier de volledige JSON-inhoud. Accepteert gegevens uit het bestand choreops_data of de diagnostische export (extra structuren worden automatisch uitgepakt)."
         }
       },
       "create_backup_confirm": {
         "title": "Handmatige back-up maken",
-        "description": "Een handmatige back-up maken van uw huidige KidsChores-gegevens?",
+        "description": "Een handmatige back-up maken van uw huidige ChoreOps-gegevens?",
         "data": {
           "confirm": "Bevestigen"
         }
@@ -1682,8 +1682,8 @@
       "duplicate_badge": "Er bestaat al een badge met deze naam.",
       "duplicate_challenge": "Er bestaat al een challenge met deze naam.",
       "duplicate_chore": "Er bestaat al een klus met deze naam.",
-      "duplicate_kid": "Er bestaat al een kind met deze naam.",
-      "duplicate_parent": "Er bestaat al een ouder met deze naam.",
+      "duplicate_assignee": "Er bestaat al een kind met deze naam.",
+      "duplicate_approver": "Er bestaat al een ouder met deze naam.",
       "duplicate_penalty": "Er bestaat al een straf met deze naam.",
       "duplicate_reward": "Er bestaat al een beloning met deze naam.",
       "duplicate_bonus": "Er bestaat al een bonus met deze naam.",
@@ -1702,11 +1702,11 @@
       "invalid_due_date": "Ongeldige vervaldatum",
       "date_required_for_frequency": "Voor deze terugkerende frequentie is een vervaldatum vereist. De optie 'Vrijgemaakte datums' werkt alleen met de frequenties 'Geen', 'Dagelijks' of 'Wekelijks'.",
       "invalid_end_date": "Ongeldige einddatum.",
-      "invalid_kid_count": "Ongeldig aantal kinderen",
-      "invalid_kid_name": "Ongeldige kindernaam",
-      "no_kids_assigned": "Er moet minstens één kind worden aangewezen voor deze taak.",
-      "achievement_no_kids_assigned": "Er moet minstens één kind aan de prestatie worden toegewezen.",
-      "challenge_no_kids_assigned": "Er moet minstens één kind aan de uitdaging worden toegewezen.",
+      "invalid_assignee_count": "Ongeldig aantal kinderen",
+      "invalid_assignee_name": "Ongeldige kindernaam",
+      "no_assignees_assigned": "Er moet minstens één kind worden aangewezen voor deze taak.",
+      "achievement_no_assignees_assigned": "Er moet minstens één kind aan de prestatie worden toegewezen.",
+      "challenge_no_assignees_assigned": "Er moet minstens één kind aan de uitdaging worden toegewezen.",
       "invalid_penalty": "Ongeldige straf",
       "invalid_penalty_count": "Ongeldig aantal strafpunten",
       "invalid_bonus": "Ongeldige bonus",
@@ -1721,23 +1721,23 @@
       "file_not_found": "Het geselecteerde bestand kon niet worden gevonden.",
       "invalid_selection": "Selecteer een geldige optie.",
       "error_daily_multi_requires_compatible_reset": "De frequentie 'Meerdere keren per dag' is niet compatibel met resettypen die om middernacht worden gereset, omdat deze goedkeuringen slechts één keer om middernacht resetten.",
-      "error_daily_multi_independent_multi_kids": "Bij een frequentie van 'Meerdere keren per dag' met onafhankelijke voltooiing is precies één kind vereist, tenzij er per kind verschillende tijden zijn ingesteld. Stel in de instellingen per kind verschillende tijden in voor elk kind.",
+      "error_daily_multi_independent_multi_assignees": "Bij een frequentie van 'Meerdere keren per dag' met onafhankelijke voltooiing is precies één kind vereist, tenzij er per kind verschillende tijden zijn ingesteld. Stel in de instellingen per kind verschillende tijden in voor elk kind.",
       "error_daily_multi_times_required": "Een lijst met tijden is vereist voor de frequentie 'Meerdere keren per dag'.",
       "error_daily_multi_times_invalid_format": "Ongeldige tijdnotatie. Gebruik de 24-uursnotatie (HH:MM) gescheiden door | (bijv. 08:00|17:00).",
       "error_daily_multi_times_too_few": "Voor een frequentie van 'Meerdere keren per dag' zijn minimaal 2 keer vereist. Voor een eenmalige frequentie gebruikt u de normale frequentie 'Dagelijks'.",
       "error_daily_multi_times_too_many": "Maximaal 6 keer per dag toegestaan voor de frequentie 'Meerdere keren per dag'.",
       "error_daily_multi_due_date_required": "De frequentie 'Meerdere keren per dag' vereist dat er een einddatum wordt ingesteld. De datum bepaalt wanneer de planning begint en de tijden bepalen de beschikbaarheidsvensters per dag.",
-      "rotation_min_kids": "Voor de roulerende klusjes zijn minimaal 2 toegewezen kinderen nodig.",
+      "rotation_min_assignees": "Voor de roulerende klusjes zijn minimaal 2 toegewezen kinderen nodig.",
       "error_allow_steal_incompatible": "De functie 'Steal overdue handling' is alleen compatibel met rotatietaken (rotation_simple of rotation_smart), het resettype 'Eenmaal per dag' en vereist een vervaldatum om te bepalen wanneer het steal-venster opent.",
       "error_at_due_date_reset_requires_due_date": "Voor goedkeuringsresettypen 'Op vervaldatum' (eenmalig of meervoudig) moet een vervaldatum worden ingesteld. Zonder vervaldatum wordt de goedkeuring nooit gereset en blijft de taak voor onbepaalde tijd goedgekeurd.",
-      "error_per_kid_applicable_days_invalid": "Ongeldig formaat voor de toepasselijke dagen voor een of meer kinderen. Dagen moeten gehele getallen van 0-6 zijn (maandag-zondag) zonder duplicaten.",
-      "error_per_kid_daily_multi_times_invalid": "Ongeldig dagformaat voor één of meer kinderen. Gebruik het 24-uursformaat, gescheiden door | (bijv. 08:00|17:00).",
+      "error_per_assignee_applicable_days_invalid": "Ongeldig formaat voor de toepasselijke dagen voor een of meer kinderen. Dagen moeten gehele getallen van 0-6 zijn (maandag-zondag) zonder duplicaten.",
+      "error_per_assignee_daily_multi_times_invalid": "Ongeldig dagformaat voor één of meer kinderen. Gebruik het 24-uursformaat, gescheiden door | (bijv. 08:00|17:00).",
       "dashboard_exists": "Er bestaat al een dashboard met dit URL-pad. Schakel 'Forceer heropbouw' in om het bestaande dashboard te overschrijven.",
       "dashboard_template_error": "Het ophalen van de dashboardtemplate is mislukt. Controleer uw netwerkverbinding of probeer het later opnieuw.",
       "dashboard_render_error": "Het is niet gelukt om de dashboardtemplate weer te geven. Dit kan duiden op een bug in de template.",
       "dashboard_save_error": "Het opslaan van het dashboard in Home Assistant is mislukt. Raadpleeg de systeemlogboeken voor meer informatie.",
       "dashboard_no_name": "Geef het dashboard een naam.",
-      "dashboard_no_kids": "Selecteer ten minste één kind of schakel 'Beheertabblad toevoegen' in.",
+      "dashboard_no_assignees": "Selecteer ten minste één kind of schakel 'Beheertabblad toevoegen' in.",
       "dashboard_no_dashboards": "Selecteer ten minste één dashboard om te verwijderen."
     },
     "abort": {
@@ -1747,13 +1747,13 @@
       "invalid_challenge": "Ongeldige uitdaging",
       "invalid_chore": "Ongeldige taak",
       "invalid_entity": "Ongeldige entiteit",
-      "invalid_kid": "Invalide kind",
-      "invalid_parent": "Ongeldige ouder",
+      "invalid_assignee": "Invalide kind",
+      "invalid_approver": "Ongeldige ouder",
       "invalid_penalty": "Ongeldige straf",
       "invalid_reward": "Ongeldige beloning",
       "invalid_bonus": "Ongeldige bonus",
-      "no_kid": "Kinderen zijn niet beschikbaar om te bewerken. Voeg eerst één item toe.",
-      "no_parent": "Er zijn geen ouders ingesteld om te bewerken. Voeg eerst één item toe.",
+      "no_assignee": "Kinderen zijn niet beschikbaar om te bewerken. Voeg eerst één item toe.",
+      "no_approver": "Er zijn geen ouders ingesteld om te bewerken. Voeg eerst één item toe.",
       "no_chore": "Er zijn geen taken ingesteld om te bewerken. Voeg eerst één taak toe.",
       "no_badge": "Er zijn geen badges ingesteld om te bewerken. Voeg eerst een item toe.",
       "no_reward": "Er zijn geen beloningen ingesteld om te bewerken. Voeg eerst één item toe.",
@@ -1763,15 +1763,15 @@
       "no_challenge": "Er zijn geen uitdagingen ingesteld om te bewerken. Voeg eerst één item toe.",
       "setup_complete": "Installatie voltooid",
       "backup_restored": "De back-up is succesvol hersteld. De integratie is opnieuw geladen met de herstelde gegevens.",
-      "no_dashboards_to_delete": "Er zijn geen KidsChores-dashboards gevonden. Maak er eerst een aan via 'Dashboard beheren'."
+      "no_dashboards_to_delete": "Er zijn geen ChoreOps-dashboards gevonden. Maak er eerst een aan via 'Dashboard beheren'."
     }
   },
   "selector": {
     "main_menu": {
       "options": {
         "manage_points": "Punten beheren",
-        "manage_kid": "Beheer het kind",
-        "manage_parent": "Ouder beheren",
+        "manage_assignee": "Beheer het kind",
+        "manage_approver": "Ouder beheren",
         "manage_chore": "Beheer de taak",
         "manage_badge": "Badge beheren",
         "manage_reward": "Beheer beloningen",
@@ -1798,7 +1798,7 @@
         "dashboard_style_admin": "Beheerder (dashboard voor ouders)"
       }
     },
-    "dashboard_kid_selection": {
+    "dashboard_assignee_selection": {
       "options": {}
     },
     "dashboard_delete_selection": {
@@ -2004,7 +2004,7 @@
   },
   "services": {
     "manage_shadow_link": {
-      "name": "Beheer de Shadow Kid-link van een ouder",
+      "name": "Beheer de Shadow Assignee-link van een ouder",
       "description": "Koppel of ontkoppel een bestaand kinderprofiel aan/van een ouder. Hiervoor moeten het kind en de ouder dezelfde naam hebben. Bij het ontkoppelen blijven alle gegevens behouden en wordt de naam van het kind gewijzigd met het achtervoegsel '_unlinked'.",
       "fields": {
         "name": {
@@ -2021,7 +2021,7 @@
       "name": "Claim taak",
       "description": "Een kind neemt een klusje op zich en markeert dit als 'opgenomen' zodat de ouders het kunnen goedkeuren.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "De naam van het kind dat de taak opeist.",
           "example": "Alice"
@@ -2037,12 +2037,12 @@
       "name": "Goedkeuring van de taak",
       "description": "De ouder keurt het klusje goed en kent punten toe.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder die de taak goedkeurt.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "De naam van het kind dat het klusje deed.",
           "example": "Alice"
@@ -2063,12 +2063,12 @@
       "name": "Keur de klus af",
       "description": "Een ouder keurt een klusje voor een kind af en verandert de status ervan.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder keurt het klusje af.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "De naam van het kind wiens klusje wordt afgekeurd.",
           "example": "Alice"
@@ -2084,12 +2084,12 @@
       "name": "Verzilver beloning",
       "description": "Een ouder verzilvert een beloning voor een kind en trekt daarvoor punten af.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder die toestemming geeft voor het inwisselen van de beloning.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind dat de beloning in ontvangt neemt.",
           "example": "Alice"
@@ -2105,12 +2105,12 @@
       "name": "Beloning goedkeuren",
       "description": "Ouders keuren een door een kind aangevraagde beloning goed.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder die de beloning goedkeurt.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind dat de beloning in ontvangt neemt.",
           "example": "Alice"
@@ -2130,12 +2130,12 @@
       "name": "Afkeuring Beloning",
       "description": "Een ouder keurt het inwisselen van een beloning voor een kind af.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder keurt de beloning af.",
           "example": "Pa"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind wiens beloningsaanvraag wordt afgekeurd.",
           "example": "Alice"
@@ -2151,12 +2151,12 @@
       "name": "Leg een sanctie op",
       "description": "Een ouder legt een straf op om punten af te trekken.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder die de straf oplegt.",
           "example": "Pa"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind dat de straf krijgt.",
           "example": "Alice"
@@ -2172,12 +2172,12 @@
       "name": "Bonus toepassen",
       "description": "Een ouder kent een bonus toe aan een kind, waarbij punten worden toegekend.",
       "fields": {
-        "parent_name": {
+        "approver_name": {
           "name": "Naam van de ouder",
           "description": "De ouder die de bonus aanvraagt.",
           "example": "Mama"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind dat de bonus ontvangt.",
           "example": "Alice"
@@ -2281,7 +2281,7 @@
           "description": "De naam van de taak die moet worden aangemaakt.",
           "example": "Schone kamer"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Toegewezen kinderen",
           "description": "Lijst met namen van kinderen die deze taak moeten uitvoeren.",
           "example": "['Emma', 'Jack']"
@@ -2377,7 +2377,7 @@
           "description": "De naam van de taak die moet worden bijgewerkt (alternatief voor id). Gebruiksvriendelijker dan id.",
           "example": "Schone kamer"
         },
-        "assigned_kids": {
+        "assigned_assignees": {
           "name": "Toegewezen kinderen",
           "description": "Nieuwe lijst met kindernamen om deze taak aan toe te wijzen.",
           "example": "['Emma', 'Jack']"
@@ -2484,14 +2484,14 @@
           "description": "Naam van de rotatietaak. Optioneel indien chore_id is opgegeven.",
           "example": "Schone slaapkamer"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Kinder-ID",
-          "description": "Intern ID van het kind aan wie de beurt moet worden toegewezen. Moet aan deze taak zijn toegewezen. Optioneel indien kid_name is opgegeven.",
+          "description": "Intern ID van het kind aan wie de beurt moet worden toegewezen. Moet aan deze taak zijn toegewezen. Optioneel indien assignee_name is opgegeven.",
           "example": "xyz789-abc123-456..."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
-          "description": "Naam van het kind aan wie de beurt moet worden toegewezen. Moet aan deze taak zijn toegewezen. Optioneel als kid_id is opgegeven.",
+          "description": "Naam van het kind aan wie de beurt moet worden toegewezen. Moet aan deze taak zijn toegewezen. Optioneel als assignee_id is opgegeven.",
           "example": "Alice"
         }
       }
@@ -2534,7 +2534,7 @@
     },
     "reset_transactional_data": {
       "name": "Transactiegegevens opnieuw instellen",
-      "description": "Reset de runtime-/transactiegegevens met behoud van de configuratie (kinderen, taken, beloningen, enz.). Er wordt automatisch een back-up gemaakt vóór de reset als kidschores_data_timestamp_reset in de map .storage. Gebruik scope om specifieke kinderen of domeinen te selecteren. Vereist dat de parameter confirm_destructive is ingesteld op true als veiligheidsmechanisme.",
+      "description": "Reset de runtime-/transactiegegevens met behoud van de configuratie (kinderen, taken, beloningen, enz.). Er wordt automatisch een back-up gemaakt vóór de reset als choreops_data_timestamp_reset in de map .storage. Gebruik scope om specifieke kinderen of domeinen te selecteren. Vereist dat de parameter confirm_destructive is ingesteld op true als veiligheidsmechanisme.",
       "fields": {
         "confirm_destructive": {
           "name": "Bevestig destructief",
@@ -2542,11 +2542,11 @@
         },
         "scope": {
           "name": "Domein",
-          "description": "Resetbereik: 'global' reset alle gegevens, 'kid' reset de gegevens alleen voor een specifiek kind."
+          "description": "Resetbereik: 'global' reset alle gegevens, 'assignee' reset de gegevens alleen voor een specifiek kind."
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
-          "description": "Vereist als het bereik 'kid' is. De naam van het kind waarvan de gegevens moeten worden gereset."
+          "description": "Vereist als het bereik 'assignee' is. De naam van het kind waarvan de gegevens moeten worden gereset."
         },
         "item_type": {
           "name": "Artikeltype",
@@ -2572,7 +2572,7 @@
           "description": "De naam van de taak die gereset moet worden (optioneel als chore_id is opgegeven).",
           "example": "Afwassen"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind dat de straf krijgt.",
           "example": "Alice"
@@ -2593,14 +2593,14 @@
           "description": "De nieuwe deadline voor de klus. Gebruik de datum-/tijdkiezer om een geldige datum en tijd te kiezen (in uw lokale tijdzone). Laat het veld leeg om de deadline te wissen.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Voor individuele klusjes kunt u aangeven voor welk kind de deadline moet worden ingesteld. Indien dit niet wordt aangegeven, wordt de deadline voor alle toegewezen kinderen ingesteld.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Kinder-ID",
-          "description": "De interne ID van het kind. Alleen voor gevorderde gebruikers: gebruik in plaats daarvan kid_name.",
+          "description": "De interne ID van het kind. Alleen voor gevorderde gebruikers: gebruik in plaats daarvan assignee_name.",
           "example": "abc123-def456"
         }
       }
@@ -2619,14 +2619,14 @@
           "description": "De naam van de taak die gereset moet worden (optioneel als chore_id is opgegeven).",
           "example": "Afwassen"
         },
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Voor zelfstandige klusjes, geef aan voor welk kind de deadline moet worden overgeslagen. Indien dit niet wordt aangegeven, wordt de deadline voor alle toegewezen kinderen overgeslagen.",
           "example": "Alice"
         },
-        "kid_id": {
+        "assignee_id": {
           "name": "Kinder-ID",
-          "description": "De interne ID van het kind. Alleen voor gevorderde gebruikers: gebruik in plaats daarvan kid_name.",
+          "description": "De interne ID van het kind. Alleen voor gevorderde gebruikers: gebruik in plaats daarvan assignee_name.",
           "example": "abc123-def456"
         },
         "mark_as_missed": {
@@ -2639,7 +2639,7 @@
       "name": "Verwijder toegekende badges",
       "description": "Verwijder alle toegekende badges voor alle kinderen. Optioneel kunt u de badgenaam opgeven om een specifieke badge voor alle kinderen te resetten. Gebruik de naam van het kind om alle badges voor een specifiek kind te resetten. Combineer beide opties om een specifieke badge voor een specifiek kind te resetten.",
       "fields": {
-        "kid_name": {
+        "assignee_name": {
           "name": "Naam van het kind",
           "description": "Het kind dat badges heeft gekregen, wordt verwijderd.",
           "example": "Bob"
@@ -2654,7 +2654,7 @@
   },
   "entity": {
     "sensor": {
-      "kid_chore_status_sensor": {
+      "assignee_chore_status_sensor": {
         "name": "Taakstatus - {chore_name}",
         "state": {
           "pending": "In behandeling",
@@ -2678,7 +2678,7 @@
               "purpose_chore_status": "Kindspecifieke levenscyclusstatussen van huishoudelijke taken, prestatiestatistieken en configuratiemetadata"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "chore_name": {
@@ -2690,7 +2690,7 @@
           "description": {
             "name": "Beschrijving"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Toegewezen kinderen"
           },
           "labels": {
@@ -2876,7 +2876,7 @@
               "missed": "Gemist"
             }
           },
-          "turn_kid_name": {
+          "turn_assignee_name": {
             "name": "Draai de naam van het kind"
           },
           "available_at": {
@@ -2884,7 +2884,7 @@
           }
         }
       },
-      "kid_points_sensor": {
+      "assignee_points_sensor": {
         "name": "{points}",
         "state_attributes": {
           "purpose": {
@@ -2893,7 +2893,7 @@
               "purpose_points": "Huidig puntensaldo met gedetailleerde statistieken over verdiende en bestede punten."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "points_multiplier": {
@@ -2979,7 +2979,7 @@
           }
         }
       },
-      "kid_points_max_ever_sensor": {
+      "assignee_points_max_ever_sensor": {
         "name": "Maximum {points} ooit"
       },
       "system_chore_approvals_sensor": {
@@ -2994,7 +2994,7 @@
       "system_chore_approvals_monthly_sensor": {
         "name": "Voltooide klusjes - Maandelijks"
       },
-      "kid_chores_sensor": {
+      "assignee_chores_sensor": {
         "name": "Klusjes",
         "unit_of_measurement": "Klusjes",
         "state_attributes": {
@@ -3004,7 +3004,7 @@
               "purpose_chores": "Totaal aantal voltooide klusjes in de loop der tijd, met gedetailleerde statistieken."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "chore_stat_approved_today": {
@@ -3201,16 +3201,16 @@
           }
         }
       },
-      "kid_badges_sensor": {
+      "assignee_badges_sensor": {
         "name": "Badges",
         "state_attributes": {
           "purpose": {
             "name": "Doel",
             "state": {
-              "purpose_kid_badges": "Hoogst behaalde badge en realtime cumulatieve voortgang, inclusief actieve cycli en de geschiedenis van toegekende badges voor alle badgetypes."
+              "purpose_assignee_badges": "Hoogst behaalde badge en realtime cumulatieve voortgang, inclusief actieve cycli en de geschiedenis van toegekende badges voor alle badgetypes."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "labels": {
@@ -3322,10 +3322,10 @@
           "labels": {
             "name": "Labels"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Kinderen verdienden"
           },
-          "kids_assigned": {
+          "assignees_assigned": {
             "name": "Toegewezen kinderen"
           },
           "target": {
@@ -3351,7 +3351,7 @@
           }
         }
       },
-      "kid_badge_progress_sensor": {
+      "assignee_badge_progress_sensor": {
         "name": "Badgevoortgang - {badge_name}",
         "state_attributes": {
           "purpose": {
@@ -3360,7 +3360,7 @@
               "purpose_badge_progress": "Voortgangspercentage (0-100) van de badge, inclusief status van de criteria, datums en toekenningsgeschiedenis."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "badge_name": {
@@ -3474,7 +3474,7 @@
           "description": {
             "name": "Beschrijving"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Toegewezen kinderen"
           },
           "labels": {
@@ -3570,7 +3570,7 @@
           }
         }
       },
-      "kid_reward_status_sensor": {
+      "assignee_reward_status_sensor": {
         "name": "Beloningsstatus - {reward_name}",
         "state": {
           "locked": "Vergrendeld",
@@ -3587,7 +3587,7 @@
               "purpose_reward_status": "Status van beloningsverzilvering met claimgeschiedenis en actieknoppen"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "reward_name": {
@@ -3697,10 +3697,10 @@
           }
         }
       },
-      "kid_penalty_applied_sensor": {
+      "assignee_penalty_applied_sensor": {
         "name": "Toegepaste straffen - {penalty_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "penalty_name": {
@@ -3717,10 +3717,10 @@
           }
         }
       },
-      "kid_bonus_applied_sensor": {
+      "assignee_bonus_applied_sensor": {
         "name": "Bonus van toepassing - {bonus_name}",
         "state_attributes": {
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "bonus_name": {
@@ -3737,13 +3737,13 @@
           }
         }
       },
-      "kid_points_earned_daily_sensor": {
+      "assignee_points_earned_daily_sensor": {
         "name": "Verdiende punten - Dagelijks"
       },
-      "kid_points_earned_weekly_sensor": {
+      "assignee_points_earned_weekly_sensor": {
         "name": "Verdiende punten - Wekelijks"
       },
-      "kid_points_earned_monthly_sensor": {
+      "assignee_points_earned_monthly_sensor": {
         "name": "Verdiende punten - Maandelijks"
       },
       "system_achievement_sensor": {
@@ -3761,7 +3761,7 @@
           "description": {
             "name": "Beschrijving"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Toegewezen kinderen"
           },
           "type": {
@@ -3784,7 +3784,7 @@
           "reward_points": {
             "name": "Beloningspunten"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Verdiend door"
           },
           "labels": {
@@ -3807,7 +3807,7 @@
           "description": {
             "name": "Beschrijving"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Toegewezen kinderen"
           },
           "type": {
@@ -3835,7 +3835,7 @@
           "end_date": {
             "name": "Einddatum"
           },
-          "kids_earned": {
+          "assignees_earned": {
             "name": "Verdiend door"
           },
           "labels": {
@@ -3843,7 +3843,7 @@
           }
         }
       },
-      "kid_achievement_progress_sensor": {
+      "assignee_achievement_progress_sensor": {
         "name": "Voortgang - {achievement_name}",
         "state_attributes": {
           "purpose": {
@@ -3852,7 +3852,7 @@
               "purpose_achievement_progress": "Het voortgangspercentage (0-100) van elk individueel kind richting het behalen van deze prestatie, met de huidige voortgangsscore en de status van de prestatie."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "achievement_name": {
@@ -3861,7 +3861,7 @@
           "description": {
             "name": "Beschrijving"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Toegewezen kinderen"
           },
           "type": {
@@ -3899,7 +3899,7 @@
           }
         }
       },
-      "kid_challenge_progress_sensor": {
+      "assignee_challenge_progress_sensor": {
         "name": "Voortgang - {challenge_name}",
         "state_attributes": {
           "purpose": {
@@ -3908,7 +3908,7 @@
               "purpose_challenge_progress": "Het individuele voortgangspercentage (0-100) van het kind bij het voltooien van deze uitdaging binnen de aangegeven periode, met de huidige voortgangsscore en de status van de beloning."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "challenge_name": {
@@ -3917,7 +3917,7 @@
           "description": {
             "name": "Beschrijving"
           },
-          "assigned_kids": {
+          "assigned_assignees": {
             "name": "Toegewezen kinderen"
           },
           "type": {
@@ -3960,7 +3960,7 @@
           }
         }
       },
-      "kid_chore_streak_sensor": {
+      "assignee_chore_streak_sensor": {
         "name": "Langste reeks voltooide klusjes",
         "state_attributes": {
           "streaks_by_achievement": {
@@ -3985,7 +3985,7 @@
           }
         }
       },
-      "kid_dashboard_helper_sensor": {
+      "assignee_dashboard_helper_sensor": {
         "name": "UI Dashboard Helper",
         "state_attributes": {
           "purpose": {
@@ -4033,7 +4033,7 @@
           "chores_by_label": {
             "name": "Taken per label"
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "language": {
@@ -4061,43 +4061,43 @@
       "system_bonuses_select": {
         "name": "Selecteer bonus"
       },
-      "system_dashboard_admin_kid_select": {
+      "system_dashboard_admin_assignee_select": {
         "name": "Beheerdersdashboard Kinderkiezer",
         "state_attributes": {
           "purpose": {
             "name": "Doel",
             "state": {
-              "purpose_system_dashboard_admin_kid": "Systeembrede kindselector voor kaarten in het beheerdersdashboard"
+              "purpose_system_dashboard_admin_assignee": "Systeembrede kindselector voor kaarten in het beheerdersdashboard"
             }
           },
           "dashboard_helper_eid": {
             "name": "Dashboard Helper Entiteits-ID"
           },
-          "selected_kid_slug": {
+          "selected_assignee_slug": {
             "name": "Geselecteerde jonge slak"
           },
-          "selected_kid_name": {
+          "selected_assignee_name": {
             "name": "Geselecteerde kindernaam"
           }
         }
       },
-      "kid_dashboard_helper_chores_select": {
+      "assignee_dashboard_helper_chores_select": {
         "name": "UI Dashboard Takenlijst Helper",
         "state_attributes": {
           "purpose": {
             "name": "Doel",
             "state": {
-              "purpose_select_kid_chores": "Keuze van kindertaken voor filteren op het dashboard"
+              "purpose_select_assignee_chores": "Keuze van kindertaken voor filteren op het dashboard"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           }
         }
       }
     },
     "calendar": {
-      "kid_schedule_calendar": {
+      "assignee_schedule_calendar": {
         "name": "Kalender",
         "state_attributes": {
           "purpose": {
@@ -4106,14 +4106,14 @@
               "purpose_calendar_schedule": "Kalender met het takenrooster en de deadlines voor de klusjes van de kinderen."
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           }
         }
       }
     },
     "datetime": {
-      "kid_dashboard_helper_datetime_picker": {
+      "assignee_dashboard_helper_datetime_picker": {
         "name": "UI Dashboard Datum Helper",
         "state_attributes": {
           "purpose": {
@@ -4122,14 +4122,14 @@
               "purpose_datetime_dashboard_helper": "Datumselectiehulpmiddel voor het filteren en navigeren in de dashboard-UI"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           }
         }
       }
     },
     "button": {
-      "kid_chore_claim_button": {
+      "assignee_chore_claim_button": {
         "name": "Claim Chore - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4138,7 +4138,7 @@
               "purpose_button_chore_claim": "Kind beweert dat hij/zij de toegewezen taak heeft voltooid"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "chore_name": {
@@ -4149,7 +4149,7 @@
           }
         }
       },
-      "parent_chore_approve_button": {
+      "approver_chore_approve_button": {
         "name": "Goedkeuringstaak - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4158,7 +4158,7 @@
               "purpose_button_chore_approve": "Ouder keurt gevraagde klus goed"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "chore_name": {
@@ -4169,7 +4169,7 @@
           }
         }
       },
-      "parent_chore_disapprove_button": {
+      "approver_chore_disapprove_button": {
         "name": "Chore afkeuren - {chore_name}",
         "state_attributes": {
           "purpose": {
@@ -4178,7 +4178,7 @@
               "purpose_button_chore_disapprove": "Ouder keurt opgeëiste klus af"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "chore_name": {
@@ -4189,7 +4189,7 @@
           }
         }
       },
-      "kid_reward_redeem_button": {
+      "assignee_reward_redeem_button": {
         "name": "Claim beloning - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4198,7 +4198,7 @@
               "purpose_button_reward_redeem": "Kind verzilvert beloning met punten"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "reward_name": {
@@ -4209,7 +4209,7 @@
           }
         }
       },
-      "parent_reward_approve_button": {
+      "approver_reward_approve_button": {
         "name": "Beloning goedkeuren - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4218,7 +4218,7 @@
               "purpose_button_reward_approve": "Ouder keurt ingewisselde beloning goed"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "reward_name": {
@@ -4229,7 +4229,7 @@
           }
         }
       },
-      "parent_reward_disapprove_button": {
+      "approver_reward_disapprove_button": {
         "name": "Afkeuringsbeloning - {reward_name}",
         "state_attributes": {
           "purpose": {
@@ -4238,7 +4238,7 @@
               "purpose_button_reward_disapprove": "Ouder keurt ingewisselde beloning af"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "reward_name": {
@@ -4249,7 +4249,7 @@
           }
         }
       },
-      "parent_penalty_apply_button": {
+      "approver_penalty_apply_button": {
         "name": "Straf toepassen - {penalty_name}",
         "state_attributes": {
           "purpose": {
@@ -4258,7 +4258,7 @@
               "purpose_button_penalty_apply": "Ouder legt straf op (trekt punten af)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "penalty_name": {
@@ -4269,7 +4269,7 @@
           }
         }
       },
-      "parent_bonus_apply_button": {
+      "approver_bonus_apply_button": {
         "name": "Bonus aanvragen - {bonus_name}",
         "state_attributes": {
           "purpose": {
@@ -4278,7 +4278,7 @@
               "purpose_button_bonus_apply": "Ouder past bonus toe (voegt punten toe)"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "bonus_name": {
@@ -4289,7 +4289,7 @@
           }
         }
       },
-      "parent_points_adjust_button": {
+      "approver_points_adjust_button": {
         "name": "Aanpassen {delta} {points_label}",
         "state_attributes": {
           "purpose": {
@@ -4298,7 +4298,7 @@
               "purpose_button_points_adjust": "Ouder past handmatig de punten van het kind aan"
             }
           },
-          "kid_name": {
+          "assignee_name": {
             "name": "Naam van het kind"
           },
           "delta": {
@@ -4309,28 +4309,28 @@
           }
         }
       },
-      "parent_points_adjust_button_positive": {
+      "approver_points_adjust_button_positive": {
         "name": "Toename {delta} {points_label}"
       },
-      "parent_points_adjust_button_negative": {
+      "approver_points_adjust_button_negative": {
         "name": "Verlaging {delta} {points_label}"
       }
     }
   },
   "exceptions": {
-    "kid_not_found_by_name": {
+    "assignee_not_found_by_name": {
       "message": "Geen kind gevonden met de naam {name}"
     },
-    "parent_not_found_by_name": {
+    "approver_not_found_by_name": {
       "message": "Geen ouder gevonden met de naam {name}"
     },
-    "kid_already_shadow": {
+    "assignee_already_shadow": {
       "message": "Kind {name} is al gekoppeld aan een ouder"
     },
-    "kid_not_shadow": {
+    "assignee_not_shadow": {
       "message": "Kind {name} is niet gekoppeld aan een ouder"
     },
-    "parent_has_different_shadow": {
+    "approver_has_different_shadow": {
       "message": "Ouder {name} is al gekoppeld aan een ander kind"
     },
     "error_msg_no_entry_found": {
@@ -4355,7 +4355,7 @@
       "message": "{entity_type} {name} niet gevonden"
     },
     "not_assigned": {
-      "message": "{entity} is niet toegewezen aan {kid}"
+      "message": "{entity} is niet toegewezen aan {assignee}"
     },
     "rotation_no_turn_holder": {
       "message": "Bij het rouleren van taken moet er een beurthouder zijn aangewezen."
@@ -4369,20 +4369,20 @@
     "rotation_unassigned_in_order": {
       "message": "Alle kinderen moeten in de aangegeven volgorde aan het klusje worden toegewezen."
     },
-    "rotation_min_kids": {
+    "rotation_min_assignees": {
       "message": "Voor de roulerende klusjes zijn minimaal 2 toegewezen kinderen nodig."
     },
     "not_rotation": {
       "message": "Deze taak wordt niet in de rotatiemodus uitgevoerd."
     },
-    "kid_not_assigned": {
+    "assignee_not_assigned": {
       "message": "Dit kind is niet aangewezen voor deze taak."
     },
-    "no_assigned_kids": {
+    "no_assigned_assignees": {
       "message": "Er worden geen kinderen aan deze taak toegewezen."
     },
     "insufficient_points": {
-      "message": "{kid} heeft {current} punten, maar heeft {required} punten nodig"
+      "message": "{assignee} heeft {current} punten, maar heeft {required} punten nodig"
     },
     "already_claimed": {
       "message": "{entity} is al geclaimd"
@@ -4417,13 +4417,13 @@
     "invalid_frequency": {
       "message": "Terugkerende frequentie {frequency} is niet geldig"
     },
-    "chore_overdue_for_kid": {
-      "message": "Chore {chore_name} is al lang geleden {kid_name}"
+    "chore_overdue_for_assignee": {
+      "message": "Chore {chore_name} is al lang geleden {assignee_name}"
     },
-    "kid_not_assigned_to_chore": {
-      "message": "Kind {kid_name} is niet toegewezen aan taak {chore_name}"
+    "assignee_not_assigned_to_chore": {
+      "message": "Kind {assignee_name} is niet toegewezen aan taak {chore_name}"
     },
-    "shared_chore_cannot_have_kid": {
+    "shared_chore_cannot_have_assignee": {
       "message": "Kind kan niet worden geselecteerd voor gedeelde klus {chore_name}. Gedeelde klussen hebben één deadline voor alle kinderen."
     },
     "reward_not_found": {
@@ -4471,8 +4471,8 @@
     "data_reset_confirmation_required": {
       "message": "U moet confirm_destructive: true instellen om door te gaan met het resetten van de gegevens."
     },
-    "data_reset_kid_not_found": {
-      "message": "Kind {kid_name} niet gevonden"
+    "data_reset_assignee_not_found": {
+      "message": "Kind {assignee_name} niet gevonden"
     },
     "data_reset_item_not_found": {
       "message": "{item_type} {item_name} niet gevonden"
@@ -4481,7 +4481,7 @@
       "message": "Ongeldig bereik {scope}. Moet zijn: globaal, kind, itemtype of item"
     },
     "data_reset_invalid_item_type": {
-      "message": "Ongeldig itemtype {item_type}. Moet zijn: kids, chores, rewards, badges, achievements, challenges, penalties of bonussen"
+      "message": "Ongeldig itemtype {item_type}. Moet zijn: assignees, chores, rewards, badges, achievements, challenges, penalties of bonussen"
     },
     "notif_title_data_reset": {
       "message": "Transactiegegevens resetten"
@@ -4489,8 +4489,8 @@
     "notif_message_data_reset_global": {
       "message": "Alle runtimegegevens zijn gereset. De configuratie is behouden."
     },
-    "notif_message_data_reset_kid": {
-      "message": "Gegevensreset voltooid voor {kid_name}. Punten, statistieken en voortgang gewist."
+    "notif_message_data_reset_assignee": {
+      "message": "Gegevensreset voltooid voor {assignee_name}. Punten, statistieken en voortgang gewist."
     },
     "notif_message_data_reset_item_type": {
       "message": "Gegevensreset voltooid voor alle {item_type}. Runtimegegevens gewist."
@@ -4502,7 +4502,7 @@
       "message": "Taak gemist"
     },
     "notif_message_chore_missed": {
-      "message": "{kid_name} heeft de klus gemist: {chore_name}"
+      "message": "{assignee_name} heeft de klus gemist: {chore_name}"
     }
   }
 }

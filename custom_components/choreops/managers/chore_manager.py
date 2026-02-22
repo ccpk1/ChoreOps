@@ -37,7 +37,7 @@ from ..engines.chore_engine import (
 from ..engines.schedule_engine import calculate_next_due_date_from_chore_info
 from ..helpers.entity_helpers import (
     remove_entities_by_item_id,
-    remove_orphaned_kid_chore_entities,
+    remove_orphaned_assignee_chore_entities,
     remove_orphaned_shared_chore_sensors,
 )
 from ..utils.dt_utils import (
@@ -54,10 +54,10 @@ if TYPE_CHECKING:
 
     from homeassistant.core import HomeAssistant
 
-    from ..coordinator import KidsChoresDataCoordinator
+    from ..coordinator import ChoreOpsDataCoordinator
     from ..type_defs import (
+        AssigneeChoreDataEntry,
         ChoreData,
-        KidChoreDataEntry,
         ResetApplyContext,
         ResetBoundaryCategory,
         ResetContext,
@@ -68,7 +68,7 @@ if TYPE_CHECKING:
 
 
 # Type alias for scan results - uses dict for simplicity
-# Keys: chore_id, kid_id, due_dt (datetime), chore_info (dict), time_until_due (timedelta)
+# Keys: chore_id, assignee_id, due_dt (datetime), chore_info (dict), time_until_due (timedelta)
 ChoreTimeEntry = dict[str, Any]
 
 
@@ -99,24 +99,24 @@ class ChoreManager(BaseManager):
     def __init__(
         self,
         hass: HomeAssistant,
-        coordinator: KidsChoresDataCoordinator,
+        coordinator: ChoreOpsDataCoordinator,
     ) -> None:
         """Initialize ChoreManager with dependencies.
 
         Args:
             hass: Home Assistant instance
-            coordinator: Parent coordinator managing this integration
+            coordinator: Approver coordinator managing this integration
         """
         super().__init__(hass, coordinator)
         self._coordinator = coordinator
 
-        # Locks for race condition protection (keyed by kid_id:chore_id)
+        # Locks for race condition protection (keyed by assignee_id:chore_id)
         self._approval_locks: dict[str, asyncio.Lock] = {}
 
         # Phase 4 Guard Rails: Track state modifications per pipeline tick (debug mode)
         self._pipeline_modified_pairs: set[tuple[str, str]] = (
             set()
-        )  # (kid_id, chore_id)
+        )  # (assignee_id, chore_id)
 
         # Phase 3: Time-scan caches (read-only derived values)
         # - due datetime cache: raw ISO string -> parsed UTC datetime
@@ -140,8 +140,8 @@ class ChoreManager(BaseManager):
         # Listen for startup cascade - DATA_READY triggers initialization
         self.listen(const.SIGNAL_SUFFIX_DATA_READY, self._on_data_ready)
 
-        # Listen for kid deletion to remove orphaned assignments
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._on_kid_deleted)
+        # Listen for assignee deletion to remove orphaned assignments
+        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_assignee_deleted)
 
         # Listen for midnight rollover to perform nightly tasks
         self.listen(const.SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER, self._on_midnight_rollover)
@@ -165,8 +165,12 @@ class ChoreManager(BaseManager):
         self.listen(
             const.SIGNAL_SUFFIX_CHORE_STATUS_RESET, self._on_time_scan_inputs_changed
         )
-        self.listen(const.SIGNAL_SUFFIX_KID_UPDATED, self._on_time_scan_inputs_changed)
-        self.listen(const.SIGNAL_SUFFIX_KID_DELETED, self._on_time_scan_inputs_changed)
+        self.listen(
+            const.SIGNAL_SUFFIX_ASSIGNEE_UPDATED, self._on_time_scan_inputs_changed
+        )
+        self.listen(
+            const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_time_scan_inputs_changed
+        )
 
         const.LOGGER.debug("ChoreManager initialized for entry %s", self.entry_id)
 
@@ -236,25 +240,25 @@ class ChoreManager(BaseManager):
         )
         return due_window_offset, reminder_offset
 
-    def _track_state_modification(self, kid_id: str, chore_id: str) -> None:
+    def _track_state_modification(self, assignee_id: str, chore_id: str) -> None:
         """Track state modification for guard rail assertion (debug mode).
 
-        Phase 4 Guard Rail: Ensures single state change per (kid_id, chore_id)
+        Phase 4 Guard Rail: Ensures single state change per (assignee_id, chore_id)
         per pipeline tick. Logs warning if same pair modified twice.
 
         Args:
-            kid_id: Kid identifier
+            assignee_id: Assignee identifier
             chore_id: Chore identifier
         """
         if not const.DEBUG_PIPELINE_GUARDS:
             return
 
-        pair = (kid_id, chore_id)
+        pair = (assignee_id, chore_id)
         if pair in self._pipeline_modified_pairs:
             const.LOGGER.warning(
-                "GUARD RAIL VIOLATION: (kid=%s, chore=%s) modified TWICE in single tick. "
+                "GUARD RAIL VIOLATION: (assignee=%s, chore=%s) modified TWICE in single tick. "
                 "This violates the 'single state per tick' invariant.",
-                kid_id,
+                assignee_id,
                 chore_id,
             )
         self._pipeline_modified_pairs.add(pair)
@@ -330,7 +334,7 @@ class ChoreManager(BaseManager):
                 e
                 for e in scan[const.CHORE_SCAN_RESULT_OVERDUE]
                 if (
-                    e[const.CHORE_SCAN_ENTRY_KID_ID],
+                    e[const.CHORE_SCAN_ENTRY_ASSIGNEE_ID],
                     e[const.CHORE_SCAN_ENTRY_CHORE_ID],
                 )
                 not in reset_pairs
@@ -407,7 +411,7 @@ class ChoreManager(BaseManager):
             filtered_overdue = [
                 e
                 for e in scan["overdue"]
-                if (e["kid_id"], e["chore_id"]) not in reset_pairs
+                if (e["assignee_id"], e["chore_id"]) not in reset_pairs
             ]
             await self._process_overdue(filtered_overdue, now_utc, persist=False)
             state_modified = state_modified or len(filtered_overdue) > 0
@@ -436,86 +440,96 @@ class ChoreManager(BaseManager):
                 # FSM states (waiting/due/pending) are re-evaluated.
                 self._coordinator.async_set_updated_data(self._coordinator._data)
 
-    def _on_kid_deleted(self, payload: dict[str, Any]) -> None:
-        """Remove deleted kid from all chore assignments.
+    def _on_assignee_deleted(self, payload: dict[str, Any]) -> None:
+        """Remove deleted assignee from all chore assignments.
 
         Follows Platinum Architecture (Choreography): ChoreManager reacts
         to KID_DELETED signal and cleans its own domain data (chore assignments).
 
         Args:
-            payload: Event data containing kid_id
+            payload: Event data containing assignee_id
         """
-        kid_id = payload.get("kid_id", "")
-        if not kid_id:
+        assignee_id = payload.get("assignee_id", "")
+        if not assignee_id:
             return
 
-        # Clean own domain: remove deleted kid from chore assigned_kids
+        # Clean own domain: remove deleted assignee from chore assigned_assignees
         cleaned = False
         chores_data = self._coordinator._data.get(const.DATA_CHORES, {})
         for _, chore_info in chores_data.items():
-            assigned_kids = chore_info.get(const.DATA_ASSIGNED_KIDS, [])
-            if kid_id in assigned_kids:
-                chore_info[const.DATA_ASSIGNED_KIDS] = [
-                    k for k in assigned_kids if k != kid_id
+            assigned_assignees = chore_info.get(const.DATA_ASSIGNED_ASSIGNEES, [])
+            if assignee_id in assigned_assignees:
+                chore_info[const.DATA_ASSIGNED_ASSIGNEES] = [
+                    entry_id
+                    for entry_id in assigned_assignees
+                    if entry_id != assignee_id
                 ]
                 const.LOGGER.debug(
-                    "Removed deleted kid %s from chore '%s' assigned_kids",
-                    kid_id,
+                    "Removed deleted assignee %s from chore '%s' assigned_assignees",
+                    assignee_id,
                     chore_info.get(const.DATA_CHORE_NAME),
                 )
                 cleaned = True
 
                 # Phase 3 Step 6: Handle rotation resilience (D-06 resilience)
-                # If deleted kid was the current turn-holder, reassign to first remaining kid
+                # If deleted assignee was the current turn-holder, reassign to first remaining assignee
                 if ChoreEngine.is_rotation_mode(chore_info):
                     current_turn_holder = chore_info.get(
-                        const.DATA_CHORE_ROTATION_CURRENT_KID_ID
+                        const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
                     )
-                    if current_turn_holder == kid_id:
-                        remaining_kids = chore_info.get(const.DATA_ASSIGNED_KIDS, [])
-                        if remaining_kids:
-                            # Reassign to first remaining kid
-                            chore_info[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = (
-                                remaining_kids[0]
-                            )
+                    if current_turn_holder == assignee_id:
+                        remaining_assignees = chore_info.get(
+                            const.DATA_ASSIGNED_ASSIGNEES, []
+                        )
+                        if remaining_assignees:
+                            # Reassign to first remaining assignee
+                            chore_info[
+                                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+                            ] = remaining_assignees[0]
                             const.LOGGER.debug(
-                                "Rotation resilience: Reassigned turn from deleted kid %s to %s for chore '%s'",
-                                kid_id,
-                                remaining_kids[0],
+                                "Rotation resilience: Reassigned turn from deleted assignee %s to %s for chore '%s'",
+                                assignee_id,
+                                remaining_assignees[0],
                                 chore_info.get(const.DATA_CHORE_NAME),
                             )
                         else:
-                            # No kids left - clear rotation metadata
-                            chore_info[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = None
+                            # No assignees left - clear rotation metadata
+                            chore_info[
+                                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+                            ] = None
                             chore_info[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
                             const.LOGGER.debug(
-                                "Rotation resilience: Cleared rotation metadata for chore '%s' (no kids remaining)",
+                                "Rotation resilience: Cleared rotation metadata for chore '%s' (no assignees remaining)",
                                 chore_info.get(const.DATA_CHORE_NAME),
                             )
 
-            # Clean up per-kid data structures
-            per_kid_due_dates = chore_info.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-            if kid_id in per_kid_due_dates:
-                del per_kid_due_dates[kid_id]
-                cleaned = True
-
-            per_kid_days = chore_info.get(const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {})
-            if kid_id in per_kid_days:
-                del per_kid_days[kid_id]
-                cleaned = True
-
-            per_kid_multi = chore_info.get(
-                const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {}
+            # Clean up per-assignee data structures
+            per_assignee_due_dates = chore_info.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
             )
-            if kid_id in per_kid_multi:
-                del per_kid_multi[kid_id]
+            if assignee_id in per_assignee_due_dates:
+                del per_assignee_due_dates[assignee_id]
+                cleaned = True
+
+            per_assignee_days = chore_info.get(
+                const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
+            )
+            if assignee_id in per_assignee_days:
+                del per_assignee_days[assignee_id]
+                cleaned = True
+
+            per_assignee_multi = chore_info.get(
+                const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
+            )
+            if assignee_id in per_assignee_multi:
+                del per_assignee_multi[assignee_id]
                 cleaned = True
 
         if cleaned:
             self._coordinator._persist()
             const.LOGGER.debug(
-                "ChoreManager: Cleaned chore assignments for deleted kid %s",
-                kid_id,
+                "ChoreManager: Cleaned chore assignments for deleted assignee %s",
+                assignee_id,
             )
 
     # =========================================================================
@@ -524,38 +538,38 @@ class ChoreManager(BaseManager):
 
     async def claim_chore(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
         user_name: str,
     ) -> None:
         """Process a chore claim request with race condition protection.
 
         Uses asyncio.Lock to ensure only one claim processes at a time
-        per kid+chore combination, preventing duplicate claims.
+        per assignee+chore combination, preventing duplicate claims.
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
             chore_id: The internal UUID of the chore
             user_name: Who initiated the claim (for notification context)
 
         Raises:
             HomeAssistantError: If claim validation fails
         """
-        # Acquire lock for this kid+chore pair
-        lock = self._get_lock(kid_id, chore_id)
+        # Acquire lock for this assignee+chore pair
+        lock = self._get_lock(assignee_id, chore_id)
         async with lock:
-            await self._claim_chore_locked(kid_id, chore_id, user_name)
+            await self._claim_chore_locked(assignee_id, chore_id, user_name)
 
     async def _claim_chore_locked(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
         user_name: str,
     ) -> None:
         """Internal claim logic executed under lock protection.
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
             chore_id: The internal UUID of the chore
             user_name: Who initiated the claim (for notification context)
 
@@ -563,35 +577,38 @@ class ChoreManager(BaseManager):
             HomeAssistantError: If claim validation fails
         """
         # Validate entities exist
-        self._validate_kid_and_chore(kid_id, chore_id)
+        self._validate_assignee_and_chore(assignee_id, chore_id)
 
         # Landlord duty: Ensure periods structures exist before statistics writes
-        self._ensure_kid_structures(kid_id, chore_id)
+        self._ensure_assignee_structures(assignee_id, chore_id)
 
         chore_data = self._coordinator.chores_data[chore_id]
-        kid_info = self._coordinator.kids_data[kid_id]
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_info = self._coordinator.assignees_data[assignee_id]
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
         chore_name = chore_data.get(const.DATA_CHORE_NAME, "")
 
         # Validate assignment
-        if kid_id not in chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-            kid_name = kid_info.get(const.DATA_KID_NAME, "")
+        if assignee_id not in chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_ASSIGNED,
-                translation_placeholders={"entity": chore_name, "kid": kid_name},
+                translation_placeholders={
+                    "entity": chore_name,
+                    "assignee": assignee_name,
+                },
             )
 
         # Get validation inputs for engine
-        has_pending = ChoreEngine.chore_has_pending_claim(kid_chore_data)
-        is_approved = self.chore_is_approved_in_period(kid_id, chore_id)
+        has_pending = ChoreEngine.chore_has_pending_claim(assignee_chore_data)
+        is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
 
         # v0.5.0 FSM integration: Calculate resolved state for rotation/due window blocking
-        due_date = self.get_due_date(chore_id, kid_id)
-        due_window_start = self.get_due_window_start(chore_id, kid_id)
-        resolved_state, lock_reason = ChoreEngine.resolve_kid_chore_state(
+        due_date = self.get_due_date(chore_id, assignee_id)
+        due_window_start = self.get_due_window_start(chore_id, assignee_id)
+        resolved_state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
             chore_data=chore_data,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             due_date=due_date,
             due_window_start=due_window_start,
             has_pending_claim=has_pending,
@@ -599,31 +616,34 @@ class ChoreManager(BaseManager):
             now=dt_util.now(),
         )
 
-        # For SHARED_FIRST, collect other kids' states for blocking check
+        # For SHARED_FIRST, collect other assignees' states for blocking check
         completion_criteria = chore_data.get(
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
-        other_kid_states = None
+        other_assignee_states = None
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            other_kid_states = {}
-            for other_kid_id in kids_assigned:
-                if other_kid_id != kid_id and other_kid_id:
-                    other_kid_chore_data = self._get_kid_chore_data(
-                        other_kid_id, chore_id
+            assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            other_assignee_states = {}
+            for other_assignee_id in assignees_assigned:
+                if other_assignee_id != assignee_id and other_assignee_id:
+                    other_assignee_chore_data = self._get_assignee_chore_data(
+                        other_assignee_id, chore_id
                     )
-                    other_kid_states[other_kid_id] = other_kid_chore_data.get(
-                        const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                    other_assignee_states[other_assignee_id] = (
+                        other_assignee_chore_data.get(
+                            const.DATA_ASSIGNEE_CHORE_DATA_STATE,
+                            const.CHORE_STATE_PENDING,
+                        )
                     )
 
         # Delegate validation to engine (stateless pure logic with FSM state)
         can_claim, error_key = ChoreEngine.can_claim_chore(
-            kid_chore_data=kid_chore_data,
+            assignee_chore_data=assignee_chore_data,
             chore_data=chore_data,
             has_pending_claim=has_pending,
             is_approved_in_period=is_approved,
-            other_kid_states=other_kid_states,
+            other_assignee_states=other_assignee_states,
             resolved_state=resolved_state,
             lock_reason=lock_reason,
         )
@@ -650,8 +670,8 @@ class ChoreManager(BaseManager):
                     translation_key=normalized_error_key,
                 )
             if error_key == const.TRANS_KEY_ERROR_CHORE_COMPLETED_BY_OTHER:
-                claimed_by = kid_chore_data.get(
-                    const.DATA_CHORE_CLAIMED_BY, "another kid"
+                claimed_by = assignee_chore_data.get(
+                    const.DATA_CHORE_CLAIMED_BY, "another assignee"
                 )
                 raise HomeAssistantError(
                     translation_domain=const.DOMAIN,
@@ -676,31 +696,31 @@ class ChoreManager(BaseManager):
                 translation_placeholders={"entity": chore_name},
             )
 
-        # Get kid name for effects
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
-        kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        # Get assignee name for effects
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
         # Calculate state transitions
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id=kid_id,
+            actor_assignee_id=assignee_id,
             action=CHORE_ACTION_CLAIM,
-            kids_assigned=kids_assigned,
-            kid_name=kid_name,
+            assignees_assigned=assignees_assigned,
+            assignee_name=assignee_name,
         )
 
         # Apply effects to coordinator data
         for effect in effects:
             self._apply_effect(effect, chore_id)
 
-        # Set last_claimed timestamp for the claiming kid
-        kid_chore_data[const.DATA_KID_CHORE_DATA_LAST_CLAIMED] = dt_now_iso()
+        # Set last_claimed timestamp for the claiming assignee
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED] = dt_now_iso()
 
         # Update global chore state
         self._update_global_state(chore_id)
 
         # Increment pending claim counter
-        self._increment_pending_count(kid_id, chore_id)
+        self._increment_pending_count(assignee_id, chore_id)
 
         # Check auto-approve
         auto_approve = chore_data.get(
@@ -710,7 +730,7 @@ class ChoreManager(BaseManager):
             # Atomic: call locked impl directly (already inside lock)
             await self._approve_chore_locked(
                 "auto_approve",
-                kid_id,
+                assignee_id,
                 chore_id,
                 approval_origin=const.CHORE_APPROVAL_ORIGIN_AUTO_APPROVE,
             )
@@ -723,9 +743,9 @@ class ChoreManager(BaseManager):
         # StatisticsManager._on_chore_claimed handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_CLAIMED,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             chore_id=chore_id,
-            kid_name=kid_name,
+            assignee_name=assignee_name,
             chore_name=chore_data.get(const.DATA_CHORE_NAME, ""),
             user_name=user_name,
             chore_labels=chore_data.get(const.DATA_CHORE_LABELS, []),
@@ -733,36 +753,36 @@ class ChoreManager(BaseManager):
         )
 
         const.LOGGER.debug(
-            "Claim processed: kid=%s chore=%s user=%s",
-            kid_id,
+            "Claim processed: assignee=%s chore=%s user=%s",
+            assignee_id,
             chore_id,
             user_name,
         )
 
     async def approve_chore(
         self,
-        parent_name: str,
-        kid_id: str,
+        approver_name: str,
+        assignee_id: str,
         chore_id: str,
         points_override: float | None = None,
     ) -> None:
         """Approve a chore with race condition protection.
 
         Uses asyncio.Lock to ensure only one approval processes at a time
-        per kid+chore combination.
+        per assignee+chore combination.
 
         Args:
-            parent_name: Who is approving (for audit and notification)
-            kid_id: The internal UUID of the kid
+            approver_name: Who is approving (for audit and notification)
+            assignee_id: The internal UUID of the assignee
             chore_id: The internal UUID of the chore
             points_override: Optional override for points (future feature)
         """
-        # Acquire lock for this kid+chore pair
-        lock = self._get_lock(kid_id, chore_id)
+        # Acquire lock for this assignee+chore pair
+        lock = self._get_lock(assignee_id, chore_id)
         async with lock:
             await self._approve_chore_locked(
-                parent_name,
-                kid_id,
+                approver_name,
+                assignee_id,
                 chore_id,
                 points_override,
                 approval_origin=const.CHORE_APPROVAL_ORIGIN_MANUAL,
@@ -770,8 +790,8 @@ class ChoreManager(BaseManager):
 
     async def _approve_chore_locked(
         self,
-        parent_name: str,
-        kid_id: str,
+        approver_name: str,
+        assignee_id: str,
         chore_id: str,
         points_override: float | None = None,
         approval_origin: str = const.CHORE_APPROVAL_ORIGIN_MANUAL,
@@ -779,43 +799,43 @@ class ChoreManager(BaseManager):
         """Approve chore implementation (called inside lock).
 
         Args:
-            parent_name: Who is approving
-            kid_id: The kid's internal ID
+            approver_name: Who is approving
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             points_override: Optional point override
             approval_origin: Source of approval (manual, auto_approve, auto_reset)
         """
         # Validate entities exist
-        self._validate_kid_and_chore(kid_id, chore_id)
+        self._validate_assignee_and_chore(assignee_id, chore_id)
 
         # Landlord duty: Ensure periods structures exist before statistics writes
-        self._ensure_kid_structures(kid_id, chore_id)
+        self._ensure_assignee_structures(assignee_id, chore_id)
 
         chore_data = self._coordinator.chores_data[chore_id]
-        kid_info = self._coordinator.kids_data[kid_id]
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_info = self._coordinator.assignees_data[assignee_id]
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         # Get previous state for event payload
-        previous_state = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        previous_state = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
         # Get validation inputs
-        is_approved = self.chore_is_approved_in_period(kid_id, chore_id)
+        is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
 
         # Re-validate inside lock (race condition protection)
         can_approve, error_key = ChoreEngine.can_approve_chore(
-            kid_chore_data=kid_chore_data,
+            assignee_chore_data=assignee_chore_data,
             chore_data=chore_data,
             is_approved_in_period=is_approved,
         )
 
         if not can_approve:
-            # Race condition: another parent already approved
+            # Race condition: another approver already approved
             const.LOGGER.info(
-                "Race condition prevented: chore '%s' for kid '%s' already processed",
+                "Race condition prevented: chore '%s' for assignee '%s' already processed",
                 chore_data.get(const.DATA_CHORE_NAME),
-                kid_info.get(const.DATA_KID_NAME),
+                assignee_info.get(const.DATA_ASSIGNEE_NAME),
             )
             return  # Graceful exit - expected behavior
 
@@ -823,7 +843,9 @@ class ChoreManager(BaseManager):
         base_points = points_override or float(
             chore_data.get(const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS)
         )
-        multiplier = float(kid_info.get(const.DATA_KID_POINTS_MULTIPLIER, 1.0))
+        multiplier = float(
+            assignee_info.get(const.DATA_ASSIGNEE_POINTS_MULTIPLIER, 1.0)
+        )
         points_to_award = ChoreEngine.calculate_points(chore_data, multiplier)
 
         # Use override if specified
@@ -832,21 +854,21 @@ class ChoreManager(BaseManager):
                 points_override * multiplier, const.DATA_FLOAT_PRECISION
             )
 
-        # Get kid name for effects
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
-        kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        # Get assignee name for effects
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
         # =====================================================================
         # CAPTURE OLD STATE (Required for streak calculation)
         # Must happen BEFORE applying effects or updating timestamps
         # =====================================================================
 
-        # Get previous last_completed for streak calculation (parent-lag-proof)
-        previous_last_completed = self.get_chore_last_completed(chore_id, kid_id)
+        # Get previous last_completed for streak calculation (approver-lag-proof)
+        previous_last_completed = self.get_chore_last_completed(chore_id, assignee_id)
 
         # Check if this is a direct approval (no pending claim)
         # Used to set claim fields for consistency
-        has_pending_claim = self.chore_has_pending_claim(kid_id, chore_id)
+        has_pending_claim = self.chore_has_pending_claim(assignee_id, chore_id)
 
         # Get previous streak from last completion date (schedule-aware)
         # For weekly/biweekly chores, yesterday won't have data - must use last_completed date
@@ -855,17 +877,17 @@ class ChoreManager(BaseManager):
         # =====================================================================
         # Phase 5 Fix: Read from chore data level to survive retention pruning
         # (daily buckets only retained for 7 days, breaks weekly/monthly streaks)
-        previous_streak = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_CURRENT_STREAK, 0
+        previous_streak = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK, 0
         )
 
         # Calculate effects
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id=kid_id,
+            actor_assignee_id=assignee_id,
             action=CHORE_ACTION_APPROVE,
-            kids_assigned=kids_assigned,
-            kid_name=kid_name,
+            assignees_assigned=assignees_assigned,
+            assignee_name=assignee_name,
         )
 
         # Apply effects
@@ -879,11 +901,11 @@ class ChoreManager(BaseManager):
 
         # Calculate completion streak using schedule-aware logic
         # This checks if any scheduled occurrences were missed between completions
-        previous_last_completed = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_LAST_COMPLETED
+        previous_last_completed = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
         )
-        work_date_iso = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_LAST_CLAIMED, now_iso
+        work_date_iso = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED, now_iso
         )
         new_streak = ChoreEngine.calculate_streak(
             current_streak=previous_streak,
@@ -893,30 +915,30 @@ class ChoreManager(BaseManager):
         )
 
         # Store new completion streak at chore data level (survives retention)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_CURRENT_STREAK] = new_streak
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK] = new_streak
 
         # Reset missed streak to 0 on completion (completion breaks missed streak)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
 
         # Set last_approved timestamp (audit/financial timestamp)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_LAST_APPROVED] = now_iso
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED] = now_iso
 
         # If no pending claim existed, this is a direct approval
         # Set claim fields to match approval (combined claim+approve action)
         if not has_pending_claim:
-            kid_chore_data[const.DATA_KID_CHORE_DATA_LAST_CLAIMED] = now_iso
-            kid_chore_data[const.DATA_CHORE_CLAIMED_BY] = kid_name
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED] = now_iso
+            assignee_chore_data[const.DATA_CHORE_CLAIMED_BY] = assignee_name
 
-        # Extract effective_date (when kid did the work) for statistics/scheduling
+        # Extract effective_date (when assignee did the work) for statistics/scheduling
         # Fallback hierarchy: last_claimed → last_approved → now_iso
         effective_date_iso = (
-            kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_CLAIMED)
-            or kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_APPROVED)
+            assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED)
+            or assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED)
             or now_iso
         )
 
-        # Calculate streak using schedule-aware logic (parent-lag-proof)
-        # Uses last_completed (work date) not last_approved (parent action date)
+        # Calculate streak using schedule-aware logic (approver-lag-proof)
+        # Uses last_completed (work date) not last_approved (approver action date)
         # Phase 5 Change: Store result at chore data level (survives retention pruning)
         new_streak = ChoreEngine.calculate_streak(
             current_streak=previous_streak,
@@ -926,25 +948,25 @@ class ChoreManager(BaseManager):
         )
 
         # Store current streak at chore data level (never pruned)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_CURRENT_STREAK] = new_streak
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK] = new_streak
 
         # Reset missed streak to 0 on completion (failure chain broken)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
 
         # Update global chore state
         self._update_global_state(chore_id)
 
         # Set last_completed timestamp (always runs on approval)
-        # Stored per completion criteria: INDEPENDENT in kid data, SHARED at chore level
+        # Stored per completion criteria: INDEPENDENT in assignee data, SHARED at chore level
         self._set_last_completed_timestamp(
-            chore_id, kid_id, effective_date_iso, now_iso
+            chore_id, assignee_id, effective_date_iso, now_iso
         )
 
         # Decrement pending count
-        self._decrement_pending_count(kid_id, chore_id)
+        self._decrement_pending_count(assignee_id, chore_id)
 
         # Set completed_by based on completion criteria
-        self._handle_completion_criteria(chore_id, kid_id, kid_name)
+        self._handle_completion_criteria(chore_id, assignee_id, assignee_name)
 
         # Handle UPON_COMPLETION reset type: immediately reset to PENDING
         # Other reset types (AT_MIDNIGHT_*, AT_DUE_DATE_*) stay APPROVED until
@@ -963,18 +985,22 @@ class ChoreManager(BaseManager):
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
-        all_kids_approved = completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
+        all_assignees_approved = (
+            completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
+        )
         if completion_criteria != const.COMPLETION_CRITERIA_INDEPENDENT:
-            all_kids_approved = self._all_kids_approved(chore_id, kids_assigned)
+            all_assignees_approved = self._all_assignees_approved(
+                chore_id, assignees_assigned
+            )
 
         approval_context = self._build_reset_context(
             trigger=const.CHORE_RESET_TRIGGER_APPROVAL,
             approval_reset_type=approval_reset,
             overdue_handling_type=overdue_handling,
             completion_criteria=completion_criteria,
-            all_kids_approved=all_kids_approved,
+            all_assignees_approved=all_assignees_approved,
             approval_after_reset=self._is_chore_approval_after_reset(
-                chore_data, kid_id
+                chore_data, assignee_id
             ),
         )
         reset_decision = self._decide_reset_action(approval_context)
@@ -984,27 +1010,27 @@ class ChoreManager(BaseManager):
             if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
                 self._apply_reset_action(
                     {
-                        "kid_id": kid_id,
+                        "assignee_id": assignee_id,
                         "chore_id": chore_id,
                         "decision": reset_decision,
-                        "reschedule_kid_id": kid_id,
+                        "reschedule_assignee_id": assignee_id,
                     }
                 )
                 self._update_global_state(chore_id)
 
-            elif all_kids_approved:
+            elif all_assignees_approved:
                 # Set chore-level approval_period_start ONCE for SHARED/SHARED_FIRST
                 # Use FRESH timestamp to ensure it's AFTER last_approved
                 reset_period_start = dt_now_iso()
                 chore_data[const.DATA_CHORE_APPROVAL_PERIOD_START] = reset_period_start
-                for assigned_kid_id in kids_assigned:
-                    if assigned_kid_id:
+                for assigned_assignee_id in assignees_assigned:
+                    if assigned_assignee_id:
                         self._apply_reset_action(
                             {
-                                "kid_id": assigned_kid_id,
+                                "assignee_id": assigned_assignee_id,
                                 "chore_id": chore_id,
                                 "decision": reset_decision,
-                                "reschedule_kid_id": None,
+                                "reschedule_assignee_id": None,
                                 "allow_reschedule": False,
                             }
                         )
@@ -1026,11 +1052,11 @@ class ChoreManager(BaseManager):
                     const.COMPLETION_CRITERIA_INDEPENDENT,
                 )
                 if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                    # Clear per-kid due date
-                    per_kid_dates = chore_data.get(
-                        const.DATA_CHORE_PER_KID_DUE_DATES, {}
+                    # Clear per-assignee due date
+                    per_assignee_dates = chore_data.get(
+                        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
                     )
-                    per_kid_dates.pop(kid_id, None)
+                    per_assignee_dates.pop(assignee_id, None)
                 else:
                     # Clear chore-level due date (SHARED/SHARED_FIRST)
                     chore_data.pop(const.DATA_CHORE_DUE_DATE, None)
@@ -1065,10 +1091,10 @@ class ChoreManager(BaseManager):
         # (Platinum Architecture: signal-first, no cross-manager writes)
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_APPROVED,
-            kid_id=kid_id,
-            kid_name=kid_name,
+            assignee_id=assignee_id,
+            assignee_name=assignee_name,
             chore_id=chore_id,
-            parent_name=parent_name,
+            approver_name=approver_name,
             base_points=base_points,  # EconomyManager applies multiplier
             apply_multiplier=True,
             points_awarded=points_to_award,  # For UI/logging (already calculated)
@@ -1081,55 +1107,57 @@ class ChoreManager(BaseManager):
             update_stats=True,
             effective_date=effective_date_iso,
             approval_origin=approval_origin,
-            notify_kid=True,
+            notify_assignee=True,
         )
 
         # Emit completion event based on completion criteria
-        # - INDEPENDENT: Kid completed their own chore (immediate)
-        # - SHARED_FIRST: Only the approving kid gets completion credit (immediate)
-        # - SHARED (all): All kids get credit when last kid is approved
+        # - INDEPENDENT: Assignee completed their own chore (immediate)
+        # - SHARED_FIRST: Only the approving assignee gets completion credit (immediate)
+        # - SHARED (all): All assignees get credit when last assignee is approved
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # Independent: approving kid completed their chore
+            # Independent: approving assignee completed their chore
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_COMPLETED,
                 chore_id=chore_id,
-                kid_ids=[kid_id],
+                assignee_ids=[assignee_id],
                 effective_date=effective_date_iso,
-                streak_tallies={kid_id: new_streak},
+                streak_tallies={assignee_id: new_streak},
             )
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            # Shared first: only the kid who did the work gets completion credit
+            # Shared first: only the assignee who did the work gets completion credit
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_COMPLETED,
                 chore_id=chore_id,
-                kid_ids=[kid_id],
+                assignee_ids=[assignee_id],
                 effective_date=effective_date_iso,
-                streak_tallies={kid_id: new_streak},
+                streak_tallies={assignee_id: new_streak},
             )
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
-            # Shared (all): only emit when ALL assigned kids have been approved
-            if self._all_kids_approved(chore_id, kids_assigned):
-                # Calculate streak for each kid
+            # Shared (all): only emit when ALL assigned assignees have been approved
+            if self._all_assignees_approved(chore_id, assignees_assigned):
+                # Calculate streak for each assignee
                 streak_tallies = {}
-                for assigned_kid_id in kids_assigned:
-                    if not assigned_kid_id:
+                for assigned_assignee_id in assignees_assigned:
+                    if not assigned_assignee_id:
                         continue
-                    # Get kid's chore_data and yesterday's streak
-                    assigned_kid_info = self._coordinator.kids_data.get(assigned_kid_id)
-                    if not assigned_kid_info:
-                        continue
-                    kid_chore_dict: dict[str, Any] = assigned_kid_info.get(
-                        const.DATA_KID_CHORE_DATA, {}
+                    # Get assignee's chore_data and yesterday's streak
+                    assigned_assignee_info = self._coordinator.assignees_data.get(
+                        assigned_assignee_id
                     )
-                    assigned_chore_data = kid_chore_dict.get(chore_id, {})
+                    if not assigned_assignee_info:
+                        continue
+                    assignee_chore_dict: dict[str, Any] = assigned_assignee_info.get(
+                        const.DATA_ASSIGNEE_CHORE_DATA, {}
+                    )
+                    assigned_chore_data = assignee_chore_dict.get(chore_id, {})
                     assigned_periods = assigned_chore_data.get(
-                        const.DATA_KID_CHORE_DATA_PERIODS, {}
+                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {}
                     )
                     assigned_daily = assigned_periods.get(
-                        const.DATA_KID_CHORE_DATA_PERIODS_DAILY, {}
+                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {}
                     )
                     assigned_last_completed = assigned_chore_data.get(
-                        const.DATA_KID_CHORE_DATA_LAST_COMPLETED
+                        const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
                     )
                     # Get streak from last completion date (not yesterday - schedule-aware!)
                     assigned_previous_streak = 0
@@ -1147,21 +1175,21 @@ class ChoreManager(BaseManager):
                                 assigned_date_key, {}
                             )
                             assigned_previous_streak = assigned_last_data.get(
-                                const.DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY, 0
+                                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY, 0
                             )
-                    # Calculate streak for this kid
+                    # Calculate streak for this assignee
                     assigned_streak = ChoreEngine.calculate_streak(
                         current_streak=assigned_previous_streak,
                         previous_last_completed_iso=assigned_last_completed,
                         current_work_date_iso=effective_date_iso,
                         chore_data=chore_data,
                     )
-                    streak_tallies[assigned_kid_id] = assigned_streak
+                    streak_tallies[assigned_assignee_id] = assigned_streak
 
                 self.emit(
                     const.SIGNAL_SUFFIX_CHORE_COMPLETED,
                     chore_id=chore_id,
-                    kid_ids=kids_assigned,
+                    assignee_ids=assignees_assigned,
                     effective_date=effective_date_iso,
                     streak_tallies=streak_tallies,
                 )
@@ -1169,67 +1197,69 @@ class ChoreManager(BaseManager):
         # StatisticsManager handles cache refresh and entity notification via signal handlers
 
         const.LOGGER.debug(
-            "Approval processed: kid=%s chore=%s points=%.2f by=%s",
-            kid_id,
+            "Approval processed: assignee=%s chore=%s points=%.2f by=%s",
+            assignee_id,
             chore_id,
             points_to_award,
-            parent_name,
+            approver_name,
         )
 
     async def disapprove_chore(
         self,
-        parent_name: str,
-        kid_id: str,
+        approver_name: str,
+        assignee_id: str,
         chore_id: str,
         reason: str | None = None,
     ) -> None:
         """Disapprove a chore (return to pending state).
 
         Args:
-            parent_name: Who is disapproving (for audit)
-            kid_id: The internal UUID of the kid
+            approver_name: Who is disapproving (for audit)
+            assignee_id: The internal UUID of the assignee
             chore_id: The internal UUID of the chore
             reason: Optional reason for disapproval
         """
-        lock = self._get_lock(kid_id, chore_id)
+        lock = self._get_lock(assignee_id, chore_id)
         async with lock:
-            await self._disapprove_chore_locked(parent_name, kid_id, chore_id, reason)
+            await self._disapprove_chore_locked(
+                approver_name, assignee_id, chore_id, reason
+            )
 
     async def _disapprove_chore_locked(
         self,
-        parent_name: str,
-        kid_id: str,
+        approver_name: str,
+        assignee_id: str,
         chore_id: str,
         reason: str | None = None,
     ) -> None:
         """Disapprove chore implementation (called inside lock).
 
         Args:
-            parent_name: Who is disapproving
-            kid_id: The kid's internal ID
+            approver_name: Who is disapproving
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             reason: Optional disapproval reason
         """
-        self._validate_kid_and_chore(kid_id, chore_id)
+        self._validate_assignee_and_chore(assignee_id, chore_id)
 
         # Landlord duty: Ensure periods structures exist before statistics writes
-        self._ensure_kid_structures(kid_id, chore_id)
+        self._ensure_assignee_structures(assignee_id, chore_id)
 
         chore_data = self._coordinator.chores_data[chore_id]
-        kid_info = self._coordinator.kids_data[kid_id]
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_info = self._coordinator.assignees_data[assignee_id]
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
-        previous_state = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        previous_state = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
-        # Get kid name for effects
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
-        kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        # Get assignee name for effects
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
         # Check if chore is past its due date (not just if state is overdue)
         # Use same logic as overdue scan: due_date exists and now > due_date
-        due_date = self.get_due_date(chore_id, kid_id)
+        due_date = self.get_due_date(chore_id, assignee_id)
         is_past_due = False
         if due_date:
             now_utc = dt_util.utcnow()
@@ -1238,10 +1268,10 @@ class ChoreManager(BaseManager):
         # Calculate effects
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id=kid_id,
+            actor_assignee_id=assignee_id,
             action=CHORE_ACTION_DISAPPROVE,
-            kids_assigned=kids_assigned,
-            kid_name=kid_name,
+            assignees_assigned=assignees_assigned,
+            assignee_name=assignee_name,
             is_overdue=is_past_due,
         )
 
@@ -1249,13 +1279,15 @@ class ChoreManager(BaseManager):
         for effect in effects:
             self._apply_effect(effect, chore_id)
 
-        # Update global chore state to reflect per-kid state changes
+        # Update global chore state to reflect per-assignee state changes
         self._update_global_state(chore_id)
 
-        self._decrement_pending_count(kid_id, chore_id)
+        self._decrement_pending_count(assignee_id, chore_id)
 
-        # Set last_disapproved timestamp for the disapproved kid
-        kid_chore_data[const.DATA_KID_CHORE_DATA_LAST_DISAPPROVED] = dt_now_iso()
+        # Set last_disapproved timestamp for the disapproved assignee
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED] = (
+            dt_now_iso()
+        )
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self._coordinator._persist_and_update()
@@ -1264,10 +1296,10 @@ class ChoreManager(BaseManager):
         # StatisticsManager._on_chore_disapproved handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_DISAPPROVED,
-            kid_id=kid_id,
-            kid_name=kid_name,
+            assignee_id=assignee_id,
+            assignee_name=assignee_name,
             chore_id=chore_id,
-            parent_name=parent_name,
+            approver_name=approver_name,
             reason=reason,
             chore_name=chore_data.get(const.DATA_CHORE_NAME, ""),
             chore_labels=chore_data.get(const.DATA_CHORE_LABELS, []),
@@ -1276,54 +1308,56 @@ class ChoreManager(BaseManager):
         )
 
         const.LOGGER.debug(
-            "Disapproval processed: kid=%s chore=%s by=%s reason=%s",
-            kid_id,
+            "Disapproval processed: assignee=%s chore=%s by=%s reason=%s",
+            assignee_id,
             chore_id,
-            parent_name,
+            approver_name,
             reason or "none",
         )
 
     async def undo_chore(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
-        parent_name: str,
+        approver_name: str,
     ) -> None:
         """Undo a chore approval (reclaim points, reset state).
 
         Args:
-            kid_id: The internal UUID of the kid
+            assignee_id: The internal UUID of the assignee
             chore_id: The internal UUID of the chore
-            parent_name: Who is undoing (for audit)
+            approver_name: Who is undoing (for audit)
         """
-        self._validate_kid_and_chore(kid_id, chore_id)
+        self._validate_assignee_and_chore(assignee_id, chore_id)
 
         # Landlord duty: Ensure periods structures exist before statistics writes
-        self._ensure_kid_structures(kid_id, chore_id)
+        self._ensure_assignee_structures(assignee_id, chore_id)
 
         chore_data = self._coordinator.chores_data[chore_id]
-        kid_info = self._coordinator.kids_data[kid_id]
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_info = self._coordinator.assignees_data[assignee_id]
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
-        # Get kid name for effects
-        kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
-        kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        # Get assignee name for effects
+        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
         # Get previous points to reclaim from periods.all_time.points (v43+ canonical source)
-        periods = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PERIODS, {})
-        all_time_bucket = periods.get(const.DATA_KID_CHORE_DATA_PERIODS_ALL_TIME, {})
+        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        all_time_bucket = periods.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+        )
         all_time_entry = all_time_bucket.get(const.PERIOD_ALL_TIME, {})
         previous_points = all_time_entry.get(
-            const.DATA_KID_CHORE_DATA_PERIOD_POINTS, 0.0
+            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS, 0.0
         )
 
         # Calculate effects with skip_stats=True (undo doesn't count for stats)
         effects = ChoreEngine.calculate_transition(
             chore_data=chore_data,
-            actor_kid_id=kid_id,
+            actor_assignee_id=assignee_id,
             action=CHORE_ACTION_UNDO,
-            kids_assigned=kids_assigned,
-            kid_name=kid_name,
+            assignees_assigned=assignees_assigned,
+            assignee_name=assignee_name,
             skip_stats=True,
         )
 
@@ -1343,27 +1377,27 @@ class ChoreManager(BaseManager):
         if previous_points > 0:
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_UNDONE,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 chore_id=chore_id,
                 points_to_reclaim=previous_points,
             )
 
         const.LOGGER.info(
-            "Chore undone: chore=%s kid=%s by=%s points_reclaimed=%.2f",
+            "Chore undone: chore=%s assignee=%s by=%s points_reclaimed=%.2f",
             chore_data.get(const.DATA_CHORE_NAME),
-            kid_info.get(const.DATA_KID_NAME),
-            parent_name,
+            assignee_info.get(const.DATA_ASSIGNEE_NAME),
+            approver_name,
             previous_points,
         )
 
-    async def undo_claim(self, kid_id: str, chore_id: str) -> None:
-        """Allow kid to undo their own chore claim (no stat tracking).
+    async def undo_claim(self, assignee_id: str, chore_id: str) -> None:
+        """Allow assignee to undo their own chore claim (no stat tracking).
 
-        This provides a way for kids to remove their claim without counting
+        This provides a way for assignees to remove their claim without counting
         as a disapproval. Does NOT track stats and does NOT send notifications.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
         """
         chore_info = self._coordinator.chores_data.get(chore_id)
@@ -1377,72 +1411,78 @@ class ChoreManager(BaseManager):
                 },
             )
 
-        kid_info = self._coordinator.kids_data.get(kid_id)
-        if not kid_info:
+        assignee_info = self._coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
                 translation_placeholders={
-                    "entity_type": const.LABEL_KID,
-                    "name": kid_id,
+                    "entity_type": const.LABEL_ASSIGNEE,
+                    "name": assignee_id,
                 },
             )
 
         # Decrement pending_count
-        kid_chore_entry = self._get_kid_chore_data(kid_id, chore_id)
-        current_count = kid_chore_entry.get(
-            const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+        assignee_chore_entry = self._get_assignee_chore_data(assignee_id, chore_id)
+        current_count = assignee_chore_entry.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
         )
-        kid_chore_entry[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
+        assignee_chore_entry[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
             0, current_count - 1
         )
 
-        # Check if chore is past its due date (same logic as parent disapproval)
+        # Check if chore is past its due date (same logic as approver disapproval)
         # Use same logic as overdue scan: due_date exists and now > due_date
-        due_date = self.get_due_date(chore_id, kid_id)
+        due_date = self.get_due_date(chore_id, assignee_id)
         is_past_due = False
         if due_date:
             now_utc = dt_util.utcnow()
             is_past_due = (due_date - now_utc).total_seconds() < 0
 
-        # Handle SHARED_FIRST: Reset ALL kids to pending
+        # Handle SHARED_FIRST: Reset ALL assignees to pending
         completion_criteria = chore_info.get(
             const.DATA_CHORE_COMPLETION_CRITERIA, const.SENTINEL_EMPTY
         )
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
             const.LOGGER.info(
-                "SHARED_FIRST: Kid undo - resetting all kids to pending for chore '%s'",
+                "SHARED_FIRST: Assignee undo - resetting all assignees to pending for chore '%s'",
                 chore_info.get(const.DATA_CHORE_NAME),
             )
-            for other_kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
+            for other_assignee_id in chore_info.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            ):
                 # Use skip_stats via undo action through Engine
                 effects = ChoreEngine.calculate_transition(
                     chore_data=chore_info,
-                    actor_kid_id=other_kid_id,
+                    actor_assignee_id=other_assignee_id,
                     action=CHORE_ACTION_UNDO,
-                    kids_assigned=chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []),
+                    assignees_assigned=chore_info.get(
+                        const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    ),
                     skip_stats=True,
                     is_overdue=is_past_due,
                 )
                 for effect in effects:
                     self._apply_effect(effect, chore_id)
                 # Clear claimed_by/completed_by using helper
-                other_kid_info: UserData | dict[str, Any] = (
-                    self._coordinator.kids_data.get(other_kid_id, {})
+                other_assignee_info: UserData | dict[str, Any] = (
+                    self._coordinator.assignees_data.get(other_assignee_id, {})
                 )
-                other_kid_chore = ChoreEngine.get_chore_data_for_kid(
-                    other_kid_info, chore_id
+                other_assignee_chore = ChoreEngine.get_chore_data_for_assignee(
+                    other_assignee_info, chore_id
                 )
-                if other_kid_chore:
-                    other_kid_chore.pop(const.DATA_CHORE_CLAIMED_BY, None)
-                    other_kid_chore.pop(const.DATA_CHORE_COMPLETED_BY, None)
+                if other_assignee_chore:
+                    other_assignee_chore.pop(const.DATA_CHORE_CLAIMED_BY, None)
+                    other_assignee_chore.pop(const.DATA_CHORE_COMPLETED_BY, None)
         else:
-            # Normal: only reset the kid who is undoing
+            # Normal: only reset the assignee who is undoing
             effects = ChoreEngine.calculate_transition(
                 chore_data=chore_info,
-                actor_kid_id=kid_id,
+                actor_assignee_id=assignee_id,
                 action=CHORE_ACTION_UNDO,
-                kids_assigned=chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []),
+                assignees_assigned=chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                ),
                 skip_stats=True,
                 is_overdue=is_past_due,
             )
@@ -1455,10 +1495,10 @@ class ChoreManager(BaseManager):
         self._coordinator._persist()
         self._coordinator.async_set_updated_data(self._coordinator._data)
 
-        # Emit event for NotificationManager to clear parent claim notifications
+        # Emit event for NotificationManager to clear approver claim notifications
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_CLAIM_UNDONE,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             chore_id=chore_id,
         )
 
@@ -1473,7 +1513,7 @@ class ChoreManager(BaseManager):
         approval_reset_type: str,
         overdue_handling_type: str,
         completion_criteria: str,
-        all_kids_approved: bool = False,
+        all_assignees_approved: bool = False,
         approval_after_reset: bool = False,
         boundary_category: ResetBoundaryCategory | None = None,
         has_pending_claim: bool = False,
@@ -1485,7 +1525,7 @@ class ChoreManager(BaseManager):
             "approval_reset_type": approval_reset_type,
             "overdue_handling_type": overdue_handling_type,
             "completion_criteria": completion_criteria,
-            "all_kids_approved": all_kids_approved,
+            "all_assignees_approved": all_assignees_approved,
             "approval_after_reset": approval_after_reset,
             "boundary_category": boundary_category,
             "has_pending_claim": has_pending_claim,
@@ -1493,15 +1533,15 @@ class ChoreManager(BaseManager):
         }
 
     def _apply_reset_action(self, context: ResetApplyContext) -> None:
-        """Apply reset side effects for a single kid/chore pair."""
-        kid_id = context["kid_id"]
+        """Apply reset side effects for a single assignee/chore pair."""
+        assignee_id = context["assignee_id"]
         chore_id = context["chore_id"]
         decision = context["decision"]
-        reschedule_kid_id = context["reschedule_kid_id"]
+        reschedule_assignee_id = context["reschedule_assignee_id"]
         allow_reschedule = context.get("allow_reschedule", True)
 
         self._transition_chore_state(
-            kid_id,
+            assignee_id,
             chore_id,
             const.CHORE_STATE_PENDING,
             reset_approval_period=True,
@@ -1512,7 +1552,7 @@ class ChoreManager(BaseManager):
             allow_reschedule
             and decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
         ):
-            self._reschedule_chore_due(chore_id, reschedule_kid_id)
+            self._reschedule_chore_due(chore_id, reschedule_assignee_id)
 
     def _finalize_reset_batch(
         self,
@@ -1560,7 +1600,7 @@ class ChoreManager(BaseManager):
             if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
                 return const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
 
-            if context.get("all_kids_approved", False):
+            if context.get("all_assignees_approved", False):
                 return const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
             return const.CHORE_RESET_DECISION_HOLD
 
@@ -1591,7 +1631,7 @@ class ChoreManager(BaseManager):
 
         Performance Optimization: Instead of multiple iterations through
         all chores, this method does ONE pass and categorizes each
-        (kid, chore) pair by all time-based concerns.
+        (assignee, chore) pair by all time-based concerns.
 
         Categories (time-based notifications - actionable chores only):
         - overdue: Past due date (needs overdue state transition)
@@ -1600,7 +1640,7 @@ class ChoreManager(BaseManager):
 
         Categories (approval boundary resets - all states):
         - approval_reset_shared: SHARED/SHARED_FIRST chores past due
-        - approval_reset_independent: INDEPENDENT chores with kids past due
+        - approval_reset_independent: INDEPENDENT chores with assignees past due
 
         Args:
             now_utc: Current UTC datetime for comparison
@@ -1620,9 +1660,9 @@ class ChoreManager(BaseManager):
         }
 
         for chore_id, chore_info in self._coordinator.chores_data.items():
-            # Get assigned kids for this chore
-            assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            if not assigned_kids:
+            # Get assigned assignees for this chore
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            if not assigned_assignees:
                 continue
 
             # ─── CHORE-LEVEL CONFIG (once per chore) ───
@@ -1700,14 +1740,14 @@ class ChoreManager(BaseManager):
                     )
 
             # ─── KID ITERATION ───
-            independent_reset_kids: list[dict[str, Any]] = []
+            independent_reset_assignees: list[dict[str, Any]] = []
 
-            for kid_id in assigned_kids:
-                if not kid_id:
+            for assignee_id in assigned_assignees:
+                if not assignee_id:
                     continue
 
-                # Get due date (single call per kid-chore pair)
-                due_dt = self.get_due_date(chore_id, kid_id)
+                # Get due date (single call per assignee-chore pair)
+                due_dt = self.get_due_date(chore_id, assignee_id)
 
                 # For time-based categorization, we need a due date
                 if due_dt:
@@ -1716,10 +1756,10 @@ class ChoreManager(BaseManager):
                     is_past_due = time_until_due.total_seconds() < 0
 
                     # ─── TIME-BASED CATEGORIZATION (actionable chores only) ───
-                    if self.chore_is_actionable(kid_id, chore_id):
+                    if self.chore_is_actionable(assignee_id, chore_id):
                         entry: ChoreTimeEntry = {
                             const.CHORE_SCAN_ENTRY_CHORE_ID: chore_id,
-                            const.CHORE_SCAN_ENTRY_KID_ID: kid_id,
+                            const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: assignee_id,
                             const.CHORE_SCAN_ENTRY_DUE_DT: due_dt,
                             const.CHORE_SCAN_ENTRY_CHORE_INFO: cast(
                                 "dict[str, Any]", chore_info
@@ -1748,7 +1788,7 @@ class ChoreManager(BaseManager):
                                     entry
                                 )
 
-                # ─── INDEPENDENT RESET CHECK (per-kid due_date) ───
+                # ─── INDEPENDENT RESET CHECK (per-assignee due_date) ───
                 # For AT_MIDNIGHT_*: Include if no due date OR past due date
                 # For AT_DUE_DATE_*: Only process if past due date
                 if should_process_reset and completion_criteria in (
@@ -1756,13 +1796,13 @@ class ChoreManager(BaseManager):
                     const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
                     const.COMPLETION_CRITERIA_ROTATION_SMART,
                 ):
-                    # Determine if this kid should be included in reset scan
-                    include_kid_in_reset = False
+                    # Determine if this assignee should be included in reset scan
+                    include_assignee_in_reset = False
                     if trigger == "midnight":
                         # AT_MIDNIGHT_*: Include if no due date OR past due date
                         # Future due dates mean the period hasn't started yet
                         if due_dt is None or now_utc >= due_dt:
-                            include_kid_in_reset = True
+                            include_assignee_in_reset = True
                     elif due_dt:
                         # AT_DUE_DATE_*: Include only if past due date
                         is_past_due = (due_dt - now_utc).total_seconds() < 0
@@ -1770,25 +1810,25 @@ class ChoreManager(BaseManager):
                         if is_past_due and not (
                             frequency == const.FREQUENCY_NONE and now_utc > due_dt
                         ):
-                            include_kid_in_reset = True
+                            include_assignee_in_reset = True
 
-                    if include_kid_in_reset:
-                        independent_reset_kids.append(
+                    if include_assignee_in_reset:
+                        independent_reset_assignees.append(
                             {
-                                const.CHORE_SCAN_ENTRY_KID_ID: kid_id,
+                                const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: assignee_id,
                                 const.CHORE_SCAN_ENTRY_DUE_DT: due_dt,
                             }
                         )
 
             # ─── AGGREGATE INDEPENDENT APPROVAL RESETS ───
-            if independent_reset_kids:
+            if independent_reset_assignees:
                 result[const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT].append(
                     {
                         const.CHORE_SCAN_ENTRY_CHORE_ID: chore_id,
                         const.CHORE_SCAN_ENTRY_CHORE_INFO: cast(
                             "dict[str, Any]", chore_info
                         ),
-                        "kids": independent_reset_kids,
+                        "assignees": independent_reset_assignees,
                     }
                 )
 
@@ -1833,13 +1873,15 @@ class ChoreManager(BaseManager):
 
         for entry in entries:
             chore_id = entry["chore_id"]
-            kid_id = entry["kid_id"]
+            assignee_id = entry["assignee_id"]
             due_dt = entry["due_dt"]
             chore_info = entry["chore_info"]
 
             # Phase 4 Guard Rail: Idempotency - check current state before processing
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-            current_state = kid_chore_data.get(const.DATA_KID_CHORE_DATA_STATE)
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            current_state = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE
+            )
 
             if current_state == const.CHORE_STATE_OVERDUE:
                 skipped_already_overdue += 1
@@ -1848,26 +1890,26 @@ class ChoreManager(BaseManager):
                 )
                 continue
 
-            # Validate kid and chore exist
+            # Validate assignee and chore exist
             try:
-                self._validate_kid_and_chore(kid_id, chore_id)
+                self._validate_assignee_and_chore(assignee_id, chore_id)
             except HomeAssistantError as err:
                 const.LOGGER.debug(
-                    "Could not mark chore '%s' overdue for kid '%s': %s",
+                    "Could not mark chore '%s' overdue for assignee '%s': %s",
                     chore_info.get(const.DATA_CHORE_NAME, chore_id),
-                    kid_id,
+                    assignee_id,
                     err,
                 )
                 continue
 
             # Landlord duty: Ensure periods structures exist before statistics writes
-            self._ensure_kid_structures(kid_id, chore_id)
+            self._ensure_assignee_structures(assignee_id, chore_id)
 
             # Get data for transition calculation
             chore_data = self._coordinator.chores_data[chore_id]
-            kid_info = self._coordinator.kids_data[kid_id]
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
-            kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            assignee_info = self._coordinator.assignees_data[assignee_id]
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+            assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
             # Phase 3 Step 2: Check for mark_missed_and_lock overdue handling
             overdue_handling = chore_data.get(
@@ -1880,14 +1922,14 @@ class ChoreManager(BaseManager):
                 == const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK
             ):
                 # Lock the chore in MISSED state (not claimable)
-                kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] = (
+                assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE] = (
                     const.CHORE_STATE_MISSED
                 )
                 self._update_global_state(chore_id)
 
                 # Record missed stat (handles persist and signal emission)
                 self._record_chore_missed(
-                    kid_id, chore_id, due_date=due_dt, reason="strict_lock"
+                    assignee_id, chore_id, due_date=due_dt, reason="strict_lock"
                 )
 
                 marked_count += 1
@@ -1895,10 +1937,10 @@ class ChoreManager(BaseManager):
             # Calculate and apply state transition via Engine (normal overdue path)
             effects = ChoreEngine.calculate_transition(
                 chore_data=chore_data,
-                actor_kid_id=kid_id,
+                actor_assignee_id=assignee_id,
                 action=CHORE_ACTION_OVERDUE,
-                kids_assigned=kids_assigned,
-                kid_name=kid_name,
+                assignees_assigned=assignees_assigned,
+                assignee_name=assignee_name,
             )
 
             for effect in effects:
@@ -1911,8 +1953,8 @@ class ChoreManager(BaseManager):
             days_overdue = (now_utc - due_dt).days
             signals_to_emit.append(
                 {
-                    "kid_id": kid_id,
-                    "kid_name": kid_name,
+                    "assignee_id": assignee_id,
+                    "assignee_name": assignee_name,
                     "chore_id": chore_id,
                     "chore_name": chore_data.get(const.DATA_CHORE_NAME, ""),
                     "days_overdue": days_overdue,
@@ -1964,20 +2006,20 @@ class ChoreManager(BaseManager):
             time_until_due = entry["time_until_due"]
             hours_remaining = max(0, int(time_until_due.total_seconds() / 3600))
 
-            kid_id = entry["kid_id"]
+            assignee_id = entry["assignee_id"]
             chore_name = chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
-            # Get kid name for signal emission
-            kid_info: UserData = cast(
-                "UserData", self._coordinator.kids_data.get(kid_id, {})
+            # Get assignee name for signal emission
+            assignee_info: UserData = cast(
+                "UserData", self._coordinator.assignees_data.get(assignee_id, {})
             )
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_DUE_WINDOW,
-                kid_id=kid_id,
-                kid_name=kid_name,
+                assignee_id=assignee_id,
+                assignee_name=assignee_name,
                 chore_id=entry["chore_id"],
                 chore_name=chore_name,
                 hours=hours_remaining,
@@ -2004,20 +2046,20 @@ class ChoreManager(BaseManager):
             time_until_due = entry["time_until_due"]
             minutes_remaining = max(0, int(time_until_due.total_seconds() / 60))
 
-            kid_id = entry["kid_id"]
+            assignee_id = entry["assignee_id"]
             chore_name = chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
-            # Get kid name for signal emission
-            kid_info: UserData = cast(
-                "UserData", self._coordinator.kids_data.get(kid_id, {})
+            # Get assignee name for signal emission
+            assignee_info: UserData = cast(
+                "UserData", self._coordinator.assignees_data.get(assignee_id, {})
             )
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
 
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_DUE_REMINDER,
-                kid_id=kid_id,
-                kid_name=kid_name,
+                assignee_id=assignee_id,
+                assignee_name=assignee_name,
                 chore_id=entry["chore_id"],
                 chore_name=chore_name,
                 minutes=minutes_remaining,
@@ -2051,7 +2093,7 @@ class ChoreManager(BaseManager):
 
         Returns:
             Tuple of (reset_count, reset_pairs) where reset_pairs is a set
-            of (kid_id, chore_id) tuples that were reset in this pass.
+            of (assignee_id, chore_id) tuples that were reset in this pass.
         """
         reset_count = 0
         reset_pairs: set[tuple[str, str]] = set()
@@ -2071,17 +2113,17 @@ class ChoreManager(BaseManager):
             # Use engine to determine action
             category = ChoreEngine.get_boundary_category(
                 chore_data=chore_info,
-                kid_state=current_state,
+                assignee_state=current_state,
                 trigger=trigger,
             )
 
-            # Reset all assigned kids
-            assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            for kid_id in assigned_kids:
-                if not kid_id:
+            # Reset all assigned assignees
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            for assignee_id in assigned_assignees:
+                if not assignee_id:
                     continue
 
-                has_pending_claim = self.chore_has_pending_claim(kid_id, chore_id)
+                has_pending_claim = self.chore_has_pending_claim(assignee_id, chore_id)
                 pending_claim_action = chore_info.get(
                     const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
                     const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
@@ -2113,7 +2155,9 @@ class ChoreManager(BaseManager):
                 if decision == const.CHORE_RESET_DECISION_HOLD:
                     continue
 
-                kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+                assignee_chore_data = self._get_assignee_chore_data(
+                    assignee_id, chore_id
+                )
 
                 # Handle pending claims (HOLD/CLEAR/AUTO_APPROVE)
                 if has_pending_claim and decision in (
@@ -2122,9 +2166,9 @@ class ChoreManager(BaseManager):
                     const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 ):
                     if await self._handle_pending_chore_claim_at_reset(
-                        kid_id, chore_id, chore_info, kid_chore_data
+                        assignee_id, chore_id, chore_info, assignee_chore_data
                     ):
-                        continue  # HOLD action - skip reset for this kid
+                        continue  # HOLD action - skip reset for this assignee
 
                 effective_decision = decision
                 if decision == const.CHORE_RESET_DECISION_AUTO_APPROVE_PENDING:
@@ -2145,7 +2189,7 @@ class ChoreManager(BaseManager):
                         overdue_handling
                         == const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED
                     ):
-                        self._record_chore_missed(kid_id, chore_id)
+                        self._record_chore_missed(assignee_id, chore_id)
 
                 # Phase 3 Step 3: Clear MISSED lock at midnight for mark_missed_and_lock strategy
                 if current_state == const.CHORE_STATE_MISSED:
@@ -2161,12 +2205,12 @@ class ChoreManager(BaseManager):
                         # D-17: For rotation chores, advance turn if current holder missed
                         if ChoreEngine.is_rotation_mode(chore_info):
                             current_turn_holder = chore_info.get(
-                                const.DATA_CHORE_ROTATION_CURRENT_KID_ID
+                                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
                             )
-                            if current_turn_holder == kid_id:
-                                # Advance rotation to next kid
+                            if current_turn_holder == assignee_id:
+                                # Advance rotation to next assignee
                                 rotation_payload = self._advance_rotation(
-                                    chore_id, kid_id, method="auto"
+                                    chore_id, assignee_id, method="auto"
                                 )
                                 # Collect payloads for batch emission after persist
                                 if rotation_payload:
@@ -2174,10 +2218,10 @@ class ChoreManager(BaseManager):
 
                 self._apply_reset_action(
                     {
-                        "kid_id": kid_id,
+                        "assignee_id": assignee_id,
                         "chore_id": chore_id,
                         "decision": effective_decision,
-                        "reschedule_kid_id": None,
+                        "reschedule_assignee_id": None,
                         "allow_reschedule": False,
                     }
                 )
@@ -2189,7 +2233,7 @@ class ChoreManager(BaseManager):
                     should_reschedule_shared = True
 
                 reset_count += 1
-                reset_pairs.add((kid_id, chore_id))
+                reset_pairs.add((assignee_id, chore_id))
 
             if should_reschedule_shared:
                 self._reschedule_chore_due(chore_id)
@@ -2198,29 +2242,29 @@ class ChoreManager(BaseManager):
         for entry in scan.get(const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT, []):
             chore_id = entry["chore_id"]
             chore_info = entry["chore_info"]
-            kid_entries = entry.get("kids", [])
+            assignee_entries = entry.get("assignees", [])
 
-            for kid_entry in kid_entries:
-                kid_id = kid_entry["kid_id"]
+            for assignee_entry in assignee_entries:
+                assignee_id = assignee_entry["assignee_id"]
 
                 # Derive state from timestamp-based checks
-                if self.chore_is_overdue(kid_id, chore_id):
-                    kid_state = const.CHORE_STATE_OVERDUE
-                elif self.chore_has_pending_claim(kid_id, chore_id):
-                    kid_state = const.CHORE_STATE_CLAIMED
-                elif self.chore_is_approved_in_period(kid_id, chore_id):
-                    kid_state = const.CHORE_STATE_APPROVED
+                if self.chore_is_overdue(assignee_id, chore_id):
+                    assignee_state = const.CHORE_STATE_OVERDUE
+                elif self.chore_has_pending_claim(assignee_id, chore_id):
+                    assignee_state = const.CHORE_STATE_CLAIMED
+                elif self.chore_is_approved_in_period(assignee_id, chore_id):
+                    assignee_state = const.CHORE_STATE_APPROVED
                 else:
-                    kid_state = const.CHORE_STATE_PENDING
+                    assignee_state = const.CHORE_STATE_PENDING
 
                 # Use engine to determine action
                 category = ChoreEngine.get_boundary_category(
                     chore_data=chore_info,
-                    kid_state=kid_state,
+                    assignee_state=assignee_state,
                     trigger=trigger,
                 )
 
-                has_pending_claim = self.chore_has_pending_claim(kid_id, chore_id)
+                has_pending_claim = self.chore_has_pending_claim(assignee_id, chore_id)
                 pending_claim_action = chore_info.get(
                     const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
                     const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
@@ -2252,7 +2296,9 @@ class ChoreManager(BaseManager):
                 if decision == const.CHORE_RESET_DECISION_HOLD:
                     continue
 
-                kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+                assignee_chore_data = self._get_assignee_chore_data(
+                    assignee_id, chore_id
+                )
 
                 # Handle pending claims (HOLD/CLEAR/AUTO_APPROVE)
                 if has_pending_claim and decision in (
@@ -2261,9 +2307,9 @@ class ChoreManager(BaseManager):
                     const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 ):
                     if await self._handle_pending_chore_claim_at_reset(
-                        kid_id, chore_id, chore_info, kid_chore_data
+                        assignee_id, chore_id, chore_info, assignee_chore_data
                     ):
-                        continue  # HOLD action - skip reset for this kid
+                        continue  # HOLD action - skip reset for this assignee
 
                 effective_decision = decision
                 if decision == const.CHORE_RESET_DECISION_AUTO_APPROVE_PENDING:
@@ -2275,7 +2321,7 @@ class ChoreManager(BaseManager):
                         )
 
                 # Record miss if chore was overdue and mark-missed is enabled
-                if kid_state == const.CHORE_STATE_OVERDUE:
+                if assignee_state == const.CHORE_STATE_OVERDUE:
                     overdue_handling = chore_info.get(
                         const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
                         const.DEFAULT_OVERDUE_HANDLING_TYPE,
@@ -2284,26 +2330,26 @@ class ChoreManager(BaseManager):
                         overdue_handling
                         == const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED
                     ):
-                        self._record_chore_missed(kid_id, chore_id)
+                        self._record_chore_missed(assignee_id, chore_id)
 
                 # Rotation chores: on boundary reset of an approved turn holder,
                 # advance to the next turn once per completed cycle.
                 if (
-                    kid_state == const.CHORE_STATE_APPROVED
+                    assignee_state == const.CHORE_STATE_APPROVED
                     and ChoreEngine.is_rotation_mode(chore_info)
                 ):
                     current_turn_holder = chore_info.get(
-                        const.DATA_CHORE_ROTATION_CURRENT_KID_ID
+                        const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
                     )
-                    if current_turn_holder == kid_id:
+                    if current_turn_holder == assignee_id:
                         rotation_payload = self._advance_rotation(
-                            chore_id, kid_id, method="auto"
+                            chore_id, assignee_id, method="auto"
                         )
                         if rotation_payload:
                             rotation_payloads.append(rotation_payload)
 
                 # Phase 3 Step 3: Clear MISSED lock at midnight for mark_missed_and_lock strategy
-                if kid_state == const.CHORE_STATE_MISSED:
+                if assignee_state == const.CHORE_STATE_MISSED:
                     overdue_handling = chore_info.get(
                         const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
                         const.DEFAULT_OVERDUE_HANDLING_TYPE,
@@ -2316,12 +2362,12 @@ class ChoreManager(BaseManager):
                         # D-17: For rotation chores, advance turn if current holder missed
                         if ChoreEngine.is_rotation_mode(chore_info):
                             current_turn_holder = chore_info.get(
-                                const.DATA_CHORE_ROTATION_CURRENT_KID_ID
+                                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
                             )
-                            if current_turn_holder == kid_id:
-                                # Advance rotation to next kid
+                            if current_turn_holder == assignee_id:
+                                # Advance rotation to next assignee
                                 rotation_payload = self._advance_rotation(
-                                    chore_id, kid_id, method="auto"
+                                    chore_id, assignee_id, method="auto"
                                 )
                                 # Collect payloads for batch emission after persist
                                 if rotation_payload:
@@ -2329,19 +2375,19 @@ class ChoreManager(BaseManager):
 
                 self._apply_reset_action(
                     {
-                        "kid_id": kid_id,
+                        "assignee_id": assignee_id,
                         "chore_id": chore_id,
                         "decision": effective_decision,
-                        "reschedule_kid_id": kid_id,
+                        "reschedule_assignee_id": assignee_id,
                     }
                 )
 
                 reset_count += 1
-                reset_pairs.add((kid_id, chore_id))
+                reset_pairs.add((assignee_id, chore_id))
 
         if reset_count > 0:
             const.LOGGER.debug(
-                "Approval boundary resets (%s): %d kid(s) reset",
+                "Approval boundary resets (%s): %d assignee(s) reset",
                 trigger,
                 reset_count,
             )
@@ -2356,10 +2402,10 @@ class ChoreManager(BaseManager):
 
     async def _handle_pending_chore_claim_at_reset(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
         chore_info: ChoreData,
-        kid_chore_data: KidChoreDataEntry,
+        assignee_chore_data: AssigneeChoreDataEntry,
     ) -> bool:
         """Handle pending claim based on approval reset pending claim action.
 
@@ -2367,17 +2413,17 @@ class ChoreManager(BaseManager):
         how to handle claims that weren't approved before reset.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             chore_info: The chore data dictionary
-            kid_chore_data: The kid's chore data for clearing pending count
+            assignee_chore_data: The assignee's chore data for clearing pending count
 
         Returns:
-            True if reset should be SKIPPED for this kid (HOLD action)
+            True if reset should be SKIPPED for this assignee (HOLD action)
             False if reset should CONTINUE (CLEAR or after AUTO_APPROVE)
         """
-        # Check if kid has pending claim
-        if not self.chore_has_pending_claim(kid_id, chore_id):
+        # Check if assignee has pending claim
+        if not self.chore_has_pending_claim(assignee_id, chore_id):
             return False  # No pending claim, continue with reset
 
         pending_claim_action = chore_info.get(
@@ -2386,32 +2432,34 @@ class ChoreManager(BaseManager):
         )
 
         if pending_claim_action == const.APPROVAL_RESET_PENDING_CLAIM_HOLD:
-            # HOLD: Skip reset for this kid, leave claim pending
+            # HOLD: Skip reset for this assignee, leave claim pending
             const.LOGGER.debug(
-                "Chore Reset - HOLD pending claim for Kid '%s' on Chore '%s'",
-                kid_id,
+                "Chore Reset - HOLD pending claim for Assignee '%s' on Chore '%s'",
+                assignee_id,
                 chore_id,
             )
-            return True  # Skip reset for this kid
+            return True  # Skip reset for this assignee
 
         if pending_claim_action == const.APPROVAL_RESET_PENDING_CLAIM_AUTO_APPROVE:
             # AUTO_APPROVE: Approve the pending claim before reset
             # Landlord duty: Ensure periods structures exist before statistics writes
-            self._ensure_kid_structures(kid_id, chore_id)
+            self._ensure_assignee_structures(assignee_id, chore_id)
 
             const.LOGGER.debug(
-                "Chore Reset - AUTO_APPROVE pending claim for Kid '%s' on Chore '%s'",
-                kid_id,
+                "Chore Reset - AUTO_APPROVE pending claim for Assignee '%s' on Chore '%s'",
+                assignee_id,
                 chore_id,
             )
-            kid_info: UserData | dict[str, Any] = self._coordinator.kids_data.get(
-                kid_id, {}
+            assignee_info: UserData | dict[str, Any] = (
+                self._coordinator.assignees_data.get(assignee_id, {})
             )
-            kid_name = kid_info.get(const.DATA_KID_NAME, "Unknown")
+            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
             base_points = float(
                 chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS)
             )
-            multiplier = float(kid_info.get(const.DATA_KID_POINTS_MULTIPLIER, 1.0))
+            multiplier = float(
+                assignee_info.get(const.DATA_ASSIGNEE_POINTS_MULTIPLIER, 1.0)
+            )
             points_awarded = ChoreEngine.calculate_points(chore_info, multiplier)
             completion_criteria = chore_info.get(
                 const.DATA_CHORE_COMPLETION_CRITERIA,
@@ -2422,14 +2470,14 @@ class ChoreManager(BaseManager):
                 const.COMPLETION_CRITERIA_SHARED_FIRST,
             )
             is_multi_claim = ChoreEngine.chore_allows_multiple_claims(chore_info)
-            previous_state = kid_chore_data.get(
-                const.DATA_KID_CHORE_DATA_STATE,
+            previous_state = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE,
                 const.CHORE_STATE_PENDING,
             )
             now_iso = dt_now_iso()
             effective_date_iso = (
-                kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_CLAIMED)
-                or kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_APPROVED)
+                assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED)
+                or assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED)
                 or now_iso
             )
 
@@ -2437,10 +2485,10 @@ class ChoreManager(BaseManager):
             # same manager choreography path to reduce drift.
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_APPROVED,
-                kid_id=kid_id,
+                assignee_id=assignee_id,
                 chore_id=chore_id,
-                kid_name=kid_name,
-                parent_name="auto_reset",
+                assignee_name=assignee_name,
+                approver_name="auto_reset",
                 base_points=base_points,
                 apply_multiplier=True,
                 points_awarded=points_awarded,
@@ -2453,12 +2501,12 @@ class ChoreManager(BaseManager):
                 update_stats=True,
                 effective_date=effective_date_iso,
                 approval_origin=const.CHORE_APPROVAL_ORIGIN_AUTO_RESET,
-                notify_kid=False,
+                notify_assignee=False,
             )
 
         # CLEAR (default) or after AUTO_APPROVE: Clear pending_claim_count
-        if kid_chore_data:
-            kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
+        if assignee_chore_data:
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
 
         return False  # Continue with reset
 
@@ -2470,21 +2518,21 @@ class ChoreManager(BaseManager):
         self,
         chore_id: str,
         due_date: datetime | None,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
     ) -> None:
         """Set the due date of a chore.
 
         Args:
             chore_id: Chore to update
             due_date: New due date (or None to clear)
-            kid_id: If provided for INDEPENDENT chores, updates only this kid's due date.
+            assignee_id: If provided for INDEPENDENT chores, updates only this assignee's due date.
                    For SHARED chores, this parameter is ignored.
 
         For SHARED chores: Updates the single chore-level due date.
         For INDEPENDENT chores:
             - Does NOT set chore-level due_date (respects post-migration structure)
-            - If kid_id provided: Updates only that kid's due date
-            - If kid_id None: Updates all per-kid due dates
+            - If assignee_id provided: Updates only that assignee's due date
+            - If assignee_id None: Updates all per-assignee due dates
         """
         from homeassistant.util import dt as dt_util
 
@@ -2515,30 +2563,32 @@ class ChoreManager(BaseManager):
         ):
             chore_info[const.DATA_CHORE_DUE_DATE] = new_due_date_iso
         elif criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            if kid_id:
-                # Update only specified kid's due date
-                if kid_id not in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
+            if assignee_id:
+                # Update only specified assignee's due date
+                if assignee_id not in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
                         translation_key=const.TRANS_KEY_ERROR_NOT_ASSIGNED,
                         translation_placeholders={
-                            "kid_id": kid_id,
+                            "assignee_id": assignee_id,
                             "chore_id": chore_id,
                         },
                     )
-                per_kid_due_dates = chore_info.setdefault(
-                    const.DATA_CHORE_PER_KID_DUE_DATES, {}
+                per_assignee_due_dates = chore_info.setdefault(
+                    const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
                 )
-                per_kid_due_dates[kid_id] = new_due_date_iso
+                per_assignee_due_dates[assignee_id] = new_due_date_iso
             else:
-                # Update all assigned kids' due dates
-                per_kid_due_dates = chore_info.setdefault(
-                    const.DATA_CHORE_PER_KID_DUE_DATES, {}
+                # Update all assigned assignees' due dates
+                per_assignee_due_dates = chore_info.setdefault(
+                    const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
                 )
-                for assigned_kid_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_KIDS, []
+                for assigned_assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
                 ):
-                    per_kid_due_dates[assigned_kid_id] = new_due_date_iso
+                    per_assignee_due_dates[assigned_assignee_id] = new_due_date_iso
 
         # If due date cleared, reset frequency if needed
         if new_due_date_iso is None:
@@ -2551,12 +2601,14 @@ class ChoreManager(BaseManager):
                 chore_info.pop(const.DATA_CHORE_CUSTOM_INTERVAL, None)
                 chore_info.pop(const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, None)
 
-        # Reset chore state to PENDING for all assigned kids
+        # Reset chore state to PENDING for all assigned assignees
         # Use persist=False since we persist once at the end
-        for assigned_kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-            if assigned_kid_id:
+        for assigned_assignee_id in chore_info.get(
+            const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+        ):
+            if assigned_assignee_id:
                 self._transition_chore_state(
-                    assigned_kid_id,
+                    assigned_assignee_id,
                     chore_id,
                     const.CHORE_STATE_PENDING,
                     reset_approval_period=True,
@@ -2572,12 +2624,14 @@ class ChoreManager(BaseManager):
         self._coordinator._persist()
         self._coordinator.async_set_updated_data(self._coordinator._data)
 
-    async def skip_due_date(self, chore_id: str, kid_id: str | None = None) -> None:
+    async def skip_due_date(
+        self, chore_id: str, assignee_id: str | None = None
+    ) -> None:
         """Skip the current due date of a recurring chore and reschedule it.
 
         Args:
             chore_id: Chore to skip
-            kid_id: If provided for INDEPENDENT chores, skips only this kid's due date.
+            assignee_id: If provided for INDEPENDENT chores, skips only this assignee's due date.
                    For SHARED chores, this parameter is ignored.
         """
         chore_info = self._coordinator.chores_data.get(chore_id)
@@ -2607,29 +2661,31 @@ class ChoreManager(BaseManager):
         )
 
         if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: skip per-kid due dates
-            if kid_id:
-                # Skip only specified kid
-                if kid_id not in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
+            # INDEPENDENT: skip per-assignee due dates
+            if assignee_id:
+                # Skip only specified assignee
+                if assignee_id not in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
                         translation_key=const.TRANS_KEY_ERROR_NOT_ASSIGNED,
                         translation_placeholders={
-                            "kid_id": kid_id,
+                            "assignee_id": assignee_id,
                             "chore_id": chore_id,
                         },
                     )
-                per_kid_due_dates = chore_info.get(
-                    const.DATA_CHORE_PER_KID_DUE_DATES, {}
+                per_assignee_due_dates = chore_info.get(
+                    const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
                 )
-                if not per_kid_due_dates.get(kid_id):
+                if not per_assignee_due_dates.get(assignee_id):
                     return  # No due date to skip
 
-                self._reschedule_chore_next_due_date_for_kid(
-                    chore_info, chore_id, kid_id
+                self._reschedule_chore_next_due_date_for_assignee(
+                    chore_info, chore_id, assignee_id
                 )
                 self._transition_chore_state(
-                    kid_id,
+                    assignee_id,
                     chore_id,
                     const.CHORE_STATE_PENDING,
                     reset_approval_period=True,
@@ -2637,20 +2693,20 @@ class ChoreManager(BaseManager):
                     persist=False,
                 )
             else:
-                # Skip all assigned kids
+                # Skip all assigned assignees
                 self._reschedule_chore_next_due(chore_info)
-                for assigned_kid_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_KIDS, []
+                for assigned_assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
                 ):
                     if (
-                        assigned_kid_id
-                        and assigned_kid_id in self._coordinator.kids_data
+                        assigned_assignee_id
+                        and assigned_assignee_id in self._coordinator.assignees_data
                     ):
-                        self._reschedule_chore_next_due_date_for_kid(
-                            chore_info, chore_id, assigned_kid_id
+                        self._reschedule_chore_next_due_date_for_assignee(
+                            chore_info, chore_id, assigned_assignee_id
                         )
                         self._transition_chore_state(
-                            assigned_kid_id,
+                            assigned_assignee_id,
                             chore_id,
                             const.CHORE_STATE_PENDING,
                             reset_approval_period=True,
@@ -2669,10 +2725,15 @@ class ChoreManager(BaseManager):
                     },
                 )
             self._reschedule_chore_next_due(chore_info)
-            for assigned_kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                if assigned_kid_id and assigned_kid_id in self._coordinator.kids_data:
+            for assigned_assignee_id in chore_info.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            ):
+                if (
+                    assigned_assignee_id
+                    and assigned_assignee_id in self._coordinator.assignees_data
+                ):
                     self._transition_chore_state(
-                        assigned_kid_id,
+                        assigned_assignee_id,
                         chore_id,
                         const.CHORE_STATE_PENDING,
                         reset_approval_period=True,
@@ -2689,7 +2750,7 @@ class ChoreManager(BaseManager):
         self._coordinator.async_set_updated_data(self._coordinator._data)
 
     def reset_chore_to_pending(self, chore_id: str, *, persist: bool = True) -> None:
-        """Reset a specific chore to pending state for all assigned kids.
+        """Reset a specific chore to pending state for all assigned assignees.
 
         Args:
             chore_id: The chore to reset
@@ -2697,7 +2758,7 @@ class ChoreManager(BaseManager):
                     called as part of a larger operation that will persist later.
 
         This resets:
-        - All assigned kids' states to PENDING
+        - All assigned assignees' states to PENDING
         - Approval period start time
         - Ownership claims
         """
@@ -2707,10 +2768,10 @@ class ChoreManager(BaseManager):
             return
 
         reset_count = 0
-        for kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-            if kid_id:
+        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+            if assignee_id:
                 self._transition_chore_state(
-                    kid_id,
+                    assignee_id,
                     chore_id,
                     const.CHORE_STATE_PENDING,
                     reset_approval_period=True,
@@ -2724,7 +2785,7 @@ class ChoreManager(BaseManager):
             self._coordinator.async_set_updated_data(self._coordinator._data)
 
         const.LOGGER.debug(
-            "Reset chore '%s' to pending for %d kids",
+            "Reset chore '%s' to pending for %d assignees",
             chore_info.get(const.DATA_CHORE_NAME, chore_id),
             reset_count,
         )
@@ -2747,23 +2808,27 @@ class ChoreManager(BaseManager):
         const.LOGGER.info("Manually reset all chores to pending")
 
     async def reset_overdue_chores(
-        self, chore_id: str | None = None, kid_id: str | None = None
+        self, chore_id: str | None = None, assignee_id: str | None = None
     ) -> None:
         """Reset overdue chore(s) to Pending state and reschedule.
 
         Args:
-            chore_id: Optional specific chore to reset (all kids if None)
-            kid_id: Optional specific kid to reset (all overdue if None)
+            chore_id: Optional specific chore to reset (all assignees if None)
+            assignee_id: Optional specific assignee to reset (all overdue if None)
 
         Branching logic:
-        - INDEPENDENT chores: Reschedule per-kid due dates individually
-        - SHARED chores: Reschedule chore-level due date (affects all kids)
+        - INDEPENDENT chores: Reschedule per-assignee due dates individually
+        - SHARED chores: Reschedule chore-level due date (affects all assignees)
         """
         reset_count = 0
 
-        for iter_kid_id, iter_chore_id, chore_info in self._iter_kid_chore_pairs(
+        for (
+            iter_assignee_id,
+            iter_chore_id,
+            chore_info,
+        ) in self._iter_assignee_chore_pairs(
             chore_id=chore_id,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             filter_fn=self.chore_is_overdue,
         ):
             criteria = chore_info.get(
@@ -2772,7 +2837,7 @@ class ChoreManager(BaseManager):
             )
 
             self._transition_chore_state(
-                iter_kid_id,
+                iter_assignee_id,
                 iter_chore_id,
                 const.CHORE_STATE_PENDING,
                 reset_approval_period=True,
@@ -2783,8 +2848,8 @@ class ChoreManager(BaseManager):
 
             # Reschedule based on completion criteria
             if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                self._reschedule_chore_next_due_date_for_kid(
-                    chore_info, iter_chore_id, iter_kid_id
+                self._reschedule_chore_next_due_date_for_assignee(
+                    chore_info, iter_chore_id, iter_assignee_id
                 )
             else:
                 self._reschedule_chore_next_due(chore_info)
@@ -2907,10 +2972,10 @@ class ChoreManager(BaseManager):
         self._coordinator._data[const.DATA_CHORES][chore_id] = updated_chore
 
         # Reset states to PENDING if due dates are being updated
-        # Handles both SHARED (DATA_CHORE_DUE_DATE) and INDEPENDENT (DATA_CHORE_PER_KID_DUE_DATES)
+        # Handles both SHARED (DATA_CHORE_DUE_DATE) and INDEPENDENT (DATA_CHORE_PER_ASSIGNEE_DUE_DATES)
         if (
             const.DATA_CHORE_DUE_DATE in updates
-            or const.DATA_CHORE_PER_KID_DUE_DATES in updates
+            or const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES in updates
         ):
             self.reset_chore_to_pending(chore_id, persist=False)
 
@@ -2929,12 +2994,12 @@ class ChoreManager(BaseManager):
             chore_name=chore_name,
         )
 
-        # Clean up any orphaned kid-chore entities after assignment changes
+        # Clean up any orphaned assignee-chore entities after assignment changes
         self._coordinator.hass.add_job(
-            remove_orphaned_kid_chore_entities(
+            remove_orphaned_assignee_chore_entities(
                 self.hass,
                 self._coordinator.config_entry.entry_id,
-                self._coordinator.kids_data,
+                self._coordinator.assignees_data,
                 self._coordinator.chores_data,
             )
         )
@@ -2951,7 +3016,7 @@ class ChoreManager(BaseManager):
         """Delete a chore from storage and cleanup references.
 
         Follows Platinum Architecture (Choreography over Orchestration):
-        - ChoreManager cleans its own domain data (kid chore_data)
+        - ChoreManager cleans its own domain data (assignee chore_data)
         - Emits CHORE_DELETED signal for cross-domain cleanup
         - GamificationManager reacts to signal for achievement/challenge cleanup
         - SystemManager reacts to signal for entity registry cleanup
@@ -2979,8 +3044,10 @@ class ChoreManager(BaseManager):
 
         chore_info = chores_data[chore_id]
         chore_name = chore_info.get(const.DATA_CHORE_NAME, chore_id)
-        # Capture assigned_kids before deletion for notification cleanup
-        assigned_kids = list(chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []))
+        # Capture assigned_assignees before deletion for notification cleanup
+        assigned_assignees = list(
+            chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        )
 
         # Delete from storage
         del self._coordinator._data[const.DATA_CHORES][chore_id]
@@ -2992,13 +3059,15 @@ class ChoreManager(BaseManager):
             chore_id,
         )
 
-        # Clean own domain: remove deleted chore refs from kid chore_data
-        # (This is chore-tracking data that lives in kid records)
-        for kid_data in self._coordinator.kids_data.values():
-            kid_chore_data = kid_data.get(const.DATA_KID_CHORE_DATA, {})
-            if chore_id in kid_chore_data:
-                del kid_chore_data[chore_id]
-                const.LOGGER.debug("Removed chore '%s' from kid chore_data", chore_id)
+        # Clean own domain: remove deleted chore refs from assignee chore_data
+        # (This is chore-tracking data that lives in assignee records)
+        for assignee_data in self._coordinator.assignees_data.values():
+            assignee_chore_data = assignee_data.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            if chore_id in assignee_chore_data:
+                del assignee_chore_data[chore_id]
+                const.LOGGER.debug(
+                    "Removed chore '%s' from assignee chore_data", chore_id
+                )
 
         # Remove orphaned shared chore sensors
         self.hass.add_job(
@@ -3017,7 +3086,7 @@ class ChoreManager(BaseManager):
             const.SIGNAL_SUFFIX_CHORE_DELETED,
             chore_id=chore_id,
             chore_name=chore_name,
-            assigned_kids=assigned_kids,
+            assigned_assignees=assigned_assignees,
         )
 
         const.LOGGER.info(
@@ -3048,44 +3117,46 @@ class ChoreManager(BaseManager):
             self._coordinator.chores_data.get(chore_id, {})
         )
 
-    def chore_has_pending_claim(self, kid_id: str, chore_id: str) -> bool:
+    def chore_has_pending_claim(self, assignee_id: str, chore_id: str) -> bool:
         """Check if a chore has a pending claim. Manager provides data, Engine provides verdict."""
         return ChoreEngine.chore_has_pending_claim(
-            self._get_kid_chore_data(kid_id, chore_id)
+            self._get_assignee_chore_data(assignee_id, chore_id)
         )
 
-    def chore_is_actionable(self, kid_id: str, chore_id: str) -> bool:
-        """Check if a kid can take action on a chore (not pending claim, not approved).
+    def chore_is_actionable(self, assignee_id: str, chore_id: str) -> bool:
+        """Check if a assignee can take action on a chore (not pending claim, not approved).
 
         This is the inverse of the common "skip" check in loops. A chore is
-        actionable if the kid has not claimed it AND has not been approved
+        actionable if the assignee has not claimed it AND has not been approved
         in the current period.
 
-        Use this to filter kids in due/overdue/reminder checks.
+        Use this to filter assignees in due/overdue/reminder checks.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
 
         Returns:
-            True if the kid can act on this chore, False if already claimed/approved.
+            True if the assignee can act on this chore, False if already claimed/approved.
         """
-        if self.chore_has_pending_claim(kid_id, chore_id):
+        if self.chore_has_pending_claim(assignee_id, chore_id):
             return False
-        if self.chore_is_approved_in_period(kid_id, chore_id):
+        if self.chore_is_approved_in_period(assignee_id, chore_id):
             return False
         return True
 
-    def chore_is_overdue(self, kid_id: str, chore_id: str) -> bool:
+    def chore_is_overdue(self, assignee_id: str, chore_id: str) -> bool:
         """Check if a chore is in overdue state. Manager provides data, Engine provides verdict."""
-        return ChoreEngine.chore_is_overdue(self._get_kid_chore_data(kid_id, chore_id))
+        return ChoreEngine.chore_is_overdue(
+            self._get_assignee_chore_data(assignee_id, chore_id)
+        )
 
-    def chore_is_due(self, kid_id: str | None, chore_id: str) -> bool:
+    def chore_is_due(self, assignee_id: str | None, chore_id: str) -> bool:
         """Check if chore is in due window (approaching due date).
 
         Thin wrapper that delegates to Engine for calculation.
         """
-        due_dt = self.get_due_date(chore_id, kid_id)
+        due_dt = self.get_due_date(chore_id, assignee_id)
         if not due_dt:
             return False
         chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
@@ -3099,7 +3170,7 @@ class ChoreManager(BaseManager):
         )
         return ChoreEngine.chore_is_due(due_dt.isoformat(), offset, dt_util.utcnow())
 
-    def chore_is_approved_in_period(self, kid_id: str, chore_id: str) -> bool:
+    def chore_is_approved_in_period(self, assignee_id: str, chore_id: str) -> bool:
         """Check if a chore is already approved in the current approval period.
 
         A chore is considered approved in the current period if:
@@ -3113,18 +3184,22 @@ class ChoreManager(BaseManager):
         Returns:
             True if approved in current period, False otherwise.
         """
-        kid_data: UserData | dict[str, Any] = self._coordinator.kids_data.get(
-            kid_id, {}
+        assignee_data: UserData | dict[str, Any] = self._coordinator.assignees_data.get(
+            assignee_id, {}
         )
-        kid_chore_data = ChoreEngine.get_chore_data_for_kid(kid_data, chore_id)
-        if not kid_chore_data:
+        assignee_chore_data = ChoreEngine.get_chore_data_for_assignee(
+            assignee_data, chore_id
+        )
+        if not assignee_chore_data:
             return False
 
-        last_approved = kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_APPROVED)
+        last_approved = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED
+        )
         if not last_approved:
             return False
 
-        period_start = self.get_approval_period_start(kid_id, chore_id)
+        period_start = self.get_approval_period_start(assignee_id, chore_id)
         if not period_start:
             # approval_period_start is None when chore has been reset to pending
             # (e.g., UPON_COMPLETION reset). Return False to indicate not approved.
@@ -3138,15 +3213,15 @@ class ChoreManager(BaseManager):
 
         return approved_dt >= period_start_dt
 
-    def get_approval_period_start(self, kid_id: str, chore_id: str) -> str | None:
-        """Get the start of the current approval period for this kid+chore.
+    def get_approval_period_start(self, assignee_id: str, chore_id: str) -> str | None:
+        """Get the start of the current approval period for this assignee+chore.
 
         Public read method for cross-manager queries (e.g., NotificationManager
         uses this for Schedule-Lock deduplication). Follows the "Reads OK" pattern
         from DEVELOPMENT_STANDARDS.md § 4b.
 
         For SHARED chores: Uses chore-level approval_period_start
-        For INDEPENDENT chores: Uses per-kid approval_period_start in kid_chore_data
+        For INDEPENDENT chores: Uses per-assignee approval_period_start in assignee_chore_data
 
         Returns:
             ISO timestamp string of period start, or None if not set.
@@ -3161,23 +3236,29 @@ class ChoreManager(BaseManager):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: Period start is per-kid in kid_chore_data
-            kid_data: UserData | dict[str, Any] = self._coordinator.kids_data.get(
-                kid_id, {}
+            # INDEPENDENT: Period start is per-assignee in assignee_chore_data
+            assignee_data: UserData | dict[str, Any] = (
+                self._coordinator.assignees_data.get(assignee_id, {})
             )
-            kid_chore_data = ChoreEngine.get_chore_data_for_kid(kid_data, chore_id)
-            return kid_chore_data.get(const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START)
+            assignee_chore_data = ChoreEngine.get_chore_data_for_assignee(
+                assignee_data, chore_id
+            )
+            return assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+            )
         # SHARED/SHARED_FIRST/etc.: Period start is at chore level
         return chore_info.get(const.DATA_CHORE_APPROVAL_PERIOD_START)
 
-    def get_due_date(self, chore_id: str, kid_id: str | None = None) -> datetime | None:
+    def get_due_date(
+        self, chore_id: str, assignee_id: str | None = None
+    ) -> datetime | None:
         """Get the due date for a chore as datetime.
 
         Handles INDEPENDENT vs SHARED completion criteria resolution internally.
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid's internal ID (for INDEPENDENT chores).
+            assignee_id: The assignee's internal ID (for INDEPENDENT chores).
                     None = use chore-level due date (SHARED)
 
         Returns:
@@ -3186,23 +3267,23 @@ class ChoreManager(BaseManager):
         chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        due_str = ChoreEngine.get_due_date_for_kid(chore_info, kid_id)
+        due_str = ChoreEngine.get_due_date_for_assignee(chore_info, assignee_id)
         return self._parse_due_datetime_cached(due_str)
 
     def get_due_window_start(
-        self, chore_id: str, kid_id: str | None = None
+        self, chore_id: str, assignee_id: str | None = None
     ) -> datetime | None:
         """Calculate when the due window starts (due_date - offset).
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid's internal ID (for INDEPENDENT chores).
+            assignee_id: The assignee's internal ID (for INDEPENDENT chores).
                     None = use chore-level due date (SHARED)
 
         Returns:
             datetime when due window starts, or None if not applicable.
         """
-        due_dt = self.get_due_date(chore_id, kid_id)
+        due_dt = self.get_due_date(chore_id, assignee_id)
         if not due_dt:
             return None
 
@@ -3226,65 +3307,67 @@ class ChoreManager(BaseManager):
         A chore has a pending approval if pending_claim_count > 0.
 
         Returns:
-            List of dicts with keys: kid_id, chore_id, timestamp
+            List of dicts with keys: assignee_id, chore_id, timestamp
         """
         pending: list[dict[str, Any]] = []
-        for kid_id, kid_info in self._coordinator.kids_data.items():
-            chore_data_map = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+        for assignee_id, assignee_info in self._coordinator.assignees_data.items():
+            chore_data_map = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
             for chore_id, chore_entry in chore_data_map.items():
                 # Skip chores that no longer exist
                 if chore_id not in self._coordinator.chores_data:
                     continue
-                if self.chore_has_pending_claim(kid_id, chore_id):
+                if self.chore_has_pending_claim(assignee_id, chore_id):
                     pending.append(
                         {
-                            const.DATA_KID_ID: kid_id,
+                            const.DATA_ASSIGNEE_ID: assignee_id,
                             const.DATA_CHORE_ID: chore_id,
                             const.DATA_CHORE_TIMESTAMP: chore_entry.get(
-                                const.DATA_KID_CHORE_DATA_LAST_CLAIMED, ""
+                                const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED, ""
                             ),
                         }
                     )
         return pending
 
-    def get_pending_chore_count_for_kid(self, kid_id: str) -> int:
-        """Count total pending chores awaiting approval for a specific kid.
+    def get_pending_chore_count_for_assignee(self, assignee_id: str) -> int:
+        """Count total pending chores awaiting approval for a specific assignee.
 
         Used for tag-based notification aggregation (v0.5.0+) to show
         "Sarah: 3 chores pending" instead of individual notifications.
 
         Args:
-            kid_id: The internal ID of the kid.
+            assignee_id: The internal ID of the assignee.
 
         Returns:
-            Number of chores with pending claims for this kid.
+            Number of chores with pending claims for this assignee.
         """
         count = 0
-        kid_info: UserData | dict[str, Any] = self._coordinator.kids_data.get(
-            kid_id, {}
+        assignee_info: UserData | dict[str, Any] = self._coordinator.assignees_data.get(
+            assignee_id, {}
         )
-        chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {})
+        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
 
         for chore_id in chore_data:
             # Skip chores that no longer exist
             if chore_id not in self._coordinator.chores_data:
                 continue
-            if self.chore_has_pending_claim(kid_id, chore_id):
+            if self.chore_has_pending_claim(assignee_id, chore_id):
                 count += 1
 
         return count
 
-    def can_claim_chore(self, kid_id: str, chore_id: str) -> tuple[bool, str | None]:
-        """Check if a kid can claim a specific chore.
+    def can_claim_chore(
+        self, assignee_id: str, chore_id: str
+    ) -> tuple[bool, str | None]:
+        """Check if a assignee can claim a specific chore.
 
         This helper is dual-purpose: used for claim validation AND for providing
         status information to the dashboard helper sensor.
 
-        Phase 2: SHARED_FIRST blocking is computed from other kids' states
+        Phase 2: SHARED_FIRST blocking is computed from other assignees' states
         instead of checking a stored completed_by_other state.
 
         Checks (in order):
-        1. SHARED_FIRST blocking - Another kid is claimed/approved
+        1. SHARED_FIRST blocking - Another assignee is claimed/approved
         2. pending_claim - Already has a claim awaiting approval
         3. already_approved - Already approved in current period (if not multi-claim)
 
@@ -3293,8 +3376,8 @@ class ChoreManager(BaseManager):
             - (True, None) if claim is allowed
             - (False, translation_key) if claim is blocked
         """
-        # Get current kid's chore data and chore definition
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        # Get current assignee's chore data and chore definition
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
@@ -3302,48 +3385,53 @@ class ChoreManager(BaseManager):
         # Determine if this is a multi-claim mode
         allow_multiple_claims = self._chore_allows_multiple_claims(chore_id)
 
-        # For SHARED_FIRST, collect other kids' states for blocking check
+        # For SHARED_FIRST, collect other assignees' states for blocking check
         completion_criteria = chore_data.get(
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
-        other_kid_states = None
+        other_assignee_states = None
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            other_kid_states = {}
-            for other_kid_id in kids_assigned:
-                if other_kid_id != kid_id and other_kid_id:
-                    other_kid_chore_data = self._get_kid_chore_data(
-                        other_kid_id, chore_id
+            assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            other_assignee_states = {}
+            for other_assignee_id in assignees_assigned:
+                if other_assignee_id != assignee_id and other_assignee_id:
+                    other_assignee_chore_data = self._get_assignee_chore_data(
+                        other_assignee_id, chore_id
                     )
-                    other_kid_states[other_kid_id] = other_kid_chore_data.get(
-                        const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                    other_assignee_states[other_assignee_id] = (
+                        other_assignee_chore_data.get(
+                            const.DATA_ASSIGNEE_CHORE_DATA_STATE,
+                            const.CHORE_STATE_PENDING,
+                        )
                     )
 
         # Check 1: pending claim blocks new claims (unless multi-claim allowed)
         # For MULTI modes, re-claiming is allowed even with a pending claim
-        if not allow_multiple_claims and self.chore_has_pending_claim(kid_id, chore_id):
+        if not allow_multiple_claims and self.chore_has_pending_claim(
+            assignee_id, chore_id
+        ):
             return (False, const.TRANS_KEY_ERROR_CHORE_PENDING_CLAIM)
 
         # Check 2: already approved in current period (unless multi-claim allowed)
         if not allow_multiple_claims and self.chore_is_approved_in_period(
-            kid_id, chore_id
+            assignee_id, chore_id
         ):
             return (False, const.TRANS_KEY_ERROR_CHORE_ALREADY_APPROVED)
 
         # Check 3: Delegate to Engine for SHARED_FIRST blocking and FSM-based locking
         # v0.5.0: Calculate resolved_state to enable rotation/waiting/missed blocking
-        has_pending = ChoreEngine.chore_has_pending_claim(kid_chore_data)
-        is_approved = self.chore_is_approved_in_period(kid_id, chore_id)
+        has_pending = ChoreEngine.chore_has_pending_claim(assignee_chore_data)
+        is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
 
         # Get resolved state for FSM-based claim blocking (rotation, waiting, missed)
         # Use existing helper methods to get due_date and due_window_start
-        due_date = self.get_due_date(chore_id, kid_id)
-        due_window_start = self.get_due_window_start(chore_id, kid_id)
+        due_date = self.get_due_date(chore_id, assignee_id)
+        due_window_start = self.get_due_window_start(chore_id, assignee_id)
 
-        resolved_state, lock_reason = ChoreEngine.resolve_kid_chore_state(
+        resolved_state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
             chore_data=chore_data,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             now=dt_util.now(),
             is_approved_in_period=is_approved,
             has_pending_claim=has_pending,
@@ -3352,23 +3440,25 @@ class ChoreManager(BaseManager):
         )
 
         return ChoreEngine.can_claim_chore(
-            kid_chore_data=kid_chore_data,
+            assignee_chore_data=assignee_chore_data,
             chore_data=chore_data,
             has_pending_claim=has_pending,
             is_approved_in_period=is_approved,
-            other_kid_states=other_kid_states,
+            other_assignee_states=other_assignee_states,
             resolved_state=resolved_state,
             lock_reason=lock_reason,
         )
 
-    def can_approve_chore(self, kid_id: str, chore_id: str) -> tuple[bool, str | None]:
-        """Check if a chore can be approved for a specific kid.
+    def can_approve_chore(
+        self, assignee_id: str, chore_id: str
+    ) -> tuple[bool, str | None]:
+        """Check if a chore can be approved for a specific assignee.
 
         This helper is dual-purpose: used for approval validation AND for providing
         status information to the dashboard helper sensor.
 
         Phase 2: completed_by_other check removed - SHARED_FIRST blocking
-        only affects claims, not approvals (parent can still approve anyone).
+        only affects claims, not approvals (approver can still approve anyone).
 
         Checks (in order):
         1. already_approved - Already approved in current period (if not multi-claim)
@@ -3385,7 +3475,7 @@ class ChoreManager(BaseManager):
         allow_multiple_claims = self._chore_allows_multiple_claims(chore_id)
 
         if not allow_multiple_claims and self.chore_is_approved_in_period(
-            kid_id, chore_id
+            assignee_id, chore_id
         ):
             return (False, const.TRANS_KEY_ERROR_CHORE_ALREADY_APPROVED)
 
@@ -3394,19 +3484,23 @@ class ChoreManager(BaseManager):
     def get_chore_last_completed(
         self,
         chore_id: str,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
     ) -> str | None:
         """Get last_completed timestamp. Manager provides data, Engine provides verdict."""
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        kid_data: UserData | dict[str, Any] = (
-            self._coordinator.kids_data.get(kid_id, {}) if kid_id else {}
+        assignee_data: UserData | dict[str, Any] = (
+            self._coordinator.assignees_data.get(assignee_id, {}) if assignee_id else {}
         )
-        return ChoreEngine.get_last_completed_for_kid(chore_data, kid_data, kid_id)
+        return ChoreEngine.get_last_completed_for_assignee(
+            chore_data, assignee_data, assignee_id
+        )
 
-    def get_chore_status_context(self, kid_id: str, chore_id: str) -> dict[str, Any]:
-        """Return all derived chore states for a kid+chore in one call.
+    def get_chore_status_context(
+        self, assignee_id: str, chore_id: str
+    ) -> dict[str, Any]:
+        """Return all derived chore states for a assignee+chore in one call.
 
         Sensors should call this once and read from the returned dict
         rather than calling multiple individual wrapper methods. This
@@ -3434,27 +3528,27 @@ class ChoreManager(BaseManager):
             approved > completed_by_other > claimed > overdue > due > pending
         """
         # Single data fetch
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         # Pre-compute all status flags using Engine methods
-        has_pending = ChoreEngine.chore_has_pending_claim(kid_chore_data)
-        is_overdue = ChoreEngine.chore_is_overdue(kid_chore_data)
-        is_due = self.chore_is_due(kid_id, chore_id)
+        has_pending = ChoreEngine.chore_has_pending_claim(assignee_chore_data)
+        is_overdue = ChoreEngine.chore_is_overdue(assignee_chore_data)
+        is_due = self.chore_is_due(assignee_id, chore_id)
 
         # These require Manager context (approval_period_start lookup)
-        is_approved = self.chore_is_approved_in_period(kid_id, chore_id)
+        is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
 
         # Compute shared-first context and use one FSM resolution for both
         # display state and claimability checks.
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
         )
-        due_dt = self.get_due_date(chore_id, kid_id)
-        due_window_start = self.get_due_window_start(chore_id, kid_id)
+        due_dt = self.get_due_date(chore_id, assignee_id)
+        due_window_start = self.get_due_window_start(chore_id, assignee_id)
 
-        display_state, lock_reason = ChoreEngine.resolve_kid_chore_state(
+        display_state, lock_reason = ChoreEngine.resolve_assignee_chore_state(
             chore_data=chore_data,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             now=dt_util.now(),
             is_approved_in_period=is_approved,
             has_pending_claim=has_pending,
@@ -3466,24 +3560,24 @@ class ChoreManager(BaseManager):
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
-        other_kid_states = None
+        other_assignee_states = None
         is_completed_by_other = False
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            other_kid_states = {}
-            for other_kid_id in kids_assigned:
-                if other_kid_id != kid_id and other_kid_id:
-                    other_kid_chore_data = self._get_kid_chore_data(
-                        other_kid_id, chore_id
+            assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            other_assignee_states = {}
+            for other_assignee_id in assignees_assigned:
+                if other_assignee_id != assignee_id and other_assignee_id:
+                    other_assignee_chore_data = self._get_assignee_chore_data(
+                        other_assignee_id, chore_id
                     )
-                    other_state = other_kid_chore_data.get(
-                        const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                    other_state = other_assignee_chore_data.get(
+                        const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
                     )
-                    other_kid_states[other_kid_id] = other_state
-                    other_claimed_by = other_kid_chore_data.get(
+                    other_assignee_states[other_assignee_id] = other_state
+                    other_claimed_by = other_assignee_chore_data.get(
                         const.DATA_CHORE_CLAIMED_BY
                     )
-                    other_completed_by = other_kid_chore_data.get(
+                    other_completed_by = other_assignee_chore_data.get(
                         const.DATA_CHORE_COMPLETED_BY
                     )
                     if (
@@ -3496,11 +3590,11 @@ class ChoreManager(BaseManager):
                         break
 
         can_claim, claim_error = ChoreEngine.can_claim_chore(
-            kid_chore_data=kid_chore_data,
+            assignee_chore_data=assignee_chore_data,
             chore_data=chore_data,
             has_pending_claim=has_pending,
             is_approved_in_period=is_approved,
-            other_kid_states=other_kid_states,
+            other_assignee_states=other_assignee_states,
             resolved_state=display_state,
             lock_reason=lock_reason,
         )
@@ -3509,16 +3603,16 @@ class ChoreManager(BaseManager):
             can_claim = False
             claim_error = const.TRANS_KEY_ERROR_CHORE_COMPLETED_BY_OTHER
 
-        can_approve, approve_error = self.can_approve_chore(kid_id, chore_id)
+        can_approve, approve_error = self.can_approve_chore(assignee_id, chore_id)
 
         # Raw stored state
-        stored_state = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        stored_state = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
-        # Apply completed_by_other display state for SHARED_FIRST if another kid
+        # Apply completed_by_other display state for SHARED_FIRST if another assignee
         # is active. This display-only state should take precedence over
-        # due/overdue/pending for blocked kids.
+        # due/overdue/pending for blocked assignees.
         if is_completed_by_other and display_state in (
             const.CHORE_STATE_PENDING,
             const.CHORE_STATE_DUE,
@@ -3554,47 +3648,47 @@ class ChoreManager(BaseManager):
             const.CHORE_CTX_DUE_DATE: due_dt.isoformat() if due_dt else None,
             const.CHORE_CTX_AVAILABLE_AT: available_at,
             const.CHORE_CTX_LAST_COMPLETED: self.get_chore_last_completed(
-                chore_id, kid_id
+                chore_id, assignee_id
             ),
         }
 
-    def get_chore_data_for_kid(
-        self, kid_id: str, chore_id: str
-    ) -> KidChoreDataEntry | dict[str, Any]:
-        """Get the chore data dict for a specific kid+chore combination.
+    def get_chore_data_for_assignee(
+        self, assignee_id: str, chore_id: str
+    ) -> AssigneeChoreDataEntry | dict[str, Any]:
+        """Get the chore data dict for a specific assignee+chore combination.
 
-        Returns an empty dict if the kid or chore data doesn't exist.
+        Returns an empty dict if the assignee or chore data doesn't exist.
         """
-        kid_info: UserData = cast(
-            "UserData", self._coordinator.kids_data.get(kid_id, {})
+        assignee_info: UserData = cast(
+            "UserData", self._coordinator.assignees_data.get(assignee_id, {})
         )
-        return kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
+        return assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(chore_id, {})
 
     def get_chore_claimant(self, chore_id: str) -> str | None:
-        """Get the kid_id of the current claimant for a chore.
+        """Get the assignee_id of the current claimant for a chore.
 
-        For SHARED_FIRST chores, returns the kid who has claimed but not yet
-        been approved. For other chores, returns the first kid with a pending
+        For SHARED_FIRST chores, returns the assignee who has claimed but not yet
+        been approved. For other chores, returns the first assignee with a pending
         claim (though typically only one would exist).
 
         Args:
             chore_id: The chore's internal ID
 
         Returns:
-            kid_id of the claimant, or None if no pending claims.
+            assignee_id of the claimant, or None if no pending claims.
         """
         chore_info = self._coordinator.chores_data.get(chore_id)
         if not chore_info:
             return None
 
-        assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-        for kid_id in assigned_kids:
-            if kid_id and self.chore_has_pending_claim(kid_id, chore_id):
-                return kid_id
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        for assignee_id in assigned_assignees:
+            if assignee_id and self.chore_has_pending_claim(assignee_id, chore_id):
+                return assignee_id
         return None
 
     def _is_chore_approval_after_reset(
-        self, chore_info: ChoreData, kid_id: str
+        self, chore_info: ChoreData, assignee_id: str
     ) -> bool:
         """Check if approval is happening after the reset boundary has passed.
 
@@ -3609,7 +3703,7 @@ class ChoreManager(BaseManager):
         )
 
         # Get due date using unified helper
-        due_date = self.get_due_date(chore_id, kid_id)
+        due_date = self.get_due_date(chore_id, assignee_id)
         if not due_date:
             return False
 
@@ -3640,8 +3734,10 @@ class ChoreManager(BaseManager):
     # §6 HELPER METHODS (private)
     # =========================================================================
 
-    def _ensure_kid_structures(self, kid_id: str, chore_id: str | None = None) -> None:
-        """Landlord genesis - ensure kid has chore_periods bucket and per-chore periods.
+    def _ensure_assignee_structures(
+        self, assignee_id: str, chore_id: str | None = None
+    ) -> None:
+        """Landlord genesis - ensure assignee has chore_periods bucket and per-chore periods.
 
         Creates empty chore_periods dict if missing. StatisticsEngine (Tenant)
         creates and writes the period sub-keys (daily/weekly/etc.) on-demand.
@@ -3650,101 +3746,115 @@ class ChoreManager(BaseManager):
         This maintains consistency - ChoreManager (Landlord) creates containers,
         StatisticsEngine (Tenant) populates data.
 
-        This is the "Landlord" pattern - ChoreManager owns kid.chore_periods
+        This is the "Landlord" pattern - ChoreManager owns assignee.chore_periods
         top-level dict, StatisticsEngine manages everything inside it.
 
         Args:
-            kid_id: Kid UUID to ensure structure for
+            assignee_id: Assignee UUID to ensure structure for
             chore_id: Optional chore UUID to ensure per-chore periods for
         """
-        kids = self._coordinator.users_data
-        kid = kids.get(kid_id)
-        if kid is None:
-            return  # Kid not found - caller should validate first
+        assignees = self._coordinator.users_data
+        assignee = assignees.get(assignee_id)
+        if assignee is None:
+            return  # Assignee not found - caller should validate first
 
-        kid_info = cast("dict[str, Any]", kid)
+        assignee_info = cast("dict[str, Any]", assignee)
 
-        # Kid-level chore_periods bucket (v44+)
-        if const.DATA_KID_CHORE_PERIODS not in kid_info:
-            kid_info[const.DATA_KID_CHORE_PERIODS] = {}  # Tenant populates sub-keys
+        # Assignee-level chore_periods bucket (v44+)
+        if const.DATA_ASSIGNEE_CHORE_PERIODS not in assignee_info:
+            assignee_info[
+                const.DATA_ASSIGNEE_CHORE_PERIODS
+            ] = {}  # Tenant populates sub-keys
 
         # Per-chore periods structure (if chore_id provided)
         if chore_id:
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
             if (
-                kid_chore_data
-                and const.DATA_KID_CHORE_DATA_PERIODS not in kid_chore_data
+                assignee_chore_data
+                and const.DATA_ASSIGNEE_CHORE_DATA_PERIODS not in assignee_chore_data
             ):
-                kid_chore_data[
-                    const.DATA_KID_CHORE_DATA_PERIODS
+                assignee_chore_data[
+                    const.DATA_ASSIGNEE_CHORE_DATA_PERIODS
                 ] = {}  # Tenant populates sub-keys
 
-    def _iter_kid_chore_pairs(
+    def _iter_assignee_chore_pairs(
         self,
         chore_id: str | None = None,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
         filter_fn: Callable[[str, str], bool] | None = None,
     ) -> Iterator[tuple[str, str, ChoreData]]:
-        """Iterate over (kid_id, chore_id, chore_info) pairs.
+        """Iterate over (assignee_id, chore_id, chore_info) pairs.
 
         Handles three iteration patterns:
-        - chore_id only: All assigned kids for that chore
-        - kid_id only: All chores assigned to that kid
-        - Neither: All kid-chore pairs in the system
+        - chore_id only: All assigned assignees for that chore
+        - assignee_id only: All chores assigned to that assignee
+        - Neither: All assignee-chore pairs in the system
 
         Args:
             chore_id: Optional filter to specific chore
-            kid_id: Optional filter to specific kid
-            filter_fn: Optional filter function(kid_id, chore_id) -> bool
+            assignee_id: Optional filter to specific assignee
+            filter_fn: Optional filter function(assignee_id, chore_id) -> bool
 
         Yields:
-            Tuple of (kid_id, chore_id, chore_info) for each matching pair
+            Tuple of (assignee_id, chore_id, chore_info) for each matching pair
         """
         if chore_id:
-            # Specific chore: iterate its assigned kids
+            # Specific chore: iterate its assigned assignees
             chore_info = self._coordinator.chores_data.get(chore_id)
             if chore_info:
-                for iter_kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                    if iter_kid_id and iter_kid_id in self._coordinator.kids_data:
-                        if kid_id and iter_kid_id != kid_id:
-                            continue  # Skip if specific kid requested but doesn't match
-                        if filter_fn and not filter_fn(iter_kid_id, chore_id):
+                for iter_assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                ):
+                    if (
+                        iter_assignee_id
+                        and iter_assignee_id in self._coordinator.assignees_data
+                    ):
+                        if assignee_id and iter_assignee_id != assignee_id:
+                            continue  # Skip if specific assignee requested but doesn't match
+                        if filter_fn and not filter_fn(iter_assignee_id, chore_id):
                             continue
-                        yield (iter_kid_id, chore_id, chore_info)
-        elif kid_id:
-            # Specific kid: iterate all chores assigned to them
+                        yield (iter_assignee_id, chore_id, chore_info)
+        elif assignee_id:
+            # Specific assignee: iterate all chores assigned to them
             for iter_chore_id, chore_info in self._coordinator.chores_data.items():
-                if kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                    if filter_fn and not filter_fn(kid_id, iter_chore_id):
+                if assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                ):
+                    if filter_fn and not filter_fn(assignee_id, iter_chore_id):
                         continue
-                    yield (kid_id, iter_chore_id, chore_info)
+                    yield (assignee_id, iter_chore_id, chore_info)
         else:
-            # All: iterate all kid-chore pairs
+            # All: iterate all assignee-chore pairs
             for iter_chore_id, chore_info in self._coordinator.chores_data.items():
-                for iter_kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                    if iter_kid_id and iter_kid_id in self._coordinator.kids_data:
-                        if filter_fn and not filter_fn(iter_kid_id, iter_chore_id):
+                for iter_assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                ):
+                    if (
+                        iter_assignee_id
+                        and iter_assignee_id in self._coordinator.assignees_data
+                    ):
+                        if filter_fn and not filter_fn(iter_assignee_id, iter_chore_id):
                             continue
-                        yield (iter_kid_id, iter_chore_id, chore_info)
+                        yield (iter_assignee_id, iter_chore_id, chore_info)
 
-    def _get_lock(self, kid_id: str, chore_id: str) -> asyncio.Lock:
-        """Get or create a lock for kid+chore combination.
+    def _get_lock(self, assignee_id: str, chore_id: str) -> asyncio.Lock:
+        """Get or create a lock for assignee+chore combination.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
 
         Returns:
-            asyncio.Lock for this kid+chore pair
+            asyncio.Lock for this assignee+chore pair
         """
-        lock_key = f"{kid_id}:{chore_id}"
+        lock_key = f"{assignee_id}:{chore_id}"
         if lock_key not in self._approval_locks:
             self._approval_locks[lock_key] = asyncio.Lock()
         return self._approval_locks[lock_key]
 
     def _transition_chore_state(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
         new_state: str,
         *,
@@ -3762,7 +3872,7 @@ class ChoreManager(BaseManager):
         Phase 4 Guard Rail: Tracks state modification for debug-mode assertion.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             new_state: The new state to set
             reset_approval_period: If True, sets a new approval_period_start
@@ -3771,22 +3881,22 @@ class ChoreManager(BaseManager):
             persist: If True (default), persists and updates coordinator data
         """
         # Phase 4 Guard Rail: Track modification
-        self._track_state_modification(kid_id, chore_id)
+        self._track_state_modification(assignee_id, chore_id)
 
-        kid_info = self._coordinator.kids_data.get(kid_id)
+        assignee_info = self._coordinator.assignees_data.get(assignee_id)
         chore_info = self._coordinator.chores_data.get(chore_id)
 
-        if not kid_info or not chore_info:
+        if not assignee_info or not chore_info:
             return
 
         # Landlord duty: Ensure periods structures exist before statistics writes
-        self._ensure_kid_structures(kid_id, chore_id)
+        self._ensure_assignee_structures(assignee_id, chore_id)
 
-        # Get or initialize kid chore data
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        # Get or initialize assignee chore data
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         # Update state
-        kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] = new_state
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE] = new_state
 
         # Phase 2: completed_by_other_chores list management removed
         # SHARED_FIRST blocking is now computed dynamically in can_claim_chore()
@@ -3795,21 +3905,21 @@ class ChoreManager(BaseManager):
         # Capture completed_by before optional ownership clear.
         # Rotation advancement on reset needs this value even when
         # clear_ownership=True for fresh-cycle transitions.
-        completed_by_kid_id = None
+        completed_by_assignee_id = None
         completed_by = chore_info.get(const.DATA_CHORE_COMPLETED_BY)
         if isinstance(completed_by, str):
-            completed_by_kid_id = completed_by
+            completed_by_assignee_id = completed_by
         elif isinstance(completed_by, list) and completed_by:
-            completed_by_kid_id = completed_by[0]
+            completed_by_assignee_id = completed_by[0]
 
         # Clear ownership tracking for fresh cycle
         if clear_ownership:
-            kid_chore_data.pop(const.DATA_CHORE_CLAIMED_BY, None)
-            kid_chore_data.pop(const.DATA_CHORE_COMPLETED_BY, None)
+            assignee_chore_data.pop(const.DATA_CHORE_CLAIMED_BY, None)
+            assignee_chore_data.pop(const.DATA_CHORE_COMPLETED_BY, None)
 
         # Clear pending claim count on reset
         if new_state == const.CHORE_STATE_PENDING:
-            kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
 
             if reset_approval_period:
                 now_iso = dt_now_iso()
@@ -3817,13 +3927,13 @@ class ChoreManager(BaseManager):
                     const.DATA_CHORE_COMPLETION_CRITERIA, const.SENTINEL_EMPTY
                 )
                 if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                    kid_chore_data[const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = (
-                        now_iso
-                    )
+                    assignee_chore_data[
+                        const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+                    ] = now_iso
                 else:
                     chore_info[const.DATA_CHORE_APPROVAL_PERIOD_START] = now_iso
 
-        # Update global chore state (aggregates all kids' states)
+        # Update global chore state (aggregates all assignees' states)
         self._update_global_state(chore_id)
 
         # Phase 3 Step 1: Advance rotation turn when resetting to PENDING
@@ -3831,9 +3941,9 @@ class ChoreManager(BaseManager):
         rotation_signal_payload = None
         if new_state == const.CHORE_STATE_PENDING and reset_approval_period:
             # Advance rotation (returns payload for signal emission after persist)
-            if completed_by_kid_id:
+            if completed_by_assignee_id:
                 rotation_signal_payload = self._advance_rotation(
-                    chore_id, completed_by_kid_id, method="auto"
+                    chore_id, completed_by_assignee_id, method="auto"
                 )
 
         # Persist and emit (per DEVELOPMENT_STANDARDS.md § 5.3)
@@ -3851,18 +3961,18 @@ class ChoreManager(BaseManager):
             if emit and new_state == const.CHORE_STATE_PENDING:
                 self.emit(
                     const.SIGNAL_SUFFIX_CHORE_STATUS_RESET,
-                    kid_id=kid_id,
+                    assignee_id=assignee_id,
                     chore_id=chore_id,
                     chore_name=chore_info.get(const.DATA_CHORE_NAME, ""),
                 )
 
             self._coordinator.async_set_updated_data(self._coordinator._data)
 
-    def _validate_kid_and_chore(self, kid_id: str, chore_id: str) -> None:
-        """Validate kid and chore exist.
+    def _validate_assignee_and_chore(self, assignee_id: str, chore_id: str) -> None:
+        """Validate assignee and chore exist.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
 
         Raises:
@@ -3878,111 +3988,121 @@ class ChoreManager(BaseManager):
                 },
             )
 
-        if kid_id not in self._coordinator.kids_data:
+        if assignee_id not in self._coordinator.assignees_data:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
                 translation_placeholders={
-                    "entity_type": const.LABEL_KID,
-                    "name": kid_id,
+                    "entity_type": const.LABEL_ASSIGNEE,
+                    "name": assignee_id,
                 },
             )
 
-    def _get_kid_chore_data(self, kid_id: str, chore_id: str) -> dict[str, Any]:
-        """Get or create kid's chore data entry.
+    def _get_assignee_chore_data(
+        self, assignee_id: str, chore_id: str
+    ) -> dict[str, Any]:
+        """Get or create assignee's chore data entry.
 
         Phase 3B Landlord/Tenant: ChoreManager owns chore_data and chore_stats.
-        This method creates structures on-demand (not at kid genesis).
+        This method creates structures on-demand (not at assignee genesis).
         StatisticsManager (tenant) writes to sub-keys but never creates top-level.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
 
         Returns:
-            The kid_chore_data dict for this kid+chore
+            The assignee_chore_data dict for this assignee+chore
 
         Raises:
-            ValueError: If kid_id does not exist (kid was deleted)
+            ValueError: If assignee_id does not exist (assignee was deleted)
         """
-        # Defensive check: kid may have been deleted during async operations
-        kid_info = self._coordinator.kids_data.get(kid_id)
-        if not kid_info:
-            raise ValueError(f"Kid {kid_id} does not exist (may have been deleted)")
+        # Defensive check: assignee may have been deleted during async operations
+        assignee_info = self._coordinator.assignees_data.get(assignee_id)
+        if not assignee_info:
+            raise ValueError(
+                f"Assignee {assignee_id} does not exist (may have been deleted)"
+            )
 
         # Phase 3B Landlord duty: Ensure chore_data container exists
-        kid_chores: dict[str, dict[str, Any]] | None = kid_info.get(
-            const.DATA_KID_CHORE_DATA
+        assignee_chores: dict[str, dict[str, Any]] | None = assignee_info.get(
+            const.DATA_ASSIGNEE_CHORE_DATA
         )
-        if kid_chores is None:
-            kid_chores = {}
-            kid_info[const.DATA_KID_CHORE_DATA] = kid_chores
+        if assignee_chores is None:
+            assignee_chores = {}
+            assignee_info[const.DATA_ASSIGNEE_CHORE_DATA] = assignee_chores
 
         # v44+: chore_stats deleted - fully ephemeral now (generate_chore_stats())
         # All stats derived on-demand from chore_periods.all_time.* buckets
 
-        if chore_id not in kid_chores:
+        if chore_id not in assignee_chores:
             # v43+: No total_points field - use periods.all_time.points as canonical source
             chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
                 chore_id, {}
             )
             default_data: dict[str, Any] = {
-                const.DATA_KID_CHORE_DATA_NAME: chore_info.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_NAME: chore_info.get(
                     const.DATA_CHORE_NAME, chore_id
                 ),
-                const.DATA_KID_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
-                const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT: 0,
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: 0,
             }
-            # Only set kid-level approval_period_start for INDEPENDENT chores
+            # Only set assignee-level approval_period_start for INDEPENDENT chores
             # SHARED chores use chore-level approval_period_start instead
             criteria = chore_info.get(
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             )
             if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                default_data[const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                default_data[const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     dt_now_iso()
                 )
-            kid_chores[chore_id] = default_data
+            assignee_chores[chore_id] = default_data
 
-        return kid_chores[chore_id]
+        return assignee_chores[chore_id]
 
-    def _increment_pending_count(self, kid_id: str, chore_id: str) -> None:
-        """Increment pending claim counter for kid+chore.
-
-        Args:
-            kid_id: The kid's internal ID
-            chore_id: The chore's internal ID
-        """
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-        current = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT, 0)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] = current + 1
-
-    def _decrement_pending_count(self, kid_id: str, chore_id: str) -> None:
-        """Decrement pending claim counter for kid+chore.
+    def _increment_pending_count(self, assignee_id: str, chore_id: str) -> None:
+        """Increment pending claim counter for assignee+chore.
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
         """
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-        current = kid_chore_data.get(const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT, 0)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+        current = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+        )
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = (
+            current + 1
+        )
+
+    def _decrement_pending_count(self, assignee_id: str, chore_id: str) -> None:
+        """Decrement pending claim counter for assignee+chore.
+
+        Args:
+            assignee_id: The assignee's internal ID
+            chore_id: The chore's internal ID
+        """
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+        current = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+        )
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
             0, current - 1
         )
 
     def _handle_completion_criteria(
         self,
         chore_id: str,
-        kid_id: str,
-        completing_kid_name: str,
+        assignee_id: str,
+        completing_assignee_name: str,
     ) -> None:
         """Handle completed_by based on chore completion criteria.
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid who completed
-            completing_kid_name: Name of the completing kid
+            assignee_id: The assignee who completed
+            completing_assignee_name: Name of the completing assignee
         """
         chore_data = self._coordinator.chores_data[chore_id]
         completion_criteria = chore_data.get(
@@ -3990,23 +4110,33 @@ class ChoreManager(BaseManager):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # Store in kid's own chore data
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-            kid_chore_data[const.DATA_CHORE_COMPLETED_BY] = completing_kid_name
+            # Store in assignee's own chore data
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            assignee_chore_data[const.DATA_CHORE_COMPLETED_BY] = (
+                completing_assignee_name
+            )
 
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            # Update other kids' completed_by
-            for other_kid_id in chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                if other_kid_id == kid_id:
+            # Update other assignees' completed_by
+            for other_assignee_id in chore_data.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            ):
+                if other_assignee_id == assignee_id:
                     continue
-                other_chore_data = self._get_kid_chore_data(other_kid_id, chore_id)
-                other_chore_data[const.DATA_CHORE_COMPLETED_BY] = completing_kid_name
+                other_chore_data = self._get_assignee_chore_data(
+                    other_assignee_id, chore_id
+                )
+                other_chore_data[const.DATA_CHORE_COMPLETED_BY] = (
+                    completing_assignee_name
+                )
 
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
-            # Append to list for all assigned kids
-            for assigned_kid_id in chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, []):
-                assigned_chore_data = self._get_kid_chore_data(
-                    assigned_kid_id, chore_id
+            # Append to list for all assigned assignees
+            for assigned_assignee_id in chore_data.get(
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            ):
+                assigned_chore_data = self._get_assignee_chore_data(
+                    assigned_assignee_id, chore_id
                 )
 
                 # Initialize as list if needed
@@ -4022,32 +4152,34 @@ class ChoreManager(BaseManager):
                 completed_list = assigned_chore_data[const.DATA_CHORE_COMPLETED_BY]
                 if (
                     isinstance(completed_list, list)
-                    and completing_kid_name not in completed_list
+                    and completing_assignee_name not in completed_list
                 ):
-                    completed_list.append(completing_kid_name)
+                    completed_list.append(completing_assignee_name)
 
-    def _all_kids_approved(self, chore_id: str, assigned_kids: list[str]) -> bool:
-        """Check if all assigned kids have approved the chore.
+    def _all_assignees_approved(
+        self, chore_id: str, assigned_assignees: list[str]
+    ) -> bool:
+        """Check if all assigned assignees have approved the chore.
 
         Used for SHARED chores to determine if immediate reset should trigger.
-        Only triggers reset when ALL kids have reached APPROVED state.
+        Only triggers reset when ALL assignees have reached APPROVED state.
 
         Args:
             chore_id: The chore's internal ID
-            assigned_kids: List of assigned kid IDs
+            assigned_assignees: List of assigned assignee IDs
 
         Returns:
-            True if all kids have approved state, False otherwise
+            True if all assignees have approved state, False otherwise
         """
-        if not assigned_kids:
+        if not assigned_assignees:
             return False
 
-        for kid_id in assigned_kids:
-            if not kid_id:
+        for assignee_id in assigned_assignees:
+            if not assignee_id:
                 continue
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-            state = kid_chore_data.get(
-                const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            state = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
             if state != const.CHORE_STATE_APPROVED:
                 return False
@@ -4055,16 +4187,16 @@ class ChoreManager(BaseManager):
         return True
 
     def _advance_rotation(
-        self, chore_id: str, completing_kid_id: str, method: str = "auto"
+        self, chore_id: str, completing_assignee_id: str, method: str = "auto"
     ) -> dict[str, Any] | None:
-        """Advance rotation turn to next kid after approval.
+        """Advance rotation turn to next assignee after approval.
 
         Phase 3 Step 1: Rotation turn advancement logic.
         Called after successful approval, before _persist().
 
         Args:
             chore_id: The chore's internal ID
-            completing_kid_id: The kid who just completed the chore
+            completing_assignee_id: The assignee who just completed the chore
             method: "auto" (normal approval), "simple" (forced simple),
                    "smart" (forced smart), or "manual" (service call)
 
@@ -4079,7 +4211,9 @@ class ChoreManager(BaseManager):
             return None
 
         # Capture previous turn holder for signal
-        previous_kid_id = chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_KID_ID)
+        previous_assignee_id = chore_data.get(
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+        )
 
         # Determine rotation type
         completion_criteria = chore_data.get(
@@ -4087,11 +4221,11 @@ class ChoreManager(BaseManager):
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
 
-        # Get assigned kids list
-        assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+        # Get assigned assignees list
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
 
         # Calculate next turn based on rotation type
-        new_kid_id: str | None = None
+        new_assignee_id: str | None = None
 
         if method == "auto":
             # Determine method from completion criteria
@@ -4102,8 +4236,8 @@ class ChoreManager(BaseManager):
 
         if method == "simple":
             # Simple rotation: round-robin by list index
-            new_kid_id = ChoreEngine.calculate_next_turn_simple(
-                assigned_kids, completing_kid_id
+            new_assignee_id = ChoreEngine.calculate_next_turn_simple(
+                assigned_assignees, completing_assignee_id
             )
 
         elif method == "smart":
@@ -4115,15 +4249,15 @@ class ChoreManager(BaseManager):
             ):
                 completed_counts = (
                     self.coordinator.statistics_manager.get_chore_completed_counts(
-                        chore_id, assigned_kids
+                        chore_id, assigned_assignees
                     )
                 )
                 last_completed_timestamps = self.coordinator.statistics_manager.get_chore_last_completed_timestamps(
-                    chore_id, assigned_kids
+                    chore_id, assigned_assignees
                 )
 
-                new_kid_id = ChoreEngine.calculate_next_turn_smart(
-                    assigned_kids=assigned_kids,
+                new_assignee_id = ChoreEngine.calculate_next_turn_smart(
+                    assigned_assignees=assigned_assignees,
                     completed_counts=completed_counts,
                     last_completed_timestamps=last_completed_timestamps,
                 )
@@ -4132,18 +4266,20 @@ class ChoreManager(BaseManager):
                 const.LOGGER.debug(
                     "Smart rotation methods not yet implemented, using simple rotation"
                 )
-                new_kid_id = ChoreEngine.calculate_next_turn_simple(
-                    assigned_kids, completing_kid_id
+                new_assignee_id = ChoreEngine.calculate_next_turn_simple(
+                    assigned_assignees, completing_assignee_id
                 )
 
         elif method == "manual":
             # Manual method: turn was already set by service call
-            # Just emit signal, don't change rotation_current_kid_id
-            new_kid_id = chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_KID_ID)
+            # Just emit signal, don't change rotation_current_assignee_id
+            new_assignee_id = chore_data.get(
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+            )
 
         # Update rotation metadata
-        if new_kid_id:
-            chore_data[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = new_kid_id
+        if new_assignee_id:
+            chore_data[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = new_assignee_id
 
         # Clear rotation override after advancement (D-15: cleared on next approval)
         chore_data[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = False
@@ -4151,8 +4287,8 @@ class ChoreManager(BaseManager):
         # Return payload for caller to emit after _persist()
         return {
             "chore_id": chore_id,
-            "previous_kid_id": previous_kid_id,
-            "new_kid_id": new_kid_id,
+            "previous_assignee_id": previous_assignee_id,
+            "new_assignee_id": new_assignee_id,
             "method": method,
         }
 
@@ -4162,7 +4298,7 @@ class ChoreManager(BaseManager):
         """Handle completion_criteria changes (D-11 — criteria is mutable).
 
         When user edits chore's completion_criteria field, this method:
-        - Validates rotation requirements (≥2 assigned kids)
+        - Validates rotation requirements (≥2 assigned assignees)
         - Initializes/clears rotation fields as needed
         - Applies field changes from Engine transition logic
         - Persists changes and emits CHORE_UPDATED signal
@@ -4173,7 +4309,7 @@ class ChoreManager(BaseManager):
             new_criteria: New completion_criteria value
 
         Raises:
-            ServiceValidationError: If rotation criteria with <2 assigned kids
+            ServiceValidationError: If rotation criteria with <2 assigned assignees
         """
         chore_data = self._coordinator.chores_data.get(chore_id)
         if not chore_data:
@@ -4189,17 +4325,17 @@ class ChoreManager(BaseManager):
             chore_data=chore_data,
         )
 
-        # Validate rotation requirements (D-14: rotation requires ≥2 kids)
+        # Validate rotation requirements (D-14: rotation requires ≥2 assignees)
         new_is_rotation = new_criteria in (
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
         )
         if new_is_rotation:
-            assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-            if len(assigned_kids) < 2:
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            if len(assigned_assignees) < 2:
                 raise ServiceValidationError(
                     translation_domain=const.DOMAIN,
-                    translation_key=const.TRANS_KEY_ERROR_ROTATION_MIN_KIDS,
+                    translation_key=const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES,
                 )
 
         # Always update the completion_criteria field itself
@@ -4231,17 +4367,17 @@ class ChoreManager(BaseManager):
     # PUBLIC ROTATION MANAGEMENT METHODS (Phase 3 Step 7 - v0.5.0)
     # ==========================================================================
 
-    async def set_rotation_turn(self, chore_id: str, kid_id: str) -> None:
-        """Set rotation turn to a specific kid.
+    async def set_rotation_turn(self, chore_id: str, assignee_id: str) -> None:
+        """Set rotation turn to a specific assignee.
 
         Called by: services.handle_set_rotation_turn (manual user intervention)
 
         Args:
             chore_id: Internal ID of the rotation chore
-            kid_id: Internal ID of the kid to receive the turn
+            assignee_id: Internal ID of the assignee to receive the turn
 
         Raises:
-            ServiceValidationError: If chore is not rotation mode or kid not assigned
+            ServiceValidationError: If chore is not rotation mode or assignee not assigned
         """
         chores_data = self._coordinator._data[const.DATA_CHORES]
 
@@ -4260,16 +4396,16 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_NOT_ROTATION,
             )
 
-        # Validate kid is assigned
-        assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-        if kid_id not in assigned_kids:
+        # Validate assignee is assigned
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        if assignee_id not in assigned_assignees:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
-                translation_key=const.TRANS_KEY_ERROR_KID_NOT_ASSIGNED,
+                translation_key=const.TRANS_KEY_ERROR_ASSIGNEE_NOT_ASSIGNED,
             )
 
         # Set the turn
-        chore_info[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = kid_id
+        chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = assignee_id
 
         # Persist
         self._coordinator._persist_and_update()
@@ -4278,17 +4414,17 @@ class ChoreManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_UPDATED,
             chore_id=chore_id,
-            updated_fields=[const.DATA_CHORE_ROTATION_CURRENT_KID_ID],
+            updated_fields=[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID],
         )
 
         const.LOGGER.info(
-            "Set rotation turn: chore=%s kid=%s",
+            "Set rotation turn: chore=%s assignee=%s",
             chore_id,
-            kid_id,
+            assignee_id,
         )
 
     async def reset_rotation(self, chore_id: str) -> None:
-        """Reset rotation to first assigned kid.
+        """Reset rotation to first assigned assignee.
 
         Called by: services.handle_reset_rotation (manual reset to start)
 
@@ -4296,7 +4432,7 @@ class ChoreManager(BaseManager):
             chore_id: Internal ID of the rotation chore
 
         Raises:
-            ServiceValidationError: If chore is not rotation mode or has no assigned kids
+            ServiceValidationError: If chore is not rotation mode or has no assigned assignees
         """
         chores_data = self._coordinator._data[const.DATA_CHORES]
 
@@ -4315,17 +4451,17 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_NOT_ROTATION,
             )
 
-        # Validate has assigned kids
-        assigned_kids = chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-        if not assigned_kids:
+        # Validate has assigned assignees
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        if not assigned_assignees:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
-                translation_key=const.TRANS_KEY_ERROR_NO_ASSIGNED_KIDS,
+                translation_key=const.TRANS_KEY_ERROR_NO_ASSIGNED_ASSIGNEES,
             )
 
-        # Reset to first kid
-        first_kid = assigned_kids[0]
-        chore_info[const.DATA_CHORE_ROTATION_CURRENT_KID_ID] = first_kid
+        # Reset to first assignee
+        first_assignee = assigned_assignees[0]
+        chore_info[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = first_assignee
 
         # Persist
         self._coordinator._persist_and_update()
@@ -4334,17 +4470,17 @@ class ChoreManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_UPDATED,
             chore_id=chore_id,
-            updated_fields=[const.DATA_CHORE_ROTATION_CURRENT_KID_ID],
+            updated_fields=[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID],
         )
 
         const.LOGGER.info(
-            "Reset rotation: chore=%s → kid=%s",
+            "Reset rotation: chore=%s → assignee=%s",
             chore_id,
-            first_kid,
+            first_assignee,
         )
 
     async def open_rotation_cycle(self, chore_id: str) -> None:
-        """Open rotation cycle - allow any assigned kid to claim once.
+        """Open rotation cycle - allow any assigned assignee to claim once.
 
         Called by: services.handle_open_rotation_cycle (override for one cycle)
 
@@ -4371,7 +4507,7 @@ class ChoreManager(BaseManager):
                 translation_key=const.TRANS_KEY_ERROR_NOT_ROTATION,
             )
 
-        # Set cycle override flag (temp allow any kid to claim)
+        # Set cycle override flag (temp allow any assignee to claim)
         chore_info[const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE] = True
 
         # Persist
@@ -4396,19 +4532,19 @@ class ChoreManager(BaseManager):
             effect: The effect to apply
             chore_id: The chore's internal ID
         """
-        kid_id = effect.kid_id
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_id = effect.assignee_id
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         # Apply state change
         if effect.new_state:
             state_to_persist = effect.new_state
-            if state_to_persist not in const.CHORE_PERSISTED_KID_STATES:
+            if state_to_persist not in const.CHORE_PERSISTED_ASSIGNEE_STATES:
                 const.LOGGER.debug(
                     "Normalizing non-persisted chore state to pending: %s",
                     state_to_persist,
                 )
                 state_to_persist = const.CHORE_STATE_PENDING
-            kid_chore_data[const.DATA_KID_CHORE_DATA_STATE] = state_to_persist
+            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE] = state_to_persist
 
         # Phase 2: completed_by_other_chores list management removed
         # SHARED_FIRST blocking is now computed dynamically in can_claim_chore()
@@ -4418,26 +4554,26 @@ class ChoreManager(BaseManager):
 
         # Clear claimed_by
         if effect.clear_claimed_by:
-            kid_chore_data.pop(const.DATA_CHORE_CLAIMED_BY, None)
+            assignee_chore_data.pop(const.DATA_CHORE_CLAIMED_BY, None)
 
         # Clear completed_by
         if effect.clear_completed_by:
-            kid_chore_data.pop(const.DATA_CHORE_COMPLETED_BY, None)
+            assignee_chore_data.pop(const.DATA_CHORE_COMPLETED_BY, None)
 
         # Set claimed_by
         if effect.set_claimed_by:
-            kid_chore_data[const.DATA_CHORE_CLAIMED_BY] = effect.set_claimed_by
+            assignee_chore_data[const.DATA_CHORE_CLAIMED_BY] = effect.set_claimed_by
 
         # Set completed_by
         if effect.set_completed_by:
-            kid_chore_data[const.DATA_CHORE_COMPLETED_BY] = effect.set_completed_by
+            assignee_chore_data[const.DATA_CHORE_COMPLETED_BY] = effect.set_completed_by
 
     def _update_global_state(self, chore_id: str) -> None:
-        """Update the chore-level global state based on all assigned kids' states.
+        """Update the chore-level global state based on all assigned assignees' states.
 
         This mirrors the logic from coordinator's _transition_chore_state to ensure
         the chore-level state (chores_data[chore_id][DATA_CHORE_STATE]) is consistent
-        with the per-kid states (kid_chore_data[chore_id][DATA_KID_CHORE_DATA_STATE]).
+        with the per-assignee states (assignee_chore_data[chore_id][DATA_ASSIGNEE_CHORE_DATA_STATE]).
 
         Args:
             chore_id: The chore's internal ID
@@ -4446,8 +4582,8 @@ class ChoreManager(BaseManager):
         if not chore_data:
             return
 
-        assigned_kids = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
-        if not assigned_kids:
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        if not assigned_assignees:
             chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_UNKNOWN
             return
 
@@ -4455,26 +4591,28 @@ class ChoreManager(BaseManager):
             const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_SHARED
         )
 
-        # Single kid - use their state directly
-        if len(assigned_kids) == 1:
-            kid_chore_data = self._get_kid_chore_data(assigned_kids[0], chore_id)
-            state = kid_chore_data.get(
-                const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        # Single assignee - use their state directly
+        if len(assigned_assignees) == 1:
+            assignee_chore_data = self._get_assignee_chore_data(
+                assigned_assignees[0], chore_id
+            )
+            state = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
             chore_data[const.DATA_CHORE_STATE] = state
             return
 
-        # Multiple kids - count states
+        # Multiple assignees - count states
         count_pending = 0
         count_claimed = 0
         count_approved = 0
         count_overdue = 0
         # Phase 2: count_completed_by_other removed (state eliminated from FSM)
 
-        for kid_id in assigned_kids:
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-            state = kid_chore_data.get(
-                const.DATA_KID_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+        for assignee_id in assigned_assignees:
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            state = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
 
             if state == const.CHORE_STATE_APPROVED:
@@ -4492,9 +4630,9 @@ class ChoreManager(BaseManager):
             else:
                 count_pending += 1
 
-        total = len(assigned_kids)
+        total = len(assigned_assignees)
 
-        # If all kids are in the same state
+        # If all assignees are in the same state
         if count_pending == total:
             chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
         elif count_claimed == total:
@@ -4526,25 +4664,25 @@ class ChoreManager(BaseManager):
             else:
                 chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_UNKNOWN
 
-        # INDEPENDENT: multiple kids with different states
+        # INDEPENDENT: multiple assignees with different states
         else:
             chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_INDEPENDENT
 
     def _set_approval_period_start(
         self,
         chore_id: str,
-        kid_id: str | None,
+        assignee_id: str | None,
         timestamp: str,
     ) -> None:
         """Set the approval period start timestamp.
 
         Handles INDEPENDENT vs SHARED storage location:
-        - INDEPENDENT: Sets per-kid approval_period_start in kid_chore_data
+        - INDEPENDENT: Sets per-assignee approval_period_start in assignee_chore_data
         - SHARED/SHARED_FIRST: Sets chore-level approval_period_start
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid's internal ID (required for INDEPENDENT, can be None for SHARED)
+            assignee_id: The assignee's internal ID (required for INDEPENDENT, can be None for SHARED)
             timestamp: ISO format timestamp to set
         """
         chore_info = self._coordinator.chores_data.get(chore_id)
@@ -4557,26 +4695,28 @@ class ChoreManager(BaseManager):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            if not kid_id:
+            if not assignee_id:
                 const.LOGGER.warning(
-                    "Cannot set approval_period_start for INDEPENDENT chore without kid_id"
+                    "Cannot set approval_period_start for INDEPENDENT chore without assignee_id"
                 )
                 return
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-            kid_chore_data[const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = timestamp
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            assignee_chore_data[
+                const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+            ] = timestamp
         else:
             # SHARED/SHARED_FIRST: chore-level
             chore_info[const.DATA_CHORE_APPROVAL_PERIOD_START] = timestamp
 
     def _reset_approval_period(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
         timestamp: str | None = None,
         *,
         force_update: bool = False,
     ) -> None:
-        """Reset the approval period tracking for a kid+chore.
+        """Reset the approval period tracking for a assignee+chore.
 
         Sets approval_period_start to mark the start of a new approval period.
         The chore_is_approved_in_period() check compares:
@@ -4585,11 +4725,11 @@ class ChoreManager(BaseManager):
         So after calling this, if last_approved was from before the period start,
         the chore becomes claimable again because it's not approved in the current period.
 
-        For INDEPENDENT chores: stores approval_period_start in kid_chore_data
+        For INDEPENDENT chores: stores approval_period_start in assignee_chore_data
         For SHARED chores: stores at chore level
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             timestamp: Optional timestamp to use. If None, uses current time.
                       Pass same timestamp as last_approved to ensure consistency.
@@ -4609,13 +4749,15 @@ class ChoreManager(BaseManager):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: Store per-kid approval_period_start in kid_chore_data
-            kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-            kid_chore_data[const.DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START] = now_iso
+            # INDEPENDENT: Store per-assignee approval_period_start in assignee_chore_data
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            assignee_chore_data[
+                const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+            ] = now_iso
         # SHARED/SHARED_FIRST: Store at chore level
         # Only set if not already set OR force_update is True
-        # - force_update=False (default): preserves period start for all kids
-        #   when multiple kids are approved in the same period
+        # - force_update=False (default): preserves period start for all assignees
+        #   when multiple assignees are approved in the same period
         # - force_update=True: used by scheduled resets to invalidate previous approvals
         elif force_update or not chore_info.get(const.DATA_CHORE_APPROVAL_PERIOD_START):
             chore_info[const.DATA_CHORE_APPROVAL_PERIOD_START] = now_iso
@@ -4623,7 +4765,7 @@ class ChoreManager(BaseManager):
     def _set_claimed_completed_by(
         self,
         chore_id: str,
-        kid_id: str,
+        assignee_id: str,
         field: str,
         value: str,
     ) -> None:
@@ -4631,33 +4773,33 @@ class ChoreManager(BaseManager):
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             field: DATA_CHORE_CLAIMED_BY or DATA_CHORE_COMPLETED_BY
-            value: The kid name to set
+            value: The assignee name to set
         """
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-        kid_chore_data[field] = value
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+        assignee_chore_data[field] = value
 
     def _clear_claimed_completed_by(
         self,
         chore_id: str,
-        kid_id: str,
+        assignee_id: str,
         field: str,
     ) -> None:
         """Clear claimed_by or completed_by field.
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             field: DATA_CHORE_CLAIMED_BY or DATA_CHORE_COMPLETED_BY
         """
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
-        kid_chore_data.pop(field, None)
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+        assignee_chore_data.pop(field, None)
 
     def _set_last_completed_timestamp(
         self,
         chore_id: str,
-        kid_id: str,
+        assignee_id: str,
         effective_date_iso: str,
         fallback_iso: str,
     ) -> None:
@@ -4665,8 +4807,8 @@ class ChoreManager(BaseManager):
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: The kid who completed (used for INDEPENDENT/SHARED_FIRST)
-            effective_date_iso: When the kid did the work (claim timestamp)
+            assignee_id: The assignee who completed (used for INDEPENDENT/SHARED_FIRST)
+            effective_date_iso: When the assignee did the work (claim timestamp)
             fallback_iso: Fallback timestamp if no claims found (now_iso)
         """
         chore_data = self._coordinator.chores_data[chore_id]
@@ -4676,24 +4818,26 @@ class ChoreManager(BaseManager):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            # INDEPENDENT: Store in per-kid data (each kid has their own completion)
-            kid_chore_data_item = self._get_kid_chore_data(kid_id, chore_id)
-            kid_chore_data_item[const.DATA_KID_CHORE_DATA_LAST_COMPLETED] = (
+            # INDEPENDENT: Store in per-assignee data (each assignee has their own completion)
+            assignee_chore_data_item = self._get_assignee_chore_data(
+                assignee_id, chore_id
+            )
+            assignee_chore_data_item[const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED] = (
                 effective_date_iso
             )
 
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
-            # SHARED_ALL: Collect all assigned kids' last_claimed, use max
-            kids_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+            # SHARED_ALL: Collect all assigned assignees' last_claimed, use max
+            assignees_assigned = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
             claim_timestamps: list[str] = []
-            for assigned_kid_id in kids_assigned:
-                if not assigned_kid_id:
+            for assigned_assignee_id in assignees_assigned:
+                if not assigned_assignee_id:
                     continue
-                kid_chore_data_item = self._get_kid_chore_data(
-                    assigned_kid_id, chore_id
+                assignee_chore_data_item = self._get_assignee_chore_data(
+                    assigned_assignee_id, chore_id
                 )
-                claim_ts = kid_chore_data_item.get(
-                    const.DATA_KID_CHORE_DATA_LAST_CLAIMED
+                claim_ts = assignee_chore_data_item.get(
+                    const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED
                 )
                 if claim_ts:
                     claim_timestamps.append(claim_ts)
@@ -4714,7 +4858,7 @@ class ChoreManager(BaseManager):
 
     def _record_chore_missed(
         self,
-        kid_id: str,
+        assignee_id: str,
         chore_id: str,
         due_date: datetime | None = None,
         reason: str | None = None,
@@ -4730,37 +4874,39 @@ class ChoreManager(BaseManager):
         - Reset to 0 on chore completion (in approve_chore)
 
         Args:
-            kid_id: The kid's internal ID
+            assignee_id: The assignee's internal ID
             chore_id: The chore's internal ID
             due_date: Optional due date for the missed chore (D-07)
             reason: Optional reason for missed chore (D-07)
         """
-        kid_chore_data = self._get_kid_chore_data(kid_id, chore_id)
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
-        # Get kid name for notification standard
-        kid_info: UserData | dict[str, Any] = self.coordinator.kids_data.get(kid_id, {})
-        kid_name = str(kid_info.get(const.DATA_KID_NAME, "Unknown"))
+        # Get assignee name for notification standard
+        assignee_info: UserData | dict[str, Any] = self.coordinator.assignees_data.get(
+            assignee_id, {}
+        )
+        assignee_name = str(assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown"))
 
         # Get previous missed streak from chore data (not from daily buckets)
         # Phase 5: Read from chore level to survive retention pruning
-        previous_missed_streak = kid_chore_data.get(
-            const.DATA_KID_CHORE_DATA_CURRENT_MISSED_STREAK, 0
+        previous_missed_streak = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK, 0
         )
 
         # Calculate new missed streak (simple increment, not schedule-aware)
         new_missed_streak = previous_missed_streak + 1
 
         # Store current missed streak at chore data level (never pruned)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_CURRENT_MISSED_STREAK] = (
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK] = (
             new_missed_streak
         )
 
         # Update top-level timestamp (like last_approved, last_claimed)
-        kid_chore_data[const.DATA_KID_CHORE_DATA_LAST_MISSED] = dt_now_iso()
+        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED] = dt_now_iso()
 
         # Ensure periods structure exists for StatisticsManager to write to
         # Phase 3B Landlord/Tenant: ChoreManager must create containers before emitting
-        self._ensure_kid_structures(kid_id, chore_id)
+        self._ensure_assignee_structures(assignee_id, chore_id)
 
         # Persist changes before emitting signal (transactional integrity)
         self.coordinator._persist_and_update()
@@ -4769,9 +4915,9 @@ class ChoreManager(BaseManager):
         # Pass missed_streak_tally for daily bucket snapshot (display purposes)
         # Phase 3 Step 2: Include optional due_date and reason fields (D-07)
         signal_payload: dict[str, Any] = {
-            "kid_id": kid_id,
+            "assignee_id": assignee_id,
             "chore_id": chore_id,
-            "kid_name": kid_name,
+            "assignee_name": assignee_name,
             "missed_streak_tally": new_missed_streak,
         }
         if due_date is not None:
@@ -4786,18 +4932,18 @@ class ChoreManager(BaseManager):
     def _reschedule_chore_due(
         self,
         chore_id: str,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
     ) -> None:
         """Unified dispatcher for due date rescheduling.
 
         Handles INDEPENDENT vs SHARED based on completion criteria:
-        - INDEPENDENT + kid_id: Reschedules that kid's per-kid due date
-        - INDEPENDENT + no kid_id: Reschedules all assigned kids
+        - INDEPENDENT + assignee_id: Reschedules that assignee's per-assignee due date
+        - INDEPENDENT + no assignee_id: Reschedules all assigned assignees
         - SHARED/SHARED_FIRST: Reschedules chore-level due date
 
         Args:
             chore_id: The chore's internal ID
-            kid_id: Optional kid_id for INDEPENDENT per-kid rescheduling
+            assignee_id: Optional assignee_id for INDEPENDENT per-assignee rescheduling
         """
         chore_info = self._coordinator.chores_data.get(chore_id)
         if not chore_info:
@@ -4809,19 +4955,19 @@ class ChoreManager(BaseManager):
         )
 
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-            if kid_id:
-                # Single kid reschedule
-                self._reschedule_chore_next_due_date_for_kid(
-                    chore_info, chore_id, kid_id
+            if assignee_id:
+                # Single assignee reschedule
+                self._reschedule_chore_next_due_date_for_assignee(
+                    chore_info, chore_id, assignee_id
                 )
             else:
-                # All assigned kids
-                for assigned_kid_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_KIDS, []
+                # All assigned assignees
+                for assigned_assignee_id in chore_info.get(
+                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
                 ):
-                    if assigned_kid_id:
-                        self._reschedule_chore_next_due_date_for_kid(
-                            chore_info, chore_id, assigned_kid_id
+                    if assigned_assignee_id:
+                        self._reschedule_chore_next_due_date_for_assignee(
+                            chore_info, chore_id, assigned_assignee_id
                         )
         else:
             # SHARED/SHARED_FIRST: chore-level
@@ -4888,31 +5034,33 @@ class ChoreManager(BaseManager):
             dt_util.as_local(next_due_utc).isoformat(),
         )
 
-    def _reschedule_chore_next_due_date_for_kid(
-        self, chore_info: ChoreData, chore_id: str, kid_id: str
+    def _reschedule_chore_next_due_date_for_assignee(
+        self, chore_info: ChoreData, chore_id: str, assignee_id: str
     ) -> None:
-        """Reschedule per-kid due date (INDEPENDENT mode).
+        """Reschedule per-assignee due date (INDEPENDENT mode).
 
-        Updates DATA_CHORE_PER_KID_DUE_DATES[kid_id].
-        Used for INDEPENDENT chores (each kid has own due date).
+        Updates DATA_CHORE_PER_ASSIGNEE_DUE_DATES[assignee_id].
+        Used for INDEPENDENT chores (each assignee has own due date).
         """
-        kid_info: UserData | dict[str, Any] = self._coordinator.kids_data.get(
-            kid_id, {}
+        assignee_info: UserData | dict[str, Any] = self._coordinator.assignees_data.get(
+            assignee_id, {}
         )
 
-        # Get per-kid current due date
-        per_kid_due_dates = chore_info.get(const.DATA_CHORE_PER_KID_DUE_DATES, {})
-        current_due_str = per_kid_due_dates.get(kid_id)
+        # Get per-assignee current due date
+        per_assignee_due_dates = chore_info.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
+        )
+        current_due_str = per_assignee_due_dates.get(assignee_id)
 
         if not current_due_str:
             const.LOGGER.debug(
-                "Chore Due Date - No due date for chore %s, kid %s; preserving None",
+                "Chore Due Date - No due date for chore %s, assignee %s; preserving None",
                 chore_info.get(const.DATA_CHORE_NAME),
-                kid_id,
+                assignee_id,
             )
-            if kid_id in per_kid_due_dates:
-                del per_kid_due_dates[kid_id]
-            chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = per_kid_due_dates
+            if assignee_id in per_assignee_due_dates:
+                del per_assignee_due_dates[assignee_id]
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = per_assignee_due_dates
             return
 
         # Parse current due date
@@ -4920,44 +5068,50 @@ class ChoreManager(BaseManager):
             original_due_utc = dt_to_utc(current_due_str)
         except (ValueError, TypeError, AttributeError):
             const.LOGGER.debug(
-                "Chore Due Date - Reschedule: Unable to parse due date for %s, kid %s",
+                "Chore Due Date - Reschedule: Unable to parse due date for %s, assignee %s",
                 chore_info.get(const.DATA_CHORE_NAME),
-                kid_id,
+                assignee_id,
             )
-            if kid_id in per_kid_due_dates:
-                del per_kid_due_dates[kid_id]
-            chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = per_kid_due_dates
+            if assignee_id in per_assignee_due_dates:
+                del per_assignee_due_dates[assignee_id]
+            chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = per_assignee_due_dates
             return
 
-        # Extract per-kid completion timestamp (Phase 5: use last_claimed for work date)
+        # Extract per-assignee completion timestamp (Phase 5: use last_claimed for work date)
         # Fallback hierarchy: last_claimed → last_approved (backward compat)
         completion_utc = None
-        kid_chore_data = kid_info.get(const.DATA_KID_CHORE_DATA, {}).get(chore_id, {})
-        last_claimed_str = kid_chore_data.get(const.DATA_KID_CHORE_DATA_LAST_CLAIMED)
+        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            chore_id, {}
+        )
+        last_claimed_str = assignee_chore_data.get(
+            const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED
+        )
         if last_claimed_str:
             completion_utc = dt_to_utc(last_claimed_str)
         else:
             # Backward compat: fall back to last_approved for legacy data
-            last_approved_str = kid_chore_data.get(
-                const.DATA_KID_CHORE_DATA_LAST_APPROVED
+            last_approved_str = assignee_chore_data.get(
+                const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED
             )
             if last_approved_str:
                 completion_utc = dt_to_utc(last_approved_str)
 
-        # Build chore info for calculation with per-kid overrides
+        # Build chore info for calculation with per-assignee overrides
         chore_info_for_calc = dict(chore_info)
-        per_kid_applicable_days = chore_info.get(
-            const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {}
+        per_assignee_applicable_days = chore_info.get(
+            const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
         )
-        if kid_id in per_kid_applicable_days:
+        if assignee_id in per_assignee_applicable_days:
             chore_info_for_calc[const.DATA_CHORE_APPLICABLE_DAYS] = (
-                per_kid_applicable_days[kid_id]
+                per_assignee_applicable_days[assignee_id]
             )
-        per_kid_times = chore_info.get(const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {})
-        if kid_id in per_kid_times:
-            chore_info_for_calc[const.DATA_CHORE_DAILY_MULTI_TIMES] = per_kid_times[
-                kid_id
-            ]
+        per_assignee_times = chore_info.get(
+            const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
+        )
+        if assignee_id in per_assignee_times:
+            chore_info_for_calc[const.DATA_CHORE_DAILY_MULTI_TIMES] = (
+                per_assignee_times[assignee_id]
+            )
 
         # Use schedule engine
         next_due_utc = calculate_next_due_date_from_chore_info(
@@ -4968,24 +5122,24 @@ class ChoreManager(BaseManager):
         )
         if not next_due_utc:
             const.LOGGER.warning(
-                "Chore Due Date - Reschedule: Failed to calculate next due for %s, kid %s",
+                "Chore Due Date - Reschedule: Failed to calculate next due for %s, assignee %s",
                 chore_info.get(const.DATA_CHORE_NAME),
-                kid_id,
+                assignee_id,
             )
             return
 
-        # Update per-kid storage
-        per_kid_due_dates[kid_id] = next_due_utc.isoformat()
-        chore_info[const.DATA_CHORE_PER_KID_DUE_DATES] = per_kid_due_dates
+        # Update per-assignee storage
+        per_assignee_due_dates[assignee_id] = next_due_utc.isoformat()
+        chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = per_assignee_due_dates
 
         # NOTE: State transitions are handled by callers (approve_chore for
         # UPON_COMPLETION, _transition_chore_state for scheduled resets).
         # This method ONLY reschedules due dates.
 
         const.LOGGER.info(
-            "Chore Due Date - Rescheduled (INDEPENDENT): chore %s, kid %s, to %s",
+            "Chore Due Date - Rescheduled (INDEPENDENT): chore %s, assignee %s, to %s",
             chore_info.get(const.DATA_CHORE_NAME),
-            kid_info.get(const.DATA_KID_NAME),
+            assignee_info.get(const.DATA_ASSIGNEE_NAME),
             dt_util.as_local(next_due_utc).isoformat() if next_due_utc else "None",
         )
 
@@ -4996,7 +5150,7 @@ class ChoreManager(BaseManager):
     async def data_reset_chores(
         self,
         scope: str,
-        kid_id: str | None = None,
+        assignee_id: str | None = None,
         item_id: str | None = None,
     ) -> None:
         """Reset runtime data for chores domain.
@@ -5005,33 +5159,34 @@ class ChoreManager(BaseManager):
         Uses field frozensets from data_builders as source of truth.
 
         Args:
-            scope: Reset scope (global, kid, item_type, item)
-            kid_id: Target kid ID for kid/item scopes (optional)
+            scope: Reset scope (global, assignee, item_type, item)
+            assignee_id: Target assignee ID for assignee/item scopes (optional)
             item_id: Target chore ID for item scope (optional)
 
         Emits:
-            SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE with scope, kid_id, item_id
+            SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE with scope, assignee_id, item_id
         """
         const.LOGGER.info(
-            "Data reset: chores domain - scope=%s, kid_id=%s, item_id=%s",
+            "Data reset: chores domain - scope=%s, assignee_id=%s, item_id=%s",
             scope,
-            kid_id,
+            assignee_id,
             item_id,
         )
 
         chores_data = self._coordinator.chores_data
-        kids_data = self._coordinator.kids_data
+        assignees_data = self._coordinator.assignees_data
 
         # Determine which chores to reset
         if item_id:
             # Item scope - single chore
             chore_ids = [item_id] if item_id in chores_data else []
-        elif kid_id:
-            # Kid scope - only chores assigned to this kid
+        elif assignee_id:
+            # Assignee scope - only chores assigned to this assignee
             chore_ids = [
                 chore_id
                 for chore_id, chore_info in chores_data.items()
-                if kid_id in chore_info.get(const.DATA_CHORE_ASSIGNED_KIDS, [])
+                if assignee_id
+                in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
             ]
         else:
             # Global or item_type scope - all chores
@@ -5044,11 +5199,11 @@ class ChoreManager(BaseManager):
             if not chore_info:
                 continue
 
-            # set_due_date(None, kid_id) clears due dates and transitions to PENDING
-            # - If kid_id=None (global scope): resets all assigned kids
-            # - If kid_id=<uuid> (kid scope): resets only that kid (INDEPENDENT chores)
+            # set_due_date(None, assignee_id) clears due dates and transitions to PENDING
+            # - If assignee_id=None (global scope): resets all assigned assignees
+            # - If assignee_id=<uuid> (assignee scope): resets only that assignee (INDEPENDENT chores)
             # Proper state machine handling: ownership clearing, global state update, signals
-            await self.set_due_date(chore_id, None, kid_id=kid_id)
+            await self.set_due_date(chore_id, None, assignee_id=assignee_id)
 
         # STEP 2: Clear chore-side runtime fields
         for chore_id in chore_ids:
@@ -5059,65 +5214,67 @@ class ChoreManager(BaseManager):
             # Cast for dynamic field access (TypedDict requires literal keys)
             chore_dict = cast("dict[str, Any]", chore_info)
 
-            # Clear per-kid tracking lists
-            for field in db._CHORE_PER_KID_RUNTIME_LISTS:
-                if kid_id:
-                    # Remove specific kid from lists
+            # Clear per-assignee tracking lists
+            for field in db._CHORE_PER_ASSIGNEE_RUNTIME_LISTS:
+                if assignee_id:
+                    # Remove specific assignee from lists
                     if field in chore_dict and isinstance(chore_dict[field], list):
-                        if kid_id in chore_dict[field]:
-                            chore_dict[field].remove(kid_id)
+                        if assignee_id in chore_dict[field]:
+                            chore_dict[field].remove(assignee_id)
                 else:
                     # Clear entire list
                     chore_dict[field] = []
 
-            # Clear per-kid configuration dicts (for kid-scope resets only)
+            # Clear per-assignee configuration dicts (for assignee-scope resets only)
             # These are preserved on global resets (they're config, not runtime)
-            if kid_id:
-                per_kid_due_dates = chore_dict.get(
-                    const.DATA_CHORE_PER_KID_DUE_DATES, {}
+            if assignee_id:
+                per_assignee_due_dates = chore_dict.get(
+                    const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
                 )
-                per_kid_due_dates.pop(kid_id, None)
+                per_assignee_due_dates.pop(assignee_id, None)
 
-                per_kid_days = chore_dict.get(
-                    const.DATA_CHORE_PER_KID_APPLICABLE_DAYS, {}
+                per_assignee_days = chore_dict.get(
+                    const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
                 )
-                per_kid_days.pop(kid_id, None)
+                per_assignee_days.pop(assignee_id, None)
 
-                per_kid_multi = chore_dict.get(
-                    const.DATA_CHORE_PER_KID_DAILY_MULTI_TIMES, {}
+                per_assignee_multi = chore_dict.get(
+                    const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES, {}
                 )
-                per_kid_multi.pop(kid_id, None)
+                per_assignee_multi.pop(assignee_id, None)
 
             # Clear timestamp fields
             chore_dict[const.DATA_CHORE_LAST_CLAIMED] = None
             chore_dict[const.DATA_CHORE_LAST_COMPLETED] = None
 
-        # STEP 3: Clear kid-side runtime structures
-        # Determine which kids to process
-        if kid_id:
-            kid_ids = [kid_id] if kid_id in kids_data else []
+        # STEP 3: Clear assignee-side runtime structures
+        # Determine which assignees to process
+        if assignee_id:
+            assignee_ids = [assignee_id] if assignee_id in assignees_data else []
         else:
-            kid_ids = list(kids_data.keys())
+            assignee_ids = list(assignees_data.keys())
 
-        for loop_kid_id in kid_ids:
-            kid_info = kids_data.get(loop_kid_id)
-            if not kid_info:
+        for loop_assignee_id in assignee_ids:
+            assignee_info = assignees_data.get(loop_assignee_id)
+            if not assignee_info:
                 continue
 
             # Cast for dynamic field access (TypedDict requires literal keys)
-            kid_dict = cast("dict[str, Any]", kid_info)
+            assignee_dict = cast("dict[str, Any]", assignee_info)
 
-            for field in db._CHORE_KID_RUNTIME_FIELDS:
-                if field == const.DATA_KID_CHORE_DATA and item_id:
+            for field in db._CHORE_ASSIGNEE_RUNTIME_FIELDS:
+                if field == const.DATA_ASSIGNEE_CHORE_DATA and item_id:
                     # Item scope - only clear data for specific chore
-                    chore_data_dict = kid_dict.get(const.DATA_KID_CHORE_DATA, {})
+                    chore_data_dict = assignee_dict.get(
+                        const.DATA_ASSIGNEE_CHORE_DATA, {}
+                    )
                     chore_data_dict.pop(item_id, None)
-                elif field in kid_dict:
+                elif field in assignee_dict:
                     # Clear entire structure
-                    if isinstance(kid_dict[field], dict):
-                        kid_dict[field] = {}
-                    elif isinstance(kid_dict[field], list):
-                        kid_dict[field] = []
+                    if isinstance(assignee_dict[field], dict):
+                        assignee_dict[field] = {}
+                    elif isinstance(assignee_dict[field], list):
+                        assignee_dict[field] = []
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self._coordinator._persist_and_update()
@@ -5126,12 +5283,12 @@ class ChoreManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE,
             scope=scope,
-            kid_id=kid_id,
+            assignee_id=assignee_id,
             item_id=item_id,
         )
 
         const.LOGGER.info(
-            "Data reset: chores domain complete - %d chores, %d kids affected",
+            "Data reset: chores domain complete - %d chores, %d assignees affected",
             len(chore_ids),
-            len(kid_ids),
+            len(assignee_ids),
         )

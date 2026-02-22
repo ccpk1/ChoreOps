@@ -5,7 +5,7 @@
 <#-- ============================================= --#>
 <#--                                             --#>
 <#-- Admin dashboard: System management         --#>
-<#-- Uses SystemDashboardAdminKidSelect entity  --#>
+<#-- Uses SystemDashboardAdminAssigneeSelect entity  --#>
 <#--                                             --#>
 <#-- NO injection variables - system-level view --#>
 <#--                                             --#>
@@ -27,14 +27,14 @@
             template: >-
               {#-- ===== ADMIN HEADER ===== --#}
 
-              {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+              {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
               {%- set admin_selector_eid = integration_entities('choreops')
                   | select('match', '^select\\.')
                   | list
                   | expand
                   | selectattr('attributes.purpose', 'defined')
-                  | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                  | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                   | map(attribute='entity_id')
                   | first
                   | default('', true) -%}
@@ -74,14 +74,14 @@
                   {#-- ===== APPROVAL ACTIONS CARD ===== --#}
 
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -99,24 +99,24 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Admin Selector Not Found**\n\nThe admin kid selector entity could not be found.\n\nThe integration may need to be restarted or reloaded.\nCheck Settings → Integrations → ChoreOps."
+                        'content': "⚠️ **Admin Selector Not Found**\n\nThe admin assignee selector entity could not be found.\n\nThe integration may need to be restarted or reloaded.\nCheck Settings → Integrations → ChoreOps."
                       }
                     }},
                     {%- set skip_render = true -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
 
-                    {#-- 3. Validate Kid Selected --#}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {#-- 3. Validate Assignee Selected --#}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {{
                         {
                           'type': 'markdown',
-                          'content': "ℹ️ **No Kid Selected**\n\nSelect a kid from the dropdown above to view pending approvals."
+                          'content': "ℹ️ **No Assignee Selected**\n\nSelect a assignee from the dropdown above to view pending approvals."
                         }
                       }},
                       {%- set skip_render = true -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
 
                       {#-- 4. Initialize Variables --#}
 
@@ -126,7 +126,7 @@
                           | expand
                           | selectattr('attributes.purpose', 'defined')
                           | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                          | selectattr('attributes.kid_name', 'eq', name)
+                          | selectattr('attributes.assignee_name', 'eq', name)
                           | map(attribute='entity_id')
                           | first
                           | default("err-dashboard_helper_missing", true) -%}
@@ -275,39 +275,39 @@
                   {#-- ===== PARENT DASHBOARD ===== --#}
 
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
 
-                  {%- set selected_kid_name = states(admin_selector_eid) -%}
+                  {%- set selected_assignee_name = states(admin_selector_eid) -%}
 
 
                   {#-- 2. Handle Selection State --#}
 
-                  {%- if selected_kid_name in ['None', 'unknown', 'unavailable', ''] -%}
+                  {%- if selected_assignee_name in ['None', 'unknown', 'unavailable', ''] -%}
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Select a Kid First**\n\nUse the **Kid Selector** above to choose\nwhich child's dashboard to display.\n\n📊 **Available Options:**\n- Select from dropdown\n- Dashboard will load automatically\n- All stats and controls will appear"
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child's dashboard to display.\n\n📊 **Available Options:**\n- Select from dropdown\n- Dashboard will load automatically\n- All stats and controls will appear"
                       }
                     }},
                     {%- set skip_render = true -%}
                   {%- else -%}
-                    {%- set name = selected_kid_name -%}
+                    {%- set name = selected_assignee_name -%}
                     {%- set skip_render = false -%}
                   {%- endif -%}
 
                   {%- if not skip_render -%}
 
-                    {#-- 3. Get Dashboard Helper for Selected Kid --#}
+                    {#-- 3. Get Dashboard Helper for Selected Assignee --#}
 
                     {%- set dashboard_helper = integration_entities('choreops')
                         | select('search', '^sensor\\.')
@@ -315,7 +315,7 @@
                         | expand
                         | selectattr('attributes.purpose', 'defined')
                         | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                        | selectattr('attributes.kid_name', 'eq', name)
+                        | selectattr('attributes.assignee_name', 'eq', name)
                         | map(attribute='entity_id')
                         | first
                         | default("err-dashboard_helper_missing", true) -%}
@@ -347,11 +347,11 @@
                     {%- set points_label = points_attrs.get('unit_of_measurement') | default('Pts') -%}
                     {%- set points_icon = points_attrs.get('icon') -%}
 
-                    {#-- Points Stats from kid_points --#}
+                    {#-- Points Stats from assignee_points --#}
                     {%- set points_earned_week = points_attrs.get('point_stat_points_earned_week', 0) | int(default=0) -%}
                     {%- set points_spent_week = points_attrs.get('point_stat_points_spent_week', 0) | int(default=0) -%}
 
-                    {#-- Chore Stats from kid_chores_completed_total --#}
+                    {#-- Chore Stats from assignee_chores_completed_total --#}
                     {%- set chores_attrs = states[total_chores_sensor].attributes | default({}, true) -%}
                     {%- set weekly_completed = chores_attrs.get('chore_stat_approved_week', 0) | int(default=0) -%}
                     {%- set chore_longest_streak = chores_attrs.get('chore_stat_longest_streak_week', 0) | int(default=0) -%}
@@ -379,7 +379,7 @@
 
 
                     {%- set content =
-                      "## 👨‍👩‍👧 " ~ ui.get('parent_dashboard_for', 'err-parent_dashboard_for') ~ ": " ~ name ~ " \n"
+                      "## 👨‍👩‍👧 " ~ ui.get('approver_dashboard_for', 'err-approver_dashboard_for') ~ ": " ~ name ~ " \n"
                       "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n\n" -%}
 
                     {#-- STATUS TABLE: Pending Approvals and Overdue --#}
@@ -486,28 +486,28 @@
                   {#-- ===== ADMIN ACTIONS CARD ===== --#}
 
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
 
-                  {#-- 2. Validate Admin Selector & Get Kid Name --#}
+                  {#-- 2. Validate Admin Selector & Get Assignee Name --#}
 
                   {%- if admin_selector_eid == '' -%}
                     {%- set name = '' -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {%- set name = '' -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
                     {%- endif -%}
                   {%- endif -%}
 
@@ -520,7 +520,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -550,7 +550,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Select a Kid First**\n\nUse the **Kid Selector** above to choose\nwhich child to manage.\n\n🎛️ **Admin Actions:**\n- Select from dropdown\n- Admin controls will appear\n- Manage points and settings"
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child to manage.\n\n🎛️ **Admin Actions:**\n- Select from dropdown\n- Admin controls will appear\n- Manage points and settings"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -676,8 +676,8 @@
                         {%- set ns.chore_custom_freq_unit = chore_state.attributes.get('custom_frequency_unit', '') -%}
                         {%- set ns.chore_custom_freq_int = chore_state.attributes.get('custom_frequency_interval', '') -%}
 
-                        {#-- Pre-compute kid_name based on completion_criteria (independent vs shared) --#}
-                        {%- set ns.kid_name_for_service = name if ns.shared_chore == 'independent' else '' -%}
+                        {#-- Pre-compute assignee_name based on completion_criteria (independent vs shared) --#}
+                        {%- set ns.assignee_name_for_service = name if ns.shared_chore == 'independent' else '' -%}
                       {%- else -%}
                         {#-- Chore entity not found or unavailable - use safe defaults --#}
                         {%- set ns.current_status = 'Unknown' -%}
@@ -691,7 +691,7 @@
                         {%- set ns.chore_days = [] -%}
                         {%- set ns.chore_custom_freq_unit = '' -%}
                         {%- set ns.chore_custom_freq_int = '' -%}
-                        {%- set ns.kid_name_for_service = '' -%}
+                        {%- set ns.assignee_name_for_service = '' -%}
                       {%- endif -%}
                     {%- else -%}
                       {#-- No chore selected - use safe defaults --#}
@@ -706,7 +706,7 @@
                       {%- set ns.chore_days = [] -%}
                       {%- set ns.chore_custom_freq_unit = '' -%}
                       {%- set ns.chore_custom_freq_int = '' -%}
-                      {%- set ns.kid_name_for_service = '' -%}
+                      {%- set ns.assignee_name_for_service = '' -%}
                     {%- endif -%}
 
                     {#-- Map display values using translation lookups --#}
@@ -748,7 +748,7 @@
                       {%- set ns.content = "**🚫 " ~ ui.get('no_chore_selected', 'err-no_chore_selected') ~ "**" -%}
                     {%- endif -%}
 
-                    {#-- 5. Render (Step 2: Conditional kid_name based on completion_criteria) --#}
+                    {#-- 5. Render (Step 2: Conditional assignee_name based on completion_criteria) --#}
                     {{- {
                     'type': 'heading',
                     'icon': 'mdi:rocket-launch',
@@ -771,7 +771,7 @@
                               'action': 'call-service',
                               'service': 'choreops.reset_overdue_chores',
                               'data': {
-                                'kid_name': ns.kid_name_for_service if ns.kid_name_for_service else name
+                                'assignee_name': ns.assignee_name_for_service if ns.assignee_name_for_service else name
                               }
                             }
                           }
@@ -809,7 +809,7 @@
                                 'service': 'choreops.reset_overdue_chores',
                                 'data': {
                                   'chore_name': ns.chore_selected,
-                                  'kid_name': ns.kid_name_for_service
+                                  'assignee_name': ns.assignee_name_for_service
                                 }
                               }
                             }
@@ -833,7 +833,7 @@
                               'service': 'choreops.skip_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
-                                'kid_name': ns.kid_name_for_service
+                                'assignee_name': ns.assignee_name_for_service
                               }
                             }
                           },
@@ -848,7 +848,7 @@
                               'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
-                                'kid_name': ns.kid_name_for_service,
+                                'assignee_name': ns.assignee_name_for_service,
                                 'due_date': (ns.due_date + timedelta(days=1)).isoformat() if ns.due_date else ''
                               }
                             }
@@ -864,7 +864,7 @@
                               'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
-                                'kid_name': ns.kid_name_for_service,
+                                'assignee_name': ns.assignee_name_for_service,
                                 'due_date': (ns.due_date + timedelta(weeks=1)).isoformat() if ns.due_date else ''
                               }
                             }
@@ -880,7 +880,7 @@
                               'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
-                                'kid_name': ns.kid_name_for_service,
+                                'assignee_name': ns.assignee_name_for_service,
                                 'due_date': ''
                               }
                             }
@@ -909,7 +909,7 @@
                               'service': 'choreops.set_chore_due_date',
                               'data': {
                                 'chore_name': ns.chore_selected,
-                                'kid_name': ns.kid_name_for_service,
+                                'assignee_name': ns.assignee_name_for_service,
                                 'due_date': states(ns.datetime_helper)
                               }
                             }
@@ -957,14 +957,14 @@
                 template: |-
                   {#-- ===== PLUSES AND MINUSES - POINTS ===== --#}
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -972,11 +972,11 @@
                   {%- if admin_selector_eid == '' -%}
                     {%- set name = '' -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {%- set name = '' -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
                     {%- endif -%}
                   {%- endif -%}
 
@@ -988,7 +988,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -998,7 +998,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Select a Kid First**\n\nUse the **Kid Selector** above to choose\nwhich child to manage.\n\n💰 **Points Management:**\n- Select from dropdown\n- Point controls will appear\n- Award or deduct points"
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child to manage.\n\n💰 **Points Management:**\n- Select from dropdown\n- Point controls will appear\n- Award or deduct points"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -1051,14 +1051,14 @@
                 template: >-
                   {#-- ===== PLUSES AND MINUSES - BONUS ===== --#}
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1066,11 +1066,11 @@
                   {%- if admin_selector_eid == '' -%}
                     {%- set name = '' -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {%- set name = '' -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
                     {%- endif -%}
                   {%- endif -%}
 
@@ -1082,7 +1082,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -1154,14 +1154,14 @@
                 template: >-
                   {#-- ===== PLUSES AND MINUSES - POINTS BUTTONS ===== --#}
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1169,11 +1169,11 @@
                   {%- if admin_selector_eid == '' -%}
                     {%- set name = '' -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {%- set name = '' -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
                     {%- endif -%}
                   {%- endif -%}
 
@@ -1185,7 +1185,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -1246,14 +1246,14 @@
                 template: >-
                   {#-- ===== PLUSES AND MINUSES - PENALTY ===== --#}
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1261,11 +1261,11 @@
                   {%- if admin_selector_eid == '' -%}
                     {%- set name = '' -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {%- set name = '' -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
                     {%- endif -%}
                   {%- endif -%}
 
@@ -1277,7 +1277,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -1356,14 +1356,14 @@
                 template: |-
                   {#-- ===== 7 DAY ACTIVITY LOG ===== --#}
 
-                  {#-- 1. Find Admin Kid Selector (dynamic lookup) --#}
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_kid')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1371,11 +1371,11 @@
                   {%- if admin_selector_eid == '' -%}
                     {%- set name = '' -%}
                   {%- else -%}
-                    {%- set selected_kid_name = states(admin_selector_eid) -%}
-                    {%- if selected_kid_name in ['None', '', 'unknown', 'unavailable'] -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
                       {%- set name = '' -%}
                     {%- else -%}
-                      {%- set name = selected_kid_name -%}
+                      {%- set name = selected_assignee_name -%}
                     {%- endif -%}
                   {%- endif -%}
 
@@ -1387,7 +1387,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.kid_name', 'eq', name)
+                      | selectattr('attributes.assignee_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -1397,7 +1397,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Select a Kid First**\n\nUse the **Kid Selector** above to choose\nwhich child's activity to view.\n\n📊 **Activity Log:**\n- Select from dropdown\n- 7-day history will appear\n- Track all recent actions"
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child's activity to view.\n\n📊 **Activity Log:**\n- Select from dropdown\n- 7-day history will appear\n- Track all recent actions"
                       }
                     }},
                     {%- set skip_render = true -%}

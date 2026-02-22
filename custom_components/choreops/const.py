@@ -1,5 +1,5 @@
 # File: const.py
-"""Constants for the KidsChores integration.
+"""Constants for the ChoreOps integration.
 
 This file centralizes configuration keys, defaults, labels, domain names,
 event names, and platform identifiers for consistency across the integration.
@@ -34,8 +34,6 @@ def set_default_timezone(hass):
 
 CHOREOPS_TITLE: Final = "ChoreOps"
 DOMAIN: Final = "choreops"
-LEGACY_DOMAIN: Final = "kidschores"
-DOMAIN_ALIASES: Final[tuple[str, str]] = (DOMAIN, LEGACY_DOMAIN)
 LOGGER: Final = logging.getLogger(__package__)
 
 # Device metadata labels
@@ -120,7 +118,6 @@ PLACEHOLDER_DOCUMENTATION_URL: Final = "documentation_url"
 # and prerelease defaults for deterministic template resolution.
 
 # Schema version for template context structure (bump when context dict changes)
-DASHBOARD_TEMPLATE_SCHEMA_VERSION: Final = 1
 
 # URL path prefix for generated dashboards (e.g., cod-alice, cod-admin)
 DASHBOARD_URL_PATH_PREFIX: Final = "cod-"
@@ -182,11 +179,11 @@ DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {
 # Event Signal Suffixes (Manager-to-Manager Communication)
 # ==============================================================================
 # Used with helpers.entity_helpers.get_event_signal(entry_id, suffix) to create instance-scoped signals
-# Pattern: get_event_signal(entry_id, "points_changed") → "kidschores_{entry_id}_points_changed"
+# Pattern: get_event_signal(entry_id, "points_changed") → "choreops_{entry_id}_points_changed"
 #
 # Multi-instance isolation: Each config entry gets its own signal namespace
-# - Instance 1 (entry_id=abc123): "kidschores_abc123_points_changed"
-# - Instance 2 (entry_id=xyz789): "kidschores_xyz789_points_changed"
+# - Instance 1 (entry_id=abc123): "choreops_abc123_points_changed"
+# - Instance 2 (entry_id=xyz789): "choreops_xyz789_points_changed"
 #
 # NOTE: This is a comprehensive list based on current coordinator operations.
 # Not all signals need to be implemented immediately - add as needed per phase.
@@ -250,40 +247,30 @@ SIGNAL_SUFFIX_REWARD_STATUS_RESET: Final = "reward_status_reset"
 
 # Penalty Events (PenaltyManager or EconomyManager)
 SIGNAL_SUFFIX_PENALTY_APPLIED: Final = "penalty_applied"
-SIGNAL_SUFFIX_PENALTY_STATUS_RESET: Final = "penalty_status_reset"
 
 # Bonus Events (BonusManager or EconomyManager)
 SIGNAL_SUFFIX_BONUS_APPLIED: Final = "bonus_applied"
-SIGNAL_SUFFIX_BONUS_STATUS_RESET: Final = "bonus_status_reset"
 
 # Gamification Events (GamificationManager) - Badge
 SIGNAL_SUFFIX_BADGE_EARNED: Final = "badge_earned"
 SIGNAL_SUFFIX_BADGE_REVOKED: Final = "badge_revoked"
-SIGNAL_SUFFIX_BADGE_PROGRESS_UPDATED: Final = "badge_progress_updated"
 
 # Gamification Events (GamificationManager) - Achievement
 SIGNAL_SUFFIX_ACHIEVEMENT_EARNED: Final = "achievement_earned"
-SIGNAL_SUFFIX_ACHIEVEMENT_PROGRESS_UPDATED: Final = "achievement_progress_updated"
 
 # Gamification Events (GamificationManager) - Challenge
 SIGNAL_SUFFIX_CHALLENGE_COMPLETED: Final = "challenge_completed"
-SIGNAL_SUFFIX_CHALLENGE_PROGRESS_UPDATED: Final = "challenge_progress_updated"
-SIGNAL_SUFFIX_CHALLENGE_EXPIRED: Final = "challenge_expired"
 
 # Gamification Events (GamificationManager) - Engine Coordination
-SIGNAL_SUFFIX_GAMIFICATION_EVALUATED: Final = "gamification_evaluated"
-SIGNAL_SUFFIX_BADGE_CRITERIA_MET: Final = "badge_criteria_met"
-SIGNAL_SUFFIX_GAMIFICATION_BATCH_COMPLETE: Final = "gamification_batch_complete"
 
-# System/Entity Lifecycle Events - Kid
-SIGNAL_SUFFIX_KID_CREATED: Final = "kid_created"
-SIGNAL_SUFFIX_KID_UPDATED: Final = "kid_updated"
-SIGNAL_SUFFIX_KID_DELETED: Final = "kid_deleted"
-
-# System/Entity Lifecycle Events - Parent
-SIGNAL_SUFFIX_PARENT_CREATED: Final = "parent_created"
-SIGNAL_SUFFIX_PARENT_UPDATED: Final = "parent_updated"
-SIGNAL_SUFFIX_PARENT_DELETED: Final = "parent_deleted"
+# System/Entity Lifecycle Events - Assignee/Approver (canonical runtime names)
+# NOTE: Signal payload values remain legacy-compatible to avoid event-bus breakage.
+SIGNAL_SUFFIX_ASSIGNEE_CREATED: Final = "assignee_created"
+SIGNAL_SUFFIX_ASSIGNEE_UPDATED: Final = "assignee_updated"
+SIGNAL_SUFFIX_ASSIGNEE_DELETED: Final = "assignee_deleted"
+SIGNAL_SUFFIX_APPROVER_CREATED: Final = "approver_created"
+SIGNAL_SUFFIX_APPROVER_UPDATED: Final = "approver_updated"
+SIGNAL_SUFFIX_APPROVER_DELETED: Final = "approver_deleted"
 
 # System/Entity Lifecycle Events - Chore
 SIGNAL_SUFFIX_CHORE_CREATED: Final = "chore_created"
@@ -321,7 +308,7 @@ SIGNAL_SUFFIX_BONUS_UPDATED: Final = "bonus_updated"
 SIGNAL_SUFFIX_BONUS_DELETED: Final = "bonus_deleted"
 
 # Data Reset Completion Signals (emitted AFTER data reset work is done)
-# Payload: scope: str, kid_id: str | None, item_id: str | None
+# Payload: scope: str, assignee_id: str | None, item_id: str | None
 SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE: Final = "chore_data_reset_complete"
 SIGNAL_SUFFIX_POINTS_DATA_RESET_COMPLETE: Final = "points_data_reset_complete"
 SIGNAL_SUFFIX_BADGE_DATA_RESET_COMPLETE: Final = "badge_data_reset_complete"
@@ -366,25 +353,18 @@ DATA_META_PENDING_EVALUATIONS: Final = "pending_evaluations"
 DATA_META_LAST_MIDNIGHT_PROCESSED: Final = "last_midnight_processed"
 
 # Storage Data Keys (Phase 2b)
-# Top-level keys in .storage/kidschores_data (not entity-specific DATA_KID_*, DATA_CHORE_*, etc.)
-DATA_KEY_KIDS: Final = "kids"
-DATA_KEY_PARENTS: Final = "parents"
-DATA_KEY_CHORES: Final = "chores"
-DATA_KEY_REWARDS: Final = "rewards"
-DATA_KEY_BADGES: Final = "badges"
-DATA_KEY_ACHIEVEMENTS: Final = "achievements"
-DATA_KEY_CHALLENGES: Final = "challenges"
+# Top-level keys in .storage/choreops_data (not entity-specific DATA_ASSIGNEE_*, DATA_CHORE_*, etc.)
 DATA_CONFIG_ENTRY_SETTINGS: Final = "config_entry_settings"  # Backup/restore key
 
 # Entity Type Identifiers (Phase 2 Step 2 - DRY Refactoring)
 # Used in generic entity lookup functions to identify entity type
-ENTITY_TYPE_KID: Final = "kid"
+ENTITY_TYPE_ASSIGNEE: Final = "assignee"
 ENTITY_TYPE_CHORE: Final = "chore"
 ENTITY_TYPE_REWARD: Final = "reward"
 ENTITY_TYPE_PENALTY: Final = "penalty"
 ENTITY_TYPE_BADGE: Final = "badge"
 ENTITY_TYPE_BONUS: Final = "bonus"
-ENTITY_TYPE_PARENT: Final = "parent"
+ENTITY_TYPE_APPROVER: Final = "approver"
 ENTITY_TYPE_ACHIEVEMENT: Final = "achievement"
 ENTITY_TYPE_CHALLENGE: Final = "challenge"
 
@@ -400,9 +380,6 @@ STORAGE_PATH_SEGMENT: Final = ".storage"  # Storage directory name
 
 # Format Strings (Phase 2b)
 # Date/time format patterns used across the integration
-FORMAT_DATETIME_ISO: Final = "%Y-%m-%dT%H:%M:%S.%f%z"  # ISO 8601 with timezone
-FORMAT_DATETIME_DISPLAY: Final = "%Y-%m-%d %H:%M"  # Human-readable datetime
-FORMAT_DATE_ONLY: Final = "%Y-%m-%d"  # Date without time
 
 # Update interval (seconds)
 DEFAULT_UPDATE_INTERVAL: Final = 5
@@ -476,7 +453,7 @@ SENTINEL_NO_SELECTION: Final = (
 DISPLAY_DOT: Final = "."
 DISPLAY_UNKNOWN: Final = "Unknown"
 DISPLAY_UNNAMED_CHORE: Final = "Unnamed Chore"
-DISPLAY_UNNAMED_KID: Final = "A kid"
+DISPLAY_UNNAMED_ASSIGNEE: Final = "An assignee"
 
 # Occasion Types
 OCCASION_BIRTHDAY: Final = "birthday"
@@ -502,8 +479,8 @@ CONFIG_FLOW_STEP_CHORES: Final = "chores"
 CONFIG_FLOW_STEP_FINISH: Final = "finish"
 CONFIG_FLOW_STEP_DATA_RECOVERY: Final = "data_recovery"
 CONFIG_FLOW_STEP_INTRO: Final = "intro"
-CONFIG_FLOW_STEP_KID_COUNT: Final = "kid_count"
-CONFIG_FLOW_STEP_KIDS: Final = "kids"
+CONFIG_FLOW_STEP_ASSIGNEE_COUNT: Final = "assignee_count"
+CONFIG_FLOW_STEP_ASSIGNEES: Final = "assignees"
 CONFIG_FLOW_STEP_USER_COUNT: Final = "user_count"
 CONFIG_FLOW_STEP_USERS: Final = "users"
 CONFIG_FLOW_STEP_PENALTY_COUNT: Final = "penalty_count"
@@ -523,13 +500,12 @@ OPTIONS_FLOW_DIC_BADGE: Final = "badge"
 OPTIONS_FLOW_DIC_BONUS: Final = "bonus"
 OPTIONS_FLOW_DIC_CHALLENGE: Final = "challenge"
 OPTIONS_FLOW_DIC_CHORE: Final = "chore"
-OPTIONS_FLOW_DIC_KID: Final = "kid"
+OPTIONS_FLOW_DIC_ASSIGNEE: Final = "assignee"
 OPTIONS_FLOW_DIC_USER: Final = "user"
 OPTIONS_FLOW_DIC_PENALTY: Final = "penalty"
 OPTIONS_FLOW_DIC_REWARD: Final = "reward"
 
 # OptionsFlow Backup Management Menu
-OPTIONS_FLOW_RESTORE_BACKUP: Final = "restore_backup"
 OPTIONS_FLOW_BACKUP_ACTION_SELECT: Final = "select_backup_action"
 OPTIONS_FLOW_BACKUP_ACTION_CREATE: Final = "create_backup"
 OPTIONS_FLOW_BACKUP_ACTION_DELETE: Final = "delete_backup"
@@ -544,9 +520,8 @@ OPTIONS_FLOW_BONUSES: Final = "manage_bonus"
 OPTIONS_FLOW_CHALLENGES: Final = "manage_challenge"
 OPTIONS_FLOW_CHORES: Final = "manage_chore"
 OPTIONS_FLOW_DASHBOARD_GENERATOR: Final = "dashboard_generator"
-OPTIONS_FLOW_FINISH: Final = "done"
 OPTIONS_FLOW_GENERAL_OPTIONS: Final = "general_options"
-OPTIONS_FLOW_KIDS: Final = "manage_kid"
+OPTIONS_FLOW_ASSIGNEES: Final = "manage_assignee"
 OPTIONS_FLOW_USERS: Final = "manage_user"
 OPTIONS_FLOW_PENALTIES: Final = "manage_penalty"
 OPTIONS_FLOW_POINTS: Final = "manage_points"
@@ -558,7 +533,6 @@ OPTIONS_FLOW_STEP_MANAGE_ENTITY: Final = "manage_entity"
 OPTIONS_FLOW_STEP_MANAGE_GENERAL_OPTIONS: Final = "manage_general_options"
 OPTIONS_FLOW_STEP_MANAGE_POINTS: Final = "manage_points"
 OPTIONS_FLOW_STEP_RESTORE_BACKUP: Final = "restore_backup"
-OPTIONS_FLOW_STEP_CONFIRM_RESTORE: Final = "confirm_restore"
 OPTIONS_FLOW_STEP_SELECT_ENTITY: Final = "select_entity"
 
 # OptionsFlow Backup Management Steps
@@ -566,8 +540,6 @@ OPTIONS_FLOW_STEP_BACKUP_ACTIONS: Final = "backup_actions_menu"
 OPTIONS_FLOW_STEP_SELECT_BACKUP_TO_DELETE: Final = "select_backup_to_delete"
 OPTIONS_FLOW_STEP_SELECT_BACKUP_TO_RESTORE: Final = "select_backup_to_restore"
 OPTIONS_FLOW_STEP_CREATE_MANUAL_BACKUP: Final = "create_manual_backup"
-OPTIONS_FLOW_STEP_CREATE_BACKUP_CONFIRM: Final = "create_backup_confirm"
-OPTIONS_FLOW_STEP_CREATE_BACKUP_SUCCESS: Final = "create_backup_success"
 OPTIONS_FLOW_STEP_DELETE_BACKUP_CONFIRM: Final = "delete_backup_confirm"
 OPTIONS_FLOW_STEP_RESTORE_BACKUP_CONFIRM: Final = "restore_backup_confirm"
 OPTIONS_FLOW_STEP_PASTE_JSON_RESTORE: Final = "paste_json_restore"
@@ -580,36 +552,36 @@ OPTIONS_FLOW_STEP_DASHBOARD_DELETE_CONFIRM: Final = "dashboard_delete_confirm"
 
 OPTIONS_FLOW_STEP_ADD_ACHIEVEMENT: Final = "add_achievement"
 OPTIONS_FLOW_STEP_ADD_BADGE: Final = "add_badge"
-OPTIONS_FLOW_STEP_ADD_BADGE_ACHIEVEMENT: Final = "add_badge_achievement"
-OPTIONS_FLOW_STEP_ADD_BADGE_CHALLENGE: Final = "add_badge_challenge"
 OPTIONS_FLOW_STEP_ADD_BADGE_CUMULATIVE: Final = "add_badge_cumulative"
 OPTIONS_FLOW_STEP_ADD_BADGE_DAILY: Final = "add_badge_daily"
 OPTIONS_FLOW_STEP_ADD_BADGE_PERIODIC: Final = "add_badge_periodic"
 OPTIONS_FLOW_STEP_ADD_BADGE_SPECIAL: Final = "add_badge_special"
+OPTIONS_FLOW_STEP_ADD_BADGE_ACHIEVEMENT: Final = "add_badge_achievement"
+OPTIONS_FLOW_STEP_ADD_BADGE_CHALLENGE: Final = "add_badge_challenge"
 OPTIONS_FLOW_STEP_ADD_BONUS: Final = "add_bonus"
 OPTIONS_FLOW_STEP_ADD_CHALLENGE: Final = "add_challenge"
 OPTIONS_FLOW_STEP_ADD_CHORE: Final = "add_chore"
-OPTIONS_FLOW_STEP_ADD_KID: Final = "add_kid"
+OPTIONS_FLOW_STEP_ADD_ASSIGNEE: Final = "add_assignee"
 OPTIONS_FLOW_STEP_ADD_USER: Final = "add_user"
 OPTIONS_FLOW_STEP_ADD_PENALTY: Final = "add_penalty"
 OPTIONS_FLOW_STEP_ADD_REWARD: Final = "add_reward"
 
 OPTIONS_FLOW_STEP_EDIT_ACHIEVEMENT: Final = "edit_achievement"
+OPTIONS_FLOW_STEP_EDIT_BONUS: Final = "edit_bonus"
+OPTIONS_FLOW_STEP_EDIT_CHALLENGE: Final = "edit_challenge"
+OPTIONS_FLOW_STEP_EDIT_CHORE: Final = "edit_chore"
+OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DATES: Final = "edit_chore_per_assignee_dates"
+OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS: Final = (
+    "edit_chore_per_assignee_details"  # PKAD-2026-001
+)
+OPTIONS_FLOW_STEP_EDIT_ASSIGNEE: Final = "edit_assignee"
+OPTIONS_FLOW_STEP_EDIT_ASSIGNEE_LINKED: Final = "edit_assignee_linked"
 OPTIONS_FLOW_STEP_EDIT_BADGE_ACHIEVEMENT: Final = "edit_badge_achievement"
 OPTIONS_FLOW_STEP_EDIT_BADGE_CHALLENGE: Final = "edit_badge_challenge"
 OPTIONS_FLOW_STEP_EDIT_BADGE_CUMULATIVE: Final = "edit_badge_cumulative"
 OPTIONS_FLOW_STEP_EDIT_BADGE_DAILY: Final = "edit_badge_daily"
 OPTIONS_FLOW_STEP_EDIT_BADGE_PERIODIC: Final = "edit_badge_periodic"
 OPTIONS_FLOW_STEP_EDIT_BADGE_SPECIAL: Final = "edit_badge_special"
-OPTIONS_FLOW_STEP_EDIT_BONUS: Final = "edit_bonus"
-OPTIONS_FLOW_STEP_EDIT_CHALLENGE: Final = "edit_challenge"
-OPTIONS_FLOW_STEP_EDIT_CHORE: Final = "edit_chore"
-OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DATES: Final = "edit_chore_per_kid_dates"
-OPTIONS_FLOW_STEP_EDIT_CHORE_PER_KID_DETAILS: Final = (
-    "edit_chore_per_kid_details"  # PKAD-2026-001
-)
-OPTIONS_FLOW_STEP_EDIT_KID: Final = "edit_kid"
-OPTIONS_FLOW_STEP_EDIT_KID_SHADOW: Final = "edit_kid_shadow"
 OPTIONS_FLOW_STEP_EDIT_USER: Final = "edit_user"
 OPTIONS_FLOW_STEP_EDIT_PENALTY: Final = "edit_penalty"
 OPTIONS_FLOW_STEP_EDIT_REWARD: Final = "edit_reward"
@@ -619,7 +591,7 @@ OPTIONS_FLOW_STEP_DELETE_BADGE: Final = "delete_badge"
 OPTIONS_FLOW_STEP_DELETE_BONUS: Final = "delete_bonus"
 OPTIONS_FLOW_STEP_DELETE_CHALLENGE: Final = "delete_challenge"
 OPTIONS_FLOW_STEP_DELETE_CHORE: Final = "delete_chore"
-OPTIONS_FLOW_STEP_DELETE_KID: Final = "delete_kid"
+OPTIONS_FLOW_STEP_DELETE_ASSIGNEE: Final = "delete_assignee"
 OPTIONS_FLOW_STEP_DELETE_USER: Final = "delete_user"
 OPTIONS_FLOW_STEP_DELETE_PENALTY: Final = "delete_penalty"
 OPTIONS_FLOW_STEP_DELETE_REWARD: Final = "delete_reward"
@@ -635,46 +607,34 @@ CFOF_GLOBAL_INPUT_INTERNAL_ID: Final = "internal_id"
 # DATA RECOVERY
 CFOF_DATA_RECOVERY_INPUT_SELECTION: Final = "backup_selection"
 CFOF_DATA_RECOVERY_INPUT_JSON_DATA: Final = "json_data"
-CFOF_RESTORE_BACKUP_INPUT_SELECTION: Final = "backup_file"
 
-# KIDS
-CFOF_KIDS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-CFOF_KIDS_INPUT_ENABLE_MOBILE_NOTIFICATIONS: Final = "enable_mobile_notifications"
-CFOF_KIDS_INPUT_ENABLE_PERSISTENT_NOTIFICATIONS: Final = (
-    "enable_persistent_notifications"
-)
-CFOF_KIDS_INPUT_ENABLE_DUE_DATE_REMINDERS: Final = (
-    "enable_due_date_reminders"  # Deprecated v0.5.0+ - removed from UI
-)
-CFOF_KIDS_INPUT_HA_USER: Final = "ha_user"
-CFOF_KIDS_INPUT_KID_COUNT: Final = "kid_count"
-# Phase 6: Aligned with DATA_KID_NAME = "name" (was "kid_name")
-CFOF_KIDS_INPUT_KID_NAME: Final = "name"
-CFOF_KIDS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
+# ASSIGNEES
+CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+CFOF_ASSIGNEES_INPUT_HA_USER: Final = "ha_user"
+CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT: Final = "assignee_count"
+# Phase 6: Aligned with canonical assignee name storage key (`name`)
+CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: Final = "name"
+CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
 
-# PARENTS
-CFOF_PARENTS_INPUT_ASSOCIATED_KIDS: Final = "associated_kids"
-CFOF_PARENTS_INPUT_ENABLE_MOBILE_NOTIFICATIONS: Final = "enable_mobile_notifications"
-CFOF_PARENTS_INPUT_ENABLE_PERSISTENT_NOTIFICATIONS: Final = (
-    "enable_persistent_notifications"
-)
-CFOF_PARENTS_INPUT_HA_USER: Final = "ha_user_id"
-CFOF_PARENTS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
-CFOF_PARENTS_INPUT_NAME: Final = "name"
-CFOF_PARENTS_INPUT_PARENT_COUNT: Final = "parent_count"
+# APPROVERS
+CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: Final = "associated_assignees"
+CFOF_APPROVERS_INPUT_HA_USER: Final = "ha_user_id"
+CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
+CFOF_APPROVERS_INPUT_NAME: Final = "name"
+CFOF_APPROVERS_INPUT_APPROVER_COUNT: Final = "approver_count"
 
-# Parent Chore Capability Options
-CFOF_PARENTS_INPUT_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
-CFOF_PARENTS_INPUT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
-CFOF_PARENTS_INPUT_ENABLE_GAMIFICATION: Final = "enable_gamification"
-CFOF_PARENTS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-CFOF_PARENTS_INPUT_CAN_APPROVE: Final = "can_approve"
-CFOF_PARENTS_INPUT_CAN_MANAGE: Final = "can_manage"
+# Approver Chore Capability Options
+CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
+CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
+CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: Final = "enable_gamification"
+CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+CFOF_APPROVERS_INPUT_CAN_APPROVE: Final = "can_approve"
+CFOF_APPROVERS_INPUT_CAN_MANAGE: Final = "can_manage"
 
 # CHORES
 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
 CFOF_CHORES_INPUT_APPLICABLE_DAYS: Final = "applicable_days"
-CFOF_CHORES_INPUT_ASSIGNED_KIDS: Final = "assigned_kids"
+CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 CFOF_CHORES_INPUT_CHORE_COUNT: Final = "chore_count"
 CFOF_CHORES_INPUT_CUSTOM_INTERVAL: Final = "custom_interval"
 CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
@@ -698,7 +658,6 @@ CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: Final = "chore_due_reminder_offset"
 CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: Final = "chore_claim_lock_until_window"
 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: Final = "recurring_frequency"
 CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: Final = "daily_multi_times"  # CFE-2026-001 F2
-CFOF_CHORES_INPUT_SHARED_CHORE: Final = "shared_chore"
 CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
 CFOF_CHORES_INPUT_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
     "approval_reset_pending_claim_action"
@@ -709,20 +668,15 @@ CFOF_CHORES_INPUT_APPLY_TIMES_TO_ALL: Final = "apply_times_to_all"  # PKAD-2026-
 CFOF_CHORES_INPUT_AUTO_APPROVE: Final = "auto_approve"
 CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: Final = "show_on_calendar"
 CFOF_CHORES_INPUT_NOTIFICATIONS: Final = "chore_notifications"
-# rotation_order removed - unused field, assigned_kids defines order
+# rotation_order removed - unused field, assigned_assignees defines order
 
 # BADGES
-CFOF_BADGES_INPUT_ASSIGNED_KIDS: Final = "assigned_kids"
 CFOF_BADGES_INPUT_ASSIGNED_TO: Final = "assigned_to"
 CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 CFOF_BADGES_INPUT_AWARD_ITEMS: Final = "award_items"
-CFOF_BADGES_INPUT_AWARD_MODE: Final = "award_mode"
 CFOF_BADGES_INPUT_AWARD_POINTS: Final = "award_points"
-CFOF_BADGES_INPUT_AWARD_REWARD: Final = "award_reward"
 CFOF_BADGES_INPUT_BADGE_COUNT: Final = "badge_count"
-CFOF_BADGES_INPUT_DAILY_THRESHOLD: Final = "daily_threshold"
-CFOF_BADGES_INPUT_DAILY_THRESHOLD_TYPE: Final = "threshold_type"
 CFOF_BADGES_INPUT_DESCRIPTION: Final = "badge_description"
 CFOF_BADGES_INPUT_END_DATE: Final = "end_date"
 CFOF_BADGES_INPUT_ICON: Final = "icon"
@@ -773,7 +727,7 @@ CFOF_PENALTIES_INPUT_POINTS: Final = "penalty_points"
 
 # ACHIEVEMENTS
 CFOF_ACHIEVEMENTS_INPUT_ACHIEVEMENT_COUNT: Final = "achievement_count"
-CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_KIDS: Final = "assigned_kids"
+CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 CFOF_ACHIEVEMENTS_INPUT_CRITERIA: Final = "criteria"
 CFOF_ACHIEVEMENTS_INPUT_DESCRIPTION: Final = "description"
 CFOF_ACHIEVEMENTS_INPUT_ICON: Final = "icon"
@@ -785,7 +739,7 @@ CFOF_ACHIEVEMENTS_INPUT_TARGET_VALUE: Final = "target_value"
 CFOF_ACHIEVEMENTS_INPUT_TYPE: Final = "type"
 
 # CHALLENGES
-CFOF_CHALLENGES_INPUT_ASSIGNED_KIDS: Final = "assigned_kids"
+CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 CFOF_CHALLENGES_INPUT_CHALLENGE_COUNT: Final = "challenge_count"
 CFOF_CHALLENGES_INPUT_CRITERIA: Final = "criteria"
 CFOF_CHALLENGES_INPUT_DESCRIPTION: Final = "description"
@@ -820,8 +774,7 @@ OPTIONS_FLOW_PLACEHOLDER_BONUS_NAME: Final = "bonus_name"
 OPTIONS_FLOW_PLACEHOLDER_CHALLENGE_NAME: Final = "challenge_name"
 OPTIONS_FLOW_PLACEHOLDER_CHORE_NAME: Final = "chore_name"
 OPTIONS_FLOW_PLACEHOLDER_ENTITY_TYPE: Final = "entity_type"
-OPTIONS_FLOW_PLACEHOLDER_KID_NAME: Final = "kid_name"
-OPTIONS_FLOW_PLACEHOLDER_PARENT_NAME: Final = "parent_name"
+OPTIONS_FLOW_PLACEHOLDER_ASSIGNEE_NAME: Final = "assignee_name"
 OPTIONS_FLOW_PLACEHOLDER_USER_NAME: Final = "user_name"
 OPTIONS_FLOW_PLACEHOLDER_PENALTY_NAME: Final = "penalty_name"
 OPTIONS_FLOW_PLACEHOLDER_REWARD_NAME: Final = "reward_name"
@@ -829,7 +782,6 @@ OPTIONS_FLOW_PLACEHOLDER_SUMMARY: Final = "summary"
 
 
 # OptionsFlow Helpers
-OPTIONS_FLOW_ASYNC_STEP_PREFIX: Final = "async_step_"
 OPTIONS_FLOW_ASYNC_STEP_ADD_PREFIX: Final = "async_step_add_"
 OPTIONS_FLOW_MENU_MANAGE_PREFIX: Final = "manage_"
 
@@ -841,9 +793,6 @@ CONF_POINTS_ICON: Final = "points_icon"
 CONF_POINTS_LABEL: Final = "points_label"
 CONF_RETENTION_DAILY: Final = "retention_daily"
 CONF_RETENTION_MONTHLY: Final = "retention_monthly"
-CONF_RETENTION_PERIODS: Final = (
-    "retention_periods"  # Consolidated field (Daily|Weekly|Monthly|Yearly)
-)
 CONF_RETENTION_WEEKLY: Final = "retention_weekly"
 CONF_RETENTION_YEARLY: Final = "retention_yearly"
 CONF_UPDATE_INTERVAL: Final = "update_interval"
@@ -851,8 +800,6 @@ CONF_UPDATE_INTERVAL: Final = "update_interval"
 # Backup Management Configuration
 CONF_BACKUPS_MAX_RETAINED: Final = "backups_max_retained"
 DEFAULT_BACKUPS_MAX_RETAINED: Final = 5  # Keep last N backups per tag (0 = disabled)
-MIN_BACKUPS_MAX_RETAINED: Final = 0  # 0 = disable automatic backups
-MAX_BACKUPS_MAX_RETAINED: Final = 10  # Maximum number of backups to retain
 
 # Backup Tags (for backup filename identification)
 BACKUP_TAG_RECOVERY: Final = "recovery"  # Data recovery actions
@@ -885,21 +832,23 @@ CFOF_SYSTEM_INPUT_BACKUPS_MAX_RETAINED: Final = "backups_max_retained"
 
 # Dashboard Generator Input Fields (OptionsFlow)
 CFOF_DASHBOARD_INPUT_NAME: Final = "dashboard_name"
-CFOF_DASHBOARD_INPUT_KID_SELECTION: Final = "dashboard_kid_selection"
+CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 CFOF_DASHBOARD_INPUT_ACTION: Final = "dashboard_action"
 CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: Final = "dashboard_update_selection"
 CFOF_DASHBOARD_INPUT_CHECK_CARDS: Final = "dashboard_check_cards"
 CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 CFOF_DASHBOARD_INPUT_ADMIN_MODE: Final = "dashboard_admin_mode"
 CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_GLOBAL: Final = "dashboard_admin_template_global"
-CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_KID: Final = "dashboard_admin_template_per_kid"
+CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_ASSIGNEE: Final = (
+    "dashboard_admin_template_per_assignee"
+)
 CFOF_DASHBOARD_INPUT_ADMIN_VIEW_VISIBILITY: Final = "dashboard_admin_view_visibility"
 CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: Final = "dashboard_show_in_sidebar"
 CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: Final = "dashboard_require_admin"
 CFOF_DASHBOARD_INPUT_ICON: Final = "dashboard_icon"
 CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: Final = "dashboard_release_selection"
 CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: Final = "dashboard_include_prereleases"
-CFOF_DASHBOARD_SECTION_KID_VIEWS: Final = "section_kid_views"
+CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS: Final = "section_assignee_views"
 CFOF_DASHBOARD_SECTION_ADMIN_VIEWS: Final = "section_admin_views"
 CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR: Final = "section_access_sidebar"
 CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: Final = "section_template_version"
@@ -916,10 +865,10 @@ DASHBOARD_ACTION_EXIT: Final = "exit"
 # Dashboard admin-mode options (Phase 3)
 DASHBOARD_ADMIN_MODE_NONE: Final = "none"
 DASHBOARD_ADMIN_MODE_GLOBAL: Final = "global"
-DASHBOARD_ADMIN_MODE_PER_KID: Final = "per_kid"
+DASHBOARD_ADMIN_MODE_PER_ASSIGNEE: Final = "per_assignee"
 DASHBOARD_ADMIN_MODE_BOTH: Final = "both"
 DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL: Final = "all_users"
-DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_PARENTS: Final = "linked_parents"
+DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS: Final = "linked_approvers"
 
 # Dashboard release-mode options (Phase 3)
 DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE: Final = "latest_compatible"
@@ -983,24 +932,23 @@ CHALLENGE_TO_CANONICAL_TARGET_MAP: Final = {
 # ------------------------------------------------------------------------------------------------
 # Data Keys
 # ------------------------------------------------------------------------------------------------
-# Pluralization: Use SINGULAR for single-field data (DATA_KID_NAME = "name"), PLURAL for
-# collections (DATA_KIDS = "kids"). See
+# Pluralization: Use SINGULAR for single-field data (DATA_USER_NAME = "name"), PLURAL for
+# collections (DATA_USERS = "users"). See
 # ARCHITECTURE.md "Entity Plurality" (lines 926-941) for details.
 
 # GLOBAL
 DATA_ACHIEVEMENTS: Final = "achievements"
-DATA_ASSIGNED_KIDS: Final = "assigned_kids"
+DATA_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 DATA_BADGES: Final = "badges"
 DATA_BONUSES: Final = "bonuses"
 DATA_CHALLENGES: Final = "challenges"
 DATA_CHORES: Final = "chores"
-DATA_COORDINATOR: Final = "coordinator"
 DATA_GLOBAL_STATE_SUFFIX: Final = "_global_state"
 DATA_INTERNAL_ID: Final = "internal_id"
-DATA_KIDS: Final = "kids"
+DATA_ASSIGNEES: Final = "assignees"
 DATA_LAST_CHANGE: Final = "last_change"
 DATA_NAME: Final = "name"
-DATA_PARENTS: Final = "parents"
+DATA_APPROVERS: Final = "approvers"
 DATA_USERS: Final = "users"
 DATA_PENALTIES: Final = "penalties"
 DATA_PROGRESS: Final = "progress"
@@ -1009,136 +957,129 @@ DATA_REWARDS: Final = "rewards"
 # NOTIFICATIONS (v0.5.0+ Platinum Pattern - Owned by NotificationManager)
 # Separate bucket for notification history to maintain domain ownership.
 # ChoreManager owns chore_data, NotificationManager owns notifications.
-# Structure: notifications[kid_id][chore_id] = {last_due_start, last_due_reminder, last_overdue}
+# Structure: notifications[assignee_id][chore_id] = {last_due_start, last_due_reminder, last_overdue}
 DATA_NOTIFICATIONS: Final = "notifications"
 DATA_NOTIF_LAST_DUE_START: Final = "last_due_start"
 DATA_NOTIF_LAST_DUE_REMINDER: Final = "last_due_reminder"
 DATA_NOTIF_LAST_OVERDUE: Final = "last_overdue"
 
-# KIDS
-DATA_KID_BADGES_EARNED_NAME: Final = "badge_name"
-DATA_KID_BADGES_EARNED_LAST_AWARDED: Final = "last_awarded_date"
-DATA_KID_BADGES_EARNED_AWARD_COUNT: Final = "award_count"
-DATA_KID_BADGES_EARNED: Final = "badges_earned"
-DATA_KID_BADGES_EARNED_PERIODS: Final = "periods"
-DATA_KID_BADGES_EARNED_PERIODS_DAILY: Final = "daily"
-DATA_KID_BADGES_EARNED_PERIODS_WEEKLY: Final = "weekly"
-DATA_KID_BADGES_EARNED_PERIODS_MONTHLY: Final = "monthly"
-DATA_KID_BADGES_EARNED_PERIODS_YEARLY: Final = "yearly"
-DATA_KID_BADGES_EARNED_PERIODS_ALL_TIME: Final = "all_time"
+# ASSIGNEE / USER (legacy-key backed during hard-fork transition)
+DATA_ASSIGNEE_BADGES_EARNED_NAME: Final = "badge_name"
+DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: Final = "last_awarded_date"
+DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: Final = "award_count"
+DATA_ASSIGNEE_BADGES_EARNED: Final = "badges_earned"
+DATA_ASSIGNEE_BADGES_EARNED_PERIODS: Final = "periods"
+DATA_ASSIGNEE_BADGES_EARNED_PERIODS_ALL_TIME: Final = "all_time"
 
 
 # Badge Progress Data Structure
-DATA_KID_BADGE_PROGRESS: Final = "badge_progress"
+DATA_ASSIGNEE_BADGE_PROGRESS: Final = "badge_progress"
 
 # Common Badge Progress Fields
-DATA_KID_BADGE_PROGRESS_APPROVED_COUNT: Final = "approved_count"
-DATA_KID_BADGE_PROGRESS_CHORES_COMPLETED: Final = "chores_completed"
-DATA_KID_BADGE_PROGRESS_CHORES_CYCLE_COUNT: Final = "chores_cycle_count"
-DATA_KID_BADGE_PROGRESS_CHORES_TODAY: Final = "chores_today"
-DATA_KID_BADGE_PROGRESS_CRITERIA_MET: Final = "criteria_met"
-DATA_KID_BADGE_PROGRESS_CYCLE_COUNT: Final = "cycle_count"
-DATA_KID_BADGE_PROGRESS_DAYS_COMPLETED: Final = "days_completed"
-DATA_KID_BADGE_PROGRESS_DAYS_CYCLE_COUNT: Final = "days_cycle_count"
-DATA_KID_BADGE_PROGRESS_END_DATE: Final = "end_date"
-DATA_KID_BADGE_PROGRESS_LAST_AWARDED: Final = "last_awarded"
-DATA_KID_BADGE_PROGRESS_LAST_UPDATE_DAY: Final = "last_update_day"
-DATA_KID_BADGE_PROGRESS_NAME: Final = "name"
-DATA_KID_BADGE_PROGRESS_OVERALL_PROGRESS: Final = "overall_progress"
-DATA_KID_BADGE_PROGRESS_PENALTY_APPLIED: Final = "penalty_applied"
-DATA_KID_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
-DATA_KID_BADGE_PROGRESS_POINTS_TODAY: Final = "points_today"
-DATA_KID_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
-DATA_KID_BADGE_PROGRESS_START_DATE: Final = "start_date"
-DATA_KID_BADGE_PROGRESS_STATUS: Final = "status"
-DATA_KID_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE: Final = "threshold_value"
-DATA_KID_BADGE_PROGRESS_TARGET_TYPE: Final = "target_type"
-DATA_KID_BADGE_PROGRESS_TODAY_COMPLETED: Final = "today_completed"
-DATA_KID_BADGE_PROGRESS_TOTAL_COUNT: Final = "total_count"
-DATA_KID_BADGE_PROGRESS_TRACKED_CHORES: Final = "tracked_chores"
-DATA_KID_BADGE_PROGRESS_TYPE: Final = "badge_type"
+DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED: Final = "chores_completed"
+DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT: Final = "chores_cycle_count"
+DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET: Final = "criteria_met"
+DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT: Final = "cycle_count"
+DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED: Final = "days_completed"
+DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT: Final = "days_cycle_count"
+DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE: Final = "end_date"
+DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY: Final = "last_update_day"
+DATA_ASSIGNEE_BADGE_PROGRESS_NAME: Final = "name"
+DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS: Final = "overall_progress"
+DATA_ASSIGNEE_BADGE_PROGRESS_PENALTY_APPLIED: Final = "penalty_applied"
+DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
+DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
+DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE: Final = "start_date"
+DATA_ASSIGNEE_BADGE_PROGRESS_STATUS: Final = "status"
+DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE: Final = "threshold_value"
+DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE: Final = "target_type"
+DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES: Final = "tracked_chores"
+DATA_ASSIGNEE_BADGE_PROGRESS_TYPE: Final = "badge_type"
 
 # Note: Shared fields already defined above in Common Badge Progress Fields section
 
-DATA_KID_BONUS_APPLIES: Final = "bonus_applies"
-# DATA_KID_COMPLETED_BY_OTHER_CHORES removed in v0.5.0+ (Phase 2)
-# SHARED_FIRST blocking now computed dynamically, not tracked in kid lists
+DATA_ASSIGNEE_BONUS_APPLIES: Final = "bonus_applies"
+# Legacy completed-by-other assignee list removed in v0.5.0+ (Phase 2)
+# SHARED_FIRST blocking now computed dynamically, not tracked in assignee lists
 
-# Kid Chore Data Structure Constants
-DATA_KID_CHORE_DATA: Final = "chore_data"
-DATA_KID_CHORE_DATA_STATE: Final = "state"
-DATA_KID_CHORE_DATA_PENDING_CLAIM_COUNT: Final = "pending_claim_count"
-DATA_KID_CHORE_DATA_NAME: Final = "name"
-# due_date moved to LEGACY section - use per_kid_due_dates at chore level instead
-DATA_KID_CHORE_DATA_LAST_APPROVED: Final = "last_approved"
-DATA_KID_CHORE_DATA_LAST_CLAIMED: Final = "last_claimed"
-DATA_KID_CHORE_DATA_LAST_COMPLETED: Final = "last_completed"
-DATA_KID_CHORE_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
-DATA_KID_CHORE_DATA_LAST_OVERDUE: Final = "last_overdue"
-DATA_KID_CHORE_DATA_LAST_MISSED: Final = "last_missed"  # Phase 5: Last miss timestamp
-DATA_KID_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: Final = "last_longest_streak_all_time"
-DATA_KID_CHORE_DATA_APPROVAL_PERIOD_START: Final = (
-    "approval_period_start"  # INDEPENDENT: per-kid period start
+# Assignee Chore Data Structure Constants
+DATA_ASSIGNEE_CHORE_DATA: Final = "chore_data"
+DATA_ASSIGNEE_CHORE_DATA_STATE: Final = "state"
+DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: Final = "pending_claim_count"
+DATA_ASSIGNEE_CHORE_DATA_NAME: Final = "name"
+# due_date moved to LEGACY section - use per_assignee_due_dates at chore level instead
+DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED: Final = "last_approved"
+DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED: Final = "last_claimed"
+DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED: Final = "last_completed"
+DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
+DATA_ASSIGNEE_CHORE_DATA_LAST_OVERDUE: Final = "last_overdue"
+DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED: Final = (
+    "last_missed"  # Phase 5: Last miss timestamp
 )
-DATA_KID_CHORE_DATA_TOTAL_COUNT: Final = "total_count"
-DATA_KID_CHORE_DATA_TOTAL_POINTS: Final = "total_points"
-DATA_KID_CHORE_DATA_PERIODS: Final = "periods"
-DATA_KID_CHORE_DATA_PERIODS_ALL_TIME: Final = "all_time"
-DATA_KID_CHORE_DATA_PERIODS_DAILY: Final = "daily"
-DATA_KID_CHORE_DATA_PERIODS_WEEKLY: Final = "weekly"
-DATA_KID_CHORE_DATA_PERIODS_MONTHLY: Final = "monthly"
-DATA_KID_CHORE_DATA_PERIODS_YEARLY: Final = "yearly"
-DATA_KID_CHORE_DATA_PERIOD_APPROVED: Final = "approved"
-DATA_KID_CHORE_DATA_PERIOD_CLAIMED: Final = "claimed"
-DATA_KID_CHORE_DATA_PERIOD_COMPLETED: Final = "completed"
-DATA_KID_CHORE_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
-DATA_KID_CHORE_DATA_PERIOD_STREAK_TALLY: Final = (
+DATA_ASSIGNEE_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: Final = (
+    "last_longest_streak_all_time"
+)
+DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START: Final = (
+    "approval_period_start"  # INDEPENDENT: per-assignee period start
+)
+DATA_ASSIGNEE_CHORE_DATA_TOTAL_COUNT: Final = "total_count"
+DATA_ASSIGNEE_CHORE_DATA_TOTAL_POINTS: Final = "total_points"
+DATA_ASSIGNEE_CHORE_DATA_PERIODS: Final = "periods"
+DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME: Final = "all_time"
+DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY: Final = "daily"
+DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY: Final = "weekly"
+DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY: Final = "monthly"
+DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY: Final = "yearly"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: Final = "approved"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED: Final = "claimed"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED: Final = "completed"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY: Final = (
     "streak_tally"  # Daily: streak value on that day
 )
-DATA_KID_CHORE_DATA_PERIOD_LONGEST_STREAK: Final = (
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK: Final = (
     "longest_streak"  # All-time: high water mark (HWM)
 )
-DATA_KID_CHORE_DATA_PERIOD_OVERDUE: Final = "overdue"
-DATA_KID_CHORE_DATA_PERIOD_MISSED: Final = "missed"  # Phase 5: Period miss counter
-DATA_KID_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY: Final = (
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE: Final = "overdue"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED: Final = "missed"  # Phase 5: Period miss counter
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY: Final = (
     "missed_streak_tally"  # Phase 5: Daily consecutive misses
 )
-DATA_KID_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: Final = (
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: Final = (
     "missed_longest_streak"  # Phase 5: All-time missed streak HWM
 )
-DATA_KID_CHORE_DATA_PERIOD_POINTS: Final = "points"
-DATA_KID_CHORE_DATA_BADGE_REFS: Final = "badge_refs"
+DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS: Final = "points"
+DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS: Final = "badge_refs"
 
 # Current Streak Values (Chore Data Level - Never Pruned)
 # Phase 5: Store current streak values at chore data level to survive retention pruning
-DATA_KID_CHORE_DATA_CURRENT_STREAK: Final = "current_streak"  # Completion streak
-DATA_KID_CHORE_DATA_CURRENT_MISSED_STREAK: Final = (
+DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK: Final = "current_streak"  # Completion streak
+DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK: Final = (
     "current_missed_streak"  # Consecutive misses
 )
 
 # Chore Periods (Global Bucket) - v44+ (Phase 2)
-DATA_KID_CHORE_PERIODS: Final = "chore_periods"
+DATA_ASSIGNEE_CHORE_PERIODS: Final = "chore_periods"
 # Chore periods use the same bucket keys as chore_data periods
-# (daily, weekly, monthly, yearly, all_time) - see DATA_KID_CHORE_DATA_PERIODS_*
+# (daily, weekly, monthly, yearly, all_time) - see assignee chore data period keys
 
-# NOTE: DATA_KID_CHORE_STATS and all sub-keys (DATA_KID_CHORE_STATS_*) have been
+# NOTE: Legacy chore stats keys and sub-keys have been
 # DELETED as of v0.5.0-beta3 (schema v43). The chore_stats storage bucket was
 # removed - all stats are now derived from chore_periods.all_time and
 # chore_data[uuid].periods buckets. See _LEGACY constants at end of file.
 
 # --- Last Completion Date (lives in chore_data, NOT in deleted chore_stats) ---
-DATA_KID_CHORE_DATA_APPROVED_LAST_DATE: Final = "approved_last_date"
-
-
 # --- Badge Progress Tracking ---
-DATA_KID_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
+DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
 
 # Phase 3A: Only state fields stored - derived fields computed on-read
 # Maintenance tracking (state fields)
-DATA_KID_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: Final = "cycle_points"
-DATA_KID_CUMULATIVE_BADGE_PROGRESS_STATUS: Final = "status"
-DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE: Final = "maintenance_end_date"
-DATA_KID_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE = (
+DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: Final = "cycle_points"
+DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS: Final = "status"
+DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE: Final = (
+    "maintenance_end_date"
+)
+DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE = (
     "maintenance_grace_end_date"
 )
 
@@ -1163,19 +1104,21 @@ CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_BADGE_ID: Final = "next_lower_badge_id"
 CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_BADGE_NAME: Final = "next_lower_badge_name"
 CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_THRESHOLD: Final = "next_lower_threshold"
 
-DATA_KID_CURRENT_STREAK: Final = "current_streak"
-DATA_KID_HA_USER_ID: Final = "ha_user_id"
-DATA_KID_ID: Final = "kid_id"
-DATA_KID_INTERNAL_ID: Final = "internal_id"
-DATA_KID_LAST_BADGE_RESET: Final = "last_badge_reset"
-DATA_KID_LAST_STREAK_DATE: Final = "last_date"
-DATA_KID_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
-DATA_KID_NAME: Final = "name"
-# NOTE: DATA_KID_OVERDUE_CHORES removed - dead code, see DATA_KID_OVERDUE_CHORES_LEGACY
-DATA_KID_PENALTY_APPLIES: Final = "penalty_applies"
-DATA_KID_POINTS: Final = "points"
-DATA_KID_POINTS_MULTIPLIER: Final = "points_multiplier"
-DATA_KID_LEDGER: Final = "ledger"  # Transaction history (list of LedgerEntry)
+# Canonical assignee constants (runtime-facing names)
+DATA_ASSIGNEE_HA_USER_ID: Final = "ha_user_id"
+DATA_ASSIGNEE_ID: Final = "assignee_id"
+DATA_ASSIGNEE_INTERNAL_ID: Final = "internal_id"
+DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
+DATA_ASSIGNEE_NAME: Final = "name"
+DATA_ASSIGNEE_POINTS: Final = "points"
+DATA_ASSIGNEE_POINTS_MULTIPLIER: Final = "points_multiplier"
+DATA_ASSIGNEE_LEDGER: Final = "ledger"
+
+# Legacy aliases for runtime compatibility
+DATA_ASSIGNEE_CURRENT_STREAK: Final = "current_streak"
+DATA_ASSIGNEE_LAST_STREAK_DATE: Final = "last_date"
+# NOTE: Legacy overdue chore list removed - dead code (see legacy section)
+DATA_ASSIGNEE_PENALTY_APPLIES: Final = "penalty_applies"
 
 # ——————————————————————————————————————————————
 # Ledger Entry Structure Constants (Phase 3 - Economy Stack)
@@ -1192,91 +1135,62 @@ DATA_LEDGER_REFERENCE_ID: Final = "reference_id"  # Related entity ID (optional)
 DEFAULT_LEDGER_MAX_ENTRIES: Final = 1000
 
 # ——————————————————————————————————————————————
-# Kid Reward Data Structure Constants (Modern - v0.5.0+)
-# Supports multi-claim: kid can claim same reward multiple times before approval
+# Assignee Reward Data Structure Constants (Modern - v0.5.0+)
+# Supports multi-claim: assignee can claim same reward multiple times before approval
 # ——————————————————————————————————————————————
-DATA_KID_REWARD_DATA: Final = "reward_data"
-DATA_KID_REWARD_DATA_NAME: Final = "name"
-DATA_KID_REWARD_DATA_PENDING_COUNT: Final = "pending_count"  # Number of pending claims
-DATA_KID_REWARD_DATA_LAST_CLAIMED: Final = "last_claimed"
-DATA_KID_REWARD_DATA_LAST_APPROVED: Final = "last_approved"
-DATA_KID_REWARD_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
+DATA_ASSIGNEE_REWARD_DATA: Final = "reward_data"
+DATA_ASSIGNEE_REWARD_DATA_NAME: Final = "name"
+DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT: Final = (
+    "pending_count"  # Number of pending claims
+)
+DATA_ASSIGNEE_REWARD_DATA_LAST_CLAIMED: Final = "last_claimed"
+DATA_ASSIGNEE_REWARD_DATA_LAST_APPROVED: Final = "last_approved"
+DATA_ASSIGNEE_REWARD_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
 
 # LEGACY v43: Removed - use periods.all_time.* instead
-DATA_KID_REWARD_DATA_TOTAL_CLAIMS: Final = (
+DATA_ASSIGNEE_REWARD_DATA_TOTAL_CLAIMS: Final = (
     "total_claims"  # LEGACY v43: Use periods.all_time.claimed
 )
-DATA_KID_REWARD_DATA_TOTAL_APPROVED: Final = (
+DATA_ASSIGNEE_REWARD_DATA_TOTAL_APPROVED: Final = (
     "total_approved"  # LEGACY v43: Use periods.all_time.approved
 )
-DATA_KID_REWARD_DATA_TOTAL_DISAPPROVED: Final = (
+DATA_ASSIGNEE_REWARD_DATA_TOTAL_DISAPPROVED: Final = (
     "total_disapproved"  # LEGACY v43: Use periods.all_time.disapproved
 )
-DATA_KID_REWARD_DATA_TOTAL_POINTS_SPENT: Final = (
+DATA_ASSIGNEE_REWARD_DATA_TOTAL_POINTS_SPENT: Final = (
     "total_points_spent"  # LEGACY v43: Use periods.all_time.points
 )
-DATA_KID_REWARD_DATA_NOTIFICATION_IDS: Final = "notification_ids"  # LEGACY v43: NotificationManager owns lifecycle (embeds in action buttons)
+DATA_ASSIGNEE_REWARD_DATA_NOTIFICATION_IDS: Final = "notification_ids"  # LEGACY v43: NotificationManager owns lifecycle (embeds in action buttons)
 
 # Period-based reward tracking (aligned with chore_data and point_data patterns)
-DATA_KID_REWARD_DATA_PERIODS: Final = "periods"
-DATA_KID_REWARD_DATA_PERIODS_DAILY: Final = "daily"
-DATA_KID_REWARD_DATA_PERIODS_WEEKLY: Final = "weekly"
-DATA_KID_REWARD_DATA_PERIODS_MONTHLY: Final = "monthly"
-DATA_KID_REWARD_DATA_PERIODS_YEARLY: Final = "yearly"
-DATA_KID_REWARD_DATA_PERIODS_ALL_TIME: Final = "all_time"
-DATA_KID_REWARD_DATA_PERIOD_CLAIMED: Final = "claimed"
-DATA_KID_REWARD_DATA_PERIOD_APPROVED: Final = "approved"
-DATA_KID_REWARD_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
-DATA_KID_REWARD_DATA_PERIOD_POINTS: Final = "points"
+DATA_ASSIGNEE_REWARD_DATA_PERIODS: Final = "periods"
+DATA_ASSIGNEE_REWARD_DATA_PERIODS_DAILY: Final = "daily"
+DATA_ASSIGNEE_REWARD_DATA_PERIODS_WEEKLY: Final = "weekly"
+DATA_ASSIGNEE_REWARD_DATA_PERIODS_MONTHLY: Final = "monthly"
+DATA_ASSIGNEE_REWARD_DATA_PERIODS_YEARLY: Final = "yearly"
+DATA_ASSIGNEE_REWARD_DATA_PERIODS_ALL_TIME: Final = "all_time"
+DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED: Final = "claimed"
+DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED: Final = "approved"
+DATA_ASSIGNEE_REWARD_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
+DATA_ASSIGNEE_REWARD_DATA_PERIOD_POINTS: Final = "points"
 
 # Reward Periods (Global Bucket) - v43+ (Phase 3)
-DATA_KID_REWARD_PERIODS: Final = "reward_periods"
+DATA_ASSIGNEE_REWARD_PERIODS: Final = "reward_periods"
 # Reward periods use the same bucket keys as reward_data periods
-# (daily, weekly, monthly, yearly, all_time) - see DATA_KID_REWARD_DATA_PERIODS_*
+# (daily, weekly, monthly, yearly, all_time) - see assignee reward data period keys
 
-# NOTE: DATA_KID_REWARD_STATS and all sub-keys (DATA_KID_REWARD_STATS_*) will be
+# NOTE: Legacy reward stats keys and sub-keys will be
 # DELETED in v0.5.0-beta3 (schema v43). The reward_stats storage bucket will be
 # removed - all stats will be derived from reward_periods.all_time and
 # reward_data[uuid].periods buckets. See _LEGACY constants at end of file.
 
-# Reward Stats Keys (aggregated stats across all rewards for a kid)
-DATA_KID_REWARD_STATS: Final = "reward_stats"
+# Reward Stats Keys (aggregated stats across all rewards for an assignee)
+DATA_ASSIGNEE_REWARD_STATS: Final = "reward_stats"
 
 # --- Claimed Counts (pending approval) ---
-DATA_KID_REWARD_STATS_CLAIMED_TODAY: Final = "claimed_today"
-DATA_KID_REWARD_STATS_CLAIMED_WEEK: Final = "claimed_week"
-DATA_KID_REWARD_STATS_CLAIMED_MONTH: Final = "claimed_month"
-DATA_KID_REWARD_STATS_CLAIMED_YEAR: Final = "claimed_year"
-DATA_KID_REWARD_STATS_CLAIMED_ALL_TIME: Final = "claimed_all_time"
 
-# --- Approved Counts ---
-DATA_KID_REWARD_STATS_APPROVED_TODAY: Final = "approved_today"
-DATA_KID_REWARD_STATS_APPROVED_WEEK: Final = "approved_week"
-DATA_KID_REWARD_STATS_APPROVED_MONTH: Final = "approved_month"
-DATA_KID_REWARD_STATS_APPROVED_YEAR: Final = "approved_year"
-DATA_KID_REWARD_STATS_APPROVED_ALL_TIME: Final = "approved_all_time"
-
-# --- Disapproved Counts ---
-DATA_KID_REWARD_STATS_DISAPPROVED_TODAY: Final = "disapproved_today"
-DATA_KID_REWARD_STATS_DISAPPROVED_WEEK: Final = "disapproved_week"
-DATA_KID_REWARD_STATS_DISAPPROVED_MONTH: Final = "disapproved_month"
-DATA_KID_REWARD_STATS_DISAPPROVED_YEAR: Final = "disapproved_year"
-DATA_KID_REWARD_STATS_DISAPPROVED_ALL_TIME: Final = "disapproved_all_time"
-
-# --- Points Spent (on approved rewards) ---
-DATA_KID_REWARD_STATS_POINTS_SPENT_TODAY: Final = "points_spent_today"
-DATA_KID_REWARD_STATS_POINTS_SPENT_WEEK: Final = "points_spent_week"
-DATA_KID_REWARD_STATS_POINTS_SPENT_MONTH: Final = "points_spent_month"
-DATA_KID_REWARD_STATS_POINTS_SPENT_YEAR: Final = "points_spent_year"
-DATA_KID_REWARD_STATS_POINTS_SPENT_ALL_TIME: Final = "points_spent_all_time"
-
-# --- Most Redeemed Reward ---
-DATA_KID_REWARD_STATS_MOST_REDEEMED_ALL_TIME: Final = "most_redeemed_all_time"
-DATA_KID_REWARD_STATS_MOST_REDEEMED_WEEK: Final = "most_redeemed_week"
-DATA_KID_REWARD_STATS_MOST_REDEEMED_MONTH: Final = "most_redeemed_month"
-
-DATA_KID_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
-DATA_KID_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
+DATA_ASSIGNEE_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 
 # USERS (schema 45+ capability model)
 DATA_USER_ID: Final = "user_id"
@@ -1288,8 +1202,6 @@ DATA_USER_CAN_MANAGE: Final = "can_manage"
 DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
 
 # Legacy payload compatibility window (Phase 1 contract)
-COMPAT_PAYLOAD_KEY_KID_ID: Final = "kid_id"
-COMPAT_PAYLOAD_KEY_USER_ID: Final = "user_id"
 
 # ——————————————————————————————————————————————
 # Custom Translation Settings (Dashboard & Notifications)
@@ -1304,21 +1216,20 @@ NOTIFICATION_TRANSLATIONS_SUFFIX: Final = (
 REPORT_TRANSLATIONS_SUFFIX: Final = "_report"  # File naming: en_report.json
 
 # Legacy alias for backward compatibility
-DASHBOARD_TRANSLATIONS_DIR: Final = CUSTOM_TRANSLATIONS_DIR
 
 # ——————————————————————————————————————————————
-# Kid Point History Data Structure
+# Assignee Point History Data Structure
 # ——————————————————————————————————————————————
 
 # Top‑level key for storing period‑by‑period point history (v43+)
-DATA_KID_POINT_PERIODS: Final = "point_periods"
+DATA_ASSIGNEE_POINT_PERIODS: Final = "point_periods"
 
 # Individual period buckets
-DATA_KID_POINT_PERIODS_DAILY: Final = "daily"
-DATA_KID_POINT_PERIODS_WEEKLY: Final = "weekly"
-DATA_KID_POINT_PERIODS_MONTHLY: Final = "monthly"
-DATA_KID_POINT_PERIODS_YEARLY: Final = "yearly"
-DATA_KID_POINT_PERIODS_ALL_TIME: Final = "all_time"
+DATA_ASSIGNEE_POINT_PERIODS_DAILY: Final = "daily"
+DATA_ASSIGNEE_POINT_PERIODS_WEEKLY: Final = "weekly"
+DATA_ASSIGNEE_POINT_PERIODS_MONTHLY: Final = "monthly"
+DATA_ASSIGNEE_POINT_PERIODS_YEARLY: Final = "yearly"
+DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME: Final = "all_time"
 
 # Within each period entry:
 #   – points_earned: sum of positive deltas (v44+)
@@ -1326,10 +1237,10 @@ DATA_KID_POINT_PERIODS_ALL_TIME: Final = "all_time"
 #   – by_source: breakdown of delta by source type
 #   – highest_balance: cumulative peak (all_time bucket only, v44+)
 # DEPRECATED (v44): points_total will be deleted after migration
-DATA_KID_POINT_PERIOD_POINTS_EARNED: Final = "points_earned"
-DATA_KID_POINT_PERIOD_POINTS_SPENT: Final = "points_spent"
-DATA_KID_POINT_PERIOD_HIGHEST_BALANCE: Final = "highest_balance"
-DATA_KID_POINT_PERIOD_BY_SOURCE: Final = "by_source"
+DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED: Final = "points_earned"
+DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT: Final = "points_spent"
+DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE: Final = "highest_balance"
+DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE: Final = "by_source"
 
 # Point Sources
 # --- Point Source Types (all plural) ---
@@ -1345,16 +1256,6 @@ POINTS_SOURCE_OTHER: Final = "other"
 
 # Example list of valid sources for UI/enumeration:
 # Lowercase literals required by Home Assistant SelectSelector schema
-POINTS_SOURCE_OPTIONS = [
-    {"value": POINTS_SOURCE_CHORES, "label": "Chores"},
-    {"value": POINTS_SOURCE_BONUSES, "label": "Bonuses"},
-    {"value": POINTS_SOURCE_PENALTIES, "label": "Penalties"},
-    {"value": POINTS_SOURCE_BADGES, "label": "Badges"},
-    {"value": POINTS_SOURCE_ACHIEVEMENTS, "label": "Achievements"},
-    {"value": POINTS_SOURCE_CHALLENGES, "label": "Challenges"},
-    {"value": POINTS_SOURCE_REWARDS, "label": "Rewards"},
-    {"value": POINTS_SOURCE_OTHER, "label": "Other"},
-]
 
 
 # --- Averages ---
@@ -1362,98 +1263,93 @@ POINTS_SOURCE_OPTIONS = [
 # LEGACY constants moved to `migration_pre_v50_constants.py`
 
 # =============================================================================
-# PRESENTATION CONSTANTS (PRES_KID_*) - Memory-only cache keys (NOT in storage)
+# PRESENTATION CONSTANTS (assignee scoped) - Memory-only cache keys (NOT in storage)
 # =============================================================================
 # These constants are used ONLY in StatisticsManager._stats_cache.
 # They represent ephemeral, derived data that can be regenerated from buckets.
 # Directive: Derivative Data is Ephemeral - these MUST NOT be persisted.
 # See Phase 7.5: Statistics Presenter & Data Sanitization
-# Naming: PRES_KID_* follows DATA_KID_* pattern for kid-specific values.
+# Naming: PRES_ASSIGNEE_* follows DATA_ASSIGNEE_* pattern for assignee-specific values.
 
 # --- Presentation: Point Stats (derived from period buckets) ---
-PRES_KID_POINTS_EARNED_TODAY: Final = "pres_kid_points_earned_today"
-PRES_KID_POINTS_EARNED_WEEK: Final = "pres_kid_points_earned_week"
-PRES_KID_POINTS_EARNED_MONTH: Final = "pres_kid_points_earned_month"
-PRES_KID_POINTS_EARNED_YEAR: Final = "pres_kid_points_earned_year"
+PRES_ASSIGNEE_POINTS_EARNED_TODAY: Final = "pres_assignee_points_earned_today"
+PRES_ASSIGNEE_POINTS_EARNED_WEEK: Final = "pres_assignee_points_earned_week"
+PRES_ASSIGNEE_POINTS_EARNED_MONTH: Final = "pres_assignee_points_earned_month"
+PRES_ASSIGNEE_POINTS_EARNED_YEAR: Final = "pres_assignee_points_earned_year"
 
-PRES_KID_POINTS_SPENT_TODAY: Final = "pres_kid_points_spent_today"
-PRES_KID_POINTS_SPENT_WEEK: Final = "pres_kid_points_spent_week"
-PRES_KID_POINTS_SPENT_MONTH: Final = "pres_kid_points_spent_month"
-PRES_KID_POINTS_SPENT_YEAR: Final = "pres_kid_points_spent_year"
+PRES_ASSIGNEE_POINTS_SPENT_TODAY: Final = "pres_assignee_points_spent_today"
+PRES_ASSIGNEE_POINTS_SPENT_WEEK: Final = "pres_assignee_points_spent_week"
+PRES_ASSIGNEE_POINTS_SPENT_MONTH: Final = "pres_assignee_points_spent_month"
+PRES_ASSIGNEE_POINTS_SPENT_YEAR: Final = "pres_assignee_points_spent_year"
 
-PRES_KID_POINTS_NET_TODAY: Final = "pres_kid_points_net_today"
-PRES_KID_POINTS_NET_WEEK: Final = "pres_kid_points_net_week"
-PRES_KID_POINTS_NET_MONTH: Final = "pres_kid_points_net_month"
-PRES_KID_POINTS_NET_YEAR: Final = "pres_kid_points_net_year"
+PRES_ASSIGNEE_POINTS_NET_TODAY: Final = "pres_assignee_points_net_today"
+PRES_ASSIGNEE_POINTS_NET_WEEK: Final = "pres_assignee_points_net_week"
+PRES_ASSIGNEE_POINTS_NET_MONTH: Final = "pres_assignee_points_net_month"
+PRES_ASSIGNEE_POINTS_NET_YEAR: Final = "pres_assignee_points_net_year"
 
-PRES_KID_POINTS_BY_SOURCE_TODAY: Final = "pres_kid_points_by_source_today"
-PRES_KID_POINTS_BY_SOURCE_WEEK: Final = "pres_kid_points_by_source_week"
-PRES_KID_POINTS_BY_SOURCE_MONTH: Final = "pres_kid_points_by_source_month"
-PRES_KID_POINTS_BY_SOURCE_YEAR: Final = "pres_kid_points_by_source_year"
+PRES_ASSIGNEE_POINTS_BY_SOURCE_TODAY: Final = "pres_assignee_points_by_source_today"
+PRES_ASSIGNEE_POINTS_BY_SOURCE_WEEK: Final = "pres_assignee_points_by_source_week"
+PRES_ASSIGNEE_POINTS_BY_SOURCE_MONTH: Final = "pres_assignee_points_by_source_month"
+PRES_ASSIGNEE_POINTS_BY_SOURCE_YEAR: Final = "pres_assignee_points_by_source_year"
 
-PRES_KID_POINTS_AVG_PER_DAY_WEEK: Final = "pres_kid_avg_points_per_day_week"
-PRES_KID_POINTS_AVG_PER_DAY_MONTH: Final = "pres_kid_avg_points_per_day_month"
+PRES_ASSIGNEE_POINTS_AVG_PER_DAY_WEEK: Final = "pres_assignee_avg_points_per_day_week"
+PRES_ASSIGNEE_POINTS_AVG_PER_DAY_MONTH: Final = "pres_assignee_avg_points_per_day_month"
 
 # --- Presentation: Chore Stats (derived from period buckets) ---
-PRES_KID_CHORES_APPROVED_TODAY: Final = "pres_kid_chores_approved_today"
-PRES_KID_CHORES_APPROVED_WEEK: Final = "pres_kid_chores_approved_week"
-PRES_KID_CHORES_APPROVED_MONTH: Final = "pres_kid_chores_approved_month"
-PRES_KID_CHORES_APPROVED_YEAR: Final = "pres_kid_chores_approved_year"
-PRES_KID_CHORES_APPROVED_ALL_TIME: Final = "pres_kid_chores_approved_all_time"
+PRES_ASSIGNEE_CHORES_APPROVED_TODAY: Final = "pres_assignee_chores_approved_today"
+PRES_ASSIGNEE_CHORES_APPROVED_WEEK: Final = "pres_assignee_chores_approved_week"
+PRES_ASSIGNEE_CHORES_APPROVED_MONTH: Final = "pres_assignee_chores_approved_month"
+PRES_ASSIGNEE_CHORES_APPROVED_YEAR: Final = "pres_assignee_chores_approved_year"
 
-# --- Presentation: Completed Stats (work date tracking - parent-lag-proof) ---
+# --- Presentation: Completed Stats (work date tracking - approver-lag-proof) ---
 # These track when work was DONE (claim date), not when approved.
-PRES_KID_CHORES_COMPLETED_TODAY: Final = "pres_kid_chores_completed_today"
-PRES_KID_CHORES_COMPLETED_WEEK: Final = "pres_kid_chores_completed_week"
-PRES_KID_CHORES_COMPLETED_MONTH: Final = "pres_kid_chores_completed_month"
-PRES_KID_CHORES_COMPLETED_YEAR: Final = "pres_kid_chores_completed_year"
-PRES_KID_CHORES_COMPLETED_ALL_TIME: Final = "pres_kid_chores_completed_all_time"
+PRES_ASSIGNEE_CHORES_COMPLETED_TODAY: Final = "pres_assignee_chores_completed_today"
+PRES_ASSIGNEE_CHORES_COMPLETED_WEEK: Final = "pres_assignee_chores_completed_week"
+PRES_ASSIGNEE_CHORES_COMPLETED_MONTH: Final = "pres_assignee_chores_completed_month"
+PRES_ASSIGNEE_CHORES_COMPLETED_YEAR: Final = "pres_assignee_chores_completed_year"
 
-PRES_KID_CHORES_CLAIMED_TODAY: Final = "pres_kid_chores_claimed_today"
-PRES_KID_CHORES_CLAIMED_WEEK: Final = "pres_kid_chores_claimed_week"
-PRES_KID_CHORES_CLAIMED_MONTH: Final = "pres_kid_chores_claimed_month"
-PRES_KID_CHORES_CLAIMED_YEAR: Final = "pres_kid_chores_claimed_year"
-PRES_KID_CHORES_CLAIMED_ALL_TIME: Final = "pres_kid_chores_claimed_all_time"
+PRES_ASSIGNEE_CHORES_CLAIMED_TODAY: Final = "pres_assignee_chores_claimed_today"
+PRES_ASSIGNEE_CHORES_CLAIMED_WEEK: Final = "pres_assignee_chores_claimed_week"
+PRES_ASSIGNEE_CHORES_CLAIMED_MONTH: Final = "pres_assignee_chores_claimed_month"
+PRES_ASSIGNEE_CHORES_CLAIMED_YEAR: Final = "pres_assignee_chores_claimed_year"
 
-PRES_KID_CHORES_MISSED_TODAY: Final = "pres_kid_chores_missed_today"
-PRES_KID_CHORES_MISSED_WEEK: Final = "pres_kid_chores_missed_week"
-PRES_KID_CHORES_MISSED_MONTH: Final = "pres_kid_chores_missed_month"
-PRES_KID_CHORES_MISSED_YEAR: Final = "pres_kid_chores_missed_year"
+PRES_ASSIGNEE_CHORES_MISSED_TODAY: Final = "pres_assignee_chores_missed_today"
+PRES_ASSIGNEE_CHORES_MISSED_WEEK: Final = "pres_assignee_chores_missed_week"
+PRES_ASSIGNEE_CHORES_MISSED_MONTH: Final = "pres_assignee_chores_missed_month"
+PRES_ASSIGNEE_CHORES_MISSED_YEAR: Final = "pres_assignee_chores_missed_year"
 
-PRES_KID_CHORES_POINTS_TODAY: Final = "pres_kid_chores_points_today"
-PRES_KID_CHORES_POINTS_WEEK: Final = "pres_kid_chores_points_week"
-PRES_KID_CHORES_POINTS_MONTH: Final = "pres_kid_chores_points_month"
-PRES_KID_CHORES_POINTS_YEAR: Final = "pres_kid_chores_points_year"
-PRES_KID_CHORES_POINTS_ALL_TIME: Final = "pres_kid_chores_points_all_time"
+PRES_ASSIGNEE_CHORES_POINTS_TODAY: Final = "pres_assignee_chores_points_today"
+PRES_ASSIGNEE_CHORES_POINTS_WEEK: Final = "pres_assignee_chores_points_week"
+PRES_ASSIGNEE_CHORES_POINTS_MONTH: Final = "pres_assignee_chores_points_month"
+PRES_ASSIGNEE_CHORES_POINTS_YEAR: Final = "pres_assignee_chores_points_year"
 
-PRES_KID_CHORES_AVG_PER_DAY_WEEK: Final = "pres_kid_chores_avg_per_day_week"
-PRES_KID_CHORES_AVG_PER_DAY_MONTH: Final = "pres_kid_chores_avg_per_day_month"
-PRES_KID_CHORES_AVG_PER_DAY_YEAR: Final = "pres_kid_chores_avg_per_day_year"
+PRES_ASSIGNEE_CHORES_AVG_PER_DAY_WEEK: Final = "pres_assignee_chores_avg_per_day_week"
+PRES_ASSIGNEE_CHORES_AVG_PER_DAY_MONTH: Final = "pres_assignee_chores_avg_per_day_month"
+PRES_ASSIGNEE_CHORES_AVG_PER_DAY_YEAR: Final = "pres_assignee_chores_avg_per_day_year"
 
-PRES_KID_TOP_CHORES_WEEK: Final = "pres_kid_top_chores_week"
-PRES_KID_TOP_CHORES_MONTH: Final = "pres_kid_top_chores_month"
-PRES_KID_TOP_CHORES_YEAR: Final = "pres_kid_top_chores_year"
+PRES_ASSIGNEE_TOP_CHORES_WEEK: Final = "pres_assignee_top_chores_week"
+PRES_ASSIGNEE_TOP_CHORES_MONTH: Final = "pres_assignee_top_chores_month"
+PRES_ASSIGNEE_TOP_CHORES_YEAR: Final = "pres_assignee_top_chores_year"
 
 # --- Presentation: Snapshot Counts (current state, not historical) ---
 # These are volatile counts of chores in specific states RIGHT NOW.
 # Derived from current chore states, NOT from period buckets.
-PRES_KID_CHORES_CURRENT_OVERDUE: Final = "pres_kid_chores_current_overdue"
-PRES_KID_CHORES_CURRENT_CLAIMED: Final = "pres_kid_chores_current_claimed"
-PRES_KID_CHORES_CURRENT_APPROVED: Final = "pres_kid_chores_current_approved"
-PRES_KID_CHORES_CURRENT_DUE_TODAY: Final = "pres_kid_chores_current_due_today"
+PRES_ASSIGNEE_CHORES_CURRENT_OVERDUE: Final = "pres_assignee_chores_current_overdue"
+PRES_ASSIGNEE_CHORES_CURRENT_CLAIMED: Final = "pres_assignee_chores_current_claimed"
+PRES_ASSIGNEE_CHORES_CURRENT_APPROVED: Final = "pres_assignee_chores_current_approved"
+PRES_ASSIGNEE_CHORES_CURRENT_DUE_TODAY: Final = "pres_assignee_chores_current_due_today"
 
 # --- Presentation: Reward Stats (derived from period buckets) ---
-PRES_KID_REWARDS_CLAIMED_TODAY: Final = "pres_kid_rewards_claimed_today"
-PRES_KID_REWARDS_CLAIMED_WEEK: Final = "pres_kid_rewards_claimed_week"
-PRES_KID_REWARDS_CLAIMED_MONTH: Final = "pres_kid_rewards_claimed_month"
+PRES_ASSIGNEE_REWARDS_CLAIMED_TODAY: Final = "pres_assignee_rewards_claimed_today"
+PRES_ASSIGNEE_REWARDS_CLAIMED_WEEK: Final = "pres_assignee_rewards_claimed_week"
+PRES_ASSIGNEE_REWARDS_CLAIMED_MONTH: Final = "pres_assignee_rewards_claimed_month"
 
-PRES_KID_REWARDS_APPROVED_TODAY: Final = "pres_kid_rewards_approved_today"
-PRES_KID_REWARDS_APPROVED_WEEK: Final = "pres_kid_rewards_approved_week"
-PRES_KID_REWARDS_APPROVED_MONTH: Final = "pres_kid_rewards_approved_month"
+PRES_ASSIGNEE_REWARDS_APPROVED_TODAY: Final = "pres_assignee_rewards_approved_today"
+PRES_ASSIGNEE_REWARDS_APPROVED_WEEK: Final = "pres_assignee_rewards_approved_week"
+PRES_ASSIGNEE_REWARDS_APPROVED_MONTH: Final = "pres_assignee_rewards_approved_month"
 
 # --- Presentation: Cache Metadata ---
-PRES_KID_LAST_UPDATED: Final = "pres_kid_last_updated"
-PRES_KID_CACHE_VERSION: Final = "pres_kid_cache_version"
+PRES_ASSIGNEE_LAST_UPDATED: Final = "pres_assignee_last_updated"
 
 # =============================================================================
 # TEMPORAL STAT KEY SUFFIXES (for migration stripping - Phase 7.5)
@@ -1462,44 +1358,24 @@ PRES_KID_CACHE_VERSION: Final = "pres_kid_cache_version"
 # persisted to storage. Used by migration_pre_v50._strip_temporal_stats() and
 # statistics_engine filter functions. Keys ending with these ARE temporal.
 # Note: all_time and highest_balance_all_time are NOT temporal - they persist.
-STATS_TEMPORAL_SUFFIXES: Final[tuple[str, ...]] = (
-    "_today",
-    "_week",
-    "_month",
-    "_year",
-    "_avg_per_day_week",
-    "_avg_per_day_month",
-    "_avg_per_chore",
-    "_current_due_today",
-    "_current_overdue",
-    "_current_claimed",
-    "_current_approved",
-    "most_completed_chore_week",
-    "most_completed_chore_month",
-    "most_completed_chore_year",
-)
 
-# PARENTS
-DATA_PARENT_ASSOCIATED_KIDS: Final = "associated_kids"
-DATA_PARENT_HA_USER_ID: Final = "ha_user_id"
-DATA_PARENT_INTERNAL_ID: Final = "internal_id"
-DATA_PARENT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
-DATA_PARENT_NAME: Final = "name"
-DATA_PARENT_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
+# Canonical approver constants (runtime-facing names)
+# Canonical approver-linked profile key (legacy storage key retained for compatibility)
+DATA_APPROVER_ASSOCIATED_USERS: Final = "associated_assignees"
+DATA_APPROVER_HA_USER_ID: Final = "ha_user_id"
+DATA_APPROVER_INTERNAL_ID: Final = "internal_id"
+DATA_APPROVER_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
+DATA_APPROVER_NAME: Final = "name"
+DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
+DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
+DATA_APPROVER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
+DATA_APPROVER_ENABLE_GAMIFICATION: Final = "enable_gamification"
+DATA_APPROVER_LINKED_PROFILE_ID: Final = "linked_shadow_assignee_id"
+DATA_APPROVER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 
-# Parent Chore Capabilities (stored on parent entity)
-DATA_PARENT_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
-DATA_PARENT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
-DATA_PARENT_ENABLE_GAMIFICATION: Final = "enable_gamification"
-# Canonical parent-linked profile key (legacy storage key retained for compatibility)
-DATA_PARENT_LINKED_PROFILE_ID: Final = "linked_shadow_kid_id"
-# Legacy alias retained for transition compatibility
-DATA_PARENT_LINKED_SHADOW_KID_ID: Final = DATA_PARENT_LINKED_PROFILE_ID
-DATA_PARENT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-
-# Shadow Kid Markers (stored on kid entity)
-DATA_KID_IS_SHADOW: Final = "is_shadow_kid"
-DATA_KID_LINKED_PARENT_ID: Final = "linked_parent_id"
+# Shadow Assignee Markers (stored on assignee entity)
+DATA_ASSIGNEE_IS_SHADOW: Final = "is_shadow_assignee"
+DATA_ASSIGNEE_LINKED_APPROVER_ID: Final = "linked_approver_id"
 
 # CHORES
 DATA_CHORE_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -1507,7 +1383,7 @@ DATA_CHORE_APPROVAL_PERIOD_START: Final = (
     "approval_period_start"  # When current approval period started
 )
 DATA_CHORE_APPLICABLE_DAYS: Final = "applicable_days"
-DATA_CHORE_ASSIGNED_KIDS: Final = "assigned_kids"
+DATA_CHORE_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 DATA_CHORE_CUSTOM_INTERVAL: Final = "custom_interval"
 DATA_CHORE_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
 DATA_CHORE_DEFAULT_POINTS: Final = "default_points"
@@ -1540,15 +1416,17 @@ DATA_CHORE_SHOW_ON_CALENDAR: Final = "show_on_calendar"
 DATA_CHORE_COMPLETION_CRITERIA: Final = "completion_criteria"
 
 # Rotation tracking (v0.5.0 Chore Logic)
-DATA_CHORE_ROTATION_CURRENT_KID_ID: Final = (
-    "rotation_current_kid_id"  # UUID of current turn holder
+DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: Final = (
+    "rotation_current_assignee_id"  # UUID of current turn holder
 )
-DATA_CHORE_ROTATION_CYCLE_OVERRIDE: Final = "rotation_cycle_override"  # Boolean: temp allow any kid to claim (cleared on advancement)
+DATA_CHORE_ROTATION_CYCLE_OVERRIDE: Final = "rotation_cycle_override"  # Boolean: temp allow any assignee to claim (cleared on advancement)
 
-DATA_CHORE_PER_KID_DUE_DATES: Final = "per_kid_due_dates"
-DATA_CHORE_PER_KID_APPLICABLE_DAYS: Final = "per_kid_applicable_days"  # PKAD-2026-001
-DATA_CHORE_PER_KID_DAILY_MULTI_TIMES: Final = (
-    "per_kid_daily_multi_times"  # PKAD-2026-001
+DATA_CHORE_PER_ASSIGNEE_DUE_DATES: Final = "per_assignee_due_dates"
+DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS: Final = (
+    "per_assignee_applicable_days"  # PKAD-2026-001
+)
+DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES: Final = (
+    "per_assignee_daily_multi_times"  # PKAD-2026-001
 )
 DATA_CHORE_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
 DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
@@ -1667,7 +1545,6 @@ DATA_BADGE_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 DATA_BADGE_AWARDS: Final = "awards"
 DATA_BADGE_AWARDS_AWARD_ITEMS: Final = "award_items"
 DATA_BADGE_AWARDS_AWARD_POINTS: Final = "award_points"
-DATA_BADGE_AWARDS_AWARD_POINTS_REWARD: Final = "award_points_reward"
 DATA_BADGE_AWARDS_AWARD_REWARD: Final = "award_reward"
 DATA_BADGE_AWARDS_POINT_MULTIPLIER: Final = "points_multiplier"
 DATA_BADGE_DESCRIPTION: Final = "description"
@@ -1702,7 +1579,6 @@ DATA_REWARD_ID: Final = "reward_id"
 DATA_REWARD_INTERNAL_ID: Final = "internal_id"
 DATA_REWARD_LABELS: Final = "reward_labels"
 DATA_REWARD_NAME: Final = "name"
-DATA_REWARD_NOTIFICATION_ID: Final = "notification_id"
 DATA_REWARD_TIMESTAMP: Final = "timestamp"
 
 # BONUSES
@@ -1714,10 +1590,10 @@ DATA_BONUS_LABELS: Final = "bonus_labels"
 DATA_BONUS_NAME: Final = "name"
 DATA_BONUS_POINTS: Final = "points"
 
-# Bonus period tracking (item-level only, no aggregate bucket at kid level)
-DATA_KID_BONUS_PERIODS: Final = "periods"
-DATA_KID_BONUS_PERIOD_APPLIES: Final = "applies"
-DATA_KID_BONUS_PERIOD_POINTS: Final = "points"
+# Bonus period tracking (item-level only, no aggregate bucket at assignee level)
+DATA_ASSIGNEE_BONUS_PERIODS: Final = "periods"
+DATA_ASSIGNEE_BONUS_PERIOD_APPLIES: Final = "applies"
+DATA_ASSIGNEE_BONUS_PERIOD_POINTS: Final = "points"
 
 # PENALTIES
 DATA_PENALTY_DESCRIPTION: Final = "description"
@@ -1728,17 +1604,17 @@ DATA_PENALTY_LABELS: Final = "penalty_labels"
 DATA_PENALTY_NAME: Final = "name"
 DATA_PENALTY_POINTS: Final = "points"
 
-# Penalty period tracking (item-level only, no aggregate bucket at kid level)
-DATA_KID_PENALTY_PERIODS: Final = "periods"
-DATA_KID_PENALTY_PERIOD_APPLIES: Final = "applies"
-DATA_KID_PENALTY_PERIOD_POINTS: Final = "points"
+# Penalty period tracking (item-level only, no aggregate bucket at assignee level)
+DATA_ASSIGNEE_PENALTY_PERIODS: Final = "periods"
+DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES: Final = "applies"
+DATA_ASSIGNEE_PENALTY_PERIOD_POINTS: Final = "points"
 
 # Transaction ledger item name field (universal across all item types)
 # Used in metadata to store human-readable name (chores, rewards, badges, bonuses, penalties)
 DATA_LEDGER_ITEM_NAME: Final = "item_name"
 
 # ACHIEVEMENTS
-DATA_ACHIEVEMENT_ASSIGNED_KIDS: Final = "assigned_kids"
+DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 DATA_ACHIEVEMENT_AWARDED: Final = "awarded"
 DATA_ACHIEVEMENT_BASELINE: Final = "baseline"
 DATA_ACHIEVEMENT_CRITERIA: Final = "criteria"
@@ -1749,7 +1625,6 @@ DATA_ACHIEVEMENT_ICON: Final = "icon"
 DATA_ACHIEVEMENT_ID: Final = "achievement_id"
 DATA_ACHIEVEMENT_INTERNAL_ID: Final = "internal_id"
 DATA_ACHIEVEMENT_LABELS: Final = "achievement_labels"
-DATA_ACHIEVEMENT_LAST_AWARDED_DATE: Final = "last_awarded_date"
 DATA_ACHIEVEMENT_NAME: Final = "name"
 DATA_ACHIEVEMENT_PROGRESS: Final = "progress"
 DATA_ACHIEVEMENT_PROGRESS_SUFFIX: Final = "_achievement_progress"
@@ -1760,7 +1635,7 @@ DATA_ACHIEVEMENT_TARGET_VALUE: Final = "target_value"
 DATA_ACHIEVEMENT_TYPE: Final = "type"
 
 # CHALLENGES
-DATA_CHALLENGE_ASSIGNED_KIDS: Final = "assigned_kids"
+DATA_CHALLENGE_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 DATA_CHALLENGE_AWARDED: Final = "awarded"
 DATA_CHALLENGE_COUNT: Final = "count"
 DATA_CHALLENGE_CRITERIA: Final = "criteria"
@@ -1810,8 +1685,8 @@ DEFAULT_BADGE_MAINTENANCE_THRESHOLD: Final = 0  # Added
 DEFAULT_BADGE_RESET_SCHEDULE_CUSTOM_INTERVAL_UNIT: str | None = SENTINEL_NONE
 DEFAULT_BADGE_RESET_SCHEDULE_CUSTOM_INTERVAL: str | None = SENTINEL_NONE
 DEFAULT_BADGE_RESET_SCHEDULE_END_DATE: str | None = SENTINEL_NONE
-DEFAULT_BADGE_RESET_SCHEDULE_GRACE_PERIOD_DAYS: Final = 0
 DEFAULT_BADGE_RESET_SCHEDULE_START_DATE: str | None = SENTINEL_NONE
+DEFAULT_BADGE_RESET_SCHEDULE_GRACE_PERIOD_DAYS: Final = 0
 DEFAULT_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY = FREQUENCY_NONE
 DEFAULT_BADGE_RESET_SCHEDULE = {
     DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY: (
@@ -1848,14 +1723,9 @@ DEFAULT_RETENTION_YEARLY: Final = 3
 DEFAULT_CHALLENGE_TARGET: Final = 1
 DEFAULT_CHORES_UNIT: Final = "Chores"
 DEFAULT_DAILY_RESET_TIME = {"hour": 0, "minute": 0, "second": 0}
-DEFAULT_DUE_TIME = {"hour": 23, "minute": 59, "second": 0}
-DEFAULT_HOUR: Final = 0
-DEFAULT_KID_POINTS_MULTIPLIER: Final = 1
+DEFAULT_ASSIGNEE_POINTS_MULTIPLIER: Final = 1
 DEFAULT_SHOW_LEGACY_ENTITIES: Final = False
 DEFAULT_KIOSK_MODE: Final = False
-DEFAULT_MONTHLY_RESET_DAY: Final = 1
-DEFAULT_MULTIPLE_CLAIMS_PER_DAY = False
-DEFAULT_NOTIFY_DELAY_REMINDER: Final = 24
 DEFAULT_NOTIFY_ON_APPROVAL = True
 DEFAULT_NOTIFY_ON_CLAIM = True
 DEFAULT_NOTIFY_ON_DISAPPROVAL = True
@@ -1874,11 +1744,6 @@ DEFAULT_REMINDER_DELAY: Final = 30
 DEFAULT_DUE_WINDOW_OFFSET: Final = "0d 1h 0m"  # Disabled by default
 DEFAULT_DUE_REMINDER_OFFSET: Final = "0d 0h 30m"  # 30 minutes before due
 DEFAULT_WEEKLY_RESET_DAY: Final = 0
-DEFAULT_YEAR_END_DAY: Final = 31
-DEFAULT_YEAR_END_HOUR: Final = 23
-DEFAULT_YEAR_END_MINUTE: Final = 59
-DEFAULT_YEAR_END_MONTH: Final = 12
-DEFAULT_YEAR_END_SECOND: Final = 0
 DEFAULT_ZERO: Final = 0
 
 # System Settings Defaults (for backup/restore validation)
@@ -1929,7 +1794,6 @@ BADGE_TARGET_THRESHOLD_TYPE_STREAK_SELECTED_DUE_CHORES_NO_OVERDUE = (
 
 # Legacy
 BADGE_THRESHOLD_TYPE_CHORE_COUNT: Final = "chore_count"
-BADGE_THRESHOLD_TYPE_POINTS: Final = "points"
 
 
 # ------------------------------------------------------------------------------------------------
@@ -1956,36 +1820,16 @@ CHORE_STATE_WAITING = "waiting"
 CHORE_STATE_NOT_MY_TURN = "not_my_turn"
 
 # State source-of-truth contracts (Phase 5)
-# - Kid-level persisted state: workflow checkpoints stored in kid_chore_data
-# - Kid-level derived state: display/claimability states resolved at runtime
+# - Assignee-level persisted state: workflow checkpoints stored in assignee_chore_data
+# - Assignee-level derived state: display/claimability states resolved at runtime
 # - Chore-level persisted state: aggregate snapshot stored on chore record
-CHORE_PERSISTED_KID_STATES: Final[frozenset[str]] = frozenset(
+CHORE_PERSISTED_ASSIGNEE_STATES: Final[frozenset[str]] = frozenset(
     {
         CHORE_STATE_PENDING,
         CHORE_STATE_CLAIMED,
         CHORE_STATE_APPROVED,
         CHORE_STATE_OVERDUE,
         CHORE_STATE_MISSED,
-    }
-)
-CHORE_DERIVED_KID_STATES: Final[frozenset[str]] = frozenset(
-    {
-        CHORE_STATE_DUE,
-        CHORE_STATE_WAITING,
-        CHORE_STATE_NOT_MY_TURN,
-        CHORE_STATE_COMPLETED_BY_OTHER,
-    }
-)
-CHORE_PERSISTED_GLOBAL_STATES: Final[frozenset[str]] = frozenset(
-    {
-        CHORE_STATE_PENDING,
-        CHORE_STATE_CLAIMED,
-        CHORE_STATE_APPROVED,
-        CHORE_STATE_OVERDUE,
-        CHORE_STATE_CLAIMED_IN_PART,
-        CHORE_STATE_APPROVED_IN_PART,
-        CHORE_STATE_INDEPENDENT,
-        CHORE_STATE_UNKNOWN,
     }
 )
 
@@ -2044,7 +1888,7 @@ CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT: Final = (
 )
 
 # Scanner Entry Field Keys (ChoreTimeEntry structure field keys)
-CHORE_SCAN_ENTRY_KID_ID: Final = "kid_id"  # Kid UUID
+CHORE_SCAN_ENTRY_ASSIGNEE_ID: Final = "assignee_id"  # Assignee UUID
 CHORE_SCAN_ENTRY_CHORE_ID: Final = "chore_id"  # Chore UUID
 CHORE_SCAN_ENTRY_DUE_DT: Final = "due_dt"  # Due datetime object
 CHORE_SCAN_ENTRY_CHORE_INFO: Final = "chore_info"  # Chore data dict
@@ -2080,193 +1924,193 @@ TRANS_KEY_NOTIF_ACTION_SKIP: Final = "notif_action_skip"
 # ================================================================================================
 #
 # Organization Philosophy:
-#   - Kid notifications: Gamified, second-person, encouraging tone
-#   - Parent notifications: Informative, third-person, actionable content
+#   - Assignee notifications: Gamified, second-person, encouraging tone
+#   - Approver notifications: Informative, third-person, actionable content
 #   - Grouped by category (chores, rewards, gamification) within each audience
 #
 # Note: This is a cosmetic organization only - no functional changes.
 # All keys maintain exact same string values for translation system compatibility.
 #
 
-# ─── KID-FACING NOTIFICATIONS ───────────────────────────────────────────────────────────────────
+# ─── ASSIGNEE-FACING NOTIFICATIONS ──────────────────────────────────────────────────────────────
 
-# Kid: Chore Notifications (state changes, reminders, due dates)
-TRANS_KEY_NOTIF_TITLE_CHORE_APPROVED_KID: Final = (
-    "notification_title_chore_approved_kid"
+# Assignee: Chore Notifications (state changes, reminders, due dates)
+TRANS_KEY_NOTIF_TITLE_CHORE_APPROVED_ASSIGNEE: Final = (
+    "notification_title_chore_approved_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_KID: Final = (
-    "notification_message_chore_approved_kid"
-)
-
-TRANS_KEY_NOTIF_TITLE_CHORE_DISAPPROVED_KID: Final = (
-    "notification_title_chore_disapproved_kid"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_DISAPPROVED_KID: Final = (
-    "notification_message_chore_disapproved_kid"
+TRANS_KEY_NOTIF_MESSAGE_CHORE_APPROVED_ASSIGNEE: Final = (
+    "notification_message_chore_approved_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_KID: Final = "notification_title_chore_overdue_kid"
-TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_KID: Final = (
-    "notification_message_chore_overdue_kid"
+TRANS_KEY_NOTIF_TITLE_CHORE_DISAPPROVED_ASSIGNEE: Final = (
+    "notification_title_chore_disapproved_assignee"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_DISAPPROVED_ASSIGNEE: Final = (
+    "notification_message_chore_disapproved_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_KID: Final = (
-    "notification_title_chore_missed_kid"  # Phase 5
+TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_ASSIGNEE: Final = (
+    "notification_title_chore_overdue_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_KID: Final = (
-    "notification_message_chore_missed_kid"  # Phase 5
-)
-
-TRANS_KEY_NOTIF_TITLE_CHORE_DUE_SOON_KID: Final = (
-    "notification_title_chore_due_soon_kid"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_SOON_KID: Final = (
-    "notification_message_chore_due_soon_kid"
+TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE: Final = (
+    "notification_message_chore_overdue_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_CHORE_DUE_REMINDER_KID: Final = (
-    "notification_title_chore_due_reminder_kid"  # Alias for due_soon
+TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE: Final = (
+    "notification_title_chore_missed_assignee"  # Phase 5
 )
-TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_KID: Final = (
-    "notification_message_chore_due_reminder_kid"  # Alias for due_soon
-)
-
-TRANS_KEY_NOTIF_TITLE_CHORE_DUE_WINDOW_KID: Final = (
-    "notification_title_chore_due_window_kid"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_KID: Final = (
-    "notification_message_chore_due_window_kid"
+TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_ASSIGNEE: Final = (
+    "notification_message_chore_missed_assignee"  # Phase 5
 )
 
-# Kid: Reward Notifications
-TRANS_KEY_NOTIF_TITLE_REWARD_APPROVED_KID: Final = (
-    "notification_title_reward_approved_kid"
+
+TRANS_KEY_NOTIF_TITLE_CHORE_DUE_REMINDER_ASSIGNEE: Final = (
+    "notification_title_chore_due_reminder_assignee"  # Alias for due_soon
 )
-TRANS_KEY_NOTIF_MESSAGE_REWARD_APPROVED_KID: Final = (
-    "notification_message_reward_approved_kid"
+TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_REMINDER_ASSIGNEE: Final = (
+    "notification_message_chore_due_reminder_assignee"  # Alias for due_soon
 )
 
-TRANS_KEY_NOTIF_TITLE_REWARD_DISAPPROVED_KID: Final = (
-    "notification_title_reward_disapproved_kid"
+TRANS_KEY_NOTIF_TITLE_CHORE_DUE_WINDOW_ASSIGNEE: Final = (
+    "notification_title_chore_due_window_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_REWARD_DISAPPROVED_KID: Final = (
-    "notification_message_reward_disapproved_kid"
-)
-
-# Kid: Gamification Notifications (badges, achievements, challenges, bonuses, penalties)
-TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_KID: Final = "notification_title_badge_earned_kid"
-TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_KID: Final = (
-    "notification_message_badge_earned_kid"
+TRANS_KEY_NOTIF_MESSAGE_CHORE_DUE_WINDOW_ASSIGNEE: Final = (
+    "notification_message_chore_due_window_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_KID: Final = (
-    "notification_title_achievement_earned_kid"
+# Assignee: Reward Notifications
+TRANS_KEY_NOTIF_TITLE_REWARD_APPROVED_ASSIGNEE: Final = (
+    "notification_title_reward_approved_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_KID: Final = (
-    "notification_message_achievement_earned_kid"
-)
-
-TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_KID: Final = (
-    "notification_title_challenge_completed_kid"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_KID: Final = (
-    "notification_message_challenge_completed_kid"
+TRANS_KEY_NOTIF_MESSAGE_REWARD_APPROVED_ASSIGNEE: Final = (
+    "notification_message_reward_approved_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_PENALTY_APPLIED_KID: Final = (
-    "notification_title_penalty_applied_kid"
+TRANS_KEY_NOTIF_TITLE_REWARD_DISAPPROVED_ASSIGNEE: Final = (
+    "notification_title_reward_disapproved_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_PENALTY_APPLIED_KID: Final = (
-    "notification_message_penalty_applied_kid"
-)
-
-TRANS_KEY_NOTIF_TITLE_BONUS_APPLIED_KID: Final = "notification_title_bonus_applied_kid"
-TRANS_KEY_NOTIF_MESSAGE_BONUS_APPLIED_KID: Final = (
-    "notification_message_bonus_applied_kid"
+TRANS_KEY_NOTIF_MESSAGE_REWARD_DISAPPROVED_ASSIGNEE: Final = (
+    "notification_message_reward_disapproved_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_KID: Final = (
-    "notification_title_multiplier_changed_kid"
+# Assignee: Gamification Notifications (badges, achievements, challenges, bonuses, penalties)
+TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_ASSIGNEE: Final = (
+    "notification_title_badge_earned_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_KID: Final = (
-    "notification_message_multiplier_changed_kid"
-)
-
-# ─── PARENT-FACING NOTIFICATIONS ─────────────────────────────────────────────────────────────────
-
-# Parent: Chore Claim/Approval Workflow
-TRANS_KEY_NOTIF_TITLE_CHORE_CLAIMED_PARENT: Final = (
-    "notification_title_chore_claimed_parent"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_CLAIMED_PARENT: Final = (
-    "notification_message_chore_claimed_parent"
+TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_ASSIGNEE: Final = (
+    "notification_message_badge_earned_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_CHORE_REMINDER_PARENT: Final = (
-    "notification_title_chore_reminder_parent"
+TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_ASSIGNEE: Final = (
+    "notification_title_achievement_earned_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_CHORE_REMINDER_PARENT: Final = (
-    "notification_message_chore_reminder_parent"
-)
-
-# Parent: Chore overdue notification (different from kid version)
-TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_PARENT: Final = (
-    "notification_title_chore_overdue_parent"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_PARENT: Final = (
-    "notification_message_chore_overdue_parent"
+TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_ASSIGNEE: Final = (
+    "notification_message_achievement_earned_assignee"
 )
 
-# Parent: Aggregated/Tag-based Notifications
-TRANS_KEY_NOTIF_TITLE_PENDING_CHORES_PARENT: Final = (
-    "notification_title_pending_chores_parent"
+TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_ASSIGNEE: Final = (
+    "notification_title_challenge_completed_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_PARENT: Final = (
-    "notification_message_pending_chores_parent"
-)
-
-# Parent: Reward Claim/Approval Workflow
-TRANS_KEY_NOTIF_TITLE_REWARD_CLAIMED_PARENT: Final = (
-    "notification_title_reward_claimed_parent"
-)
-TRANS_KEY_NOTIF_MESSAGE_REWARD_CLAIMED_PARENT: Final = (
-    "notification_message_reward_claimed_parent"
+TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_ASSIGNEE: Final = (
+    "notification_message_challenge_completed_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_REWARD_REMINDER_PARENT: Final = (
-    "notification_title_reward_reminder_parent"
+TRANS_KEY_NOTIF_TITLE_PENALTY_APPLIED_ASSIGNEE: Final = (
+    "notification_title_penalty_applied_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_REWARD_REMINDER_PARENT: Final = (
-    "notification_message_reward_reminder_parent"
-)
-
-# Parent: Gamification Notifications (informational copies)
-TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_PARENT: Final = (
-    "notification_title_badge_earned_parent"
-)
-TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_PARENT: Final = (
-    "notification_message_badge_earned_parent"
+TRANS_KEY_NOTIF_MESSAGE_PENALTY_APPLIED_ASSIGNEE: Final = (
+    "notification_message_penalty_applied_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_PARENT: Final = (
-    "notification_title_achievement_earned_parent"
+TRANS_KEY_NOTIF_TITLE_BONUS_APPLIED_ASSIGNEE: Final = (
+    "notification_title_bonus_applied_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_PARENT: Final = (
-    "notification_message_achievement_earned_parent"
-)
-
-TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_PARENT: Final = (
-    "notification_title_challenge_completed_parent"
-)
-TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_PARENT: Final = (
-    "notification_message_challenge_completed_parent"
+TRANS_KEY_NOTIF_MESSAGE_BONUS_APPLIED_ASSIGNEE: Final = (
+    "notification_message_bonus_applied_assignee"
 )
 
-TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_PARENT: Final = (
-    "notification_title_multiplier_changed_parent"
+TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_ASSIGNEE: Final = (
+    "notification_title_multiplier_changed_assignee"
 )
-TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_PARENT: Final = (
-    "notification_message_multiplier_changed_parent"
+TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_ASSIGNEE: Final = (
+    "notification_message_multiplier_changed_assignee"
+)
+
+# ─── APPROVER-FACING NOTIFICATIONS ───────────────────────────────────────────────────────────────
+
+# Approver: Chore Claim/Approval Workflow
+TRANS_KEY_NOTIF_TITLE_CHORE_CLAIMED_APPROVER: Final = (
+    "notification_title_chore_claimed_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_CLAIMED_APPROVER: Final = (
+    "notification_message_chore_claimed_approver"
+)
+
+TRANS_KEY_NOTIF_TITLE_CHORE_REMINDER_APPROVER: Final = (
+    "notification_title_chore_reminder_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_REMINDER_APPROVER: Final = (
+    "notification_message_chore_reminder_approver"
+)
+
+# Approver: Chore overdue notification (different from assignee version)
+TRANS_KEY_NOTIF_TITLE_CHORE_OVERDUE_APPROVER: Final = (
+    "notification_title_chore_overdue_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_APPROVER: Final = (
+    "notification_message_chore_overdue_approver"
+)
+
+# Approver: Aggregated/Tag-based Notifications
+TRANS_KEY_NOTIF_TITLE_PENDING_CHORES_APPROVER: Final = (
+    "notification_title_pending_chores_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_PENDING_CHORES_APPROVER: Final = (
+    "notification_message_pending_chores_approver"
+)
+
+# Approver: Reward Claim/Approval Workflow
+TRANS_KEY_NOTIF_TITLE_REWARD_CLAIMED_APPROVER: Final = (
+    "notification_title_reward_claimed_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_REWARD_CLAIMED_APPROVER: Final = (
+    "notification_message_reward_claimed_approver"
+)
+
+TRANS_KEY_NOTIF_TITLE_REWARD_REMINDER_APPROVER: Final = (
+    "notification_title_reward_reminder_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_REWARD_REMINDER_APPROVER: Final = (
+    "notification_message_reward_reminder_approver"
+)
+
+# Approver: Gamification Notifications (informational copies)
+TRANS_KEY_NOTIF_TITLE_BADGE_EARNED_APPROVER: Final = (
+    "notification_title_badge_earned_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_BADGE_EARNED_APPROVER: Final = (
+    "notification_message_badge_earned_approver"
+)
+
+TRANS_KEY_NOTIF_TITLE_ACHIEVEMENT_EARNED_APPROVER: Final = (
+    "notification_title_achievement_earned_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_ACHIEVEMENT_EARNED_APPROVER: Final = (
+    "notification_message_achievement_earned_approver"
+)
+
+TRANS_KEY_NOTIF_TITLE_CHALLENGE_COMPLETED_APPROVER: Final = (
+    "notification_title_challenge_completed_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_CHALLENGE_COMPLETED_APPROVER: Final = (
+    "notification_message_challenge_completed_approver"
+)
+
+TRANS_KEY_NOTIF_TITLE_MULTIPLIER_CHANGED_APPROVER: Final = (
+    "notification_title_multiplier_changed_approver"
+)
+TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_APPROVER: Final = (
+    "notification_message_multiplier_changed_approver"
 )
 
 # ─── ADMIN/SYSTEM NOTIFICATIONS ──────────────────────────────────────────────────────────────────
@@ -2274,7 +2118,7 @@ TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_PARENT: Final = (
 # System: Data Reset Notifications (admin actions)
 TRANS_KEY_NOTIF_TITLE_DATA_RESET: Final = "notif_title_data_reset"
 TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_GLOBAL: Final = "notif_message_data_reset_global"
-TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_KID: Final = "notif_message_data_reset_kid"
+TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ASSIGNEE: Final = "notif_message_data_reset_assignee"
 TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM_TYPE: Final = (
     "notif_message_data_reset_item_type"
 )
@@ -2283,15 +2127,13 @@ TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM: Final = "notif_message_data_reset_item"
 # ================================================================================================
 # End of Notification Translation Keys
 # ================================================================================================
-TRANS_KEY_NOTIF_ACTION_APPROVE_LATEST: Final = "notif_action_approve_latest"
-TRANS_KEY_NOTIF_ACTION_REVIEW_ALL: Final = "notif_action_review_all"
 TRANS_KEY_NOTIF_ACTION_CLAIM: Final = "notif_action_claim"
 
 # Action identifiers
 ACTION_APPROVE_CHORE = "APPROVE_CHORE"
 ACTION_APPROVE_REWARD = "APPROVE_REWARD"
 ACTION_CLAIM_CHORE = "CLAIM_CHORE"
-ACTION_COMPLETE_FOR_KID = "COMPLETE_FOR_KID"
+ACTION_COMPLETE_FOR_ASSIGNEE = "COMPLETE_FOR_ASSIGNEE"
 ACTION_DISAPPROVE_CHORE = "DISAPPROVE_CHORE"
 ACTION_DISAPPROVE_REWARD = "DISAPPROVE_REWARD"
 ACTION_REMIND_30 = "REMIND_30"
@@ -2306,43 +2148,18 @@ ACTION_SKIP_CHORE = "SKIP_CHORE"
 TRANS_KEY_PURPOSE_CHORE_STATUS: Final = "purpose_chore_status"
 TRANS_KEY_PURPOSE_POINTS: Final = "purpose_points"
 TRANS_KEY_PURPOSE_CHORES: Final = "purpose_chores"
-TRANS_KEY_PURPOSE_KID_BADGES: Final = "purpose_kid_badges"
+TRANS_KEY_PURPOSE_ASSIGNEE_BADGES: Final = "purpose_assignee_badges"
 TRANS_KEY_PURPOSE_BADGE_PROGRESS: Final = "purpose_badge_progress"
 TRANS_KEY_PURPOSE_BADGE: Final = "purpose_badge"
 TRANS_KEY_PURPOSE_SHARED_CHORE: Final = "purpose_shared_chore"
 TRANS_KEY_PURPOSE_REWARD_STATUS: Final = "purpose_reward_status"
-TRANS_KEY_PURPOSE_PENALTY_APPLIED: Final = "purpose_penalty_applied"
 TRANS_KEY_PURPOSE_ACHIEVEMENT: Final = "purpose_achievement"
 TRANS_KEY_PURPOSE_CHALLENGE: Final = "purpose_challenge"
 TRANS_KEY_PURPOSE_ACHIEVEMENT_PROGRESS: Final = "purpose_achievement_progress"
 TRANS_KEY_PURPOSE_CHALLENGE_PROGRESS: Final = "purpose_challenge_progress"
-TRANS_KEY_PURPOSE_BONUS_APPLIED: Final = "purpose_bonus_applied"
 TRANS_KEY_PURPOSE_DASHBOARD_HELPER: Final = "purpose_dashboard_helper"
 TRANS_KEY_PURPOSE_DASHBOARD_TRANSLATION: Final = "purpose_dashboard_translation"
 # Legacy sensor purposes (sensor_legacy.py)
-TRANS_KEY_PURPOSE_CHORE_APPROVALS_ALL_TIME_EXTRA: Final = (
-    "purpose_chore_approvals_all_time_extra"
-)
-TRANS_KEY_PURPOSE_CHORE_APPROVALS_TODAY_EXTRA: Final = (
-    "purpose_chore_approvals_today_extra"
-)
-TRANS_KEY_PURPOSE_CHORE_APPROVALS_WEEK_EXTRA: Final = (
-    "purpose_chore_approvals_week_extra"
-)
-TRANS_KEY_PURPOSE_CHORE_APPROVALS_MONTH_EXTRA: Final = (
-    "purpose_chore_approvals_month_extra"
-)
-TRANS_KEY_PURPOSE_CHORES_PENDING_APPROVAL_EXTRA: Final = (
-    "purpose_chores_pending_approval_extra"
-)
-TRANS_KEY_PURPOSE_REWARDS_PENDING_APPROVAL_EXTRA: Final = (
-    "purpose_rewards_pending_approval_extra"
-)
-TRANS_KEY_PURPOSE_POINTS_EARNED_TODAY_EXTRA: Final = "purpose_points_earned_today_extra"
-TRANS_KEY_PURPOSE_POINTS_EARNED_WEEK_EXTRA: Final = "purpose_points_earned_week_extra"
-TRANS_KEY_PURPOSE_POINTS_EARNED_MONTH_EXTRA: Final = "purpose_points_earned_month_extra"
-TRANS_KEY_PURPOSE_POINTS_MAX_EVER_EXTRA: Final = "purpose_points_max_ever_extra"
-TRANS_KEY_PURPOSE_CHORE_STREAK_EXTRA: Final = "purpose_chore_streak_extra"
 
 # Button purpose translation keys (button.py)
 TRANS_KEY_PURPOSE_BUTTON_CHORE_CLAIM: Final = "purpose_button_chore_claim"
@@ -2356,9 +2173,9 @@ TRANS_KEY_PURPOSE_BUTTON_POINTS_ADJUST: Final = "purpose_button_points_adjust"
 TRANS_KEY_PURPOSE_BUTTON_BONUS_APPLY: Final = "purpose_button_bonus_apply"
 
 # Select purpose translation keys (select.py)
-TRANS_KEY_PURPOSE_SELECT_KID_CHORES: Final = "purpose_select_kid_chores"
-TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_KID: Final = (
-    "purpose_system_dashboard_admin_kid"
+TRANS_KEY_PURPOSE_SELECT_ASSIGNEE_CHORES: Final = "purpose_select_assignee_chores"
+TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE: Final = (
+    "purpose_system_dashboard_admin_assignee"
 )
 
 # Calendar purpose translation keys (calendar.py)
@@ -2368,60 +2185,13 @@ TRANS_KEY_PURPOSE_CALENDAR_SCHEDULE: Final = "purpose_calendar_schedule"
 TRANS_KEY_PURPOSE_DATETIME_DASHBOARD_HELPER: Final = "purpose_datetime_dashboard_helper"
 
 # Translation keys for entity state attributes (all sensor classes)
-TRANS_KEY_ATTR_PURPOSE: Final = "purpose"
-TRANS_KEY_ATTR_KID_NAME: Final = "kid_name"
-TRANS_KEY_ATTR_CHORE_NAME: Final = "chore_name"
-TRANS_KEY_ATTR_BADGE_NAME: Final = "badge_name"
-TRANS_KEY_ATTR_REWARD_NAME: Final = "reward_name"
-TRANS_KEY_ATTR_ACHIEVEMENT_NAME: Final = "achievement_name"
-TRANS_KEY_ATTR_CHALLENGE_NAME: Final = "challenge_name"
-TRANS_KEY_ATTR_BONUS_NAME: Final = "bonus_name"
-TRANS_KEY_ATTR_PENALTY_NAME: Final = "penalty_name"
-TRANS_KEY_ATTR_DESCRIPTION: Final = "description"
 
-# Dashboard Helper Sensor attributes (KidDashboardHelperSensor)
-TRANS_KEY_ATTR_CHORES: Final = "chores"
-TRANS_KEY_ATTR_CHORES_BY_LABEL: Final = "chores_by_label"
-TRANS_KEY_ATTR_REWARDS: Final = "rewards"
-TRANS_KEY_ATTR_BADGES: Final = "badges"
-TRANS_KEY_ATTR_BONUSES: Final = "bonuses"
-TRANS_KEY_ATTR_PENALTIES: Final = "penalties"
-TRANS_KEY_ATTR_ACHIEVEMENTS: Final = "achievements"
-TRANS_KEY_ATTR_CHALLENGES: Final = "challenges"
-TRANS_KEY_ATTR_POINTS_BUTTONS: Final = "points_buttons"
-TRANS_KEY_ATTR_PENDING_APPROVALS: Final = "pending_approvals"
-TRANS_KEY_ATTR_CORE_SENSORS: Final = "core_sensors"
-TRANS_KEY_ATTR_DASHBOARD_HELPERS: Final = "dashboard_helpers"
-TRANS_KEY_ATTR_UI_TRANSLATIONS: Final = "ui_translations"
+# Dashboard Helper Sensor attributes (AssigneeDashboardHelperSensor)
 TRANS_KEY_ATTR_LANGUAGE: Final = "language"
 
 # Shared attributes across multiple sensors
-TRANS_KEY_ATTR_STATUS: Final = "status"
-TRANS_KEY_ATTR_LABELS: Final = "labels"
-TRANS_KEY_ATTR_COST: Final = "cost"
-TRANS_KEY_ATTR_POINTS: Final = "points"
-TRANS_KEY_ATTR_APPLIED: Final = "applied"
-TRANS_KEY_ATTR_CLAIMS: Final = "claims"
-TRANS_KEY_ATTR_APPROVALS: Final = "approvals"
-TRANS_KEY_ATTR_EID: Final = "eid"
-TRANS_KEY_ATTR_NAME: Final = "name"
-TRANS_KEY_ATTR_BADGE_TYPE: Final = "badge_type"
-TRANS_KEY_ATTR_BADGE_EARNED: Final = "badge_earned"
 
 # Chore-specific attributes (ChoreStatusSensor, dashboard helper chores array)
-TRANS_KEY_ATTR_CHORE_LABELS: Final = "chore_labels"
-TRANS_KEY_ATTR_CHORE_DUE_DATE: Final = "chore_due_date"
-TRANS_KEY_ATTR_CHORE_IS_TODAY_AM: Final = "chore_is_today_am"
-TRANS_KEY_ATTR_CHORE_PRIMARY_GROUP: Final = "chore_primary_group"
-TRANS_KEY_ATTR_CHORE_CLAIMED_BY: Final = "chore_claimed_by"
-TRANS_KEY_ATTR_CHORE_COMPLETED_BY: Final = "chore_completed_by"
-TRANS_KEY_ATTR_CAN_CLAIM: Final = "can_claim"
-TRANS_KEY_ATTR_CAN_APPROVE: Final = "can_approve"
-TRANS_KEY_ATTR_COMPLETION_CRITERIA: Final = "completion_criteria"
-TRANS_KEY_ATTR_LAST_APPROVED: Final = "last_approved"
-TRANS_KEY_ATTR_LAST_CLAIMED: Final = "last_claimed"
-TRANS_KEY_ATTR_LAST_COMPLETED: Final = "last_completed"
-TRANS_KEY_ATTR_APPROVAL_PERIOD_START: Final = "approval_period_start"
 
 
 # ------------------------------------------------------------------------------------------------
@@ -2440,20 +2210,17 @@ ATTR_CAN_CLAIM: Final = "can_claim"
 # Rotation UI attributes removed - not exposed in entity attributes
 ATTR_CLAIMED_BY: Final = "claimed_by"
 ATTR_COMPLETED_BY: Final = "completed_by"
-ATTR_ASSIGNED_KIDS: Final = "assigned_kids"
+ATTR_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+ATTR_ASSIGNEE_NAME: Final = "assignee_name"
 ATTR_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 ATTR_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 ATTR_ASSOCIATED_CHORE: Final = "associated_chore"
-ATTR_AWARD_POINTS: Final = "award_points"
-ATTR_AWARD_REWARD: Final = "award_reward"
-ATTR_BADGE_AWARD_MODE: Final = "award_mode"
 ATTR_BADGE_NAME: Final = "badge_name"
 ATTR_BADGE_STATUS: Final = "badge_status"
 ATTR_BADGE_TYPE: Final = "badge_type"
 ATTR_BONUS_NAME: Final = "bonus_name"
 ATTR_BONUS_POINTS: Final = "bonus_points"
 ATTR_CHALLENGE_NAME: Final = "challenge_name"
-ATTR_CHALLENGE_TYPE: Final = "challenge_type"
 ATTR_CHORE_APPROVALS_COUNT: Final = "chore_approvals_count"
 ATTR_CHORE_APPROVALS_TODAY: Final = "chore_approvals_today"
 ATTR_CHORE_CLAIMS_COUNT: Final = "chore_claims_count"
@@ -2475,7 +2242,6 @@ ATTR_CHORE_NAME: Final = "chore_name"
 ATTR_CLAIMED_ON: Final = "Claimed on"
 ATTR_COST: Final = "cost"
 ATTR_CRITERIA: Final = "criteria"
-ATTR_BADGE_CUMULATIVE_BASELINE_POINTS: Final = "baseline_points"
 ATTR_BADGE_CUMULATIVE_CYCLE_POINTS: Final = "cycle_points"
 ATTR_BADGE_CUMULATIVE_GRACE_END_DATE: Final = "maintenance_grace_end_date"
 ATTR_BADGE_CUMULATIVE_MAINTENANCE_POINTS_REQUIRED: Final = "maintenance_points_required"
@@ -2485,7 +2251,6 @@ ATTR_CURRENT_BADGE_NAME: Final = "current_badge_name"
 ATTR_CURRENT_BADGE_EID: Final = "current_badge_eid"
 ATTR_CUSTOM_FREQUENCY_INTERVAL: Final = "custom_frequency_interval"
 ATTR_CUSTOM_FREQUENCY_UNIT: Final = "custom_frequency_unit"
-ATTR_DAILY_THRESHOLD: Final = "daily_threshold"
 ATTR_DEFAULT_POINTS: Final = "default_points"
 ATTR_DESCRIPTION: Final = "description"
 ATTR_PREFIX_CHORE_STAT: Final = "chore_stat_"
@@ -2494,35 +2259,12 @@ ATTR_PURPOSE: Final = "purpose"
 
 # PURPOSE values for sensor attributes (for translation support)
 # Main sensors (sensor.py)
-PURPOSE_SENSOR_CHORE_STATUS: Final = "Status of chore claim/approval for kid"
 PURPOSE_SENSOR_POINTS: Final = "Current point balance and point stats"
 PURPOSE_SENSOR_CHORES: Final = (
     "All time completed chores and chore stats (total, approved, claimed, pending)"
 )
-PURPOSE_SENSOR_BADGE_HIGHEST: Final = (
-    "Highest badge earned by kid, cumulative badge cycle and other badge info"
-)
-PURPOSE_SENSOR_BADGE_PROGRESS: Final = "Percent progress toward earning badge"
-PURPOSE_SENSOR_BADGE: Final = (
-    "Count of kids who have earned this badge and badge information"
-)
-PURPOSE_SENSOR_SHARED_CHORE: Final = "Global state of shared chore"
-PURPOSE_SENSOR_REWARD_STATUS: Final = "Count of times reward claimed by kid"
-PURPOSE_SENSOR_PENALTY_APPLIED: Final = "Count of times penalty applied to kid"
-PURPOSE_SENSOR_ACHIEVEMENT: Final = (
-    "Overall percent progress of achievement across all assigned kids"
-)
-PURPOSE_SENSOR_CHALLENGE: Final = (
-    "Overall percent progress of challenge across all assigned kids"
-)
-PURPOSE_SENSOR_ACHIEVEMENT_PROGRESS: Final = (
-    "Percent progress toward earning achievement"
-)
-PURPOSE_SENSOR_CHALLENGE_PROGRESS: Final = (
-    "Percent progress toward completing challenge"
-)
-PURPOSE_SENSOR_BONUS_APPLIED: Final = "Count of times bonus applied to kid"
-PURPOSE_SENSOR_DASHBOARD_HELPER: Final = "Aggregated kid data for dashboard"
+PURPOSE_SENSOR_PENALTY_APPLIED: Final = "Count of times penalty applied to assignee"
+PURPOSE_SENSOR_BONUS_APPLIED: Final = "Count of times bonus applied to assignee"
 # Legacy sensors (sensor_legacy.py)
 PURPOSE_SENSOR_CHORE_APPROVALS_ALL_TIME_EXTRA: Final = (
     "Count of chore approvals all time (extra)"
@@ -2537,35 +2279,37 @@ PURPOSE_SENSOR_CHORE_APPROVALS_MONTH_EXTRA: Final = (
     "Count of chore approvals this month (extra)"
 )
 PURPOSE_SENSOR_CHORES_PENDING_APPROVAL_EXTRA: Final = (
-    "Count of chores pending approval across all kids (extra)"
+    "Count of chores pending approval across all assignees (extra)"
 )
 PURPOSE_SENSOR_REWARDS_PENDING_APPROVAL_EXTRA: Final = (
-    "Count of rewards pending approval across all kids (extra)"
+    "Count of rewards pending approval across all assignees (extra)"
 )
-PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA: Final = "Points earned today by kid (extra)"
+PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA: Final = (
+    "Points earned today by assignee (extra)"
+)
 PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA: Final = (
-    "Points earned this week by kid (extra)"
+    "Points earned this week by assignee (extra)"
 )
 PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA: Final = (
-    "Points earned this month by kid (extra)"
+    "Points earned this month by assignee (extra)"
 )
 PURPOSE_SENSOR_POINTS_MAX_EVER_EXTRA: Final = (
     "Highest point balance ever reached (extra)"
 )
 PURPOSE_SENSOR_CHORE_STREAK_EXTRA: Final = (
-    "Highest chore completion streak for kid (extra)"
+    "Highest chore completion streak for assignee (extra)"
 )
 
 # PURPOSE values for button attributes (button.py)
-PURPOSE_BUTTON_CHORE_CLAIM: Final = "Kid claims completion of assigned chore"
-PURPOSE_BUTTON_CHORE_APPROVE: Final = "Parent approves claimed chore"
-PURPOSE_BUTTON_CHORE_DISAPPROVE: Final = "Parent disapproves claimed chore"
-PURPOSE_BUTTON_REWARD_REDEEM: Final = "Kid redeems reward using points"
-PURPOSE_BUTTON_REWARD_APPROVE: Final = "Parent approves redeemed reward"
-PURPOSE_BUTTON_REWARD_DISAPPROVE: Final = "Parent disapproves redeemed reward"
-PURPOSE_BUTTON_PENALTY_APPLY: Final = "Parent applies penalty (deducts points)"
-PURPOSE_BUTTON_POINTS_ADJUST: Final = "Parent manually adjusts kid's points"
-PURPOSE_BUTTON_BONUS_APPLY: Final = "Parent applies bonus (adds points)"
+PURPOSE_BUTTON_CHORE_CLAIM: Final = "Assignee claims completion of assigned chore"
+PURPOSE_BUTTON_CHORE_APPROVE: Final = "Approver approves claimed chore"
+PURPOSE_BUTTON_CHORE_DISAPPROVE: Final = "Approver disapproves claimed chore"
+PURPOSE_BUTTON_REWARD_REDEEM: Final = "Assignee redeems reward using points"
+PURPOSE_BUTTON_REWARD_APPROVE: Final = "Approver approves redeemed reward"
+PURPOSE_BUTTON_REWARD_DISAPPROVE: Final = "Approver disapproves redeemed reward"
+PURPOSE_BUTTON_PENALTY_APPLY: Final = "Approver applies penalty (deducts points)"
+PURPOSE_BUTTON_POINTS_ADJUST: Final = "Approver manually adjusts assignee points"
+PURPOSE_BUTTON_BONUS_APPLY: Final = "Approver applies bonus (adds points)"
 
 # PURPOSE values for select attributes (select.py)
 PURPOSE_SELECT_CHORES: Final = "Dropdown to select chore from all available chores"
@@ -2574,10 +2318,14 @@ PURPOSE_SELECT_PENALTIES: Final = (
     "Dropdown to select penalty from all available penalties"
 )
 PURPOSE_SELECT_BONUSES: Final = "Dropdown to select bonus from all available bonuses"
-PURPOSE_SELECT_KID_CHORES: Final = "Kid's chore selection for dashboard filtering"
+PURPOSE_SELECT_ASSIGNEE_CHORES: Final = (
+    "Assignee chore selection for dashboard filtering"
+)
 
 # PURPOSE values for calendar attributes (calendar.py)
-PURPOSE_CALENDAR_SCHEDULE: Final = "Calendar showing kid's chore schedule and due dates"
+PURPOSE_CALENDAR_SCHEDULE: Final = (
+    "Calendar showing assignee chore schedule and due dates"
+)
 
 # PURPOSE values for datetime attributes (datetime.py)
 PURPOSE_DATETIME_DASHBOARD_HELPER: Final = (
@@ -2587,14 +2335,12 @@ PURPOSE_DATETIME_DASHBOARD_HELPER: Final = (
 ATTR_DUE_DATE: Final = "due_date"
 ATTR_DUE_WINDOW_START: Final = "due_window_start"
 ATTR_END_DATE: Final = "end_date"
-ATTR_FRIENDLY_NAME: Final = "friendly_name"
 ATTR_GLOBAL_STATE: Final = "global_state"
 ATTR_HIGHEST_BADGE_THRESHOLD_VALUE: Final = "highest_badge_threshold_value"
 ATTR_HIGHEST_EARNED_BADGE_EID: Final = "highest_earned_badge_eid"
 ATTR_HIGHEST_EARNED_BADGE_NAME: Final = "highest_earned_badge_name"
-ATTR_KID_NAME: Final = "kid_name"
-ATTR_KIDS_ASSIGNED: Final = "kids_assigned"
-ATTR_KIDS_EARNED: Final = "kids_earned"
+ATTR_ASSIGNEES_ASSIGNED: Final = "assignees_assigned"
+ATTR_ASSIGNEES_EARNED: Final = "assignees_earned"
 ATTR_LABELS: Final = "labels"
 ATTR_LAST_APPROVED: Final = "last_approved"
 ATTR_LAST_CLAIMED: Final = "last_claimed"
@@ -2602,18 +2348,16 @@ ATTR_LAST_COMPLETED: Final = "last_completed"
 ATTR_LAST_DISAPPROVED: Final = "last_disapproved"
 ATTR_LAST_OVERDUE: Final = "last_overdue"
 ATTR_DASHBOARD_HELPER_EID: Final = "dashboard_helper_eid"
-ATTR_SELECTED_KID_SLUG: Final = "selected_kid_slug"
-ATTR_SELECTED_KID_NAME: Final = "selected_kid_name"
+ATTR_SELECTED_ASSIGNEE_SLUG: Final = "selected_assignee_slug"
+ATTR_SELECTED_ASSIGNEE_NAME: Final = "selected_assignee_name"
 ATTR_NEXT_HIGHER_BADGE_NAME: Final = "next_higher_badge_name"
 ATTR_NEXT_HIGHER_BADGE_EID: Final = "next_higher_badge_eid"
 ATTR_NEXT_LOWER_BADGE_NAME: Final = "next_lower_badge_name"
 ATTR_NEXT_LOWER_BADGE_EID: Final = "next_lower_badge_eid"
-ATTR_OCCASION_DATE: Final = "occasion_date"
 ATTR_OCCASION_TYPE: Final = "occasion_type"
 ATTR_PENALTY_BUTTON_EID: Final = "penalty_button_eid"
 ATTR_PENALTY_NAME: Final = "penalty_name"
 ATTR_PENALTY_POINTS: Final = "penalty_points"
-ATTR_PERIODIC_RECURRENT: Final = "recurrent"
 ATTR_POINTS_MULTIPLIER: Final = "points_multiplier"
 ATTR_POINTS_TO_NEXT_BADGE: Final = "points_to_next_badge"
 ATTR_RAW_PROGRESS: Final = "raw_progress"
@@ -2657,22 +2401,16 @@ ATTR_REWARD_POINTS_SPENT_ALL_TIME: Final = "points_spent_all_time"
 ATTR_REWARD_APPROVAL_RATE: Final = "approval_rate"
 ATTR_REWARD_CLAIM_RATE_WEEK: Final = "claim_rate_week"
 ATTR_REWARD_CLAIM_RATE_MONTH: Final = "claim_rate_month"
-ATTR_SIGN_LABEL: Final = "sign_label"
 ATTR_START_DATE: Final = "start_date"
 ATTR_STREAKS_BY_ACHIEVEMENT: Final = "streaks_by_achievement"
 ATTR_COMPLETION_CRITERIA: Final = "completion_criteria"
 ATTR_TARGET: Final = "target"
 ATTR_TARGET_VALUE: Final = "target_value"
-ATTR_THRESHOLD_TYPE: Final = "threshold_type"
-ATTR_THRESHOLD_VALUE: Final = "threshold_value"
 
-ATTR_TRIGGER_INFO: Final = "trigger_info"
 ATTR_TYPE: Final = "type"
 
 # Dashboard Helper Sensor Attributes
 ATTR_CHORES_BY_LABEL: Final = "chores_by_label"
-ATTR_CHORE_ASSIGNED_DAYS: Final = "assigned_days"
-ATTR_CHORE_ASSIGNED_DAYS_RAW: Final = "assigned_days_raw"
 ATTR_CHORE_CLAIMED_BY: Final = "claimed_by"
 ATTR_CHORE_COMPLETED_BY: Final = "completed_by"
 ATTR_CHORE_DUE_DATE: Final = "due_date"
@@ -2682,7 +2420,7 @@ ATTR_CHORE_PRIMARY_GROUP: Final = "primary_group"
 
 # Phase 4: Rotation and availability dashboard attributes
 ATTR_CHORE_LOCK_REASON: Final = "lock_reason"
-ATTR_CHORE_TURN_KID_NAME: Final = "turn_kid_name"
+ATTR_CHORE_TURN_ASSIGNEE_NAME: Final = "turn_assignee_name"
 ATTR_CHORE_AVAILABLE_AT: Final = "available_at"
 
 # Common attributes for chores and rewards in dashboard helper
@@ -2745,19 +2483,23 @@ SENSOR_KC_UID_SUFFIX_BADGE_SENSOR: Final = "_badge_status"
 SENSOR_KC_UID_SUFFIX_BONUS_APPLIES_SENSOR: Final = "_bonus_status"
 SENSOR_KC_UID_SUFFIX_CHALLENGE_SENSOR: Final = "_challenge_status"
 SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR: Final = "_challenge_progress"
-SENSOR_KC_UID_SUFFIX_CHORES_SENSOR: Final = "_kid_chores_summary"
+SENSOR_KC_UID_SUFFIX_CHORES_SENSOR: Final = "_assignee_chores_summary"
 SENSOR_KC_UID_SUFFIX_COMPLETED_DAILY_SENSOR: Final = "_chores_completed_daily"
 SENSOR_KC_UID_SUFFIX_COMPLETED_MONTHLY_SENSOR: Final = "_chores_completed_monthly"
 SENSOR_KC_UID_SUFFIX_COMPLETED_TOTAL_SENSOR: Final = "_chores_completed_total"
 SENSOR_KC_UID_SUFFIX_COMPLETED_WEEKLY_SENSOR: Final = "_chores_completed_weekly"
 SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR: Final = "_chore_status"
-SENSOR_KC_UID_SUFFIX_KID_BADGES_SENSOR: Final = "_kid_badges"
-SENSOR_KC_UID_SUFFIX_KID_HIGHEST_STREAK_SENSOR: Final = "_chores_highest_streak"
-SENSOR_KC_UID_SUFFIX_KID_MAX_POINTS_EVER_SENSOR: Final = "_points_max_ever"
-SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_DAILY_SENSOR: Final = "_points_earned_daily"
-SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_MONTHLY_SENSOR: Final = "_points_earned_monthly"
-SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_WEEKLY_SENSOR: Final = "_points_earned_weekly"
-SENSOR_KC_UID_SUFFIX_KID_POINTS_SENSOR: Final = "_kid_points"
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_BADGES_SENSOR: Final = "_assignee_badges"
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR: Final = "_chores_highest_streak"
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_MAX_POINTS_EVER_SENSOR: Final = "_points_max_ever"
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR: Final = "_points_earned_daily"
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR: Final = (
+    "_points_earned_monthly"
+)
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR: Final = (
+    "_points_earned_weekly"
+)
+SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR: Final = "_assignee_points"
 SENSOR_KC_UID_SUFFIX_PENALTY_APPLIES_SENSOR: Final = "_penalty_status"
 SENSOR_KC_UID_SUFFIX_PENDING_CHORE_APPROVALS_SENSOR: Final = "_chores_pending_approvals"
 SENSOR_KC_UID_SUFFIX_PENDING_REWARD_APPROVALS_SENSOR: Final = (
@@ -2780,18 +2522,22 @@ SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_MONTHLY_SENSOR: Final = (
 )
 SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_TOTAL_SENSOR: Final = "_chores_completed_total"
 SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_WEEKLY_SENSOR: Final = "_chores_completed_weekly"
-SENSOR_KC_EID_SUFFIX_KID_CHORES_SENSOR: Final = "_chores"
-SENSOR_KC_EID_SUFFIX_KID_BADGES_SENSOR: Final = "_badges"
-SENSOR_KC_EID_SUFFIX_KID_HIGHEST_STREAK_SENSOR: Final = "_chores_highest_streak"
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_CHORES_SENSOR: Final = "_chores"
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_BADGES_SENSOR: Final = "_badges"
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR: Final = "_chores_highest_streak"
 SENSOR_KC_EID_MIDFIX_PENALTY_APPLIES_SENSOR: Final = "_penalties_applied_"
 SENSOR_KC_EID_MIDFIX_REWARD_STATUS_SENSOR: Final = "_reward_status_"
 SENSOR_KC_EID_MIDFIX_SHARED_CHORE_GLOBAL_STATUS_SENSOR: Final = "global_chore_status_"
 SENSOR_KC_EID_SUFFIX_BADGE_SENSOR: Final = "_badge"
-SENSOR_KC_EID_SUFFIX_KID_MAX_POINTS_EARNED_SENSOR: Final = "_points_max_ever"
-SENSOR_KC_EID_SUFFIX_KID_POINTS_EARNED_DAILY_SENSOR: Final = "_points_earned_daily"
-SENSOR_KC_EID_SUFFIX_KID_POINTS_EARNED_MONTHLY_SENSOR: Final = "_points_earned_monthly"
-SENSOR_KC_EID_SUFFIX_KID_POINTS_EARNED_WEEKLY_SENSOR: Final = "_points_earned_weekly"
-SENSOR_KC_EID_SUFFIX_KID_POINTS_SENSOR: Final = "_points"
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_MAX_POINTS_EARNED_SENSOR: Final = "_points_max_ever"
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR: Final = "_points_earned_daily"
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR: Final = (
+    "_points_earned_monthly"
+)
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR: Final = (
+    "_points_earned_weekly"
+)
+SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_SENSOR: Final = "_points"
 SENSOR_KC_EID_SUFFIX_PENDING_CHORE_APPROVALS_SENSOR: Final = (
     "global_chore_pending_approvals"
 )
@@ -2799,7 +2545,6 @@ SENSOR_KC_EID_SUFFIX_PENDING_REWARD_APPROVALS_SENSOR: Final = (
     "global_reward_pending_approvals"
 )
 # Sensor Entity ID Midfix and Suffix for UI Dashboard Helper
-SENSOR_KC_EID_MIDFIX_UI_DASHBOARD: Final = "_ui_dashboard_"
 SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER: Final = "_ui_dashboard_helper"
 SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER: Final = "_dashboard_helper"
 
@@ -2819,11 +2564,11 @@ SELECT_KC_PREFIX: Final = "select.kc_"
 
 # Select Unique ID Mid & Suffixes
 # Use SUFFIX pattern for consistent entity unique IDs
-SELECT_KC_UID_SUFFIX_KID_DASHBOARD_HELPER_CHORES_SELECT: Final = (
-    "_kid_dashboard_helper_chores_select"
+SELECT_KC_UID_SUFFIX_ASSIGNEE_DASHBOARD_HELPER_CHORES_SELECT: Final = (
+    "_assignee_dashboard_helper_chores_select"
 )
-SELECT_KC_UID_SUFFIX_SYSTEM_DASHBOARD_ADMIN_KID_SELECT: Final = (
-    "_system_dashboard_admin_kid_select"
+SELECT_KC_UID_SUFFIX_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE_SELECT: Final = (
+    "_system_dashboard_admin_assignee_select"
 )
 SELECT_KC_UID_SUFFIX_BONUSES_SELECT: Final = "_select_bonuses"
 SELECT_KC_UID_SUFFIX_CHORES_SELECT: Final = "_select_chores"
@@ -2852,10 +2597,10 @@ BUTTON_KC_UID_SUFFIX_CLAIM: Final = "_chore_claim"
 BUTTON_KC_UID_SUFFIX_DISAPPROVE: Final = "_chore_disapprove"
 BUTTON_KC_UID_SUFFIX_DISAPPROVE_REWARD: Final = "_reward_disapprove"
 # New class-aligned SUFFIX constants for PREFIX/MIDFIX migration
-BUTTON_KC_UID_SUFFIX_KID_REWARD_REDEEM: Final = "_kid_reward_redeem_button"
-BUTTON_KC_UID_SUFFIX_PARENT_BONUS_APPLY: Final = "_parent_bonus_apply_button"
-BUTTON_KC_UID_SUFFIX_PARENT_PENALTY_APPLY: Final = "_parent_penalty_apply_button"
-BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST: Final = "_parent_points_adjust_button"
+BUTTON_KC_UID_SUFFIX_ASSIGNEE_REWARD_REDEEM: Final = "_assignee_reward_redeem_button"
+BUTTON_KC_UID_SUFFIX_APPROVER_BONUS_APPLY: Final = "_approver_bonus_apply_button"
+BUTTON_KC_UID_SUFFIX_APPROVER_PENALTY_APPLY: Final = "_approver_penalty_apply_button"
+BUTTON_KC_UID_SUFFIX_APPROVER_POINTS_ADJUST: Final = "_approver_points_adjust_button"
 
 # Button Entity ID Mid & Suffixes
 BUTTON_KC_EID_MIDFIX_BONUS: Final = "_bonus_"
@@ -2876,7 +2621,7 @@ BUTTON_KC_EID_SUFFIX_POINTS: Final = "_points"
 CALENDAR_KC_PREFIX: Final = "calendar.kc_"
 
 # Calendar Unique ID Mid & Suffixes
-CALENDAR_KC_UID_SUFFIX_CALENDAR: Final = "_kid_calendar"
+CALENDAR_KC_UID_SUFFIX_CALENDAR: Final = "_assignee_calendar"
 
 # ------------------------------------------------------------------------------------------------
 # Helper Return Types
@@ -2907,7 +2652,6 @@ END_OF_DAY_SECOND: Final = 0
 
 # Calendar calculations
 MONTHS_PER_QUARTER: Final = 3
-MONTHS_PER_YEAR: Final = 12
 LAST_DAY_OF_DECEMBER: Final = 31
 LAST_MONTH_OF_YEAR: Final = 12
 
@@ -2918,12 +2662,10 @@ SUNDAY_WEEKDAY_INDEX: Final = 6
 ISO_DATE_STRING_LENGTH: Final = 10
 
 # Month multiplier for interval calculations
-MONTH_INTERVAL_MULTIPLIER: Final = 1
 
 # ------------------------------------------------------------------------------------------------
 # Services
 # ------------------------------------------------------------------------------------------------
-SERVICE_ADJUST_POINTS: Final = "adjust_points"
 SERVICE_APPLY_BONUS: Final = "apply_bonus"
 SERVICE_APPLY_PENALTY: Final = "apply_penalty"
 SERVICE_APPROVE_CHORE: Final = "approve_chore"
@@ -2946,7 +2688,7 @@ SERVICE_RESET_CHORES_TO_PENDING_STATE: Final = (
 )
 # NOTE: SERVICE_RESET_ALL_DATA, SERVICE_RESET_ALL_CHORES renamed in v0.6.0 to factory_reset, reset_chores_to_pending_state
 # NOTE: SERVICE_RESET_BONUSES, SERVICE_RESET_PENALTIES, SERVICE_RESET_REWARDS removed in v0.6.0
-# Superseded by SERVICE_RESET_TRANSACTIONAL_DATA with scope="kid" or "global" and item_type filter
+# Superseded by SERVICE_RESET_TRANSACTIONAL_DATA with scope="assignee" or "global" and item_type filter
 SERVICE_RESET_OVERDUE_CHORES: Final = "reset_overdue_chores"
 SERVICE_RESET_TRANSACTIONAL_DATA: Final = "reset_transactional_data"
 SERVICE_SET_CHORE_DUE_DATE: Final = "set_chore_due_date"
@@ -2977,9 +2719,9 @@ SERVICE_FIELD_ITEM_TYPE: Final = (
 )
 
 # Data reset service scope types (NEVER use "reset" alone - always qualify)
-# Scope = WHO is affected (all kids vs one kid)
-DATA_RESET_SCOPE_GLOBAL: Final = "global"  # All kids
-DATA_RESET_SCOPE_KID: Final = "kid"  # One kid (requires kid_name)
+# Scope = WHO is affected (all assignees vs one assignee)
+DATA_RESET_SCOPE_GLOBAL: Final = "global"  # All assignees
+DATA_RESET_SCOPE_ASSIGNEE: Final = "assignee"  # One assignee (requires assignee_name)
 
 # Data reset service item type values (WHAT domain to reset)
 # Optional - if omitted, resets ALL domains for the scope
@@ -3002,19 +2744,10 @@ DATA_RESET_ITEM_TYPE_BONUSES: Final = "bonuses"
 SERVICE_FIELD_ASSIGNEE_NAME: Final = "assignee_name"
 SERVICE_FIELD_ASSIGNEE_ID: Final = "assignee_id"
 SERVICE_FIELD_APPROVER_NAME: Final = "approver_name"
-SERVICE_FIELD_ACTION: Final = "action"
-
-# Transitional symbol aliases (remove after constant-rename phase)
-SERVICE_FIELD_KID_NAME: Final = SERVICE_FIELD_ASSIGNEE_NAME
-SERVICE_FIELD_KID_ID: Final = SERVICE_FIELD_ASSIGNEE_ID
-SERVICE_FIELD_PARENT_NAME: Final = SERVICE_FIELD_APPROVER_NAME
 
 # Chore service fields (workflow)
 SERVICE_FIELD_CHORE_NAME: Final = "chore_name"
 SERVICE_FIELD_CHORE_ID: Final = "chore_id"
-SERVICE_FIELD_OVERRIDE_DURATION: Final = "override_duration_hours"  # v0.5.0
-SERVICE_FIELD_CHORE_DUE_DATE: Final = "due_date"
-SERVICE_FIELD_CHORE_POINTS_AWARDED: Final = "points_awarded"
 SERVICE_FIELD_MARK_AS_MISSED: Final = (
     "mark_as_missed"  # Phase 5: Skip service parameter
 )
@@ -3026,7 +2759,7 @@ SERVICE_FIELD_CHORE_CRUD_POINTS: Final = "points"
 SERVICE_FIELD_CHORE_CRUD_DESCRIPTION: Final = "description"
 SERVICE_FIELD_CHORE_CRUD_ICON: Final = "icon"
 SERVICE_FIELD_CHORE_CRUD_LABELS: Final = "labels"
-SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS: Final = "assigned_kids"
+SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 SERVICE_FIELD_CHORE_CRUD_FREQUENCY: Final = "frequency"
 SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: Final = "applicable_days"
 SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA: Final = "completion_criteria"
@@ -3041,8 +2774,8 @@ SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: Final = "due_reminder_offset"
 
 # ==== Test aliases for convenience (used in Phase 1 tests) ====
 SERVICE_FIELD_NAME: Final = "name"  # Alias for SERVICE_FIELD_CHORE_CRUD_NAME
-SERVICE_FIELD_ASSIGNED_KIDS: Final = (
-    "assigned_kids"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_KIDS
+SERVICE_FIELD_ASSIGNED_ASSIGNEES: Final = (
+    "assigned_assignees"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES
 )
 SERVICE_FIELD_FREQUENCY: Final = (
     "frequency"  # Alias for SERVICE_FIELD_CHORE_CRUD_FREQUENCY
@@ -3053,9 +2786,6 @@ SERVICE_FIELD_APPROVAL_RESET_TYPE: Final = (
 )
 SERVICE_FIELD_OVERDUE_HANDLING: Final = (
     "overdue_handling"  # Alias for SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING
-)
-SERVICE_FIELD_DUE_DATE: Final = (
-    "due_date"  # Alias for SERVICE_FIELD_CHORE_CRUD_DUE_DATE
 )
 
 # Reward service fields (workflow) - used by redeem_reward, approve_reward, disapprove_reward
@@ -3080,13 +2810,13 @@ SERVICE_FIELD_BONUS_NAME: Final = "bonus_name"
 # Badge service fields
 SERVICE_FIELD_BADGE_NAME: Final = "badge_name"
 
+# Shared workflow fields used across legacy aliases
+SERVICE_FIELD_CHORE_DUE_DATE: Final = "due_date"
+SERVICE_FIELD_CHORE_POINTS_AWARDED: Final = "points_awarded"
+
 # Reporting service fields
-SERVICE_FIELD_REPORT_RANGE_MODE: Final = "range_mode"
-SERVICE_FIELD_REPORT_START_DATE: Final = "start_date"
-SERVICE_FIELD_REPORT_END_DATE: Final = "end_date"
 SERVICE_FIELD_REPORT_NOTIFY_SERVICE: Final = "notify_service"
 SERVICE_FIELD_REPORT_TITLE: Final = "report_title"
-SERVICE_FIELD_REPORT_STYLE: Final = "report_style"
 SERVICE_FIELD_REPORT_LANGUAGE: Final = "report_language"
 SERVICE_FIELD_REPORT_OUTPUT_FORMAT: Final = "output_format"
 
@@ -3101,7 +2831,7 @@ REPORT_RANGE_MODE_LAST_30_DAYS: Final = "last_30_days"
 REPORT_RANGE_MODE_CUSTOM: Final = "custom"
 
 # Reporting style modes
-REPORT_STYLE_KID: Final = "kid"
+REPORT_STYLE_ASSIGNEE: Final = "assignee"
 REPORT_STYLE_AUTOMATION: Final = "automation"
 REPORT_STYLE_BOTH: Final = "both"
 
@@ -3116,35 +2846,27 @@ FIELD_DUE_DATE = SERVICE_FIELD_CHORE_DUE_DATE
 FIELD_ASSIGNEE_ID = SERVICE_FIELD_ASSIGNEE_ID
 FIELD_ASSIGNEE_NAME = SERVICE_FIELD_ASSIGNEE_NAME
 FIELD_APPROVER_NAME = SERVICE_FIELD_APPROVER_NAME
-FIELD_KID_ID = SERVICE_FIELD_ASSIGNEE_ID
-FIELD_KID_NAME = SERVICE_FIELD_ASSIGNEE_NAME
-FIELD_PARENT_NAME = SERVICE_FIELD_APPROVER_NAME
 FIELD_PENALTY_NAME = SERVICE_FIELD_PENALTY_NAME
 FIELD_POINTS_AWARDED = SERVICE_FIELD_CHORE_POINTS_AWARDED
 FIELD_REWARD_NAME = SERVICE_FIELD_REWARD_NAME
 FIELD_NAME = "name"  # Generic, kept for simple services
-FIELD_ACTION = SERVICE_FIELD_ACTION
 
 
 # ------------------------------------------------------------------------------------------------
 # Labels
 # ------------------------------------------------------------------------------------------------
-LABEL_BADGES: Final = "Badges"
-LABEL_COMPLETED_DAILY: Final = "Daily Completed Chores"
-LABEL_COMPLETED_MONTHLY: Final = "Monthly Completed Chores"
-LABEL_COMPLETED_WEEKLY: Final = "Weekly Completed Chores"
 LABEL_DISABLED: Final = "Disabled"
 LABEL_NONE: Final = ""
 LABEL_POINTS: Final = "Points"
 
 # Entity Type Labels (for error messages and translation placeholders)
-LABEL_KID: Final = "Kid"
+LABEL_ASSIGNEE: Final = "Assignee"
 LABEL_CHORE: Final = "Chore"
 LABEL_REWARD: Final = "Reward"
 LABEL_BADGE: Final = "Badge"
 LABEL_PENALTY: Final = "Penalty"
 LABEL_BONUS: Final = "Bonus"
-LABEL_PARENT: Final = "Parent"
+LABEL_APPROVER: Final = "Approver"
 LABEL_ACHIEVEMENT: Final = "Achievement"
 LABEL_CHALLENGE: Final = "Challenge"
 
@@ -3154,7 +2876,7 @@ LABEL_CHALLENGE: Final = "Challenge"
 # Migration identifiers (for schema version tracking in DATA_META_MIGRATIONS_APPLIED)
 MIGRATION_DATETIME_UTC: Final = "datetime_utc"
 MIGRATION_CHORE_DATA_STRUCTURE: Final = "chore_data_structure"
-MIGRATION_KID_DATA_STRUCTURE: Final = "kid_data_structure"
+MIGRATION_ASSIGNEE_DATA_STRUCTURE: Final = "assignee_data_structure"
 MIGRATION_BADGE_RESTRUCTURE: Final = "badge_restructure"
 MIGRATION_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
 MIGRATION_BADGES_EARNED_DICT: Final = "badges_earned_dict"
@@ -3164,7 +2886,7 @@ MIGRATION_CHORE_DATA_AND_STREAKS: Final = "chore_data_and_streaks"
 DEFAULT_MIGRATIONS_APPLIED: Final = [
     MIGRATION_DATETIME_UTC,
     MIGRATION_CHORE_DATA_STRUCTURE,
-    MIGRATION_KID_DATA_STRUCTURE,
+    MIGRATION_ASSIGNEE_DATA_STRUCTURE,
     MIGRATION_BADGE_RESTRUCTURE,
     MIGRATION_CUMULATIVE_BADGE_PROGRESS,
     MIGRATION_BADGES_EARNED_DICT,
@@ -3177,7 +2899,7 @@ DEFAULT_MIGRATIONS_APPLIED: Final = [
 # Button Prefixes (DEPRECATED - kept for migration/cleanup of legacy entities)
 # ------------------------------------------------------------------------------------------------
 # These PREFIX patterns are deprecated. New entities use SUFFIX pattern.
-# Kept only for _extract_kid_id_from_unique_id() and migration scripts.
+# Kept only for _extract_assignee_id_from_unique_id() and migration scripts.
 # TODO: Remove after v1.0 when all users have migrated
 BUTTON_BONUS_PREFIX: Final = "bonus_button_"  # DEPRECATED
 BUTTON_PENALTY_PREFIX: Final = "penalty_button_"  # DEPRECATED
@@ -3189,7 +2911,7 @@ BUTTON_REWARD_PREFIX: Final = "reward_button_"  # DEPRECATED
 # ------------------------------------------------------------------------------------------------
 # Defines creation requirements for ALL entity types. Used for:
 # - Proactive filtering at entity creation time
-# - Shadow kid entity gating (whitelist approach)
+# - Shadow assignee entity gating (whitelist approach)
 # - Extra entity cleanup when flag disabled
 # - Event-based cleanup on delete/unassign
 #
@@ -3198,7 +2920,7 @@ BUTTON_REWARD_PREFIX: Final = "reward_button_"  # DEPRECATED
 # === FLAG LAYERING LOGIC ===
 # Requirements define CATEGORIES, not final logic. Evaluation rules:
 #
-# | Requirement   | Regular Kid           | Shadow Kid                           |
+# | Requirement   | Regular assignee      | Shadow assignee                      |
 # |---------------|-----------------------|--------------------------------------|
 # | ALWAYS        | Created               | Created                              |
 # | WORKFLOW      | Created               | Only if enable_chore_workflow=True   |
@@ -3208,8 +2930,8 @@ BUTTON_REWARD_PREFIX: Final = "reward_button_"  # DEPRECATED
 # Note: EXTRA requires BOTH show_legacy_entities system flag AND gamification.
 # (Config key is still 'show_legacy_entities' for backward compatibility, but
 # we call these "extra" entities in the UI and code - they're optional sensors.)
-# For regular kids, gamification is always true, so EXTRA just needs flag.
-# For shadow kids, EXTRA needs flag AND enable_gamification=True.
+# For regular assignees, gamification is always true, so EXTRA just needs flag.
+# For shadow assignees, EXTRA needs flag AND enable_gamification=True.
 #
 # The should_create_entity() function in helpers/entity_helpers.py implements this logic.
 
@@ -3218,17 +2940,21 @@ class EntityRequirement(StrEnum):
     """Defines when an entity should be created.
 
     These are requirement CATEGORIES. The actual evaluation logic considers:
-    - Kid type (regular vs shadow)
+    - Assignee type (regular vs shadow)
     - System flags (show_legacy_entities aka "extra entities" in UI)
-    - Parent flags (enable_gamification, enable_chore_workflow) for shadow kids
+    - Approver flags (enable_gamification, enable_chore_workflow) for shadow assignees
 
     EXTRA has compound logic: requires show_legacy_entities AND gamification.
     (Originally called "legacy" - renamed to "extra" to match UI terminology.)
     """
 
-    ALWAYS = "always"  # All kids (regular + shadow base)
-    WORKFLOW = "workflow"  # Requires enable_chore_workflow (shadow kids only check)
-    GAMIFICATION = "gamification"  # Requires enable_gamification (shadow kids only)
+    ALWAYS = "always"  # All assignees (regular + shadow base)
+    WORKFLOW = (
+        "workflow"  # Requires enable_chore_workflow (shadow assignees only check)
+    )
+    GAMIFICATION = (
+        "gamification"  # Requires enable_gamification (shadow assignees only)
+    )
     EXTRA = "extra"  # Requires show_legacy_entities AND gamification (optional sensors)
 
 
@@ -3240,8 +2966,8 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
     SENSOR_KC_UID_SUFFIX_CHORES_SENSOR: EntityRequirement.ALWAYS,
     SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER: EntityRequirement.ALWAYS,
     # === SENSORS: Gamification ===
-    SENSOR_KC_UID_SUFFIX_KID_POINTS_SENSOR: EntityRequirement.GAMIFICATION,
-    SENSOR_KC_UID_SUFFIX_KID_BADGES_SENSOR: EntityRequirement.GAMIFICATION,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR: EntityRequirement.GAMIFICATION,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_BADGES_SENSOR: EntityRequirement.GAMIFICATION,
     SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR: EntityRequirement.GAMIFICATION,
     SENSOR_KC_UID_SUFFIX_BADGE_SENSOR: EntityRequirement.GAMIFICATION,
     SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR: EntityRequirement.GAMIFICATION,
@@ -3259,11 +2985,11 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
     SENSOR_KC_UID_SUFFIX_COMPLETED_MONTHLY_SENSOR: EntityRequirement.EXTRA,
     SENSOR_KC_UID_SUFFIX_PENDING_CHORE_APPROVALS_SENSOR: EntityRequirement.EXTRA,
     SENSOR_KC_UID_SUFFIX_PENDING_REWARD_APPROVALS_SENSOR: EntityRequirement.EXTRA,
-    SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_DAILY_SENSOR: EntityRequirement.EXTRA,
-    SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_WEEKLY_SENSOR: EntityRequirement.EXTRA,
-    SENSOR_KC_UID_SUFFIX_KID_POINTS_EARNED_MONTHLY_SENSOR: EntityRequirement.EXTRA,
-    SENSOR_KC_UID_SUFFIX_KID_HIGHEST_STREAK_SENSOR: EntityRequirement.EXTRA,
-    SENSOR_KC_UID_SUFFIX_KID_MAX_POINTS_EVER_SENSOR: EntityRequirement.EXTRA,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR: EntityRequirement.EXTRA,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR: EntityRequirement.EXTRA,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR: EntityRequirement.EXTRA,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR: EntityRequirement.EXTRA,
+    SENSOR_KC_UID_SUFFIX_ASSIGNEE_MAX_POINTS_EVER_SENSOR: EntityRequirement.EXTRA,
     SENSOR_KC_UID_SUFFIX_PENALTY_APPLIES_SENSOR: EntityRequirement.EXTRA,
     SENSOR_KC_UID_SUFFIX_BONUS_APPLIES_SENSOR: EntityRequirement.EXTRA,
     # === BUTTONS: Always (base approval) ===
@@ -3272,15 +2998,15 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
     BUTTON_KC_UID_SUFFIX_CLAIM: EntityRequirement.WORKFLOW,
     BUTTON_KC_UID_SUFFIX_DISAPPROVE: EntityRequirement.WORKFLOW,
     # === BUTTONS: Gamification ===
-    BUTTON_KC_UID_SUFFIX_PARENT_POINTS_ADJUST: EntityRequirement.GAMIFICATION,
+    BUTTON_KC_UID_SUFFIX_APPROVER_POINTS_ADJUST: EntityRequirement.GAMIFICATION,
     BUTTON_KC_UID_SUFFIX_APPROVE_REWARD: EntityRequirement.GAMIFICATION,
     BUTTON_KC_UID_SUFFIX_DISAPPROVE_REWARD: EntityRequirement.GAMIFICATION,
-    BUTTON_KC_UID_SUFFIX_KID_REWARD_REDEEM: EntityRequirement.GAMIFICATION,
-    BUTTON_KC_UID_SUFFIX_PARENT_BONUS_APPLY: EntityRequirement.GAMIFICATION,
-    BUTTON_KC_UID_SUFFIX_PARENT_PENALTY_APPLY: EntityRequirement.GAMIFICATION,
+    BUTTON_KC_UID_SUFFIX_ASSIGNEE_REWARD_REDEEM: EntityRequirement.GAMIFICATION,
+    BUTTON_KC_UID_SUFFIX_APPROVER_BONUS_APPLY: EntityRequirement.GAMIFICATION,
+    BUTTON_KC_UID_SUFFIX_APPROVER_PENALTY_APPLY: EntityRequirement.GAMIFICATION,
     # === SELECT: Always (dashboard helpers) ===
-    SELECT_KC_UID_SUFFIX_KID_DASHBOARD_HELPER_CHORES_SELECT: EntityRequirement.ALWAYS,
-    SELECT_KC_UID_SUFFIX_SYSTEM_DASHBOARD_ADMIN_KID_SELECT: EntityRequirement.ALWAYS,
+    SELECT_KC_UID_SUFFIX_ASSIGNEE_DASHBOARD_HELPER_CHORES_SELECT: EntityRequirement.ALWAYS,
+    SELECT_KC_UID_SUFFIX_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE_SELECT: EntityRequirement.ALWAYS,
     # === SELECT: Extra (system-wide legacy selects) ===
     SELECT_KC_UID_SUFFIX_CHORES_SELECT: EntityRequirement.EXTRA,
     SELECT_KC_UID_SUFFIX_REWARDS_SELECT: EntityRequirement.EXTRA,
@@ -3295,9 +3021,6 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
 # Derived lists from ENTITY_REGISTRY for efficient lookups
 # Extra entities: optional sensors requiring show_legacy_entities flag
 # (Called "extra" in UI; config key kept as "show_legacy_entities" for backward compat)
-EXTRA_ENTITY_SUFFIXES: Final[tuple[str, ...]] = tuple(
-    suffix for suffix, req in ENTITY_REGISTRY.items() if req == EntityRequirement.EXTRA
-)
 
 # ------------------------------------------------------------------------------------------------
 # Errors and Warnings
@@ -3307,17 +3030,13 @@ EXTRA_ENTITY_SUFFIXES: Final[tuple[str, ...]] = tuple(
 # These 12 templates replace 41 hardcoded f-strings in coordinator.py using placeholders
 # Format: TRANS_KEY_ERROR_{CATEGORY} with translation_placeholders for dynamic values
 TRANS_KEY_ERROR_NOT_FOUND: Final = "not_found"  # {entity_type} '{name}' not found
-TRANS_KEY_ERROR_NOT_ASSIGNED: Final = "not_assigned"  # {entity} not assigned to {kid}
+TRANS_KEY_ERROR_NOT_ASSIGNED: Final = (
+    "not_assigned"  # {entity} not assigned to {assignee}
+)
 TRANS_KEY_ERROR_INSUFFICIENT_POINTS: Final = (
-    "insufficient_points"  # {kid} has {current}, needs {required}
+    "insufficient_points"  # {assignee} has {current}, needs {required}
 )
 TRANS_KEY_ERROR_ALREADY_CLAIMED: Final = "already_claimed"  # {entity} already claimed
-TRANS_KEY_ERROR_INVALID_STATUS: Final = (
-    "invalid_status"  # {entity} status is {status}, expected {expected}
-)
-TRANS_KEY_ERROR_ENTITY_MISMATCH: Final = (
-    "entity_mismatch"  # {provided} does not match {expected}
-)
 TRANS_KEY_ERROR_INVALID_FREQUENCY: Final = (
     "invalid_frequency"  # Recurring frequency '{frequency}' is not valid
 )
@@ -3325,19 +3044,9 @@ TRANS_KEY_ERROR_MISSING_FIELD: Final = (
     "missing_field"  # Required field '{field}' is missing from {entity}
 )
 TRANS_KEY_ERROR_INVALID_DATE: Final = "invalid_date"  # {field} date '{date}' is invalid
-TRANS_KEY_ERROR_DATE_CONSTRAINT: Final = (
-    "date_constraint"  # {constraint} violation: {detail}
+TRANS_KEY_ERROR_SHARED_CHORE_ASSIGNEE: Final = (
+    "shared_chore_cannot_have_assignee"  # Cannot specify assignee for SHARED chore
 )
-TRANS_KEY_ERROR_OPERATION_FAILED: Final = (
-    "operation_failed"  # {operation} failed: {reason}
-)
-TRANS_KEY_ERROR_CONFIGURATION: Final = (
-    "configuration_error"  # Configuration error: {detail}
-)
-TRANS_KEY_ERROR_SHARED_CHORE_KID: Final = (
-    "shared_chore_cannot_have_kid"  # Cannot specify kid for SHARED chore
-)
-TRANS_KEY_ERROR_REQUIRED_FIELD: Final = "required_field"  # Must provide {field}
 TRANS_KEY_ERROR_INVALID_DATE_FORMAT: Final = (
     "invalid_date_format"  # Invalid date format
 )
@@ -3347,7 +3056,7 @@ TRANS_KEY_ERROR_MISSING_REWARD_IDENTIFIER: Final = (
     "missing_reward_identifier"  # Must provide reward_id or reward_name
 )
 TRANS_KEY_ERROR_CHORE_CLAIMED_BY_OTHER: Final = (
-    "chore_claimed_by_other"  # Chore already claimed by another kid
+    "chore_claimed_by_other"  # Chore already claimed by another assignee
 )
 TRANS_KEY_ERROR_CHORE_ALREADY_APPROVED: Final = (
     "chore_already_approved"  # Chore already approved, try again after reset period
@@ -3359,14 +3068,12 @@ TRANS_KEY_ERROR_CHORE_WAITING: Final = (
     "chore_waiting"  # Chore cannot be claimed before due window opens
 )
 TRANS_KEY_ERROR_CHORE_NOT_MY_TURN: Final = (
-    "chore_not_my_turn"  # Chore is rotation-locked to another kid
+    "chore_not_my_turn"  # Chore is rotation-locked to another assignee
 )
 TRANS_KEY_ERROR_CHORE_MISSED_LOCKED: Final = (
     "chore_missed_locked"  # Chore was missed and is now locked
 )
-TRANS_KEY_ERROR_CHORE_COMPLETED_BY_OTHER: Final = (
-    "chore_completed_by_other"  # SHARED_FIRST chore already completed by another kid
-)
+TRANS_KEY_ERROR_CHORE_COMPLETED_BY_OTHER: Final = "chore_completed_by_other"  # SHARED_FIRST chore already completed by another assignee
 TRANS_KEY_ERROR_CHORE_NOT_FOUND: Final = (
     "chore_not_found"  # Chore with ID '{chore_id}' not found
 )
@@ -3374,46 +3081,33 @@ TRANS_KEY_ERROR_MISSING_CHORE_IDENTIFIER: Final = (
     "missing_chore_identifier"  # Must provide chore_id or chore_name
 )
 # v0.5.0 Chore Logic: Rotation & claim restriction translations
-TRANS_KEY_CRITERIA_ROTATION_SIMPLE: Final = "rotation_simple"
-TRANS_KEY_CRITERIA_ROTATION_SMART: Final = "rotation_smart"
-TRANS_KEY_OVERDUE_AT_DUE_DATE_MARK_MISSED_AND_LOCK: Final = (
-    "at_due_date_mark_missed_and_lock"
-)
-TRANS_KEY_OVERDUE_AT_DUE_DATE_ALLOW_STEAL: Final = "at_due_date_allow_steal"
-TRANS_KEY_ERROR_ROTATION_NO_TURN_HOLDER: Final = "rotation_no_turn_holder"
-TRANS_KEY_ERROR_ROTATION_INVALID_ORDER: Final = "rotation_invalid_order"
-TRANS_KEY_ERROR_ROTATION_DUPLICATE_IN_ORDER: Final = "rotation_duplicate_in_order"
-TRANS_KEY_ERROR_ROTATION_UNASSIGNED_IN_ORDER: Final = "rotation_unassigned_in_order"
-TRANS_KEY_ERROR_ROTATION_MIN_KIDS: Final = (
-    "rotation_min_kids"  # Rotation chores require at least 2 assigned kids
+TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES: Final = (
+    "rotation_min_assignees"  # Rotation chores require at least 2 assigned assignees
 )
 # Phase 3 Step 7 - Rotation management service error keys (v0.5.0)
 TRANS_KEY_ERROR_NOT_ROTATION: Final = "not_rotation"  # Chore is not in rotation mode
-TRANS_KEY_ERROR_KID_NOT_ASSIGNED: Final = (
-    "kid_not_assigned"  # Kid not assigned to this chore
+TRANS_KEY_ERROR_ASSIGNEE_NOT_ASSIGNED: Final = (
+    "assignee_not_assigned"  # Assignee not assigned to this chore
 )
-TRANS_KEY_ERROR_NO_ASSIGNED_KIDS: Final = (
-    "no_assigned_kids"  # No kids assigned to chore
+TRANS_KEY_ERROR_NO_ASSIGNED_ASSIGNEES: Final = (
+    "no_assigned_assignees"  # No assignees assigned to chore
 )
 # Translation keys for non-existent services removed (advance_rotation, clear_rotation_override)
 
-TRANS_KEY_ERROR_COMPLETION_CRITERIA_IMMUTABLE: Final = (
-    "completion_criteria_immutable"  # REMOVED in D-11: criteria IS mutable
-)
 TRANS_KEY_ERROR_REWARD_NOT_FOUND: Final = (
     "reward_not_found"  # Reward with ID '{reward_id}' not found
 )
 TRANS_KEY_ERROR_DATA_RESET_CONFIRMATION_REQUIRED: Final = (
     "data_reset_confirmation_required"  # Must set confirm_destructive: true
 )
-TRANS_KEY_ERROR_DATA_RESET_KID_NOT_FOUND: Final = (
-    "data_reset_kid_not_found"  # Kid '{kid_name}' not found
+TRANS_KEY_ERROR_DATA_RESET_ASSIGNEE_NOT_FOUND: Final = (
+    "data_reset_assignee_not_found"  # Assignee '{assignee_name}' not found
 )
 TRANS_KEY_ERROR_DATA_RESET_ITEM_NOT_FOUND: Final = (
     "data_reset_item_not_found"  # {item_type} '{item_name}' not found
 )
-TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE: Final = "data_reset_invalid_scope"  # Invalid scope '{scope}'. Must be: global, kid, item_type, or item
-TRANS_KEY_ERROR_DATA_RESET_INVALID_ITEM_TYPE: Final = "data_reset_invalid_item_type"  # Invalid item_type '{item_type}'. Must be: kids, chores, etc.
+TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE: Final = "data_reset_invalid_scope"  # Invalid scope '{scope}'. Must be: global, assignee, item_type, or item
+TRANS_KEY_ERROR_DATA_RESET_INVALID_ITEM_TYPE: Final = "data_reset_invalid_item_type"  # Invalid item_type '{item_type}'. Must be: assignees, chores, etc.
 
 # Translation Keys for Phase 2-4 Error Migration (Action Templating)
 # These map to templated exceptions in translations/en.json using action labels
@@ -3423,12 +3117,8 @@ TRANS_KEY_ERROR_CALENDAR_CREATE_NOT_SUPPORTED: Final = "calendar_create_not_supp
 TRANS_KEY_ERROR_CALENDAR_DELETE_NOT_SUPPORTED: Final = "calendar_delete_not_supported"
 TRANS_KEY_ERROR_CALENDAR_UPDATE_NOT_SUPPORTED: Final = "calendar_update_not_supported"
 
-# Shadow kid link service error keys
-TRANS_KEY_ERROR_KID_NOT_FOUND_BY_NAME: Final = "kid_not_found_by_name"
-TRANS_KEY_ERROR_PARENT_NOT_FOUND_BY_NAME: Final = "parent_not_found_by_name"
-TRANS_KEY_ERROR_KID_ALREADY_SHADOW: Final = "kid_already_shadow"
-TRANS_KEY_ERROR_KID_NOT_SHADOW: Final = "kid_not_shadow"
-TRANS_KEY_ERROR_PARENT_HAS_DIFFERENT_SHADOW: Final = "parent_has_different_shadow"
+# Shadow assignee link service error keys
+TRANS_KEY_ERROR_ASSIGNEE_NOT_SHADOW: Final = "assignee_not_shadow"
 
 # Action identifiers for use with TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION template
 # These values are passed directly as {action} placeholder in exception messages
@@ -3441,20 +3131,13 @@ ERROR_ACTION_DISAPPROVE_REWARDS: Final = "disapprove_rewards"
 ERROR_ACTION_APPLY_PENALTIES: Final = "apply_penalties"
 ERROR_ACTION_APPLY_BONUSES: Final = "apply_bonuses"
 ERROR_ACTION_ADJUST_POINTS: Final = "adjust_points"
-ERROR_ACTION_RESET_PENALTIES: Final = "reset_penalties"
-ERROR_ACTION_RESET_BONUSES: Final = "reset_bonuses"
-ERROR_ACTION_RESET_REWARDS: Final = "reset_rewards"
 ERROR_ACTION_REMOVE_BADGES: Final = "remove_badges"
 
 TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND: Final = "error_msg_no_entry_found"
 
 # Config Flow & Options Flow Translation Keys (Phase 2b)
 # Generic templates for validation errors across config/options flows
-TRANS_KEY_CFOF_INVALID_INPUT: Final = "invalid_input"  # General validation failure
 TRANS_KEY_CFOF_DUPLICATE_NAME: Final = "duplicate_name"  # Name already exists
-TRANS_KEY_CFOF_INVALID_DATE_RANGE: Final = "invalid_date_range"  # Start/end date issues
-TRANS_KEY_CFOF_MISSING_REQUIRED: Final = "missing_required"  # Required field missing
-TRANS_KEY_CFOF_INVALID_FORMAT: Final = "invalid_format"  # Format validation failure
 TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT: Final = (
     "chore_options_require_assignment"  # Workflow/gamification need chore_assignment
 )
@@ -3469,31 +3152,27 @@ TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS: Final = (
 # Unknown States (Display Translation Keys)
 TRANS_KEY_DISPLAY_UNKNOWN_CHALLENGE: Final = "display_unknown_challenge"
 TRANS_KEY_DISPLAY_UNKNOWN_CHORE: Final = "display_unknown_chore"
-TRANS_KEY_DISPLAY_UNKNOWN_KID: Final = "display_unknown_kid"
+TRANS_KEY_DISPLAY_UNKNOWN_ASSIGNEE: Final = "display_unknown_assignee"
 TRANS_KEY_DISPLAY_UNKNOWN_REWARD: Final = "display_unknown_reward"
 TRANS_KEY_DISPLAY_UNKNOWN_ENTITY: Final = "display_unknown_entity"
 
 # Config Flow & Options Flow Error Keys
 CFOP_ERROR_ACHIEVEMENT_NAME: Final = "name"
-CFOP_ERROR_BADGE_NAME: Final = "badge_name"
-CFOP_ERROR_ASSIGNED_KIDS: Final = "assigned_kids"
+CFOP_ERROR_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 CFOP_ERROR_BASE: Final = "base"
 CFOP_ERROR_CORRUPT_FILE: Final = "corrupt_file"
 CFOP_ERROR_FILE_NOT_FOUND: Final = "file_not_found"
 CFOP_ERROR_INVALID_JSON: Final = "invalid_json"
-CFOP_ERROR_NO_BACKUPS_FOUND: Final = "no_backups_found"
-CFOP_ERROR_RESTORE_FAILED: Final = "restore_failed"
 # Phase 6: Aligned with CFOF_BONUSES_INPUT_NAME = "name"
 CFOP_ERROR_BONUS_NAME: Final = "name"
-CFOP_ERROR_CHALLENGE_NAME: Final = "name"
 # Phase 6: Aligned with CFOF_CHORES_INPUT_NAME = "name"
 CFOP_ERROR_CHORE_NAME: Final = "name"
 CFOP_ERROR_DUE_DATE: Final = "due_date"
 CFOP_ERROR_END_DATE: Final = "end_date"
-# Phase 6: Aligned with CFOF_KIDS_INPUT_KID_NAME = "name"
-CFOP_ERROR_KID_NAME: Final = "name"
-# Phase 6: Aligned with CFOF_PARENTS_INPUT_NAME = "name"
-CFOP_ERROR_PARENT_NAME: Final = "name"
+# Phase 6: Aligned with CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME = "name"
+CFOP_ERROR_ASSIGNEE_NAME: Final = "name"
+# Phase 6: Aligned with CFOF_APPROVERS_INPUT_NAME = "name"
+CFOP_ERROR_APPROVER_NAME: Final = "name"
 # Phase 6: Aligned with CFOF_PENALTIES_INPUT_NAME = "name"
 CFOP_ERROR_PENALTY_NAME: Final = "name"
 # Phase 6: Aligned with CFOF_REWARDS_INPUT_NAME = "name"
@@ -3522,43 +3201,34 @@ CFOP_ERROR_POINTS_ADJUST_VALUES: Final = "points_adjust_values"
 CFOP_ERROR_CHORE_POINTS: Final = "points"  # Invalid chore points value
 # CFE-2026-001: Daily Multi validation error keys
 CFOP_ERROR_DAILY_MULTI_RESET: Final = "recurring_frequency"  # Uses frequency field
-CFOP_ERROR_DAILY_MULTI_KIDS: Final = "assigned_kids"  # Uses assigned_kids field
+CFOP_ERROR_DAILY_MULTI_ASSIGNEES: Final = (
+    "assigned_assignees"  # Uses assigned_assignees field
+)
 CFOP_ERROR_DAILY_MULTI_DUE_DATE: Final = "due_date"  # Uses due_date field
 CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
     "due_date"  # AT_DUE_DATE_* reset types require due date
 )
 # v0.5.0: Additional validation error field mappings
-CFOP_ERROR_COMPLETION_CRITERIA: Final = "completion_criteria"
 
 
 # ------------------------------------------------------------------------------------------------
-# Parent Approval Workflow
+# Approver Approval Workflow
 # ------------------------------------------------------------------------------------------------
-DEFAULT_PARENT_APPROVAL_REQUIRED: Final = (
-    True  # Enable parent approval for certain actions
-)
-DEFAULT_HA_USERNAME_LINK_ENABLED: Final = True  # Enable linking kids to HA usernames
 
-# Parent Chore Capability Defaults
-DEFAULT_PARENT_ALLOW_CHORE_ASSIGNMENT: Final = False
-DEFAULT_PARENT_ENABLE_CHORE_WORKFLOW: Final = False
-DEFAULT_PARENT_ENABLE_GAMIFICATION: Final = False
+# Approver Chore Capability Defaults
+DEFAULT_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = False
+DEFAULT_APPROVER_ENABLE_CHORE_WORKFLOW: Final = False
+DEFAULT_APPROVER_ENABLE_GAMIFICATION: Final = False
 
 
 # ------------------------------------------------------------------------------------------------
 # Calendar Attributes
 # ------------------------------------------------------------------------------------------------
-ATTR_CAL_ALL_DAY: Final = "all_day"
-ATTR_CAL_DESCRIPTION: Final = "description"
-ATTR_CAL_END: Final = "end"
-ATTR_CAL_MANUFACTURER: Final = "manufacturer"
-ATTR_CAL_START: Final = "start"
-ATTR_CAL_SUMMARY: Final = "summary"
 
 
 # ------------------------------------------------------------------------------------------------
 # Dashboard Helper Sensor Attributes (Phase 2b)
-# JSON keys exposed in sensor.kc_<kid>_ui_dashboard_helper attributes for dashboard consumption
+# JSON keys exposed in sensor.kc_<assignee>_ui_dashboard_helper attributes for dashboard consumption
 # ------------------------------------------------------------------------------------------------
 ATTR_DASHBOARD_CHORES: Final = "chores"
 ATTR_DASHBOARD_REWARDS: Final = "rewards"
@@ -3567,10 +3237,9 @@ ATTR_DASHBOARD_PENALTIES: Final = "penalties"
 ATTR_DASHBOARD_ACHIEVEMENTS: Final = "achievements"
 ATTR_DASHBOARD_CHALLENGES: Final = "challenges"
 ATTR_DASHBOARD_BADGES: Final = "badges"
-ATTR_DASHBOARD_CHORES_BY_LABEL: Final = "chores_by_label"
 ATTR_DASHBOARD_PENDING_APPROVALS: Final = "pending_approvals"
 ATTR_DASHBOARD_POINTS_BUTTONS: Final = "points_buttons"
-ATTR_DASHBOARD_KID_NAME: Final = "kid_name"
+ATTR_DASHBOARD_ASSIGNEE_NAME: Final = "assignee_name"
 ATTR_DASHBOARD_UI_TRANSLATIONS: Final = "ui_translations"
 
 
@@ -3578,24 +3247,16 @@ ATTR_DASHBOARD_UI_TRANSLATIONS: Final = "ui_translations"
 # Translation Keys
 # ------------------------------------------------------------------------------------------------
 # Global
-TRANS_KEY_LABEL_ACHIEVEMENT: Final = "label_achievement"
-TRANS_KEY_LABEL_BADGE: Final = "label_badge"
 TRANS_KEY_LABEL_BONUS: Final = "label_bonus"
 TRANS_KEY_LABEL_CHALLENGE: Final = "label_challenge"
 TRANS_KEY_LABEL_CHORE: Final = "label_chore"
-TRANS_KEY_LABEL_KID: Final = "label_kid"
+TRANS_KEY_LABEL_ASSIGNEE: Final = "label_assignee"
 TRANS_KEY_LABEL_PENALTY: Final = "label_penalty"
 TRANS_KEY_LABEL_REWARD: Final = "label_reward"
-TRANS_KEY_NO_DUE_DATE: Final = "no_due_date"
 
 # ConfigFlow & OptionsFlow Translation Keys
 # Data Recovery
-TRANS_KEY_CFOF_DATA_RECOVERY_TITLE: Final = "data_recovery_title"
-TRANS_KEY_CFOF_DATA_RECOVERY_DESCRIPTION: Final = "data_recovery_description"
 TRANS_KEY_CFOF_DATA_RECOVERY_SELECTION: Final = "data_recovery_selection"
-TRANS_KEY_CFOF_BACKUP_CURRENT_ACTIVE: Final = "backup_current_active"
-TRANS_KEY_CFOF_BACKUP_AGE: Final = "backup_age"
-TRANS_KEY_CFOF_RESTORE_WARNING: Final = "restore_warning"
 
 # Backup Management
 TRANS_KEY_CFOF_BACKUP_ACTIONS_MENU: Final = "backup_actions_menu"
@@ -3607,7 +3268,6 @@ TRANS_KEY_CFOF_BADGE_ASSIGNED_TO: Final = "assigned_to"
 TRANS_KEY_CFOF_BADGE_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 TRANS_KEY_CFOF_BADGE_AWARD_ITEMS: Final = "award_items"
 TRANS_KEY_CFOF_BADGE_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
-TRANS_KEY_CFOF_BADGE_LABELS: Final = "badge_labels"
 TRANS_KEY_CFOF_BADGE_OCCASION_TYPE: Final = "occasion_type"
 TRANS_KEY_CFOF_BADGE_RESET_SCHEDULE_END_DATE_REQUIRED: Final = "end_date_required"
 TRANS_KEY_CFOF_BADGE_RESET_SCHEDULE: Final = "reset_schedule"
@@ -3618,22 +3278,17 @@ TRANS_KEY_CFOF_BADGE_RESET_SCHEDULE_CUSTOM_INTERVAL: Final = "custom_interval"
 TRANS_KEY_CFOF_BADGE_SELECTED_CHORES: Final = "selected_chores"
 TRANS_KEY_CFOF_BADGE_TARGET_TYPE: Final = "target_type"
 TRANS_KEY_CFOF_BADGE_TYPE: Final = "badge_type"
-TRANS_KEY_CFOF_CHORE_AUTO_APPROVE: Final = "auto_approve"
 TRANS_KEY_CFOF_CHORE_MUST_BE_SELECTED: Final = "a_chore_must_be_selected"
-TRANS_KEY_CFOF_CHORE_SHOW_ON_CALENDAR: Final = "show_on_calendar"
 TRANS_KEY_CFOF_DUE_DATE_IN_PAST: Final = "due_date_in_past"
 TRANS_KEY_CFOF_DUPLICATE_ACHIEVEMENT: Final = "duplicate_achievement"
 TRANS_KEY_CFOF_DUPLICATE_BADGE: Final = "duplicate_badge"
 TRANS_KEY_CFOF_DUPLICATE_BONUS: Final = "duplicate_bonus"
-TRANS_KEY_CFOF_DUPLICATE_CHALLENGE: Final = "duplicate_challenge"
 TRANS_KEY_CFOF_DUPLICATE_CHORE: Final = "duplicate_chore"
-TRANS_KEY_CFOF_DUPLICATE_KID: Final = "duplicate_kid"
-TRANS_KEY_CFOF_DUPLICATE_PARENT: Final = "duplicate_parent"
+TRANS_KEY_CFOF_DUPLICATE_ASSIGNEE: Final = "duplicate_assignee"
+TRANS_KEY_CFOF_DUPLICATE_APPROVER: Final = "duplicate_approver"
 TRANS_KEY_CFOF_DUPLICATE_PENALTY: Final = "duplicate_penalty"
 TRANS_KEY_CFOF_DUPLICATE_REWARD: Final = "duplicate_reward"
 TRANS_KEY_CFOF_END_DATE_IN_PAST: Final = "end_date_in_past"
-TRANS_KEY_CFOF_END_DATE_NOT_AFTER_START_DATE: Final = "end_date_not_after_start_date"
-TRANS_KEY_CFOF_ERROR_ASSIGNED_KIDS: Final = "error_assigned_kids"
 # Config Flow abort reason translation keys (for async_abort calls)
 TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND: Final = "file_not_found"
 TRANS_KEY_CFOP_ERROR_CORRUPT_FILE: Final = "corrupt_file"
@@ -3643,9 +3298,6 @@ TRANS_KEY_ERROR_SINGLE_INSTANCE: Final = "single_instance_allowed"
 TRANS_KEY_CFOF_ERROR_AWARD_POINTS_MINIMUM: Final = "error_award_points_minimum"
 TRANS_KEY_CFOF_ERROR_AWARD_INVALID_MULTIPLIER: Final = "error_award_invalid_multiplier"
 TRANS_KEY_CFOF_ERROR_AWARD_INVALID_AWARD_ITEM: Final = "invalid_award_item_selected"
-TRANS_KEY_CFOF_ERROR_AWARD_AT_LEAST_ONE_REQUIRED: Final = (
-    "error_award_at_least_one_required"
-)
 TRANS_KEY_CFOF_ERROR_BADGE_ACHIEVEMENT_REQUIRED: Final = (
     "error_badge_achievement_required"
 )
@@ -3653,28 +3305,13 @@ TRANS_KEY_CFOF_ERROR_BADGE_CHALLENGE_REQUIRED: Final = "error_badge_challenge_re
 TRANS_KEY_CFOF_ERROR_BADGE_OCCASION_TYPE_REQUIRED: Final = (
     "error_badge_occasion_type_required"
 )
-TRANS_KEY_CFOF_ERROR_BADGE_CUSTOM_RESET_DATE_REQUIRED: Final = (
-    "error_badge_custom_reset_date_required"
-)
 TRANS_KEY_CFOF_BADGE_REQUIRES_ASSIGNMENT: Final = "badge_requires_assignment"
-TRANS_KEY_CFOF_ERROR_BADGE_END_DATE_REQUIRED: Final = "error_badge_end_date_required"
-TRANS_KEY_CFOF_ERROR_BADGE_RESET_TYPE_REQUIRED: Final = (
-    "error_badge_reset_type_required"
-)
-TRANS_KEY_CFOF_ERROR_BADGE_START_DATE_REQUIRED: Final = (
-    "error_badge_start_date_required"
-)
-TRANS_KEY_CFOF_ERROR_REWARD_SELECTION: Final = "error_reward_selection"
-TRANS_KEY_CFOF_ERROR_POINTS_MULTIPLIER_REQUIRED: Final = (
-    "error_points_multiplier_required"
-)
-TRANS_KEY_CFOF_ERROR_THRESHOLD_REQUIRED: Final = "error_threshold_required"
 # CFE-2026-001 Error Keys
 TRANS_KEY_CFOF_ERROR_DAILY_MULTI_REQUIRES_COMPATIBLE_RESET: Final = (
     "error_daily_multi_requires_compatible_reset"
 )
-TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_KIDS: Final = (
-    "error_daily_multi_independent_multi_kids"
+TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_ASSIGNEES: Final = (
+    "error_daily_multi_independent_multi_assignees"
 )
 TRANS_KEY_CFOF_ERROR_DAILY_MULTI_TIMES_REQUIRED: Final = (
     "error_daily_multi_times_required"
@@ -3697,11 +3334,11 @@ TRANS_KEY_CFOF_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
     "error_at_due_date_reset_requires_due_date"
 )
 # PKAD-2026-001 Error Keys
-TRANS_KEY_CFOF_ERROR_PER_KID_APPLICABLE_DAYS_INVALID: Final = (
-    "error_per_kid_applicable_days_invalid"
+TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_APPLICABLE_DAYS_INVALID: Final = (
+    "error_per_assignee_applicable_days_invalid"
 )
-TRANS_KEY_CFOF_ERROR_PER_KID_DAILY_MULTI_TIMES_INVALID: Final = (
-    "error_per_kid_daily_multi_times_invalid"
+TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_DAILY_MULTI_TIMES_INVALID: Final = (
+    "error_per_assignee_daily_multi_times_invalid"
 )
 TRANS_KEY_CFOF_INVALID_ACHIEVEMENT: Final = "invalid_achievement"
 TRANS_KEY_CFOF_INVALID_ACHIEVEMENT_COUNT: Final = "invalid_achievement_count"
@@ -3716,9 +3353,7 @@ TRANS_KEY_CFOF_INVALID_BADGE_TARGET_THRESHOLD_VALUE = (
 TRANS_KEY_CFOF_INVALID_BADGE_TYPE: Final = "invalid_badge_type"
 TRANS_KEY_CFOF_INVALID_MAINTENANCE_RULES: Final = "invalid_maintenance_rules"
 TRANS_KEY_CFOF_TARGET_THRESHOLD_REQUIRED: Final = "target_threshold_required"
-TRANS_KEY_CFOF_INVALID_FORMAT_LIST: Final = "invalid_format_list_expected"
 TRANS_KEY_CFOF_END_DATE_BEFORE_START: Final = "end_date_before_start_date"
-TRANS_KEY_CFOF_INVALID_GRACE_PERIOD: Final = "invalid_grace_period_days"
 TRANS_KEY_CFOF_INVALID_BONUS: Final = "invalid_bonus"
 TRANS_KEY_CFOF_INVALID_BONUS_COUNT: Final = "invalid_bonus_count"
 TRANS_KEY_CFOF_INVALID_BONUS_NAME: Final = "invalid_bonus_name"
@@ -3740,31 +3375,24 @@ TRANS_KEY_CFOF_INVALID_CHORE_NAME: Final = "invalid_chore_name"
 TRANS_KEY_CFOF_INVALID_OVERDUE_RESET_COMBINATION: Final = (
     "invalid_overdue_reset_combination"
 )
-TRANS_KEY_CFOF_NO_KIDS_ASSIGNED: Final = "no_kids_assigned"
-TRANS_KEY_CFOF_ACHIEVEMENT_NO_KIDS_ASSIGNED: Final = "achievement_no_kids_assigned"
-TRANS_KEY_CFOF_CHALLENGE_NO_KIDS_ASSIGNED: Final = "challenge_no_kids_assigned"
+TRANS_KEY_CFOF_NO_ASSIGNEES_ASSIGNED: Final = "no_assignees_assigned"
+TRANS_KEY_CFOF_ACHIEVEMENT_NO_ASSIGNEES_ASSIGNED: Final = (
+    "achievement_no_assignees_assigned"
+)
+TRANS_KEY_CFOF_CHALLENGE_NO_ASSIGNEES_ASSIGNED: Final = (
+    "challenge_no_assignees_assigned"
+)
 TRANS_KEY_CFOF_INVALID_DUE_DATE: Final = "invalid_due_date"
 TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY: Final = "date_required_for_frequency"
-TRANS_KEY_CFOF_INVALID_END_DATE: Final = "invalid_end_date"
 TRANS_KEY_CFOF_INVALID_ENTITY: Final = "invalid_entity"
-TRANS_KEY_CFOF_INVALID_KID: Final = "invalid_kid"
-TRANS_KEY_CFOF_INVALID_KID_COUNT: Final = "invalid_kid_count"
-TRANS_KEY_CFOF_INVALID_KID_NAME: Final = "invalid_kid_name"
-TRANS_KEY_CFOF_INVALID_PARENT: Final = "invalid_parent"
-TRANS_KEY_CFOF_INVALID_PARENT_COUNT: Final = "invalid_parent_count"
-TRANS_KEY_CFOF_INVALID_PARENT_NAME: Final = "invalid_parent_name"
+TRANS_KEY_CFOF_INVALID_ASSIGNEE: Final = "invalid_assignee"
+TRANS_KEY_CFOF_INVALID_ASSIGNEE_COUNT: Final = "invalid_assignee_count"
+TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME: Final = "invalid_assignee_name"
+TRANS_KEY_CFOF_INVALID_APPROVER: Final = "invalid_approver"
+TRANS_KEY_CFOF_INVALID_APPROVER_COUNT: Final = "invalid_approver_count"
+TRANS_KEY_CFOF_INVALID_APPROVER_NAME: Final = "invalid_approver_name"
 
-# Parent Chore Capability Translation Keys
-TRANS_KEY_CFOF_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
-TRANS_KEY_CFOF_ALLOW_CHORE_ASSIGNMENT_DESC: Final = "allow_chore_assignment_description"
-TRANS_KEY_CFOF_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
-TRANS_KEY_CFOF_ENABLE_CHORE_WORKFLOW_DESC: Final = "enable_chore_workflow_description"
-TRANS_KEY_CFOF_ENABLE_GAMIFICATION: Final = "enable_gamification"
-TRANS_KEY_CFOF_ENABLE_GAMIFICATION_DESC: Final = "enable_gamification_description"
-TRANS_KEY_CFOF_PARENT_DASHBOARD_LANGUAGE: Final = "parent_dashboard_language"
-TRANS_KEY_CFOF_PARENT_DASHBOARD_LANGUAGE_DESC: Final = (
-    "parent_dashboard_language_description"
-)
+# Approver Chore Capability Translation Keys
 
 TRANS_KEY_CFOF_INVALID_PENALTY: Final = "invalid_penalty"
 TRANS_KEY_CFOF_INVALID_PENALTY_COUNT: Final = "invalid_penalty_count"
@@ -3776,23 +3404,18 @@ TRANS_KEY_CFOF_INVALID_REWARD_COST: Final = (
     "invalid_reward_cost"  # Reward cost must be >= 0
 )
 TRANS_KEY_CFOF_INVALID_SELECTION: Final = "invalid_selection"
-TRANS_KEY_CFOF_INVALID_START_DATE: Final = "invalid_start_date"
 TRANS_KEY_CFOF_POINTS_LABEL_REQUIRED: Final = "points_label_required"
 TRANS_KEY_CFOF_MAIN_MENU: Final = "main_menu"
 TRANS_KEY_CFOF_MANAGE_ACTIONS: Final = "manage_actions"
 TRANS_KEY_CFOF_NO_ENTITY_TYPE: Final = "no_{}s"
-TRANS_KEY_CFOF_POINTS_ADJUST: Final = "points_adjust_options"
-TRANS_KEY_CFOF_REQUIRED_CHORES: Final = "required_chores"
-TRANS_KEY_CFOP_RESET_SCHEDULE: Final = "reset_schedule"
 TRANS_KEY_CFOF_START_DATE_IN_PAST: Final = "start_date_in_past"
-TRANS_KEY_CFOF_SETUP_COMPLETE: Final = "setup_complete"
 TRANS_KEY_CFOF_SUMMARY_ACHIEVEMENTS: Final = "Achievements: "
 TRANS_KEY_CFOF_SUMMARY_BADGES: Final = "Badges: "
 TRANS_KEY_CFOF_SUMMARY_BONUSES: Final = "Bonuses: "
 TRANS_KEY_CFOF_SUMMARY_CHALLENGES: Final = "Challenges: "
 TRANS_KEY_CFOF_SUMMARY_CHORES: Final = "Chores: "
-TRANS_KEY_CFOF_SUMMARY_KIDS: Final = "Kids: "
-TRANS_KEY_CFOF_SUMMARY_PARENTS: Final = "Parents: "
+TRANS_KEY_CFOF_SUMMARY_ASSIGNEES: Final = "Assignees: "
+TRANS_KEY_CFOF_SUMMARY_APPROVERS: Final = "Approvers: "
 TRANS_KEY_CFOF_SUMMARY_PENALTIES: Final = "Penalties: "
 TRANS_KEY_CFOF_SUMMARY_REWARDS: Final = "Rewards: "
 
@@ -3803,48 +3426,40 @@ TRANS_KEY_CFOF_INVALID_RETENTION_PERIOD: Final = "invalid_retention_period"
 TRANS_KEY_CFOF_INVALID_POINTS_ADJUST_VALUES: Final = "invalid_points_adjust_values"
 
 # Dashboard Generator Translation Keys (Phase 4)
-TRANS_KEY_CFOF_DASHBOARD_KID_SELECTION: Final = "dashboard_kid_selection"
+TRANS_KEY_CFOF_DASHBOARD_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 TRANS_KEY_CFOF_DASHBOARD_EXISTS: Final = "dashboard_exists"
 TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_ERROR: Final = "dashboard_template_error"
 TRANS_KEY_CFOF_DASHBOARD_RENDER_ERROR: Final = "dashboard_render_error"
 TRANS_KEY_CFOF_DASHBOARD_SAVE_ERROR: Final = "dashboard_save_error"
-TRANS_KEY_CFOF_DASHBOARD_SUCCESS: Final = "dashboard_success"
 TRANS_KEY_CFOF_DASHBOARD_NO_NAME: Final = "dashboard_no_name"
-TRANS_KEY_CFOF_DASHBOARD_NO_KIDS: Final = "dashboard_no_kids"
+TRANS_KEY_CFOF_DASHBOARD_NO_ASSIGNEES: Final = "dashboard_no_assignees"
 TRANS_KEY_CFOF_DASHBOARD_ACTION: Final = "dashboard_action"
-TRANS_KEY_CFOF_DASHBOARD_ACTION_CREATE: Final = "dashboard_action_create"
-TRANS_KEY_CFOF_DASHBOARD_ACTION_UPDATE: Final = "dashboard_action_update"
-TRANS_KEY_CFOF_DASHBOARD_ACTION_DELETE: Final = "dashboard_action_delete"
-TRANS_KEY_CFOF_DASHBOARD_ACTION_EXIT: Final = "dashboard_action_exit"
 TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 TRANS_KEY_CFOF_DASHBOARD_UPDATE_SELECTION: Final = "dashboard_update_selection"
 TRANS_KEY_CFOF_DASHBOARD_NO_DASHBOARDS: Final = "dashboard_no_dashboards"
-TRANS_KEY_CFOF_DASHBOARD_DELETED: Final = "dashboard_deleted"
 TRANS_KEY_CFOF_DASHBOARD_RELEASE_INCOMPATIBLE: Final = "dashboard_release_incompatible"
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_MODE: Final = "dashboard_admin_mode"
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_TEMPLATE_GLOBAL: Final = (
     "dashboard_admin_template_global"
 )
-TRANS_KEY_CFOF_DASHBOARD_ADMIN_TEMPLATE_PER_KID: Final = (
-    "dashboard_admin_template_per_kid"
+TRANS_KEY_CFOF_DASHBOARD_ADMIN_TEMPLATE_PER_ASSIGNEE: Final = (
+    "dashboard_admin_template_per_assignee"
 )
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_VIEW_VISIBILITY: Final = (
     "dashboard_admin_view_visibility"
 )
-TRANS_KEY_CFOF_DASHBOARD_SHOW_IN_SIDEBAR: Final = "dashboard_show_in_sidebar"
-TRANS_KEY_CFOF_DASHBOARD_REQUIRE_ADMIN: Final = "dashboard_require_admin"
-TRANS_KEY_CFOF_DASHBOARD_ICON: Final = "dashboard_icon"
 TRANS_KEY_CFOF_DASHBOARD_RELEASE_SELECTION: Final = "dashboard_release_selection"
-TRANS_KEY_CFOF_DASHBOARD_INCLUDE_PRERELEASES: Final = "dashboard_include_prereleases"
-TRANS_KEY_CFOF_DASHBOARD_NO_KIDS_WITHOUT_ADMIN: Final = "dashboard_no_kids_no_admin"
+TRANS_KEY_CFOF_DASHBOARD_NO_ASSIGNEES_WITHOUT_ADMIN: Final = (
+    "dashboard_no_assignees_no_admin"
+)
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_GLOBAL_TEMPLATE_REQUIRED: Final = (
     "dashboard_admin_global_template_required"
 )
-TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_KID_TEMPLATE_REQUIRED: Final = (
-    "dashboard_admin_per_kid_template_required"
+TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_TEMPLATE_REQUIRED: Final = (
+    "dashboard_admin_per_assignee_template_required"
 )
-TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_KID_NEEDS_KIDS: Final = (
-    "dashboard_admin_per_kid_needs_kids"
+TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES: Final = (
+    "dashboard_admin_per_assignee_needs_assignees"
 )
 
 # Flow Helpers Translation Keys
@@ -3853,35 +3468,25 @@ TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
     "approval_reset_pending_claim_action"
 )
 TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
-TRANS_KEY_FLOW_HELPERS_ASSIGNED_KIDS: Final = "assigned_kids"
+TRANS_KEY_FLOW_HELPERS_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
 TRANS_KEY_FLOW_HELPERS_CHORE_NOTIFICATIONS: Final = "chore_notifications"
 TRANS_KEY_FLOW_HELPERS_COMPLETION_CRITERIA: Final = "completion_criteria"
-TRANS_KEY_FLOW_HELPERS_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
-TRANS_KEY_FLOW_HELPERS_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
-TRANS_KEY_FLOW_HELPERS_ASSOCIATED_KIDS: Final = "associated_kids"
-TRANS_KEY_FLOW_HELPERS_AWARD_MODE: Final = "award_mode"
-TRANS_KEY_FLOW_HELPERS_AWARD_REWARD: Final = "award_reward"
+TRANS_KEY_FLOW_HELPERS_ASSOCIATED_ASSIGNEES: Final = "associated_assignees"
 TRANS_KEY_FLOW_HELPERS_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
-TRANS_KEY_FLOW_HELPERS_DAILY_THRESHOLD_TYPE: Final = "daily_threshold_type"
-TRANS_KEY_FLOW_HELPERS_MAIN_MENU: Final = "main_menu"
-TRANS_KEY_FLOW_HELPERS_MANAGE_ACTIONS: Final = "manage_actions"
-TRANS_KEY_FLOW_HELPERS_OCCASION_TYPE: Final = "occasion_type"
-TRANS_KEY_FLOW_HELPERS_ONE_TIME_REWARD: Final = "one_time_reward"
 TRANS_KEY_FLOW_HELPERS_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
-TRANS_KEY_FLOW_HELPERS_PERIOD: Final = "period"
 TRANS_KEY_FLOW_HELPERS_RECURRING_FREQUENCY: Final = "recurring_frequency"
-TRANS_KEY_FLOW_HELPERS_RESET_CRITERIA: Final = "reset_criteria"
-TRANS_KEY_FLOW_HELPERS_RESET_TYPE: Final = "reset_type"
-TRANS_KEY_FLOW_HELPERS_SELECTED_CHORE_ID: Final = "selected_chore_id"
-TRANS_KEY_FLOW_HELPERS_THRESHOLD_TYPE: Final = "threshold_type"
 
 # Sensor Translation Keys
-TRANS_KEY_SENSOR_ACHIEVEMENT_PROGRESS_SENSOR: Final = "kid_achievement_progress_sensor"
+TRANS_KEY_SENSOR_ACHIEVEMENT_PROGRESS_SENSOR: Final = (
+    "assignee_achievement_progress_sensor"
+)
 TRANS_KEY_SENSOR_ACHIEVEMENT_STATE_SENSOR: Final = "system_achievement_sensor"
 TRANS_KEY_SENSOR_BADGE_SENSOR: Final = "system_badge_sensor"
-TRANS_KEY_SENSOR_KID_BADGE_PROGRESS_SENSOR: Final = "kid_badge_progress_sensor"
-TRANS_KEY_SENSOR_BONUS_APPLIES_SENSOR: Final = "kid_bonus_applied_sensor"
-TRANS_KEY_SENSOR_CHALLENGE_PROGRESS_SENSOR: Final = "kid_challenge_progress_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_BADGE_PROGRESS_SENSOR: Final = (
+    "assignee_badge_progress_sensor"
+)
+TRANS_KEY_SENSOR_BONUS_APPLIES_SENSOR: Final = "assignee_bonus_applied_sensor"
+TRANS_KEY_SENSOR_CHALLENGE_PROGRESS_SENSOR: Final = "assignee_challenge_progress_sensor"
 TRANS_KEY_SENSOR_CHALLENGE_STATE_SENSOR: Final = "system_challenge_sensor"
 TRANS_KEY_SENSOR_CHORES_COMPLETED_DAILY_SENSOR: Final = (
     "system_chore_approvals_daily_sensor"
@@ -3893,34 +3498,36 @@ TRANS_KEY_SENSOR_CHORES_COMPLETED_TOTAL_SENSOR: Final = "system_chore_approvals_
 TRANS_KEY_SENSOR_CHORES_COMPLETED_WEEKLY_SENSOR: Final = (
     "system_chore_approvals_weekly_sensor"
 )
-TRANS_KEY_SENSOR_CHORES_SENSOR: Final = "kid_chores_sensor"
-TRANS_KEY_SENSOR_CHORE_STATUS_SENSOR: Final = "kid_chore_status_sensor"
-TRANS_KEY_SENSOR_KID_HIGHEST_STREAK_SENSOR: Final = "kid_chore_streak_sensor"
-TRANS_KEY_SENSOR_KID_MAX_POINTS_EVER_SENSOR: Final = "kid_points_max_ever_sensor"
-TRANS_KEY_SENSOR_KID_POINTS_EARNED_DAILY_SENSOR: Final = (
-    "kid_points_earned_daily_sensor"
+TRANS_KEY_SENSOR_CHORES_SENSOR: Final = "assignee_chores_sensor"
+TRANS_KEY_SENSOR_CHORE_STATUS_SENSOR: Final = "assignee_chore_status_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_HIGHEST_STREAK_SENSOR: Final = "assignee_chore_streak_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_MAX_POINTS_EVER_SENSOR: Final = (
+    "assignee_points_max_ever_sensor"
 )
-TRANS_KEY_SENSOR_KID_POINTS_EARNED_MONTHLY_SENSOR: Final = (
-    "kid_points_earned_monthly_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR: Final = (
+    "assignee_points_earned_daily_sensor"
 )
-TRANS_KEY_SENSOR_KID_POINTS_EARNED_WEEKLY_SENSOR: Final = (
-    "kid_points_earned_weekly_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR: Final = (
+    "assignee_points_earned_monthly_sensor"
 )
-TRANS_KEY_SENSOR_KID_POINTS_SENSOR: Final = "kid_points_sensor"
-TRANS_KEY_SENSOR_KID_BADGES_SENSOR: Final = "kid_badges_sensor"
-TRANS_KEY_SENSOR_PENALTY_APPLIES_SENSOR: Final = "kid_penalty_applied_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR: Final = (
+    "assignee_points_earned_weekly_sensor"
+)
+TRANS_KEY_SENSOR_ASSIGNEE_POINTS_SENSOR: Final = "assignee_points_sensor"
+TRANS_KEY_SENSOR_ASSIGNEE_BADGES_SENSOR: Final = "assignee_badges_sensor"
+TRANS_KEY_SENSOR_PENALTY_APPLIES_SENSOR: Final = "assignee_penalty_applied_sensor"
 TRANS_KEY_SENSOR_PENDING_CHORES_APPROVALS_SENSOR: Final = (
     "system_chores_pending_approval_sensor"
 )
 TRANS_KEY_SENSOR_PENDING_REWARDS_APPROVALS_SENSOR: Final = (
     "system_rewards_pending_approval_sensor"
 )
-TRANS_KEY_SENSOR_REWARD_STATUS_SENSOR: Final = "kid_reward_status_sensor"
+TRANS_KEY_SENSOR_REWARD_STATUS_SENSOR: Final = "assignee_reward_status_sensor"
 TRANS_KEY_SENSOR_SHARED_CHORE_GLOBAL_STATUS_SENSOR: Final = (
     "system_chore_shared_state_sensor"
 )
 TRANS_KEY_SENSOR_DASHBOARD_TRANSLATION: Final = "system_dashboard_translation_sensor"
-TRANS_KEY_SENSOR_DASHBOARD_HELPER: Final = "kid_dashboard_helper_sensor"
+TRANS_KEY_SENSOR_DASHBOARD_HELPER: Final = "assignee_dashboard_helper_sensor"
 
 
 # Sensor Attributes Translation Keys
@@ -3929,20 +3536,22 @@ TRANS_KEY_SENSOR_ATTR_BADGE_NAME: Final = "badge_name"
 TRANS_KEY_SENSOR_ATTR_BONUS_NAME: Final = "bonus_name"
 TRANS_KEY_SENSOR_ATTR_CHALLENGE_NAME: Final = "challenge_name"
 TRANS_KEY_SENSOR_ATTR_CHORE_NAME: Final = "chore_name"
-TRANS_KEY_SENSOR_ATTR_KID_NAME: Final = "kid_name"
+TRANS_KEY_SENSOR_ATTR_ASSIGNEE_NAME: Final = "assignee_name"
 TRANS_KEY_SENSOR_ATTR_PENALTY_NAME: Final = "penalty_name"
 TRANS_KEY_SENSOR_ATTR_POINTS: Final = "points"
 TRANS_KEY_SENSOR_ATTR_REWARD_NAME: Final = "reward_name"
 
 # DateTime Translation Keys
-TRANS_KEY_DATETIME_DATE_HELPER: Final = "kid_dashboard_helper_datetime_picker"
+TRANS_KEY_DATETIME_DATE_HELPER: Final = "assignee_dashboard_helper_datetime_picker"
 
 # Select Translation Keys
 TRANS_KEY_SELECT_BASE: Final = "kc_select_base"
 TRANS_KEY_SELECT_BONUSES: Final = "system_bonuses_select"
 TRANS_KEY_SELECT_CHORES: Final = "system_chores_select"
-TRANS_KEY_SELECT_CHORES_KID: Final = "kid_dashboard_helper_chores_select"
-TRANS_KEY_SELECT_SYSTEM_DASHBOARD_ADMIN_KID: Final = "system_dashboard_admin_kid_select"
+TRANS_KEY_SELECT_CHORES_ASSIGNEE: Final = "assignee_dashboard_helper_chores_select"
+TRANS_KEY_SELECT_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE: Final = (
+    "system_dashboard_admin_assignee_select"
+)
 TRANS_KEY_SELECT_PENALTIES: Final = "system_penalties_select"
 TRANS_KEY_SELECT_REWARDS: Final = "system_rewards_select"
 
@@ -3951,46 +3560,32 @@ TRANS_KEY_SELECT_LABEL_ALL_BONUSES: Final = "select_label_all_bonuses"
 TRANS_KEY_SELECT_LABEL_ALL_CHORES: Final = "select_label_all_chores"
 TRANS_KEY_SELECT_LABEL_ALL_PENALTIES: Final = "select_label_all_penalties"
 TRANS_KEY_SELECT_LABEL_ALL_REWARDS: Final = "select_label_all_rewards"
-TRANS_KEY_SELECT_LABEL_CHORES_FOR: Final = "select_label_chores_for"
 
 # Button Translation Keys
-TRANS_KEY_BUTTON_APPROVE_CHORE_BUTTON: Final = "parent_chore_approve_button"
-TRANS_KEY_BUTTON_APPROVE_REWARD_BUTTON: Final = "parent_reward_approve_button"
-TRANS_KEY_BUTTON_BONUS_BUTTON: Final = "parent_bonus_apply_button"
-TRANS_KEY_BUTTON_CLAIM_CHORE_BUTTON: Final = "kid_chore_claim_button"
-TRANS_KEY_BUTTON_CLAIM_REWARD_BUTTON: Final = "kid_reward_redeem_button"
-TRANS_KEY_BUTTON_DELTA_PLUS_LABEL: Final = "+"
-TRANS_KEY_BUTTON_DELTA_MINUS_TEXT: Final = "minus_"
-TRANS_KEY_BUTTON_DELTA_PLUS_TEXT: Final = "plus_"
-TRANS_KEY_BUTTON_DISAPPROVE_CHORE_BUTTON: Final = "parent_chore_disapprove_button"
-TRANS_KEY_BUTTON_DISAPPROVE_REWARD_BUTTON: Final = "parent_reward_disapprove_button"
-TRANS_KEY_BUTTON_MANUAL_ADJUSTMENT_BUTTON: Final = "parent_points_adjust_button"
-TRANS_KEY_BUTTON_PENALTY_BUTTON: Final = "parent_penalty_apply_button"
+TRANS_KEY_BUTTON_APPROVE_CHORE_BUTTON: Final = "approver_chore_approve_button"
+TRANS_KEY_BUTTON_APPROVE_REWARD_BUTTON: Final = "approver_reward_approve_button"
+TRANS_KEY_BUTTON_BONUS_BUTTON: Final = "approver_bonus_apply_button"
+TRANS_KEY_BUTTON_CLAIM_CHORE_BUTTON: Final = "assignee_chore_claim_button"
+TRANS_KEY_BUTTON_CLAIM_REWARD_BUTTON: Final = "assignee_reward_redeem_button"
+TRANS_KEY_BUTTON_DISAPPROVE_CHORE_BUTTON: Final = "approver_chore_disapprove_button"
+TRANS_KEY_BUTTON_DISAPPROVE_REWARD_BUTTON: Final = "approver_reward_disapprove_button"
+TRANS_KEY_BUTTON_MANUAL_ADJUSTMENT_BUTTON: Final = "approver_points_adjust_button"
+TRANS_KEY_BUTTON_PENALTY_BUTTON: Final = "approver_penalty_apply_button"
 
 
 # Button Attributes Translation Keys
 TRANS_KEY_BUTTON_ATTR_BONUS_NAME: Final = "bonus_name"
 TRANS_KEY_BUTTON_ATTR_CHORE_NAME: Final = "chore_name"
 TRANS_KEY_BUTTON_ATTR_DELTA: Final = "delta"
-TRANS_KEY_BUTTON_ATTR_KID_NAME: Final = "kid_name"
+TRANS_KEY_BUTTON_ATTR_ASSIGNEE_NAME: Final = "assignee_name"
 TRANS_KEY_BUTTON_ATTR_PENALTY_NAME: Final = "penalty_name"
 TRANS_KEY_BUTTON_ATTR_POINTS_LABEL: Final = "points_label"
 TRANS_KEY_BUTTON_ATTR_REWARD_NAME: Final = "reward_name"
-TRANS_KEY_BUTTON_ATTR_SIGN_LABEL: Final = "sign_label"
 
 # Calendar Attributes Translation Keys
-TRANS_KEY_CALENDAR_NAME: Final = "kid_schedule_calendar"
+TRANS_KEY_CALENDAR_NAME: Final = "assignee_schedule_calendar"
 
 # FMT Errors Translation Keys
-TRANS_KEY_FMT_ERROR_ADJUST_POINTS: Final = "adjust_points"
-TRANS_KEY_FMT_ERROR_APPLY_BONUS: Final = "apply_bonus"
-TRANS_KEY_FMT_ERROR_APPLY_PENALTIES: Final = "apply_penalties"
-TRANS_KEY_FMT_ERROR_APPROVE_CHORES: Final = "approve_chores"
-TRANS_KEY_FMT_ERROR_APPROVE_REWARDS: Final = "approve_rewards"
-TRANS_KEY_FMT_ERROR_CLAIM_CHORES: Final = "claim_chores"
-TRANS_KEY_FMT_ERROR_DISAPPROVE_CHORES: Final = "disapprove_chores"
-TRANS_KEY_FMT_ERROR_DISAPPROVE_REWARDS: Final = "disapprove_rewards"
-TRANS_KEY_FMT_ERROR_REDEEM_REWARDS: Final = "redeem_rewards"
 
 # ------------------------------------------------------------------------------------------------
 # Notification Keys
@@ -4000,12 +3595,10 @@ NOTIFY_ACTIONS = "actions"
 NOTIFY_CREATE = "create"
 NOTIFY_DATA = "data"
 NOTIFY_DEFAULT_APPROVER_NAME = "Approver"
-NOTIFY_DEFAULT_PARENT_NAME = NOTIFY_DEFAULT_APPROVER_NAME
 NOTIFY_DOMAIN = "notify"
 NOTIFY_MESSAGE = "message"
 NOTIFY_NOTIFICATION_ID = "notification_id"
 NOTIFY_APPROVER_NAME = "approver_name"
-NOTIFY_PARENT_NAME = NOTIFY_APPROVER_NAME
 NOTIFY_PERSISTENT_NOTIFICATION = "persistent_notification"
 NOTIFY_TITLE = "title"
 
@@ -4118,7 +3711,6 @@ AWARD_ITEMS_KEY_POINTS = "points"
 AWARD_ITEMS_KEY_POINTS_MULTIPLIER = "multiplier"
 AWARD_ITEMS_KEY_REWARDS = "rewards"
 AWARD_ITEMS_KEY_BONUSES = "bonuses"
-AWARD_ITEMS_KEY_PENALTIES = "penalties"
 
 AWARD_ITEMS_LABEL_POINTS = "POINTS:"
 AWARD_ITEMS_LABEL_POINTS_MULTIPLIER = "POINTS MULTIPLIER:"
@@ -4126,30 +3718,13 @@ AWARD_ITEMS_LABEL_REWARD = "REWARD:"
 AWARD_ITEMS_LABEL_BONUS = "BONUS:"
 AWARD_ITEMS_LABEL_PENALTY = "PENALTY:"
 
-AWARD_ITEMS_PREFIX_POINTS = "points:"
-AWARD_ITEMS_PREFIX_POINTS_MULTIPLIER = "multiplier:"
 AWARD_ITEMS_PREFIX_REWARD = "reward:"
 AWARD_ITEMS_PREFIX_BONUS = "bonus:"
 AWARD_ITEMS_PREFIX_PENALTY = "penalty:"
 
 # DEPRECATED - Badge Threshold Type
-THRESHOLD_TYPE_OPTIONS = [BADGE_THRESHOLD_TYPE_POINTS, BADGE_THRESHOLD_TYPE_CHORE_COUNT]
 
 # Badge Cumulative Reset Period
-BADGE_CUMULATIVE_RESET_TYPE_OPTIONS = [
-    {"value": FREQUENCY_WEEKLY, "label": "Weekly"},
-    {"value": FREQUENCY_BIWEEKLY, "label": "Biweekly"},
-    {"value": FREQUENCY_MONTHLY, "label": "Monthly"},
-    {"value": FREQUENCY_QUARTERLY, "label": "Quarterly"},
-    {"value": FREQUENCY_YEARLY, "label": "Yearly"},
-    {"value": PERIOD_WEEK_END, "label": "Week-End"},
-    {"value": PERIOD_MONTH_END, "label": "Month-End"},
-    {"value": PERIOD_QUARTER_END, "label": "Quarter-End"},
-    {"value": PERIOD_YEAR_END, "label": "Year-End"},
-    {"value": FREQUENCY_CUSTOM_1_WEEK, "label": "Custom 1-Week"},
-    {"value": FREQUENCY_CUSTOM_1_MONTH, "label": "Custom 1-Month"},
-    {"value": FREQUENCY_CUSTOM_1_YEAR, "label": "Custom 1-Year"},
-]
 
 
 # Badge Periodic Reset Schedule
@@ -4169,11 +3744,6 @@ BADGE_RESET_SCHEDULE_OPTIONS = [
 ]
 
 # Badge target handler constants for handler mapping keys
-BADGE_HANDLER_PARAM_PERCENT_REQUIRED: Final = "percent_required"
-BADGE_HANDLER_PARAM_ONLY_DUE_TODAY: Final = "only_due_today"
-BADGE_HANDLER_PARAM_REQUIRE_NO_OVERDUE: Final = "require_no_overdue"
-BADGE_HANDLER_PARAM_MIN_COUNT: Final = "min_count"
-BADGE_HANDLER_PARAM_FROM_CHORES_ONLY: Final = "from_chores_only"
 
 # Badge Special Occasion Types
 OCCASION_TYPE_OPTIONS = [OCCASION_BIRTHDAY, OCCASION_HOLIDAY, FREQUENCY_CUSTOM]
@@ -4324,12 +3894,6 @@ CHALLENGE_TYPE_OPTIONS = [
 ]
 
 # Reward Options
-REWARD_OPTION_NONE = [
-    {
-        "value": SENTINEL_EMPTY,
-        "label": LABEL_NONE,
-    }
-]
 
 
 # ================================================================================================

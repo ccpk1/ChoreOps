@@ -1,14 +1,14 @@
-# Test Scenario: PARENT SHADOW KIDS (Parent Chore Assignment Feature)
+# Test Scenario: PARENT SHADOW KIDS (Approver Chore Assignment Feature)
 # =============================================================================
-# Tests parent-as-kid functionality via shadow kid profiles.
+# Tests approver-as-assignee functionality via shadow assignee profiles.
 #
 # Contents:
-#   - 2 parents: Dad (with shadow kid), Mom (without shadow kid)
-#   - 1 regular kid: Sarah
+#   - 2 approvers: Dad (with shadow assignee), Mom (without shadow assignee)
+#   - 1 regular assignee: Sarah
 #   - Dad has: allow_chore_assignment=True, enable_gamification=True
 #   - 3 chores: one assigned to Dad (shadow), one to Sarah, one shared
 #
-# Use case: Parent chore capabilities feature testing (v0.6.0)
+# Use case: Approver chore capabilities feature testing (v0.6.0)
 # =============================================================================
 
 # System settings
@@ -16,35 +16,35 @@ system:
   points_label: "Points"
   points_icon: "mdi:star-outline"
 
-# Kids (1 regular kid)
-kids:
+# Assignees (1 regular assignee)
+assignees:
   - name: "Zoë"
-    ha_user: "kid1"
+    ha_user: "assignee1"
     dashboard_language: "en"
     mobile_notify_service: ""
 
-# Parents (2 parents - one with shadow kid capability)
-parents:
-  # Dad opts into chore assignment - creates shadow kid "Dad Leo"
+# Approvers (2 approvers - one with shadow assignee capability)
+approvers:
+  # Dad opts into chore assignment - creates shadow assignee "Dad Leo"
   - name: "Dad Leo"
-    ha_user: "parent1"
-    kids: ["Zoë"]
+    ha_user: "approver1"
+    assignees: ["Zoë"]
     mobile_notify_service: ""
-    # Shadow kid configuration
+    # Shadow assignee configuration
     allow_chore_assignment: true
     enable_chore_workflow: false # Approval-only (default)
     enable_gamification: true # Dad earns points
 
-  # Mom does NOT opt into chore assignment - no shadow kid
+  # Mom does NOT opt into chore assignment - no shadow assignee
   - name: "Môm Astrid Stârblüm"
-    ha_user: "parent2"
-    kids: ["Zoë"]
+    ha_user: "approver2"
+    assignees: ["Zoë"]
     mobile_notify_service: ""
     allow_chore_assignment: false
 
 # Chores (3 chores)
 chores:
-  # Chore assigned ONLY to Dad's shadow kid
+  # Chore assigned ONLY to Dad's shadow assignee
   - name: "Mow lawn"
     assigned_to: ["Dad Leo"]
     points: 25.0
@@ -53,7 +53,7 @@ chores:
     recurring_frequency: "weekly"
     auto_approve: false
 
-  # Chore assigned to regular kid Sarah
+  # Chore assigned to regular assignee Sarah
   - name: "Make bed"
     assigned_to: ["Zoë"]
     points: 5.0
