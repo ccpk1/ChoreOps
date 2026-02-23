@@ -74,17 +74,17 @@ With over 1,000 constants, we follow strict naming patterns to ensure the code r
 
 #### Primary Prefix Patterns
 
-| Prefix               | Plurality    | Usage                               | Example                           |
-| -------------------- | ------------ | ----------------------------------- | --------------------------------- |
-| `DATA_*`             | **Singular** | Storage keys for specific entities  | `DATA_KID_NAME`                   |
-| `CFOF_*`             | **Plural**   | Config/Options flow input fields    | `CFOF_KIDS_INPUT_NAME`            |
-| `CONF_*`             | **N/A**      | Config entry data access only       | `CONF_POINTS_LABEL`               |
-| `CFOP_ERROR_*`       | **Singular** | Flow validation error keys          | `CFOP_ERROR_KID_NAME`             |
-| `TRANS_KEY_*`        | **N/A**      | Stable identifiers for translations | `TRANS_KEY_CFOF_DUPLICATE_KID`    |
-| `CONFIG_FLOW_STEP_*` | **Action**   | Config flow step identifiers        | `CONFIG_FLOW_STEP_COLLECT_CHORES` |
-| `OPTIONS_FLOW_*`     | **Action**   | Options flow identifiers            | `OPTIONS_FLOW_STEP_EDIT_CHORE`    |
-| `DEFAULT_*`          | **N/A**      | Default configuration values        | `DEFAULT_POINTS_LABEL`            |
-| `LABEL_*`            | **N/A**      | Consistent UI text labels           | `LABEL_CHORE`                     |
+| Prefix               | Plurality    | Usage                               | Example                             |
+| -------------------- | ------------ | ----------------------------------- | ----------------------------------- |
+| `DATA_*`             | **Singular** | Storage keys for specific entities  | `DATA_USER_NAME`                    |
+| `CFOF_*`             | **Plural**   | Config/Options flow input fields    | `CFOF_ASSIGNEES_INPUT_NAME`         |
+| `CONF_*`             | **N/A**      | Config entry data access only       | `CONF_POINTS_LABEL`                 |
+| `CFOP_ERROR_*`       | **Singular** | Flow validation error keys          | `CFOP_ERROR_USER_NAME`              |
+| `TRANS_KEY_*`        | **N/A**      | Stable identifiers for translations | `TRANS_KEY_CFOF_DUPLICATE_ASSIGNEE` |
+| `CONFIG_FLOW_STEP_*` | **Action**   | Config flow step identifiers        | `CONFIG_FLOW_STEP_COLLECT_CHORES`   |
+| `OPTIONS_FLOW_*`     | **Action**   | Options flow identifiers            | `OPTIONS_FLOW_STEP_EDIT_CHORE`      |
+| `DEFAULT_*`          | **N/A**      | Default configuration values        | `DEFAULT_POINTS_LABEL`              |
+| `LABEL_*`            | **N/A**      | Consistent UI text labels           | `LABEL_CHORE`                       |
 
 #### Storage-Only Architecture (v0.5.0+ Data Schema v42+)
 
@@ -93,14 +93,14 @@ With over 1,000 constants, we follow strict naming patterns to ensure the code r
 **`DATA_*`** = **Internal Storage Keys**
 
 - **Usage**: Accessing/modifying `.storage/choreops/choreops_data`
-- **Context**: `coordinator._data[const.DATA_KIDS][kid_id][const.DATA_KID_NAME]`
-- **Rule**: Always singular entity names (`DATA_KID_*`, `DATA_PARENT_*`)
+- **Context**: `coordinator._data[const.DATA_USERS][assignee_id][const.DATA_USER_NAME]`
+- **Rule**: Always singular entity names (`DATA_ASSIGNEE_*`, `DATA_APPROVER_*`, `DATA_USER_*`)
 
 **`CFOF_*`** = **Config/Options Flow Input Fields**
 
 - **Usage**: Form field names in schema definitions during user input
-- **Context**: `vol.Required(const.CFOF_KIDS_INPUT_NAME, ...)`
-- **Rule**: Always plural entity names with `_INPUT_` (`CFOF_KIDS_INPUT_*`, `CFOF_PARENTS_INPUT_*`)
+- **Context**: `vol.Required(const.CFOF_USERS_INPUT_NAME, ...)`
+- **Rule**: Always plural entity names with `_INPUT_` (`CFOF_ASSIGNEES_INPUT_*`, `CFOF_APPROVERS_INPUT_*`)
 - **Key Alignment Pattern**: CFOF\** constant *values\* are aligned with DATA\*\_ values where possible (e.g., both use `"name"`). This allows `user_input` to be passed directly to `build\__()`functions without mapping. See`flow_helpers.py` module docstring for details.
 
 **`CONF_*`** = **Configuration Entry Data Access**
@@ -114,15 +114,15 @@ With over 1,000 constants, we follow strict naming patterns to ensure the code r
 
 ```python
 # WRONG: Using CONF_ in flow schema
-vol.Required(const.CONF_PARENT_NAME, default=name): str
+vol.Required(const.CONF_APPROVER_NAME, default=name): str
 
 # CORRECT: Use CFOF_ for flow input fields
-vol.Required(const.CFOF_PARENTS_INPUT_NAME, default=name): str
+vol.Required(const.CFOF_USERS_INPUT_NAME, default=name): str
 ```
 
 #### Entity State & Actions
 
-- **`ATTR_*`**: Entity state attributes. e.g., `ATTR_KID_NAME`, `ATTR_CHORE_POINTS`.
+- **`ATTR_*`**: Entity state attributes. e.g., `ATTR_ASSIGNEE_NAME`, `ATTR_CHORE_POINTS`.
 - **`SERVICE_*`**: Service action names. e.g., `SERVICE_CLAIM_CHORE`.
 - **`SERVICE_FIELD_*`**: Service input field names. e.g., `SERVICE_FIELD_REWARD_NAME`.
 
@@ -136,6 +136,25 @@ vol.Required(const.CFOF_PARENTS_INPUT_NAME, default=name): str
 - **`ACTION_*`**: Notification action button titles.
 - **`AWARD_ITEMS_*`**: Badge award composition (e.g., `AWARD_ITEMS_KEY_POINTS`).
 
+#### User-first role naming and gating contract (Phase 4B)
+
+- **Lifecycle model**: User records are the only runtime lifecycle model. Assignee/approver are role capabilities on users.
+- **Method naming**:
+    - Methods that create or mutate lifecycle records must use `user` naming.
+    - Assignee wording is allowed for role-projection/filtering surfaces only.
+- **Assignment list naming**:
+    - Prefer `assigned_assignees` for local variable names, kwargs, helper parameters, and docstrings.
+    - Treat `assignees_assigned` as legacy wording and normalize remaining narrow-scope runtime/test usages when touched.
+- **Entity gating authority**:
+    - `ENTITY_REGISTRY` in `custom_components/choreops/const.py` is the primary source of truth for requirement categories.
+    - Runtime platforms/managers must consume centralized gating helpers and must not define duplicated requirement maps.
+- **Anti-shortcut rules (required)**:
+    - Do not branch on linked/shadow legacy concepts for active runtime gating.
+    - Do not infer profile type from key presence; use explicit capability values (`can_be_assigned`, `enable_chore_workflow`, `enable_gamification`).
+    - Do not reimplement per-platform gating logic when centralized helper contracts already provide the decision.
+- **Scope guardrail**:
+    - Do not rename storage keys, public service payload keys, or translation keys in narrow naming-cleanup tasks unless explicitly planned as a migration tranche.
+
 #### Internal Scanner API Patterns
 
 **`<ITEM_TYPE>_SCAN_<STRUCTURE>_<FIELD>`** = **Internal method signatures and return structures**
@@ -145,11 +164,11 @@ vol.Required(const.CFOF_PARENTS_INPUT_NAME, default=name): str
 - **Context**:
   - `process_time_checks(trigger=const.CHORE_SCAN_TRIGGER_MIDNIGHT)`
   - `scan[const.CHORE_SCAN_RESULT_OVERDUE]`
-  - `entry[const.CHORE_SCAN_ENTRY_KID_ID]`
+    - `entry[const.CHORE_SCAN_ENTRY_ASSIGNEE_ID]`
 - **Structure Types**:
   - `*_TRIGGER_*`: Scanner trigger parameter values (e.g., `CHORE_SCAN_TRIGGER_MIDNIGHT`)
   - `*_RESULT_*`: Scanner return dict category keys (e.g., `CHORE_SCAN_RESULT_OVERDUE`)
-  - `*_ENTRY_*`: Scanner entry structure field keys (e.g., `CHORE_SCAN_ENTRY_KID_ID`)
+    - `*_ENTRY_*`: Scanner entry structure field keys (e.g., `CHORE_SCAN_ENTRY_ASSIGNEE_ID`)
 - **Scalability**: Future item types follow same pattern:
   - Badges: `BADGE_SCAN_RESULT_*`, `BADGE_SCAN_ENTRY_*`
   - Rewards: `REWARD_SCAN_RESULT_*`, `REWARD_SCAN_ENTRY_*`
@@ -262,7 +281,7 @@ def build_assignee_data(...) -> AssigneeData:
 
 ```python
 # ✅ CORRECT: Read data from another manager's domain via coordinator
-period_start = self.coordinator.chore_manager.get_approval_period_start(kid_id, chore_id)
+period_start = self.coordinator.chore_manager.get_approval_period_start(assignee_id, chore_id)
 # NotificationManager queries ChoreManager data for Schedule-Lock comparison
 
 # ✅ CORRECT: Emit signal with payload (for writes)
@@ -289,16 +308,16 @@ await self.coordinator.economy_manager.apply_bonus(user_id, bonus_id)
 **Ownership Hierarchy**:
 
 ```
-KidManager (Landlord)
-  └─ Creates: kid structure, top-level fields
+UserManager (Landlord)
+    └─ Creates: user structure, top-level fields
       ├─ ChoreManager (Tenant → Landlord)
-      │   └─ Creates: kid["chore_data"], kid["chore_periods"] (empty containers)
+    │   └─ Creates: assignee["chore_data"], assignee["chore_periods"] (empty containers)
       │       └─ StatisticsManager (Tenant) populates: period buckets, date keys, counters
       ├─ RewardManager (Tenant → Landlord)
-      │   └─ Creates: kid["reward_data"], kid["reward_periods"] (empty containers)
+    │   └─ Creates: assignee["reward_data"], assignee["reward_periods"] (empty containers)
       │       └─ StatisticsManager (Tenant) populates: period buckets, date keys, counters
       └─ EconomyManager (Tenant → Landlord)
-          └─ Creates: kid["point_stats"]["transaction_history"] (empty)
+          └─ Creates: assignee["point_stats"]["transaction_history"] (empty)
               └─ StatisticsManager (Tenant) populates: transaction records
 ```
 
@@ -307,16 +326,16 @@ KidManager (Landlord)
 ```python
 # ✅ Domain Manager (Landlord): Create empty container only
 class RewardManager(BaseManager):
-    def _ensure_kid_structures(self, kid_id: str, reward_id: str) -> None:
+    def _ensure_assignee_structures(self, assignee_id: str, reward_id: str) -> None:
         """Create empty period container."""
-        if const.DATA_KID_REWARD_PERIODS not in kid:
-            kid[const.DATA_KID_REWARD_PERIODS] = {}  # Empty - Tenant populates
+        if const.DATA_ASSIGNEE_REWARD_PERIODS not in assignee:
+            assignee[const.DATA_ASSIGNEE_REWARD_PERIODS] = {}  # Empty - Tenant populates
 
 # ✅ StatisticsManager (Tenant): Populate data via signal listener
 class StatisticsManager(BaseManager):
     async def _on_reward_approved(self, event: RewardApprovedEvent) -> None:
         """Record approval to period counters."""
-        periods = kid[const.DATA_KID_REWARD_PERIODS]
+        periods = assignee[const.DATA_ASSIGNEE_REWARD_PERIODS]
         self.stats_engine.record_transaction(
             periods, {"approved": 1}, transaction_type="reward_approval"
         )
@@ -429,14 +448,14 @@ next_time = dt_add_interval(dt_now_local(), {"interval": 1, "interval_unit": "da
 
 **Rule**:
 
-- Storage: Keep timestamps as UTC ISO strings (`DATA_KID_CHORE_DATA_LAST_COMPLETED`)
+- Storage: Keep timestamps as UTC ISO strings (`DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED`)
 - Bucket Keys: Convert to local date before extracting key (`dt_parse(..., HELPER_RETURN_DATETIME_LOCAL)`)
 
 **Implementation**:
 
 ```python
 # ✅ CORRECT: Convert UTC → local → extract date
-previous_completed = chore_data[DATA_KID_CHORE_DATA_LAST_COMPLETED]  # UTC timestamp
+previous_completed = chore_data[DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED]  # UTC timestamp
 local_dt = dt_parse(previous_completed, return_type=HELPER_RETURN_DATETIME_LOCAL)
 bucket_key = local_dt.date().isoformat()  # Local date string
 period_data = daily_periods.get(bucket_key, {})
@@ -446,7 +465,7 @@ utc_dt = dt_parse(previous_completed)  # Returns UTC datetime
 bucket_key = utc_dt.date().isoformat()  # UTC date (WRONG!)
 ```
 
-**Why**: Ensures user's calendar days match statistics. NY kid completing chore at 10 PM Monday shows "Monday" stats, not "Tuesday" (UTC would be 3 AM Tuesday).
+**Why**: Ensures user's calendar days match statistics. NY assignee completing chore at 10 PM Monday shows "Monday" stats, not "Tuesday" (UTC would be 3 AM Tuesday).
 
 **Affected Areas**: Streak calculations, period statistics queries, historical data lookups, aggregation logic.
 
@@ -475,7 +494,7 @@ rrule_str = engine.to_rrule_string()  # For iCal export
 **Implementation Notes (Scheduling Cache Rules)**:
 
 - Keep recurrence semantics in `RecurrenceEngine` unchanged; optimize call patterns around it (cache/reuse), not recurrence math itself.
-- Any new schedule/calendar cache MUST have explicit signal-driven invalidation on relevant mutations (chore/challenge/kid updates and deletions).
+- Any new schedule/calendar cache MUST have explicit signal-driven invalidation on relevant mutations (chore/challenge/assignee updates and deletions).
 - Calendar optimizations must preserve non-daily behavior: only DAILY and DAILY_MULTI use the 1/3 horizon cap.
 - Tests asserting period buckets must use `StatisticsEngine.get_period_keys()` (local-period source of truth), not ad hoc UTC date strings.
 
@@ -497,7 +516,7 @@ These standards ensure we maintain Platinum quality compliance. See [QUALITY_REF
   - Method docstrings: Brief description of what it does (especially for complex logic).
 - **Entity Lookup Pattern**: Always use the `get_*_id_or_raise()` helper functions in `helpers/entity_helpers.py` for service handlers to eliminate code duplication.
 - **Coordinator Persistence**: All entity modifications must follow the **Modify → Persist (`_persist()`) → Notify (`async_update_listeners()`)** pattern.
-- **Header Documentation**: Every entity file MUST include a header listing total count, categorized list (Kid-Specific vs System-Level), and legacy imports with clear numbering.
+- **Header Documentation**: Every entity file MUST include a header listing total count, categorized list (Assignee-Specific vs System-Level), and legacy imports with clear numbering.
 - **Test Coverage**: All new code must maintain 95%+ test coverage. See Section 7 for validation commands.
 - **Entity Lifecycle**: Follow the cleanup architecture in Section 6 for proper entity removal and registry management.
 
@@ -571,8 +590,8 @@ for field, default in reset_fields:
 
 **Current Type Breakdown** (`type_defs.py`):
 
-- **TypedDict**: 18 entity/config classes (ParentData, ChoreData, BadgeData, etc.)
-- **dict[str, Any]**: 6 dynamic structures (KidChoreDataEntry, KidChoreStats, etc.)
+- **TypedDict**: 18 entity/config classes (UserData, ChoreData, BadgeData, etc.)
+- **dict[str, Any]**: 6 dynamic structures (AssigneeChoreDataEntry, AssigneeChoreStats, etc.)
 - **Total**: 24 type definitions + 9 collection aliases
 
 See [ARCHITECTURE.md](ARCHITECTURE.md#type-system-architecture) for architectural rationale.
@@ -588,7 +607,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#type-system-architecture) for architectura
 
 ##### The 4-Layer Architecture
 
-All entity types (kids, chores, rewards, badges, etc.) follow a consistent pattern across **three entry points**:
+All entity types (assignees, chores, rewards, badges, etc.) follow a consistent pattern across **three entry points**:
 
 - **Config Flow**: Initial integration setup
 - **Options Flow**: UI-based entity management
@@ -601,7 +620,7 @@ The same validation and building functions serve all three entry points, ensurin
 - **Function**: `build_<entity>_schema()` → Returns `vol.Schema`
 - **Purpose**: Construct voluptuous schemas for Home Assistant UI forms
 - **Keys**: Uses `CFOF_*` constants (Config Flow / Options Flow form field names)
-- **Example**: `build_chore_schema(default_values, kids_dict, coordinator)`
+- **Example**: `build_chore_schema(default_values, assignees_dict, coordinator)`
 
 **Layer 2: Field-Level Validation** (`flow_helpers.py` + `services.py`)
 
@@ -684,7 +703,7 @@ if not errors:
 
 ```python
 # Step 1: UI validation
-errors = flow_helpers.validate_chore_inputs(user_input, existing_chores, kids)
+errors = flow_helpers.validate_chore_inputs(user_input, existing_chores, assignees)
 
 if not errors:
     # Step 2: Map complex fields (daily_multi_times string → list)
@@ -704,13 +723,13 @@ if not errors:
 
 Most `CFOF_*` constant **values** are now aligned with `DATA_*` values to eliminate mapping:
 
-- `CFOF_KIDS_INPUT_NAME = "name"` matches `DATA_KID_NAME = "name"`
+- `CFOF_USERS_INPUT_NAME = "name"` matches `DATA_USER_NAME = "name"`
 - `CFOF_REWARDS_INPUT_NAME = "name"` matches `DATA_REWARD_NAME = "name"`
 - `CFOF_CHORES_INPUT_NAME = "name"` matches `DATA_CHORE_NAME = "name"`
 
 **Entities with aligned keys** (pass `user_input` directly to `build_*()` after validation):
 
-- Kids, Parents, Rewards, Bonuses, Penalties, Achievements, Challenges
+- Assignees, Users, Rewards, Bonuses, Penalties, Achievements, Challenges
 
 **Entities requiring mapping** (complex transformations):
 
@@ -805,9 +824,9 @@ class NotificationManager(BaseManager):
         self.listen(const.SIGNAL_SUFFIX_CHORE_APPROVED, self._on_chore_approved)
 
     async def _on_chore_approved(self, event: ChoreApprovedEvent) -> None:
-        """Handle chore approval - send notification to kid."""
-        await self.send_kid_notification(
-            event["kid_id"],
+        """Handle chore approval - send notification to assignee."""
+        await self.send_assignee_notification(
+            event["assignee_id"],
             title_key="chore_approved_title",
             message_key="chore_approved_message",
         )
@@ -849,7 +868,7 @@ All event payloads are defined as TypedDicts in `type_defs.py` for type safety:
 ```python
 class PointsChangedEvent(TypedDict):
     """Payload for points change events."""
-    kid_id: str
+    assignee_id: str
     old_balance: float
     new_balance: float
     delta: float
@@ -857,7 +876,7 @@ class PointsChangedEvent(TypedDict):
     source: str  # POINTS_SOURCE_* constant
 ```
 
-**Required Fields**: All events MUST include `kid_id` (or equivalent identifier) for routing.
+**Required Fields**: All events MUST include `assignee_id` (or equivalent identifier) for routing.
 
 ##### Anti-Patterns
 
@@ -865,7 +884,7 @@ class PointsChangedEvent(TypedDict):
 
 ```python
 # Tight coupling - don't do this
-self.economy_manager.update_points(kid_id, points)
+self.economy_manager.update_points(assignee_id, points)
 ```
 
 ✅ **CORRECT**: Emit events, let managers listen
@@ -873,7 +892,7 @@ self.economy_manager.update_points(kid_id, points)
 ```python
 # Loose coupling - managers react to events
 self.emit(const.SIGNAL_SUFFIX_CHORE_APPROVED, {
-    "kid_id": kid_id,
+    "assignee_id": assignee_id,
     "chore_id": chore_id,
     "points": points,
 })
@@ -957,7 +976,7 @@ async def reset_chore(self, kid_id: str, chore_id: str) -> None:
     self._coordinator._persist()
 
 async def deposit(self, kid_id: str, amount: float, reason: str) -> None:
-    """Add points to kid's balance."""
+    """Add points to assignee's balance."""
     kid_info[const.DATA_KID_POINTS] += amount
     self._coordinator._persist()
 ```
@@ -1015,9 +1034,9 @@ We enforce strict naming patterns for both **Entity IDs** (runtime identifiers) 
 Entities must support two identifiers to balance human readability with registry persistence:
 
 1.  **UNIQUE_ID** (`unique_id`): Internal, stable registry identifier.
-    - **Format**: `{entry_id}[_{kid_id}][_{item_id}]{_SUFFIX}` (e.g., `abc123_kid456_chore789_kid_chore_claim_button`)
-    - **SUFFIX Pattern**: Class name lowercased with underscores (e.g., `_kid_points_sensor`, `_parent_chore_approve_button`)
-    - **Why Required**: Ensures history and settings persist even if users rename kids or chores.
+    - **Format**: `{entry_id}[_{assignee_id}][_{item_id}]{_SUFFIX}` (e.g., `abc123_assignee456_chore789_assignee_chore_claim_button`)
+    - **SUFFIX Pattern**: Class name lowercased with underscores (e.g., `_assignee_points_sensor`, `_approver_chore_approve_button`)
+    - **Why Required**: Ensures history and settings persist even if users rename assignees or chores.
     - ⚠️ **NEVER use MIDFIX or PREFIX patterns in UIDs** – suffix-only ensures consistent registry lookups
 2.  **ENTITY_ID** (`entity_id`): User-visible UI identifier.
     - **Format**: `domain.kc_[name][_MIDFIX_][name2][_SUFFIX]` (e.g., `sensor.kc_sarah_points`)
@@ -1026,7 +1045,7 @@ Entities must support two identifiers to balance human readability with registry
 
 **Pattern Components**:
 
-- **SUFFIX** (`_kid_points_sensor`): Appended to end. **Required for UID**, optional for EID. Class-aligned naming.
+- **SUFFIX** (`_assignee_points_sensor`): Appended to end. **Required for UID**, optional for EID. Class-aligned naming.
 - **MIDFIX** (`_chore_claim_`): Embedded between names. **EID only** – provides semantic clarity in multi-part entities.
 
 #### Entity Class Naming
@@ -1036,22 +1055,22 @@ All classes must follow the `[Scope][Entity][Property]EntityType` pattern (e.g.,
 **1. Scope (Required)**
 Indicates data ownership and initiation source. **Rule**: No blank scopes allowed.
 
-- **`Kid`**: Per-kid data/actions initiated by the kid (e.g., `KidChoreClaimButton`).
-- **`Parent`**: Per-kid actions initiated by a parent (e.g., `ParentChoreApproveButton`).
-- **`System`**: Global aggregates shared across all kids (e.g., `SystemChoresPendingApprovalSensor`).
+- **`Assignee`**: Per-assignee data/actions initiated by the assignee (e.g., `AssigneeChoreClaimButton`).
+- **`Approver`**: Per-assignee actions initiated by an approver (e.g., `ApproverChoreApproveButton`).
+- **`System`**: Global aggregates shared across all assignees (e.g., `SystemChoresPendingApprovalSensor`).
 
 **2. Entity & Property**
 
-- **Entity**: The subject (`Chore`, `Badge`, `Points`). Use **Plural** for collections (`SystemChores...`), **Singular** for items (`KidChore...`).
-- **Property**: The aspect (`Status`, `Approvals`, `Claim`). **Rule**: Property must follow Entity (`KidBadgeHighest`, never `KidHighestBadge`).
+- **Entity**: The subject (`Chore`, `Badge`, `Points`). Use **Plural** for collections (`SystemChores...`), **Singular** for items (`AssigneeChore...`).
+- **Property**: The aspect (`Status`, `Approvals`, `Claim`). **Rule**: Property must follow Entity (`AssigneeBadgeHighest`, never `AssigneeHighestBadge`).
 
 **3. Platform Consistency**
 This pattern applies to **all** platforms.
 
-- **Sensor**: `KidPointsSensor` (State: Balance)
-- **Button**: `KidChoreClaimButton` (Action: Claim)
+- **Sensor**: `AssigneePointsSensor` (State: Balance)
+- **Button**: `AssigneeChoreClaimButton` (Action: Claim)
 - **Select**: `SystemRewardsSelect` (List: All Shared Rewards)
-- **Calendar**: `KidScheduleCalendar` (View: Kid's timeline)
+- **Calendar**: `AssigneeScheduleCalendar` (View: assignee timeline)
 
 #### Feature Flag Implementation Checklist
 
@@ -1106,7 +1125,7 @@ ChoreOps uses a **dual-path reload system** where both paths must run synchroniz
    - **Use**: `_update_system_settings_and_reload()` method
 
 2. **Entity Changes Path** (`options_flow.py: _reload_entry_after_entity_change`)
-   - **Trigger**: User adds/edits/deletes kids, chores, badges, parents
+   - **Trigger**: User adds/edits/deletes assignees, chores, badges, users
    - **Flow**: `_mark_reload_needed()` flag → User returns to menu → Cleanup → `async_reload()` directly
    - **Cleanup**: Flag-driven + Data-driven orphaned entities
    - **Use**: Call `self._mark_reload_needed()` in entity edit handlers
@@ -1127,9 +1146,9 @@ ChoreOps uses a **dual-path reload system** where both paths must run synchroniz
    - Removes entities disabled by feature flags (show_legacy_entities, enable_chore_workflow, enable_gamification)
    - Runs in BOTH paths (system settings + entity changes)
 
-2. **DATA-DRIVEN** (`_remove_orphaned_kid_chore_entities()`, `_remove_orphaned_badge_entities()`)
-   - Removes entities with broken relationships (kid unassigned from chore/badge)
-   - Only kid-chore and kid-badge create per-relationship entities requiring registry cleanup
+2. **DATA-DRIVEN** (`_remove_orphaned_assignee_chore_entities()`, `_remove_orphaned_badge_entities()`)
+   - Removes entities with broken relationships (assignee unassigned from chore/badge)
+   - Only assignee-chore and assignee-badge create per-relationship entities requiring registry cleanup
    - Runs ONLY in entity changes path (system settings don't affect data relationships)
 
 3. **VALIDATION** (`remove_all_orphaned_entities()`)
@@ -1157,7 +1176,7 @@ We strictly enforce Home Assistant's exception handling patterns to ensure error
 
 ```python
 try:
-    kid_id = kh.get_kid_id_or_raise(coordinator, kid_name, "Approve Chore")
+    assignee_id = kh.get_assignee_id_or_raise(coordinator, assignee_name, "Approve Chore")
 except ValueError as err:
     # ✅ Specific exception, translation key, and chaining
     raise ServiceValidationError(
@@ -1171,8 +1190,8 @@ except ValueError as err:
 
 ```python
 # ❌ Hardcoded string, undefined exception type, no chaining
-if not kid_id:
-    raise Exception(f"Kid {kid_name} not found!")
+if not assignee_id:
+    raise Exception(f"Assignee {assignee_name} not found!")
 ```
 
 ---
@@ -1254,14 +1273,14 @@ python -m pytest tests/ -v --tb=line  # Run complete test suite
 
 To prevent confusion between Home Assistant's registry and our internal data:
 
-| Term                  | Usage                                     | Example                                |
-| --------------------- | ----------------------------------------- | -------------------------------------- |
-| **Item** / **Record** | A data entry in our JSON storage          | "A Chore Item", "Kid Record"           |
-| **Domain Item**       | Collective term for all stored data types | Kids, Chores, Badges (as JSON records) |
-| **Internal ID**       | The UUID for a record                     | `kid_id`, `chore_id`                   |
-| **Entity**            | ONLY a Home Assistant object              | Sensor, Button, Select                 |
-| **Entity ID**         | The HA string                             | `sensor.kc_alice_points`               |
+| Term                  | Usage                                     | Example                                     |
+| --------------------- | ----------------------------------------- | ------------------------------------------- |
+| **Item** / **Record** | A data entry in our JSON storage          | "A Chore Item", "Assignee Record"           |
+| **Domain Item**       | Collective term for all stored data types | Assignees, Chores, Badges (as JSON records) |
+| **Internal ID**       | The UUID for a record                     | `assignee_id`, `chore_id`                   |
+| **Entity**            | ONLY a Home Assistant object              | Sensor, Button, Select                      |
+| **Entity ID**         | The HA string                             | `sensor.kc_alice_points`                    |
 
-**Critical Rule**: Never use "Entity" when referring to a Chore, Kid, Badge, etc. These are **Items** in storage, not HA registry objects.
+**Critical Rule**: Never use "Entity" when referring to a Chore, Assignee, Badge, etc. These are **Items** in storage, not HA registry objects.
 
 ---

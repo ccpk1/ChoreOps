@@ -373,7 +373,7 @@ class UIManager(BaseManager):
         # Find all datetime helper entities using unique_id pattern
         for assignee_id, assignee_info in self.coordinator.assignees_data.items():
             assignee_name = assignee_info.get(
-                const.DATA_ASSIGNEE_NAME, f"Assignee {assignee_id}"
+                const.DATA_USER_NAME, f"Assignee {assignee_id}"
             )
 
             # Construct unique_id pattern (matches datetime.py)

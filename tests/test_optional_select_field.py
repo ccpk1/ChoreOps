@@ -92,19 +92,19 @@ class TestOptionalSelectFieldValidation:
 
         # Build test input
         test_input = {
-            const.CFOF_APPROVERS_INPUT_NAME: "Test Approver",
+            const.CFOF_USERS_INPUT_NAME: "Test Approver",
         }
 
         # Add HA user field unless testing missing key
         if ha_user_value != "__MISSING__":
-            test_input[const.CFOF_APPROVERS_INPUT_HA_USER] = ha_user_value
+            test_input[const.CFOF_USERS_INPUT_HA_USER_ID] = ha_user_value
 
         # Try to validate
         try:
             validated = schema(test_input)
             passed = True
             # Verify the validated result exists (don't need the value)
-            _ = validated.get(const.CFOF_APPROVERS_INPUT_HA_USER)
+            _ = validated.get(const.CFOF_USERS_INPUT_HA_USER_ID)
         except Exception:
             passed = False
 
@@ -145,13 +145,13 @@ class TestOptionalSelectFieldValidation:
         results = {}
         for name, value in test_cases:
             test_input = {
-                const.CFOF_APPROVERS_INPUT_NAME: "Test Approver",
-                const.CFOF_APPROVERS_INPUT_HA_USER: value,
+                const.CFOF_USERS_INPUT_NAME: "Test Approver",
+                const.CFOF_USERS_INPUT_HA_USER_ID: value,
             }
             try:
                 validated = schema(test_input)
                 results[name] = (
-                    f"PASS: {validated.get(const.CFOF_APPROVERS_INPUT_HA_USER)!r}"
+                    f"PASS: {validated.get(const.CFOF_USERS_INPUT_HA_USER_ID)!r}"
                 )
             except Exception as e:
                 results[name] = f"FAIL: {e}"

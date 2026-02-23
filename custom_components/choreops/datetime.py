@@ -19,7 +19,7 @@ from homeassistant.util import dt as dt_util
 from . import const
 from .coordinator import ChoreOpsConfigEntry, ChoreOpsDataCoordinator
 from .helpers.device_helpers import create_assignee_device_info_from_coordinator
-from .helpers.entity_helpers import is_linked_profile, should_create_entity
+from .helpers.entity_helpers import should_create_entity_for_user_assignee
 
 # Platinum requirement: Parallel Updates
 # Set to 1 (serialized) for entities that modify state
@@ -37,12 +37,13 @@ async def async_setup_entry(
     entities = []
     for assignee_id, assignee_info in coordinator.assignees_data.items():
         # Use registry-based creation decision for future flexibility
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.DATETIME_KC_UID_SUFFIX_DATE_HELPER,
-            is_feature_gated_profile=is_linked_profile(coordinator, assignee_id),
+            coordinator,
+            assignee_id,
         ):
             assignee_name = assignee_info.get(
-                const.DATA_ASSIGNEE_NAME, f"Assignee {assignee_id}"
+                const.DATA_USER_NAME, f"Assignee {assignee_id}"
             )
             entities.append(
                 AssigneeDashboardHelperDateTimePicker(

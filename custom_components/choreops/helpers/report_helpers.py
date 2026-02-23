@@ -194,7 +194,7 @@ def build_activity_report(
     assignee_names = [
         str(
             assignees_data.get(candidate_assignee_id, {}).get(
-                const.DATA_ASSIGNEE_NAME, candidate_assignee_id
+                const.DATA_USER_NAME, candidate_assignee_id
             )
         )
         for candidate_assignee_id in assignee_ids
@@ -217,7 +217,7 @@ def build_activity_report(
     for candidate_assignee_id in assignee_ids:
         assignee_info = assignees_data.get(candidate_assignee_id, {})
         assignee_name = str(
-            assignee_info.get(const.DATA_ASSIGNEE_NAME, candidate_assignee_id)
+            assignee_info.get(const.DATA_USER_NAME, candidate_assignee_id)
         )
         for entry in _iter_ledger_entries_in_range(assignee_info, start_dt, end_dt):
             amount = float(entry.get(const.DATA_LEDGER_AMOUNT, 0.0))
@@ -579,7 +579,7 @@ def _build_supplemental_period_rollup(
             {
                 "assignee_id": assignee_id,
                 "assignee_name": str(
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+                    assignee_info.get(const.DATA_USER_NAME, assignee_id)
                 ),
                 "streaks": streaks,
                 "badges": badges,
@@ -1004,7 +1004,7 @@ def _build_badge_highlights_from_assignees_data(
     lines: list[str] = []
     for assignee_id in assignee_ids:
         assignee_info = cast("dict[str, Any]", assignees_data.get(assignee_id, {}))
-        assignee_name = str(assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id))
+        assignee_name = str(assignee_info.get(const.DATA_USER_NAME, assignee_id))
         badges_earned = cast(
             "dict[str, dict[str, Any]]",
             assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),

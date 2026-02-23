@@ -105,7 +105,7 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
 
     # Extract per-assignee gamification state
     for assignee_id, assignee_info in coordinator.assignees_data.items():
-        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
 
         assignee_gamification: dict[str, Any] = {
             "assignee_name": assignee_name,

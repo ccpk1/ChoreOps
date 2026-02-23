@@ -113,7 +113,7 @@ class TestCalculateTransitionClaim:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_CLAIM,
-            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
+            assigned_assignees=["assignee-1", "assignee-2", "assignee-3"],
             assignee_name="Sarah",
         )
 
@@ -134,7 +134,7 @@ class TestCalculateTransitionClaim:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_CLAIM,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
             assignee_name="Sarah",
         )
 
@@ -153,7 +153,7 @@ class TestCalculateTransitionClaim:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_CLAIM,
-            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
+            assigned_assignees=["assignee-1", "assignee-2", "assignee-3"],
             assignee_name="Sarah",
         )
 
@@ -187,7 +187,7 @@ class TestCalculateTransitionApprove:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_APPROVE,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
             assignee_name="Sarah",
         )
 
@@ -209,7 +209,7 @@ class TestCalculateTransitionApprove:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_APPROVE,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
             assignee_name="Sarah",
         )
 
@@ -242,7 +242,7 @@ class TestCalculateTransitionDisapprove:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_DISAPPROVE,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
         )
 
         assert len(effects) == 1
@@ -260,7 +260,7 @@ class TestCalculateTransitionDisapprove:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_DISAPPROVE,
-            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
+            assigned_assignees=["assignee-1", "assignee-2", "assignee-3"],
         )
 
         assert len(effects) == 3
@@ -297,7 +297,7 @@ class TestCalculateTransitionUndo:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_UNDO,
-            assignees_assigned=["assignee-1"],
+            assigned_assignees=["assignee-1"],
         )
 
         assert all(e.update_stats is False for e in effects)
@@ -312,7 +312,7 @@ class TestCalculateTransitionUndo:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_UNDO,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
         )
 
         assert len(effects) == 2
@@ -340,7 +340,7 @@ class TestCalculateTransitionReset:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",  # Actor doesn't matter for reset
             action=CHORE_ACTION_RESET,
-            assignees_assigned=["assignee-1", "assignee-2", "assignee-3"],
+            assigned_assignees=["assignee-1", "assignee-2", "assignee-3"],
         )
 
         assert len(effects) == 3
@@ -369,7 +369,7 @@ class TestCalculateTransitionOverdue:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_OVERDUE,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
         )
 
         assert len(effects) == 1
@@ -397,7 +397,7 @@ class TestSkipStatsFlag:
             chore_data=chore_data,
             actor_assignee_id="assignee-1",
             action=CHORE_ACTION_APPROVE,
-            assignees_assigned=["assignee-1", "assignee-2"],
+            assigned_assignees=["assignee-1", "assignee-2"],
             skip_stats=True,
         )
 

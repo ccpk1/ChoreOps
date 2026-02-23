@@ -604,7 +604,28 @@ _PENALTY_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
 
 # Note: CFOF_KIDS_INPUT_* values are now aligned with DATA_KID_* values
 # (Phase 6 CFOF Key Alignment), so no mapping function is needed.
-# build_assignee() accepts keys directly from UI forms.
+# Canonical assignee lifecycle builders use user-centric naming.
+
+
+def validate_user_assignee_profile_data(
+    data: dict[str, Any],
+    existing_assignees: dict[str, Any] | None = None,
+    existing_users: dict[str, Any] | None = None,
+    *,
+    is_update: bool = False,
+    current_assignee_id: str | None = None,
+) -> dict[str, str]:
+    """Validate user profile data for assignee-capability flows.
+
+    This is the canonical runtime entrypoint for assignee-capability validation.
+    """
+    return validate_assignee_data(
+        data,
+        existing_assignees,
+        existing_users,
+        is_update=is_update,
+        current_assignee_id=current_assignee_id,
+    )
 
 
 def validate_assignee_profile_data(
@@ -615,11 +636,11 @@ def validate_assignee_profile_data(
     is_update: bool = False,
     current_assignee_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate assignee-profile business rules.
+    """Compatibility alias for `validate_user_assignee_profile_data()`.
 
-    Canonical runtime alias for `validate_assignee_data()`.
+    Keep this wrapper during migration batches to avoid broad churn in callers.
     """
-    return validate_assignee_data(
+    return validate_user_assignee_profile_data(
         data,
         existing_assignees,
         existing_users,
@@ -663,20 +684,16 @@ def validate_assignee_data(
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
-    name = data.get(const.DATA_ASSIGNEE_NAME, "")
+    name = data.get(const.DATA_USER_NAME, "")
     if isinstance(name, str):
         name = name.strip()
 
     if not is_update and not name:
-        errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
-            const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
-        )
+        errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
         return errors
 
-    if is_update and const.DATA_ASSIGNEE_NAME in data and not name:
-        errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
-            const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
-        )
+    if is_update and const.DATA_USER_NAME in data and not name:
+        errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
         return errors
 
     # === 2. Duplicate name check among assignees (exclude approver-linked profiles) ===
@@ -687,10 +704,10 @@ def validate_assignee_data(
         for assignee_id, assignee_data in existing_assignees.items():
             if assignee_id == current_assignee_id:
                 continue  # Skip self when updating
-            if assignee_data.get(const.DATA_ASSIGNEE_IS_SHADOW, False):
+            if not assignee_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True):
                 continue  # Approver-linked profiles handled by approver validation
-            if assignee_data.get(const.DATA_ASSIGNEE_NAME) == name:
-                errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
+            if assignee_data.get(const.DATA_USER_NAME) == name:
+                errors[const.CFOP_ERROR_USER_NAME] = (
                     const.TRANS_KEY_CFOF_DUPLICATE_ASSIGNEE
                 )
                 return errors
@@ -701,8 +718,8 @@ def validate_assignee_data(
     if name and existing_approvers:
         for approver_data in existing_approvers.values():
             if approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False):
-                if approver_data.get(const.DATA_APPROVER_NAME) == name:
-                    errors[const.CFOP_ERROR_ASSIGNEE_NAME] = (
+                if approver_data.get(const.DATA_USER_NAME) == name:
+                    errors[const.CFOP_ERROR_USER_NAME] = (
                         const.TRANS_KEY_CFOF_DUPLICATE_NAME
                     )
                     return errors
@@ -710,13 +727,13 @@ def validate_assignee_data(
     return errors
 
 
-def build_assignee(
+def build_user_assignee_profile(
     user_input: dict[str, Any],
     existing: AssigneeData | None = None,
 ) -> AssigneeData:
-    """Build assignee data for create or update operations.
+    """Build user record data for assignee-capability create/update operations.
 
-    This is the SINGLE SOURCE OF TRUTH for assignee field handling.
+    This is the SINGLE SOURCE OF TRUTH for assignee-capability field handling.
     One function handles both create (existing=None) and update (existing=AssigneeData).
 
     Args:
@@ -731,13 +748,13 @@ def build_assignee(
 
     Examples:
         # CREATE mode - generates UUID, applies defaults for missing fields
-        assignee = build_assignee({CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: "Alice"})
+        assignee = build_user_assignee_profile({CFOF_USERS_INPUT_NAME: "Alice"})
 
         # UPDATE mode - preserves existing fields not in user_input
-        assignee = build_assignee({CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_assignee)
+        assignee = build_user_assignee_profile({CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_assignee)
 
         # Create mode with assignee defaults
-        assignee = build_assignee(approver_derived_input)
+        assignee = build_user_assignee_profile(approver_derived_input)
     """
     is_create = existing is None
 
@@ -755,20 +772,20 @@ def build_assignee(
 
     # --- Name validation (required for create, optional for update) ---
     raw_name = get_field(
-        const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
-        const.DATA_ASSIGNEE_NAME,
+        const.CFOF_USERS_INPUT_NAME,
+        const.DATA_USER_NAME,
         "",
     )
     name = str(raw_name).strip() if raw_name else ""
 
     if is_create and not name:
         raise EntityValidationError(
-            field=const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+            field=const.CFOF_USERS_INPUT_NAME,
             translation_key=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME,
         )
-    if const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME in user_input and not name:
+    if const.CFOF_USERS_INPUT_NAME in user_input and not name:
         raise EntityValidationError(
-            field=const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
+            field=const.CFOF_USERS_INPUT_NAME,
             translation_key=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME,
         )
 
@@ -776,20 +793,20 @@ def build_assignee(
     if is_create or existing is None:
         internal_id = str(uuid.uuid4())
     else:
-        internal_id = existing.get(const.DATA_ASSIGNEE_INTERNAL_ID, str(uuid.uuid4()))
+        internal_id = existing.get(const.DATA_USER_INTERNAL_ID, str(uuid.uuid4()))
 
     # --- Handle HA user and notification service sentinels ---
     ha_user_id = get_field(
-        const.CFOF_ASSIGNEES_INPUT_HA_USER,
-        const.DATA_ASSIGNEE_HA_USER_ID,
+        const.CFOF_USERS_INPUT_HA_USER_ID,
+        const.DATA_USER_HA_USER_ID,
         "",
     )
     if ha_user_id in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         ha_user_id = ""
 
     notify_service = get_field(
-        const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
-        const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE,
+        const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
         const.SENTINEL_EMPTY,
     )
     if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
@@ -799,8 +816,8 @@ def build_assignee(
     # Include all runtime fields that _create_assignee() used to add
     assignee_data: AssigneeData = {
         # Core identification
-        const.DATA_ASSIGNEE_INTERNAL_ID: internal_id,
-        const.DATA_ASSIGNEE_NAME: name,
+        const.DATA_USER_INTERNAL_ID: internal_id,
+        const.DATA_USER_NAME: name,
         # Points (runtime initialized)
         const.DATA_ASSIGNEE_POINTS: float(
             get_field(
@@ -820,9 +837,9 @@ def build_assignee(
             else const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER
         ),
         # Linkage
-        const.DATA_ASSIGNEE_HA_USER_ID: ha_user_id,
+        const.DATA_USER_HA_USER_ID: ha_user_id,
         # Notifications
-        const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE: notify_service,
+        const.DATA_USER_MOBILE_NOTIFY_SERVICE: notify_service,
         const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS: (
             existing.get(const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
@@ -856,33 +873,47 @@ def build_assignee(
     return assignee_data
 
 
+def build_assignee(
+    user_input: dict[str, Any],
+    existing: AssigneeData | None = None,
+) -> AssigneeData:
+    """Compatibility alias for `build_user_assignee_profile()`.
+
+    Keep this wrapper during migration batches to avoid broad churn in callers.
+    """
+    return build_user_assignee_profile(
+        user_input,
+        existing=existing,
+    )
+
+
 def build_assignee_profile(
     user_input: dict[str, Any],
     existing: AssigneeData | None = None,
 ) -> AssigneeData:
     """Build assignee-profile data for create or update operations.
 
-    Canonical runtime alias for `build_assignee()`.
+    Compatibility alias for `build_user_assignee_profile()`.
     """
-    return build_assignee(
+    return build_user_assignee_profile(
         user_input,
         existing=existing,
     )
 
 
 # --- Assignee Data Reset Support ---
-# MAINTENANCE CONTRACT: When adding fields to build_assignee():
+# MAINTENANCE CONTRACT: When adding fields to build_user_assignee_profile():
 # - CONFIG fields: Add to _KID_DATA_RESET_PRESERVE_FIELDS (preserved during data reset)
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 
 _ASSIGNEE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
         # System identity (never changes)
-        const.DATA_ASSIGNEE_INTERNAL_ID,
+        const.DATA_USER_INTERNAL_ID,
         # User-configured fields
-        const.DATA_ASSIGNEE_NAME,
-        const.DATA_ASSIGNEE_HA_USER_ID,
-        const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE,
+        const.DATA_USER_NAME,
+        const.DATA_USER_HA_USER_ID,
+        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
         const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS,
         const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
         const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
@@ -973,20 +1004,16 @@ def validate_approver_data(
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
-    name = data.get(const.DATA_APPROVER_NAME, "")
+    name = data.get(const.DATA_USER_NAME, "")
     if isinstance(name, str):
         name = name.strip()
 
     if not is_update and not name:
-        errors[const.CFOP_ERROR_APPROVER_NAME] = (
-            const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
-        )
+        errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
         return errors
 
-    if is_update and const.DATA_APPROVER_NAME in data and not name:
-        errors[const.CFOP_ERROR_APPROVER_NAME] = (
-            const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
-        )
+    if is_update and const.DATA_USER_NAME in data and not name:
+        errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
         return errors
 
     # === 2. Duplicate name check among approvers ===
@@ -994,8 +1021,8 @@ def validate_approver_data(
         for approver_id, approver_data in existing_approvers.items():
             if approver_id == current_approver_id:
                 continue  # Skip self when updating
-            if approver_data.get(const.DATA_APPROVER_NAME) == name:
-                errors[const.CFOP_ERROR_APPROVER_NAME] = (
+            if approver_data.get(const.DATA_USER_NAME) == name:
+                errors[const.CFOP_ERROR_USER_NAME] = (
                     const.TRANS_KEY_CFOF_DUPLICATE_APPROVER
                 )
                 return errors
@@ -1004,11 +1031,15 @@ def validate_approver_data(
     # When assignment is enabled, a linked profile record may use this name
     assignment_enabled = data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
     if assignment_enabled and name and existing_assignees:
-        for assignee_data in existing_assignees.values():
-            if assignee_data.get(const.DATA_ASSIGNEE_NAME) == name:
-                errors[const.CFOP_ERROR_APPROVER_NAME] = (
-                    const.TRANS_KEY_CFOF_DUPLICATE_NAME
-                )
+        for assignee_id, assignee_data in existing_assignees.items():
+            assignee_internal_id = assignee_data.get(const.DATA_USER_INTERNAL_ID)
+            if current_approver_id is not None and current_approver_id in {
+                assignee_id,
+                assignee_internal_id,
+            }:
+                continue
+            if assignee_data.get(const.DATA_USER_NAME) == name:
+                errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_DUPLICATE_NAME
                 return errors
 
     has_usage_context = any(
@@ -1075,7 +1106,7 @@ def build_approver(
 
     Examples:
         # CREATE mode - generates UUID, applies defaults for missing fields
-        approver = build_approver({CFOF_APPROVERS_INPUT_NAME: "Dad"})
+        approver = build_approver({CFOF_USERS_INPUT_NAME: "Dad"})
 
         # UPDATE mode - preserves existing fields not in user_input
         approver = build_approver({CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: ["uuid1"]}, existing=old)
@@ -1096,20 +1127,20 @@ def build_approver(
 
     # --- Name validation (required for create, optional for update) ---
     raw_name = get_field(
-        const.CFOF_APPROVERS_INPUT_NAME,
-        const.DATA_APPROVER_NAME,
+        const.CFOF_USERS_INPUT_NAME,
+        const.DATA_USER_NAME,
         "",
     )
     name = str(raw_name).strip() if raw_name else ""
 
     if is_create and not name:
         raise EntityValidationError(
-            field=const.CFOF_APPROVERS_INPUT_NAME,
+            field=const.CFOF_USERS_INPUT_NAME,
             translation_key=const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME,
         )
-    if const.CFOF_APPROVERS_INPUT_NAME in user_input and not name:
+    if const.CFOF_USERS_INPUT_NAME in user_input and not name:
         raise EntityValidationError(
-            field=const.CFOF_APPROVERS_INPUT_NAME,
+            field=const.CFOF_USERS_INPUT_NAME,
             translation_key=const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME,
         )
 
@@ -1117,20 +1148,20 @@ def build_approver(
     if is_create or existing is None:
         internal_id = str(uuid.uuid4())
     else:
-        internal_id = existing.get(const.DATA_APPROVER_INTERNAL_ID, str(uuid.uuid4()))
+        internal_id = existing.get(const.DATA_USER_INTERNAL_ID, str(uuid.uuid4()))
 
     # --- Handle HA user and notification service sentinels ---
     ha_user_id = get_field(
-        const.CFOF_APPROVERS_INPUT_HA_USER,
-        const.DATA_APPROVER_HA_USER_ID,
+        const.CFOF_USERS_INPUT_HA_USER_ID,
+        const.DATA_USER_HA_USER_ID,
         "",
     )
     if ha_user_id in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
         ha_user_id = ""
 
     notify_service = get_field(
-        const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
-        const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
+        const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
         "",
     )
     if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
@@ -1146,11 +1177,11 @@ def build_approver(
 
     # --- Build complete approver structure ---
     approver_data: dict[str, Any] = {
-        const.DATA_APPROVER_INTERNAL_ID: internal_id,
-        const.DATA_APPROVER_NAME: name,
-        const.DATA_APPROVER_HA_USER_ID: ha_user_id,
+        const.DATA_USER_INTERNAL_ID: internal_id,
+        const.DATA_USER_NAME: name,
+        const.DATA_USER_HA_USER_ID: ha_user_id,
         const.DATA_APPROVER_ASSOCIATED_USERS: associated_assignees,
-        const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE: notify_service,
+        const.DATA_USER_MOBILE_NOTIFY_SERVICE: notify_service,
         const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: (
             existing.get(const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
@@ -1199,9 +1230,6 @@ def build_approver(
             )
         ),
     }
-    approver_data[const.DATA_APPROVER_LINKED_PROFILE_ID] = (
-        existing.get(const.DATA_APPROVER_LINKED_PROFILE_ID) if existing else None
-    )
     return cast("ApproverData", approver_data)
 
 

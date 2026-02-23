@@ -216,6 +216,44 @@ class TestTranslationSensorArchitecture:
             es_sensor = None  # Expected - Lila doesn't exist in scenario_minimal
         assert es_sensor is None, "Spanish sensor should not exist"
 
+
+class TestAssigneeChoresSensorAttributes:
+    """Regression tests for assignee chores sensor attribute completeness."""
+
+    async def test_chores_sensor_includes_expected_chore_stat_attributes(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Ensure assignee chores summary sensor includes core chore_stat fields."""
+        chores_sensor = hass.states.get("sensor.zoe_choreops_chores")
+        assert chores_sensor is not None, "Assignee chores sensor not found"
+
+        attrs = chores_sensor.attributes
+        expected_keys = {
+            "chore_stat_current_due_today",
+            "chore_stat_current_claimed",
+            "chore_stat_current_approved",
+            "chore_stat_current_overdue",
+            "chore_stat_approved_today",
+            "chore_stat_claimed_today",
+            "chore_stat_completed_today",
+            "chore_stat_points_today",
+            "chore_stat_approved_week",
+            "chore_stat_claimed_week",
+            "chore_stat_completed_week",
+            "chore_stat_points_week",
+            "chore_stat_approved_all_time",
+            "chore_stat_claimed_all_time",
+            "chore_stat_completed_all_time",
+            "chore_stat_points_all_time",
+            "chore_stat_longest_streak",
+            "chore_stat_longest_missed_streak",
+        }
+
+        missing = expected_keys - set(attrs)
+        assert not missing, f"Missing chore summary attributes: {sorted(missing)}"
+
     async def test_trans_02_multiple_languages_multiple_sensors(
         self,
         hass: HomeAssistant,

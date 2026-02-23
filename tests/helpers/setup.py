@@ -229,14 +229,14 @@ async def _configure_assignee_step(
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: assignee_config["name"],
-            const.CFOF_ASSIGNEES_INPUT_HA_USER: mock_hass_users[
+            const.CFOF_USERS_INPUT_NAME: assignee_config["name"],
+            const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[
                 assignee_config["ha_user"]
             ].id,
             const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: assignee_config.get(
                 "dashboard_language", "en"
             ),
-            const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: assignee_config.get(
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: assignee_config.get(
                 "mobile_notify_service"
             )
             or const.SENTINEL_NO_SELECTION,
@@ -288,12 +288,12 @@ async def _configure_approver_step(
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_APPROVERS_INPUT_NAME: approver_config["name"],
-            const.CFOF_APPROVERS_INPUT_HA_USER: mock_hass_users[
+            const.CFOF_USERS_INPUT_NAME: approver_config["name"],
+            const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[
                 approver_config["ha_user"]
             ].id,
             const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: associated_assignee_ids,
-            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_service,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_service,
             # Approver chore assignment fields (shadow assignee support)
             const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: approver_config.get(
                 "allow_chore_assignment", False
@@ -1215,13 +1215,13 @@ async def setup_scenario(
     # -------------------------------------------------------------------------
     # Update assignee IDs from coordinator (they should match but let's be sure)
     for assignee_id, assignee_data in coordinator.assignees_data.items():
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME)
+        assignee_name = assignee_data.get(const.DATA_USER_NAME)
         if assignee_name:
             assignee_name_to_id[assignee_name] = assignee_id
 
     # Map approver names to IDs
     for approver_id, approver_data in coordinator.approvers_data.items():
-        approver_name = approver_data.get(const.DATA_APPROVER_NAME)
+        approver_name = approver_data.get(const.DATA_USER_NAME)
         if approver_name:
             approver_name_to_id[approver_name] = approver_id
 

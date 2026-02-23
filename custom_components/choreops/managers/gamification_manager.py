@@ -2543,7 +2543,7 @@ class GamificationManager(BaseManager):
         )
         context: EvaluationContext = {
             "assignee_id": assignee_id,
-            "assignee_name": assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown"),
+            "assignee_name": assignee_data.get(const.DATA_USER_NAME, "Unknown"),
             "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
             "total_points_earned": total_earned,
             "badge_progress": badge_progress,
@@ -3006,7 +3006,7 @@ class GamificationManager(BaseManager):
             const.LOGGER.info(
                 "Update Assignee Badges Earned - Created new tracking for badge '%s' for assignee '%s'",
                 badge_info.get(const.DATA_BADGE_NAME, badge_id),
-                assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                assignee_info.get(const.DATA_USER_NAME, assignee_id),
             )
         else:
             # Update existing badge tracking (Landlord updates metadata fields only)
@@ -3030,7 +3030,7 @@ class GamificationManager(BaseManager):
             const.LOGGER.info(
                 "Update Assignee Badges Earned - Updated tracking for badge '%s' for assignee '%s'",
                 badge_info.get(const.DATA_BADGE_NAME, badge_id),
-                assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                assignee_info.get(const.DATA_USER_NAME, assignee_id),
             )
 
         # Phase 4: Periods updated by StatisticsManager._on_badge_earned listener
@@ -3355,7 +3355,7 @@ class GamificationManager(BaseManager):
 
             self.coordinator._persist_and_update()
 
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             const.LOGGER.info(
                 "Demoted cumulative badge status for assignee '%s' (%s)",
                 assignee_name,
@@ -3560,7 +3560,7 @@ class GamificationManager(BaseManager):
                     },
                 )
             badge_name = badge_info.get(const.DATA_BADGE_NAME, badge_id)
-            assignee_name_str = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name_str = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             badge_type = badge_info.get(const.DATA_BADGE_TYPE)
 
             # Remove the badge from the assignee's badges_earned
@@ -3611,7 +3611,7 @@ class GamificationManager(BaseManager):
                     assignee_info,
                 ) in self.coordinator.assignees_data.items():
                     assignee_name_str = assignee_info.get(
-                        const.DATA_ASSIGNEE_NAME, "Unknown Assignee"
+                        const.DATA_USER_NAME, "Unknown Assignee"
                     )
                     badges_earned = assignee_info.setdefault(
                         const.DATA_ASSIGNEE_BADGES_EARNED, {}
@@ -3664,7 +3664,7 @@ class GamificationManager(BaseManager):
                     },
                 )
             assignee_name_str = assignee_info_elif.get(
-                const.DATA_ASSIGNEE_NAME, "Unknown Assignee"
+                const.DATA_USER_NAME, "Unknown Assignee"
             )
             had_cumulative = False
             for loop_badge_id, badge_info in self.coordinator.badges_data.items():
@@ -3698,7 +3698,7 @@ class GamificationManager(BaseManager):
             if not found:
                 const.LOGGER.warning(
                     "Remove Awarded Badges - No badge found for assignee '%s'",
-                    assignee_info_elif.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                    assignee_info_elif.get(const.DATA_USER_NAME, assignee_id),
                 )
 
         else:
@@ -3715,7 +3715,7 @@ class GamificationManager(BaseManager):
                     assignee_info,
                 ) in self.coordinator.assignees_data.items():
                     assignee_name_str = assignee_info.get(
-                        const.DATA_ASSIGNEE_NAME, "Unknown Assignee"
+                        const.DATA_USER_NAME, "Unknown Assignee"
                     )
                     badges_earned = assignee_info.setdefault(
                         const.DATA_ASSIGNEE_BADGES_EARNED, {}
@@ -3784,7 +3784,7 @@ class GamificationManager(BaseManager):
             return
 
         badge_name = badge_data.get(const.DATA_BADGE_NAME, badge_id)
-        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+        assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
         # Update badge's earned_by list
         earned_by_list = badge_data.setdefault(const.DATA_BADGE_EARNED_BY, [])
@@ -3900,7 +3900,7 @@ class GamificationManager(BaseManager):
                     "DEBUG: Removed badge_progress for badge '%s' from assignee '%s' "
                     "(unassigned or deleted)",
                     badge_id,
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                    assignee_info.get(const.DATA_USER_NAME, assignee_id),
                 )
 
         for badge_id, badge_info in self.coordinator.badges_data.items():
@@ -4143,7 +4143,7 @@ class GamificationManager(BaseManager):
                             "INFO: Badge Maintenance - Removed badge progress for "
                             "badge '%s' from assignee '%s' (badge deleted or unassigned).",
                             badge_id,
-                            assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                            assignee_info.get(const.DATA_USER_NAME, assignee_id),
                         )
                     continue
 

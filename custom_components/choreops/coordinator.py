@@ -443,7 +443,6 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
                     or user_data.get(const.DATA_USER_CAN_MANAGE, False)
                     or const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT in user_data
                     or const.DATA_APPROVER_ASSOCIATED_USERS in user_data
-                    or const.DATA_APPROVER_LINKED_PROFILE_ID in user_data
                 )
             }
 

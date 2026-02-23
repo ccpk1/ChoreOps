@@ -989,7 +989,7 @@ class TestAuthorizationAcceptance:
             group_ids=["system-users"],
         )
         actor_user_id = actor_user.id
-        coordinator.assignees_data[assignee_id][const.DATA_ASSIGNEE_HA_USER_ID] = (
+        coordinator.assignees_data[assignee_id][const.DATA_USER_HA_USER_ID] = (
             actor_user_id
         )
 

@@ -38,7 +38,7 @@ from .. import const
 from ..helpers import backup_helpers as bh
 from ..helpers.entity_helpers import (
     get_item_id_or_raise,
-    is_shadow_assignee,
+    get_user_role_gating_context,
     parse_entity_reference,
     remove_entities_by_item_id,
     remove_orphaned_assignee_chore_entities,
@@ -46,8 +46,6 @@ from ..helpers.entity_helpers import (
     remove_orphaned_progress_entities,
     remove_orphaned_shared_chore_sensors,
     should_create_entity,
-    should_create_gamification_entities,
-    should_create_workflow_buttons,
 )
 from .base_manager import BaseManager
 
@@ -540,28 +538,21 @@ class SystemManager(BaseManager):
             if target_assignees and assignee_id not in target_assignees:
                 continue
 
-            # Determine assignee context
-            is_shadow = is_shadow_assignee(self.coordinator, assignee_id)
-            workflow_enabled = should_create_workflow_buttons(
-                self.coordinator, assignee_id
-            )
-            gamification_enabled = should_create_gamification_entities(
-                self.coordinator, assignee_id
-            )
+            gating = get_user_role_gating_context(self.coordinator, assignee_id)
 
             # Check if entity should exist using unified filter
             if not should_create_entity(
                 unique_id,
-                is_shadow_assignee=is_shadow,
-                workflow_enabled=workflow_enabled,
-                gamification_enabled=gamification_enabled,
+                is_feature_gated_profile=gating["is_feature_gated_profile"],
+                is_assignment_participant=gating["is_assignment_participant"],
+                workflow_enabled=gating["workflow_enabled"],
+                gamification_enabled=gating["gamification_enabled"],
                 extra_enabled=extra_enabled,
             ):
                 const.LOGGER.debug(
-                    "Removing conditional entity for assignee %s: %s (shadow=%s)",
+                    "Removing conditional entity for assignee %s: %s",
                     assignee_id,
                     entity_entry.entity_id,
-                    is_shadow,
                 )
                 ent_reg.async_remove(entity_entry.entity_id)
                 removed_count += 1

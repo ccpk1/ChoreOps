@@ -451,7 +451,7 @@ def get_item_id_by_name(
     item_map = {
         const.ENTITY_TYPE_ASSIGNEE: (
             coordinator.assignees_data,
-            const.DATA_ASSIGNEE_NAME,
+            const.DATA_USER_NAME,
         ),
         const.ENTITY_TYPE_CHORE: (coordinator.chores_data, const.DATA_CHORE_NAME),
         const.ENTITY_TYPE_REWARD: (coordinator.rewards_data, const.DATA_REWARD_NAME),
@@ -463,7 +463,7 @@ def get_item_id_by_name(
         const.ENTITY_TYPE_BONUS: (coordinator.bonuses_data, const.DATA_BONUS_NAME),
         const.ENTITY_TYPE_APPROVER: (
             coordinator.approvers_data,
-            const.DATA_APPROVER_NAME,
+            const.DATA_USER_NAME,
         ),
         const.ENTITY_TYPE_ACHIEVEMENT: (
             coordinator.achievements_data,
@@ -566,7 +566,7 @@ def get_assignee_name_by_id(
     """
     assignee_info = coordinator.assignees_data.get(assignee_id)
     if assignee_info:
-        return assignee_info.get(const.DATA_ASSIGNEE_NAME)
+        return assignee_info.get(const.DATA_USER_NAME)
     return None
 
 
@@ -860,11 +860,6 @@ async def remove_orphaned_manual_adjustment_buttons(
 # ==============================================================================
 
 
-def is_shadow_assignee(coordinator: ChoreOpsDataCoordinator, assignee_id: str) -> bool:
-    """Return False; shadow-profile runtime behavior is migration-only."""
-    return False
-
-
 def is_linked_profile(coordinator: ChoreOpsDataCoordinator, assignee_id: str) -> bool:
     """Return False; linked-profile runtime behavior is migration-only."""
     return False
@@ -891,7 +886,14 @@ def is_user_feature_gated_profile(
     and is intentionally behavior-compatible while runtime naming migrates
     to capability-oriented terminology.
     """
-    return is_linked_profile(coordinator, assignee_id)
+    if not is_user_assignment_participant(coordinator, assignee_id):
+        return False
+
+    approver_data = get_approver_for_linked_profile(coordinator, assignee_id)
+    if not approver_data:
+        return False
+
+    return bool(approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False))
 
 
 def is_user_assignment_participant(
@@ -910,33 +912,88 @@ def is_user_assignment_participant(
     Returns:
         True when assignment participation is enabled.
     """
-    assignee_info = cast(
-        "dict[str, Any]", coordinator.assignees_data.get(assignee_id, {})
-    )
+    assignee_info = cast("dict[str, Any]", coordinator.users_data.get(assignee_id, {}))
+    if not assignee_info:
+        return False
 
-    # Canonical schema45+ capability
-    if const.DATA_USER_CAN_BE_ASSIGNED in assignee_info:
-        return bool(assignee_info.get(const.DATA_USER_CAN_BE_ASSIGNED, True))
-
-    # Legacy fallback during migration window
-    if const.DATA_ASSIGNEE_IS_SHADOW in assignee_info:
-        return not bool(assignee_info.get(const.DATA_ASSIGNEE_IS_SHADOW, False))
-
-    return True
+    return bool(assignee_info.get(const.DATA_USER_CAN_BE_ASSIGNED, False))
 
 
 def get_approver_for_linked_profile(
     coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> dict[str, Any] | None:
-    """Return None; linked-profile runtime lookup is migration-only."""
+    """Return feature-gated user record for capability-driven gating checks."""
+    approver_data = cast(
+        "dict[str, Any]", coordinator.approvers_data.get(assignee_id, {})
+    )
+    if approver_data:
+        return approver_data
     return None
 
 
-def get_approver_for_shadow_assignee(
-    coordinator: ChoreOpsDataCoordinator, assignee_id: str
-) -> dict[str, Any] | None:
-    """Backward-compatible alias for linked-profile approver lookup."""
-    return get_approver_for_linked_profile(coordinator, assignee_id)
+def get_user_role_gating_context(
+    coordinator: ChoreOpsDataCoordinator,
+    assignee_id: str,
+) -> dict[str, bool]:
+    """Return canonical role-gating decisions for one user-assignee projection.
+
+    This is the centralized role-gating decision contract for runtime entity
+    creation and cleanup paths. All consumers should use this helper instead of
+    recomputing profile/flag semantics locally.
+    """
+    assignment_participant = is_user_assignment_participant(coordinator, assignee_id)
+    feature_gated_profile = is_user_feature_gated_profile(coordinator, assignee_id)
+
+    if not assignment_participant:
+        return {
+            "is_assignment_participant": False,
+            "is_feature_gated_profile": False,
+            "workflow_enabled": False,
+            "gamification_enabled": False,
+        }
+
+    if not feature_gated_profile:
+        return {
+            "is_assignment_participant": True,
+            "is_feature_gated_profile": False,
+            "workflow_enabled": True,
+            "gamification_enabled": True,
+        }
+
+    approver_data = get_approver_for_linked_profile(coordinator, assignee_id) or {}
+    return {
+        "is_assignment_participant": True,
+        "is_feature_gated_profile": True,
+        "workflow_enabled": bool(
+            approver_data.get(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False)
+        ),
+        "gamification_enabled": bool(
+            approver_data.get(const.DATA_APPROVER_ENABLE_GAMIFICATION, False)
+        ),
+    }
+
+
+def should_create_entity_for_user_assignee(
+    unique_id_suffix: str,
+    coordinator: ChoreOpsDataCoordinator,
+    assignee_id: str,
+    *,
+    extra_enabled: bool = False,
+) -> bool:
+    """Resolve entity creation via centralized role-gating context.
+
+    This helper binds role-gating context + ENTITY_REGISTRY evaluation so
+    platform code and cleanup code consume one canonical contract.
+    """
+    gating = get_user_role_gating_context(coordinator, assignee_id)
+    return should_create_entity(
+        unique_id_suffix,
+        is_feature_gated_profile=gating["is_feature_gated_profile"],
+        is_assignment_participant=gating["is_assignment_participant"],
+        workflow_enabled=gating["workflow_enabled"],
+        gamification_enabled=gating["gamification_enabled"],
+        extra_enabled=extra_enabled,
+    )
 
 
 def should_create_workflow_buttons(
@@ -958,16 +1015,7 @@ def should_create_workflow_buttons(
     Returns:
         True if workflow buttons should be created, False otherwise.
     """
-    if not is_user_assignment_participant(coordinator, assignee_id):
-        return False
-
-    if not is_user_feature_gated_profile(coordinator, assignee_id):
-        return True  # Default assignment participants always get workflow buttons
-
-    approver_data = get_approver_for_linked_profile(coordinator, assignee_id)
-    if approver_data:
-        return approver_data.get(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False)
-    return False
+    return get_user_role_gating_context(coordinator, assignee_id)["workflow_enabled"]
 
 
 def should_create_gamification_entities(
@@ -990,16 +1038,9 @@ def should_create_gamification_entities(
     Returns:
         True if gamification entities should be created, False otherwise.
     """
-    if not is_user_assignment_participant(coordinator, assignee_id):
-        return False
-
-    if not is_user_feature_gated_profile(coordinator, assignee_id):
-        return True  # Default assignment participants always get gamification
-
-    approver_data = get_approver_for_linked_profile(coordinator, assignee_id)
-    if approver_data:
-        return approver_data.get(const.DATA_APPROVER_ENABLE_GAMIFICATION, False)
-    return False
+    return get_user_role_gating_context(coordinator, assignee_id)[
+        "gamification_enabled"
+    ]
 
 
 def should_create_entity(
@@ -1008,7 +1049,6 @@ def should_create_entity(
     is_feature_gated_profile: bool = False,
     is_approval_profile: bool = False,
     is_assignment_participant: bool = True,
-    is_shadow_assignee: bool = False,
     workflow_enabled: bool = True,
     gamification_enabled: bool = True,
     extra_enabled: bool = False,
@@ -1030,7 +1070,6 @@ def should_create_entity(
         is_feature_gated_profile: Preferred profile-gating flag for platform code.
         is_approval_profile: Capability-oriented profile flag used by platform code.
         is_assignment_participant: Whether this user participates in assignment scope.
-        is_shadow_assignee: Legacy compatibility flag (deprecated; maps to approval profile)
         workflow_enabled: Whether workflow is enabled for gated profiles.
         gamification_enabled: Whether gamification is enabled for gated profiles.
         extra_enabled: Whether show_legacy_entities (extra entities) flag is enabled
@@ -1045,9 +1084,7 @@ def should_create_entity(
             requirement = req
             break
 
-    feature_gated_profile = (
-        is_feature_gated_profile or is_approval_profile or is_shadow_assignee
-    )
+    feature_gated_profile = is_feature_gated_profile or is_approval_profile
 
     # Unknown suffix - default to gamification for gated profiles
     if requirement is None:

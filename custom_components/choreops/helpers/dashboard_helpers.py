@@ -188,7 +188,7 @@ def get_all_assignee_names(coordinator: ChoreOpsDataCoordinator) -> list[str]:
     names: list[str] = []
     for assignee_info in assignees_data.values():
         assignee_info_typed: AssigneeData = assignee_info
-        name = assignee_info_typed.get(const.DATA_ASSIGNEE_NAME, "")
+        name = assignee_info_typed.get(const.DATA_USER_NAME, "")
         if name:
             names.append(name)
     return sorted(names)

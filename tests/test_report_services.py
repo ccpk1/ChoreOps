@@ -113,7 +113,7 @@ class _NoBadgeStatisticsManager(_DummyStatisticsManager):
 def _build_test_assignees_data() -> dict[str, Any]:
     return {
         "assignee-1": {
-            const.DATA_ASSIGNEE_NAME: "Zoë",
+            const.DATA_USER_NAME: "Zoë",
             const.DATA_ASSIGNEE_POINTS: 100.0,
             const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE: "en",
             const.DATA_ASSIGNEE_LEDGER: [

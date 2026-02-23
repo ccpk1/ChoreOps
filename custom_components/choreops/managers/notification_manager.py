@@ -930,7 +930,7 @@ class NotificationManager(BaseManager):
             )
 
         mobile_notify_service = assignee_info.get(
-            const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
         )
         persistent_enabled = assignee_info.get(
             const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, True
@@ -1077,7 +1077,7 @@ class NotificationManager(BaseManager):
                 continue
 
             mobile_notify_service = approver_info.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
             persistent_enabled = approver_info.get(
                 const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
@@ -1238,7 +1238,7 @@ class NotificationManager(BaseManager):
                 True,
             )
             mobile_notify_service = approver_info.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
 
             if mobile_notify_service:
@@ -1360,7 +1360,7 @@ class NotificationManager(BaseManager):
                 continue
 
             mobile_notify_service = approver_info.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
             persistent_enabled = approver_info.get(
                 const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
@@ -1465,9 +1465,7 @@ class NotificationManager(BaseManager):
             ):
                 continue
 
-            notify_service = approver_info.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE
-            )
+            notify_service = approver_info.get(const.DATA_USER_MOBILE_NOTIFY_SERVICE)
             if not notify_service:
                 continue
 
@@ -1525,14 +1523,14 @@ class NotificationManager(BaseManager):
             )
             return
 
-        if not assignee_info.get(const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE):
+        if not assignee_info.get(const.DATA_USER_MOBILE_NOTIFY_SERVICE):
             const.LOGGER.debug(
                 "No notification service configured for assignee '%s'", assignee_id
             )
             return
 
         service_name = assignee_info[
-            const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE
         ].removeprefix("notify.")
 
         service_data: dict[str, Any] = {
@@ -1658,7 +1656,7 @@ class NotificationManager(BaseManager):
                         const.DATA_CHORE_NAME, const.DISPLAY_UNNAMED_CHORE
                     ),
                     "assignee_name": assignee_info.get(
-                        const.DATA_ASSIGNEE_NAME, const.DISPLAY_UNNAMED_ASSIGNEE
+                        const.DATA_USER_NAME, const.DISPLAY_UNNAMED_ASSIGNEE
                     ),
                 },
                 actions=actions,
@@ -1702,7 +1700,7 @@ class NotificationManager(BaseManager):
                 message_data={
                     "reward_name": reward_name,
                     "assignee_name": assignee_info.get(
-                        const.DATA_ASSIGNEE_NAME, "A assignee"
+                        const.DATA_USER_NAME, "A assignee"
                     ),
                 },
                 actions=actions,
@@ -1746,7 +1744,7 @@ class NotificationManager(BaseManager):
             # Fallback to lookup
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
-                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+                assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
             if not assignee_name:
                 return
         extra_data = {
@@ -1800,7 +1798,7 @@ class NotificationManager(BaseManager):
             # Fallback to lookup
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
-                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+                assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
             if not assignee_name:
                 return
         extra_data = {
@@ -1857,7 +1855,7 @@ class NotificationManager(BaseManager):
             # Fallback to lookup
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
-                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+                assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
             if not assignee_name:
                 return
         extra_data = {
@@ -1938,7 +1936,7 @@ class NotificationManager(BaseManager):
             # Fallback to lookup
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
-                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+                assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
             if not assignee_name:
                 return
         chore_points = chore_info.get(
@@ -2034,7 +2032,7 @@ class NotificationManager(BaseManager):
             # Fallback to lookup
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
-                assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+                assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
             if not assignee_name:
                 return
 
@@ -2395,7 +2393,7 @@ class NotificationManager(BaseManager):
         assignee_name = ""
         assignee_info = self.coordinator.assignees_data.get(assignee_id)
         if assignee_info:
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
         if not assignee_name:
             return
 
@@ -2608,14 +2606,14 @@ class NotificationManager(BaseManager):
         # For rotation chores, notify ALL assigned assignees (steal mechanic)
         # For regular chores, notify only the original assignee
         if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            assignees_assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
             const.LOGGER.debug(
                 "NotificationManager: Rotation chore overdue - notifying all %d assigned assignees",
-                len(assignees_assigned),
+                len(assigned_assignees),
             )
 
             # Send to all assigned assignees
-            for target_assignee_id in assignees_assigned:
+            for target_assignee_id in assigned_assignees:
                 await self._send_overdue_notification_to_assignee(
                     target_assignee_id, chore_id, chore_name, due_date, payload
                 )
@@ -2659,7 +2657,7 @@ class NotificationManager(BaseManager):
         formatted_due_date = dt_format_short(due_dt, language=assignee_language)
 
         # Get assignee's name for notification message
-        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown Assignee")
+        assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown Assignee")
 
         # Get chore points for message
         chore_info: ChoreData | None = self.coordinator.chores_data.get(chore_id)
@@ -2798,7 +2796,7 @@ class NotificationManager(BaseManager):
         formatted_due_date = dt_format_short(due_dt, language=assignee_language)
 
         # Get assignee's name for notification message
-        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown Assignee")
+        assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown Assignee")
 
         # Notify assignee (NO claim action - chore is locked)
         await self.notify_assignee_translated(

@@ -42,10 +42,10 @@ def base_storage_data() -> dict[str, Any]:
         },
         const.DATA_ASSIGNEES: {
             "assignee-uuid-1": {
-                const.DATA_ASSIGNEE_INTERNAL_ID: "assignee-uuid-1",
-                const.DATA_ASSIGNEE_NAME: "Alice",
+                const.DATA_USER_INTERNAL_ID: "assignee-uuid-1",
+                const.DATA_USER_NAME: "Alice",
                 const.DATA_ASSIGNEE_POINTS: 150.0,
-                const.DATA_ASSIGNEE_HA_USER_ID: "",
+                const.DATA_USER_HA_USER_ID: "",
             },
         },
         const.DATA_CHORES: {
@@ -282,10 +282,10 @@ class TestNuclearRebuild:
         # Set up assignee with points
         migrator.coordinator._data[const.DATA_ASSIGNEES] = {
             "assignee-uuid-1": {
-                const.DATA_ASSIGNEE_INTERNAL_ID: "assignee-uuid-1",
-                const.DATA_ASSIGNEE_NAME: "Alice",
+                const.DATA_USER_INTERNAL_ID: "assignee-uuid-1",
+                const.DATA_USER_NAME: "Alice",
                 const.DATA_ASSIGNEE_POINTS: 250.5,
-                const.DATA_ASSIGNEE_HA_USER_ID: "",
+                const.DATA_USER_HA_USER_ID: "",
             },
         }
 
@@ -293,7 +293,7 @@ class TestNuclearRebuild:
         assert result is True
 
         assignee = migrator.coordinator._data[const.DATA_ASSIGNEES]["assignee-uuid-1"]
-        assert assignee[const.DATA_ASSIGNEE_NAME] == "Alice"
+        assert assignee[const.DATA_USER_NAME] == "Alice"
         assert assignee[const.DATA_ASSIGNEE_POINTS] == 250.5
 
     def test_rebuild_preserves_chore_assigned_assignees(self, migrator) -> None:
@@ -330,13 +330,13 @@ class TestNuclearRebuild:
         """Nuclear rebuild skips items that fail to build, continues others."""
         migrator.coordinator._data[const.DATA_ASSIGNEES] = {
             "good-assignee": {
-                const.DATA_ASSIGNEE_INTERNAL_ID: "good-assignee",
-                const.DATA_ASSIGNEE_NAME: "Alice",
+                const.DATA_USER_INTERNAL_ID: "good-assignee",
+                const.DATA_USER_NAME: "Alice",
                 const.DATA_ASSIGNEE_POINTS: 100.0,
             },
             "bad-assignee": {
                 # Missing required name field — may cause build_assignee() to fail
-                const.DATA_ASSIGNEE_INTERNAL_ID: "bad-assignee",
+                const.DATA_USER_INTERNAL_ID: "bad-assignee",
             },
         }
 

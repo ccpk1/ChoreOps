@@ -79,8 +79,9 @@ from .helpers.entity_helpers import (
     get_assignee_name_by_id,
     get_friendly_label,
     get_item_name_or_log_error,
-    is_linked_profile,
+    is_user_feature_gated_profile,
     should_create_entity,
+    should_create_entity_for_user_assignee,
     should_create_gamification_entities,
     should_create_workflow_buttons,
 )
@@ -157,22 +158,16 @@ async def async_setup_entry(
     # For each assignee profile, add standard sensors
     for assignee_id, assignee_info in coordinator.assignees_data.items():
         assignee_name = get_item_name_or_log_error(
-            "assignee", assignee_id, assignee_info, const.DATA_ASSIGNEE_NAME
+            "assignee", assignee_id, assignee_info, const.DATA_USER_NAME
         )
         if not assignee_name:
             continue
 
-        # Determine profile context flags for should_create_entity()
-        is_feature_gated_profile = is_linked_profile(coordinator, assignee_id)
-        gamification_enabled = should_create_gamification_entities(
-            coordinator, assignee_id
-        )
-
         # Points counter sensor (GAMIFICATION requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
         ):
             entities.append(
                 AssigneePointsSensor(
@@ -186,19 +181,20 @@ async def async_setup_entry(
             )
 
         # Chores sensor with all stats (ALWAYS created)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_CHORES_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
+            coordinator,
+            assignee_id,
         ):
             entities.append(
                 AssigneeChoresSensor(coordinator, entry, assignee_id, assignee_name)
             )
 
         # Chore completion sensors (EXTRA requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_TOTAL_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -206,10 +202,10 @@ async def async_setup_entry(
                     coordinator, entry, assignee_id, assignee_name
                 )
             )
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_DAILY_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -217,10 +213,10 @@ async def async_setup_entry(
                     coordinator, entry, assignee_id, assignee_name
                 )
             )
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_WEEKLY_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -228,10 +224,10 @@ async def async_setup_entry(
                     coordinator, entry, assignee_id, assignee_name
                 )
             )
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_COMPLETED_MONTHLY_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -241,20 +237,20 @@ async def async_setup_entry(
             )
 
         # Assignee Badges (displays highest cumulative badge) (GAMIFICATION requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_BADGES_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
         ):
             entities.append(
                 AssigneeBadgesSensor(coordinator, entry, assignee_id, assignee_name)
             )
 
         # Points earned sensors (EXTRA requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -267,10 +263,10 @@ async def async_setup_entry(
                     points_icon,
                 )
             )
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -283,10 +279,10 @@ async def async_setup_entry(
                     points_icon,
                 )
             )
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -301,10 +297,10 @@ async def async_setup_entry(
             )
 
         # Maximum points sensor (EXTRA requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_MAX_POINTS_EVER_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -319,10 +315,10 @@ async def async_setup_entry(
             )
 
         # Penalty applied sensors (EXTRA requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_PENALTY_APPLIES_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             for penalty_id, penalty_info in coordinator.penalties_data.items():
@@ -343,10 +339,10 @@ async def async_setup_entry(
                 )
 
         # Bonus applied sensors (EXTRA requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_BONUS_APPLIES_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             for bonus_id, bonus_info in coordinator.bonuses_data.items():
@@ -367,10 +363,10 @@ async def async_setup_entry(
                 )
 
         # Badge progress sensors (GAMIFICATION requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
         ):
             badge_progress_data = assignee_info.get(
                 const.DATA_ASSIGNEE_BADGE_PROGRESS, {}
@@ -398,10 +394,10 @@ async def async_setup_entry(
                     )
 
         # Achievement Progress per Assignee (GAMIFICATION requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ACHIEVEMENT_PROGRESS_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
         ):
             for achievement_id, achievement in coordinator.achievements_data.items():
                 if assignee_id in achievement.get(
@@ -427,10 +423,10 @@ async def async_setup_entry(
                     )
 
         # Challenge Progress per Assignee (GAMIFICATION requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
         ):
             for challenge_id, challenge in coordinator.challenges_data.items():
                 if assignee_id in challenge.get(
@@ -453,10 +449,10 @@ async def async_setup_entry(
                     )
 
         # Highest Streak Sensor per Assignee (EXTRA requirement)
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR,
-            is_feature_gated_profile=is_feature_gated_profile,
-            gamification_enabled=gamification_enabled,
+            coordinator,
+            assignee_id,
             extra_enabled=show_legacy_entities,
         ):
             entities.append(
@@ -480,7 +476,7 @@ async def async_setup_entry(
                 "AssigneeData", coordinator.assignees_data.get(assignee_id, {})
             )
             assignee_name = get_item_name_or_log_error(
-                "assignee", assignee_id, assignee_data, const.DATA_ASSIGNEE_NAME
+                "assignee", assignee_id, assignee_data, const.DATA_USER_NAME
             )
             if not assignee_name:
                 continue
@@ -521,19 +517,14 @@ async def async_setup_entry(
 
         # For each assignee with gamification enabled, create the reward status sensor
         for assignee_id, assignee_info in coordinator.assignees_data.items():
-            is_feature_gated_profile = is_linked_profile(coordinator, assignee_id)
-            gamification_enabled = should_create_gamification_entities(
-                coordinator, assignee_id
-            )
-            # Skip linked profiles without gamification using unified check
-            if not should_create_entity(
+            if not should_create_entity_for_user_assignee(
                 const.SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR,
-                is_feature_gated_profile=is_feature_gated_profile,
-                gamification_enabled=gamification_enabled,
+                coordinator,
+                assignee_id,
             ):
                 continue
             assignee_name = get_item_name_or_log_error(
-                "assignee", assignee_id, assignee_info, const.DATA_ASSIGNEE_NAME
+                "assignee", assignee_id, assignee_info, const.DATA_USER_NAME
             )
             if not assignee_name:
                 continue
@@ -615,7 +606,7 @@ async def async_setup_entry(
     # This prevents entity ID lookup failures during initial setup
     for assignee_id, assignee_data in coordinator.assignees_data.items():
         assignee_name = get_item_name_or_log_error(
-            "assignee", assignee_id, assignee_data, const.DATA_ASSIGNEE_NAME
+            "assignee", assignee_id, assignee_data, const.DATA_USER_NAME
         )
         if not assignee_name:
             continue
@@ -682,7 +673,7 @@ def create_chore_entities(coordinator: ChoreOpsDataCoordinator, chore_id: str) -
             "AssigneeData", coordinator.assignees_data.get(assignee_id) or {}
         )
         assignee_name = get_item_name_or_log_error(
-            "assignee", assignee_id, assignee_data, const.DATA_ASSIGNEE_NAME
+            "assignee", assignee_id, assignee_data, const.DATA_USER_NAME
         )
         if not assignee_name:
             continue
@@ -738,7 +729,7 @@ def create_reward_entities(
             continue
 
         assignee_name = get_item_name_or_log_error(
-            "assignee", assignee_id, assignee_info, const.DATA_ASSIGNEE_NAME
+            "assignee", assignee_id, assignee_info, const.DATA_USER_NAME
         )
         if not assignee_name:
             continue
@@ -1572,16 +1563,16 @@ class AssigneeChoresSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # NOTE: all_time stats are storage-only, not in cache (can't calculate due to retention)
         for pres_key, value in pres_stats.items():
             if pres_key.startswith("pres_assignee_chores_"):
-                attr_key = pres_key[
-                    16:
-                ]  # "pres_assignee_chores_approved_today" -> "approved_today"
+                attr_key = pres_key.removeprefix(
+                    "pres_assignee_chores_"
+                )  # "pres_assignee_chores_approved_today" -> "approved_today"
                 # Skip all_time keys - they come from storage only
                 if not attr_key.endswith("_all_time"):
                     all_stats[attr_key] = value
             elif pres_key.startswith("pres_assignee_top_chores_"):
-                attr_key = pres_key[
-                    9:
-                ]  # "pres_assignee_top_chores_xxx" -> "top_chores_xxx"
+                attr_key = pres_key.removeprefix(
+                    "pres_assignee_"
+                )  # "pres_assignee_top_chores_xxx" -> "top_chores_xxx"
                 all_stats[attr_key] = value
 
         # Build attributes in logical order
@@ -2251,23 +2242,23 @@ class SystemBadgeSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             if not assignee_info:
                 continue
             assignees_earned.append(
-                assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+                assignee_info.get(const.DATA_USER_NAME, assignee_id)
             )
 
         attributes[const.ATTR_ASSIGNEES_EARNED] = assignees_earned
 
         # Per-assignee assigned stats
-        assignees_assigned_ids = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
-        assignees_assigned = []
-        for assignee_id in assignees_assigned_ids:
+        assigned_assignees_ids = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+        assigned_assignees = []
+        for assignee_id in assigned_assignees_ids:
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if not assignee_info:
                 continue
-            assignees_assigned.append(
-                assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assigned_assignees.append(
+                assignee_info.get(const.DATA_USER_NAME, assignee_id)
             )
 
-        attributes[const.ATTR_ASSIGNEES_ASSIGNED] = assignees_assigned
+        attributes[const.ATTR_ASSIGNEES_ASSIGNED] = assigned_assignees
 
         attributes[const.ATTR_TARGET] = badge_info.get(const.DATA_BADGE_TARGET, None)
         attributes[const.ATTR_ASSOCIATED_ACHIEVEMENT] = badge_info.get(
@@ -2445,7 +2436,7 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     "assignee",
                     k_id,
                     self.coordinator.assignees_data.get(k_id, {}),
-                    const.DATA_ASSIGNEE_NAME,
+                    const.DATA_USER_NAME,
                 )
             )
         ]
@@ -2533,9 +2524,7 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     "AssigneeData",
                     self.coordinator.assignees_data.get(claimed_by_id, {}),  # type: ignore[call-overload]
                 )
-                claimed_by_name = claimant_info.get(
-                    const.DATA_ASSIGNEE_NAME, claimed_by_id
-                )
+                claimed_by_name = claimant_info.get(const.DATA_USER_NAME, claimed_by_id)
 
             completed_by_name = None
             if completed_by_id:
@@ -2544,7 +2533,7 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     self.coordinator.assignees_data.get(completed_by_id, {}),  # type: ignore[call-overload]
                 )
                 completed_by_name = completer_info.get(
-                    const.DATA_ASSIGNEE_NAME, completed_by_id
+                    const.DATA_USER_NAME, completed_by_id
                 )
 
             attributes[const.ATTR_CHORE_CLAIMED_BY] = claimed_by_name
@@ -3122,7 +3111,7 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     "assignee",
                     k_id,
                     self.coordinator.assignees_data.get(k_id, {}),
-                    const.DATA_ASSIGNEE_NAME,
+                    const.DATA_USER_NAME,
                 )
             )
         ]
@@ -3328,7 +3317,7 @@ class SystemChallengeSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     "assignee",
                     k_id,
                     self.coordinator.assignees_data.get(k_id, {}),
-                    const.DATA_ASSIGNEE_NAME,
+                    const.DATA_USER_NAME,
                 )
             )
         ]
@@ -3620,7 +3609,7 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
                     "assignee",
                     k_id,
                     self.coordinator.assignees_data.get(k_id, {}),
-                    const.DATA_ASSIGNEE_NAME,
+                    const.DATA_USER_NAME,
                 )
             )
         ]
@@ -3831,7 +3820,7 @@ class AssigneeChallengeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     "assignee",
                     k_id,
                     self.coordinator.assignees_data.get(k_id, {}),
-                    const.DATA_ASSIGNEE_NAME,
+                    const.DATA_USER_NAME,
                 )
             )
         ]
@@ -4174,7 +4163,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 turn_assignee_info: Any = self.coordinator.assignees_data.get(
                     current_turn_assignee_id, {}
                 )
-                turn_assignee_name = turn_assignee_info.get(const.DATA_ASSIGNEE_NAME)
+                turn_assignee_name = turn_assignee_info.get(const.DATA_USER_NAME)
 
         # Return the 9 fields needed for Phase 4 dashboard rendering
         return {
@@ -4540,10 +4529,6 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         except (KeyError, ValueError, AttributeError):
             entity_registry = None
 
-        # Capability-aware gating (schema45 contract + legacy-compatible fallback)
-        is_feature_gated_profile = is_linked_profile(
-            self.coordinator, self._assignee_id
-        )
         gamification_enabled = should_create_gamification_entities(
             self.coordinator, self._assignee_id
         )
@@ -4991,8 +4976,9 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_ASSIGNEE_NAME: self._assignee_name,
             const.ATTR_TRANSLATION_SENSOR: self._get_translation_sensor_eid(),
             "language": dashboard_language,
-            "is_feature_gated_profile": is_feature_gated_profile,
-            "is_shadow_assignee": is_feature_gated_profile,
+            "is_feature_gated_profile": is_user_feature_gated_profile(
+                self.coordinator, self._assignee_id
+            ),
             "gamification_enabled": gamification_enabled,
             "chore_workflow_enabled": chore_workflow_enabled,
         }

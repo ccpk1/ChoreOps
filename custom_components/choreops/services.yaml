@@ -398,7 +398,7 @@ set_chore_due_date:
       name: "Assignee Name"
       description: >
         For shared chores, specify the assignee to set the due date for.
-        If omitted, sets the due date for all assigned assignees.
+        If omitted, sets the due date for all assignees assigned to this chore.
       example: "Alice"
       required: false
       selector:
@@ -441,7 +441,7 @@ skip_chore_due_date:
       name: "Assignee Name"
       description: >
         For shared chores, specify the assignee to skip the due date for.
-        If omitted, skips the due date for all assigned assignees.
+        If omitted, skips the due date for all assignees assigned to this chore.
       example: "Alice"
       required: false
       selector:
@@ -615,7 +615,7 @@ create_chore:
       selector:
         text:
     assigned_assignees:
-      name: "Assigned Assignees"
+      name: "Assigned to"
       description: "List of assignee names to assign to this chore."
       example: "['Emma', 'Jack']"
       required: true
@@ -755,7 +755,7 @@ create_chore:
         boolean:
     due_date:
       name: "Due Date"
-      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assigned assignees."
+      description: "When the chore is due. For INDEPENDENT chores, sets the due date for all assignees assigned to this chore."
       example: "2026-01-15T17:00:00"
       required: false
       selector:
@@ -794,7 +794,7 @@ update_chore:
       selector:
         text:
     assigned_assignees:
-      name: "Assigned Assignees"
+      name: "Assigned to"
       description: "New list of assignee names to assign to this chore."
       example: "['Emma', 'Jack', 'Sophia']"
       required: false
@@ -923,7 +923,7 @@ update_chore:
         boolean:
     due_date:
       name: "Due Date"
-      description: "New due date. For INDEPENDENT chores, updates the due date for all assigned assignees."
+      description: "New due date. For INDEPENDENT chores, updates the due date for all assignees assigned to this chore."
       example: "2026-01-20T17:00:00"
       required: false
       selector:

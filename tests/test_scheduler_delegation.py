@@ -88,7 +88,7 @@ def set_chore_due_date_to_past(
 def get_assignee_by_name(coordinator: Any, name: str) -> str | None:
     """Get assignee ID by name."""
     for assignee_id, assignee_info in coordinator.assignees_data.items():
-        if assignee_info.get(const.DATA_ASSIGNEE_NAME) == name:
+        if assignee_info.get(const.DATA_USER_NAME) == name:
             return assignee_id
     return None
 

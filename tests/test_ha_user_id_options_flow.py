@@ -125,7 +125,7 @@ class TestHaUserIdClearing:
         associated_assignees = [
             assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
-            if not assignee_data.get("is_shadow_assignee", False)
+            if assignee_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True)
         ][:1]
         with patch(
             "custom_components.choreops.helpers.translation_helpers.get_available_dashboard_languages",
@@ -201,3 +201,43 @@ class TestHaUserIdClearing:
         assert ha_user_id_after == "", (
             f"Expected empty string, got '{ha_user_id_after}'"
         )
+
+    async def test_edit_user_allows_reopen_with_empty_mobile_notify_service(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Editing a user with empty stored notification service should remain valid."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = config_entry.runtime_data
+
+        if not coordinator.approvers_data:
+            pytest.skip("Scenario has no user-role profiles to edit")
+
+        approver_id, approver_data = next(iter(coordinator.approvers_data.items()))
+        approver_name = str(approver_data.get(CFOF_APPROVERS_INPUT_NAME, ""))
+        assert approver_name
+
+        coordinator.user_manager.update_user(
+            approver_id,
+            {const.DATA_USER_MOBILE_NOTIFY_SERVICE: ""},
+            immediate_persist=True,
+        )
+
+        # Open edit form for the same user.
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: approver_name},
+        )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_EDIT_USER

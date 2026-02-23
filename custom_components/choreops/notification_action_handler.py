@@ -259,7 +259,7 @@ async def async_handle_notification_action(hass: HomeAssistant, event: Event) ->
             assignee_info: AssigneeData = cast(
                 "AssigneeData", coordinator.assignees_data.get(parsed.assignee_id, {})
             )
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
             # Async method with lock protection
             await coordinator.chore_manager.claim_chore(
                 assignee_id=parsed.assignee_id,

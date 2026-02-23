@@ -120,7 +120,7 @@ class UserManager(BaseManager):
                 const.LOGGER.debug(
                     "Removed deleted assignee %s from approver '%s' associated_assignees",
                     assignee_id,
-                    approver_info.get(const.DATA_APPROVER_NAME),
+                    approver_info.get(const.DATA_USER_NAME),
                 )
                 cleaned = True
 
@@ -159,14 +159,14 @@ class UserManager(BaseManager):
         """
         if prebuilt:
             assignee_data = dict(user_input)
-            assignee_id = str(assignee_data[const.DATA_ASSIGNEE_INTERNAL_ID])
+            assignee_id = str(assignee_data[const.DATA_USER_INTERNAL_ID])
         else:
-            assignee_data = dict(db.build_assignee(user_input))
-            assignee_id = str(assignee_data[const.DATA_ASSIGNEE_INTERNAL_ID])
+            assignee_data = dict(db.build_user_assignee_profile(user_input))
+            assignee_id = str(assignee_data[const.DATA_USER_INTERNAL_ID])
 
         # Override internal_id if provided
         if internal_id:
-            assignee_data[const.DATA_ASSIGNEE_INTERNAL_ID] = internal_id
+            assignee_data[const.DATA_USER_INTERNAL_ID] = internal_id
             assignee_id = internal_id
 
         # Ensure assignees dict exists and store assignee data
@@ -175,7 +175,7 @@ class UserManager(BaseManager):
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
 
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+        assignee_name = assignee_data.get(const.DATA_USER_NAME, assignee_id)
         const.LOGGER.info("Created assignee '%s' (ID: %s)", assignee_name, assignee_id)
 
         # Emit assignee created event
@@ -221,7 +221,7 @@ class UserManager(BaseManager):
         self.coordinator.async_update_listeners()
 
         assignee_name = assignee_records[assignee_id].get(
-            const.DATA_ASSIGNEE_NAME, assignee_id
+            const.DATA_USER_NAME, assignee_id
         )
         const.LOGGER.info("Updated assignee '%s' (ID: %s)", assignee_name, assignee_id)
 
@@ -256,7 +256,7 @@ class UserManager(BaseManager):
             )
 
         assignee_info = assignee_records[assignee_id]
-        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+        assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
         # Normal assignee deletion continues below
         del assignee_records[assignee_id]
@@ -328,29 +328,29 @@ class UserManager(BaseManager):
         """
         if prebuilt:
             approver_data = dict(user_input)
-            approver_id = str(approver_data[const.DATA_APPROVER_INTERNAL_ID])
+            approver_id = str(approver_data[const.DATA_USER_INTERNAL_ID])
         else:
             approver_data = dict(db.build_approver(user_input))
-            approver_id = str(approver_data[const.DATA_APPROVER_INTERNAL_ID])
+            approver_id = str(approver_data[const.DATA_USER_INTERNAL_ID])
 
         # Override internal_id if provided
         if internal_id:
-            approver_data[const.DATA_APPROVER_INTERNAL_ID] = internal_id
+            approver_data[const.DATA_USER_INTERNAL_ID] = internal_id
             approver_id = internal_id
 
-        approver_name = str(approver_data.get(const.DATA_APPROVER_NAME, approver_id))
+        approver_name = str(approver_data.get(const.DATA_USER_NAME, approver_id))
 
         # Ensure approvers dict exists and store approver data
         approver_records = self._approver_records()
         user_records = self._user_records()
+        can_be_assigned = bool(
+            approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
+        )
         approver_records[approver_id] = approver_data
         user_records[approver_id] = {
             **dict(approver_data),
-            const.DATA_USER_CAN_BE_ASSIGNED: False,
+            const.DATA_USER_CAN_BE_ASSIGNED: can_be_assigned,
         }
-
-        approver_records[approver_id][const.DATA_APPROVER_LINKED_PROFILE_ID] = None
-        user_records[approver_id][const.DATA_APPROVER_LINKED_PROFILE_ID] = None
 
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
@@ -399,24 +399,26 @@ class UserManager(BaseManager):
 
         # Merge updates into existing approver data
         approver_records[approver_id].update(updates)
+        can_be_assigned = bool(
+            approver_records[approver_id].get(
+                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False
+            )
+        )
         existing_user = user_records.get(approver_id)
         if isinstance(existing_user, dict):
             existing_user.update(updates)
-            existing_user[const.DATA_USER_CAN_BE_ASSIGNED] = False
+            existing_user[const.DATA_USER_CAN_BE_ASSIGNED] = can_be_assigned
         else:
             user_records[approver_id] = {
                 **dict(approver_records[approver_id]),
-                const.DATA_USER_CAN_BE_ASSIGNED: False,
+                const.DATA_USER_CAN_BE_ASSIGNED: can_be_assigned,
             }
-
-        approver_records[approver_id][const.DATA_APPROVER_LINKED_PROFILE_ID] = None
-        user_records[approver_id][const.DATA_APPROVER_LINKED_PROFILE_ID] = None
 
         self.coordinator._persist(immediate=immediate_persist)
         self.coordinator.async_update_listeners()
 
         approver_name = approver_records[approver_id].get(
-            const.DATA_APPROVER_NAME, approver_id
+            const.DATA_USER_NAME, approver_id
         )
         const.LOGGER.info("Updated approver '%s' (ID: %s)", approver_name, approver_id)
 
@@ -453,7 +455,7 @@ class UserManager(BaseManager):
             )
 
         approver_data = approver_records[approver_id]
-        approver_name = approver_data.get(const.DATA_APPROVER_NAME, approver_id)
+        approver_name = approver_data.get(const.DATA_USER_NAME, approver_id)
 
         del approver_records[approver_id]
         user_records.pop(approver_id, None)

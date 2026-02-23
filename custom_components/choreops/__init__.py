@@ -59,7 +59,7 @@ async def _update_all_assignee_device_names(
 
     # Update device name for each assignee
     for assignee_id, assignee_data in coordinator.assignees_data.items():
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignee_name = assignee_data.get(const.DATA_USER_NAME, "Unknown")
         device = device_registry.async_get_device(
             identifiers={(const.DOMAIN, assignee_id)}
         )

@@ -156,10 +156,11 @@ class ChoreEngine:
         chore_data: ChoreData | dict[str, Any],
         actor_assignee_id: str,
         action: str,
-        assignees_assigned: list[str],
+        assigned_assignees: list[str] | None = None,
         assignee_name: str = "Unknown",
         skip_stats: bool = False,
         is_overdue: bool = False,
+        **legacy_kwargs: Any,
     ) -> list[TransitionEffect]:
         """Calculate transition effects for ALL assignees based on ONE action.
 
@@ -171,7 +172,7 @@ class ChoreEngine:
             chore_data: The chore being acted upon
             actor_assignee_id: The assignee performing the action
             action: One of CHORE_ACTION_* values
-            assignees_assigned: All assignees assigned to this chore
+            assigned_assignees: All assignees assigned to this chore
             assignee_name: Display name of actor assignee (for claimed_by/completed_by)
             skip_stats: If True, mark effects as update_stats=False
             is_overdue: If True, chore is past due (for disapprove action)
@@ -180,6 +181,14 @@ class ChoreEngine:
             List of TransitionEffect describing changes for each affected assignee
         """
         effects: list[TransitionEffect] = []
+        if assigned_assignees is None:
+            legacy_assigned_assignees = legacy_kwargs.pop("assignees_assigned", None)
+            assigned_assignees = (
+                legacy_assigned_assignees
+                if isinstance(legacy_assigned_assignees, list)
+                else []
+            )
+
         completion_criteria = chore_data.get(
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_SHARED,
@@ -191,7 +200,7 @@ class ChoreEngine:
             effects = ChoreEngine._plan_claim_effects(
                 completion_criteria,
                 actor_assignee_id,
-                assignees_assigned,
+                assigned_assignees,
                 assignee_name,
             )
 
@@ -200,7 +209,7 @@ class ChoreEngine:
             effects = ChoreEngine._plan_approve_effects(
                 completion_criteria,
                 actor_assignee_id,
-                assignees_assigned,
+                assigned_assignees,
                 assignee_name,
                 points,
             )
@@ -210,7 +219,7 @@ class ChoreEngine:
             effects = ChoreEngine._plan_disapprove_effects(
                 completion_criteria,
                 actor_assignee_id,
-                assignees_assigned,
+                assigned_assignees,
                 is_overdue,
             )
 
@@ -219,7 +228,7 @@ class ChoreEngine:
             effects = ChoreEngine._plan_undo_effects(
                 completion_criteria,
                 actor_assignee_id,
-                assignees_assigned,
+                assigned_assignees,
                 is_overdue,
             )
             # Undo never updates stats
@@ -227,7 +236,7 @@ class ChoreEngine:
 
         # === RESET ACTION (scheduled) ===
         elif action == CHORE_ACTION_RESET:
-            effects = ChoreEngine._plan_reset_effects(assignees_assigned)
+            effects = ChoreEngine._plan_reset_effects(assigned_assignees)
 
         # === OVERDUE ACTION ===
         elif action == CHORE_ACTION_OVERDUE:
@@ -250,7 +259,7 @@ class ChoreEngine:
     def _plan_claim_effects(
         criteria: str,
         actor_assignee_id: str,
-        assignees_assigned: list[str],
+        assigned_assignees: list[str],
         assignee_name: str,
     ) -> list[TransitionEffect]:
         """Plan effects for a claim action.
@@ -277,7 +286,7 @@ class ChoreEngine:
     def _plan_approve_effects(
         criteria: str,
         actor_assignee_id: str,
-        assignees_assigned: list[str],
+        assigned_assignees: list[str],
         assignee_name: str,
         points: float,
     ) -> list[TransitionEffect]:
@@ -308,7 +317,7 @@ class ChoreEngine:
     def _plan_disapprove_effects(
         criteria: str,
         actor_assignee_id: str,
-        assignees_assigned: list[str],
+        assigned_assignees: list[str],
         is_overdue: bool,
     ) -> list[TransitionEffect]:
         """Plan effects for a disapprove action.
@@ -316,7 +325,7 @@ class ChoreEngine:
         Args:
             criteria: Completion criteria (SHARED, INDEPENDENT, SHARED_FIRST)
             actor_assignee_id: The assignee being disapproved
-            assignees_assigned: All assignees assigned to chore
+            assigned_assignees: All assignees assigned to chore
             is_overdue: If True, chore is past due (return to overdue state)
         """
         effects: list[TransitionEffect] = []
@@ -328,7 +337,7 @@ class ChoreEngine:
 
         if criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
             # SHARED_FIRST: Reset ALL assignees to target state (overdue or pending)
-            for assignee_id in assignees_assigned:
+            for assignee_id in assigned_assignees:
                 effects.append(
                     TransitionEffect(
                         assignee_id=assignee_id,
@@ -356,7 +365,7 @@ class ChoreEngine:
     def _plan_undo_effects(
         criteria: str,
         actor_assignee_id: str,
-        assignees_assigned: list[str],
+        assigned_assignees: list[str],
         is_overdue: bool,
     ) -> list[TransitionEffect]:
         """Plan effects for an undo (assignee self-undo) action.
@@ -364,7 +373,7 @@ class ChoreEngine:
         Args:
             criteria: Completion criteria (SHARED, INDEPENDENT, SHARED_FIRST)
             actor_assignee_id: The assignee performing the undo
-            assignees_assigned: All assignees assigned to chore
+            assigned_assignees: All assignees assigned to chore
             is_overdue: If True, chore is past due (return to overdue state)
         """
         effects: list[TransitionEffect] = []
@@ -376,7 +385,7 @@ class ChoreEngine:
 
         if criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
             # SHARED_FIRST: Reset ALL assignees to target state (overdue or pending)
-            for assignee_id in assignees_assigned:
+            for assignee_id in assigned_assignees:
                 effects.append(
                     TransitionEffect(
                         assignee_id=assignee_id,
@@ -398,7 +407,7 @@ class ChoreEngine:
         return effects
 
     @staticmethod
-    def _plan_reset_effects(assignees_assigned: list[str]) -> list[TransitionEffect]:
+    def _plan_reset_effects(assigned_assignees: list[str]) -> list[TransitionEffect]:
         """Plan effects for a scheduled reset."""
         return [
             TransitionEffect(
@@ -408,7 +417,7 @@ class ChoreEngine:
                 clear_claimed_by=True,
                 clear_completed_by=True,
             )
-            for assignee_id in assignees_assigned
+            for assignee_id in assigned_assignees
         ]
 
     # =========================================================================

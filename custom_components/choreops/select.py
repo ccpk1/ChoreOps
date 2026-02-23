@@ -23,7 +23,10 @@ from .helpers.device_helpers import (
     create_assignee_device_info_from_coordinator,
     create_system_device_info,
 )
-from .helpers.entity_helpers import is_linked_profile, should_create_entity
+from .helpers.entity_helpers import (
+    should_create_entity,
+    should_create_entity_for_user_assignee,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -87,9 +90,10 @@ async def async_setup_entry(
 
     # Assignee-specific dashboard helper selects (always created)
     for assignee_id in coordinator.assignees_data:
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.SELECT_KC_UID_SUFFIX_ASSIGNEE_DASHBOARD_HELPER_CHORES_SELECT,
-            is_feature_gated_profile=is_linked_profile(coordinator, assignee_id),
+            coordinator,
+            assignee_id,
         ):
             selects.append(
                 AssigneeDashboardHelperChoresSelect(coordinator, entry, assignee_id)
@@ -395,7 +399,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         assignee_names = []
         for assignee_id, assignee_info in self.coordinator.assignees_data.items():
             assignee_name = assignee_info.get(
-                const.DATA_ASSIGNEE_NAME,
+                const.DATA_USER_NAME,
                 f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
             )
             assignee_names.append(assignee_name)
@@ -430,7 +434,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         selected_assignee_id = None
         for assignee_id, assignee_info in self.coordinator.assignees_data.items():
             assignee_name = assignee_info.get(
-                const.DATA_ASSIGNEE_NAME,
+                const.DATA_USER_NAME,
                 f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
             )
             if assignee_name == current_value:
@@ -495,7 +499,7 @@ class AssigneeDashboardHelperChoresSelect(ChoreOpsSelectBase):
             "dict[str, Any]", coordinator.assignees_data.get(assignee_id, {})
         )
         assignee_name = (
-            assignee_data.get(const.DATA_ASSIGNEE_NAME)
+            assignee_data.get(const.DATA_USER_NAME)
             or f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         self._attr_unique_id = f"{entry.entry_id}_{assignee_id}{const.SELECT_KC_UID_SUFFIX_ASSIGNEE_DASHBOARD_HELPER_CHORES_SELECT}"
@@ -546,7 +550,7 @@ class AssigneeDashboardHelperChoresSelect(ChoreOpsSelectBase):
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
         assignee_name = assignee_info.get(
-            const.DATA_ASSIGNEE_NAME,
+            const.DATA_USER_NAME,
             f"{const.TRANS_KEY_LABEL_ASSIGNEE} {self._assignee_id}",
         )
         return {

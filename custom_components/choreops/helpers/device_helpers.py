@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from .. import const
-from .entity_helpers import is_linked_profile
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -62,10 +61,9 @@ def create_assignee_device_info_from_coordinator(
     assignee_name: str,
     config_entry: ConfigEntry,
 ) -> DeviceInfo:
-    """Create device info for an assignee profile, auto-detecting gating status.
+    """Create device info for an assignee profile.
 
-    This is a convenience wrapper around create_assignee_device_info that looks up
-    the feature-gated profile status from the coordinator's assignees_data.
+    This is a convenience wrapper around create_assignee_device_info.
 
     Args:
         coordinator: The ChoreOpsCoordinator instance
@@ -74,14 +72,12 @@ def create_assignee_device_info_from_coordinator(
         config_entry: Config entry for this integration instance
 
     Returns:
-        DeviceInfo dict for the assignee device with correct model
+        DeviceInfo dict for the assignee device
     """
-    is_feature_gated_profile = is_linked_profile(coordinator, assignee_id)
     return create_assignee_device_info(
         assignee_id,
         assignee_name,
         config_entry,
-        is_feature_gated_profile=is_feature_gated_profile,
     )
 
 

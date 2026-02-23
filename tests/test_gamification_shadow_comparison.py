@@ -70,7 +70,7 @@ class TestBadgeShadowComparison:
 
         # Get first assignee
         assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignee_name = assignee_data.get(const.DATA_USER_NAME, "Unknown")
 
         # Find a points-based badge
         points_badge_id = None
@@ -152,7 +152,7 @@ class TestBadgeShadowComparison:
 
         # Get first assignee
         assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignee_name = assignee_data.get(const.DATA_USER_NAME, "Unknown")
 
         # Find a chore-count badge
         chore_badge_id = None
@@ -229,7 +229,7 @@ class TestAchievementShadowComparison:
 
         # Get first assignee
         assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignee_name = assignee_data.get(const.DATA_USER_NAME, "Unknown")
 
         # Find a CHORE_TOTAL achievement
         achievement_id = None
@@ -299,7 +299,7 @@ class TestChallengeShadowComparison:
 
         # Get first assignee
         assignee_id, assignee_data = next(iter(coordinator.assignees_data.items()))
-        assignee_name = assignee_data.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+        assignee_name = assignee_data.get(const.DATA_USER_NAME, "Unknown")
 
         # Find any challenge
         challenge_id = None

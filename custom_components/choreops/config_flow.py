@@ -112,8 +112,8 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self._handle_start_fresh()
             elif selection == "current_active":
                 return await self._handle_use_current()
-            elif selection == "migrate_from_assigneeschores":
-                return await self._handle_migrate_from_assigneeschores()
+            elif selection == "migrate_from_kidschores":
+                return await self._handle_migrate_from_kidschores()
             elif selection == "paste_json":
                 return await self._handle_paste_json()
             else:
@@ -159,7 +159,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             options.append("current_active")
 
         if has_legacy_candidates:
-            options.append("migrate_from_assigneeschores")
+            options.append("migrate_from_kidschores")
 
         options.append("start_fresh")
 
@@ -266,7 +266,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             data={},  # Empty - integration will load from storage file
         )
 
-    async def _handle_migrate_from_assigneeschores(self):
+    async def _handle_migrate_from_kidschores(self):
         """Handle one-time migration from legacy ChoreOps artifacts."""
         try:
             result = await mp50.async_migrate_from_legacy_choreops_storage(self.hass)
@@ -588,13 +588,11 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             )
 
             if not errors:
-                assignee_profile_data = dict(db.build_assignee_profile(user_input))
-                internal_id = str(
-                    assignee_profile_data[const.DATA_ASSIGNEE_INTERNAL_ID]
-                )
+                assignee_profile_data = dict(db.build_user_assignee_profile(user_input))
+                internal_id = str(assignee_profile_data[const.DATA_USER_INTERNAL_ID])
                 self._assignees_temp[internal_id] = assignee_profile_data
 
-                assignee_name = str(assignee_profile_data[const.DATA_ASSIGNEE_NAME])
+                assignee_name = str(assignee_profile_data[const.DATA_USER_NAME])
                 const.LOGGER.debug(
                     "Added assignee profile: %s with ID: %s",
                     assignee_name,
@@ -677,7 +675,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             is_assignee_payload = (
-                const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME in user_input
+                const.CFOF_USERS_INPUT_NAME in user_input
                 and const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES not in user_input
                 and const.CFOF_APPROVERS_INPUT_CAN_APPROVE not in user_input
                 and const.CFOF_APPROVERS_INPUT_CAN_MANAGE not in user_input
@@ -694,19 +692,13 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
             if is_assignee_payload:
                 assignee_input = {
-                    const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: user_input.get(
-                        const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
-                        user_input.get(
-                            const.CFOF_APPROVERS_INPUT_NAME,
-                            const.SENTINEL_EMPTY,
-                        ),
+                    const.CFOF_USERS_INPUT_NAME: user_input.get(
+                        const.CFOF_USERS_INPUT_NAME,
+                        const.SENTINEL_EMPTY,
                     ),
-                    const.CFOF_ASSIGNEES_INPUT_HA_USER: user_input.get(
-                        const.CFOF_ASSIGNEES_INPUT_HA_USER,
-                        user_input.get(
-                            const.CFOF_APPROVERS_INPUT_HA_USER,
-                            const.SENTINEL_EMPTY,
-                        ),
+                    const.CFOF_USERS_INPUT_HA_USER_ID: user_input.get(
+                        const.CFOF_USERS_INPUT_HA_USER_ID,
+                        const.SENTINEL_EMPTY,
                     ),
                     const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: user_input.get(
                         const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
@@ -715,12 +707,9 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                             const.DEFAULT_DASHBOARD_LANGUAGE,
                         ),
                     ),
-                    const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: user_input.get(
-                        const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
-                        user_input.get(
-                            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
-                            const.SENTINEL_EMPTY,
-                        ),
+                    const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: user_input.get(
+                        const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+                        const.SENTINEL_EMPTY,
                     ),
                 }
                 errors = fh.validate_assignee_inputs(
@@ -731,13 +720,13 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                 if not errors:
                     assignee_profile_data = dict(
-                        db.build_assignee_profile(assignee_input)
+                        db.build_user_assignee_profile(assignee_input)
                     )
                     internal_id = str(
-                        assignee_profile_data[const.DATA_ASSIGNEE_INTERNAL_ID]
+                        assignee_profile_data[const.DATA_USER_INTERNAL_ID]
                     )
                     self._assignees_temp[internal_id] = assignee_profile_data
-                    assignee_name = str(assignee_profile_data[const.DATA_ASSIGNEE_NAME])
+                    assignee_name = str(assignee_profile_data[const.DATA_USER_NAME])
                     const.LOGGER.debug(
                         "Added assignee profile: %s with ID: %s",
                         assignee_name,
@@ -754,10 +743,14 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                 if not errors:
                     approver_data = dict(db.build_user_profile(user_input))
-                    internal_id = str(approver_data[const.DATA_APPROVER_INTERNAL_ID])
-                    approver_name = str(approver_data[const.DATA_APPROVER_NAME])
-
-                    approver_data[const.DATA_APPROVER_LINKED_PROFILE_ID] = None
+                    internal_id = str(approver_data[const.DATA_USER_INTERNAL_ID])
+                    approver_name = str(approver_data[const.DATA_USER_NAME])
+                    approver_data[const.DATA_USER_CAN_BE_ASSIGNED] = bool(
+                        approver_data.get(
+                            const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+                            False,
+                        )
+                    )
 
                     self._approvers_temp[internal_id] = approver_data
                     const.LOGGER.debug(
@@ -778,9 +771,17 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             return await self.async_step_users()
 
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in self._assignees_temp.items()
         }
+        for user_id, user_data in self._approvers_temp.items():
+            if not bool(
+                user_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
+            ):
+                continue
+            user_name = user_data.get(const.DATA_USER_NAME)
+            if isinstance(user_name, str) and user_name:
+                assignees_dict.setdefault(user_name, user_id)
 
         users = await self.hass.auth.async_get_users()
         user_schema = await fh.build_user_schema(
@@ -835,7 +836,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
             # Build assignees_dict for name→UUID conversion
             assignees_dict = {
-                assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+                assignee_data[const.DATA_USER_NAME]: assignee_id
                 for assignee_id, assignee_data in self._assignees_temp.items()
             }
 
@@ -889,7 +890,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         # Use flow_helpers.build_chore_schema, passing the current assignees
         # Config flow uses restricted frequency options (excludes DAILY_MULTI)
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in self._assignees_temp.items()
         }
         default_data: dict[str, Any] = {}
@@ -1305,7 +1306,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 try:
                     # Config flow uses names directly (no name-to-ID mapping needed)
                     assignees_name_to_id = {
-                        assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+                        assignee_data[const.DATA_USER_NAME]: assignee_id
                         for assignee_id, assignee_data in self._assignees_temp.items()
                     }
 
@@ -1351,7 +1352,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self.async_step_achievements()
 
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in self._assignees_temp.items()
         }
         all_chores = self._chores_temp
@@ -1418,7 +1419,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 try:
                     # Config flow uses names directly (need name-to-ID mapping)
                     assignees_name_to_id = {
-                        assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+                        assignee_data[const.DATA_USER_NAME]: assignee_id
                         for assignee_id, assignee_data in self._assignees_temp.items()
                     }
 
@@ -1487,7 +1488,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self.async_step_challenges()
 
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in self._assignees_temp.items()
         }
         all_chores = self._chores_temp
@@ -1516,7 +1517,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         # Create a mapping from assignment-profile IDs to display names
         assignee_id_to_name = {
-            assignee_id: data[const.DATA_ASSIGNEE_NAME]
+            assignee_id: data[const.DATA_USER_NAME]
             for assignee_id, data in self._assignees_temp.items()
         }
 
@@ -1534,14 +1535,14 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             if associated_assignees_names:
                 assignees_str = ", ".join(associated_assignees_names)
                 approvers_summary.append(
-                    f"{approver_record[const.DATA_APPROVER_NAME]} (Assignees: {assignees_str})"
+                    f"{approver_record[const.DATA_USER_NAME]} (Assignees: {assignees_str})"
                 )
             else:
-                approvers_summary.append(approver_record[const.DATA_APPROVER_NAME])
+                approvers_summary.append(approver_record[const.DATA_USER_NAME])
 
         assignees_names = (
             ", ".join(
-                assignee_data[const.DATA_ASSIGNEE_NAME]
+                assignee_data[const.DATA_USER_NAME]
                 for assignee_data in self._assignees_temp.values()
             )
             or const.SENTINEL_NONE_TEXT
@@ -1627,7 +1628,12 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         approver_users = {
             approver_id: {
                 **dict(approver_data),
-                const.DATA_USER_CAN_BE_ASSIGNED: False,
+                const.DATA_USER_CAN_BE_ASSIGNED: bool(
+                    approver_data.get(
+                        const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+                        False,
+                    )
+                ),
             }
             for approver_id, approver_data in self._approvers_temp.items()
         }
@@ -1662,7 +1668,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         const.LOGGER.debug(
             "DEBUG: Config Flow - Assignees data: %s",
             {
-                assignee_id: assignee_data.get(const.DATA_ASSIGNEE_NAME)
+                assignee_id: assignee_data.get(const.DATA_USER_NAME)
                 for assignee_id, assignee_data in self._assignees_temp.items()
             },
         )

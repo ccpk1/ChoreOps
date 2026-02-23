@@ -239,7 +239,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_assignees": "👥 Assigned Assignees",
+              "assigned_assignees": "👥 Assigned to",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -306,7 +306,7 @@
           "icon": "📋 Icon (mdi:xxx)",
           "chore_labels": "📋 Labels (optional)",
           "default_points": "💰 Points Awarded",
-          "assigned_assignees": "👥 Assigned Assignees",
+          "assigned_assignees": "👥 Assigned to",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -369,7 +369,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -476,7 +476,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned Assignees",
+          "assigned_assignees": "Assigned to",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -500,7 +500,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned Assignees",
+          "assigned_assignees": "Assigned to",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -528,7 +528,6 @@
       "duplicate_penalty": "A penalty with this name already exists",
       "duplicate_reward": "A reward with this name already exists",
       "duplicate_bonus": "A bonus with this name already exists",
-      "shadow_assignee_name_conflict": "Cannot enable chore assignment: a assignee with your name already exists. Please rename the existing assignee first.",
       "due_date_in_past": "Due date must be in the future.",
       "end_date_in_past": "End Date must be in the future.",
       "end_date_not_after_start_date": "End date must be later than start date",
@@ -803,7 +802,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_assignees": "👥 Assigned Assignees",
+              "assigned_assignees": "👥 Assigned to",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -870,7 +869,7 @@
           "icon": "📋 Icon (mdi:xxx)",
           "chore_labels": "📋 Labels (optional)",
           "default_points": "💰 Points Awarded",
-          "assigned_assignees": "👥 Assigned Assignees",
+          "assigned_assignees": "👥 Assigned to",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -935,7 +934,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -981,7 +980,7 @@
           "target_type": "🎯 DAILY TARGET: Target Type",
           "threshold_value": "🎯 DAILY TARGET: Threshold Value",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1013,7 +1012,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "recurring_frequency": "🔄 RESET CYCLE: Frequency",
@@ -1053,7 +1052,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_achievement": "🏆 Associated Achievement",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1077,7 +1076,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_challenge": "🏁 Associated Challenge",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1107,7 +1106,7 @@
           "custom_interval_unit": "🔄 RECURRENCE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RECURRENCE: Start Date (Optional)",
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1172,7 +1171,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned Assignees",
+          "assigned_assignees": "Assigned to",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -1189,7 +1188,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned Assignees",
+          "assigned_assignees": "Assigned to",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -1217,26 +1216,9 @@
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
-      "edit_assignee_shadow": {
-        "title": "Edit Shadow Assignee",
-        "description": "Modify the details of the selected shadow assignee. ⚠️ This assignee is linked to a approver. Changing the name will break the name-matching requirement for unlinking via service.",
-        "data": {
-          "name": "Assignee Name",
-          "ha_user": "Home Assistant User",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "⚠️ This shadow assignee is linked to a approver. Changing this name will break the service unlinking feature, which requires matching names.",
-          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "⚠️ Shadow assignee notifications: The linked approver already receives notifications for supervised chores. Enabling here will create duplicate notifications. Useful for 30-minute due date reminders or if using different notification services.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
-        }
-      },
       "edit_assignee_linked": {
-        "title": "Edit Shadow Assignee",
-        "description": "Modify the details of the selected shadow assignee. ⚠️ This assignee is linked to a approver. Changing the name will break the name-matching requirement for unlinking via service.",
+        "title": "Edit linked assignee",
+        "description": "Modify the details of the selected linked assignee. ⚠️ This assignee is linked to a approver. Changing the name will break the name-matching requirement for unlinking via service.",
         "data": {
           "name": "Assignee Name",
           "ha_user": "Home Assistant User",
@@ -1245,9 +1227,9 @@
           "internal_id": "Internal ID"
         },
         "data_description": {
-          "name": "⚠️ This shadow assignee is linked to a approver. Changing this name will break the service unlinking feature, which requires matching names.",
+          "name": "⚠️ This linked assignee is linked to a approver. Changing this name will break the service unlinking feature, which requires matching names.",
           "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "⚠️ Shadow assignee notifications: The linked approver already receives notifications for supervised chores. Enabling here will create duplicate notifications. Useful for 30-minute due date reminders or if using different notification services.",
+          "mobile_notify_service": "⚠️ Linked assignee notifications: The linked approver already receives notifications for supervised chores. Enabling here will create duplicate notifications. Useful for 30-minute due date reminders or if using different notification services.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
@@ -1409,7 +1391,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_assignees": "👥 Assigned Assignees",
+              "assigned_assignees": "👥 Assigned to",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -1477,7 +1459,7 @@
           "chore_labels": "📋 Labels (optional)",
           "internal_id": "Internal ID",
           "default_points": "💰 Points Awarded",
-          "assigned_assignees": "👥 Assigned Assignees",
+          "assigned_assignees": "👥 Assigned to",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -1569,7 +1551,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -1615,7 +1597,7 @@
           "target_type": "🎯 DAILY TARGET: Target Type",
           "threshold_value": "🎯 DAILY TARGET: Threshold Value",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1647,7 +1629,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "recurring_frequency": "🔄 RESET CYCLE: Frequency",
@@ -1687,7 +1669,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_achievement": "🏆 Associated Achievement",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1711,7 +1693,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_challenge": "🏁 Associated Challenge",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1741,7 +1723,7 @@
           "custom_interval_unit": "🔄 RECURRENCE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RECURRENCE: Start Date (Optional)",
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
-          "assigned_to": "🧒 Assigned Assignees",
+          "assigned_to": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1806,7 +1788,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned Assignees",
+          "assigned_assignees": "Assigned to",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -1823,7 +1805,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned Assignees",
+          "assigned_assignees": "Assigned to",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -2486,7 +2468,7 @@
         "cancel": "↩️  Cancel (return to backup menu)",
         "start_fresh": "🆕 Start fresh (creates backup of existing data)",
         "current_active": "📂 Use current active data file",
-        "migrate_from_assigneeschores": "🔄 Migrate from ChoreOps (non-destructive copy)",
+        "migrate_from_kidschores": "🔄 Migrate from KidsChores (non-destructive copy)",
         "paste_json": "📋 Paste JSON from data file or diagnostics"
       }
     }
@@ -2757,8 +2739,8 @@
           "example": "Clean Room"
         },
         "assigned_assignees": {
-          "name": "Assigned Assignees",
-          "description": "List of assignee names to assign to this chore.",
+          "name": "Assigned to",
+          "description": "List of assignee names to assign this chore to.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -2853,8 +2835,8 @@
           "example": "Clean Room"
         },
         "assigned_assignees": {
-          "name": "Assigned Assignees",
-          "description": "New list of assignee names to assign to this chore.",
+          "name": "Assigned to",
+          "description": "New list of assignee names to assign this chore to.",
           "example": "['Emma', 'Jack']"
         },
         "points": {
@@ -3096,7 +3078,7 @@
         },
         "assignee_name": {
           "name": "Assignee Name",
-          "description": "For independent chores, specify the assignee to set the due date for. If omitted, sets the due date for all assigned assignees.",
+          "description": "For independent chores, specify the assignee to set the due date for. If omitted, sets the due date for all assignees assigned to this chore.",
           "example": "Alice"
         },
         "assignee_id": {
@@ -3122,7 +3104,7 @@
         },
         "assignee_name": {
           "name": "Assignee Name",
-          "description": "For independent chores, specify the assignee to skip the due date for. If omitted, skips the due date for all assigned assignees.",
+          "description": "For independent chores, specify the assignee to skip the due date for. If omitted, skips the due date for all assignees assigned to this chore.",
           "example": "Alice"
         },
         "assignee_id": {
@@ -3192,7 +3174,7 @@
             "name": "Description"
           },
           "assigned_assignees": {
-            "name": "Assigned Assignees"
+            "name": "Assigned to"
           },
           "labels": {
             "name": "Labels"
@@ -3827,7 +3809,7 @@
             "name": "Assignees Earned"
           },
           "assignees_assigned": {
-            "name": "Assignees Assigned"
+            "name": "Assigned to"
           },
           "target": {
             "name": "Target"
@@ -3976,7 +3958,7 @@
             "name": "Description"
           },
           "assigned_assignees": {
-            "name": "Assigned Assignees"
+            "name": "Assigned to"
           },
           "labels": {
             "name": "Labels"
@@ -4263,7 +4245,7 @@
             "name": "Description"
           },
           "assigned_assignees": {
-            "name": "Assigned Assignees"
+            "name": "Assigned to"
           },
           "type": {
             "name": "Type",
@@ -4309,7 +4291,7 @@
             "name": "Description"
           },
           "assigned_assignees": {
-            "name": "Assigned Assignees"
+            "name": "Assigned to"
           },
           "type": {
             "name": "Type",
@@ -4363,7 +4345,7 @@
             "name": "Description"
           },
           "assigned_assignees": {
-            "name": "Assigned Assignees"
+            "name": "Assigned to"
           },
           "type": {
             "name": "Type",
@@ -4419,7 +4401,7 @@
             "name": "Description"
           },
           "assigned_assignees": {
-            "name": "Assigned Assignees"
+            "name": "Assigned to"
           },
           "type": {
             "name": "Type",
@@ -4824,15 +4806,6 @@
     },
     "approver_not_found_by_name": {
       "message": "No approver found with name {name}"
-    },
-    "assignee_already_shadow": {
-      "message": "Assignee {name} is already linked to an approver"
-    },
-    "assignee_not_shadow": {
-      "message": "Assignee {name} is not linked to any approver"
-    },
-    "approver_has_different_shadow": {
-      "message": "Approver {name} is already linked to a different assignee"
     },
     "error_msg_no_entry_found": {
       "message": "No matching entry found in configuration."

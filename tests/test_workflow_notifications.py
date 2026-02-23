@@ -170,8 +170,8 @@ def set_ha_user_capabilities(
     def _record_ha_user_ref(user_data: dict[str, Any]) -> str | None:
         for key in (
             const.DATA_USER_HA_USER_ID,
-            const.DATA_APPROVER_HA_USER_ID,
-            const.DATA_ASSIGNEE_HA_USER_ID,
+            const.DATA_USER_HA_USER_ID,
+            const.DATA_USER_HA_USER_ID,
         ):
             value = user_data.get(key)
             if isinstance(value, str) and value:
@@ -1329,7 +1329,7 @@ class TestConcurrentNotifications:
             "name": "Test Dad",
             const.DATA_APPROVER_ASSOCIATED_USERS: [assignee_id],
             "enable_notifications": True,
-            const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_dad",
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_dad",
             const.DATA_APPROVER_DASHBOARD_LANGUAGE: "en",
             const.DATA_USER_CAN_APPROVE: True,
         }

@@ -91,6 +91,7 @@ class ChoreOpsStore:
 
             legacy_keys = [
                 mp50.LEGACY_STORAGE_KEY,
+                mp50.LEGACY_STORAGE_KEY_TRANSITIONAL,
             ]
             for legacy_key in legacy_keys:
                 legacy_store: Store = Store(

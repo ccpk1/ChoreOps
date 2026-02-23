@@ -31,18 +31,18 @@ For ongoing reference and to maintain Platinum certification, consult:
 
 **To prevent confusion between Home Assistant's registry and ChoreOps internal data:**
 
-| Term                  | Usage                                             | Example                                |
-| --------------------- | ------------------------------------------------- | -------------------------------------- |
-| **Item** / **Record** | A data entry in `.storage/choreops/choreops_data` | "A Chore Item", "Kid Record"           |
-| **Domain Item**       | Collective term for all stored data types         | Kids, Chores, Badges (as JSON records) |
-| **Internal ID**       | UUID identifying a stored record                  | `kid_id`, `chore_id` (always UUIDs)    |
-| **Entity**            | ONLY a Home Assistant platform object             | Sensor, Button, Select, Calendar       |
-| **Entity ID**         | The Home Assistant registry string                | `sensor.kc_alice_points`               |
-| **Entity Data**       | State attributes of an HA entity                  | What appears in `more-info` dialog     |
+| Term                  | Usage                                             | Example                                  |
+| --------------------- | ------------------------------------------------- | ---------------------------------------- |
+| **Item** / **Record** | A data entry in `.storage/choreops/choreops_data` | "A Chore Item", "Assignee Record"        |
+| **Domain Item**       | Collective term for all stored data types         | Users, Chores, Badges (as JSON records)  |
+| **Internal ID**       | UUID identifying a stored record                  | `assignee_id`, `chore_id` (always UUIDs) |
+| **Entity**            | ONLY a Home Assistant platform object             | Sensor, Button, Select, Calendar         |
+| **Entity ID**         | The Home Assistant registry string                | `sensor.kc_alice_points`                 |
+| **Entity Data**       | State attributes of an HA entity                  | What appears in `more-info` dialog       |
 
-**Critical Rule**: Never use "Entity" when referring to a Chore, Kid, Badge, etc. These are **Items** stored in JSON, not HA registry objects.
+**Critical Rule**: Never use "Entity" when referring to a Chore, Assignee, Badge, etc. These are **Items** stored in JSON, not HA registry objects.
 
-**Storage Contains**: Domain Items (Kids, Chores, Badges, etc.) as JSON records with UUIDs.
+**Storage Contains**: Domain Items (Users, Chores, Badges, etc.) as JSON records with UUIDs.
 
 **HA Registry Contains**: Entities (Sensors, Buttons) that are ephemeral wrappers representing the state of Domain Items to the user.
 
@@ -67,7 +67,7 @@ For ongoing reference and to maintain Platinum certification, consult:
 
 **Single Write Path**: Only Manager methods may call `coordinator._persist()`. UI flows (`options_flow.py`) and services (`services.py`) must delegate to Manager methods.
 
-**Event-Driven Orchestration**: Managers communicate via the Dispatcher (e.g., `SIGNAL_SUFFIX_KID_UPDATED`). Direct cross-manager calls are forbidden to prevent tight coupling.
+**Event-Driven Orchestration**: Managers communicate via the Dispatcher (e.g., `SIGNAL_SUFFIX_USER_UPDATED`). Direct cross-manager calls are forbidden to prevent tight coupling.
 
 **Async Listener Contract**: Dispatcher listeners that modify state, persist data, update entities, or call async APIs must be `async def`. Sync listeners are allowed only for read-only or log-only handlers.
 
@@ -119,8 +119,8 @@ DATA_READY → ChoreManager → CHORES_READY
 │ config_entry.options   │        │ .storage/choreops/choreops_data │
 │ (System Settings Only) │        │ (Domain Items + Runtime) │
 ├────────────────────────┤        ├──────────────────────────┤
-│ • points_label         │        │ • kids                   │
-│ • points_icon          │        │ • parents                │
+│ • points_label         │        │ • users                  │
+│ • points_icon          │        │ • approver role fields   │
 │ • update_interval      │        │ • chores                 │
 │ • calendar_show_period │        │ • badges                 │
 │ • retention_*          │        │ • rewards                │
@@ -157,7 +157,7 @@ DATA_READY → ChoreManager → CHORES_READY
 
 ```
 ┌──────────────────────────────────────────────────┐
-│ Integration Reload Time (with 20 kids, 50 chores)│
+│ Integration Reload Time (with 20 users, 50 chores)│
 ├──────────────────────────────────────────────────┤
 │ Legacy (config-based):     2.5s                  │
 │ v0.5.0 (storage-only):     0.3s                  │
@@ -170,20 +170,20 @@ DATA_READY → ChoreManager → CHORES_READY
 
 These settings are stored in `config_entry.options` and require integration reload to take effect:
 
-| Setting                | Type   | Default                 | Used By             | Why Reload Required               |
-| ---------------------- | ------ | ----------------------- | ------------------- | --------------------------------- |
-| `points_label`         | string | "Points"                | Sensor translations | Entity name changes               |
-| `points_icon`          | string | "mdi:star-outline"      | Point sensors       | Entity icon changes               |
-| `update_interval`      | int    | 5 (minutes)             | Coordinator         | Polling interval changes          |
-| `calendar_show_period` | int    | 90 (days)               | Calendar platform   | Entity config changes             |
-| `backups_max_retained` | int    | 5 (count per type)      | backup helper       | Data protection setting           |
-| `retention_daily`      | int    | 7 (days)                | Stats cleanup       | Runtime read (no reload needed\*) |
-| `retention_weekly`     | int    | 5 (weeks)               | Stats cleanup       | Runtime read (no reload needed\*) |
-| `retention_monthly`    | int    | 3 (months)              | Stats cleanup       | Runtime read (no reload needed\*) |
-| `retention_yearly`     | int    | 3 (years)               | Stats cleanup       | Runtime read (no reload needed\*) |
-| `points_adjust_values` | list   | `[+1,-1,+2,-2,+10,-10]` | Button entities     | Entity creation/removal           |
-| `show_legacy_entities` | bool   | `false`                 | Entity setup        | Conditional entity creation       |
-| `kiosk_mode`           | bool   | `false`                 | Kid claim buttons   | Authorization behavior toggle     |
+| Setting                | Type   | Default                 | Used By                | Why Reload Required               |
+| ---------------------- | ------ | ----------------------- | ---------------------- | --------------------------------- |
+| `points_label`         | string | "Points"                | Sensor translations    | Entity name changes               |
+| `points_icon`          | string | "mdi:star-outline"      | Point sensors          | Entity icon changes               |
+| `update_interval`      | int    | 5 (minutes)             | Coordinator            | Polling interval changes          |
+| `calendar_show_period` | int    | 90 (days)               | Calendar platform      | Entity config changes             |
+| `backups_max_retained` | int    | 5 (count per type)      | backup helper          | Data protection setting           |
+| `retention_daily`      | int    | 7 (days)                | Stats cleanup          | Runtime read (no reload needed\*) |
+| `retention_weekly`     | int    | 5 (weeks)               | Stats cleanup          | Runtime read (no reload needed\*) |
+| `retention_monthly`    | int    | 3 (months)              | Stats cleanup          | Runtime read (no reload needed\*) |
+| `retention_yearly`     | int    | 3 (years)               | Stats cleanup          | Runtime read (no reload needed\*) |
+| `points_adjust_values` | list   | `[+1,-1,+2,-2,+10,-10]` | Button entities        | Entity creation/removal           |
+| `show_legacy_entities` | bool   | `false`                 | Entity setup           | Conditional entity creation       |
+| `kiosk_mode`           | bool   | `false`                 | Assignee claim buttons | Authorization behavior toggle     |
 
 **Note**: Retention settings are kept in `config_entry.options` for consistency even though they don't strictly require reload (runtime reads via `self.config_entry.options.get(...)`). This keeps all user-configurable settings in one place.
 
@@ -224,7 +224,7 @@ async def _update_system_settings_and_reload(self):
             "migrations_applied": [
                 "datetime_utc",
                 "chore_data_structure",
-                "kid_data_structure",
+                "assignee_data_structure",
                 "badge_restructure",
                 "cumulative_badge_progress",
                 "badges_earned_dict",
@@ -232,19 +232,20 @@ async def _update_system_settings_and_reload(self):
                 "chore_data_and_streaks"
             ]
         },
-        "kids": {
-            "kid_uuid_1": {
-                "internal_id": "kid_uuid_1",
+        "users": {
+            "assignee_uuid_1": {
+                "internal_id": "assignee_uuid_1",
                 "name": "Sarah",
                 "points": 150,
                 "ha_user_id": "user_123",
+                "mobile_notify_service": "notify.mobile_app_sarah",
                 "badges_earned": {...},
                 "point_stats": {...},
                 "chore_data": {...},
                 ...
             }
         },
-        "parents": {...},
+        "approvers": {...},
         "chores": {...},
         "badges": {...},
         "rewards": {...},
@@ -266,7 +267,7 @@ All Domain Item modifications follow this pattern:
 
 ```python
 # 1. Modify data in memory
-self._data[const.DATA_KIDS][kid_id]["points"] = new_points
+self._data[const.DATA_USERS][assignee_id][const.DATA_ASSIGNEE_POINTS] = new_points
 
 # 2. Persist to storage
 self._persist()  # Writes to .storage/choreops/choreops_data
@@ -302,7 +303,7 @@ ChoreOps separates **source data** (persisted) from **derived data** (computed a
 
 **Critical Principle**: Timestamps are stored as UTC ISO strings, but period bucket keys MUST use local timezone dates to reflect user's calendar days.
 
-**Why**: A kid in New York completing a chore at 10 PM Monday should see stats recorded under "Monday", not "Tuesday" (which would occur if using UTC date at 3 AM Tuesday).
+**Why**: An assignee in New York completing a chore at 10 PM Monday should see stats recorded under "Monday", not "Tuesday" (which would occur if using UTC date at 3 AM Tuesday).
 
 **Application**: Affects streak calculations, period statistics, and any logic that needs to query "yesterday's data" or "last week's totals".
 
@@ -351,7 +352,7 @@ The **`meta.schema_version`** field in storage data determines the integration's
 {
     "data": {
         "schema_version": 41,  // Top-level schema version
-        "kids": {...}
+        "users": {...}
     }
 }
 ```
@@ -366,7 +367,7 @@ The **`meta.schema_version`** field in storage data determines the integration's
             "last_migration_date": "2025-12-18...",
             "migrations_applied": ["badge_restructure", ...]
         },
-        "kids": {...}
+        "users": {...}
     }
 }
 ```
@@ -398,7 +399,7 @@ The **`meta.schema_version`** field in storage data determines the integration's
 │ Landlord Layer (Managers)                            │
 │ Creates: Empty top-level dicts                       │
 ├──────────────────────────────────────────────────────┤
-│ kid["reward_periods"] = {}                  ← Empty  │
+│ assignee["reward_periods"] = {}             ← Empty  │
 │ reward_data["periods"] = {}                 ← Empty  │
 └──────────────────────────────────────────────────────┘
                       ↓
@@ -417,11 +418,11 @@ The **`meta.schema_version`** field in storage data determines the integration's
 
 ### Manager Responsibilities
 
-| Manager            | Landlord Containers Created                       | Tenant Counters Tracked                      |
-| ------------------ | ------------------------------------------------- | -------------------------------------------- |
-| **ChoreManager**   | `kid["chore_periods"]`, `chore_data["periods"]`   | completed, approved, disapproved, points     |
-| **RewardManager**  | `kid["reward_periods"]`, `reward_data["periods"]` | claimed, approved, disapproved, points       |
-| **EconomyManager** | `kid["point_stats"]["transaction_history"]`       | deposits, withdrawals (via StatisticsEngine) |
+| Manager            | Landlord Containers Created                            | Tenant Counters Tracked                      |
+| ------------------ | ------------------------------------------------------ | -------------------------------------------- |
+| **ChoreManager**   | `assignee["chore_periods"]`, `chore_data["periods"]`   | completed, approved, disapproved, points     |
+| **RewardManager**  | `assignee["reward_periods"]`, `reward_data["periods"]` | claimed, approved, disapproved, points       |
+| **EconomyManager** | `assignee["point_stats"]["transaction_history"]`       | deposits, withdrawals (via StatisticsEngine) |
 
 **Analogy**: Manager builds the empty apartment building (landlord), StatisticsManager rents it and furnishes every room (tenant). No landlord should be doing interior decorating.
 
@@ -438,12 +439,12 @@ ChoreOps uses a **hybrid type approach** balancing type safety with practical co
 Used for entities and configurations with fixed keys known at design time:
 
 ```python
-class ParentData(TypedDict):
+class UserData(TypedDict):
     """Fixed structure - all keys known."""
     internal_id: str
     name: str
     ha_user_id: str
-    associated_kids: list[str]
+    associated_assignees: list[str]
     enable_notifications: bool
     # ...
 
@@ -468,14 +469,14 @@ Used for runtime-constructed data accessed with variable keys:
 
 ```python
 # Type alias with documentation
-KidChoreDataEntry = dict[str, Any]
+AssigneeChoreDataEntry = dict[str, Any]
 """Per-chore tracking data accessed dynamically.
 
 Common runtime pattern:
     chore_entry[field_name] = value  # field_name is a variable
 """
 
-KidChoreStats = dict[str, Any]
+AssigneeChoreStats = dict[str, Any]
 """Aggregated stats accessed with dynamic period keys.
 
 Common runtime pattern:
@@ -498,7 +499,7 @@ Common runtime pattern:
 ```python
 # Variable key access patterns (incompatible with TypedDict):
 field_name = "last_approved" if approved else "last_claimed"
-kid_chores_data[chore_id][field_name] = kid_name  # field_name is variable
+assignee_chores_data[chore_id][field_name] = assignee_name  # field_name is variable
 
 for period_key in ["daily", "weekly", "monthly"]:
     periods_data[period_key][date_str] = stats  # period_key is variable
@@ -553,9 +554,9 @@ Covers 9 scenarios (EC-01 through EC-09): monthly clamping, leap year handling, 
 ### Runtime optimization notes (v0.5.0 hardening)
 
 - **Daily expansion cap**: Calendar generation for `FREQUENCY_DAILY` and `FREQUENCY_DAILY_MULTI` is intentionally capped to `max(1, floor(calendar_show_period / 3))` days. Non-daily frequencies continue to use full show period.
-- **Read-path caching**: `KidScheduleCalendar` caches generated event windows by `(window_start, window_end, revision)` and reuses those results for `async_get_events` and `event` to avoid duplicate expansion work.
+- **Read-path caching**: `AssigneeScheduleCalendar` caches generated event windows by `(window_start, window_end, revision)` and reuses those results for `async_get_events` and `event` to avoid duplicate expansion work.
 - **Signal-first invalidation**: Calendar and recurrence artifacts are invalidated by explicit chore/challenge mutation signals rather than polling, preserving consistency with manager event architecture.
-- **Manager scan caching**: `ChoreManager` keeps derived parse caches for due datetimes and reminder/window offsets; these caches are cleared on chore/kid mutation signals.
+- **Manager scan caching**: `ChoreManager` keeps derived parse caches for due datetimes and reminder/window offsets; these caches are cleared on chore/assignee mutation signals.
 
 ---
 
@@ -633,10 +634,10 @@ The integration maintains two distinct systems to balance core HA requirements w
 
 #### Custom Managed Translations (Notifications & Dashboard)
 
-These systems handle content requiring specific per-kid customization or frontend-accessible strings.
+These systems handle content requiring specific per-assignee customization or frontend-accessible strings.
 
 - **Notification System**: Managed via `translations_custom/en_notifications.json` for chore, reward, and challenge updates.
-- **Dashboard System**: Managed via `translations_custom/en_dashboard.json` for the Kid Dashboard UI.
+- **Dashboard System**: Managed via `translations_custom/en_dashboard.json` for the Assignee Dashboard UI.
 
 ### 2. Dashboard Translation Sensor Architecture
 
@@ -645,20 +646,20 @@ The dashboard translation system uses **system-level translation sensors** to ef
 #### System-Level Translation Sensors
 
 - **Entity Pattern**: `sensor.kc_ui_dashboard_lang_{code}` (e.g., `sensor.kc_ui_dashboard_lang_en`, `sensor.kc_ui_dashboard_lang_es`)
-- **One Sensor Per Language**: Created dynamically based on languages used by kids and parents
+- **One Sensor Per Language**: Created dynamically based on languages used by assignees and approvers
 - **Attributes**: Exposes `ui_translations` dict with 40+ localized UI strings, plus `language` and `purpose` metadata
 - **Size**: Each translation sensor is ~5-6KB (well under HA's 16KB attribute limit)
 
 #### Dashboard Helper Pointer Pattern
 
-- **Dashboard Helper Attribute**: Each kid's `sensor.kc_<kid>_ui_dashboard_helper` includes a `translation_sensor` attribute
+- **Dashboard Helper Attribute**: Each assignee's `sensor.kc_<assignee>_ui_dashboard_helper` includes a `translation_sensor` attribute
 - **Indirection**: Dashboard helper returns a pointer (e.g., `"sensor.kc_ui_dashboard_lang_en"`) instead of embedding translations
 - **Lookup Pattern**: Dashboard YAML fetches translations via `state_attr(translation_sensor, 'ui_translations')`
 - **Size Benefit**: Reduces dashboard helper size by ~4.7KB (99% reduction in translation overhead)
 
 #### Lifecycle Management
 
-- **Dynamic Creation**: Translation sensors are created on-demand when a kid or parent selects a new language
+- **Dynamic Creation**: Translation sensors are created on-demand when an assignee or approver selects a new language
 - **Automatic Cleanup**: When the last user of a language is deleted, the corresponding translation sensor is removed
 - **Coordinator Tracking**: `coordinator._translation_sensors_created` tracks which language sensors exist
 - **Callback Pattern**: `sensor.py` registers `async_add_entities` callback for dynamic sensor creation
@@ -673,7 +674,7 @@ All translation files follow a unified, automated synchronization workflow.
 
 ### 4. Language Selection Architecture
 
-The architecture provides per-kid and per-parent dashboard language selection using standard Home Assistant infrastructure.
+The architecture provides per-assignee and per-approver dashboard language selection using standard Home Assistant infrastructure.
 
 - **Dynamic Detection**: The system scans the `translations_custom/` directory, extracting language codes from filenames (e.g., `es_dashboard.json` → `es`).
 - **Validation**: Detected codes are filtered against the Home Assistant `LANGUAGES` set to ensure they are valid.
@@ -685,33 +686,33 @@ The architecture provides per-kid and per-parent dashboard language selection us
 
 ## Dashboard Generation System
 
-The Options Flow provides automated dashboard generation, creating fully-functional Lovelace dashboards with pre-configured views for kid management and parent administration.
+The Options Flow provides automated dashboard generation, creating fully-functional Lovelace dashboards with pre-configured views for assignee management and approver administration.
 
 ### Architecture Components
 
 **Dashboard Templates** (`templates/dashboard_*.yaml`):
 
 - Pre-built Jinja2 templates with runtime (`{{ }}`) and build-time (`<< >>`) variables
-- Three kid dashboard styles: Minimal (essentials), Compact (dense), Full (all features)
+- Three assignee dashboard styles: Minimal (essentials), Compact (dense), Full (all features)
 - One admin dashboard template with 7 management cards
 - Templates use Mushroom Cards, Auto-Entities, and Mini Graph Card
 
 **Generation Flow** (`options_flow.py` → `dashboard_helpers.py`):
 
 - User selects a dashboard action (`create`, `update`, `delete`, `exit`) in a CRUD hub step
-- Create and update use a shared sectioned configure step (kid views, admin views, access/sidebar, template version)
-- Admin layout supports `none`, `global` (shared), `per_kid`, and `both`
+- Create and update use a shared sectioned configure step (assignee views, admin views, access/sidebar, template version)
+- Admin layout supports `none`, `global` (shared), `per_assignee`, and `both`
 - Update path applies changes in place to the selected dashboard URL path
-- Build-time rendering: Python Jinja2 populates kid names/slugs with `<< >>` delimiters
+- Build-time rendering: Python Jinja2 populates assignee names/slugs with `<< >>` delimiters
 - Runtime rendering: Home Assistant Jinja2 fetches live data with `{{ }}` delimiters
 - Output: Lovelace storage dashboard config persisted through the dashboard builder helpers
 
 **System Dashboard Selector** (`SystemDashboardAdminKidSelect`):
 
-- System-level select entity for admin dashboard kid switching
-- Provides `dashboard_helper_eid` attribute for efficient kid data access
-- Eliminates hardcoded kid names and expensive `integration_entities()` queries
-- Purpose-based filtering (`purpose_system_dashboard_admin_kid`) for entity ID stability
+- System-level select entity for admin dashboard assignee switching
+- Provides `dashboard_helper_eid` attribute for efficient assignee data access
+- Eliminates hardcoded assignee names and expensive `integration_entities()` queries
+- Purpose-based filtering (`purpose_system_dashboard_admin_assignee`) for entity ID stability
 
 **Custom Card Detection** (`dashboard_helpers.check_custom_cards_installed()`):
 
@@ -730,6 +731,21 @@ The ChoreOps integration utilizes a **Direct-to-Storage** architecture that deco
 
 - **Unified Logic via `flow_helpers.py`**: Both Config and Options flows leverage a shared utility layer to provide consistent validation and schema building. This centralization simplifies ongoing maintenance and ensures a uniform user experience across setup and configuration.
 - **Single Source of Truth via `data_builders.py`**: All entity validation and building logic is centralized in `data_builders.py`, which serves **three entry points**: Config Flow, Options Flow, and Services. This architectural decision eliminates duplicate validation code and ensures consistent business rules across UI forms and programmatic CRUD operations.
+- **User-first role model contract (Phase 4B)**: Runtime lifecycle records are users. Assignee and approver are role capabilities on user records, and derived views (`assignees_data`, `approvers_data`) are filtered projections only.
+- **Method naming contract (Phase 4B)**: Methods that create or mutate lifecycle records use user-centric naming. Assignee terminology is reserved for role-filter/projection logic. For assignment lists, prefer `assigned_assignees` naming in local variables/parameters.
+- **Entity gating source of truth**: `ENTITY_REGISTRY` in `custom_components/choreops/const.py` is the authoritative requirements registry for entity creation and cleanup. Runtime modules must consume centralized gating helpers and must not introduce duplicated per-platform requirement maps.
+
+    **Role-gating truth table (user-first contract):**
+
+    | User capability state | `ALWAYS` | `WORKFLOW` | `GAMIFICATION` | `EXTRA` |
+    | --- | --- | --- | --- | --- |
+    | `can_be_assigned = false` | Not created | Not created | Not created | Not created |
+    | `can_be_assigned = true` and not feature-gated | Created | Created | Created | Requires `show_legacy_entities = true` |
+    | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = false`, `enable_gamification = false` | Created | Not created | Not created | Not created |
+    | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = true`, `enable_gamification = false` | Created | Created | Not created | Not created |
+    | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = true`, `enable_gamification = true` | Created | Created | Created | Requires `show_legacy_entities = true` |
+
+    Runtime note: platform/managers must use centralized gating helpers and must not re-derive these outcomes with local ad-hoc conditionals.
 - **CFOF Key Alignment (v0.5.0)**: Form field keys (`CFOF_*`) align with storage keys (`DATA_*`) where possible, allowing `user_input` to pass directly to `data_builders.build_*()` without mapping. Complex entities (chores, badges) still use transform functions.
 - **Direct Storage Writing**: User input is written directly to persistent storage at `.storage/choreops/choreops_data` using **Schema 42**. This approach treats storage as the immediate source of truth, bypassing intermediate configuration entry merging.
 - **Lightweight System Settings**: The `config_entry.options` object is reserved exclusively for system-level settings and feature flags, such as `points_label`, `update_interval`, and `kiosk_mode`. This keeps the core configuration entry lightweight and easy to validate.
@@ -742,7 +758,7 @@ The configuration process follows a streamlined four-step path:
 
 1. **Introduction**: A welcome screen providing integration context.
 2. **System Settings**: Configuration of global labels, icons, and polling intervals.
-3. **Entity Setup**: Direct creation of kids, parents, chores, badges, rewards, and other entities.
+3. **Entity Setup**: Direct creation of assignees, approvers, chores, badges, rewards, and other entities.
 4. **Summary**: A final review before the storage data is committed and the entry is created.
 
 #### Options Flow (Management)
@@ -754,7 +770,7 @@ The Options Flow manages modifications without unnecessary system overhead:
 
 ### Key Benefits
 
-- **Scalability**: Eliminates the size constraints inherent in Home Assistant configuration entries, allowing for an unlimited number of kids and chores.
+- **Scalability**: Eliminates the size constraints inherent in Home Assistant configuration entries, allowing for an unlimited number of assignees and chores.
 - **Efficiency**: Provides significantly faster integration reloads (approximately 8x faster) because the system only needs to process a handful of settings rather than the entire entity database.
 - **Data Integrity**: Simplifies the codebase by removing complex merging and reconciliation logic, allowing the config flow to focus solely on clean data collection and storage.
 

@@ -343,7 +343,7 @@ class RewardManager(BaseManager):
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_INSUFFICIENT_POINTS,
                 translation_placeholders={
-                    "assignee": assignee_info[const.DATA_ASSIGNEE_NAME],
+                    "assignee": assignee_info[const.DATA_USER_NAME],
                     "current": str(assignee_info[const.DATA_ASSIGNEE_POINTS]),
                     "required": str(cost),
                 },
@@ -483,7 +483,7 @@ class RewardManager(BaseManager):
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_INSUFFICIENT_POINTS,
                 translation_placeholders={
-                    "assignee": assignee_info[const.DATA_ASSIGNEE_NAME],
+                    "assignee": assignee_info[const.DATA_USER_NAME],
                     "current": str(assignee_info[const.DATA_ASSIGNEE_POINTS]),
                     "required": str(cost),
                 },

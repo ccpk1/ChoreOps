@@ -19,7 +19,7 @@ import voluptuous as vol
 
 from . import const, data_builders as db
 from .data_builders import EntityValidationError
-from .helpers import backup_helpers as bh, flow_helpers as fh
+from .helpers import backup_helpers as bh, entity_helpers as eh, flow_helpers as fh
 from .utils.dt_utils import dt_now_utc, dt_parse, validate_daily_multi_times
 from .utils.math_utils import parse_points_adjust_values
 
@@ -232,21 +232,22 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_ACTION)
 
         entity_dict = self._get_entity_dict()
+        coordinator = self._get_coordinator()
 
         # Build sorted list of entity names for consistent display order
         # For assignee records, append marker to approver-linked profiles for clarity
         profile_link_marker = " 🔗"  # Link symbol indicates approver linkage
         entity_names = []
-        for data in entity_dict.values():
+        for entity_id, data in entity_dict.items():
             name = data.get(
                 const.OPTIONS_FLOW_DATA_ENTITY_NAME,
                 const.TRANS_KEY_DISPLAY_UNKNOWN_ENTITY,
             )
             # Add linked-profile marker for clarity in dropdown
-            if self._entity_type in (
-                const.OPTIONS_FLOW_DIC_ASSIGNEE,
-                const.OPTIONS_FLOW_DIC_USER,
-            ) and data.get(const.DATA_ASSIGNEE_IS_SHADOW, False):
+            if (
+                self._entity_type == const.OPTIONS_FLOW_DIC_ASSIGNEE
+                and eh.is_user_feature_gated_profile(coordinator, entity_id)
+            ):
                 name = f"{name}{profile_link_marker}"
             entity_names.append(name)
 
@@ -463,7 +464,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         user_input, immediate_persist=True
                     )
                     assignee_name = user_input.get(
-                        const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME, internal_id
+                        const.CFOF_USERS_INPUT_NAME, internal_id
                     )
 
                     const.LOGGER.debug(
@@ -522,7 +523,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             if not errors:
                 try:
                     # Build merged assignee data using data_builders
-                    updated_assignee = db.build_assignee_profile(
+                    updated_assignee = db.build_user_assignee_profile(
                         user_input,
                         existing=assignee_profile,
                     )
@@ -536,7 +537,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
                     const.LOGGER.debug(
                         "Edited assignee profile '%s' with ID: %s",
-                        updated_assignee[const.DATA_ASSIGNEE_NAME],
+                        updated_assignee[const.DATA_USER_NAME],
                         internal_id,
                     )
                     self._mark_reload_needed()
@@ -550,18 +551,18 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         users = await self.hass.auth.async_get_users()
 
         # Check if this is a linked profile to show warnings
-        is_linked_profile = assignee_profile.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
+        is_linked_profile = eh.is_user_feature_gated_profile(
+            coordinator, str(internal_id)
+        )
 
         # Prepare suggested values for form (current assignee profile data)
         suggested_values = {
-            const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: assignee_profile[
-                const.DATA_ASSIGNEE_NAME
-            ],
-            const.CFOF_ASSIGNEES_INPUT_HA_USER: assignee_profile.get(
-                const.DATA_ASSIGNEE_HA_USER_ID
+            const.CFOF_USERS_INPUT_NAME: assignee_profile[const.DATA_USER_NAME],
+            const.CFOF_USERS_INPUT_HA_USER_ID: assignee_profile.get(
+                const.DATA_USER_HA_USER_ID
             ),
-            const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: assignee_profile.get(
-                const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: assignee_profile.get(
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE
             ),
             const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: assignee_profile.get(
                 const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
@@ -618,7 +619,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_ASSIGNEE)
 
-        assignee_name = assignee_profiles[internal_id][const.DATA_ASSIGNEE_NAME]
+        assignee_name = assignee_profiles[internal_id][const.DATA_USER_NAME]
 
         if user_input is not None:
             # Use UserManager for assignee deletion (immediate persist for reload)
@@ -669,9 +670,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     internal_id = coordinator.user_manager.create_user(
                         user_input, immediate_persist=True
                     )
-                    user_name = user_input.get(
-                        const.CFOF_APPROVERS_INPUT_NAME, internal_id
-                    )
+                    user_name = user_input.get(const.CFOF_USERS_INPUT_NAME, internal_id)
 
                     self._mark_reload_needed()
 
@@ -689,9 +688,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         users = await self.hass.auth.async_get_users()
         # Build sorted assignees dict for dropdown (exclude approver-linked profiles)
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
-            if not assignee_data.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
+            if not eh.is_user_feature_gated_profile(coordinator, assignee_id)
         }
 
         user_schema = await fh.build_user_schema(
@@ -739,7 +738,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             non_feature_gated_assignees = {
                 assignee_id: data
                 for assignee_id, data in coordinator.assignees_data.items()
-                if not data.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
+                if assignee_id != str(internal_id)
+                if not eh.is_user_feature_gated_profile(coordinator, assignee_id)
             }
             errors = fh.validate_users_inputs(
                 user_input,
@@ -756,49 +756,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         existing=user_profile,
                     )
 
-                    # Handle workflow/gamification flag changes for existing linked profile
-                    # This must happen BEFORE update_approver because we need old vs new comparison
-                    existing_linked_assignee_id = user_profile.get(
-                        const.DATA_APPROVER_LINKED_PROFILE_ID
-                    )
-                    allow_chore_assignment = user_input.get(
-                        const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT, False
-                    )
-
-                    if existing_linked_assignee_id and allow_chore_assignment:
-                        old_workflow = user_profile.get(
-                            const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False
-                        )
-                        new_workflow = user_input.get(
-                            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW, False
-                        )
-                        old_gamification = user_profile.get(
-                            const.DATA_APPROVER_ENABLE_GAMIFICATION, False
-                        )
-                        new_gamification = user_input.get(
-                            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION, False
-                        )
-
-                        # Cleanup entities if flags were disabled
-                        if (
-                            old_workflow != new_workflow
-                            or old_gamification != new_gamification
-                        ):
-                            await (
-                                coordinator.system_manager.remove_conditional_entities(
-                                    assignee_ids=[existing_linked_assignee_id]
-                                )
-                            )
-
                     # Use UserManager for user-profile update (handles linked profile create/unlink)
                     # Immediate persist for reload
                     coordinator.user_manager.update_user(
                         str(internal_id), dict(updated_approver), immediate_persist=True
                     )
 
+                    await coordinator.system_manager.remove_conditional_entities(
+                        assignee_ids=[str(internal_id)]
+                    )
+
                     const.LOGGER.debug(
                         "Edited user profile '%s' with ID: %s",
-                        updated_approver[const.DATA_APPROVER_NAME],
+                        updated_approver[const.DATA_USER_NAME],
                         internal_id,
                     )
                     self._mark_reload_needed()
@@ -812,22 +782,38 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         users = await self.hass.auth.async_get_users()
         # Exclude approver-linked profiles from association list
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
-            if not assignee_data.get(const.DATA_ASSIGNEE_IS_SHADOW, False)
+            if not eh.is_user_feature_gated_profile(coordinator, assignee_id)
         }
+
+        available_notify_services = {
+            f"{const.NOTIFY_DOMAIN}.{service_name}"
+            for service_name in self.hass.services.async_services().get(
+                const.NOTIFY_DOMAIN, {}
+            )
+        }
+        current_ha_user_id = user_profile.get(const.DATA_USER_HA_USER_ID) or ""
+        current_mobile_notify_service = (
+            user_profile.get(const.DATA_USER_MOBILE_NOTIFY_SERVICE) or ""
+        )
+        if (
+            not current_mobile_notify_service
+            or current_mobile_notify_service not in available_notify_services
+        ):
+            current_mobile_notify_service = const.SENTINEL_NO_SELECTION
 
         # Prepare suggested values for form (current user-profile data)
         suggested_values = {
-            const.CFOF_APPROVERS_INPUT_NAME: user_profile[const.DATA_APPROVER_NAME],
-            const.CFOF_APPROVERS_INPUT_HA_USER: user_profile.get(
-                const.DATA_APPROVER_HA_USER_ID
+            const.CFOF_USERS_INPUT_NAME: user_profile[const.DATA_USER_NAME],
+            const.CFOF_USERS_INPUT_HA_USER_ID: (
+                current_ha_user_id or const.SENTINEL_NO_SELECTION
             ),
             const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: user_profile.get(
                 const.DATA_APPROVER_ASSOCIATED_USERS, []
             ),
-            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: user_profile.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: (
+                current_mobile_notify_service
             ),
             const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE: user_profile.get(
                 const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
@@ -887,7 +873,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_APPROVER)
 
-        user_name = user_profiles[internal_id][const.DATA_APPROVER_NAME]
+        user_name = user_profiles[internal_id][const.DATA_USER_NAME]
 
         if user_input is not None:
             # Use UserManager for user-profile deletion (immediate persist for reload)
@@ -925,7 +911,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Build assignees_dict for name→UUID conversion
             assignees_dict = {
-                data[const.DATA_ASSIGNEE_NAME]: eid
+                data[const.DATA_USER_NAME]: eid
                 for eid, data in coordinator.assignees_data.items()
             }
 
@@ -1145,7 +1131,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Use flow_helpers.build_chore_schema, passing current assignees
         assignees_dict = {
-            data[const.DATA_ASSIGNEE_NAME]: eid
+            data[const.DATA_USER_NAME]: eid
             for eid, data in coordinator.assignees_data.items()
         }
         schema = fh.build_chore_schema(assignees_dict)
@@ -1176,7 +1162,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Build assignees_dict for name→UUID conversion
             assignees_dict = {
-                data[const.DATA_ASSIGNEE_NAME]: eid
+                data[const.DATA_USER_NAME]: eid
                 for eid, data in coordinator.assignees_data.items()
             }
 
@@ -1433,13 +1419,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Use flow_helpers.fh.build_chore_schema, passing current assignees
         assignees_dict = {
-            data[const.DATA_ASSIGNEE_NAME]: eid
+            data[const.DATA_USER_NAME]: eid
             for eid, data in coordinator.assignees_data.items()
         }
 
         # Create reverse mapping from internal_id to name
         id_to_name = {
-            eid: data[const.DATA_ASSIGNEE_NAME]
+            eid: data[const.DATA_USER_NAME]
             for eid, data in coordinator.assignees_data.items()
         }
 
@@ -1780,7 +1766,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         name_to_id: dict[str, str] = {}
         for assignee_id in assigned_assignees:
             assignee_info = coordinator.assignees_data.get(assignee_id, {})
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             name_to_id[assignee_name] = assignee_id
 
         if user_input is not None:
@@ -2040,7 +2026,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         name_to_id: dict[str, str] = {}
         for assignee_id in assigned_assignees:
             assignee_info = coordinator.assignees_data.get(assignee_id, {})
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             name_to_id[assignee_name] = assignee_id
 
         # Get existing per-assignee data from storage
@@ -3444,8 +3430,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 try:
                     # Build assignees name to ID mapping for options flow
                     assignees_name_to_id = {
-                        assignee[const.DATA_ASSIGNEE_NAME]: assignee[
-                            const.DATA_ASSIGNEE_INTERNAL_ID
+                        assignee[const.DATA_USER_NAME]: assignee[
+                            const.DATA_USER_INTERNAL_ID
                         ]
                         for assignee in coordinator.data.get(
                             const.DATA_ASSIGNEES, {}
@@ -3490,7 +3476,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     errors[err.field] = err.translation_key
 
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
 
@@ -3537,9 +3523,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Build assignees name to ID mapping for options flow
             assignees_name_to_id = {
-                assignee[const.DATA_ASSIGNEE_NAME]: assignee[
-                    const.DATA_ASSIGNEE_INTERNAL_ID
-                ]
+                assignee[const.DATA_USER_NAME]: assignee[const.DATA_USER_INTERNAL_ID]
                 for assignee in coordinator.data.get(const.DATA_ASSIGNEES, {}).values()
             }
 
@@ -3588,14 +3572,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     errors[err.field] = err.translation_key
 
         assignees_dict = {
-            assignee_data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
         chores_dict = coordinator.chores_data
 
         # Create reverse mapping from internal_id to name
         id_to_name = {
-            assignee_id: assignee_data[const.DATA_ASSIGNEE_NAME]
+            assignee_id: assignee_data[const.DATA_USER_NAME]
             for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
 
@@ -3719,8 +3703,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 try:
                     # Build assignees name to ID mapping for options flow
                     assignees_name_to_id = {
-                        assignee[const.DATA_ASSIGNEE_NAME]: assignee[
-                            const.DATA_ASSIGNEE_INTERNAL_ID
+                        assignee[const.DATA_USER_NAME]: assignee[
+                            const.DATA_USER_INTERNAL_ID
                         ]
                         for assignee in coordinator.data.get(
                             const.DATA_ASSIGNEES, {}
@@ -3810,7 +3794,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Build schema - pass date defaults for DateTimeSelector to work correctly
         assignees_dict = {
-            data[const.DATA_ASSIGNEE_NAME]: eid
+            data[const.DATA_USER_NAME]: eid
             for eid, data in coordinator.assignees_data.items()
         }
 
@@ -3863,9 +3847,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             # Build assignees name to ID mapping for conversion
             assignees_name_to_id = {
-                assignee[const.DATA_ASSIGNEE_NAME]: assignee[
-                    const.DATA_ASSIGNEE_INTERNAL_ID
-                ]
+                assignee[const.DATA_USER_NAME]: assignee[const.DATA_USER_INTERNAL_ID]
                 for assignee in coordinator.data.get(const.DATA_ASSIGNEES, {}).values()
             }
 
@@ -3959,7 +3941,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Create reverse mapping from internal_id to name (for display)
         id_to_name = {
-            assignee_id: data[const.DATA_ASSIGNEE_NAME]
+            assignee_id: data[const.DATA_USER_NAME]
             for assignee_id, data in coordinator.assignees_data.items()
         }
 
@@ -3992,7 +3974,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         # Build schema with date defaults passed directly (like chores pattern)
         # This ensures DateTimeSelector works correctly when user only changes time
         assignees_dict = {
-            data[const.DATA_ASSIGNEE_NAME]: assignee_id
+            data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, data in coordinator.assignees_data.items()
         }
         chores_dict = coordinator.chores_data
@@ -5653,7 +5635,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         for approver_data in approvers_data.values():
             if not isinstance(approver_data, dict):
                 continue
-            user_id = approver_data.get(const.DATA_APPROVER_HA_USER_ID)
+            user_id = approver_data.get(const.DATA_USER_HA_USER_ID)
             if not isinstance(user_id, str):
                 continue
             normalized_user_id = user_id.strip()

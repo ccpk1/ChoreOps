@@ -84,7 +84,7 @@ async def scenario_per_assignee(
 
     if not zoe_id or not max_id:
         for assignee_id, assignee_info in coordinator.assignees_data.items():
-            name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "")
+            name = assignee_info.get(const.DATA_USER_NAME, "")
             if "Zo" in name or "zoe" in name.lower():
                 zoe_id = assignee_id
             elif "Max" in name:

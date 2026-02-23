@@ -36,10 +36,8 @@ from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_assignee_name_by_id,
     get_friendly_label,
-    is_linked_profile,
-    should_create_entity,
+    should_create_entity_for_user_assignee,
     should_create_gamification_entities,
-    should_create_workflow_buttons,
 )
 
 if TYPE_CHECKING:
@@ -82,19 +80,11 @@ async def async_setup_entry(
                 or f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
             )
 
-            # Get flag states for unified entity creation decisions
-            is_linked_profile_user = is_linked_profile(coordinator, assignee_id)
-            workflow_enabled = should_create_workflow_buttons(coordinator, assignee_id)
-            gamification_enabled = should_create_gamification_entities(
-                coordinator, assignee_id
-            )
-
             # Claim Button - WORKFLOW requirement
-            if should_create_entity(
+            if should_create_entity_for_user_assignee(
                 const.BUTTON_KC_UID_SUFFIX_CLAIM,
-                is_feature_gated_profile=is_linked_profile_user,
-                workflow_enabled=workflow_enabled,
-                gamification_enabled=gamification_enabled,
+                coordinator,
+                assignee_id,
             ):
                 entities.append(
                     AssigneeChoreClaimButton(
@@ -109,11 +99,10 @@ async def async_setup_entry(
                 )
 
             # Approve Button - ALWAYS requirement
-            if should_create_entity(
+            if should_create_entity_for_user_assignee(
                 const.BUTTON_KC_UID_SUFFIX_APPROVE,
-                is_feature_gated_profile=is_linked_profile_user,
-                workflow_enabled=workflow_enabled,
-                gamification_enabled=gamification_enabled,
+                coordinator,
+                assignee_id,
             ):
                 entities.append(
                     ApproverChoreApproveButton(
@@ -128,11 +117,10 @@ async def async_setup_entry(
                 )
 
             # Disapprove Button - WORKFLOW requirement
-            if should_create_entity(
+            if should_create_entity_for_user_assignee(
                 const.BUTTON_KC_UID_SUFFIX_DISAPPROVE,
-                is_feature_gated_profile=is_linked_profile_user,
-                workflow_enabled=workflow_enabled,
-                gamification_enabled=gamification_enabled,
+                coordinator,
+                assignee_id,
             ):
                 entities.append(
                     ApproverChoreDisapproveButton(
@@ -153,7 +141,7 @@ async def async_setup_entry(
             continue
 
         assignee_name = assignee_info.get(
-            const.DATA_ASSIGNEE_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
+            const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         for reward_id, reward_info in coordinator.rewards_data.items():
             # Icon from storage (empty = use icons.json translation)
@@ -211,7 +199,7 @@ async def async_setup_entry(
             continue
 
         assignee_name = assignee_info.get(
-            const.DATA_ASSIGNEE_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
+            const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         for penalty_id, penalty_info in coordinator.penalties_data.items():
             # Icon from storage (empty = use icons.json translation)
@@ -241,7 +229,7 @@ async def async_setup_entry(
             continue
 
         assignee_name = assignee_info.get(
-            const.DATA_ASSIGNEE_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
+            const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         for bonus_id, bonus_info in coordinator.bonuses_data.items():
             # If no user-defined icon, fallback to SENTINEL_EMPTY
@@ -277,7 +265,7 @@ async def async_setup_entry(
             continue
 
         assignee_name = assignee_info.get(
-            const.DATA_ASSIGNEE_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
+            const.DATA_USER_NAME, f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}"
         )
         for delta in points_adjust_values:
             const.LOGGER.debug(
@@ -649,7 +637,7 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 "AssigneeData",
                 self.coordinator.assignees_data.get(self._assignee_id, {}),
             )
-            assignee_ha_user_id = assignee_info.get(const.DATA_ASSIGNEE_HA_USER_ID)
+            assignee_ha_user_id = assignee_info.get(const.DATA_USER_HA_USER_ID)
             is_assignee = (
                 user_id and assignee_ha_user_id and user_id == assignee_ha_user_id
             )
@@ -1103,7 +1091,7 @@ class ApproverRewardDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
                 "AssigneeData",
                 self.coordinator.assignees_data.get(self._assignee_id, {}),
             )
-            assignee_ha_user_id = assignee_info.get(const.DATA_ASSIGNEE_HA_USER_ID)
+            assignee_ha_user_id = assignee_info.get(const.DATA_USER_HA_USER_ID)
             is_assignee = (
                 user_id and assignee_ha_user_id and user_id == assignee_ha_user_id
             )

@@ -50,9 +50,9 @@ CONF_CHALLENGES_LEGACY: Final = "challenges"
 
 CONF_CHORES_LEGACY: Final = "chores"
 
-CONF_ASSIGNEES_LEGACY: Final = "assignees"
+CONF_ASSIGNEES_LEGACY: Final = "kids"
 
-CONF_APPROVERS_LEGACY: Final = "approvers"
+CONF_APPROVERS_LEGACY: Final = "parents"
 
 CONF_PENALTIES_LEGACY: Final = "penalties"
 
@@ -72,7 +72,7 @@ CONF_SHARED_CHORE_LEGACY: Final = "shared_chore"
 
 CONF_COMPLETION_CRITERIA_LEGACY: Final = "completion_criteria"
 
-CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY: Final = "assigned_assignees"
+CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY: Final = "assigned_kids"
 
 CONF_ACHIEVEMENT_CRITERIA_LEGACY: Final = "criteria"
 
@@ -94,7 +94,7 @@ CONF_BONUS_NAME_LEGACY: Final = "bonus_name"
 
 CONF_BONUS_POINTS_LEGACY: Final = "bonus_points"
 
-CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY: Final = "assigned_assignees"
+CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY: Final = "assigned_kids"
 
 CONF_CHALLENGE_CRITERIA_LEGACY: Final = "criteria"
 
@@ -122,7 +122,7 @@ CONF_APPROVAL_RESET_PENDING_CLAIM_ACTION_LEGACY: Final = (
 
 CONF_APPROVAL_RESET_TYPE_LEGACY: Final = "approval_reset_type"
 
-CONF_ASSIGNED_ASSIGNEES_LEGACY: Final = "assigned_assignees"
+CONF_ASSIGNED_ASSIGNEES_LEGACY: Final = "assigned_kids"
 
 CONF_CHORE_AUTO_APPROVE_LEGACY: Final = "auto_approve"
 
@@ -154,11 +154,11 @@ CONF_MOBILE_NOTIFY_SERVICE_LEGACY: Final = "mobile_notify_service"
 
 CONF_CHORE_NOTIFICATIONS_LEGACY: Final = "chore_notifications"
 
-CONF_ASSOCIATED_ASSIGNEES_LEGACY: Final = "associated_assignees"
+CONF_ASSOCIATED_ASSIGNEES_LEGACY: Final = "associated_kids"
 
 CONF_HA_USER_ID_LEGACY: Final = "ha_user_id"
 
-CONF_APPROVER_NAME_LEGACY: Final = "approver_name"
+CONF_APPROVER_NAME_LEGACY: Final = "parent_name"
 
 CONF_PENALTY_DESCRIPTION_LEGACY: Final = "penalty_description"
 

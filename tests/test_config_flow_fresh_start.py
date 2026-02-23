@@ -537,12 +537,12 @@ async def test_fresh_start_with_approver_no_notifications(
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             user_input={
-                const.CFOF_APPROVERS_INPUT_NAME: "Môm Astrid Stârblüm",
-                const.CFOF_APPROVERS_INPUT_HA_USER: mock_hass_users["approver1"].id,
+                const.CFOF_USERS_INPUT_NAME: "Môm Astrid Stârblüm",
+                const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users["approver1"].id,
                 const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [
                     assignee_id
                 ],  # Use the extracted assignee ID
-                const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: const.SENTINEL_NO_SELECTION,
+                const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: const.SENTINEL_NO_SELECTION,
             },
         )
         assert result["type"] == FlowResultType.FORM
@@ -850,12 +850,10 @@ async def _configure_assignee_step(
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_APPROVERS_INPUT_NAME: assignee_name,
-            const.CFOF_APPROVERS_INPUT_HA_USER: mock_hass_users[
-                assignee_ha_user_key
-            ].id,
+            const.CFOF_USERS_INPUT_NAME: assignee_name,
+            const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[assignee_ha_user_key].id,
             const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE: dashboard_language,
-            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
             const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
             const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: True,
             const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: True,
@@ -893,12 +891,10 @@ async def _configure_approver_step(
     return await hass.config_entries.flow.async_configure(
         result["flow_id"],
         user_input={
-            const.CFOF_APPROVERS_INPUT_NAME: approver_name,
-            const.CFOF_APPROVERS_INPUT_HA_USER: mock_hass_users[
-                approver_ha_user_key
-            ].id,
+            const.CFOF_USERS_INPUT_NAME: approver_name,
+            const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[approver_ha_user_key].id,
             const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: associated_assignee_ids,
-            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
         },
     )
 
@@ -1343,12 +1339,12 @@ async def test_fresh_start_with_approvers(hass: HomeAssistant, mock_hass_users):
 
         # Now configure the approver associated with this assignee
         approver_input = {
-            const.CFOF_APPROVERS_INPUT_NAME: "Jane Approver",
-            const.CFOF_APPROVERS_INPUT_HA_USER: approver_user.id,
+            const.CFOF_USERS_INPUT_NAME: "Jane Approver",
+            const.CFOF_USERS_INPUT_HA_USER_ID: approver_user.id,
             const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [
                 assignee_id
             ],  # Use the captured assignee ID
-            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_jane_phone",  # Include notify. prefix
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_jane_phone",  # Include notify. prefix
         }
 
         result = await hass.config_entries.flow.async_configure(

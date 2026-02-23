@@ -603,6 +603,9 @@ OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI: Final = "chores_daily_multi"
 
 # GLOBAL
 CFOF_GLOBAL_INPUT_INTERNAL_ID: Final = "internal_id"
+CFOF_USERS_INPUT_NAME: Final = "name"
+CFOF_USERS_INPUT_HA_USER_ID: Final = "ha_user_id"
+CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
 
 # DATA RECOVERY
 CFOF_DATA_RECOVERY_INPUT_SELECTION: Final = "backup_selection"
@@ -610,17 +613,10 @@ CFOF_DATA_RECOVERY_INPUT_JSON_DATA: Final = "json_data"
 
 # ASSIGNEES
 CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-CFOF_ASSIGNEES_INPUT_HA_USER: Final = "ha_user"
 CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT: Final = "assignee_count"
-# Phase 6: Aligned with canonical assignee name storage key (`name`)
-CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: Final = "name"
-CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
 
 # APPROVERS
 CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: Final = "associated_assignees"
-CFOF_APPROVERS_INPUT_HA_USER: Final = "ha_user_id"
-CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
-CFOF_APPROVERS_INPUT_NAME: Final = "name"
 CFOF_APPROVERS_INPUT_APPROVER_COUNT: Final = "approver_count"
 
 # Approver Chore Capability Options
@@ -1105,11 +1101,7 @@ CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_BADGE_NAME: Final = "next_lower_badge_name"
 CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_THRESHOLD: Final = "next_lower_threshold"
 
 # Canonical assignee constants (runtime-facing names)
-DATA_ASSIGNEE_HA_USER_ID: Final = "ha_user_id"
 DATA_ASSIGNEE_ID: Final = "assignee_id"
-DATA_ASSIGNEE_INTERNAL_ID: Final = "internal_id"
-DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
-DATA_ASSIGNEE_NAME: Final = "name"
 DATA_ASSIGNEE_POINTS: Final = "points"
 DATA_ASSIGNEE_POINTS_MULTIPLIER: Final = "points_multiplier"
 DATA_ASSIGNEE_LEDGER: Final = "ledger"
@@ -1197,6 +1189,7 @@ DATA_USER_ID: Final = "user_id"
 DATA_USER_INTERNAL_ID: Final = "internal_id"
 DATA_USER_NAME: Final = "name"
 DATA_USER_HA_USER_ID: Final = "ha_user_id"
+DATA_USER_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
 DATA_USER_CAN_APPROVE: Final = "can_approve"
 DATA_USER_CAN_MANAGE: Final = "can_manage"
 DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
@@ -1362,20 +1355,11 @@ PRES_ASSIGNEE_LAST_UPDATED: Final = "pres_assignee_last_updated"
 # Canonical approver constants (runtime-facing names)
 # Canonical approver-linked profile key (legacy storage key retained for compatibility)
 DATA_APPROVER_ASSOCIATED_USERS: Final = "associated_assignees"
-DATA_APPROVER_HA_USER_ID: Final = "ha_user_id"
-DATA_APPROVER_INTERNAL_ID: Final = "internal_id"
-DATA_APPROVER_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
-DATA_APPROVER_NAME: Final = "name"
 DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
 DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
 DATA_APPROVER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
 DATA_APPROVER_ENABLE_GAMIFICATION: Final = "enable_gamification"
-DATA_APPROVER_LINKED_PROFILE_ID: Final = "linked_shadow_assignee_id"
 DATA_APPROVER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-
-# Shadow Assignee Markers (stored on assignee entity)
-DATA_ASSIGNEE_IS_SHADOW: Final = "is_shadow_assignee"
-DATA_ASSIGNEE_LINKED_APPROVER_ID: Final = "linked_approver_id"
 
 # CHORES
 DATA_CHORE_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -2911,7 +2895,7 @@ BUTTON_REWARD_PREFIX: Final = "reward_button_"  # DEPRECATED
 # ------------------------------------------------------------------------------------------------
 # Defines creation requirements for ALL entity types. Used for:
 # - Proactive filtering at entity creation time
-# - Shadow assignee entity gating (whitelist approach)
+# - User-role feature gating (whitelist approach)
 # - Extra entity cleanup when flag disabled
 # - Event-based cleanup on delete/unassign
 #
@@ -2920,18 +2904,18 @@ BUTTON_REWARD_PREFIX: Final = "reward_button_"  # DEPRECATED
 # === FLAG LAYERING LOGIC ===
 # Requirements define CATEGORIES, not final logic. Evaluation rules:
 #
-# | Requirement   | Regular assignee      | Shadow assignee                      |
-# |---------------|-----------------------|--------------------------------------|
-# | ALWAYS        | Created               | Created                              |
-# | WORKFLOW      | Created               | Only if enable_chore_workflow=True   |
-# | GAMIFICATION  | Created               | Only if enable_gamification=True     |
-# | EXTRA         | If show_extra flag    | If show_extra AND gamification=True  |
+# | Requirement   | Default participant                    | Feature-gated participant                         |
+# |---------------|----------------------------------------|---------------------------------------------------|
+# | ALWAYS        | Created                                | Created                                           |
+# | WORKFLOW      | Created                                | Only if `enable_chore_workflow=True`              |
+# | GAMIFICATION  | Created                                | Only if `enable_gamification=True`                |
+# | EXTRA         | If show_extra flag                     | If show_extra flag AND `enable_gamification=True` |
 #
 # Note: EXTRA requires BOTH show_legacy_entities system flag AND gamification.
 # (Config key is still 'show_legacy_entities' for backward compatibility, but
 # we call these "extra" entities in the UI and code - they're optional sensors.)
-# For regular assignees, gamification is always true, so EXTRA just needs flag.
-# For shadow assignees, EXTRA needs flag AND enable_gamification=True.
+# For default participants, gamification is always enabled, so EXTRA just needs flag.
+# For feature-gated participants, EXTRA needs flag AND enable_gamification=True.
 #
 # The should_create_entity() function in helpers/entity_helpers.py implements this logic.
 
@@ -2940,20 +2924,20 @@ class EntityRequirement(StrEnum):
     """Defines when an entity should be created.
 
     These are requirement CATEGORIES. The actual evaluation logic considers:
-    - Assignee type (regular vs shadow)
+    - User role profile type (default participant vs feature-gated participant)
     - System flags (show_legacy_entities aka "extra entities" in UI)
-    - Approver flags (enable_gamification, enable_chore_workflow) for shadow assignees
+    - Approver role flags (enable_gamification, enable_chore_workflow) for feature-gated users
 
     EXTRA has compound logic: requires show_legacy_entities AND gamification.
     (Originally called "legacy" - renamed to "extra" to match UI terminology.)
     """
 
-    ALWAYS = "always"  # All assignees (regular + shadow base)
+    ALWAYS = "always"  # All assignment participants
     WORKFLOW = (
-        "workflow"  # Requires enable_chore_workflow (shadow assignees only check)
+        "workflow"  # Requires enable_chore_workflow for feature-gated participants
     )
     GAMIFICATION = (
-        "gamification"  # Requires enable_gamification (shadow assignees only)
+        "gamification"  # Requires enable_gamification for feature-gated participants
     )
     EXTRA = "extra"  # Requires show_legacy_entities AND gamification (optional sensors)
 
@@ -3117,9 +3101,6 @@ TRANS_KEY_ERROR_CALENDAR_CREATE_NOT_SUPPORTED: Final = "calendar_create_not_supp
 TRANS_KEY_ERROR_CALENDAR_DELETE_NOT_SUPPORTED: Final = "calendar_delete_not_supported"
 TRANS_KEY_ERROR_CALENDAR_UPDATE_NOT_SUPPORTED: Final = "calendar_update_not_supported"
 
-# Shadow assignee link service error keys
-TRANS_KEY_ERROR_ASSIGNEE_NOT_SHADOW: Final = "assignee_not_shadow"
-
 # Action identifiers for use with TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION template
 # These values are passed directly as {action} placeholder in exception messages
 ERROR_ACTION_CLAIM_CHORES: Final = "claim_chores"
@@ -3167,12 +3148,9 @@ CFOP_ERROR_INVALID_JSON: Final = "invalid_json"
 CFOP_ERROR_BONUS_NAME: Final = "name"
 # Phase 6: Aligned with CFOF_CHORES_INPUT_NAME = "name"
 CFOP_ERROR_CHORE_NAME: Final = "name"
+CFOP_ERROR_USER_NAME: Final = "name"
 CFOP_ERROR_DUE_DATE: Final = "due_date"
 CFOP_ERROR_END_DATE: Final = "end_date"
-# Phase 6: Aligned with CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME = "name"
-CFOP_ERROR_ASSIGNEE_NAME: Final = "name"
-# Phase 6: Aligned with CFOF_APPROVERS_INPUT_NAME = "name"
-CFOP_ERROR_APPROVER_NAME: Final = "name"
 # Phase 6: Aligned with CFOF_PENALTIES_INPUT_NAME = "name"
 CFOP_ERROR_PENALTY_NAME: Final = "name"
 # Phase 6: Aligned with CFOF_REWARDS_INPUT_NAME = "name"

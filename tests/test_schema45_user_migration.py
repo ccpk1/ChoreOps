@@ -29,8 +29,8 @@ async def test_schema45_migration_moves_assignees_to_users_and_sets_defaults() -
             },
             const.DATA_ASSIGNEES: {
                 "assignee-1": {
-                    const.DATA_ASSIGNEE_NAME: "Alex",
-                    const.DATA_ASSIGNEE_HA_USER_ID: "ha-assignee-1",
+                    const.DATA_USER_NAME: "Alex",
+                    const.DATA_USER_HA_USER_ID: "ha-assignee-1",
                 }
             },
             const.DATA_APPROVERS: {},
@@ -68,15 +68,15 @@ async def test_schema45_migration_merges_linked_approver_into_existing_user() ->
             },
             const.DATA_ASSIGNEES: {
                 "assignee-1": {
-                    const.DATA_ASSIGNEE_NAME: "Alex",
-                    const.DATA_ASSIGNEE_HA_USER_ID: "ha-assignee-1",
+                    const.DATA_USER_NAME: "Alex",
+                    const.DATA_USER_HA_USER_ID: "ha-assignee-1",
                 }
             },
             const.DATA_APPROVERS: {
                 "approver-1": {
-                    const.DATA_APPROVER_NAME: "Sam",
-                    const.DATA_APPROVER_HA_USER_ID: "ha-approver-1",
-                    const.DATA_APPROVER_LINKED_PROFILE_ID: "assignee-1",
+                    const.DATA_USER_NAME: "Sam",
+                    const.DATA_USER_HA_USER_ID: "ha-approver-1",
+                    "linked_shadow_assignee_id": "assignee-1",
                 }
             },
         }
@@ -103,14 +103,14 @@ async def test_schema45_migration_handles_collision_and_is_idempotent() -> None:
             },
             const.DATA_ASSIGNEES: {
                 "shared-id": {
-                    const.DATA_ASSIGNEE_NAME: "Assignee",
-                    const.DATA_ASSIGNEE_HA_USER_ID: "ha-assignee",
+                    const.DATA_USER_NAME: "Assignee",
+                    const.DATA_USER_HA_USER_ID: "ha-assignee",
                 }
             },
             const.DATA_APPROVERS: {
                 "shared-id": {
-                    const.DATA_APPROVER_NAME: "Approver",
-                    const.DATA_APPROVER_HA_USER_ID: "ha-approver",
+                    const.DATA_USER_NAME: "Approver",
+                    const.DATA_USER_HA_USER_ID: "ha-approver",
                 }
             },
         }
@@ -131,6 +131,77 @@ async def test_schema45_migration_handles_collision_and_is_idempotent() -> None:
     assert remap["shared-id"].startswith("shared-id_approver_")
 
     assert coordinator._data[const.DATA_USERS] == users_after_first
+
+
+async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
+    """Legacy kid-based keys are remapped to canonical assignee keys."""
+    coordinator = _DummyCoordinator(
+        _data={
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
+                const.DATA_META_MIGRATIONS_APPLIED: [],
+            },
+            const.DATA_ASSIGNEES: {
+                "assignee-1": {
+                    const.DATA_USER_NAME: "Alex",
+                }
+            },
+            const.DATA_APPROVERS: {
+                "approver-1": {
+                    const.CONF_ASSOCIATED_ASSIGNEES_LEGACY: ["assignee-1"],
+                }
+            },
+            const.DATA_CHORES: {
+                "chore-1": {
+                    const.CONF_ASSIGNED_ASSIGNEES_LEGACY: ["assignee-1"],
+                    "per_kid_due_dates": {"assignee-1": "2026-02-22T12:00:00+00:00"},
+                    "per_kid_applicable_days": {"assignee-1": [0, 1]},
+                    "per_kid_daily_multi_times": {"assignee-1": ["09:00"]},
+                    "rotation_current_kid_id": "assignee-1",
+                }
+            },
+            const.DATA_ACHIEVEMENTS: {
+                "achievement-1": {
+                    const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY: ["assignee-1"]
+                }
+            },
+            const.DATA_CHALLENGES: {
+                "challenge-1": {
+                    const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY: ["assignee-1"]
+                }
+            },
+        }
+    )
+
+    summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+
+    chore = coordinator._data[const.DATA_CHORES]["chore-1"]
+    assert chore[const.DATA_CHORE_ASSIGNED_ASSIGNEES] == ["assignee-1"]
+    assert chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] == {
+        "assignee-1": "2026-02-22T12:00:00+00:00"
+    }
+    assert chore[const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS] == {
+        "assignee-1": [0, 1]
+    }
+    assert chore[const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES] == {
+        "assignee-1": ["09:00"]
+    }
+    assert chore[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-1"
+
+    assert const.CONF_ASSIGNED_ASSIGNEES_LEGACY not in chore
+    assert "per_kid_due_dates" not in chore
+    assert "per_kid_applicable_days" not in chore
+    assert "per_kid_daily_multi_times" not in chore
+    assert "rotation_current_kid_id" not in chore
+
+    achievement = coordinator._data[const.DATA_ACHIEVEMENTS]["achievement-1"]
+    challenge = coordinator._data[const.DATA_CHALLENGES]["challenge-1"]
+    assert achievement[const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES] == ["assignee-1"]
+    assert challenge[const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES] == ["assignee-1"]
+    assert const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY not in achievement
+    assert const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY not in challenge
+
+    assert summary["kid_key_remaps"] >= 7
 
 
 def test_store_default_structure_uses_users_bucket() -> None:

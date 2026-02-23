@@ -64,8 +64,8 @@ def _set_user_capabilities(
     def _record_ha_user_ref(user_data: dict[str, Any]) -> str | None:
         for key in (
             const.DATA_USER_HA_USER_ID,
-            const.DATA_APPROVER_HA_USER_ID,
-            const.DATA_ASSIGNEE_HA_USER_ID,
+            const.DATA_USER_HA_USER_ID,
+            const.DATA_USER_HA_USER_ID,
         ):
             value = user_data.get(key)
             if isinstance(value, str) and value:
@@ -98,7 +98,7 @@ class TestEntityLookupHelpers:
 
         assignee_id = scenario_minimal.assignee_ids["Zoë"]
         assignee_info = coordinator.assignees_data.get(assignee_id, {})
-        assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME)
+        assignee_name = assignee_info.get(const.DATA_USER_NAME)
 
         result = get_item_id_by_name(
             coordinator, const.ENTITY_TYPE_ASSIGNEE, str(assignee_name)

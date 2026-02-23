@@ -38,19 +38,123 @@ if TYPE_CHECKING:
     from .store import ChoreOpsStore
 
 
-LEGACY_STORAGE_KEY = "choreops_data"
-LEGACY_STORAGE_PREFIX = "choreops_"
+LEGACY_STORAGE_KEY = "kidschores_data"
+LEGACY_STORAGE_PREFIX = "kidschores_"
+LEGACY_STORAGE_KEY_TRANSITIONAL = "choreops_data"
+LEGACY_STORAGE_PREFIX_TRANSITIONAL = "choreops_"
 LEGACY_MIGRATION_PERFORMED_KEY = "migration_performed"
 LEGACY_MIGRATION_KEY_VERSION_KEY = "migration_key_version"
 LEGACY_MIGRATION_ORPHAN_PREFIX = "legacy_orphan"
 LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS = "_points_adjust_"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY = "notify_on_reminder"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT = True
+LEGACY_APPROVER_LINKED_PROFILE_KEY = "linked_shadow_assignee_id"
 
 
 def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
     """Return True when pre-v50 legacy migration marker is present."""
     return LEGACY_MIGRATION_PERFORMED_KEY in data
+
+
+def _remap_legacy_key_in_record(
+    record: dict[str, Any],
+    legacy_key: str,
+    canonical_key: str,
+) -> int:
+    """Remap one legacy key in a record to canonical key.
+
+    Returns:
+        1 when a remap occurred, otherwise 0.
+    """
+    if legacy_key not in record:
+        return 0
+
+    legacy_value = record.pop(legacy_key)
+    if canonical_key not in record:
+        record[canonical_key] = legacy_value
+    return 1
+
+
+def _normalize_legacy_kid_keys(data: dict[str, Any]) -> int:
+    """Normalize legacy `*kid*` keys to canonical `*assignee*` keys.
+
+    This migration-only shim protects schema45+ bootstraps that bypass the
+    full pre-v50 migration pipeline and still contain legacy key names.
+
+    Returns:
+        Total number of remapped keys.
+    """
+    remap_count = 0
+
+    chores = data.get(const.DATA_CHORES, {})
+    if isinstance(chores, dict):
+        for chore_raw in chores.values():
+            if not isinstance(chore_raw, dict):
+                continue
+            chore = cast("dict[str, Any]", chore_raw)
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                const.CONF_ASSIGNED_ASSIGNEES_LEGACY,
+                const.DATA_CHORE_ASSIGNED_ASSIGNEES,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "per_kid_due_dates",
+                const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "per_kid_applicable_days",
+                const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "per_kid_daily_multi_times",
+                const.DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                chore,
+                "rotation_current_kid_id",
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID,
+            )
+
+    achievements = data.get(const.DATA_ACHIEVEMENTS, {})
+    if isinstance(achievements, dict):
+        for achievement_raw in achievements.values():
+            if not isinstance(achievement_raw, dict):
+                continue
+            achievement = cast("dict[str, Any]", achievement_raw)
+            remap_count += _remap_legacy_key_in_record(
+                achievement,
+                const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY,
+                const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
+            )
+
+    challenges = data.get(const.DATA_CHALLENGES, {})
+    if isinstance(challenges, dict):
+        for challenge_raw in challenges.values():
+            if not isinstance(challenge_raw, dict):
+                continue
+            challenge = cast("dict[str, Any]", challenge_raw)
+            remap_count += _remap_legacy_key_in_record(
+                challenge,
+                const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY,
+                const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
+            )
+
+    approvers = data.get(const.DATA_APPROVERS, {})
+    if isinstance(approvers, dict):
+        for approver_raw in approvers.values():
+            if not isinstance(approver_raw, dict):
+                continue
+            approver = cast("dict[str, Any]", approver_raw)
+            remap_count += _remap_legacy_key_in_record(
+                approver,
+                const.CONF_ASSOCIATED_ASSIGNEES_LEGACY,
+                const.DATA_APPROVER_ASSOCIATED_USERS,
+            )
+
+    return remap_count
 
 
 async def async_apply_schema45_user_contract(
@@ -72,6 +176,41 @@ async def async_apply_schema45_user_contract(
     if not isinstance(applied, list):
         applied = []
         meta[const.DATA_META_MIGRATIONS_APPLIED] = applied
+
+    legacy_assignees_key = const.CONF_ASSIGNEES_LEGACY
+    legacy_approvers_key = const.CONF_APPROVERS_LEGACY
+
+    canonical_assignees = data.get(const.DATA_ASSIGNEES)
+    legacy_assignees = data.get(legacy_assignees_key)
+    if not isinstance(canonical_assignees, dict):
+        if isinstance(legacy_assignees, dict):
+            canonical_assignees = legacy_assignees
+    elif isinstance(legacy_assignees, dict):
+        for assignee_id, assignee_data in legacy_assignees.items():
+            canonical_assignees.setdefault(assignee_id, assignee_data)
+
+    if isinstance(canonical_assignees, dict):
+        data[const.DATA_ASSIGNEES] = canonical_assignees
+
+    if legacy_assignees_key != const.DATA_ASSIGNEES:
+        data.pop(legacy_assignees_key, None)
+
+    canonical_approvers = data.get(const.DATA_APPROVERS)
+    legacy_approvers = data.get(legacy_approvers_key)
+    if not isinstance(canonical_approvers, dict):
+        if isinstance(legacy_approvers, dict):
+            canonical_approvers = legacy_approvers
+    elif isinstance(legacy_approvers, dict):
+        for approver_id, approver_data in legacy_approvers.items():
+            canonical_approvers.setdefault(approver_id, approver_data)
+
+    if isinstance(canonical_approvers, dict):
+        data[const.DATA_APPROVERS] = canonical_approvers
+
+    if legacy_approvers_key != const.DATA_APPROVERS:
+        data.pop(legacy_approvers_key, None)
+
+    kid_key_remaps = _normalize_legacy_kid_keys(data)
 
     legacy_users = data.get(const.DATA_USERS)
     users: dict[str, Any] = legacy_users if isinstance(legacy_users, dict) else {}
@@ -102,7 +241,7 @@ async def async_apply_schema45_user_contract(
         user_data.setdefault(const.DATA_USER_ID, user_id)
         user_data.setdefault(
             const.DATA_USER_HA_USER_ID,
-            user_data.get(const.DATA_ASSIGNEE_HA_USER_ID),
+            user_data.get(const.DATA_USER_HA_USER_ID),
         )
         user_data.setdefault(const.DATA_USER_CAN_APPROVE, False)
         user_data.setdefault(const.DATA_USER_CAN_MANAGE, False)
@@ -117,7 +256,7 @@ async def async_apply_schema45_user_contract(
             continue
 
         approver_data = cast("dict[str, Any]", approver_data_raw)
-        linked_profile_id = approver_data.get(const.DATA_APPROVER_LINKED_PROFILE_ID)
+        linked_profile_id = approver_data.get(LEGACY_APPROVER_LINKED_PROFILE_KEY)
         if isinstance(linked_profile_id, str) and linked_profile_id in users:
             target_id = linked_profile_id
             linked_approver_merges += 1
@@ -127,7 +266,7 @@ async def async_apply_schema45_user_contract(
             target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
             target_user.setdefault(
                 const.DATA_USER_HA_USER_ID,
-                approver_data.get(const.DATA_APPROVER_HA_USER_ID),
+                approver_data.get(const.DATA_USER_HA_USER_ID),
             )
             continue
 
@@ -151,9 +290,9 @@ async def async_apply_schema45_user_contract(
             target_user = {
                 const.DATA_USER_INTERNAL_ID: target_id,
                 const.DATA_USER_ID: target_id,
-                const.DATA_USER_NAME: approver_data.get(const.DATA_APPROVER_NAME, ""),
+                const.DATA_USER_NAME: approver_data.get(const.DATA_USER_NAME, ""),
                 const.DATA_USER_HA_USER_ID: approver_data.get(
-                    const.DATA_APPROVER_HA_USER_ID
+                    const.DATA_USER_HA_USER_ID
                 ),
                 const.DATA_USER_CAN_BE_ASSIGNED: False,
             }
@@ -165,7 +304,7 @@ async def async_apply_schema45_user_contract(
         target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, False)
         target_user.setdefault(
             const.DATA_USER_HA_USER_ID,
-            approver_data.get(const.DATA_APPROVER_HA_USER_ID),
+            approver_data.get(const.DATA_USER_HA_USER_ID),
         )
 
     # Users is the canonical identity container for schema45+.
@@ -185,6 +324,7 @@ async def async_apply_schema45_user_contract(
         "approver_id_collisions": approver_id_collisions,
         "approver_id_remap_entries_total": len(remap),
         "approver_id_remap_entries_added": approver_id_remap_added,
+        "kid_key_remaps": kid_key_remaps,
     }
     meta["schema45_last_summary"] = summary
     const.LOGGER.debug(
@@ -216,6 +356,7 @@ def _discover_legacy_storage_artifacts_sync(
 
     candidate_active_paths = [
         storage_dir / LEGACY_STORAGE_KEY,
+        storage_dir / LEGACY_STORAGE_KEY_TRANSITIONAL,
     ]
 
     active_files = [str(path) for path in candidate_active_paths if path.exists()]
@@ -229,7 +370,19 @@ def _discover_legacy_storage_artifacts_sync(
             for path in candidate_dir.glob(f"{LEGACY_STORAGE_PREFIX}*.json")
             if path.is_file()
         )
+        backup_candidates.extend(
+            path
+            for path in candidate_dir.glob(
+                f"{LEGACY_STORAGE_PREFIX_TRANSITIONAL}*.json"
+            )
+            if path.is_file()
+        )
 
+    deduped_candidates: dict[str, Path] = {
+        str(path): path for path in backup_candidates
+    }
+
+    backup_candidates = list(deduped_candidates.values())
     backup_candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
 
     return {
@@ -321,17 +474,30 @@ async def async_get_data_recovery_capabilities(
     legacy_storage_path = Path(
         hass.config.path(const.STORAGE_PATH_SEGMENT, LEGACY_STORAGE_KEY)
     )
+    transitional_legacy_storage_path = Path(
+        hass.config.path(
+            const.STORAGE_PATH_SEGMENT,
+            LEGACY_STORAGE_KEY_TRANSITIONAL,
+        )
+    )
 
     storage_file_exists = await hass.async_add_executor_job(storage_path.exists)
     legacy_storage_exists = await hass.async_add_executor_job(
         legacy_storage_path.exists
+    )
+    transitional_legacy_storage_exists = await hass.async_add_executor_job(
+        transitional_legacy_storage_path.exists
     )
 
     legacy_artifacts = await async_discover_legacy_choreops_artifacts(hass)
     has_legacy_candidates = bool(legacy_artifacts.get("has_migration_candidate"))
 
     return {
-        "has_current_active_file": bool(storage_file_exists or legacy_storage_exists),
+        "has_current_active_file": bool(
+            storage_file_exists
+            or legacy_storage_exists
+            or transitional_legacy_storage_exists
+        ),
         "has_legacy_candidates": has_legacy_candidates,
     }
 
@@ -364,17 +530,36 @@ async def async_prepare_current_active_storage(
         legacy_storage_path = Path(
             hass.config.path(const.STORAGE_PATH_SEGMENT, LEGACY_STORAGE_KEY)
         )
+        transitional_legacy_storage_path = Path(
+            hass.config.path(
+                const.STORAGE_PATH_SEGMENT,
+                LEGACY_STORAGE_KEY_TRANSITIONAL,
+            )
+        )
 
         destination_exists = await hass.async_add_executor_job(destination_path.exists)
         legacy_exists = await hass.async_add_executor_job(legacy_storage_path.exists)
+        transitional_legacy_exists = await hass.async_add_executor_job(
+            transitional_legacy_storage_path.exists
+        )
 
-        if not destination_exists and not legacy_exists:
+        if (
+            not destination_exists
+            and not legacy_exists
+            and not transitional_legacy_exists
+        ):
             return {
                 "prepared": False,
                 "error": "file_not_found",
             }
 
-        source_path = destination_path if destination_exists else legacy_storage_path
+        source_path = destination_path
+        if not destination_exists:
+            source_path = (
+                legacy_storage_path
+                if legacy_exists
+                else transitional_legacy_storage_path
+            )
 
         source_text = await hass.async_add_executor_job(source_path.read_text, "utf-8")
         try:
@@ -642,10 +827,12 @@ async def migrate_config_to_storage(
         key in entry.options
         for key in [
             const.CONF_ASSIGNEES_LEGACY,
+            "assignees",
             const.CONF_CHORES_LEGACY,
             const.CONF_BADGES_LEGACY,
             const.CONF_REWARDS_LEGACY,
             const.CONF_APPROVERS_LEGACY,
+            "approvers",
             const.CONF_PENALTIES_LEGACY,
             const.CONF_BONUSES_LEGACY,
             const.CONF_ACHIEVEMENTS_LEGACY,
@@ -745,19 +932,27 @@ async def migrate_config_to_storage(
 
     # Merge entity data from config into storage (preserving existing state)
     entity_sections = [
-        (const.CONF_ASSIGNEES_LEGACY, const.DATA_ASSIGNEES),
-        (const.CONF_APPROVERS_LEGACY, const.DATA_APPROVERS),
-        (const.CONF_CHORES_LEGACY, const.DATA_CHORES),
-        (const.CONF_BADGES_LEGACY, const.DATA_BADGES),
-        (const.CONF_REWARDS_LEGACY, const.DATA_REWARDS),
-        (const.CONF_PENALTIES_LEGACY, const.DATA_PENALTIES),
-        (const.CONF_BONUSES_LEGACY, const.DATA_BONUSES),
-        (const.CONF_ACHIEVEMENTS_LEGACY, const.DATA_ACHIEVEMENTS),
-        (const.CONF_CHALLENGES_LEGACY, const.DATA_CHALLENGES),
+        ((const.CONF_ASSIGNEES_LEGACY, "assignees"), const.DATA_ASSIGNEES),
+        ((const.CONF_APPROVERS_LEGACY, "approvers"), const.DATA_APPROVERS),
+        ((const.CONF_CHORES_LEGACY,), const.DATA_CHORES),
+        ((const.CONF_BADGES_LEGACY,), const.DATA_BADGES),
+        ((const.CONF_REWARDS_LEGACY,), const.DATA_REWARDS),
+        ((const.CONF_PENALTIES_LEGACY,), const.DATA_PENALTIES),
+        ((const.CONF_BONUSES_LEGACY,), const.DATA_BONUSES),
+        ((const.CONF_ACHIEVEMENTS_LEGACY,), const.DATA_ACHIEVEMENTS),
+        ((const.CONF_CHALLENGES_LEGACY,), const.DATA_CHALLENGES),
     ]
 
-    for config_key, data_key in entity_sections:
-        config_entities = entry.options.get(config_key, {})
+    for config_keys, data_key in entity_sections:
+        config_key_used = config_keys[0]
+        config_entities: dict[str, Any] = {}
+        for config_key_candidate in config_keys:
+            candidate = entry.options.get(config_key_candidate, {})
+            if isinstance(candidate, dict) and candidate:
+                config_entities = candidate
+                config_key_used = config_key_candidate
+                break
+
         if config_entities:
             # Merge config entities into storage (config is source of truth for definitions)
             if data_key not in storage_data:
@@ -781,7 +976,7 @@ async def migrate_config_to_storage(
                     storage_data[data_key][entity_id] = config_entity_data
 
                 # For assignees, remove dead overdue_notifications field if present
-                if config_key == const.CONF_ASSIGNEES_LEGACY:
+                if config_key_used in {const.CONF_ASSIGNEES_LEGACY, "assignees"}:
                     storage_data[data_key][entity_id].pop(
                         const.DATA_ASSIGNEE_OVERDUE_NOTIFICATIONS_LEGACY, None
                     )
@@ -789,7 +984,7 @@ async def migrate_config_to_storage(
             const.LOGGER.debug(
                 "DEBUG: Migrated %s %s from config to storage",
                 len(config_entities),
-                config_key,
+                config_key_used,
             )
 
     # Set TRANSITIONAL schema version in meta section
@@ -2052,7 +2247,7 @@ class PreV50Migrator:
         migrated_count = 0
 
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Skip if already migrated to v43 structure
             if const.DATA_ASSIGNEE_POINT_PERIODS in assignee_info:
@@ -2164,7 +2359,7 @@ class PreV50Migrator:
         backfilled_count = 0
 
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Step 1: Create chore_periods bucket if missing (Landlord genesis)
             # AND backfill all_time from per-chore periods to preserve historical totals
@@ -2586,7 +2781,7 @@ class PreV50Migrator:
         backfilled_count = 0
 
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Step 1: Create reward_periods bucket if missing (Landlord genesis)
             # AND backfill all_time from per-reward periods to preserve historical totals
@@ -2975,7 +3170,7 @@ class PreV50Migrator:
         penalty_entries_transformed = 0
 
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id[:8])
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id[:8])
             assignee_changed = False
 
             # Transform bonus_applies from integer counters to period dicts
@@ -3427,7 +3622,7 @@ class PreV50Migrator:
                 assignees_cleaned += 1
                 const.LOGGER.debug(
                     "Removed deprecated claim/approval lists from assignee '%s' (%s)",
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME),
+                    assignee_info.get(const.DATA_USER_NAME),
                     assignee_id,
                 )
 
@@ -4155,7 +4350,7 @@ class PreV50Migrator:
                         "WARNING: Migrate - Badge '%s' not found in badge data. Assigning legacy orphan ID '%s' for assignee '%s'.",
                         badge_name,
                         badge_id,
-                        assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                        assignee_info.get(const.DATA_USER_NAME, assignee_id),
                     )
 
                 if badge_id in badges_earned:
@@ -4180,7 +4375,7 @@ class PreV50Migrator:
                     "INFO: Migration - Migrated badge '%s' (%s) to badges_earned for assignee '%s'.",
                     badge_name,
                     badge_id,
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                    assignee_info.get(const.DATA_USER_NAME, assignee_id),
                 )
 
             # Cleanup: remove the legacy badges list after migration
@@ -4324,7 +4519,7 @@ class PreV50Migrator:
             if not isinstance(badges_earned, dict):
                 const.LOGGER.debug(
                     "Assignee '%s' has legacy list format badges_earned, skipping",
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                    assignee_info.get(const.DATA_USER_NAME, assignee_id),
                 )
                 continue
 
@@ -4355,7 +4550,7 @@ class PreV50Migrator:
                             const.DATA_ASSIGNEE_BADGES_EARNED_NAME, badge_id
                         ),
                         count,
-                        assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                        assignee_info.get(const.DATA_USER_NAME, assignee_id),
                     )
 
         const.LOGGER.info(
@@ -4808,7 +5003,7 @@ class PreV50Migrator:
                 migrated_assignees += 1
                 const.LOGGER.debug(
                     "Migrated reward data for assignee '%s' (%s)",
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME, ""),
+                    assignee_info.get(const.DATA_USER_NAME, ""),
                     assignee_id,
                 )
 
@@ -4921,7 +5116,7 @@ class PreV50Migrator:
                     const.LOGGER.debug(
                         "Removed legacy field '%s' from assignee '%s'",
                         field,
-                        assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id),
+                        assignee_info.get(const.DATA_USER_NAME, assignee_id),
                     )
             if removed_any:
                 assignees_cleaned += 1
@@ -4957,7 +5152,7 @@ class PreV50Migrator:
 
         assignees_data = self.coordinator._data.get(const.DATA_ASSIGNEES, {})
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             rounded_any = False
 
             # --- Top-level assignee float fields ---
@@ -5110,7 +5305,7 @@ class PreV50Migrator:
         assignees_affected = 0
 
         for assignee_info in assignees_data.values():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown")
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
             assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
             assignee_had_cleanup = False
 
@@ -5188,7 +5383,7 @@ class PreV50Migrator:
                 assignee_dict.pop("enable_notifications")
                 const.LOGGER.debug(
                     "DEBUG:   Assignee '%s': Removed enable_notifications field",
-                    assignee_info.get(const.DATA_ASSIGNEE_NAME, "Unknown"),
+                    assignee_info.get(const.DATA_USER_NAME, "Unknown"),
                 )
                 changes_made = True
 
@@ -5200,7 +5395,7 @@ class PreV50Migrator:
                 approver_dict.pop("enable_notifications")
                 const.LOGGER.debug(
                     "DEBUG:   Approver '%s': Removed enable_notifications field",
-                    approver_info.get(const.DATA_APPROVER_NAME, "Unknown"),
+                    approver_info.get(const.DATA_USER_NAME, "Unknown"),
                 )
                 changes_made = True
 
@@ -5245,7 +5440,7 @@ class PreV50Migrator:
         buckets_converted = 0
 
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
 
             # Get assignee's CURRENT points balance - this is the source of truth
             current_balance = float(assignee_info.get(const.DATA_ASSIGNEE_POINTS, 0.0))
@@ -5480,7 +5675,7 @@ class PreV50Migrator:
         chore_fields_removed = 0
 
         for assignee_id, assignee_info in assignees_data.items():
-            assignee_name = assignee_info.get(const.DATA_ASSIGNEE_NAME, assignee_id)
+            assignee_name = assignee_info.get(const.DATA_USER_NAME, assignee_id)
             assignee_had_changes = False
 
             # Strip temporal fields from point_stats
@@ -5866,8 +6061,8 @@ class PreV50Migrator:
         data_builders.build_assignee() + direct storage writes.
         """
         self.coordinator._data[const.DATA_ASSIGNEES][assignee_id] = {
-            const.DATA_ASSIGNEE_NAME: assignee_data.get(
-                const.DATA_ASSIGNEE_NAME, const.SENTINEL_EMPTY
+            const.DATA_USER_NAME: assignee_data.get(
+                const.DATA_USER_NAME, const.SENTINEL_EMPTY
             ),
             const.DATA_ASSIGNEE_POINTS: assignee_data.get(
                 const.DATA_ASSIGNEE_POINTS, const.DEFAULT_ZERO
@@ -5875,10 +6070,8 @@ class PreV50Migrator:
             const.DATA_ASSIGNEE_BADGES_EARNED: assignee_data.get(
                 const.DATA_ASSIGNEE_BADGES_EARNED, {}
             ),
-            const.DATA_ASSIGNEE_HA_USER_ID: assignee_data.get(
-                const.DATA_ASSIGNEE_HA_USER_ID
-            ),
-            const.DATA_ASSIGNEE_INTERNAL_ID: assignee_id,
+            const.DATA_USER_HA_USER_ID: assignee_data.get(const.DATA_USER_HA_USER_ID),
+            const.DATA_USER_INTERNAL_ID: assignee_id,
             const.DATA_ASSIGNEE_POINTS_MULTIPLIER: assignee_data.get(
                 const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
                 const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
@@ -5895,8 +6088,8 @@ class PreV50Migrator:
             const.DATA_ASSIGNEE_ENABLE_NOTIFICATIONS_LEGACY: assignee_data.get(
                 const.DATA_ASSIGNEE_ENABLE_NOTIFICATIONS_LEGACY, True
             ),
-            const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE: assignee_data.get(
-                const.DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE: assignee_data.get(
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
             const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS: assignee_data.get(
                 const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, True
@@ -5907,7 +6100,7 @@ class PreV50Migrator:
         const.LOGGER.debug(
             "DEBUG: Assignee Added (migration) - '%s', ID '%s'",
             self.coordinator._data[const.DATA_ASSIGNEES][assignee_id][
-                const.DATA_ASSIGNEE_NAME
+                const.DATA_USER_NAME
             ],
             assignee_id,
         )
@@ -5921,7 +6114,7 @@ class PreV50Migrator:
         existing.update(assignee_data)
         assignees[assignee_id] = existing
 
-        assignee_name = existing.get(const.DATA_ASSIGNEE_NAME, const.SENTINEL_EMPTY)
+        assignee_name = existing.get(const.DATA_USER_NAME, const.SENTINEL_EMPTY)
         const.LOGGER.debug(
             "DEBUG: Assignee Updated - '%s', ID '%s'",
             assignee_name,
@@ -5936,29 +6129,29 @@ class PreV50Migrator:
             else:
                 const.LOGGER.warning(
                     "WARNING: Approver '%s': Assignee ID '%s' not found. Skipping assignment to approver",
-                    approver_data.get(const.DATA_APPROVER_NAME, approver_id),
+                    approver_data.get(const.DATA_USER_NAME, approver_id),
                     assignee_id,
                 )
 
         self.coordinator._data[const.DATA_APPROVERS][approver_id] = {
-            const.DATA_APPROVER_NAME: approver_data.get(
-                const.DATA_APPROVER_NAME, const.SENTINEL_EMPTY
+            const.DATA_USER_NAME: approver_data.get(
+                const.DATA_USER_NAME, const.SENTINEL_EMPTY
             ),
-            const.DATA_APPROVER_HA_USER_ID: approver_data.get(
-                const.DATA_APPROVER_HA_USER_ID, const.SENTINEL_EMPTY
+            const.DATA_USER_HA_USER_ID: approver_data.get(
+                const.DATA_USER_HA_USER_ID, const.SENTINEL_EMPTY
             ),
             const.DATA_APPROVER_ASSOCIATED_USERS: associated_assignees_ids,
             const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY: approver_data.get(
                 const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY, True
             ),
-            const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE: approver_data.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE: approver_data.get(
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
             const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: approver_data.get(
                 const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
                 True,
             ),
-            const.DATA_APPROVER_INTERNAL_ID: approver_id,
+            const.DATA_USER_INTERNAL_ID: approver_id,
             # Approver chore capability fields (v0.6.0+)
             const.DATA_APPROVER_DASHBOARD_LANGUAGE: approver_data.get(
                 const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
@@ -5975,26 +6168,26 @@ class PreV50Migrator:
                 const.DATA_APPROVER_ENABLE_GAMIFICATION,
                 const.DEFAULT_APPROVER_ENABLE_GAMIFICATION,
             ),
-            const.DATA_APPROVER_LINKED_PROFILE_ID: approver_data.get(
-                const.DATA_APPROVER_LINKED_PROFILE_ID
+            LEGACY_APPROVER_LINKED_PROFILE_KEY: approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY
             ),
         }
         const.LOGGER.debug(
             "DEBUG: Approver Added - '%s', ID '%s'",
             self.coordinator._data[const.DATA_APPROVERS][approver_id][
-                const.DATA_APPROVER_NAME
+                const.DATA_USER_NAME
             ],
             approver_id,
         )
 
     def _update_approver(self, approver_id: str, approver_data: dict[str, Any]):
         approver_info = self.coordinator._data[const.DATA_APPROVERS][approver_id]
-        approver_info[const.DATA_APPROVER_NAME] = approver_data.get(
-            const.DATA_APPROVER_NAME, approver_info[const.DATA_APPROVER_NAME]
+        approver_info[const.DATA_USER_NAME] = approver_data.get(
+            const.DATA_USER_NAME, approver_info[const.DATA_USER_NAME]
         )
-        approver_info[const.DATA_APPROVER_HA_USER_ID] = approver_data.get(
-            const.DATA_APPROVER_HA_USER_ID,
-            approver_info[const.DATA_APPROVER_HA_USER_ID],
+        approver_info[const.DATA_USER_HA_USER_ID] = approver_data.get(
+            const.DATA_USER_HA_USER_ID,
+            approver_info[const.DATA_USER_HA_USER_ID],
         )
 
         # Update associated_assignees
@@ -6005,7 +6198,7 @@ class PreV50Migrator:
             else:
                 const.LOGGER.warning(
                     "WARNING: Approver '%s': Assignee ID '%s' not found. Skipping assignment to approver",
-                    approver_info[const.DATA_APPROVER_NAME],
+                    approver_info[const.DATA_USER_NAME],
                     assignee_id,
                 )
         approver_info[const.DATA_APPROVER_ASSOCIATED_USERS] = updated_assignees
@@ -6017,10 +6210,10 @@ class PreV50Migrator:
                 ),
             )
         )
-        approver_info[const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE] = approver_data.get(
-            const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
+        approver_info[const.DATA_USER_MOBILE_NOTIFY_SERVICE] = approver_data.get(
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE,
             approver_info.get(
-                const.DATA_APPROVER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
+                const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
         )
         approver_info[const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS] = (
@@ -6061,14 +6254,14 @@ class PreV50Migrator:
         )
         # Update shadow assignee link if provided (set by options_flow when toggling
         # allow_chore_assignment)
-        if const.DATA_APPROVER_LINKED_PROFILE_ID in approver_data:
-            approver_info[const.DATA_APPROVER_LINKED_PROFILE_ID] = approver_data.get(
-                const.DATA_APPROVER_LINKED_PROFILE_ID
+        if LEGACY_APPROVER_LINKED_PROFILE_KEY in approver_data:
+            approver_info[LEGACY_APPROVER_LINKED_PROFILE_KEY] = approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY
             )
 
         const.LOGGER.debug(
             "DEBUG: Approver Updated - '%s', ID '%s'",
-            approver_info[const.DATA_APPROVER_NAME],
+            approver_info[const.DATA_USER_NAME],
             approver_id,
         )
 

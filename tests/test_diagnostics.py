@@ -28,13 +28,13 @@ def mock_storage_data():
     return {
         const.DATA_ASSIGNEES: {
             "assignee1": {
-                const.DATA_ASSIGNEE_NAME: "Alice",
-                const.DATA_ASSIGNEE_INTERNAL_ID: "assignee1",
+                const.DATA_USER_NAME: "Alice",
+                const.DATA_USER_INTERNAL_ID: "assignee1",
                 const.DATA_ASSIGNEE_POINTS: 100,
             },
             "assignee2": {
-                const.DATA_ASSIGNEE_NAME: "Bob",
-                const.DATA_ASSIGNEE_INTERNAL_ID: "assignee2",
+                const.DATA_USER_NAME: "Bob",
+                const.DATA_USER_INTERNAL_ID: "assignee2",
                 const.DATA_ASSIGNEE_POINTS: 50,
             },
         },
@@ -160,11 +160,9 @@ async def test_config_entry_diagnostics_byte_for_byte_compatibility(
         assert result[key] == mock_storage_data[key]
 
     # Verify assignees data structure preserved exactly
-    assert (
-        result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_ASSIGNEE_NAME] == "Alice"
-    )
+    assert result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_USER_NAME] == "Alice"
     assert result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_ASSIGNEE_POINTS] == 100
-    assert result[const.DATA_ASSIGNEES]["assignee2"][const.DATA_ASSIGNEE_NAME] == "Bob"
+    assert result[const.DATA_ASSIGNEES]["assignee2"][const.DATA_USER_NAME] == "Bob"
 
     # Verify chores data structure preserved exactly
     assert result[const.DATA_CHORES]["chore1"][const.DATA_CHORE_NAME] == "Clean Room"
@@ -187,7 +185,7 @@ async def test_device_diagnostics_returns_assignee_data(
 
     # Verify assignee data
     assert result["assignee_id"] == "assignee1"
-    assert result["assignee_data"][const.DATA_ASSIGNEE_NAME] == "Alice"
+    assert result["assignee_data"][const.DATA_USER_NAME] == "Alice"
     assert result["assignee_data"][const.DATA_ASSIGNEE_POINTS] == 100
 
 

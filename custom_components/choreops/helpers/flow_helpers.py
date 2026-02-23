@@ -93,8 +93,7 @@ CFOF_* constant values are now aligned with DATA_* values where possible,
 eliminating the need for mapping functions. This simplifies the call site pattern.
 
 **Entities with aligned keys (pass user_input directly to build_*()):**
-- Assignees: `CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME = "name"` matches `DATA_ASSIGNEE_NAME = "name"`
-- Approvers: `CFOF_APPROVERS_INPUT_NAME = "name"` matches `DATA_APPROVER_NAME = "name"`
+- Users: `CFOF_USERS_INPUT_NAME = "name"` matches `DATA_USER_NAME = "name"`
 - Rewards: `CFOF_REWARDS_INPUT_NAME = "name"` matches `DATA_REWARD_NAME = "name"`
 - Bonuses: `CFOF_BONUSES_INPUT_NAME = "name"` matches `DATA_BONUS_NAME = "name"`
 - Penalties: `CFOF_PENALTIES_INPUT_NAME = "name"` matches `DATA_PENALTY_NAME = "name"`
@@ -270,10 +269,10 @@ async def build_assignee_schema(
     return vol.Schema(
         {
             vol.Required(
-                const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME, default=const.SENTINEL_EMPTY
+                const.CFOF_USERS_INPUT_NAME, default=const.SENTINEL_EMPTY
             ): str,
             vol.Optional(
-                const.CFOF_ASSIGNEES_INPUT_HA_USER,
+                const.CFOF_USERS_INPUT_HA_USER_ID,
                 default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
@@ -293,7 +292,7 @@ async def build_assignee_schema(
             ),
             # Single notification service selector (None = disabled, service = enabled)
             vol.Optional(
-                const.CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
+                const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
                 default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
@@ -319,10 +318,10 @@ def validate_assignee_inputs(
 
     This is a UI-specific wrapper that:
     1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
-    2. Calls data_builders.validate_assignee_profile_data() (single source of truth)
+    2. Calls data_builders.validate_user_assignee_profile_data() (single source of truth)
 
-    Note: Since Phase 6 CFOF Key Alignment, CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME = "name"
-    matches DATA_ASSIGNEE_NAME = "name", so no key transformation is needed.
+    Note: Since Phase 6 CFOF Key Alignment, CFOF_USERS_INPUT_NAME = "name"
+    matches DATA_USER_NAME = "name", so no key transformation is needed.
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
@@ -337,14 +336,12 @@ def validate_assignee_inputs(
 
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
-        const.DATA_ASSIGNEE_NAME: user_input.get(
-            const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME, ""
-        ),
+        const.DATA_USER_NAME: user_input.get(const.CFOF_USERS_INPUT_NAME, ""),
     }
 
     # Call shared validation (single source of truth)
     is_update = current_assignee_id is not None
-    return db.validate_assignee_profile_data(
+    return db.validate_user_assignee_profile_data(
         data_dict,
         existing_assignees,
         existing_users,
@@ -362,10 +359,10 @@ USER_SECTION_SYSTEM_USAGE = "section_system_usage"
 USER_SECTION_ADMIN_APPROVAL = "section_admin_approval"
 
 USER_IDENTITY_FIELDS = (
-    const.CFOF_APPROVERS_INPUT_NAME,
-    const.CFOF_APPROVERS_INPUT_HA_USER,
+    const.CFOF_USERS_INPUT_NAME,
+    const.CFOF_USERS_INPUT_HA_USER_ID,
     const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
-    const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+    const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
 )
 
 USER_SYSTEM_USAGE_FIELDS = (
@@ -447,11 +444,9 @@ async def _build_user_schema_impl(
     language_options = await th.get_available_dashboard_languages(hass)
 
     identity_fields: dict[Any, Any] = {
-        vol.Required(
-            const.CFOF_APPROVERS_INPUT_NAME, default=const.SENTINEL_EMPTY
-        ): str,
+        vol.Required(const.CFOF_USERS_INPUT_NAME, default=const.SENTINEL_EMPTY): str,
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_HA_USER,
+            const.CFOF_USERS_INPUT_HA_USER_ID,
             default=const.SENTINEL_NO_SELECTION,
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
@@ -470,7 +465,7 @@ async def _build_user_schema_impl(
             )
         ),
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
             default=const.SENTINEL_NO_SELECTION,
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
@@ -575,8 +570,8 @@ def _validate_users_inputs_impl(
     1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
     2. Calls data_builders.validate_user_profile_data() (single source of truth)
 
-    Note: Since Phase 6 CFOF Key Alignment, CFOF_APPROVERS_INPUT_NAME = "name"
-    matches DATA_APPROVER_NAME = "name", so no key transformation is needed.
+    Note: Since Phase 6 CFOF Key Alignment, CFOF_USERS_INPUT_NAME = "name"
+    matches DATA_USER_NAME = "name", so no key transformation is needed.
 
     Args:
         user_input: Dictionary containing user inputs from the form (CFOF_* keys).
@@ -591,7 +586,7 @@ def _validate_users_inputs_impl(
 
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
-        const.DATA_APPROVER_NAME: user_input.get(const.CFOF_APPROVERS_INPUT_NAME, ""),
+        const.DATA_USER_NAME: user_input.get(const.CFOF_USERS_INPUT_NAME, ""),
     }
 
     if const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES in user_input:
@@ -1875,9 +1870,7 @@ def build_badge_common_schema(
         assignee_options += [
             {
                 "value": assignee_id,
-                "label": assignee.get(
-                    const.DATA_ASSIGNEE_NAME, const.SENTINEL_NONE_TEXT
-                ),
+                "label": assignee.get(const.DATA_USER_NAME, const.SENTINEL_NONE_TEXT),
             }
             for assignee_id, assignee in assignees_dict.items()
         ]

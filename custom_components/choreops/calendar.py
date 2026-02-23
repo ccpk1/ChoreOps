@@ -23,8 +23,7 @@ from .engines.schedule_engine import RecurrenceEngine
 from .helpers.device_helpers import create_assignee_device_info_from_coordinator
 from .helpers.entity_helpers import (
     get_event_signal,
-    is_linked_profile,
-    should_create_entity,
+    should_create_entity_for_user_assignee,
 )
 from .utils.dt_utils import dt_now_local, dt_parse, parse_daily_multi_times
 
@@ -55,12 +54,13 @@ async def async_setup_entry(
     entities = []
     for assignee_id, assignee_info in coordinator.assignees_data.items():
         # Use registry-based creation decision for future flexibility
-        if should_create_entity(
+        if should_create_entity_for_user_assignee(
             const.CALENDAR_KC_UID_SUFFIX_CALENDAR,
-            is_feature_gated_profile=is_linked_profile(coordinator, assignee_id),
+            coordinator,
+            assignee_id,
         ):
             assignee_name = assignee_info.get(
-                const.DATA_ASSIGNEE_NAME,
+                const.DATA_USER_NAME,
                 f"{const.TRANS_KEY_LABEL_ASSIGNEE} {assignee_id}",
             )
             entities.append(

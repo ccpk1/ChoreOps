@@ -139,11 +139,7 @@ def _ha_user_ref_matches(user: User, ha_user_ref: str | None) -> bool:
 
 def _get_record_ha_user_ref(user_data: dict[str, object]) -> str | None:
     """Return HA user reference from canonical or compatibility keys."""
-    for key in (
-        const.DATA_USER_HA_USER_ID,
-        const.DATA_APPROVER_HA_USER_ID,
-        const.DATA_ASSIGNEE_HA_USER_ID,
-    ):
+    for key in (const.DATA_USER_HA_USER_ID,):
         value = user_data.get(key)
         if isinstance(value, str) and value:
             return value
@@ -198,7 +194,7 @@ async def _has_management_authority(
     # Legacy fallback during migration
     for approver_record in coordinator.approvers_data.values():
         if _ha_user_ref_matches(
-            user, approver_record.get(const.DATA_APPROVER_HA_USER_ID)
+            user, approver_record.get(const.DATA_USER_HA_USER_ID)
         ) and approver_record.get(const.DATA_USER_CAN_MANAGE, False):
             return True
 
@@ -245,7 +241,7 @@ async def _has_approval_authority_for_target(
     # Legacy fallback during migration
     for approver_record in coordinator.approvers_data.values():
         if _ha_user_ref_matches(
-            user, approver_record.get(const.DATA_APPROVER_HA_USER_ID)
+            user, approver_record.get(const.DATA_USER_HA_USER_ID)
         ) and approver_record.get(const.DATA_USER_CAN_APPROVE, False):
             return True
 
@@ -309,7 +305,7 @@ async def _has_participation_authority_for_target(
 
         assignee_info = coordinator.assignees_data.get(target_user_id)
         if assignee_info:
-            linked_ha_id = assignee_info.get(const.DATA_ASSIGNEE_HA_USER_ID)
+            linked_ha_id = assignee_info.get(const.DATA_USER_HA_USER_ID)
             if _ha_user_ref_matches(user, linked_ha_id):
                 return True
             if linked_ha_id in (None, ""):
@@ -319,7 +315,7 @@ async def _has_participation_authority_for_target(
     # Legacy fallback during migration
     for approver_record in coordinator.approvers_data.values():
         if _ha_user_ref_matches(
-            user, approver_record.get(const.DATA_APPROVER_HA_USER_ID)
+            user, approver_record.get(const.DATA_USER_HA_USER_ID)
         ) and approver_record.get(const.DATA_USER_CAN_APPROVE, False):
             return True
 
@@ -327,7 +323,7 @@ async def _has_participation_authority_for_target(
     if not assignee_info:
         return False
 
-    linked_ha_id = assignee_info.get(const.DATA_ASSIGNEE_HA_USER_ID)
+    linked_ha_id = assignee_info.get(const.DATA_USER_HA_USER_ID)
     if _ha_user_ref_matches(user, linked_ha_id):
         return True
     if linked_ha_id in (None, ""):

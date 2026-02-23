@@ -62,7 +62,7 @@ def sample_chore_data() -> dict[str, Any]:
 def sample_assignee_data() -> dict[str, Any]:
     """Create sample assignee data."""
     return {
-        const.DATA_ASSIGNEE_NAME: "Alice",
+        const.DATA_USER_NAME: "Alice",
         const.DATA_ASSIGNEE_POINTS_MULTIPLIER: 1.0,
         const.DATA_ASSIGNEE_CHORE_DATA: {},
     }
@@ -77,7 +77,7 @@ def mock_coordinator(sample_chore_data: dict, sample_assignee_data: dict) -> Mag
     coordinator.assignees_data = {
         "assignee-1": sample_assignee_data.copy(),
         "assignee-2": {
-            const.DATA_ASSIGNEE_NAME: "Bob",
+            const.DATA_USER_NAME: "Bob",
             const.DATA_ASSIGNEE_POINTS_MULTIPLIER: 1.5,
             const.DATA_ASSIGNEE_CHORE_DATA: {},
         },
@@ -923,7 +923,7 @@ class TestClaimWorkflow:
 
         # Assignee-3 is not assigned
         chore_manager._coordinator.assignees_data["assignee-3"] = {
-            const.DATA_ASSIGNEE_NAME: "Charlie",
+            const.DATA_USER_NAME: "Charlie",
             const.DATA_ASSIGNEE_CHORE_DATA: {},
         }
 

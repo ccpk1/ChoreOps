@@ -82,9 +82,6 @@ class ApproverData(TypedDict):
     allow_chore_assignment: bool
     enable_chore_workflow: bool
     enable_gamification: bool
-    linked_shadow_assignee_id: NotRequired[
-        str | None
-    ]  # Legacy persisted key retained until dedicated schema migration
 
 
 # =============================================================================
@@ -649,10 +646,8 @@ class AssigneeData(TypedDict):
     points: float
     points_multiplier: float
 
-    # Linkage
+    # Identity
     ha_user_id: NotRequired[str | None]
-    is_shadow_assignee: NotRequired[bool]
-    linked_approver_id: NotRequired[str | None]
 
     # Notifications
     mobile_notify_service: str

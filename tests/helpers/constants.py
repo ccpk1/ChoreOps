@@ -133,19 +133,16 @@ from custom_components.choreops.const import (
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Assignees
     # =========================================================================
-    CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
     CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT,
-    CFOF_ASSIGNEES_INPUT_HA_USER,
     CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
-    CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
+    CFOF_USERS_INPUT_NAME,
+    CFOF_USERS_INPUT_HA_USER_ID,
+    CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Approvers
     # =========================================================================
-    CFOF_APPROVERS_INPUT_NAME,
     CFOF_APPROVERS_INPUT_APPROVER_COUNT,
-    CFOF_APPROVERS_INPUT_HA_USER,
     CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
-    CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
     CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
     CFOF_APPROVERS_INPUT_CAN_APPROVE,
     CFOF_APPROVERS_INPUT_CAN_MANAGE,
@@ -433,11 +430,9 @@ from custom_components.choreops.const import (
     DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS,  # v43+ points key
     DATA_ASSIGNEE_CHORE_STATS_LEGACY,  # v43+ moved to LEGACY, use DATA_ASSIGNEE_CHORE_PERIODS
     # Phase 2: DATA_KID_COMPLETED_BY_OTHER_CHORES removed (was line 419)
-    DATA_ASSIGNEE_HA_USER_ID,
-    DATA_ASSIGNEE_INTERNAL_ID,
-    DATA_ASSIGNEE_IS_SHADOW,
-    DATA_ASSIGNEE_LINKED_APPROVER_ID,
-    DATA_ASSIGNEE_NAME,
+    DATA_USER_HA_USER_ID,
+    DATA_USER_INTERNAL_ID,
+    DATA_USER_NAME,
     # DATA_KID_OVERDUE_CHORES removed - dead code, see DATA_KID_OVERDUE_CHORES_LEGACY
     DATA_ASSIGNEE_POINT_PERIODS,  # v43+ flat structure
     DATA_ASSIGNEE_POINT_DATA_LEGACY,  # LEGACY v42 - for migration tests only
@@ -458,10 +453,7 @@ from custom_components.choreops.const import (
     DATA_APPROVER_DASHBOARD_LANGUAGE,
     DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
     DATA_APPROVER_ENABLE_GAMIFICATION,
-    DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
-    DATA_APPROVER_HA_USER_ID,
-    DATA_APPROVER_LINKED_PROFILE_ID,
-    DATA_APPROVER_NAME,
+    DATA_USER_MOBILE_NOTIFY_SERVICE,
     DATA_APPROVERS,
     DATA_PENALTIES,
     # =========================================================================
@@ -485,6 +477,7 @@ from custom_components.choreops.const import (
     DEFAULT_REWARD_COST,
     DEFAULT_ZERO,
     DOMAIN,
+    CFOP_ERROR_USER_NAME,
     # =========================================================================
     # FREQUENCIES
     # =========================================================================
@@ -592,6 +585,30 @@ from custom_components.choreops.const import (
     # LEGACY CONF KEYS (for migration tests)
     # =========================================================================
 )
+
+# Legacy linkage keys are migration-only in production code.
+# Re-export as literals for migration-oriented tests.
+DATA_ASSIGNEE_IS_SHADOW = "is_shadow_assignee"
+DATA_ASSIGNEE_LINKED_APPROVER_ID = "linked_approver_id"
+DATA_APPROVER_LINKED_PROFILE_ID = "linked_shadow_assignee_id"
+
+# Test-only identity alias compatibility mappings (Phase 4A batch 6)
+DATA_ASSIGNEE_NAME = DATA_USER_NAME
+DATA_ASSIGNEE_INTERNAL_ID = DATA_USER_INTERNAL_ID
+DATA_ASSIGNEE_HA_USER_ID = DATA_USER_HA_USER_ID
+DATA_ASSIGNEE_MOBILE_NOTIFY_SERVICE = DATA_USER_MOBILE_NOTIFY_SERVICE
+DATA_APPROVER_NAME = DATA_USER_NAME
+DATA_APPROVER_INTERNAL_ID = DATA_USER_INTERNAL_ID
+DATA_APPROVER_HA_USER_ID = DATA_USER_HA_USER_ID
+DATA_APPROVER_MOBILE_NOTIFY_SERVICE = DATA_USER_MOBILE_NOTIFY_SERVICE
+CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME = CFOF_USERS_INPUT_NAME
+CFOF_ASSIGNEES_INPUT_HA_USER = CFOF_USERS_INPUT_HA_USER_ID
+CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE = CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE
+CFOF_APPROVERS_INPUT_NAME = CFOF_USERS_INPUT_NAME
+CFOF_APPROVERS_INPUT_HA_USER = CFOF_USERS_INPUT_HA_USER_ID
+CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE = CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE
+CFOP_ERROR_ASSIGNEE_NAME = CFOP_ERROR_USER_NAME
+CFOP_ERROR_APPROVER_NAME = CFOP_ERROR_USER_NAME
 
 
 def construct_entity_id(platform: str, assignee_name: str, suffix: str) -> str:

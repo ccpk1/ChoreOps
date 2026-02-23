@@ -53,9 +53,8 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 ---
 
+> [!NOTE]
 > **Attribution & Legacy**<br>
-> **Intentional terminology exception:** This README intentionally retains select `KidsChores` references for migration guidance and legacy attribution under the rebrand policy.
->
 > ChoreOps is the official evolution of the **KidsChores** integration. While the original project is now deprecated, its concepts and features grew into this new system to better serve the entire Home Assistant community—expanding the scope beyond just "kids" to the whole household.
 >
 > The original creator, **@ad-ha**, remains involved with this progression and continues to inspire the project's direction.<br>
@@ -100,49 +99,14 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 - **Service-level control**: automate create/claim/approve/redeem/adjust actions
 - **Automation-first architecture**: integrate with scripts, automations, dashboards, voice, and Node-RED
 
-## Hard-fork service field migration
-
-ChoreOps hard-fork runtime contracts use role-based request fields in services and
-automation payloads.
-
-- `kid_name` → `assignee_name`
-- `parent_name` → `approver_name`
-
-Runtime compatibility aliases are not supported for these fields.
-
-Before:
-
-```yaml
-action: choreops.approve_chore
-data:
-  parent_name: "Mom"
-  kid_name: "Henry"
-  chore_name: "Brush teeth PM"
-```
-
-After:
-
-```yaml
-action: choreops.approve_chore
-data:
-  approver_name: "Mom"
-  assignee_name: "Henry"
-  chore_name: "Brush teeth PM"
-```
-
-## Migration verification checklist (release hardening)
-
-For upgrade validation and rollback confidence:
-
-- Confirm migration summary logs include structured counts for users, linked merges,
-  standalone parent creations, collisions, and remap totals/additions.
-- Run migration-path tests before release sign-off:
-  - `python -m pytest tests/test_migration_hardening.py tests/test_config_flow_use_existing.py -v --tb=line`
-- Validate rollback by creating a backup before upgrade and restoring it after test migration.
-
 ## Reference Documentation
 
-TODO: Add Wiki once live
+- 📚 Wiki Home: [ChoreOps Wiki](https://github.com/ccpk1/choreops/wiki)
+- 🚀 Getting Started: [Installation](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Installation) · [Quick Start](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Quick-Start) · [Scenarios](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Scenarios) · [Migration from KidsChores](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Migration-from-KidsChores)
+- ⚙️ Configuration: [Users](https://github.com/ccpk1/choreops/wiki/Configuration:-Users) · [Chores](https://github.com/ccpk1/choreops/wiki/Configuration:-Chores)
+- 🏅 Gamification: [Points](https://github.com/ccpk1/choreops/wiki/Configuration:-Points) · [Rewards](https://github.com/ccpk1/choreops/wiki/Configuration:-Rewards) · [Badges Overview](https://github.com/ccpk1/choreops/wiki/Configuration:-Badges-Overview) · [Achievements](https://github.com/ccpk1/choreops/wiki/Configuration:-Achievements) · [Challenges](https://github.com/ccpk1/choreops/wiki/Configuration:-Challenges)
+- 🔧 Operations: [Services Reference](https://github.com/ccpk1/choreops/wiki/Services:-Reference) · [Advanced Dashboard](https://github.com/ccpk1/choreops/wiki/Advanced:-Dashboard) · [Advanced Access Control](https://github.com/ccpk1/choreops/wiki/Advanced:-Access-Control)
+- 🧪 Technical: [Entities & States](https://github.com/ccpk1/choreops/wiki/Technical:-Entities-States) · [Dashboard Generation](https://github.com/ccpk1/choreops/wiki/Technical:-Dashboard-Generation) · [Troubleshooting](https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting) · [FAQ](<https://github.com/ccpk1/choreops/wiki/Frequently-Asked-Questions-(FAQ)>)
 
 ## Quick installation
 
