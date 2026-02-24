@@ -33,7 +33,7 @@ from tests.helpers import (
     BADGE_TYPE_PERIODIC,
     BADGE_TYPE_SPECIAL_OCCASION,
     # Badge form input constants
-    CFOF_BADGES_INPUT_ASSIGNED_TO,
+    CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
     CFOF_BADGES_INPUT_AWARD_ITEMS,
     CFOF_BADGES_INPUT_AWARD_POINTS,
     CFOF_BADGES_INPUT_ICON,
@@ -191,7 +191,7 @@ class TestDailyBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:star-circle",
             CFOF_BADGES_INPUT_TARGET_TYPE: "chore_count",  # Required for daily
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 3,  # Complete 3 chores
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [chore_id],  # Track specific chore
             CFOF_BADGES_INPUT_AWARD_POINTS: 10.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -234,7 +234,7 @@ class TestDailyBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:medal",
             CFOF_BADGES_INPUT_TARGET_TYPE: "chore_count",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 2,  # Need 2 chores
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],  # All chores
             CFOF_BADGES_INPUT_AWARD_POINTS: 15.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -291,7 +291,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:trophy",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points_chores",  # Points from chores only
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,  # Earn 50 points
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],  # All chores
             CFOF_BADGES_INPUT_AWARD_POINTS: 25.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -334,7 +334,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:calendar-check",
             CFOF_BADGES_INPUT_TARGET_TYPE: "days_all_chores",  # Days with all done
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 5,  # Need 5 perfect days
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],  # All chores
             CFOF_BADGES_INPUT_AWARD_POINTS: 50.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -375,7 +375,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:progress-check",
             CFOF_BADGES_INPUT_TARGET_TYPE: "chore_count",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 99,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 10.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -418,7 +418,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:format-list-bulleted",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -455,7 +455,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:calendar-refresh",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 999,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -519,7 +519,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:counter",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -583,7 +583,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:check-decagram",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 10,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -646,7 +646,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:repeat-once",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 1,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -696,7 +696,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:restore-alert",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -739,7 +739,7 @@ class TestPeriodicBadgeTargetTypes:
             CFOF_BADGES_INPUT_ICON: "mdi:playlist-check",
             CFOF_BADGES_INPUT_TARGET_TYPE: "points",
             CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 50,
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_SELECTED_CHORES: [],
             CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
@@ -817,7 +817,7 @@ class TestPeriodicBadgeTargetTypes:
             const.DATA_BADGE_TRACKED_CHORES: {
                 const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES: [],
             },
-            const.DATA_BADGE_ASSIGNED_TO: [assignee_id],
+            const.DATA_BADGE_ASSIGNED_USER_IDS: [assignee_id],
         }
 
         caplog.set_level(logging.WARNING)
@@ -867,7 +867,7 @@ class TestSpecialOccasionBadgeTargetTypes:
             CFOF_BADGES_INPUT_NAME: "Birthday Star",
             CFOF_BADGES_INPUT_ICON: "mdi:cake-variant",
             CFOF_BADGES_INPUT_OCCASION_TYPE: "birthday",  # Required for special
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_AWARD_POINTS: 100.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
         }
@@ -903,7 +903,7 @@ class TestSpecialOccasionBadgeTargetTypes:
             CFOF_BADGES_INPUT_NAME: "Holiday Helper",
             CFOF_BADGES_INPUT_ICON: "mdi:gift",
             CFOF_BADGES_INPUT_OCCASION_TYPE: "holiday",  # Holiday occasion
-            CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
             CFOF_BADGES_INPUT_AWARD_POINTS: 50.0,
             CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
         }

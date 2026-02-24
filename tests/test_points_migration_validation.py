@@ -531,6 +531,13 @@ class TestPointsSensorAttributes:
 class TestPointsSensorUpdatesOnManualAdjustment:
     """Verify _points sensor updates correctly when manual points added/removed."""
 
+    async def _flush_gamification_updates(
+        self, hass: HomeAssistant, scenario_minimal: SetupResult
+    ) -> None:
+        """Flush pending gamification evaluations triggered by point adjustments."""
+        await scenario_minimal.coordinator.gamification_manager._evaluate_pending_assignees()
+        await hass.async_block_till_done()
+
     async def test_plus_ten_updates_all_earned_attributes(
         self,
         hass: HomeAssistant,
@@ -555,6 +562,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
@@ -613,6 +621,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
@@ -657,6 +666,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
@@ -736,6 +746,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get updated state
         new_attrs = verify_points_sensor_attributes_complete(hass, "zoe")
@@ -794,6 +805,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Press +10
         plus_10_btn = find_adjust_button(dashboard, 10)
@@ -805,6 +817,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Press -2
         minus_2_btn = find_adjust_button(dashboard, -2)
@@ -816,6 +829,7 @@ class TestPointsSensorUpdatesOnManualAdjustment:
             blocking=True,
             context=approver_context,
         )
+        await self._flush_gamification_updates(hass, scenario_minimal)
 
         # Get final state
         final_attrs = verify_points_sensor_attributes_complete(hass, "zoe")

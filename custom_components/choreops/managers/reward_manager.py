@@ -93,7 +93,7 @@ class RewardManager(BaseManager):
         Args:
             payload: Award Manifest containing reward_ids list
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         reward_ids = payload.get("reward_ids", [])
         badge_name = payload.get("badge_name", "Badge")
 
@@ -381,10 +381,9 @@ class RewardManager(BaseManager):
         # StatisticsManager._on_reward_claimed handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_REWARD_CLAIMED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             reward_id=reward_id,
-            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
-            or "",
+            user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             reward_name=reward_info[const.DATA_REWARD_NAME],
             points=reward_info[const.DATA_REWARD_COST],
             actions=actions,
@@ -506,7 +505,7 @@ class RewardManager(BaseManager):
         # StatisticsManager._on_reward_approved handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_REWARD_APPROVED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             reward_id=reward_id,
             reward_name=reward_info[const.DATA_REWARD_NAME],
             cost=cost,  # Reward cost approved/deducted
@@ -635,7 +634,7 @@ class RewardManager(BaseManager):
         # StatisticsManager._on_reward_disapproved handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_REWARD_DISAPPROVED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             reward_id=reward_id,
             reward_name=reward_info[const.DATA_REWARD_NAME],
         )
@@ -703,7 +702,7 @@ class RewardManager(BaseManager):
         # Emit event for NotificationManager to clear approver claim notifications
         self.emit(
             const.SIGNAL_SUFFIX_REWARD_CLAIM_UNDONE,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             reward_id=reward_id,
         )
 
@@ -1033,7 +1032,7 @@ class RewardManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_REWARD_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 

@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Liittyvä saavutus",
           "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, kerroin (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
           "points_multiplier": "🎁 PALKINNOT: Pistekerroin (Oletus 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
           "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai pistekertoimesta. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
           "points_multiplier": "Jos kerroin on valittu palkinto, aseta kerroin pisteille, jotka ansaitaan tämän ansiomerkin ollessa aktiivinen (esim. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Liittyvä saavutus",
           "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, kerroin (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
           "points_multiplier": "🎁 PALKINNOT: Pistekerroin (Oletus 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
           "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi seurataksesi kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai pistekertoimesta. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
           "points_multiplier": "Jos kerroin on valittu palkinto, aseta kerroin pisteille, jotka ansaitaan tämän ansiomerkin ollessa aktiivinen (esim. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 PÄIVITTÄINEN TAVOITE: Tavoitteen tyyppi",
           "threshold_value": "🎯 PÄIVITTÄINEN TAVOITE: Kynnysarvo",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, rangaistukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Valitse tämän ansiomerkin päivittäisen tavoitteen tyyppi (esim. pisteet, tehtävien määrä tai päivät).",
           "threshold_value": "Aseta päivittäiset pisteet, tehtävien määrä tai päivien lukumäärä, joka vaaditaan tämän ansiomerkin ansaitsemiseksi. Jos tavoitetyyppi on 'Päivät', anna arvoksi 1, koska ansiomerkki arvioidaan päivittäin (esim. 1, jos suoritat kaikki valitut tehtävät yhden päivän aikana).",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Liittyvä saavutus",
           "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, rangaistukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
           "recurring_frequency": "🔄 NOLLAUSSYKLI: Tiheys",
@@ -794,7 +794,7 @@
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
           "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
           "recurring_frequency": "Määritä tämän merkin nollausaikataulu (esim. viikoittain, kuukausittain).",
@@ -813,7 +813,7 @@
           "badge_labels": "Tarrat (valinnainen)",
           "icon": "Tunnuskuvake (mdi:xxx)",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
           "associated_achievement": "Linkitä tämä ansiomerkki tiettyyn saavutukseen seurantaa varten.",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Tarrat (valinnainen)",
           "icon": "Tunnuskuvake (mdi:xxx)",
           "associated_challenge": "🏁 Liittyvä haaste",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
           "associated_challenge": "Linkitä tämä merkki tiettyyn seurantahaasteeseen.",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 TOISTUVUUS: Mukautettu aikavälin yksikkö (pakollinen mukautetulle taajuudelle)",
           "start_date": "🔄 TOISTUVUUS: Aloituspäivämäärä (valinnainen)",
           "grace_period_days": "🔄 TOISTUVA: Lisäaika päivinä (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot).",
           "start_date": "Aseta nollausjakson aloituspäivämäärä (valinnainen).",
           "grace_period_days": "Määritä, kuinka monta lisäpäivää lapsilla on syklin päättymisen jälkeen vaadittujen pisteiden saavuttamiseksi ennen alentamista (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Liittyvä saavutus",
           "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, kerroin (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
           "points_multiplier": "🎁 PALKINNOT: Pistekerroin (Oletus 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
           "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai pistekertoimesta. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
           "points_multiplier": "Jos kerroin on valittu palkinto, aseta kerroin pisteille, jotka ansaitaan tämän ansiomerkin ollessa aktiivinen (esim. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 PÄIVITTÄINEN TAVOITE: Tavoitteen tyyppi",
           "threshold_value": "🎯 PÄIVITTÄINEN TAVOITE: Kynnysarvo",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, rangaistukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Valitse tämän ansiomerkin päivittäisen tavoitteen tyyppi (esim. pisteet, tehtävien määrä tai päivät).",
           "threshold_value": "Aseta päivittäiset pisteet, tehtävien määrä tai päivien lukumäärä, joka vaaditaan tämän ansiomerkin ansaitsemiseksi. Jos tavoitetyyppi on 'Päivät', anna arvoksi 1, koska ansiomerkki arvioidaan päivittäin (esim. 1, jos suoritat kaikki valitut tehtävät yhden päivän aikana).",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Liittyvä saavutus",
           "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, rangaistukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)",
           "recurring_frequency": "🔄 NOLLAUSSYKLI: Tiheys",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
           "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)",
           "recurring_frequency": "Määritä tämän merkin nollausaikataulu (esim. viikoittain, kuukausittain).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Tarrat (valinnainen)",
           "icon": "Tunnuskuvake (mdi:xxx)",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
           "associated_achievement": "Linkitä tämä ansiomerkki tiettyyn saavutukseen seurantaa varten.",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Tarrat (valinnainen)",
           "icon": "Tunnuskuvake (mdi:xxx)",
           "associated_challenge": "🏁 Liittyvä haaste",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
           "associated_challenge": "Linkitä tämä merkki tiettyyn seurantahaasteeseen.",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 TOISTUVUUS: Mukautettu aikavälin yksikkö (pakollinen mukautetulle taajuudelle)",
           "start_date": "🔄 TOISTUVUUS: Aloituspäivämäärä (valinnainen)",
           "grace_period_days": "🔄 TOISTUVA: Lisäaika päivinä (valinnainen)",
-          "assigned_to": "🧒 Määrätyt lapset",
+          "assigned_user_ids": "🧒 Määrätyt lapset",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
           "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Valitse mukautetun aikavälin yksikkö (esim. päivät, viikot).",
           "start_date": "Aseta nollausjakson aloituspäivämäärä (valinnainen).",
           "grace_period_days": "Määritä, kuinka monta lisäpäivää lapsilla on syklin päättymisen jälkeen vaadittujen pisteiden saavuttamiseksi ennen alentamista (valinnainen).",
-          "assigned_to": "Anna tämä merkki tietyille lapsille seurantaa varten.",
+          "assigned_user_ids": "Anna tämä merkki tietyille lapsille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
         }

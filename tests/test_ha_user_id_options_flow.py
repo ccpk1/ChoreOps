@@ -141,7 +141,7 @@ class TestHaUserIdClearing:
                     CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
                     CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
                     CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
-                    CFOF_USERS_INPUT_CAN_APPROVE: False,
+                    CFOF_USERS_INPUT_CAN_APPROVE: True,
                     CFOF_USERS_INPUT_CAN_MANAGE: False,
                     CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
                     CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
@@ -184,7 +184,7 @@ class TestHaUserIdClearing:
                     CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
                     CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
                     CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
-                    CFOF_USERS_INPUT_CAN_APPROVE: False,
+                    CFOF_USERS_INPUT_CAN_APPROVE: True,
                     CFOF_USERS_INPUT_CAN_MANAGE: False,
                     CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
                     CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
@@ -227,6 +227,45 @@ class TestHaUserIdClearing:
         )
 
         # Open edit form for the same user.
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_USERS},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+        )
+        result = await hass.config_entries.options.async_configure(
+            result.get("flow_id"),
+            user_input={OPTIONS_FLOW_INPUT_ENTITY_NAME: approver_name},
+        )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_EDIT_USER
+
+    async def test_edit_user_ignores_stale_associated_user_ids_from_migration(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Edit user form should load when stored associated_user_ids contains stale IDs."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = config_entry.runtime_data
+
+        if not coordinator.approvers_data:
+            pytest.skip("Scenario has no user-role profiles to edit")
+
+        approver_id, approver_data = next(iter(coordinator.approvers_data.items()))
+        approver_name = str(approver_data.get(CFOF_APPROVERS_INPUT_NAME, ""))
+        assert approver_name
+
+        coordinator.user_manager.update_user(
+            approver_id,
+            {const.DATA_USER_ASSOCIATED_USER_IDS: ["legacy-missing-user-id"]},
+            immediate_persist=True,
+        )
+
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
         result = await hass.config_entries.options.async_configure(
             result.get("flow_id"),

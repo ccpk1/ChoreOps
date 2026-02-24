@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Súvisiaci úspech",
           "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, multiplikátor (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
           "points_multiplier": "🎁 ODMENY: Násobiteľ bodov (predvolený 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
           "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo multiplikátora bodov. Všetky vybrané položky budú udelené alebo použité po získaní odznaku. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
           "points_multiplier": "Ak je multiplikátor vybrané ocenenie, nastavte multiplikátor pre body získané počas aktívneho odznaku (napr. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Súvisiaci úspech",
           "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, multiplikátor (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
           "points_multiplier": "🎁 ODMENY: Násobiteľ bodov (predvolený 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
           "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo multiplikátora bodov. Všetky vybrané položky budú udelené alebo použité po získaní odznaku. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
           "points_multiplier": "Ak je multiplikátor vybrané ocenenie, nastavte multiplikátor pre body získané počas aktívneho odznaku (napr. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DENNÝ CIEĽ: Typ cieľa",
           "threshold_value": "🎯 DENNÝ CIEĽ: Prahová hodnota",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, sankcie (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Vyberte typ denného cieľa pre tento odznak (napr. body, počet úloh alebo dni).",
           "threshold_value": "Nastavte denné body, počet úloh alebo počet dní potrebných na získanie tohto odznaku. Pre typy cieľov „Dni“ zadajte 1, pretože odznak sa vyhodnocuje denne (napr. 1 za jednodňové splnenie všetkých vybraných úloh).",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Súvisiaci úspech",
           "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, sankcie (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
           "recurring_frequency": "🔄 CYKLUS RESETU: Frekvencia",
@@ -794,7 +794,7 @@
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
           "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
           "recurring_frequency": "Definujte plán resetovania pre tento odznak (napr. týždenne, mesačne).",
@@ -813,7 +813,7 @@
           "badge_labels": "Štítky (voliteľné)",
           "icon": "Ikona odznaku (mdi:xxx)",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
           "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
           "associated_achievement": "Prepojte tento odznak s konkrétnym úspechom, ktorý chcete sledovať.",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Štítky (voliteľné)",
           "icon": "Ikona odznaku (mdi:xxx)",
           "associated_challenge": "🏁 Súvisiaca výzva",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
           "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
           "associated_challenge": "Prepojte tento odznak s konkrétnou výzvou na sledovanie.",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 OPAKOVANIE: Vlastná intervalová jednotka (povinné pre vlastnú frekvenciu)",
           "start_date": "🔄 OPAKOVANIE: Dátum začiatku (voliteľné)",
           "grace_period_days": "🔄 OPAKOVANIE: Tolerančná lehota v dňoch (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne).",
           "start_date": "Nastavte dátum začiatku cyklu resetovania (voliteľné).",
           "grace_period_days": "Zadajte počet ďalších dní po skončení cyklu, ktoré deti potrebujú na splnenie požadovaných bodov pred preradením do nižšej triedy (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Súvisiaci úspech",
           "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, multiplikátor (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
           "points_multiplier": "🎁 ODMENY: Násobiteľ bodov (predvolený 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
           "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo multiplikátora bodov. Všetky vybrané položky budú udelené alebo použité po získaní odznaku. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
           "points_multiplier": "Ak je multiplikátor vybrané ocenenie, nastavte multiplikátor pre body získané počas aktívneho odznaku (napr. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DENNÝ CIEĽ: Typ cieľa",
           "threshold_value": "🎯 DENNÝ CIEĽ: Prahová hodnota",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, sankcie (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Vyberte typ denného cieľa pre tento odznak (napr. body, počet úloh alebo dni).",
           "threshold_value": "Nastavte denné body, počet úloh alebo počet dní potrebných na získanie tohto odznaku. Pre typy cieľov „Dni“ zadajte 1, pretože odznak sa vyhodnocuje denne (napr. 1 za jednodňové splnenie všetkých vybraných úloh).",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Súvisiaci úspech",
           "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, sankcie (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)",
           "recurring_frequency": "🔄 CYKLUS RESETU: Frekvencia",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
           "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné).",
           "recurring_frequency": "Definujte plán resetovania pre tento odznak (napr. týždenne, mesačne).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Štítky (voliteľné)",
           "icon": "Ikona odznaku (mdi:xxx)",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
           "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
           "associated_achievement": "Prepojte tento odznak s konkrétnym úspechom, ktorý chcete sledovať.",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Štítky (voliteľné)",
           "icon": "Ikona odznaku (mdi:xxx)",
           "associated_challenge": "🏁 Súvisiaca výzva",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
           "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
           "associated_challenge": "Prepojte tento odznak s konkrétnou výzvou na sledovanie.",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 OPAKOVANIE: Vlastná intervalová jednotka (povinné pre vlastnú frekvenciu)",
           "start_date": "🔄 OPAKOVANIE: Dátum začiatku (voliteľné)",
           "grace_period_days": "🔄 OPAKOVANIE: Tolerančná lehota v dňoch (voliteľné)",
-          "assigned_to": "🧒 Pridelené deti",
+          "assigned_user_ids": "🧒 Pridelené deti",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
           "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Vyberte jednotku pre vlastný interval (napr. dni, týždne).",
           "start_date": "Nastavte dátum začiatku cyklu resetovania (voliteľné).",
           "grace_period_days": "Zadajte počet ďalších dní po skončení cyklu, ktoré deti potrebujú na splnenie požadovaných bodov pred preradením do nižšej triedy (voliteľné).",
-          "assigned_to": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
+          "assigned_user_ids": "Priraďte tento odznak konkrétnym deťom na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
         }

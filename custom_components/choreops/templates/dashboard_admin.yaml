@@ -34,7 +34,7 @@
                   | list
                   | expand
                   | selectattr('attributes.purpose', 'defined')
-                  | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                  | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                   | map(attribute='entity_id')
                   | first
                   | default('', true) -%}
@@ -81,7 +81,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -156,7 +156,7 @@
                   {%- if not skip_render -%}
 
                     {#-- 6. Collect Data --#}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set helper_attrs = states[dashboard_helper].attributes -%}
                     {%- set pending_approvals = helper_attrs.pending_approvals | default({}, true) -%}
@@ -282,7 +282,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -339,7 +339,7 @@
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set total_chores_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_sensor = core_sensors.get('badges_eid') -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
 
                     {%- set points = states(points_sensor) | int(default=0) -%}
@@ -493,7 +493,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -574,7 +574,7 @@
                     {%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
                     {%- set dashboard_date_helper = dashboard_helpers.get('date_helper_eid') -%}
                     {%- set chore_select_entity = dashboard_helpers.get('chore_select_eid') -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
                     {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
@@ -964,7 +964,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1018,7 +1018,7 @@
 
                     {#-- *** Section 3: Collect Data *** --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
 
                     {#-- *** Section 4: Build Display *** --#}
@@ -1058,7 +1058,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1099,7 +1099,7 @@
                     {#-- *** Section 3: Collect Data *** --#}
                     {%- set ns = namespace( points_sensor='', points_label='' ) -%}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set ns.points_sensor = core_sensors.get('points_eid') -%}
                     {%- set ns.points_label = state_attr(ns.points_sensor, 'unit_of_measurement') -%}
@@ -1161,7 +1161,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1200,7 +1200,7 @@
                   {%- if not skip_render -%}
 
                     {#-- *** Section 3: Collect Data *** --#}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set point_buttons = state_attr(dashboard_helper, 'points_buttons') | default([], true) -%}
 
@@ -1253,7 +1253,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1294,7 +1294,7 @@
                     {#-- *** Section 3: Collect Data *** --#}
                     {%- set ns = namespace(points_sensor='', points_label='') -%}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set ns.points_sensor = core_sensors.get('points_eid') -%}
                     {%- set ns.points_label = state_attr(ns.points_sensor, 'unit_of_measurement') -%}
@@ -1363,7 +1363,7 @@
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_assignee')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1416,7 +1416,7 @@
                   {%- if not skip_render -%}
 
                     {#-- *** Section 3: Collect Data *** --#}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set entity_list = device_entities(device_id(dashboard_helper))
                       | reject('search', 'ui_dashboard')

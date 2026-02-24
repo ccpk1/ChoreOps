@@ -42,9 +42,9 @@ class TestGamificationPendingQueueEvents:
         manager = coordinator.gamification_manager
         assignee_id = next(iter(coordinator.assignees_data.keys()))
 
-        manager._on_chore_approved({"assignee_id": assignee_id})
-        manager._on_chore_disapproved({"assignee_id": assignee_id})
-        manager._on_chore_overdue({"assignee_id": assignee_id})
+        manager._on_chore_approved({"user_id": assignee_id})
+        manager._on_chore_disapproved({"user_id": assignee_id})
+        manager._on_chore_overdue({"user_id": assignee_id})
         await hass.async_block_till_done()
 
         assert assignee_id in manager._pending_evaluations

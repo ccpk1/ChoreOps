@@ -222,6 +222,9 @@ async def _configure_assignee_step(
             - ha_user: Key in mock_hass_users (required)
             - dashboard_language: Language code (default: "en")
             - mobile_notify_service: str (default: "") - set to enable notifications
+            - can_be_assigned: bool (default: True)
+            - enable_chore_workflow: bool (default: True)
+            - enable_gamification: bool (default: True)
 
     Returns:
         Updated flow result
@@ -240,6 +243,15 @@ async def _configure_assignee_step(
                 "mobile_notify_service"
             )
             or const.SENTINEL_NO_SELECTION,
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: assignee_config.get(
+                "can_be_assigned", True
+            ),
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: assignee_config.get(
+                "enable_chore_workflow", True
+            ),
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: assignee_config.get(
+                "enable_gamification", True
+            ),
         },
     )
 
@@ -604,11 +616,11 @@ async def _configure_badge_step(
     Returns:
         Updated flow result
     """
-    # Translate assignee names to IDs in assigned_to field
+    # Translate assignee names to IDs and normalize to assigned_user_ids
     badge_config = badge_config.copy()
     if "assigned_to" in badge_config:
         names = badge_config["assigned_to"]
-        badge_config["assigned_to"] = [
+        badge_config["assigned_user_ids"] = [
             assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 
@@ -640,11 +652,11 @@ async def _add_badge_via_options_flow(
     """
     from homeassistant.data_entry_flow import FlowResultType
 
-    # Translate assignee names to IDs in assigned_to field
+    # Translate assignee names to IDs and normalize to assigned_user_ids
     badge_config = badge_config.copy()
     if "assigned_to" in badge_config:
         names = badge_config["assigned_to"]
-        badge_config["assigned_to"] = [
+        badge_config["assigned_user_ids"] = [
             assignee_name_to_id[name] for name in names if name in assignee_name_to_id
         ]
 

@@ -24,15 +24,15 @@ def test_feature_gated_user_respects_workflow_and_gamification_flags() -> None:
         users_data={
             user_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: True,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
             }
         },
         approvers_data={
             user_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: True,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
             }
         },
     )
@@ -50,15 +50,15 @@ def test_non_assignable_user_is_not_assignment_participant() -> None:
         users_data={
             user_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: False,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
             }
         },
         approvers_data={
             user_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: False,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
             }
         },
     )

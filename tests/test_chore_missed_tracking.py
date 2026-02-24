@@ -240,9 +240,9 @@ class TestRecordChoreMissedHelper:
             signal_name = call_args[0][1]
             assert signal_name.endswith(SIGNAL_SUFFIX_CHORE_MISSED)
             payload = call_args[0][2]  # Third arg is the payload dict
-            assert payload["assignee_id"] == zoe_id
+            assert payload["user_id"] == zoe_id
             assert payload["chore_id"] == chore_id
-            assert payload["assignee_name"] == "Zoë"
+            assert payload["user_name"] == "Zoë"
             assert payload["missed_streak_tally"] == 1  # First miss
 
 
@@ -449,7 +449,7 @@ class TestSkipChoreWithMissMarking:
             SERVICE_SKIP_CHORE_DUE_DATE,
             {
                 "chore_id": chore_id,
-                "assignee_id": zoe_id,
+                const.SERVICE_FIELD_USER_ID: zoe_id,
                 "mark_as_missed": True,
             },
             blocking=True,
@@ -565,7 +565,7 @@ class TestSkipChoreWithMissMarking:
             SERVICE_SKIP_CHORE_DUE_DATE,
             {
                 "chore_id": chore_id,
-                "assignee_id": zoe_id,
+                const.SERVICE_FIELD_USER_ID: zoe_id,
                 "mark_as_missed": False,
             },
             blocking=True,

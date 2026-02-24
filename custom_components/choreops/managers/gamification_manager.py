@@ -238,7 +238,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, delta, source, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         source = payload.get("source", "")
 
         # Skip gamification-originated point changes to prevent loops
@@ -295,7 +295,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, chore_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -305,7 +305,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, chore_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -315,7 +315,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, chore_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -327,7 +327,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, chore_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -337,7 +337,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -347,7 +347,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -357,7 +357,7 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data with assignee_id, etc.
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         if assignee_id:
             self._mark_pending(assignee_id)
 
@@ -474,10 +474,9 @@ class GamificationManager(BaseManager):
         # EconomyManager listens to this and handles point deposit
         self.emit(
             const.SIGNAL_SUFFIX_ACHIEVEMENT_EARNED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             achievement_id=achievement_id,
-            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
-            or "",
+            user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             achievement_name=achievement_info.get(const.DATA_ACHIEVEMENT_NAME, ""),
             achievement_points=extra_points,
         )
@@ -533,10 +532,9 @@ class GamificationManager(BaseManager):
         # EconomyManager listens to this and handles point deposit
         self.emit(
             const.SIGNAL_SUFFIX_CHALLENGE_COMPLETED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             challenge_id=challenge_id,
-            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
-            or "",
+            user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             challenge_name=challenge_info.get(const.DATA_CHALLENGE_NAME, ""),
             challenge_points=extra_points,
         )
@@ -631,10 +629,12 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id
         """
-        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+        if not payload.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
+            return
+        if not payload.get(const.DATA_USER_ENABLE_GAMIFICATION, False):
             return
 
-        assignee_id = payload.get("user_id", "")
+        assignee_id = payload.get(const.DATA_USER_ID, "")
         if not assignee_id:
             return
 
@@ -861,7 +861,7 @@ class GamificationManager(BaseManager):
         assignee_id = context["assignee_id"]
 
         # Skip badges not assigned to this assignee (empty list = assigned to all)
-        assigned_to = badge_data.get(const.DATA_BADGE_ASSIGNED_TO, [])
+        assigned_to = badge_data.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
         if assigned_to and assignee_id not in assigned_to:
             return
 
@@ -1745,10 +1745,9 @@ class GamificationManager(BaseManager):
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             badge_id=badge_id,
-            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
-            or "",
+            user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
@@ -1894,7 +1893,7 @@ class GamificationManager(BaseManager):
 
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_UPDATED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             badge_id=badge_id,
             status="demoted",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
@@ -1993,7 +1992,7 @@ class GamificationManager(BaseManager):
         if was_demoted:
             self.emit(
                 const.SIGNAL_SUFFIX_BADGE_UPDATED,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 badge_id=badge_id,
                 status=const.CUMULATIVE_BADGE_STATE_ACTIVE,
                 badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
@@ -2004,9 +2003,9 @@ class GamificationManager(BaseManager):
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             badge_id=badge_id,
-            assignee_name=assignee_name,
+            user_name=assignee_name,
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
@@ -2059,10 +2058,9 @@ class GamificationManager(BaseManager):
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             badge_id=badge_id,
-            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
-            or "",
+            user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
@@ -2115,10 +2113,9 @@ class GamificationManager(BaseManager):
         manifest = self._build_badge_award_manifest(badge_data)
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             badge_id=badge_id,
-            assignee_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
-            or "",
+            user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id) or "",
             badge_name=badge_data.get(const.DATA_BADGE_NAME, "Unknown"),
             **manifest,
         )
@@ -2207,7 +2204,7 @@ class GamificationManager(BaseManager):
             # Emit event for any additional listeners
             self.emit(
                 const.SIGNAL_SUFFIX_ACHIEVEMENT_EARNED,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 achievement_id=achievement_id,
                 achievement_name=achievement_data.get(
                     const.DATA_ACHIEVEMENT_NAME, "Unknown"
@@ -2453,7 +2450,7 @@ class GamificationManager(BaseManager):
             # Emit event for any additional listeners
             self.emit(
                 const.SIGNAL_SUFFIX_CHALLENGE_COMPLETED,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 challenge_id=challenge_id,
                 challenge_name=challenge_data.get(const.DATA_CHALLENGE_NAME, "Unknown"),
                 result=result,
@@ -2846,8 +2843,8 @@ class GamificationManager(BaseManager):
 
             # Check if badge is assigned to this assignee (empty list = assigned to all)
             is_assigned_to = not badge_info.get(
-                const.DATA_BADGE_ASSIGNED_TO, []
-            ) or assignee_id in badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+                const.DATA_BADGE_ASSIGNED_USER_IDS, []
+            ) or assignee_id in badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
 
             if not is_assigned_to:
                 continue
@@ -2918,7 +2915,7 @@ class GamificationManager(BaseManager):
         # Phase 3B: Emit signal for EconomyManager (Landlord) to write
         self.emit(
             const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             multiplier=multiplier,
             old_multiplier=old_multiplier,
             new_multiplier=multiplier,
@@ -3096,7 +3093,7 @@ class GamificationManager(BaseManager):
                 continue
 
             # For each assignee this badge is assigned to
-            assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+            assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
             for assignee_id in (
                 assigned_to or self.coordinator.assignees_data.keys()
             ):  # If empty, apply to all assignees
@@ -3825,7 +3822,7 @@ class GamificationManager(BaseManager):
         # Emit the Award Manifest
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_EARNED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             badge_id=badge_id,
             badge_name=badge_info.get(const.DATA_BADGE_NAME, "Unknown"),
             points=award_data.get(
@@ -3863,7 +3860,7 @@ class GamificationManager(BaseManager):
                 )
                 # Remove if badge deleted OR assignee not in assigned_to list
                 if not badge_info or assignee_id not in badge_info.get(
-                    const.DATA_BADGE_ASSIGNED_TO, []
+                    const.DATA_BADGE_ASSIGNED_USER_IDS, []
                 ):
                     badges_to_remove.append(progress_badge_id)
 
@@ -3879,7 +3876,7 @@ class GamificationManager(BaseManager):
         for badge_id, badge_info in self.coordinator.badges_data.items():
             # Feature Change v4.2: Badges now require explicit assignment.
             # Empty assigned_to means badge is not assigned to any assignee.
-            assigned_to_list = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+            assigned_to_list = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
             is_assigned_to = assignee_id in assigned_to_list
             if not is_assigned_to:
                 continue
@@ -3906,7 +3903,7 @@ class GamificationManager(BaseManager):
                 badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
             )
             has_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-            has_assigned_to = badge_type in const.INCLUDE_ASSIGNED_TO_BADGE_TYPES
+            has_assigned_to = badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
             has_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
 
             # ===============================================================
@@ -3985,8 +3982,8 @@ class GamificationManager(BaseManager):
 
                 # --- Assigned To fields ---
                 if has_assigned_to:
-                    assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
-                    progress[const.DATA_BADGE_ASSIGNED_TO] = assigned_to
+                    assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
+                    progress[const.DATA_BADGE_ASSIGNED_USER_IDS] = assigned_to
 
                 # --- Reset Schedule fields ---
                 if has_reset_schedule:
@@ -4102,9 +4099,9 @@ class GamificationManager(BaseManager):
             else:
                 # Remove badge progress if badge no longer available or not assigned
                 if badge_id not in self.coordinator.badges_data or (
-                    badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+                    badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
                     and assignee_id
-                    not in badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+                    not in badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
                 ):
                     if badge_id in badge_progress_dict:
                         del badge_progress_dict[badge_id]
@@ -4181,8 +4178,8 @@ class GamificationManager(BaseManager):
 
                 # --- Assigned To fields ---
                 if has_assigned_to:
-                    assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
-                    progress_sync[const.DATA_BADGE_ASSIGNED_TO] = assigned_to
+                    assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
+                    progress_sync[const.DATA_BADGE_ASSIGNED_USER_IDS] = assigned_to
 
                 # --- Reset Schedule fields ---
                 if has_reset_schedule:
@@ -4831,7 +4828,7 @@ class GamificationManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_BADGE_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 
@@ -4907,7 +4904,7 @@ class GamificationManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_ACHIEVEMENT_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 
@@ -4975,7 +4972,7 @@ class GamificationManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHALLENGE_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 

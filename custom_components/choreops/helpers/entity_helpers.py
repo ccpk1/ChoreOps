@@ -9,6 +9,7 @@ All functions here require a `hass` object or interact with HA registries.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import re
 import time
 from typing import TYPE_CHECKING, Any, cast
@@ -238,6 +239,30 @@ def parse_entity_reference(
         return None
 
     return tuple(parts)
+
+
+def extract_user_id_from_entity_unique_id(
+    unique_id: str,
+    prefix: str,
+    valid_user_ids: set[str],
+) -> str | None:
+    """Extract user_id from a user-scoped unique_id for conditional cleanup.
+
+    This parser is strict by design: it only returns a user_id when the first
+    token after the config entry prefix is a known user id.
+    """
+    if not unique_id.startswith(prefix):
+        return None
+
+    remainder = unique_id[len(prefix) :]
+    if not remainder:
+        return None
+
+    first_token = remainder.split("_", 1)[0]
+    if first_token in valid_user_ids:
+        return first_token
+
+    return None
 
 
 def build_orphan_detection_regex(
@@ -876,44 +901,28 @@ async def remove_orphaned_manual_adjustment_buttons(
 
 # ==============================================================================
 # Profile gating helpers
-# Capability-aware workflow/gamification gating with legacy compatibility.
+# Capability-aware workflow/gamification gating.
 # ==============================================================================
 
 
-def is_linked_profile(coordinator: ChoreOpsDataCoordinator, assignee_id: str) -> bool:
-    """Return False; linked-profile runtime behavior is migration-only."""
-    return False
+@dataclass(frozen=True, slots=True)
+class EntityGatingPolicy:
+    """Centralized entity-gating policy for one user record."""
 
-
-def is_user_approval_profile(
-    coordinator: ChoreOpsDataCoordinator, assignee_id: str
-) -> bool:
-    """Return whether this user currently maps to an approval-profile record.
-
-    Phase 3 bridge: this currently maps to legacy shadow-profile semantics
-    and is intentionally behavior-compatible with existing entity creation
-    logic while naming migrates to capability-oriented terminology.
-    """
-    return is_user_feature_gated_profile(coordinator, assignee_id)
+    is_assignment_participant: bool
+    is_feature_gated_profile: bool
+    workflow_enabled: bool
+    gamification_enabled: bool
 
 
 def is_user_feature_gated_profile(
     coordinator: ChoreOpsDataCoordinator, assignee_id: str
 ) -> bool:
-    """Return whether this user follows feature-gated entity creation rules.
-
-    Phase 3 bridge: this currently maps to legacy shadow-profile semantics
-    and is intentionally behavior-compatible while runtime naming migrates
-    to capability-oriented terminology.
-    """
-    if not is_user_assignment_participant(coordinator, assignee_id):
-        return False
-
-    approver_data = get_approver_for_linked_profile(coordinator, assignee_id)
-    if not approver_data:
-        return False
-
-    return bool(approver_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False))
+    """Return whether this user follows feature-gated entity creation rules."""
+    return resolve_user_entity_policy(
+        coordinator,
+        assignee_id,
+    ).is_feature_gated_profile
 
 
 def is_user_assignment_participant(
@@ -932,65 +941,50 @@ def is_user_assignment_participant(
     Returns:
         True when assignment participation is enabled.
     """
-    assignee_info = cast("dict[str, Any]", coordinator.users_data.get(assignee_id, {}))
-    if not assignee_info:
-        return False
-
-    return bool(assignee_info.get(const.DATA_USER_CAN_BE_ASSIGNED, False))
-
-
-def get_approver_for_linked_profile(
-    coordinator: ChoreOpsDataCoordinator, assignee_id: str
-) -> dict[str, Any] | None:
-    """Return feature-gated user record for capability-driven gating checks."""
-    approver_data = cast(
-        "dict[str, Any]", coordinator.approvers_data.get(assignee_id, {})
-    )
-    if approver_data:
-        return approver_data
-    return None
+    return resolve_user_entity_policy(
+        coordinator,
+        assignee_id,
+    ).is_assignment_participant
 
 
-def get_user_role_gating_context(
+def resolve_user_entity_policy(
     coordinator: ChoreOpsDataCoordinator,
     assignee_id: str,
-) -> dict[str, bool]:
-    """Return canonical role-gating decisions for one user-assignee projection.
+) -> EntityGatingPolicy:
+    """Resolve centralized entity-gating policy for one user record.
 
-    This is the centralized role-gating decision contract for runtime entity
+    This is the centralized gating decision contract for runtime entity
     creation and cleanup paths. All consumers should use this helper instead of
-    recomputing profile/flag semantics locally.
+    recomputing profile semantics locally.
     """
-    assignment_participant = is_user_assignment_participant(coordinator, assignee_id)
-    feature_gated_profile = is_user_feature_gated_profile(coordinator, assignee_id)
+    user_data = cast("dict[str, Any]", coordinator.users_data.get(assignee_id, {}))
+    if not user_data:
+        return EntityGatingPolicy(
+            is_assignment_participant=False,
+            is_feature_gated_profile=False,
+            workflow_enabled=False,
+            gamification_enabled=False,
+        )
 
+    assignment_participant = bool(user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False))
     if not assignment_participant:
-        return {
-            "is_assignment_participant": False,
-            "is_feature_gated_profile": False,
-            "workflow_enabled": False,
-            "gamification_enabled": False,
-        }
+        return EntityGatingPolicy(
+            is_assignment_participant=False,
+            is_feature_gated_profile=False,
+            workflow_enabled=False,
+            gamification_enabled=False,
+        )
 
-    if not feature_gated_profile:
-        return {
-            "is_assignment_participant": True,
-            "is_feature_gated_profile": False,
-            "workflow_enabled": True,
-            "gamification_enabled": True,
-        }
-
-    approver_data = get_approver_for_linked_profile(coordinator, assignee_id) or {}
-    return {
-        "is_assignment_participant": True,
-        "is_feature_gated_profile": True,
-        "workflow_enabled": bool(
-            approver_data.get(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False)
+    return EntityGatingPolicy(
+        is_assignment_participant=True,
+        is_feature_gated_profile=True,
+        workflow_enabled=bool(
+            user_data.get(const.DATA_USER_ENABLE_CHORE_WORKFLOW, False)
         ),
-        "gamification_enabled": bool(
-            approver_data.get(const.DATA_APPROVER_ENABLE_GAMIFICATION, False)
+        gamification_enabled=bool(
+            user_data.get(const.DATA_USER_ENABLE_GAMIFICATION, False)
         ),
-    }
+    )
 
 
 def should_create_entity_for_user_assignee(
@@ -1005,13 +999,10 @@ def should_create_entity_for_user_assignee(
     This helper binds role-gating context + ENTITY_REGISTRY evaluation so
     platform code and cleanup code consume one canonical contract.
     """
-    gating = get_user_role_gating_context(coordinator, assignee_id)
+    policy = resolve_user_entity_policy(coordinator, assignee_id)
     return should_create_entity(
         unique_id_suffix,
-        is_feature_gated_profile=gating["is_feature_gated_profile"],
-        is_assignment_participant=gating["is_assignment_participant"],
-        workflow_enabled=gating["workflow_enabled"],
-        gamification_enabled=gating["gamification_enabled"],
+        policy=policy,
         extra_enabled=extra_enabled,
     )
 
@@ -1035,7 +1026,7 @@ def should_create_workflow_buttons(
     Returns:
         True if workflow buttons should be created, False otherwise.
     """
-    return get_user_role_gating_context(coordinator, assignee_id)["workflow_enabled"]
+    return resolve_user_entity_policy(coordinator, assignee_id).workflow_enabled
 
 
 def should_create_gamification_entities(
@@ -1058,19 +1049,13 @@ def should_create_gamification_entities(
     Returns:
         True if gamification entities should be created, False otherwise.
     """
-    return get_user_role_gating_context(coordinator, assignee_id)[
-        "gamification_enabled"
-    ]
+    return resolve_user_entity_policy(coordinator, assignee_id).gamification_enabled
 
 
 def should_create_entity(
     unique_id_suffix: str,
     *,
-    is_feature_gated_profile: bool = False,
-    is_approval_profile: bool = False,
-    is_assignment_participant: bool = True,
-    workflow_enabled: bool = True,
-    gamification_enabled: bool = True,
+    policy: EntityGatingPolicy | None = None,
     extra_enabled: bool = False,
 ) -> bool:
     """Determine if an entity should be created based on its suffix and context.
@@ -1078,25 +1063,24 @@ def should_create_entity(
     Single source of truth for entity creation decisions. Uses ENTITY_REGISTRY.
 
     === FLAG LAYERING LOGIC ===
-    | Requirement   | Default profile       | Feature-gated profile                |
+    | Requirement   | System entities       | User entities                        |
     |---------------|-----------------------|--------------------------------------|
-    | ALWAYS        | Created               | Created                              |
-    | WORKFLOW      | Created               | Only if workflow_enabled=True        |
-    | GAMIFICATION  | Created               | Only if gamification_enabled=True    |
+    | ALWAYS        | Created               | Created (if assignable)              |
+    | WORKFLOW      | Not applicable        | Only if workflow_enabled=True        |
+    | GAMIFICATION  | Not applicable        | Only if gamification_enabled=True    |
     | EXTRA         | If extra_enabled      | If extra_enabled AND gamification    |
 
     Args:
         unique_id_suffix: The entity's unique_id suffix (e.g., "_chore_status")
-        is_feature_gated_profile: Preferred profile-gating flag for platform code.
-        is_approval_profile: Capability-oriented profile flag used by platform code.
-        is_assignment_participant: Whether this user participates in assignment scope.
-        workflow_enabled: Whether workflow is enabled for gated profiles.
-        gamification_enabled: Whether gamification is enabled for gated profiles.
+        policy: User gating policy for user-scoped entities; None for system-level entities.
         extra_enabled: Whether show_legacy_entities (extra entities) flag is enabled
 
     Returns:
         True if entity should be created, False otherwise.
     """
+    if policy is not None and not policy.is_assignment_participant:
+        return False
+
     # Find the matching registry entry
     requirement: const.EntityRequirement | None = None
     for suffix, req in const.ENTITY_REGISTRY.items():
@@ -1104,28 +1088,31 @@ def should_create_entity(
             requirement = req
             break
 
-    feature_gated_profile = is_feature_gated_profile or is_approval_profile
-
-    # Unknown suffix - default to gamification for gated profiles
+    # Unknown suffix - fail closed
     if requirement is None:
-        if not is_assignment_participant:
-            return False
-        return not feature_gated_profile or gamification_enabled
+        return False
 
     # Check requirement against context
+    if policy is None:
+        match requirement:
+            case const.EntityRequirement.ALWAYS:
+                return True
+            case const.EntityRequirement.EXTRA:
+                return extra_enabled
+            case (
+                const.EntityRequirement.WORKFLOW | const.EntityRequirement.GAMIFICATION
+            ):
+                return False
+        return False
+
     match requirement:
         case const.EntityRequirement.ALWAYS:
             return True
         case const.EntityRequirement.WORKFLOW:
-            return not feature_gated_profile or workflow_enabled
+            return policy.workflow_enabled
         case const.EntityRequirement.GAMIFICATION:
-            return not feature_gated_profile or gamification_enabled
+            return policy.gamification_enabled
         case const.EntityRequirement.EXTRA:
-            # EXTRA requires BOTH extra flag AND gamification
-            # Default profiles: always have gamification, so just check flag
-            # Feature-gated profiles: need flag AND gamification_enabled
-            if not extra_enabled:
-                return False
-            return not feature_gated_profile or gamification_enabled
+            return extra_enabled and policy.gamification_enabled
 
     return False

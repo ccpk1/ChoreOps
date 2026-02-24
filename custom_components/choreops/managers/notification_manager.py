@@ -1071,16 +1071,19 @@ class NotificationManager(BaseManager):
         approver_count = 0
 
         for approver_id, approver_info in self.coordinator.approvers_data.items():
-            if assignee_id not in approver_info.get(
-                const.DATA_APPROVER_ASSOCIATED_USERS, []
-            ):
+            associated_user_ids = approver_info.get(
+                const.DATA_USER_ASSOCIATED_USER_IDS, []
+            )
+            if not isinstance(associated_user_ids, list):
+                continue
+            if assignee_id not in associated_user_ids:
                 continue
 
             mobile_notify_service = approver_info.get(
                 const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
             persistent_enabled = approver_info.get(
-                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+                const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
                 True,
             )
 
@@ -1168,14 +1171,17 @@ class NotificationManager(BaseManager):
         notification_tasks: list[tuple[str, Any]] = []
 
         for approver_id, approver_info in self.coordinator.approvers_data.items():
-            if assignee_id not in approver_info.get(
-                const.DATA_APPROVER_ASSOCIATED_USERS, []
-            ):
+            associated_user_ids = approver_info.get(
+                const.DATA_USER_ASSOCIATED_USER_IDS, []
+            )
+            if not isinstance(associated_user_ids, list):
+                continue
+            if assignee_id not in associated_user_ids:
                 continue
 
             # Use approver's language preference
             approver_language = (
-                approver_info.get(const.DATA_APPROVER_DASHBOARD_LANGUAGE)
+                approver_info.get(const.DATA_USER_DASHBOARD_LANGUAGE)
                 or cast(
                     "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
                 ).get(const.DATA_USER_DASHBOARD_LANGUAGE)
@@ -1234,7 +1240,7 @@ class NotificationManager(BaseManager):
 
             # Determine notification method and prepare coroutine
             persistent_enabled = approver_info.get(
-                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+                const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
                 True,
             )
             mobile_notify_service = approver_info.get(
@@ -1327,7 +1333,7 @@ class NotificationManager(BaseManager):
         for approver_id, approver_info in self.coordinator.approvers_data.items():
             # Use approver's language preference, fall back to system language
             approver_language = (
-                approver_info.get(const.DATA_APPROVER_DASHBOARD_LANGUAGE)
+                approver_info.get(const.DATA_USER_DASHBOARD_LANGUAGE)
                 or self.hass.config.language
             )
 
@@ -1363,7 +1369,7 @@ class NotificationManager(BaseManager):
                 const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             )
             persistent_enabled = approver_info.get(
-                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+                const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
                 True,
             )
 
@@ -1460,9 +1466,12 @@ class NotificationManager(BaseManager):
         clear_tasks: list[tuple[str, Any]] = []
 
         for approver_id, approver_info in self.coordinator.approvers_data.items():
-            if assignee_id not in approver_info.get(
-                const.DATA_APPROVER_ASSOCIATED_USERS, []
-            ):
+            associated_user_ids = approver_info.get(
+                const.DATA_USER_ASSOCIATED_USER_IDS, []
+            )
+            if not isinstance(associated_user_ids, list):
+                continue
+            if assignee_id not in associated_user_ids:
                 continue
 
             notify_service = approver_info.get(const.DATA_USER_MOBILE_NOTIFY_SERVICE)
@@ -1726,10 +1735,10 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, badge_id, badge_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         badge_id = payload.get("badge_id", "")
         badge_name = payload.get("badge_name", "Unknown Badge")
-        assignee_name = payload.get("assignee_name", "")
+        assignee_name = payload.get("user_name", "")
 
         if not assignee_id:
             return
@@ -1780,10 +1789,10 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, achievement_id, achievement_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         achievement_id = payload.get("achievement_id", "")
         achievement_name = payload.get("achievement_name", "Unknown Achievement")
-        assignee_name = payload.get("assignee_name", "")
+        assignee_name = payload.get("user_name", "")
 
         if not assignee_id:
             return
@@ -1837,10 +1846,10 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, challenge_id, challenge_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         challenge_id = payload.get("challenge_id", "")
         challenge_name = payload.get("challenge_name", "Unknown Challenge")
-        assignee_name = payload.get("assignee_name", "")
+        assignee_name = payload.get("user_name", "")
 
         if not assignee_id:
             return
@@ -1897,7 +1906,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, chore_id, and optional chore_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         if not assignee_id or not chore_id:
@@ -1925,7 +1934,7 @@ class NotificationManager(BaseManager):
         chore_name = payload.get("chore_name") or chore_info.get(
             const.DATA_CHORE_NAME, ""
         )
-        assignee_name = payload.get("assignee_name", "")
+        assignee_name = payload.get("user_name", "")
         if not assignee_name:
             const.LOGGER.warning(
                 "CHORE_CLAIMED notification missing assignee_name in payload for assignee_id=%s",
@@ -2012,12 +2021,12 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, reward_id, reward_name, points, notif_id
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
         reward_name = payload.get("reward_name", "Unknown Reward")
         points = payload.get("points", 0)
         notif_id = payload.get("notif_id", "")
-        assignee_name = payload.get("assignee_name", "")
+        assignee_name = payload.get("user_name", "")
 
         if not assignee_id:
             return
@@ -2070,7 +2079,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id and chore_id
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         if not assignee_id or not chore_id:
@@ -2094,7 +2103,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id and reward_id
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
 
         if not assignee_id or not reward_id:
@@ -2118,7 +2127,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, reward_id, reward_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
         reward_name = payload.get("reward_name", "Unknown Reward")
 
@@ -2158,7 +2167,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, reward_id, reward_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
         reward_name = payload.get("reward_name", "Unknown Reward")
 
@@ -2198,7 +2207,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, chore_id, chore_name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
 
@@ -2241,7 +2250,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, chore_id, chore_name, points_awarded
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         points = payload.get(
@@ -2303,7 +2312,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, bonus_id, bonus_name, points
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         bonus_id = payload.get("bonus_id", "")
         bonus_name = payload.get("bonus_name", "Unknown Bonus")
         points = payload.get("points", 0)
@@ -2337,7 +2346,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, penalty_id, penalty_name, points
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         penalty_id = payload.get("penalty_id", "")
         penalty_name = payload.get("penalty_name", "Unknown Penalty")
         points = payload.get("points", 0)
@@ -2371,7 +2380,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, old_multiplier, and new_multiplier
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         old_multiplier = payload.get("old_multiplier")
         new_multiplier = payload.get("new_multiplier", payload.get("multiplier"))
 
@@ -2434,7 +2443,7 @@ class NotificationManager(BaseManager):
             payload: Event data containing assignee_id, chore_id, chore_name,
                      hours (remaining), points, due_date
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         hours = payload.get("hours", 0)
@@ -2504,7 +2513,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, chore_id, chore_name, minutes, points, due_date
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         minutes = payload.get("minutes", 0)
@@ -2574,7 +2583,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, chore_id, chore_name, due_date
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         due_date = payload.get("due_date", "")
@@ -2694,7 +2703,7 @@ class NotificationManager(BaseManager):
         )
 
         # Get assignee name from payload (ChoreManager always provides it)
-        original_assignee_name = payload.get("assignee_name", "")
+        original_assignee_name = payload.get("user_name", "")
         if not original_assignee_name:
             const.LOGGER.error(
                 "CHORE_OVERDUE notification missing assignee_name in payload for target_assignee=%s, chore_id=%s",
@@ -2744,7 +2753,7 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, chore_id, chore_name, due_date
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown Chore")
         due_date = payload.get("due_date", "")
@@ -2821,7 +2830,7 @@ class NotificationManager(BaseManager):
         )
 
         # Get assignee name from payload (ChoreManager always provides it)
-        assignee_name_payload = payload.get("assignee_name", "")
+        assignee_name_payload = payload.get("user_name", "")
         if not assignee_name_payload:
             const.LOGGER.error(
                 "CHORE_MISSED notification missing assignee_name in payload for assignee_id=%s, chore_id=%s",
@@ -2952,14 +2961,13 @@ class NotificationManager(BaseManager):
         resilient to orphaned notifications.
 
         Args:
-            payload: Event data containing assignee_id, assignee_name, was_shadow
+            payload: Event data containing user_id and capability snapshot flags
         """
-        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+        if not payload.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
             return
 
-        assignee_id = payload.get("user_id", "")
-        assignee_name = payload.get("user_name", "Unknown")
-        was_shadow = payload.get("was_shadow", False)
+        assignee_id = payload.get(const.DATA_USER_ID, "")
+        assignee_name = payload.get(const.DATA_USER_NAME, "Unknown")
 
         if not assignee_id:
             const.LOGGER.warning(
@@ -2969,14 +2977,6 @@ class NotificationManager(BaseManager):
 
         # Clean up notification records in our bucket (Schedule-Lock janitor)
         self._cleanup_assignee_chore_notifications(assignee_id)
-
-        # Shadow assignees don't typically have notifications
-        if was_shadow:
-            const.LOGGER.debug(
-                "Skipping notification cleanup for shadow assignee '%s'",
-                assignee_name,
-            )
-            return
 
         const.LOGGER.debug(
             "Clearing all notifications for deleted assignee '%s' (id=%s)",

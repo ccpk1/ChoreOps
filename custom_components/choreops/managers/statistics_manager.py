@@ -222,7 +222,8 @@ class StatisticsManager(BaseManager):
 
         Args:
             payload: Event data containing:
-                - assignee_id: The assignee's internal ID
+                - user_id: The assignee's internal ID (canonical)
+                - assignee_id: Legacy alias for backward compatibility
                 - old_balance: Balance before transaction
                 - new_balance: Balance after transaction
                 - delta: The point change (positive or negative)
@@ -230,7 +231,7 @@ class StatisticsManager(BaseManager):
                 - reference_id: Optional related entity ID
         """
         # Extract payload values
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id") or payload.get("assignee_id", "")
         old_balance = payload.get("old_balance", 0.0)  # noqa: F841 - future use
         new_balance = payload.get("new_balance", 0.0)
         delta = payload.get("delta", 0.0)
@@ -386,7 +387,7 @@ class StatisticsManager(BaseManager):
         Records approved count and points to period buckets.
         Note: Completion and streaks are tracked separately via CHORE_COMPLETED signal.
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         points_awarded = payload.get("points_awarded", 0.0)
         effective_date = payload.get("effective_date")
@@ -552,7 +553,7 @@ class StatisticsManager(BaseManager):
 
     async def _on_chore_claimed(self, payload: dict[str, Any]) -> None:
         """Handle CHORE_CLAIMED event - record claim count to period buckets."""
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         if self._record_chore_transaction(
@@ -571,7 +572,7 @@ class StatisticsManager(BaseManager):
 
     async def _on_chore_disapproved(self, payload: dict[str, Any]) -> None:
         """Handle CHORE_DISAPPROVED event - record disapproval to period buckets."""
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         if self._record_chore_transaction(
@@ -594,7 +595,7 @@ class StatisticsManager(BaseManager):
         Enforces max 1 overdue per day by checking today's bucket value before
         incrementing. This ensures daily buckets never exceed 1 for overdue count.
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         # Validate assignee exists
@@ -652,7 +653,7 @@ class StatisticsManager(BaseManager):
         Enforces max 1 missed per day by checking today's bucket value before
         incrementing. Updates missed_longest_streak in all_time bucket if new high.
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
         missed_streak_tally = payload.get("missed_streak_tally")
 
@@ -758,7 +759,7 @@ class StatisticsManager(BaseManager):
                 - chore_id: The chore's internal ID
                 - chore_name: The chore's display name
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         if assignee_id:
@@ -789,7 +790,7 @@ class StatisticsManager(BaseManager):
                 - chore_id: The chore's internal ID
                 - points_to_reclaim: Points that were reclaimed
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
 
         if assignee_id:
@@ -825,7 +826,7 @@ class StatisticsManager(BaseManager):
                 - effective_date: ISO timestamp for approver-lag-proof bucketing
         """
         # Extract payload values
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
         cost = payload.get("cost", 0.0)
         effective_date = payload.get("effective_date")
@@ -889,7 +890,7 @@ class StatisticsManager(BaseManager):
                 - reward_name: The reward's display name
                 - effective_date: ISO timestamp for approver-lag-proof bucketing
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
         effective_date = payload.get("effective_date")
 
@@ -947,7 +948,7 @@ class StatisticsManager(BaseManager):
                 - reward_name: The reward's display name
                 - effective_date: ISO timestamp for approver-lag-proof bucketing
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         reward_id = payload.get("reward_id", "")
         effective_date = payload.get("effective_date")
 
@@ -1006,7 +1007,7 @@ class StatisticsManager(BaseManager):
                 - assignee_id: The assignee's internal ID
                 - badge_id: The badge's internal ID
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         badge_id = payload.get("badge_id", "")
 
         if not assignee_id or not badge_id:
@@ -1092,7 +1093,7 @@ class StatisticsManager(BaseManager):
                 - points: Points added (positive value)
                 - timestamp: ISO 8601 timestamp (optional, defaults to now)
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         bonus_id = payload.get("bonus_id", "")
         points = payload.get("points", 0.0)
         bonus_name = payload.get("bonus_name", "")
@@ -1185,7 +1186,7 @@ class StatisticsManager(BaseManager):
                 - points: Points deducted (negative value)
                 - timestamp: ISO 8601 timestamp (optional, defaults to now)
         """
-        assignee_id = payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         penalty_id = payload.get("penalty_id", "")
         points = payload.get("points", 0.0)
         penalty_name = payload.get("penalty_name", "")
@@ -1268,14 +1269,14 @@ class StatisticsManager(BaseManager):
 
         Payload format (standard across all *_DATA_RESET_COMPLETE signals):
             scope: "global" | "user" | "item_type" | "item"
-            assignee_id: str | None - specific assignee for user scope
+            user_id: str | None - specific assignee for user scope
             item_id: str | None - specific item for item scope
 
         Args:
-            payload: Event data with scope, assignee_id, item_id
+            payload: Event data with scope, user_id, item_id
         """
         scope = payload.get("scope", "global")
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
 
         const.LOGGER.debug(
             "StatisticsManager: Data reset complete - scope=%s, assignee_id=%s",

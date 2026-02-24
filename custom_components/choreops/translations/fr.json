@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Réalisation associée",
           "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, Récompenses, Bonus, Multiplicateur (Optionnel)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
           "points_multiplier": "🎁 RÉCOMPENSES : Multiplicateur de points (Par défaut 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
           "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
           "points_multiplier": "Si le multiplicateur est une récompense sélectionnée, définissez un multiplicateur pour les points gagnés pendant que ce badge est actif (par exemple, 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Réalisation associée",
           "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, Récompenses, Bonus, Multiplicateur (Optionnel)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
           "points_multiplier": "🎁 RÉCOMPENSES : Multiplicateur de points (Par défaut 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
           "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide pour enregistrer toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
           "points_multiplier": "Si le multiplicateur est une récompense sélectionnée, définissez un multiplicateur pour les points gagnés pendant que ce badge est actif (par exemple, 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 OBJECTIF QUOTIDIEN : Type de cible",
           "threshold_value": "🎯 OBJECTIF QUOTIDIEN : Valeur seuil",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus, pénalités (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Sélectionnez le type d'objectif quotidien pour ce badge (par exemple, points, nombre de tâches ménagères ou jours).",
           "threshold_value": "Définissez le nombre de points quotidiens, le nombre de tâches à accomplir ou le nombre de jours nécessaires pour obtenir ce badge. Pour les objectifs de type « Jours », saisissez 1, car le badge est évalué quotidiennement (par exemple, 1 point pour avoir accompli toutes les tâches sélectionnées en une seule journée).",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Réalisation associée",
           "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus, pénalités (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
           "recurring_frequency": "🔄 CYCLE DE RÉINITIALISATION : Fréquence",
@@ -794,7 +794,7 @@
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
           "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
           "recurring_frequency": "Définissez la fréquence de réinitialisation de ce badge (par exemple, hebdomadaire, mensuelle).",
@@ -813,7 +813,7 @@
           "badge_labels": "Étiquettes (facultatif)",
           "icon": "Icône de badge (mdi:xxx)",
           "associated_achievement": "🏆 Réalisation associée",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
           "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
           "associated_achievement": "Associez ce badge à une réalisation spécifique pour en assurer le suivi.",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Étiquettes (facultatif)",
           "icon": "Icône de badge (mdi:xxx)",
           "associated_challenge": "🏁 Défi associé",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
           "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
           "associated_challenge": "Associez ce badge à un défi spécifique pour le suivi.",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 RÉCURRENCE : Unité d’intervalle personnalisée (requise pour une fréquence personnalisée)",
           "start_date": "🔄 RÉCURRENCE : Date de début (facultatif)",
           "grace_period_days": "🔄 RÉCURRENCE : Délai de grâce en jours (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines).",
           "start_date": "Définissez la date de début du cycle de réinitialisation (facultatif).",
           "grace_period_days": "Précisez le nombre de jours supplémentaires après la fin du cycle pour que les enfants atteignent le nombre de points requis avant la rétrogradation (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Réalisation associée",
           "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, Récompenses, Bonus, Multiplicateur (Optionnel)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
           "points_multiplier": "🎁 RÉCOMPENSES : Multiplicateur de points (Par défaut 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
           "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
           "points_multiplier": "Si le multiplicateur est une récompense sélectionnée, définissez un multiplicateur pour les points gagnés pendant que ce badge est actif (par exemple, 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 OBJECTIF QUOTIDIEN : Type de cible",
           "threshold_value": "🎯 OBJECTIF QUOTIDIEN : Valeur seuil",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus, pénalités (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Sélectionnez le type d'objectif quotidien pour ce badge (par exemple, points, nombre de tâches ménagères ou jours).",
           "threshold_value": "Définissez le nombre de points quotidiens, le nombre de tâches à accomplir ou le nombre de jours nécessaires pour obtenir ce badge. Pour les objectifs de type « Jours », saisissez 1, car le badge est évalué quotidiennement (par exemple, 1 point pour avoir accompli toutes les tâches sélectionnées en une seule journée).",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Réalisation associée",
           "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus, pénalités (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)",
           "recurring_frequency": "🔄 CYCLE DE RÉINITIALISATION : Fréquence",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
           "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif).",
           "recurring_frequency": "Définissez la fréquence de réinitialisation de ce badge (par exemple, hebdomadaire, mensuelle).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Étiquettes (facultatif)",
           "icon": "Icône de badge (mdi:xxx)",
           "associated_achievement": "🏆 Réalisation associée",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
           "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
           "associated_achievement": "Associez ce badge à une réalisation spécifique pour en assurer le suivi.",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Étiquettes (facultatif)",
           "icon": "Icône de badge (mdi:xxx)",
           "associated_challenge": "🏁 Défi associé",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
           "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
           "associated_challenge": "Associez ce badge à un défi spécifique pour le suivi.",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 RÉCURRENCE : Unité d’intervalle personnalisée (requise pour une fréquence personnalisée)",
           "start_date": "🔄 RÉCURRENCE : Date de début (facultatif)",
           "grace_period_days": "🔄 RÉCURRENCE : Délai de grâce en jours (facultatif)",
-          "assigned_to": "🧒 Enfants assignés",
+          "assigned_user_ids": "🧒 Enfants assignés",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
           "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Sélectionnez l'unité de l'intervalle personnalisé (par exemple, jours, semaines).",
           "start_date": "Définissez la date de début du cycle de réinitialisation (facultatif).",
           "grace_period_days": "Précisez le nombre de jours supplémentaires après la fin du cycle pour que les enfants atteignent le nombre de points requis avant la rétrogradation (facultatif).",
-          "assigned_to": "Attribuez ce badge à certains enfants à des fins de suivi.",
+          "assigned_user_ids": "Attribuez ce badge à certains enfants à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
         }

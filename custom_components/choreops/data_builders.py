@@ -50,7 +50,7 @@ from typing import Any, cast
 import uuid
 
 from . import const
-from .type_defs import ApproverData, AssigneeData, BadgeData, ChoreData, RewardData
+from .type_defs import AssigneeData, BadgeData, ChoreData, RewardData, UserData
 from .utils.dt_utils import dt_now_utc, dt_parse
 
 # ==============================================================================
@@ -950,10 +950,10 @@ def validate_user_profile_data(
         key in data
         for key in (
             const.DATA_USER_CAN_BE_ASSIGNED,
-            const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
-            const.DATA_APPROVER_ENABLE_GAMIFICATION,
+            const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+            const.DATA_USER_ENABLE_GAMIFICATION,
             const.DATA_USER_CAN_APPROVE,
-            const.DATA_APPROVER_ASSOCIATED_USERS,
+            const.DATA_USER_ASSOCIATED_USER_IDS,
         )
     )
 
@@ -961,15 +961,15 @@ def validate_user_profile_data(
         return errors
 
     # === 4. Workflow/gamification require assignment enablement ===
-    enable_chore_workflow = data.get(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False)
-    enable_gamification = data.get(const.DATA_APPROVER_ENABLE_GAMIFICATION, False)
+    enable_chore_workflow = data.get(const.DATA_USER_ENABLE_CHORE_WORKFLOW, False)
+    enable_gamification = data.get(const.DATA_USER_ENABLE_GAMIFICATION, False)
     if (enable_chore_workflow or enable_gamification) and not assignment_enabled:
         errors[const.CFOP_ERROR_CHORE_OPTIONS] = (
             const.TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT
         )
         return errors
 
-    associated_users = data.get(const.DATA_APPROVER_ASSOCIATED_USERS, [])
+    associated_users = data.get(const.DATA_USER_ASSOCIATED_USER_IDS, [])
 
     # === 5. At least one of assignment or approval must be enabled ===
     can_approve = bool(data.get(const.DATA_USER_CAN_APPROVE, False))
@@ -979,7 +979,14 @@ def validate_user_profile_data(
         )
         return errors
 
-    # === 6. Approval requires non-empty associated users list ===
+    # === 6. Associated users require approval enablement ===
+    if not can_approve and associated_users:
+        errors[const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS] = (
+            const.TRANS_KEY_CFOF_ASSOCIATED_USERS_REQUIRE_APPROVAL
+        )
+        return errors
+
+    # === 7. Approval requires non-empty associated users list ===
     if can_approve and not associated_users:
         errors[const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS] = (
             const.TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS
@@ -991,20 +998,20 @@ def validate_user_profile_data(
 
 def build_user_profile(
     user_input: dict[str, Any],
-    existing: ApproverData | None = None,
-) -> ApproverData:
+    existing: UserData | None = None,
+) -> UserData:
     """Build approval-capable USER profile data for create or update operations.
 
     This is the canonical builder for approval-capability field handling. One
     function handles both create (existing=None) and update
-    (existing=ApproverData).
+    (existing=UserData).
 
     Args:
         user_input: Form/service data with role-aware CFOF_* keys
-        existing: None for create, existing ApproverData for update
+        existing: None for create, existing UserData for update
 
     Returns:
-        Complete ApproverData TypedDict ready for storage
+        Complete UserData TypedDict ready for storage
 
     Raises:
         EntityValidationError: If name validation fails (empty/whitespace)
@@ -1069,7 +1076,7 @@ def build_user_profile(
             user_input,
             existing_data,
             const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
-            const.DATA_APPROVER_ASSOCIATED_USERS,
+            const.DATA_USER_ASSOCIATED_USER_IDS,
             [],
         )
     )
@@ -1079,19 +1086,19 @@ def build_user_profile(
         const.DATA_USER_INTERNAL_ID: internal_id,
         const.DATA_USER_NAME: name,
         const.DATA_USER_HA_USER_ID: ha_user_id,
-        const.DATA_APPROVER_ASSOCIATED_USERS: associated_assignees,
+        const.DATA_USER_ASSOCIATED_USER_IDS: associated_assignees,
         const.DATA_USER_MOBILE_NOTIFY_SERVICE: notify_service,
-        const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: (
-            existing.get(const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS, False)
+        const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS: (
+            existing.get(const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
             else False
         ),
-        const.DATA_APPROVER_DASHBOARD_LANGUAGE: str(
+        const.DATA_USER_DASHBOARD_LANGUAGE: str(
             _resolve_user_input_field(
                 user_input,
                 existing_data,
                 const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
-                const.DATA_APPROVER_DASHBOARD_LANGUAGE,
+                const.DATA_USER_DASHBOARD_LANGUAGE,
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
@@ -1104,21 +1111,21 @@ def build_user_profile(
                 False,
             )
         ),
-        const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: bool(
+        const.DATA_USER_ENABLE_CHORE_WORKFLOW: bool(
             _resolve_user_input_field(
                 user_input,
                 existing_data,
                 const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW,
                 False,
             )
         ),
-        const.DATA_APPROVER_ENABLE_GAMIFICATION: bool(
+        const.DATA_USER_ENABLE_GAMIFICATION: bool(
             _resolve_user_input_field(
                 user_input,
                 existing_data,
                 const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION,
+                const.DATA_USER_ENABLE_GAMIFICATION,
                 False,
             )
         ),
@@ -1141,7 +1148,7 @@ def build_user_profile(
             )
         ),
     }
-    return cast("ApproverData", user_profile_data)
+    return cast("UserData", user_profile_data)
 
 
 # --- User profile preserve fields (for data_reset_users) ---
@@ -1779,8 +1786,8 @@ def build_badge(
 
     Badge types have different required components:
     - CUMULATIVE: target (points-only), awards
-    - DAILY: target, awards, assigned_to
-    - PERIODIC: target, awards, assigned_to, reset_schedule, tracked_chores
+    - DAILY: target, awards, assigned_user_ids
+    - PERIODIC: target, awards, assigned_user_ids, reset_schedule, tracked_chores
     - SPECIAL_OCCASION: special_occasion_type
     - ACHIEVEMENT_LINKED: associated_achievement
     - CHALLENGE_LINKED: associated_challenge
@@ -1857,7 +1864,9 @@ def build_badge(
     )
     include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-    include_assigned_to = badge_type in const.INCLUDE_ASSIGNED_TO_BADGE_TYPES
+    include_assigned_user_ids = (
+        badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
+    )
     include_awards = badge_type in const.INCLUDE_AWARDS_BADGE_TYPES
     include_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
 
@@ -2013,10 +2022,10 @@ def build_badge(
         }
 
     # --- Assigned To Component ---
-    if include_assigned_to:
+    if include_assigned_user_ids:
         assigned = get_field(
-            const.CFOF_BADGES_INPUT_ASSIGNED_TO,
-            const.DATA_BADGE_ASSIGNED_TO,
+            const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
+            const.DATA_BADGE_ASSIGNED_USER_IDS,
             [],
         )
         if not isinstance(assigned, list):
@@ -2026,7 +2035,7 @@ def build_badge(
             for assignee_id in assigned
             if assignee_id and assignee_id != const.SENTINEL_EMPTY
         ]
-        badge_data[const.DATA_BADGE_ASSIGNED_TO] = assigned
+        badge_data[const.DATA_BADGE_ASSIGNED_USER_IDS] = assigned
 
     # --- Awards Component ---
     if include_awards:
@@ -2195,7 +2204,7 @@ _BADGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_BADGE_RESET_SCHEDULE,  # Periodic reset rules (config)
         const.DATA_BADGE_TRACKED_CHORES,  # Tracked chore selection (config)
         # Assignment and linking (config)
-        const.DATA_BADGE_ASSIGNED_TO,
+        const.DATA_BADGE_ASSIGNED_USER_IDS,
         const.DATA_BADGE_SPECIAL_OCCASION_TYPE,
         const.DATA_BADGE_ASSOCIATED_ACHIEVEMENT,
         const.DATA_BADGE_ASSOCIATED_CHALLENGE,

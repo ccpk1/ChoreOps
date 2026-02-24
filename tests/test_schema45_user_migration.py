@@ -51,8 +51,8 @@ async def test_schema45_migration_moves_assignees_to_users_and_sets_defaults() -
     assert user_data[const.DATA_USER_CAN_APPROVE] is False
     assert user_data[const.DATA_USER_CAN_MANAGE] is False
     assert user_data[const.DATA_USER_CAN_BE_ASSIGNED] is True
-    assert user_data[const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW] is True
-    assert user_data[const.DATA_APPROVER_ENABLE_GAMIFICATION] is True
+    assert user_data[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
+    assert user_data[const.DATA_USER_ENABLE_GAMIFICATION] is True
     assert user_data[const.DATA_USER_HA_USER_ID] == "ha-assignee-1"
 
     meta = coordinator._data[const.DATA_META]
@@ -91,8 +91,8 @@ async def test_schema45_migration_merges_linked_approver_into_existing_user() ->
     assert user_data[const.DATA_USER_CAN_APPROVE] is True
     assert user_data[const.DATA_USER_CAN_MANAGE] is True
     assert user_data[const.DATA_USER_CAN_BE_ASSIGNED] is True
-    assert user_data[const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW] is True
-    assert user_data[const.DATA_APPROVER_ENABLE_GAMIFICATION] is True
+    assert user_data[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
+    assert user_data[const.DATA_USER_ENABLE_GAMIFICATION] is True
 
 
 async def test_schema45_migration_handles_collision_and_is_idempotent() -> None:

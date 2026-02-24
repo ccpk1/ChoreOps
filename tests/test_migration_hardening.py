@@ -168,8 +168,8 @@ class TestSchemaStampFix:
         assert alice[const.DATA_USER_CAN_APPROVE] is False
         assert alice[const.DATA_USER_CAN_MANAGE] is False
         assert alice[const.DATA_USER_CAN_BE_ASSIGNED] is True
-        assert alice[const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW] is True
-        assert alice[const.DATA_APPROVER_ENABLE_GAMIFICATION] is True
+        assert alice[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
+        assert alice[const.DATA_USER_ENABLE_GAMIFICATION] is True
 
 
 # =============================================================================

@@ -57,103 +57,11 @@
           "points_adjust_values": "Pipe-separated point values for manual adjustment buttons (e.g., +1.0|-1.0|+10.0|-10.0)"
         }
       },
-      "assignee_count": {
-        "title": "Number of Assignees",
-        "description": "How many assignees do you want to manage?",
-        "data": {
-          "assignee_count": "Number of Assignees"
-        }
-      },
-      "assignees": {
-        "title": "Define Assignee",
-        "description": "Enter the name for each assignee.",
-        "data": {
-          "name": "Assignee Name",
-          "ha_user": "Home Assistant User",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language"
-        },
-        "data_description": {
-          "mobile_notify_service": "Select a notification service to enable notifications for this assignee, or leave empty to disable.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
-        }
-      },
-      "approver_count": {
-        "title": "Number of Users",
-        "description": "How many users do you want to define initially?",
-        "data": {
-          "approver_count": "Number of Users"
-        }
-      },
       "user_count": {
         "title": "Number of Users",
         "description": "How many users do you want to define initially?",
         "data": {
           "approver_count": "Number of Users"
-        }
-      },
-      "approvers": {
-        "title": "Define User",
-        "description": "Enter details for each user profile.",
-        "sections": {
-          "section_identity_profile": {
-            "name": "Identity and profile",
-            "description": "Core identity, account linkage, and personalization settings.",
-            "data": {
-              "name": "Name",
-              "ha_user_id": "Home Assistant User",
-              "dashboard_language": "Language",
-              "mobile_notify_service": "Notifications"
-            },
-            "data_description": {
-              "name": "Unique name for this user profile.",
-              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
-              "dashboard_language": "Language used for dashboard content and notifications.",
-              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
-            }
-          },
-          "section_system_usage": {
-            "name": "System usage",
-            "description": "Controls for normal usage in chores and gamification.",
-            "data": {
-              "allow_chore_assignment": "Can be assigned",
-              "enable_chore_workflow": "Workflow enabled",
-              "enable_gamification": "Gamification enabled"
-            },
-            "data_description": {
-              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
-              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
-              "enable_gamification": "Enables points, badges, and rewards participation."
-            }
-          },
-          "section_admin_approval": {
-            "name": "Admin and approval options",
-            "description": "Higher-privilege approval and management controls.",
-            "data": {
-              "can_approve": "Can approve",
-              "can_manage": "Can manage",
-              "associated_user_ids": "Associated assignees/users"
-            },
-            "data_description": {
-              "can_approve": "Allows approval and disapproval actions.",
-              "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_user_ids": "Users this approver/admin supervises for approval actions."
-            }
-          }
-        },
-        "data": {
-          "name": "User Name",
-          "ha_user_id": "Home Assistant User",
-          "associated_user_ids": "Associated Users",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language"
-        },
-        "data_description": {
-          "name": "Unique name for this user profile, used throughout the system.",
-          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_user_ids": "Select which users this approver/admin supervises for notifications and approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
       "users": {
@@ -180,12 +88,12 @@
             "name": "System usage",
             "description": "Controls for normal usage in chores and gamification.",
             "data": {
-              "allow_chore_assignment": "Can be assigned",
+              "can_be_assigned": "Can be assigned",
               "enable_chore_workflow": "Workflow enabled",
               "enable_gamification": "Gamification enabled"
             },
             "data_description": {
-              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "can_be_assigned": "Allows chores to be assigned to this profile.",
               "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
               "enable_gamification": "Enables points, badges, and rewards participation."
             }
@@ -196,7 +104,7 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_user_ids": "Associated assignees/users"
+              "associated_user_ids": "Associated users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
@@ -204,20 +112,6 @@
               "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
-        },
-        "data": {
-          "name": "User Name",
-          "ha_user_id": "Home Assistant User",
-          "associated_user_ids": "Associated Users",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language"
-        },
-        "data_description": {
-          "name": "Unique name for this user profile, used throughout the system.",
-          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_user_ids": "Select which users this approver/admin supervises for notifications and approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
       "chore_count": {
@@ -369,7 +263,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -392,7 +286,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "points_multiplier": "If multiplier is a selected award, set a multiplier for points earned while this badge is active (e.g., 1.5x).",
@@ -519,6 +413,17 @@
     "error": {
       "a_chore_must_be_selected": "A chore must be selected",
       "badge_requires_assignment": "At least one assignee must be assigned to this badge",
+      "error_badge_achievement_required": "An achievement must be selected for achievement-linked badges",
+      "error_badge_occasion_type_required": "An occasion type is required for special occasion badges",
+      "target_threshold_required": "Target threshold is required",
+      "invalid_maintenance_rules": "Maintenance rules value is invalid",
+      "error_badge_challenge_required": "A challenge must be selected for challenge-linked badges",
+      "error_award_points_minimum": "Award points must be greater than zero",
+      "error_award_invalid_multiplier": "Points multiplier must be greater than zero",
+      "invalid_award_item_selected": "One or more selected award items are invalid",
+      "start_date_required": "Start date is required",
+      "end_date_required": "End date is required",
+      "end_date_before_start_date": "End date must be after start date",
       "duplicate_achievement": "An achievement with this name already exists",
       "duplicate_badge": "A badge with this name already exists",
       "duplicate_challenge": "A challenge with this name already exists",
@@ -533,6 +438,12 @@
       "end_date_not_after_start_date": "End date must be later than start date",
       "err_end_before_start": "End date must be after start date",
       "err_name_duplicate": "A challenge with this name already exists",
+      "err_name_required": "Challenge name is required",
+      "err_dates_required": "Start and end dates are required",
+      "err_invalid_date": "Challenge dates are invalid",
+      "err_target_invalid": "Challenge target value must be greater than zero",
+      "err_points_negative": "Challenge reward points cannot be negative",
+      "err_points_invalid": "Challenge reward points are invalid",
       "achievement_no_assignees_assigned": "At least one assignee must be assigned to the achievement",
       "challenge_no_assignees_assigned": "At least one assignee must be assigned to the challenge",
       "invalid_achievement_count": "Invalid achievement count",
@@ -579,6 +490,7 @@
       "missing_required": "Required field is missing. Please provide all required information.",
       "invalid_format": "The format is invalid. Please check your input and try again.",
       "usage_requires_assignment_or_approval": "Enable either 'Can be assigned' or 'Can approve'.",
+      "associated_users_require_approval": "'Associated users' can only be set when 'Can approve' is enabled.",
       "approval_requires_associated_users": "At least one associated assignee/user is required when 'Can approve' is enabled.",
       "chore_options_require_assignment": "Chore workflow and gamification options require 'Allow Chores to be Assigned to Me' to be enabled first.",
       "invalid_update_interval": "Invalid update interval. Must be a positive integer.",
@@ -627,96 +539,6 @@
           "points_icon": "Points Icon"
         }
       },
-      "add_assignee": {
-        "title": "Add Assignee",
-        "description": "Provide the details for the new assignee.\n\n📖 [Configuration Guide]({documentation_url})",
-        "data": {
-          "name": "Assignee Name",
-          "ha_user": "Home Assistant User",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "Unique name for this assignee, used throughout the system.",
-          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this assignee, or leave empty to disable.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
-        }
-      },
-      "add_approver": {
-        "title": "Add User",
-        "description": "Provide the details for the new user profile.\n\n📖 [Configuration Guide]({documentation_url})",
-        "sections": {
-          "section_identity_profile": {
-            "name": "Identity and profile",
-            "description": "Core identity, account linkage, and personalization settings.",
-            "data": {
-              "name": "Name",
-              "ha_user_id": "Home Assistant User",
-              "dashboard_language": "Language",
-              "mobile_notify_service": "Notifications"
-            },
-            "data_description": {
-              "name": "Unique name for this user profile.",
-              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
-              "dashboard_language": "Language used for dashboard content and notifications.",
-              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
-            }
-          },
-          "section_system_usage": {
-            "name": "System usage",
-            "description": "Controls for normal usage in chores and gamification.",
-            "data": {
-              "allow_chore_assignment": "Can be assigned",
-              "enable_chore_workflow": "Workflow enabled",
-              "enable_gamification": "Gamification enabled"
-            },
-            "data_description": {
-              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
-              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
-              "enable_gamification": "Enables points, badges, and rewards participation."
-            }
-          },
-          "section_admin_approval": {
-            "name": "Admin and approval options",
-            "description": "Higher-privilege approval and management controls.",
-            "data": {
-              "can_approve": "Can approve",
-              "can_manage": "Can manage",
-              "associated_user_ids": "Associated assignees/users"
-            },
-            "data_description": {
-              "can_approve": "Allows approval and disapproval actions.",
-              "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_user_ids": "Users this approver/admin supervises for approval actions."
-            }
-          }
-        },
-        "data": {
-          "name": "User Name",
-          "ha_user_id": "Home Assistant User",
-          "associated_user_ids": "Associated Users",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "allow_chore_assignment": "Allow Chores to be Assigned",
-          "enable_chore_workflow": "Enable Chore Workflow",
-          "enable_gamification": "Enable Gamification",
-          "can_approve": "Can approve",
-          "can_manage": "Can manage",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "Unique name for this user profile, used throughout the system.",
-          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the assignee profile with '_unlinked' suffix for manual cleanup.",
-          "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
-          "enable_gamification": "Track points, badges, and rewards for your completed chores.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
-        }
-      },
       "add_user": {
         "title": "Add User",
         "description": "Provide the details for the new user profile.\n\n📖 [Configuration Guide]({documentation_url})",
@@ -741,12 +563,12 @@
             "name": "System usage",
             "description": "Controls for normal usage in chores and gamification.",
             "data": {
-              "allow_chore_assignment": "Can be assigned",
+              "can_be_assigned": "Can be assigned",
               "enable_chore_workflow": "Workflow enabled",
               "enable_gamification": "Gamification enabled"
             },
             "data_description": {
-              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "can_be_assigned": "Allows chores to be assigned to this profile.",
               "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
               "enable_gamification": "Enables points, badges, and rewards participation."
             }
@@ -757,7 +579,7 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_user_ids": "Associated assignees/users"
+              "associated_user_ids": "Associated users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
@@ -765,29 +587,6 @@
               "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
-        },
-        "data": {
-          "name": "User Name",
-          "ha_user_id": "Home Assistant User",
-          "associated_user_ids": "Associated Users",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "allow_chore_assignment": "Allow Chores to be Assigned",
-          "enable_chore_workflow": "Enable Chore Workflow",
-          "enable_gamification": "Enable Gamification",
-          "can_approve": "Can approve",
-          "can_manage": "Can manage",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "Unique name for this user profile, used throughout the system.",
-          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "allow_chore_assignment": "Allows this profile to receive chore assignments.",
-          "enable_chore_workflow": "Enables claim and disapprove workflow actions for assigned chores.",
-          "enable_gamification": "Track points, badges, and rewards for completed chores.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
       "add_chore": {
@@ -934,7 +733,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -957,7 +756,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "points_multiplier": "If multiplier is a selected award, set a multiplier for points earned while this badge is active (e.g., 1.5x).",
@@ -980,7 +779,7 @@
           "target_type": "🎯 DAILY TARGET: Target Type",
           "threshold_value": "🎯 DAILY TARGET: Threshold Value",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -992,7 +791,7 @@
           "target_type": "Select the type of daily target for this badge (e.g., points, chore count, or days).",
           "threshold_value": "Set the daily points, chore count, or number of days required to earn this badge. For 'Days' target types, enter 1 since the badge is evaluated daily (e.g., 1 for a one-day complete all selected chores).",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1012,7 +811,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "recurring_frequency": "🔄 RESET CYCLE: Frequency",
@@ -1033,7 +832,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "recurring_frequency": "Define the reset schedule for this badge (e.g., weekly, monthly).",
@@ -1052,7 +851,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_achievement": "🏆 Associated Achievement",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1062,7 +861,7 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_achievement": "Link this badge to a specific achievement for tracking.",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1076,7 +875,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_challenge": "🏁 Associated Challenge",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1086,7 +885,7 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_challenge": "Link this badge to a specific challenge for tracking.",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1106,7 +905,7 @@
           "custom_interval_unit": "🔄 RECURRENCE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RECURRENCE: Start Date (Optional)",
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1122,7 +921,7 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks).",
           "start_date": "Set the start date for the reset cycle (optional).",
           "grace_period_days": "Specify the number of extra days after the end of the cycle for assignees to meet required points before demotion (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1141,7 +940,7 @@
       },
       "add_penalty": {
         "title": "Add Penalty",
-        "description": "Provide the details for the new penalty.\n\n📖 [Overview & Examples]({documentation_url})",
+        "description": "Provide the details for the new penalty.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Penalty Name",
           "penalty_description": "Description (optional)",
@@ -1153,7 +952,7 @@
       },
       "add_bonus": {
         "title": "Add Bonus",
-        "description": "Provide the details for the new bonus.\n\n📖 [Overview & Examples]({documentation_url})",
+        "description": "Provide the details for the new bonus.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Bonus Name",
           "bonus_description": "Description (optional)",
@@ -1165,7 +964,7 @@
       },
       "add_achievement": {
         "title": "Define Achievement",
-        "description": "Enter details for each achievement.\n\n[📖 Overview & Functionality]({documentation_url})",
+        "description": "Enter details for each achievement.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Achievement Name",
           "description": "Description (optional)",
@@ -1182,7 +981,7 @@
       },
       "add_challenge": {
         "title": "Define Challenge",
-        "description": "Enter details for each challenge.\n\n📖 [Overview & Functionality]({documentation_url})",
+        "description": "Enter details for each challenge.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Challenge Name",
           "description": "Description (optional)",
@@ -1197,113 +996,6 @@
           "start_date": "Start Date",
           "end_date": "End Date",
           "internal_id": "Internal ID"
-        }
-      },
-      "edit_assignee": {
-        "title": "Edit Assignee",
-        "description": "Modify the details of the selected assignee.\n\n📖 [Configuration Guide]({documentation_url})",
-        "data": {
-          "name": "Assignee Name",
-          "ha_user": "Home Assistant User",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "Unique name for this assignee, used throughout the system.",
-          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this assignee.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
-        }
-      },
-      "edit_assignee_linked": {
-        "title": "Edit linked assignee",
-        "description": "Modify the details of the selected linked assignee. ⚠️ This assignee is linked to a approver. Changing the name will break the name-matching requirement for unlinking via service.",
-        "data": {
-          "name": "Assignee Name",
-          "ha_user": "Home Assistant User",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "⚠️ This linked assignee is linked to a approver. Changing this name will break the service unlinking feature, which requires matching names.",
-          "ha_user": "Optional: Link this assignee to a Home Assistant user for dashboard access control.",
-          "mobile_notify_service": "⚠️ Linked assignee notifications: The linked approver already receives notifications for supervised chores. Enabling here will create duplicate notifications. Useful for 30-minute due date reminders or if using different notification services.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
-        }
-      },
-      "edit_approver": {
-        "title": "Edit User",
-        "description": "Modify the details of the selected user profile.\n\n📖 [Configuration Guide]({documentation_url})",
-        "sections": {
-          "section_identity_profile": {
-            "name": "Identity and profile",
-            "description": "Core identity, account linkage, and personalization settings.",
-            "data": {
-              "name": "Name",
-              "ha_user_id": "Home Assistant User",
-              "dashboard_language": "Language",
-              "mobile_notify_service": "Notifications"
-            },
-            "data_description": {
-              "name": "Unique name for this user profile.",
-              "ha_user_id": "Optional: Link this profile to a Home Assistant user.",
-              "dashboard_language": "Language used for dashboard content and notifications.",
-              "mobile_notify_service": "Select notification service or leave empty to disable notifications."
-            }
-          },
-          "section_system_usage": {
-            "name": "System usage",
-            "description": "Controls for normal usage in chores and gamification.",
-            "data": {
-              "allow_chore_assignment": "Can be assigned",
-              "enable_chore_workflow": "Workflow enabled",
-              "enable_gamification": "Gamification enabled"
-            },
-            "data_description": {
-              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
-              "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
-              "enable_gamification": "Enables points, badges, and rewards participation."
-            }
-          },
-          "section_admin_approval": {
-            "name": "Admin and approval options",
-            "description": "Higher-privilege approval and management controls.",
-            "data": {
-              "can_approve": "Can approve",
-              "can_manage": "Can manage",
-              "associated_user_ids": "Associated assignees/users"
-            },
-            "data_description": {
-              "can_approve": "Allows approval and disapproval actions.",
-              "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_user_ids": "Users this approver/admin supervises for approval actions."
-            }
-          }
-        },
-        "data": {
-          "name": "User Name",
-          "ha_user_id": "Home Assistant User",
-          "associated_user_ids": "Associated Users",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "allow_chore_assignment": "Allow Chores to be Assigned",
-          "enable_chore_workflow": "Enable Chore Workflow",
-          "enable_gamification": "Enable Gamification",
-          "can_approve": "Can approve",
-          "can_manage": "Can manage",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "Unique name for this user profile, used throughout the system.",
-          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
-          "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the assignee profile with '_unlinked' suffix for manual cleanup.",
-          "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
-          "enable_gamification": "Track points, badges, and rewards for your completed chores.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
       "edit_user": {
@@ -1330,12 +1022,12 @@
             "name": "System usage",
             "description": "Controls for normal usage in chores and gamification.",
             "data": {
-              "allow_chore_assignment": "Can be assigned",
+              "can_be_assigned": "Can be assigned",
               "enable_chore_workflow": "Workflow enabled",
               "enable_gamification": "Gamification enabled"
             },
             "data_description": {
-              "allow_chore_assignment": "Allows chores to be assigned to this profile.",
+              "can_be_assigned": "Allows chores to be assigned to this profile.",
               "enable_chore_workflow": "Enables claim/disapprove workflow actions for assigned chores.",
               "enable_gamification": "Enables points, badges, and rewards participation."
             }
@@ -1346,7 +1038,7 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_user_ids": "Associated assignees/users"
+              "associated_user_ids": "Associated users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
@@ -1354,29 +1046,6 @@
               "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
-        },
-        "data": {
-          "name": "User Name",
-          "ha_user_id": "Home Assistant User",
-          "associated_user_ids": "Associated Users",
-          "mobile_notify_service": "Notifications",
-          "dashboard_language": "Language",
-          "allow_chore_assignment": "Allow Chores to be Assigned",
-          "enable_chore_workflow": "Enable Chore Workflow",
-          "enable_gamification": "Enable Gamification",
-          "can_approve": "Can approve",
-          "can_manage": "Can manage",
-          "internal_id": "Internal ID"
-        },
-        "data_description": {
-          "name": "Unique name for this user profile, used throughout the system.",
-          "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
-          "mobile_notify_service": "Select a notification service to enable notifications for this user.",
-          "allow_chore_assignment": "Allows this profile to receive chore assignments.",
-          "enable_chore_workflow": "Enables claim and disapprove workflow actions for assigned chores.",
-          "enable_gamification": "Track points, badges, and rewards for completed chores.",
-          "dashboard_language": "Language used for your chore dashboard and notifications."
         }
       },
       "edit_chore": {
@@ -1502,7 +1171,7 @@
           "chore_notifications": "When to send notifications: On claim, on approval, on rejection, or any combination."
         }
       },
-      "edit_chore_per_assignee_dates": {
+      "edit_chore_per_user_dates": {
         "title": "Edit Per-Assignee Due Dates: {chore_name}",
         "description": "Set individual due dates for each assigned assignee. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all assignees via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {assignee_names}. Leave blank for no deadline.{template_date}\n\n📖 [Advanced Guide]({documentation_url})",
         "data": {
@@ -1522,7 +1191,7 @@
           "daily_multi_times": "Enter 2-6 times in 24-hour format separated by | (pipe). Example: 08:00|17:00 for morning and evening."
         }
       },
-      "edit_chore_per_assignee_details": {
+      "edit_chore_per_user_details": {
         "title": "Per-Assignee Schedule: {chore_name}",
         "description": "Configure individual schedule settings for each assignee assigned to this chore. The main form values act as **templates**—use the checkboxes to apply them to all assignees, or customize each assignee's settings individually.\n\n**Note:** Not all fields below apply to every chore. The form dynamically shows relevant options based on completion mode, frequency, and whether due dates are set.\n\n**Daily (Multi) Times format:** If shown, enter 2-6 times in 24-hour format separated by | (pipe). Example: 08:00|17:00\n\nAssignees: {assignee_names}{template_info}\n\n📖 [Advanced Guide]({documentation_url})",
         "data": {
@@ -1551,7 +1220,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "points_multiplier": "🎁 AWARDS: Points Multiplier (Default 💎 1.0x)",
@@ -1574,7 +1243,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "points_multiplier": "If multiplier is a selected award, set a multiplier for points earned while this badge is active (e.g., 1.5x).",
@@ -1597,7 +1266,7 @@
           "target_type": "🎯 DAILY TARGET: Target Type",
           "threshold_value": "🎯 DAILY TARGET: Threshold Value",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1609,7 +1278,7 @@
           "target_type": "Select the type of daily target for this badge (e.g., points, chore count, or days).",
           "threshold_value": "Set the daily points, chore count, or number of days required to earn this badge. For 'Days' target types, enter 1 since the badge is evaluated daily (e.g., 1 for a one-day complete all selected chores).",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1629,7 +1298,7 @@
           "associated_achievement": "🏆 Associated Achievement",
           "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)",
           "recurring_frequency": "🔄 RESET CYCLE: Frequency",
@@ -1650,7 +1319,7 @@
           "associated_achievement": "Link this badge to an achievement for tracking.",
           "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional).",
           "recurring_frequency": "Define the reset schedule for this badge (e.g., weekly, monthly).",
@@ -1669,7 +1338,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_achievement": "🏆 Associated Achievement",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1679,7 +1348,7 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_achievement": "Link this badge to a specific achievement for tracking.",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1693,7 +1362,7 @@
           "badge_labels": "Labels (Optional)",
           "icon": "Badge Icon (mdi:xxx)",
           "associated_challenge": "🏁 Associated Challenge",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1703,7 +1372,7 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_challenge": "Link this badge to a specific challenge for tracking.",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1723,7 +1392,7 @@
           "custom_interval_unit": "🔄 RECURRENCE: Custom Interval Unit (Required for Custom Frequency)",
           "start_date": "🔄 RECURRENCE: Start Date (Optional)",
           "grace_period_days": "🔄 RECURRENCEE: Grace Period in Days (Optional)",
-          "assigned_to": "🧒 Assigned to",
+          "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
           "award_points": "🎁 AWARDS: Points Awarded (Optional)"
         },
@@ -1739,7 +1408,7 @@
           "custom_interval_unit": "Select the unit for the custom interval (e.g., days, weeks).",
           "start_date": "Set the start date for the reset cycle (optional).",
           "grace_period_days": "Specify the number of extra days after the end of the cycle for assignees to meet required points before demotion (optional).",
-          "assigned_to": "Assign this badge to specific assignees for tracking.",
+          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
         }
@@ -1758,7 +1427,7 @@
       },
       "edit_penalty": {
         "title": "Edit Penalty",
-        "description": "Modify the details of the selected penalty.\n\n📖 [Overview & Examples]({documentation_url})",
+        "description": "Modify the details of the selected penalty.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Penalty Name",
           "penalty_description": "Description (optional)",
@@ -1770,7 +1439,7 @@
       },
       "edit_bonus": {
         "title": "Edit Bonus",
-        "description": "Modify the details of the selected bonus.\n\n📖 [Overview & Examples]({documentation_url})",
+        "description": "Modify the details of the selected bonus.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Bonus Name",
           "bonus_description": "Description (optional)",
@@ -1782,7 +1451,7 @@
       },
       "edit_achievement": {
         "title": "Define Achievement",
-        "description": "Enter details for each achievement.\n\n📖 [Overview & Functionality]({documentation_url})",
+        "description": "Enter details for each achievement.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Achievement Name",
           "description": "Description (optional)",
@@ -1799,7 +1468,7 @@
       },
       "edit_challenge": {
         "title": "Define Challenge",
-        "description": "Enter details for each challenge.\n\n📖 [Overview & Functionality]({documentation_url})",
+        "description": "Enter details for each challenge.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Challenge Name",
           "description": "Description (optional)",
@@ -1815,16 +1484,6 @@
           "end_date": "End Date",
           "internal_id": "Internal ID"
         }
-      },
-      "delete_assignee": {
-        "title": "Delete Assignee",
-        "description": "Are you sure you want to delete the assignee {assignee_name}?",
-        "data": {}
-      },
-      "delete_approver": {
-        "title": "Delete User",
-        "description": "Are you sure you want to delete the user {user_name}?",
-        "data": {}
       },
       "delete_user": {
         "title": "Delete User",
@@ -1880,7 +1539,7 @@
       },
       "dashboard_create": {
         "title": "Create Dashboard",
-        "description": "Enter a dashboard name, then continue to configuration.\n\n[📖 Dashboard Generation Guide]({documentation_url})",
+        "description": "Enter a dashboard name, then continue to configuration.\n\n[Configuration Guide]({documentation_url})",
         "data": {
           "dashboard_name": "Dashboard Name"
         },
@@ -1900,7 +1559,7 @@
       },
       "dashboard_configure": {
         "title": "Configure Dashboard",
-        "description": "Configure dashboard sections for **{dashboard}** (mode: {mode}).\n\n[📖 Dashboard Generation Guide]({documentation_url})",
+        "description": "Configure dashboard sections for **{dashboard}** (mode: {mode}).\n\n[Configuration Guide]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Assignee views",
@@ -2001,7 +1660,7 @@
       },
       "manage_general_options": {
         "title": "General Options",
-        "description": "Manage general settings for the ChoreOps integration.\n\n[📖 Learn more about Backup & Restore]({documentation_url})",
+        "description": "Manage general settings for the ChoreOps integration.\n\n[📖 Learn more about General Options]({documentation_url})",
         "data": {
           "points_adjust_values": "Manual Points Adjustment Button Values",
           "update_interval": "Update Interval",
@@ -2121,6 +1780,17 @@
     "error": {
       "a_chore_must_be_selected": "A chore must be selected",
       "badge_requires_assignment": "At least one assignee must be assigned to this badge",
+      "error_badge_achievement_required": "An achievement must be selected for achievement-linked badges",
+      "error_badge_occasion_type_required": "An occasion type is required for special occasion badges",
+      "target_threshold_required": "Target threshold is required",
+      "invalid_maintenance_rules": "Maintenance rules value is invalid",
+      "error_badge_challenge_required": "A challenge must be selected for challenge-linked badges",
+      "error_award_points_minimum": "Award points must be greater than zero",
+      "error_award_invalid_multiplier": "Points multiplier must be greater than zero",
+      "invalid_award_item_selected": "One or more selected award items are invalid",
+      "start_date_required": "Start date is required",
+      "end_date_required": "End date is required",
+      "end_date_before_start_date": "End date must be after start date",
       "duplicate_achievement": "An achievement with this name already exists",
       "duplicate_badge": "A badge with this name already exists",
       "duplicate_challenge": "A challenge with this name already exists",
@@ -2131,12 +1801,19 @@
       "duplicate_reward": "A reward with this name already exists",
       "duplicate_bonus": "A bonus with this name already exists",
       "usage_requires_assignment_or_approval": "Enable either 'Can be assigned' or 'Can approve'.",
+      "associated_users_require_approval": "'Associated users' can only be set when 'Can approve' is enabled.",
       "approval_requires_associated_users": "At least one associated assignee/user is required when 'Can approve' is enabled.",
       "due_date_in_past": "Due date must be in the future.",
       "end_date_in_past": "End Date must be in the future.",
       "end_date_not_after_start_date": "End date must be later than start date",
       "err_end_before_start": "End date must be after start date",
       "err_name_duplicate": "A challenge with this name already exists",
+      "err_name_required": "Challenge name is required",
+      "err_dates_required": "Start and end dates are required",
+      "err_invalid_date": "Challenge dates are invalid",
+      "err_target_invalid": "Challenge target value must be greater than zero",
+      "err_points_negative": "Challenge reward points cannot be negative",
+      "err_points_invalid": "Challenge reward points are invalid",
       "invalid_badge": "Invalid badge",
       "invalid_badge_count": "Invalid badge count",
       "invalid_chore": "Invalid chore",
@@ -2194,6 +1871,7 @@
       "invalid_action": "Invalid Action",
       "invalid_achievement": "Invalid Achievement",
       "invalid_badge": "Invalid Badge",
+      "invalid_badge_type": "Invalid Badge Type",
       "invalid_challenge": "Invalid Challenge",
       "invalid_chore": "Invalid Chore",
       "invalid_entity": "Invalid Entity",
@@ -3158,11 +2836,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_chore_status": "Assignee-specific chore lifecycle states, performance statistics, and configuration metadata"
+              "purpose_chore_status": "User-specific chore lifecycle states, performance statistics, and configuration metadata"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -3173,7 +2851,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_user_ids": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "labels": {
@@ -3359,8 +3037,8 @@
               "missed": "Missed"
             }
           },
-          "turn_assignee_name": {
-            "name": "Turn Assignee Name"
+          "turn_user_name": {
+            "name": "Turn User Name"
           },
           "available_at": {
             "name": "Available At"
@@ -3376,8 +3054,8 @@
               "purpose_points": "Current point balance with detailed earning and spending statistics"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "points_multiplier": {
             "name": "Points Multiplier"
@@ -3463,19 +3141,59 @@
         }
       },
       "assignee_points_max_ever_sensor": {
-        "name": "Maximum {points} Ever"
+        "name": "Maximum {points} Ever",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_points_max_ever_extra": "Highest point balance ever reached (extra)"
+            }
+          }
+        }
       },
       "system_chore_approvals_sensor": {
-        "name": "Chores Completed - Total"
+        "name": "Chores Completed - Total",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_chore_approvals_all_time_extra": "Count of chore approvals all time (extra)"
+            }
+          }
+        }
       },
       "system_chore_approvals_daily_sensor": {
-        "name": "Chores Completed - Daily"
+        "name": "Chores Completed - Daily",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_chore_approvals_today_extra": "Count of chore approvals today (extra)"
+            }
+          }
+        }
       },
       "system_chore_approvals_weekly_sensor": {
-        "name": "Chores Completed - Weekly"
+        "name": "Chores Completed - Weekly",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_chore_approvals_week_extra": "Count of chore approvals this week (extra)"
+            }
+          }
+        }
       },
       "system_chore_approvals_monthly_sensor": {
-        "name": "Chores Completed - Monthly"
+        "name": "Chores Completed - Monthly",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_chore_approvals_month_extra": "Count of chore approvals this month (extra)"
+            }
+          }
+        }
       },
       "assignee_chores_sensor": {
         "name": "Chores",
@@ -3487,8 +3205,8 @@
               "purpose_chores": "Total chores completed all-time with detailed statistics"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "chore_stat_approved_today": {
             "name": "Approved Today"
@@ -3690,11 +3408,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_assignee_badges": "Highest earned badge and real-time cumulative progress, including active cycles and award history across all badge types"
+              "purpose_user_badges": "Highest earned badge and real-time cumulative progress, including active cycles and award history across all badge types"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "labels": {
             "name": "Labels"
@@ -3777,12 +3495,12 @@
       },
       "system_badge_sensor": {
         "name": "Badge - {badge_name}",
-        "unit_of_measurement": "Assignees",
+        "unit_of_measurement": "Users",
         "state_attributes": {
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_badge": "Count of assignees who earned this badge, with badge configuration including type, target, awards, and assigned assignees"
+              "purpose_badge": "Count of users who earned this badge, with badge configuration including type, target, awards, and assigned users"
             }
           },
           "badge_name": {
@@ -3805,10 +3523,10 @@
           "labels": {
             "name": "Labels"
           },
-          "assignees_earned": {
-            "name": "Assignees Earned"
+          "earned_user_names": {
+            "name": "Users Earned"
           },
-          "assignees_assigned": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "target": {
@@ -3843,8 +3561,8 @@
               "purpose_badge_progress": "Badge progress percentage (0-100) tracking completion toward earning this badge, with criteria status, dates, and award history"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "badge_name": {
             "name": "Badge Name"
@@ -3922,10 +3640,26 @@
         }
       },
       "system_chores_pending_approval_sensor": {
-        "name": "Pending Chore Approvals"
+        "name": "Pending Chore Approvals",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_chores_pending_approval_extra": "Count of chores pending approval across all users (extra)"
+            }
+          }
+        }
       },
       "system_rewards_pending_approval_sensor": {
-        "name": "Pending Reward Approvals"
+        "name": "Pending Reward Approvals",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_rewards_pending_approval_extra": "Count of rewards pending approval across all users (extra)"
+            }
+          }
+        }
       },
       "system_chore_shared_state_sensor": {
         "name": "{chore_name} - Global Status",
@@ -3945,7 +3679,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_shared_chore": "Global completion state for shared chores with aggregate statistics across all assigned assignees"
+              "purpose_shared_chore": "Global completion state for shared chores with aggregate statistics across all assigned users"
             }
           },
           "chore_name": {
@@ -3957,7 +3691,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_user_ids": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "labels": {
@@ -4025,7 +3759,7 @@
             }
           },
           "chore_approvals_today": {
-            "name": "Approvals Today (All Assignees)"
+            "name": "Approvals Today (All Users)"
           },
           "last_claimed": {
             "name": "Last Claimed"
@@ -4070,8 +3804,8 @@
               "purpose_reward_status": "Reward redemption status with claim history and action buttons"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4183,8 +3917,14 @@
       "assignee_penalty_applied_sensor": {
         "name": "Penalties applied - {penalty_name}",
         "state_attributes": {
-          "assignee_name": {
-            "name": "Assignee Name"
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_penalty_applied": "Count of times penalty applied to user"
+            }
+          },
+          "user_name": {
+            "name": "User Name"
           },
           "penalty_name": {
             "name": "Penalty Name"
@@ -4203,8 +3943,14 @@
       "assignee_bonus_applied_sensor": {
         "name": "Bonus Applies - {bonus_name}",
         "state_attributes": {
-          "assignee_name": {
-            "name": "Assignee Name"
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_bonus_applied": "Count of times bonus applied to user"
+            }
+          },
+          "user_name": {
+            "name": "User Name"
           },
           "bonus_name": {
             "name": "Bonus Name"
@@ -4221,13 +3967,37 @@
         }
       },
       "assignee_points_earned_daily_sensor": {
-        "name": "Points Earned - Daily"
+        "name": "Points Earned - Daily",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_points_earned_today_extra": "Points earned today by user (extra)"
+            }
+          }
+        }
       },
       "assignee_points_earned_weekly_sensor": {
-        "name": "Points Earned - Weekly"
+        "name": "Points Earned - Weekly",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_points_earned_week_extra": "Points earned this week by user (extra)"
+            }
+          }
+        }
       },
       "assignee_points_earned_monthly_sensor": {
-        "name": "Points Earned - Monthly"
+        "name": "Points Earned - Monthly",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_points_earned_month_extra": "Points earned this month by user (extra)"
+            }
+          }
+        }
       },
       "system_achievement_sensor": {
         "name": "Achievement - {achievement_name}",
@@ -4235,7 +4005,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_achievement": "Achievement progress percentage (0-100) aggregated across all assigned assignees, with achievement configuration including type, target, criteria, and list of assignees who earned it"
+              "purpose_achievement": "Achievement progress percentage (0-100) aggregated across all assigned users, with achievement configuration including type, target, criteria, and list of users who earned it"
             }
           },
           "achievement_name": {
@@ -4244,7 +4014,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_user_ids": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "type": {
@@ -4267,7 +4037,7 @@
           "reward_points": {
             "name": "Reward Points"
           },
-          "assignees_earned": {
+          "earned_user_names": {
             "name": "Earned By"
           },
           "labels": {
@@ -4281,7 +4051,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_challenge": "Challenge progress percentage (0-100) aggregated across all assigned assignees within date window, with challenge configuration including type, target, criteria, dates, and list of assignees who earned it"
+              "purpose_challenge": "Challenge progress percentage (0-100) aggregated across all assigned users within date window, with challenge configuration including type, target, criteria, dates, and list of users who earned it"
             }
           },
           "challenge_name": {
@@ -4290,7 +4060,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_user_ids": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "type": {
@@ -4318,7 +4088,7 @@
           "end_date": {
             "name": "End Date"
           },
-          "assignees_earned": {
+          "earned_user_names": {
             "name": "Earned By"
           },
           "labels": {
@@ -4327,16 +4097,16 @@
         }
       },
       "assignee_achievement_progress_sensor": {
-        "name": "Progress - {achievement_name}",
+        "name": "Achievement Progress - {achievement_name}",
         "state_attributes": {
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_achievement_progress": "Individual assignee's progress percentage (0-100) toward earning this achievement, with current raw progress count and award status"
+              "purpose_achievement_progress": "Individual user's progress percentage (0-100) toward earning this achievement, with current raw progress count and award status"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "achievement_name": {
             "name": "Achievement Name"
@@ -4344,7 +4114,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_user_ids": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "type": {
@@ -4388,11 +4158,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_challenge_progress": "Individual assignee's progress percentage (0-100) toward completing this challenge within the date window, with current raw progress count and award status"
+              "purpose_challenge_progress": "Individual user's progress percentage (0-100) toward completing this challenge within the date window, with current raw progress count and award status"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "challenge_name": {
             "name": "Challenge Name"
@@ -4400,7 +4170,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_user_ids": {
+          "assigned_user_names": {
             "name": "Assigned to"
           },
           "type": {
@@ -4446,6 +4216,12 @@
       "assignee_chore_streak_sensor": {
         "name": "Highest Chore Streak",
         "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_sensor_chore_streak_extra": "Highest chore completion streak for user (extra)"
+            }
+          },
           "streaks_by_achievement": {
             "name": "Streaks by Achievement"
           }
@@ -4474,7 +4250,7 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_dashboard_helper": "Aggregates all assignee data for dashboard consumption"
+              "purpose_dashboard_helper": "Aggregates all user data for dashboard consumption"
             }
           },
           "chores": {
@@ -4516,14 +4292,11 @@
           "chores_by_label": {
             "name": "Chores by Label"
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "language": {
             "name": "Language"
-          },
-          "translation_sensor": {
-            "name": "Translation Sensor"
           }
         }
       }
@@ -4533,34 +4306,66 @@
         "name": "Select Base"
       },
       "system_chores_select": {
-        "name": "Select Chore"
-      },
-      "system_rewards_select": {
-        "name": "Select Reward"
-      },
-      "system_penalties_select": {
-        "name": "Select Penalty"
-      },
-      "system_bonuses_select": {
-        "name": "Select Bonus"
-      },
-      "system_dashboard_admin_assignee_select": {
-        "name": "Admin Dashboard Assignee Selector",
+        "name": "Select Chore",
         "state_attributes": {
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_system_dashboard_admin_assignee": "System-level assignee selector for admin dashboard cards"
+              "purpose_select_chores": "Dropdown to select chore from all available chores"
+            }
+          }
+        }
+      },
+      "system_rewards_select": {
+        "name": "Select Reward",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_select_rewards": "Dropdown to select reward from all available rewards"
+            }
+          }
+        }
+      },
+      "system_penalties_select": {
+        "name": "Select Penalty",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_select_penalties": "Dropdown to select penalty from all available penalties"
+            }
+          }
+        }
+      },
+      "system_bonuses_select": {
+        "name": "Select Bonus",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_select_bonuses": "Dropdown to select bonus from all available bonuses"
+            }
+          }
+        }
+      },
+      "system_dashboard_admin_assignee_select": {
+        "name": "Admin Dashboard User Selector",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_system_dashboard_admin_user": "System-level user selector for admin dashboard cards"
             }
           },
           "dashboard_helper_eid": {
             "name": "Dashboard Helper Entity ID"
           },
-          "selected_assignee_slug": {
-            "name": "Selected Assignee Slug"
+          "selected_user_slug": {
+            "name": "Selected User Slug"
           },
-          "selected_assignee_name": {
-            "name": "Selected Assignee Name"
+          "selected_user_name": {
+            "name": "Selected User Name"
           }
         }
       },
@@ -4570,11 +4375,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_select_assignee_chores": "Assignee's chore selection for dashboard filtering"
+              "purpose_select_user_chores": "User chore selection for dashboard filtering"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           }
         }
       }
@@ -4586,11 +4391,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_calendar_schedule": "Calendar showing assignee's chore schedule and due dates"
+              "purpose_calendar_schedule": "Calendar showing user's chore schedule and due dates"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           }
         }
       }
@@ -4605,8 +4410,8 @@
               "purpose_datetime_dashboard_helper": "Date selection helper for dashboard UI filtering and navigation"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           }
         }
       }
@@ -4618,11 +4423,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_chore_claim": "Assignee claims completion of assigned chore"
+              "purpose_button_chore_claim": "User claims completion of assigned chore"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -4641,8 +4446,8 @@
               "purpose_button_chore_approve": "Approver approves claimed chore"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -4661,8 +4466,8 @@
               "purpose_button_chore_disapprove": "Approver disapproves claimed chore"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "chore_name": {
             "name": "Chore Name"
@@ -4678,11 +4483,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_reward_redeem": "Assignee redeems reward using points"
+              "purpose_button_reward_redeem": "User redeems reward using points"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4701,8 +4506,8 @@
               "purpose_button_reward_approve": "Approver approves redeemed reward"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4721,8 +4526,8 @@
               "purpose_button_reward_disapprove": "Approver disapproves redeemed reward"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "reward_name": {
             "name": "Reward Name"
@@ -4741,8 +4546,8 @@
               "purpose_button_penalty_apply": "Approver applies penalty (deducts points)"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "penalty_name": {
             "name": "Penalty Name"
@@ -4761,8 +4566,8 @@
               "purpose_button_bonus_apply": "Approver applies bonus (adds points)"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "bonus_name": {
             "name": "Bonus Name"
@@ -4778,11 +4583,11 @@
           "purpose": {
             "name": "Purpose",
             "state": {
-              "purpose_button_points_adjust": "Approver manually adjusts assignee's points"
+              "purpose_button_points_adjust": "Approver manually adjusts user's points"
             }
           },
-          "assignee_name": {
-            "name": "Assignee Name"
+          "user_name": {
+            "name": "User Name"
           },
           "delta": {
             "name": "Adjustment Amount"

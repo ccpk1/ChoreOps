@@ -25,7 +25,7 @@ from tests.helpers import (
     APPROVAL_RESET_AT_MIDNIGHT_ONCE,
     APPROVAL_RESET_UPON_COMPLETION,
     BADGE_TYPE_CUMULATIVE,
-    CFOF_BADGES_INPUT_ASSIGNED_TO,
+    CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
     CFOF_BADGES_INPUT_AWARD_POINTS,
     CFOF_BADGES_INPUT_ICON,
     CFOF_BADGES_INPUT_NAME,
@@ -243,8 +243,8 @@ async def test_add_assignee_via_options_flow(
 
     # Verify user was created via coordinator
     coordinator = init_integration_with_coordinator.coordinator
-    approver_names = [p["name"] for p in coordinator.approvers_data.values()]
-    assert "Test User" in approver_names
+    assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
+    assert "Test User" in assignee_names
 
 
 async def test_add_approver_via_options_flow(
@@ -276,10 +276,10 @@ async def test_add_approver_via_options_flow(
     assert result.get("type") == FlowResultType.FORM
     assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
 
-    # Verify approver was created via coordinator
+    # Verify user was created via coordinator
     coordinator = init_integration_with_coordinator.coordinator
-    approver_names = [p["name"] for p in coordinator.approvers_data.values()]
-    assert "Test Approver" in approver_names
+    assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
+    assert "Test Approver" in assignee_names
 
 
 async def test_add_chore_via_options_flow(
@@ -464,7 +464,7 @@ async def test_add_badge_via_options_flow(
     badge_data = {
         CFOF_BADGES_INPUT_NAME: "Chore Champion",
         CFOF_BADGES_INPUT_ICON: "mdi:medal",
-        CFOF_BADGES_INPUT_ASSIGNED_TO: [assignee_id],
+        CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
         CFOF_BADGES_INPUT_AWARD_POINTS: 25,
         CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
     }
@@ -606,8 +606,8 @@ async def test_add_entities_from_minimal_scenario(
 
     # After options flow add, integration reloads - get fresh coordinator
     coordinator = config_entry.runtime_data
-    approver_names = [p["name"] for p in coordinator.approvers_data.values()]
-    assert "New Scenario User" in approver_names
+    assignee_names = [p["name"] for p in coordinator.assignees_data.values()]
+    assert "New Scenario User" in assignee_names
 
     # Add a NEW reward (not the existing "Ice Créam!")
     new_reward_data = {"name": "New Scenario Reward", "cost": 50}

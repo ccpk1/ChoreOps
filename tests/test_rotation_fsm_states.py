@@ -109,7 +109,7 @@ async def test_rotation_turn_holder_can_claim(
         f"{turn_name} should be able to claim"
     )
     assert turn_sensor.attributes.get("lock_reason") is None
-    assert turn_sensor.attributes.get("turn_assignee_name") == turn_name
+    assert turn_sensor.attributes.get("turn_user_name") == turn_name
 
     # Verify non-turn holders are blocked
     for chore, name, slug in non_turn_holders:
@@ -120,7 +120,7 @@ async def test_rotation_turn_holder_can_claim(
             f"{name} should not be able to claim"
         )
         assert sensor.attributes.get("lock_reason") == "not_my_turn"
-        assert sensor.attributes.get("turn_assignee_name") == turn_name
+        assert sensor.attributes.get("turn_user_name") == turn_name
 
 
 @pytest.mark.asyncio
@@ -134,7 +134,7 @@ async def test_rotation_approved_does_not_advance_immediately(
     When a turn holder completes their turn:
     - Turn holder sees status = 'approved'
     - Other assignees continue to see 'not_my_turn' (rotation locked until boundary)
-    - turn_assignee_name remains unchanged
+    - turn_user_name remains unchanged
     - Rotation advances at the next boundary reset (e.g., midnight)
 
     This is the core behavior difference from shared chores.
@@ -222,8 +222,8 @@ async def test_rotation_approved_does_not_advance_immediately(
             assert sensor.attributes.get("can_claim") is False
             assert sensor.attributes.get("lock_reason") == "not_my_turn"
 
-        # turn_assignee_name remains unchanged for all
-        assert sensor.attributes.get("turn_assignee_name") == turn_name
+        # turn_user_name remains unchanged for all
+        assert sensor.attributes.get("turn_user_name") == turn_name
 
 
 @pytest.mark.asyncio
@@ -319,8 +319,8 @@ async def test_rotation_claimed_state(
             assert sensor.attributes.get("can_claim") is False
             assert sensor.attributes.get("lock_reason") == "not_my_turn"
 
-        # turn_assignee_name remains unchanged
-        assert sensor.attributes.get("turn_assignee_name") == turn_name
+        # turn_user_name remains unchanged
+        assert sensor.attributes.get("turn_user_name") == turn_name
 
 
 @pytest.mark.asyncio
@@ -402,7 +402,7 @@ async def test_rotation_non_turn_holder_cannot_claim(
     )
     assert turn_sensor.state == CHORE_STATE_PENDING
     assert turn_sensor.attributes.get("can_claim") is True
-    assert turn_sensor.attributes.get("turn_assignee_name") == turn_name
+    assert turn_sensor.attributes.get("turn_user_name") == turn_name
 
     # Non-turn holder should still be blocked
     non_chore = find_chore(get_dashboard_helper(hass, non_slug), "Dishes Rotation")
@@ -529,7 +529,7 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
         assert sensor_state is not None
         if sensor_state.state == CHORE_STATE_PENDING:
             second_midnight_pending.append(assignee_slug)
-        assert sensor_state.attributes.get("turn_assignee_name") == first_turn_name
+        assert sensor_state.attributes.get("turn_user_name") == first_turn_name
 
     assert second_midnight_pending == first_midnight_pending, (
         "Turn holder should remain stable on subsequent midnight without new approval"

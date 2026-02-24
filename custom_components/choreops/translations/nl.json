@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Bijbehorende prestatie",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, vermenigvuldiger (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
           "points_multiplier": "🎁 BELONINGEN: Puntenvermenigvuldiger (Standaard 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
           "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of een puntenvermenigvuldiger. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. (optioneel)",
           "award_points": "Als punten een gekozen beloning zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
           "points_multiplier": "Als 'multiplier' een geselecteerde beloning is, stel dan een multiplier in voor de punten die verdiend worden terwijl deze badge actief is (bijvoorbeeld 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Bijbehorende prestatie",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, vermenigvuldiger (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
           "points_multiplier": "🎁 BELONINGEN: Puntenvermenigvuldiger (Standaard 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
           "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg om alle toegewezen klusjes bij te houden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of een puntenvermenigvuldiger. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
           "points_multiplier": "Als 'multiplier' een geselecteerde beloning is, stel dan een multiplier in voor de punten die verdiend worden terwijl deze badge actief is (bijvoorbeeld 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DAGELIJKS DOEL: Doeltype",
           "threshold_value": "🎯 DAGELIJKS DOEL: Drempelwaarde",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, straffen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Selecteer het type dagelijkse doelstelling voor deze badge (bijv. punten, aantal klusjes of dagen).",
           "threshold_value": "Stel het aantal dagelijkse punten, het aantal klusjes of het aantal dagen in dat nodig is om deze badge te verdienen. Voor doelen van het type 'Dagen' voert u 1 in, aangezien de badge dagelijks wordt beoordeeld (bijvoorbeeld 1 voor het voltooien van alle geselecteerde klusjes in één dag).",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of straffen. Alle geselecteerde opties worden toegekend of toegepast wanneer de badge is verdiend. Straffen worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Bijbehorende prestatie",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, straffen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
           "recurring_frequency": "🔄 RESETCYCLUS: Frequentie",
@@ -794,7 +794,7 @@
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
           "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of straffen. Alle geselecteerde opties worden toegekend of toegepast wanneer de badge is verdiend. Straffen worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
           "recurring_frequency": "Definieer het resetschema voor deze badge (bijv. wekelijks, maandelijks).",
@@ -813,7 +813,7 @@
           "badge_labels": "Labels (optioneel)",
           "icon": "Badge-pictogram (mdi:xxx)",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
           "associated_achievement": "Koppel deze badge aan een specifieke prestatie om deze bij te houden.",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Labels (optioneel)",
           "icon": "Badge-pictogram (mdi:xxx)",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
           "associated_challenge": "Koppel deze badge aan een specifieke uitdaging voor trackingdoeleinden.",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 HERHALING: Aangepaste intervaleenheid (vereist voor aangepaste frequentie)",
           "start_date": "🔄 TERUGKERENDE PERIODE: Startdatum (optioneel)",
           "grace_period_days": "🔄 TERUGKERENDE PIJN: Respijtperiode in dagen (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Selecteer de eenheid voor het aangepaste interval (bijv. dagen, weken).",
           "start_date": "Stel de startdatum voor de resetcyclus in (optioneel).",
           "grace_period_days": "Geef aan hoeveel extra dagen na het einde van de cyclus kinderen hebben om de vereiste punten te behalen voordat ze worden gedegradeerd (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun voortgang bij te houden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Bijbehorende prestatie",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, vermenigvuldiger (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
           "points_multiplier": "🎁 BELONINGEN: Puntenvermenigvuldiger (Standaard 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
           "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of een puntenvermenigvuldiger. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
           "points_multiplier": "Als 'multiplier' een geselecteerde beloning is, stel dan een multiplier in voor de punten die verdiend worden terwijl deze badge actief is (bijvoorbeeld 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DAGELIJKS DOEL: Doeltype",
           "threshold_value": "🎯 DAGELIJKS DOEL: Drempelwaarde",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, straffen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Selecteer het type dagelijkse doelstelling voor deze badge (bijv. punten, aantal klusjes of dagen).",
           "threshold_value": "Stel het aantal dagelijkse punten, het aantal klusjes of het aantal dagen in dat nodig is om deze badge te verdienen. Voor doelen van het type 'Dagen' voert u 1 in, aangezien de badge dagelijks wordt beoordeeld (bijvoorbeeld 1 voor het voltooien van alle geselecteerde klusjes in één dag).",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of straffen. Alle geselecteerde opties worden toegekend of toegepast wanneer de badge is verdiend. Straffen worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Bijbehorende prestatie",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, straffen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)",
           "recurring_frequency": "🔄 RESETCYCLUS: Frequentie",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
           "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of straffen. Alle geselecteerde opties worden toegekend of toegepast wanneer de badge is verdiend. Straffen worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel).",
           "recurring_frequency": "Definieer het resetschema voor deze badge (bijv. wekelijks, maandelijks).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Labels (optioneel)",
           "icon": "Badge-pictogram (mdi:xxx)",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
           "associated_achievement": "Koppel deze badge aan een specifieke prestatie om deze bij te houden.",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Labels (optioneel)",
           "icon": "Badge-pictogram (mdi:xxx)",
           "associated_challenge": "🏁 Bijbehorende uitdaging",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
           "associated_challenge": "Koppel deze badge aan een specifieke uitdaging voor trackingdoeleinden.",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 HERHALING: Aangepaste intervaleenheid (vereist voor aangepaste frequentie)",
           "start_date": "🔄 TERUGKERENDE PERIODE: Startdatum (optioneel)",
           "grace_period_days": "🔄 TERUGKERENDE PIJN: Respijtperiode in dagen (optioneel)",
-          "assigned_to": "🧒 Toegewezen kinderen",
+          "assigned_user_ids": "🧒 Toegewezen kinderen",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
           "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Selecteer de eenheid voor het aangepaste interval (bijv. dagen, weken).",
           "start_date": "Stel de startdatum voor de resetcyclus in (optioneel).",
           "grace_period_days": "Geef aan hoeveel extra dagen na het einde van de cyclus kinderen hebben om de vereiste punten te behalen voordat ze worden gedegradeerd (optioneel).",
-          "assigned_to": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
+          "assigned_user_ids": "Wijs deze badge toe aan specifieke kinderen om hun prestaties te volgen.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
         }

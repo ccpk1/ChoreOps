@@ -31,15 +31,15 @@ async def test_remove_conditional_entities_respects_user_feature_flags(
         users_data={
             assignee_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: True,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
             }
         },
         approvers_data={
             assignee_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: True,
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
-                const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
             }
         },
     )
@@ -77,3 +77,107 @@ async def test_remove_conditional_entities_respects_user_feature_flags(
     fake_registry.async_remove.assert_any_call("button.claim")
     fake_registry.async_remove.assert_any_call("sensor.points")
     assert fake_registry.async_remove.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_remove_conditional_entities_removes_empty_non_assignment_device(
+    hass: HomeAssistant,
+) -> None:
+    """Cleanup removes empty user device when user is no longer assignment participant."""
+    user_id = "user-1"
+    entry_id = "entry-1"
+
+    coordinator = SimpleNamespace(
+        config_entry=SimpleNamespace(
+            entry_id=entry_id,
+            options={const.CONF_SHOW_LEGACY_ENTITIES: False},
+        ),
+        users_data={
+            user_id: {
+                const.DATA_USER_CAN_BE_ASSIGNED: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
+            }
+        },
+        approvers_data={},
+    )
+
+    manager = SystemManager(hass, coordinator)
+
+    fake_entity_registry = MagicMock()
+    fake_device_registry = MagicMock()
+    fake_device_registry.async_get_device.return_value = SimpleNamespace(id="device-1")
+
+    with (
+        patch(
+            "custom_components.choreops.managers.system_manager.er.async_get",
+            return_value=fake_entity_registry,
+        ),
+        patch(
+            "custom_components.choreops.managers.system_manager.er.async_entries_for_config_entry",
+            return_value=[],
+        ),
+        patch(
+            "custom_components.choreops.managers.system_manager.dr.async_get",
+            return_value=fake_device_registry,
+        ),
+    ):
+        await manager.remove_conditional_entities(user_ids=[user_id])
+
+    fake_device_registry.async_get_device.assert_called_once_with(
+        identifiers={(const.DOMAIN, user_id)}
+    )
+    fake_device_registry.async_remove_device.assert_called_once_with("device-1")
+
+
+@pytest.mark.asyncio
+async def test_remove_conditional_entities_keeps_device_with_remaining_entities(
+    hass: HomeAssistant,
+) -> None:
+    """Cleanup keeps device when at least one config-entry entity is still attached."""
+    user_id = "user-1"
+    entry_id = "entry-1"
+
+    coordinator = SimpleNamespace(
+        config_entry=SimpleNamespace(
+            entry_id=entry_id,
+            options={const.CONF_SHOW_LEGACY_ENTITIES: False},
+        ),
+        users_data={
+            user_id: {
+                const.DATA_USER_CAN_BE_ASSIGNED: False,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                const.DATA_USER_ENABLE_GAMIFICATION: False,
+            }
+        },
+        approvers_data={},
+    )
+
+    manager = SystemManager(hass, coordinator)
+
+    fake_entity_registry = MagicMock()
+    fake_device_registry = MagicMock()
+    fake_device_registry.async_get_device.return_value = SimpleNamespace(id="device-1")
+    attached_entity = SimpleNamespace(
+        unique_id=f"{entry_id}_{user_id}_helper",
+        entity_id="sensor.user_helper",
+        device_id="device-1",
+    )
+
+    with (
+        patch(
+            "custom_components.choreops.managers.system_manager.er.async_get",
+            return_value=fake_entity_registry,
+        ),
+        patch(
+            "custom_components.choreops.managers.system_manager.er.async_entries_for_config_entry",
+            return_value=[attached_entity],
+        ),
+        patch(
+            "custom_components.choreops.managers.system_manager.dr.async_get",
+            return_value=fake_device_registry,
+        ),
+    ):
+        await manager.remove_conditional_entities(user_ids=[user_id])
+
+    fake_device_registry.async_remove_device.assert_not_called()

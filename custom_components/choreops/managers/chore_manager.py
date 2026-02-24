@@ -445,10 +445,10 @@ class ChoreManager(BaseManager):
         Args:
             payload: Event data containing assignee_id
         """
-        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+        if not payload.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
             return
 
-        assignee_id = payload.get("user_id", "")
+        assignee_id = payload.get(const.DATA_USER_ID, "")
         if not assignee_id:
             return
 
@@ -742,11 +742,10 @@ class ChoreManager(BaseManager):
         # StatisticsManager._on_chore_claimed handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_CLAIMED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             chore_id=chore_id,
-            assignee_name=assignee_name,
+            user_name=assignee_name,
             chore_name=chore_data.get(const.DATA_CHORE_NAME, ""),
-            user_name=user_name,
             chore_labels=chore_data.get(const.DATA_CHORE_LABELS, []),
             update_stats=True,
         )
@@ -1088,8 +1087,8 @@ class ChoreManager(BaseManager):
         # (Platinum Architecture: signal-first, no cross-manager writes)
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_APPROVED,
-            assignee_id=assignee_id,
-            assignee_name=assignee_name,
+            user_id=assignee_id,
+            user_name=assignee_name,
             chore_id=chore_id,
             approver_name=approver_name,
             base_points=base_points,  # EconomyManager applies multiplier
@@ -1291,8 +1290,8 @@ class ChoreManager(BaseManager):
         # StatisticsManager._on_chore_disapproved handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_DISAPPROVED,
-            assignee_id=assignee_id,
-            assignee_name=assignee_name,
+            user_id=assignee_id,
+            user_name=assignee_name,
             chore_id=chore_id,
             approver_name=approver_name,
             reason=reason,
@@ -1370,7 +1369,7 @@ class ChoreManager(BaseManager):
         if previous_points > 0:
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_UNDONE,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 chore_id=chore_id,
                 points_to_reclaim=previous_points,
             )
@@ -1491,7 +1490,7 @@ class ChoreManager(BaseManager):
         # Emit event for NotificationManager to clear approver claim notifications
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_CLAIM_UNDONE,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             chore_id=chore_id,
         )
 
@@ -1944,8 +1943,8 @@ class ChoreManager(BaseManager):
             days_overdue = (now_utc - due_dt).days
             signals_to_emit.append(
                 {
-                    "assignee_id": assignee_id,
-                    "assignee_name": assignee_name,
+                    "user_id": assignee_id,
+                    "user_name": assignee_name,
                     "chore_id": chore_id,
                     "chore_name": chore_data.get(const.DATA_CHORE_NAME, ""),
                     "days_overdue": days_overdue,
@@ -2009,8 +2008,8 @@ class ChoreManager(BaseManager):
 
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_DUE_WINDOW,
-                assignee_id=assignee_id,
-                assignee_name=assignee_name,
+                user_id=assignee_id,
+                user_name=assignee_name,
                 chore_id=entry["chore_id"],
                 chore_name=chore_name,
                 hours=hours_remaining,
@@ -2049,8 +2048,8 @@ class ChoreManager(BaseManager):
 
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_DUE_REMINDER,
-                assignee_id=assignee_id,
-                assignee_name=assignee_name,
+                user_id=assignee_id,
+                user_name=assignee_name,
                 chore_id=entry["chore_id"],
                 chore_name=chore_name,
                 minutes=minutes_remaining,
@@ -2476,9 +2475,9 @@ class ChoreManager(BaseManager):
             # same manager choreography path to reduce drift.
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_APPROVED,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 chore_id=chore_id,
-                assignee_name=assignee_name,
+                user_name=assignee_name,
                 approver_name="auto_reset",
                 base_points=base_points,
                 apply_multiplier=True,
@@ -3952,7 +3951,7 @@ class ChoreManager(BaseManager):
             if emit and new_state == const.CHORE_STATE_PENDING:
                 self.emit(
                     const.SIGNAL_SUFFIX_CHORE_STATUS_RESET,
-                    assignee_id=assignee_id,
+                    user_id=assignee_id,
                     chore_id=chore_id,
                     chore_name=chore_info.get(const.DATA_CHORE_NAME, ""),
                 )
@@ -4906,9 +4905,9 @@ class ChoreManager(BaseManager):
         # Pass missed_streak_tally for daily bucket snapshot (display purposes)
         # Phase 3 Step 2: Include optional due_date and reason fields (D-07)
         signal_payload: dict[str, Any] = {
-            "assignee_id": assignee_id,
             "chore_id": chore_id,
-            "assignee_name": assignee_name,
+            "user_id": assignee_id,
+            "user_name": assignee_name,
             "missed_streak_tally": new_missed_streak,
         }
         if due_date is not None:
@@ -5271,7 +5270,7 @@ class ChoreManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 

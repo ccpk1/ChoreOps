@@ -38,7 +38,6 @@ from .managers import (
 from .store import ChoreOpsStore
 from .type_defs import (
     AchievementsCollection,
-    ApproverData,
     ApproversCollection,
     AssigneesCollection,
     BadgesCollection,
@@ -435,13 +434,13 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         users = self.users_data
         if users:
             return {
-                user_id: cast("ApproverData", user_data)
+                user_id: user_data
                 for user_id, user_data in users.items()
                 if isinstance(user_data, dict)
                 and (
                     user_data.get(const.DATA_USER_CAN_APPROVE, False)
                     or user_data.get(const.DATA_USER_CAN_MANAGE, False)
-                    or const.DATA_APPROVER_ASSOCIATED_USERS in user_data
+                    or bool(user_data.get(const.DATA_USER_ASSOCIATED_USER_IDS))
                 )
             }
 

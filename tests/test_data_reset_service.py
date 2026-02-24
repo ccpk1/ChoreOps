@@ -39,7 +39,7 @@ SERVICE_RESET_TRANSACTIONAL_DATA = "reset_transactional_data"
 # Service field names (literal strings as documented in services.yaml)
 FIELD_CONFIRM_DESTRUCTIVE = "confirm_destructive"
 FIELD_SCOPE = "scope"
-FIELD_ASSIGNEE_NAME = "assignee_name"
+FIELD_USER_NAME = "user_name"
 FIELD_ITEM_TYPE = "item_type"
 FIELD_ITEM_NAME = "item_name"
 
@@ -337,7 +337,7 @@ class TestDataResetAssigneeScope:
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
                     FIELD_SCOPE: SCOPE_ASSIGNEE,
-                    FIELD_ASSIGNEE_NAME: "Zoë",
+                    FIELD_USER_NAME: "Zoë",
                 },
                 blocking=True,
             )
@@ -466,7 +466,7 @@ class TestDataResetValidationErrors:
                 {
                     FIELD_CONFIRM_DESTRUCTIVE: True,
                     FIELD_SCOPE: SCOPE_ASSIGNEE,
-                    FIELD_ASSIGNEE_NAME: "NonexistentAssignee",
+                    FIELD_USER_NAME: "NonexistentAssignee",
                 },
                 blocking=True,
             )

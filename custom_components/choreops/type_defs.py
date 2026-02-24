@@ -7,7 +7,7 @@ This file uses a **hybrid type strategy** to balance type safety with practical
 code patterns:
 
 1. **TypedDict for STATIC structures** (fixed keys known at design time):
-   - Entity definitions: ApproverData, ChoreData, BadgeData, etc.
+    - Entity definitions: UserData, ChoreData, BadgeData, etc.
    - Configuration objects: ScheduleConfig, BadgeTarget, etc.
    - ✅ Benefit: Full type safety, IDE autocomplete, catch bugs early
 
@@ -64,25 +64,6 @@ ISODate = str  # ISO 8601 date string (no time) "2026-01-18"
 # =============================================================================
 # Simple Entity Types (no nesting)
 # =============================================================================
-
-
-class ApproverData(TypedDict):
-    """Type definition for a approver entity.
-
-    Approver fields are all required once created via _create_approver().
-    """
-
-    internal_id: str  # Always present (set in _create_approver)
-    name: str
-    ha_user_id: str
-    associated_assignees: list[str]  # List of assignee UUIDs
-    associated_user_ids: NotRequired[list[str]]  # Phase 3 key migration target
-    mobile_notify_service: str
-    use_persistent_notifications: bool
-    dashboard_language: str
-    can_be_assigned: bool
-    enable_chore_workflow: bool
-    enable_gamification: bool
 
 
 # =============================================================================
@@ -411,7 +392,7 @@ class BadgeData(TypedDict):
     occasion_type: NotRequired[str]
 
     # Assignment
-    assigned_to: list[str]  # List of assignee UUIDs
+    assigned_user_ids: list[str]  # List of assignee UUIDs
     earned_by: list[str]  # List of assignee UUIDs who earned it
 
     # Configuration
@@ -843,7 +824,7 @@ class ScheduleConfig(TypedDict, total=False):
 
 AssigneesCollection = dict[AssigneeId, AssigneeData]
 UsersCollection = dict[UserId, UserData]
-ApproversCollection = dict[ApproverId, ApproverData]
+ApproversCollection = dict[ApproverId, UserData]
 ChoresCollection = dict[ChoreId, ChoreData]
 BadgesCollection = dict[BadgeId, BadgeData]
 RewardsCollection = dict[RewardId, RewardData]
@@ -1023,7 +1004,7 @@ class PointsChangedEvent(TypedDict, total=False):
     Consumed by: GamificationManager (badge evaluation), NotificationManager
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     old_balance: float  # Required
     new_balance: float  # Required
     delta: float  # Required (positive for deposit, negative for withdraw)
@@ -1054,11 +1035,10 @@ class ChoreClaimedEvent(TypedDict, total=False):
     Phase 5 additions: chore_labels, update_stats for badge/achievement filtering.
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     chore_id: str  # Required
-    assignee_name: str  # Required: For notification display
+    user_name: str  # Required: For notification display
     chore_name: str  # Required
-    user_name: str  # Required (who initiated claim)
     chore_labels: list[str]  # For badge criteria filtering (e.g., "kitchen", "daily")
     update_stats: bool  # Whether this counts toward stats (False for undo/corrections)
 
@@ -1074,7 +1054,7 @@ class ChoreApprovedEvent(TypedDict, total=False):
     Phase 8 change: Removed streak_tally (moved to ChoreCompletedEvent).
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     chore_id: str  # Required
     approver_name: str  # Required
     points_awarded: float  # Required
@@ -1126,9 +1106,9 @@ class ChoreMissedEvent(TypedDict, total=False):
     and written to daily buckets by StatisticsManager.
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     chore_id: str  # Required
-    assignee_name: str  # Required: For notification display (standard)
+    user_name: str  # Required: For notification display (standard)
     missed_streak_tally: int  # Required: Consecutive missed count
 
 
@@ -1141,7 +1121,7 @@ class ChoreDisapprovedEvent(TypedDict, total=False):
     Phase 5 additions: chore_labels, previous_state, update_stats.
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     chore_id: str  # Required
     approver_name: str  # Required
     reason: str | None  # Optional: disapproval reason
@@ -1160,9 +1140,9 @@ class ChoreOverdueEvent(TypedDict, total=False):
     Phase 5 addition: chore_labels for badge criteria filtering.
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     chore_id: str  # Required
-    assignee_name: str  # Required: For notification display
+    user_name: str  # Required: For notification display
     chore_name: str  # Required
     days_overdue: int  # Required
     due_date: str  # Required: ISO format
@@ -1193,9 +1173,9 @@ class RewardClaimedEvent(TypedDict, total=False):
     Consumed by: NotificationManager (approver notification)
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     reward_id: str  # Required
-    assignee_name: str  # Required: For notification display
+    user_name: str  # Required: For notification display
     reward_name: str  # Required
     points: float  # Required: Cost of reward
     actions: list[dict[str, str]]  # Notification action buttons
@@ -1209,7 +1189,7 @@ class RewardApprovedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, GamificationManager (milestone tracking?)
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     reward_id: str  # Required
     reward_name: str  # Required
     points_spent: float  # Required
@@ -1223,7 +1203,7 @@ class RewardDisapprovedEvent(TypedDict, total=False):
     Consumed by: NotificationManager
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     reward_id: str  # Required
     reward_name: str  # Required
     approver_name: str  # Required
@@ -1244,9 +1224,9 @@ class BadgeEarnedEvent(TypedDict, total=False):
     """
 
     # Required fields
-    assignee_id: str
+    user_id: str
     badge_id: str
-    assignee_name: str  # For notification display
+    user_name: str  # For notification display
     badge_name: str
 
     # The Award Manifest (all handled by listeners, not GamificationManager)
@@ -1277,9 +1257,9 @@ class AchievementUnlockedEvent(TypedDict, total=False):
     Consumed by: NotificationManager
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     achievement_id: str  # Required
-    assignee_name: str  # Required: For notification display
+    user_name: str  # Required: For notification display
     achievement_name: str  # Required
     milestone_reached: str  # Required: Description of what was achieved
 
@@ -1291,12 +1271,26 @@ class ChallengeCompletedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, EconomyManager (challenge rewards)
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     challenge_id: str  # Required
-    assignee_name: str  # Required: For notification display
+    user_name: str  # Required: For notification display
     challenge_name: str  # Required
     points_awarded: float  # Required
     completion_date: str  # Required: ISO format
+
+
+class ChoreUpdatedEvent(TypedDict, total=False):
+    """Event payload for SIGNAL_SUFFIX_CHORE_UPDATED.
+
+    Emitted by: ChoreManager.update_chore(), rotation management helpers,
+        criteria transition flows.
+    Consumed by: GamificationManager, ChoreManager time-scan invalidation path.
+    """
+
+    chore_id: str  # Required
+    chore_name: str  # Optional display name when available
+    updated_fields: list[str]  # Optional changed field names
+    user_id: str | None  # Optional: affected assignee when update is user-scoped
 
 
 class PenaltyAppliedEvent(TypedDict, total=False):
@@ -1306,7 +1300,7 @@ class PenaltyAppliedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, GamificationManager (badge impacts?)
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     penalty_id: str  # Required
     penalty_name: str  # Required
     points_deducted: float  # Required
@@ -1321,7 +1315,7 @@ class BonusAppliedEvent(TypedDict, total=False):
     Consumed by: NotificationManager, GamificationManager (badge impacts?)
     """
 
-    assignee_id: str  # Required
+    user_id: str  # Required
     bonus_id: str  # Required
     bonus_name: str  # Required
     points_added: float  # Required
@@ -1340,7 +1334,6 @@ __all__ = [
     "AchievementUnlockedEvent",
     "AchievementsCollection",
     "ActivityReportResponse",
-    "ApproverData",
     "ApproversCollection",
     "AssigneeBadgeProgress",
     "AssigneeChoreDataEntry",

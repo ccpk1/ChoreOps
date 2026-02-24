@@ -140,7 +140,7 @@ class AssigneeChoreCompletionSensor(ChoreOpsCoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_ALL_TIME_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_ALL_TIME_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -205,7 +205,7 @@ class AssigneeChoreCompletionDailySensor(ChoreOpsCoordinatorEntity, SensorEntity
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_TODAY_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_TODAY_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -270,7 +270,7 @@ class AssigneeChoreCompletionWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntit
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_WEEK_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_WEEK_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -335,7 +335,7 @@ class AssigneeChoreCompletionMonthlySensor(ChoreOpsCoordinatorEntity, SensorEnti
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_MONTH_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_MONTH_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -438,7 +438,7 @@ class SystemChoresPendingApprovalSensor(ChoreOpsCoordinatorEntity, SensorEntity)
 
         # Add purpose at top level before returning
         result: dict[str, Any] = {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORES_PENDING_APPROVAL_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_CHORES_PENDING_APPROVAL_EXTRA,
         }
         result.update(grouped_by_assignee)
         return result
@@ -542,7 +542,7 @@ class SystemRewardsPendingApprovalSensor(ChoreOpsCoordinatorEntity, SensorEntity
 
         # Add purpose at top level before returning
         result: dict[str, Any] = {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_REWARDS_PENDING_APPROVAL_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_REWARDS_PENDING_APPROVAL_EXTRA,
         }
         result.update(grouped_by_assignee)
         return result
@@ -626,7 +626,7 @@ class AssigneePointsEarnedDailySensor(ChoreOpsCoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -704,7 +704,7 @@ class AssigneePointsEarnedWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -782,7 +782,7 @@ class AssigneePointsEarnedMonthlySensor(ChoreOpsCoordinatorEntity, SensorEntity)
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -870,7 +870,7 @@ class AssigneePointsMaxEverSensor(ChoreOpsCoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_MAX_EVER_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_POINTS_MAX_EVER_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
         }
 
@@ -975,7 +975,7 @@ class AssigneeChoreStreakSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                     streaks[achievement_name] = progress_for_assignee
 
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_STREAK_EXTRA,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_CHORE_STREAK_EXTRA,
             const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_STREAKS_BY_ACHIEVEMENT: streaks,
         }
@@ -1092,7 +1092,7 @@ class AssigneePenaltyAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             pass
 
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_PENALTY_APPLIED,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_PENALTY_APPLIED,
             const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_PENALTY_NAME: self._penalty_name,
             const.ATTR_DESCRIPTION: penalty_info.get(
@@ -1218,7 +1218,7 @@ class AssigneeBonusAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             pass
 
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SENSOR_BONUS_APPLIED,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SENSOR_BONUS_APPLIED,
             const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_BONUS_NAME: self._bonus_name,
             const.ATTR_DESCRIPTION: bonus_info.get(

@@ -79,7 +79,6 @@ from .helpers.entity_helpers import (
     get_assignee_name_by_id,
     get_friendly_label,
     get_item_name_or_log_error,
-    is_user_feature_gated_profile,
     should_create_entity,
     should_create_entity_for_user_assignee,
     should_create_gamification_entities,
@@ -579,7 +578,7 @@ async def async_setup_entry(
         languages_in_use.add(lang)
     for approver_info in coordinator.approvers_data.values():
         lang = approver_info.get(
-            const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+            const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
         )
         languages_in_use.add(lang)
 
@@ -1069,7 +1068,7 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_DESCRIPTION: chore_info.get(
                 const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY
             ),
-            const.ATTR_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
             const.ATTR_LABELS: friendly_labels,
             # --- 2. State info ---
             const.ATTR_GLOBAL_STATE: global_state,
@@ -1940,7 +1939,7 @@ class AssigneeBadgesSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 badge_entity_ids[attr_name] = None
 
         return {
-            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_ASSIGNEE_BADGES,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_USER_BADGES,
             const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_LABELS: friendly_labels,
             const.ATTR_ALL_EARNED_BADGES: earned_badge_list,
@@ -2240,7 +2239,7 @@ class SystemBadgeSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         attributes[const.ATTR_USERS_EARNED] = assignees_earned
 
         # Per-assignee assigned stats
-        assigned_assignees_ids = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+        assigned_assignees_ids = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
         assigned_assignees = []
         for assignee_id in assigned_assignees_ids:
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
@@ -2465,7 +2464,7 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_DESCRIPTION: chore_info.get(
                 const.DATA_CHORE_DESCRIPTION, const.SENTINEL_EMPTY
             ),
-            const.ATTR_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
             const.ATTR_LABELS: friendly_labels,
             # --- 2. Configuration ---
             const.ATTR_DEFAULT_POINTS: chore_info.get(
@@ -3119,7 +3118,7 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_DESCRIPTION: achievement.get(
                 const.DATA_ACHIEVEMENT_DESCRIPTION, const.SENTINEL_EMPTY
             ),
-            const.ATTR_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
             const.ATTR_TYPE: ach_type,
             const.ATTR_ASSOCIATED_CHORE: associated_chore,
             const.ATTR_CRITERIA: achievement.get(
@@ -3321,7 +3320,7 @@ class SystemChallengeSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_DESCRIPTION: challenge.get(
                 const.DATA_CHALLENGE_DESCRIPTION, const.SENTINEL_EMPTY
             ),
-            const.ATTR_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
             const.ATTR_TYPE: challenge_type,
             const.ATTR_ASSOCIATED_CHORE: associated_chore,
             const.ATTR_CRITERIA: challenge.get(
@@ -3591,7 +3590,7 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
             const.ATTR_DESCRIPTION: achievement.get(
                 const.DATA_ACHIEVEMENT_DESCRIPTION, const.SENTINEL_EMPTY
             ),
-            const.ATTR_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
             const.ATTR_TYPE: achievement.get(const.DATA_ACHIEVEMENT_TYPE),
             const.ATTR_ASSOCIATED_CHORE: associated_chore,
             const.ATTR_CRITERIA: achievement.get(
@@ -3802,7 +3801,7 @@ class AssigneeChallengeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_DESCRIPTION: challenge.get(
                 const.DATA_CHALLENGE_DESCRIPTION, const.SENTINEL_EMPTY
             ),
-            const.ATTR_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.ATTR_ASSIGNED_USER_NAMES: assigned_assignees_names,
             const.ATTR_TYPE: challenge_type,
             const.ATTR_ASSOCIATED_CHORE: associated_chore,
             const.ATTR_CRITERIA: challenge.get(
@@ -3865,10 +3864,6 @@ class SystemDashboardTranslationSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{entry.entry_id}_{language_code}{const.SENSOR_KC_UID_SUFFIX_DASHBOARD_LANG}"
         # Moving to HA native best practice: auto-generate entity_id from unique_id + has_entity_name
         # rather than manually constructing to support HA core change 01309191283 (Jan 14, 2026)
-        # self.entity_id = (
-        #     f"{const.SENSOR_KC_PREFIX}"
-        #     f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{language_code}"
-        # )
         self._attr_translation_placeholders = {
             const.TRANS_KEY_ATTR_LANGUAGE: language_code,
         }
@@ -3918,9 +3913,10 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
     rendering performance.
 
     Translations are delegated to system-level translation sensors
-    (sensor.kc_ui_dashboard_lang_{code}). This sensor provides a `translation_sensor`
-    attribute pointing to the appropriate translation sensor entity ID based on the
-    assignee's configured dashboard language.
+    (sensor.kc_ui_dashboard_lang_{code}). This sensor provides a
+    `dashboard_helpers.translation_sensor_eid` attribute pointing to the
+    appropriate translation sensor entity ID based on the assignee's configured
+    dashboard language.
 
     This sensor is the single source of truth for the ChoreOps dashboard,
     eliminating expensive frontend list iterations and sorting operations.
@@ -4054,16 +4050,13 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         can_claim, can_approve, timestamps, etc.) should be fetched from the
         chore status sensor via state_attr(chore.eid, 'attribute_name').
 
-        Minimal fields (9 total as of Phase 4):
+        Minimal fields (6 total):
         - eid: entity_id (for fetching additional attributes from chore sensor)
         - name: chore name (for display)
         - status: pending/claimed/approved/overdue (for status coloring)
         - labels: list of label strings (for label filtering)
         - primary_group: today/this_week/other (for grouping)
         - is_today_am: boolean or None (for AM/PM sorting)
-        - lock_reason: str | None (waiting/not_my_turn/missed, Phase 4 rotation support)
-        - turn_assignee_name: str | None (current turn holder name for rotation chores)
-        - available_at: str | None (ISO datetime when waiting chore becomes claimable)
 
         Uses get_chore_status_context() for single bulk fetch instead of
         multiple individual manager calls.
@@ -4113,23 +4106,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             status, is_due, due_date_local_dt, recurring_frequency
         )
 
-        # Phase 4: Calculate rotation-aware attributes using ChoreEngine
-        lock_reason = ctx.get(const.CHORE_CTX_LOCK_REASON)
-        turn_assignee_name = None
-        available_at = ctx.get(const.CHORE_CTX_AVAILABLE_AT)
-
-        # For rotation chores, get current turn holder name
-        if ChoreEngine.is_rotation_mode(chore_info):
-            current_turn_assignee_id = chore_info.get(
-                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
-            )
-            if current_turn_assignee_id:
-                turn_assignee_info: Any = self.coordinator.assignees_data.get(
-                    current_turn_assignee_id, {}
-                )
-                turn_assignee_name = turn_assignee_info.get(const.DATA_USER_NAME)
-
-        # Return the 9 fields needed for Phase 4 dashboard rendering
+        # Return the minimal fields needed for dashboard rendering
         return {
             const.ATTR_EID: chore_eid,
             const.ATTR_NAME: chore_name,
@@ -4137,9 +4114,6 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_CHORE_LABELS: chore_labels,
             const.ATTR_CHORE_PRIMARY_GROUP: primary_group,
             const.ATTR_CHORE_IS_TODAY_AM: is_today_am,
-            const.ATTR_CHORE_LOCK_REASON: lock_reason,
-            const.ATTR_CHORE_TURN_USER_NAME: turn_assignee_name,
-            const.ATTR_CHORE_AVAILABLE_AT: available_at,
         }
 
     def _calculate_primary_group(
@@ -4197,76 +4171,8 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self) -> Any:
-        """Return an overall summary string. Primary consumers should use attributes."""
-        # Provide a short human-readable summary
-        # Count chores by status using context provider for single bulk fetch per chore
-        chores = []
-        for chore_id, chore_info in self.coordinator.chores_data.items():
-            if self._assignee_id not in chore_info.get(
-                const.DATA_CHORE_ASSIGNED_USER_IDS, []
-            ):
-                continue
-            chore_name = get_item_name_or_log_error(
-                "chore", chore_id, chore_info, const.DATA_CHORE_NAME
-            )
-            if not chore_name:
-                continue
-            # Get status from context provider (single bulk fetch)
-            ctx = self.coordinator.chore_manager.get_chore_status_context(
-                self._assignee_id, chore_id
-            )
-            chores.append(
-                {
-                    "id": chore_id,
-                    "name": chore_name,
-                    "status": ctx[const.CHORE_CTX_STATE],
-                }
-            )
-
-        # Rewards: list name and cost
-        rewards = []
-        for reward_id, reward_info in self.coordinator.rewards_data.items():
-            reward_name = get_item_name_or_log_error(
-                "reward", reward_id, reward_info, const.DATA_REWARD_NAME
-            )
-            if not reward_name:
-                continue
-            cost = reward_info.get(const.DATA_REWARD_COST, const.DEFAULT_REWARD_COST)
-            rewards.append({"id": reward_id, "name": reward_name, "cost": cost})
-
-        # Count badges, bonuses, penalties for this assignee
-        # Badge applies if: no assignees assigned (applies to all) OR assignee is in assigned list
-        badges_count = len(
-            [
-                b
-                for b in self.coordinator.badges_data.values()
-                if not b.get(const.DATA_BADGE_ASSIGNED_TO, [])
-                or self._assignee_id in b.get(const.DATA_BADGE_ASSIGNED_TO, [])
-            ]
-        )
-        bonuses_count = len(self.coordinator.bonuses_data)
-        penalties_count = len(self.coordinator.penalties_data)
-
-        # Count achievements and challenges assigned to this assignee
-        achievements_count = len(
-            [
-                a
-                for a in self.coordinator.achievements_data.values()
-                if self._assignee_id
-                in a.get(const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, [])
-            ]
-        )
-        challenges_count = len(
-            [
-                c
-                for c in self.coordinator.challenges_data.values()
-                if self._assignee_id
-                in c.get(const.DATA_CHALLENGE_ASSIGNED_USER_IDS, [])
-            ]
-        )
-
-        # Minimal native value summarizing counts
-        return f"chores:{len(chores)} rewards:{len(rewards)} badges:{badges_count} bonuses:{bonuses_count} penalties:{penalties_count} achievements:{achievements_count} challenges:{challenges_count}"
+        """Return a simple helper state for dashboard availability checks."""
+        return "available"
 
     def _build_core_sensors(self, entity_registry) -> dict[str, str | None]:
         """Build core sensor entity IDs for dashboard use.
@@ -4315,7 +4221,8 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         Returns:
             dict: {
                 "date_helper_eid": "datetime.kc_assignee_name_ui_dashboard_date_helper" or None,
-                "chore_select_eid": "select.kc_assignee_name_ui_dashboard_chore_list_helper" or None
+                "chore_select_eid": "select.kc_assignee_name_ui_dashboard_chore_list_helper" or None,
+                "translation_sensor_eid": "sensor.kc_ui_dashboard_lang_en" or None
             }
         """
         # Datetime helper uses SUFFIX pattern: entry_id_assignee_id + SUFFIX
@@ -4343,6 +4250,10 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             dashboard_helpers["chore_select_eid"] = entity_id
         except (KeyError, ValueError, AttributeError):
             dashboard_helpers["chore_select_eid"] = None
+
+        dashboard_helpers[const.ATTR_TRANSLATION_SENSOR_EID] = (
+            self._get_translation_sensor_eid()
+        )
 
         return dashboard_helpers
 
@@ -4610,7 +4521,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         badges_attr = []
         if gamification_enabled:
             for badge_id, badge_info in self.coordinator.badges_data.items():
-                assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_TO, [])
+                assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
                 if assigned_to and self._assignee_id not in assigned_to:
                     continue
                 badge_type = badge_info.get(const.DATA_BADGE_TYPE, const.SENTINEL_EMPTY)
@@ -4932,11 +4843,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "core_sensors": core_sensors,
             "dashboard_helpers": dashboard_helpers,
             const.ATTR_USER_NAME: self._assignee_name,
-            const.ATTR_TRANSLATION_SENSOR: self._get_translation_sensor_eid(),
             "language": dashboard_language,
-            "is_feature_gated_profile": is_user_feature_gated_profile(
-                self.coordinator, self._assignee_id
-            ),
             "gamification_enabled": gamification_enabled,
             "chore_workflow_enabled": chore_workflow_enabled,
         }

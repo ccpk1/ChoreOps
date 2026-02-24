@@ -499,7 +499,7 @@ def _validate_users_inputs_impl(
     }
 
     if const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS in user_input:
-        data_dict[const.DATA_APPROVER_ASSOCIATED_USERS] = user_input.get(
+        data_dict[const.DATA_USER_ASSOCIATED_USER_IDS] = user_input.get(
             const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
             [],
         )
@@ -509,12 +509,12 @@ def _validate_users_inputs_impl(
             False,
         )
     if const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW in user_input:
-        data_dict[const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW] = user_input.get(
+        data_dict[const.DATA_USER_ENABLE_CHORE_WORKFLOW] = user_input.get(
             const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
             False,
         )
     if const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION in user_input:
-        data_dict[const.DATA_APPROVER_ENABLE_GAMIFICATION] = user_input.get(
+        data_dict[const.DATA_USER_ENABLE_GAMIFICATION] = user_input.get(
             const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
             False,
         )
@@ -1514,7 +1514,7 @@ def build_badge_common_schema(
     Args:
         default: Optional dict for backwards compatibility. When None (recommended),
                  the schema uses static defaults suitable for new badges.
-        assignees_dict: Dictionary of available assignees for the assigned_to selector.
+        assignees_dict: Dictionary of available assignees for the assigned_user_ids selector.
         chores_dict: Dictionary of available chores for the tracked selector.
         rewards_dict: Dictionary of available rewards for the awards selector.
         challenges_dict: Dictionary of available challenges for linked badges.
@@ -1550,7 +1550,9 @@ def build_badge_common_schema(
     )
     include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-    include_assigned_to = badge_type in const.INCLUDE_ASSIGNED_TO_BADGE_TYPES
+    include_assigned_user_ids = (
+        badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
+    )
     include_awards = badge_type in const.INCLUDE_AWARDS_BADGE_TYPES
     include_penalties = badge_type in const.INCLUDE_PENALTIES_BADGE_TYPES
     include_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
@@ -1774,7 +1776,7 @@ def build_badge_common_schema(
         )
 
     # --- Assigned To Component Schema ---
-    if include_assigned_to:
+    if include_assigned_user_ids:
         assignee_options = [{"value": const.SENTINEL_EMPTY, "label": const.LABEL_NONE}]
         assignee_options += [
             {
@@ -1786,7 +1788,7 @@ def build_badge_common_schema(
         schema_fields.update(
             {
                 vol.Optional(
-                    const.CFOF_BADGES_INPUT_ASSIGNED_TO,
+                    const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
                     default=[],
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
@@ -1795,7 +1797,7 @@ def build_badge_common_schema(
                         ),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
-                        translation_key=const.TRANS_KEY_CFOF_BADGE_ASSIGNED_TO,
+                        translation_key=const.TRANS_KEY_CFOF_BADGE_ASSIGNED_USER_IDS,
                     )
                 )
             }
@@ -2044,7 +2046,9 @@ def validate_badge_common_inputs(
     )
     include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-    include_assigned_to = badge_type in const.INCLUDE_ASSIGNED_TO_BADGE_TYPES
+    include_assigned_user_ids = (
+        badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
+    )
     include_awards = badge_type in const.INCLUDE_AWARDS_BADGE_TYPES
     include_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
 
@@ -2056,11 +2060,13 @@ def validate_badge_common_inputs(
     # --- Start Common Validation ---
     badge_name = user_input.get(const.CFOF_BADGES_INPUT_NAME, "").strip()
 
-    # Feature Change v4.2: Validate assigned_to is not empty for badge types that support it
-    if include_assigned_to:
-        assigned_to = user_input.get(const.CFOF_BADGES_INPUT_ASSIGNED_TO, [])
-        if not assigned_to or len(assigned_to) == 0:
-            errors[const.CFOF_BADGES_INPUT_ASSIGNED_TO] = (
+    # Feature Change v4.2: Validate assigned_user_ids for badge types that support it
+    if include_assigned_user_ids:
+        assigned_user_ids = user_input.get(
+            const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS, []
+        )
+        if not assigned_user_ids or len(assigned_user_ids) == 0:
+            errors[const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS] = (
                 const.TRANS_KEY_CFOF_BADGE_REQUIRES_ASSIGNMENT
             )
 
@@ -2194,10 +2200,10 @@ def validate_badge_common_inputs(
             )
 
     # --- Assigned To Component Validation ---
-    if include_assigned_to:
-        assigned = user_input.get(const.CFOF_BADGES_INPUT_ASSIGNED_TO, [])
+    if include_assigned_user_ids:
+        assigned = user_input.get(const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS, [])
         if not isinstance(assigned, list):
-            errors[const.CFOF_BADGES_INPUT_ASSIGNED_TO] = (
+            errors[const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS] = (
                 "invalid_format_list_expected"  # Use translation keys
             )
         # Optional: Check existence of assignee IDs here if needed

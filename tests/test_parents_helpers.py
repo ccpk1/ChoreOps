@@ -24,11 +24,11 @@ def test_build_user_profile_with_all_values() -> None:
 
     assert result[const.DATA_USER_NAME] == "Mom"
     assert result[const.DATA_USER_HA_USER_ID] == "user_456"
-    assert result[const.DATA_APPROVER_ASSOCIATED_USERS] == ["assignee-1", "assignee-2"]
+    assert result[const.DATA_USER_ASSOCIATED_USER_IDS] == ["assignee-1", "assignee-2"]
     # Notifications enabled when mobile service is set
     assert result[const.DATA_USER_MOBILE_NOTIFY_SERVICE] == "mobile_app_iphone"
     # Persistent notifications are deprecated, always False
-    assert result[const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS] is False
+    assert result[const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS] is False
     # UUID should be generated
     assert len(result[const.DATA_USER_INTERNAL_ID]) == 36
 
@@ -56,11 +56,11 @@ def test_build_user_profile_with_defaults() -> None:
 
     assert result[const.DATA_USER_NAME] == "Grandma"
     assert result[const.DATA_USER_HA_USER_ID] == ""
-    assert result[const.DATA_APPROVER_ASSOCIATED_USERS] == []
+    assert result[const.DATA_USER_ASSOCIATED_USER_IDS] == []
     # Notifications disabled when mobile service not set (empty string)
     assert result[const.DATA_USER_MOBILE_NOTIFY_SERVICE] == ""
     # Persistent notifications are deprecated, always False
-    assert result[const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS] is False
+    assert result[const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS] is False
 
 
 def test_build_user_profile_strips_whitespace_from_name() -> None:
@@ -83,7 +83,7 @@ def test_build_user_profile_with_empty_associated_assignees() -> None:
 
     result = db.build_user_profile(user_input)
 
-    assert result[const.DATA_APPROVER_ASSOCIATED_USERS] == []
+    assert result[const.DATA_USER_ASSOCIATED_USER_IDS] == []
 
 
 def test_build_user_profile_raises_on_empty_name() -> None:
@@ -193,6 +193,24 @@ def test_validate_users_inputs_allows_unique_name() -> None:
     errors = fh.validate_users_inputs(user_input, existing_approvers)
 
     assert errors == {}
+
+
+def test_validate_users_inputs_rejects_associated_users_without_approval() -> None:
+    """Associated users cannot be set when approval capability is disabled."""
+    user_input = {
+        const.CFOF_USERS_INPUT_NAME: "Mom",
+        const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+        const.CFOF_USERS_INPUT_CAN_APPROVE: False,
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: ["user-1"],
+    }
+
+    errors = fh.validate_users_inputs(user_input)
+
+    assert const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS in errors
+    assert (
+        errors[const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS]
+        == const.TRANS_KEY_CFOF_ASSOCIATED_USERS_REQUIRE_APPROVAL
+    )
 
 
 def test_validate_users_inputs_update_ignores_self_in_assignee_conflict() -> None:

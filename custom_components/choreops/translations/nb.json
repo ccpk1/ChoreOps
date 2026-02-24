@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Tilknyttet prestasjon",
           "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, multiplikator (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
           "points_multiplier": "🎁 PREMIER: Poengmultiplikator (Standard 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
           "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller en poengmultiplikator. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
           "points_multiplier": "Hvis multiplikatoren er en valgt belønning, angi en multiplikator for poeng opptjent mens dette merket er aktivt (f.eks. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Tilknyttet prestasjon",
           "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, multiplikator (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
           "points_multiplier": "🎁 PREMIER: Poengmultiplikator (Standard 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
           "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt for å spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller en poengmultiplikator. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
           "points_multiplier": "Hvis multiplikatoren er en valgt belønning, angi en multiplikator for poeng opptjent mens dette merket er aktivt (f.eks. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DAGLIG MÅL: Måltype",
           "threshold_value": "🎯 DAGLIG MÅL: Terskelverdi",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, straffer (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Velg typen daglig mål for dette merket (f.eks. poeng, antall gjøremål eller dager).",
           "threshold_value": "Angi daglige poeng, antall gjøremål eller antall dager som kreves for å tjene dette merket. For måltypene «Dager», skriv inn 1 siden merket evalueres daglig (f.eks. 1 for én dags fullføring av alle valgte gjøremål).",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Tilknyttet prestasjon",
           "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, straffer (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
           "recurring_frequency": "🔄 TILBAKESTILLINGSSYKLUS: Frekvens",
@@ -794,7 +794,7 @@
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
           "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
           "recurring_frequency": "Definer tilbakestillingsplanen for dette merket (f.eks. ukentlig, månedlig).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiketter (valgfritt)",
           "icon": "Merkeikon (mdi:xxx)",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
           "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Koble dette merket til en spesifikk prestasjon for sporing.",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiketter (valgfritt)",
           "icon": "Merkeikon (mdi:xxx)",
           "associated_challenge": "🏁 Tilknyttet utfordring",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
           "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
           "associated_challenge": "Koble dette merket til en spesifikk utfordring for sporing.",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 GJENTAKELSE: Tilpasset intervallenhet (påkrevd for tilpasset frekvens)",
           "start_date": "🔄 GJENTAKELSE: Startdato (valgfritt)",
           "grace_period_days": "🔄 GJENTATENDE: Frist i dager (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker).",
           "start_date": "Angi startdatoen for tilbakestillingssyklusen (valgfritt).",
           "grace_period_days": "Angi antall ekstra dager etter slutten av syklusen som barna skal ha for å oppnå de nødvendige poengene før degradering (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Tilknyttet prestasjon",
           "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, multiplikator (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
           "points_multiplier": "🎁 PREMIER: Poengmultiplikator (Standard 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
           "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller en poengmultiplikator. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
           "points_multiplier": "Hvis multiplikatoren er en valgt belønning, angi en multiplikator for poeng opptjent mens dette merket er aktivt (f.eks. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DAGLIG MÅL: Måltype",
           "threshold_value": "🎯 DAGLIG MÅL: Terskelverdi",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, straffer (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Velg typen daglig mål for dette merket (f.eks. poeng, antall gjøremål eller dager).",
           "threshold_value": "Angi daglige poeng, antall gjøremål eller antall dager som kreves for å tjene dette merket. For måltypene «Dager», skriv inn 1 siden merket evalueres daglig (f.eks. 1 for én dags fullføring av alle valgte gjøremål).",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Tilknyttet prestasjon",
           "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, straffer (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)",
           "recurring_frequency": "🔄 TILBAKESTILLINGSSYKLUS: Frekvens",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
           "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt).",
           "recurring_frequency": "Definer tilbakestillingsplanen for dette merket (f.eks. ukentlig, månedlig).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiketter (valgfritt)",
           "icon": "Merkeikon (mdi:xxx)",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
           "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Koble dette merket til en spesifikk prestasjon for sporing.",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiketter (valgfritt)",
           "icon": "Merkeikon (mdi:xxx)",
           "associated_challenge": "🏁 Tilknyttet utfordring",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
           "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
           "associated_challenge": "Koble dette merket til en spesifikk utfordring for sporing.",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 GJENTAKELSE: Tilpasset intervallenhet (påkrevd for tilpasset frekvens)",
           "start_date": "🔄 GJENTAKELSE: Startdato (valgfritt)",
           "grace_period_days": "🔄 GJENTATENDE: Frist i dager (valgfritt)",
-          "assigned_to": "🧒 Tildelte barn",
+          "assigned_user_ids": "🧒 Tildelte barn",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
           "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Velg enheten for det egendefinerte intervallet (f.eks. dager, uker).",
           "start_date": "Angi startdatoen for tilbakestillingssyklusen (valgfritt).",
           "grace_period_days": "Angi antall ekstra dager etter slutten av syklusen som barna skal ha for å oppnå de nødvendige poengene før degradering (valgfritt).",
-          "assigned_to": "Tildel dette merket til bestemte barn for sporing.",
+          "assigned_user_ids": "Tildel dette merket til bestemte barn for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
         }

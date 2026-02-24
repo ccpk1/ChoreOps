@@ -41,7 +41,7 @@ from tests.helpers import (
     CFOF_ASSIGNEES_INPUT_HA_USER,
     CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
     # Config/Options flow field names - Badges
-    CFOF_BADGES_INPUT_ASSIGNED_TO,
+    CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
     CFOF_BADGES_INPUT_AWARD_ITEMS,
     CFOF_BADGES_INPUT_AWARD_POINTS,
     CFOF_BADGES_INPUT_END_DATE,
@@ -294,7 +294,9 @@ class FlowTestHelper:
         form_data = {
             CFOF_BADGES_INPUT_NAME: yaml_badge["name"],
             CFOF_BADGES_INPUT_ICON: yaml_badge.get("icon", "mdi:medal"),
-            CFOF_BADGES_INPUT_ASSIGNED_TO: yaml_badge.get("assigned_to", []),
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: yaml_badge.get(
+                "assigned_user_ids", []
+            ),
             CFOF_BADGES_INPUT_AWARD_POINTS: float(award_points),
             CFOF_BADGES_INPUT_AWARD_ITEMS: award_items,
         }

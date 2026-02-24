@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Conquista Associada",
           "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Multiplicador (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
           "points_multiplier": "🎁 PRÉMIOS: Multiplicador de Pontos (Padrão 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
           "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou um multiplicador de pontos. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
           "points_multiplier": "Se o multiplicador for uma recompensa selecionada, defina um multiplicador para os pontos ganhos enquanto este distintivo estiver ativo (por exemplo, 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Conquista Associada",
           "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Multiplicador (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
           "points_multiplier": "🎁 PRÉMIOS: Multiplicador de Pontos (Padrão 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
           "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco para registar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou um multiplicador de pontos. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
           "points_multiplier": "Se o multiplicador for uma recompensa selecionada, defina um multiplicador para os pontos ganhos enquanto este distintivo estiver ativo (por exemplo, 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 META DIÁRIA: Tipo de Meta",
           "threshold_value": "🎯 OBJECTIVO DIÁRIO: Valor Limite",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Penalizações (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Selecione o tipo de objetivo diário para este distintivo (por exemplo, pontos, número de tarefas ou dias).",
           "threshold_value": "Defina os pontos diários, a quantidade de tarefas ou o número de dias necessários para ganhar este distintivo. Para objetivos do tipo \"Dias\", introduza 1, uma vez que o distintivo é avaliado diariamente (por exemplo, 1 para completar todas as tarefas selecionadas num dia).",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Conquista Associada",
           "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Penalizações (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
           "recurring_frequency": "🔄 CICLO DE REINICIALIZAÇÃO: Frequência",
@@ -794,7 +794,7 @@
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
           "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
           "recurring_frequency": "Defina a frequência de reinicialização deste selo (por exemplo, semanal, mensal).",
@@ -813,7 +813,7 @@
           "badge_labels": "Rótulos (Opcional)",
           "icon": "Ícone distintivo (mdi:xxx)",
           "associated_achievement": "🏆 Conquista Associada",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
           "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
           "associated_achievement": "Ligue este distintivo a uma conquista específica para fins de acompanhamento.",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Rótulos (Opcional)",
           "icon": "Ícone distintivo (mdi:xxx)",
           "associated_challenge": "🏁 Desafio Associado",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
           "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
           "associated_challenge": "Associe este distintivo a um desafio específico para efeitos de acompanhamento.",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 RECORRÊNCIA: Unidade de intervalo personalizada (necessária para frequência personalizada)",
           "start_date": "🔄 RECORRÊNCIA: Data de início (opcional)",
           "grace_period_days": "🔄 RECORRÊNCIA: Período de Carência em Dias (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas).",
           "start_date": "Defina a data de início do ciclo de reinicialização (opcional).",
           "grace_period_days": "Especifique o número de dias extra após o final do ciclo para que os alunos atinjam a pontuação necessária antes da descida (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Conquista Associada",
           "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Multiplicador (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
           "points_multiplier": "🎁 PRÉMIOS: Multiplicador de Pontos (Padrão 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
           "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou um multiplicador de pontos. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
           "points_multiplier": "Se o multiplicador for uma recompensa selecionada, defina um multiplicador para os pontos ganhos enquanto este distintivo estiver ativo (por exemplo, 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 META DIÁRIA: Tipo de Meta",
           "threshold_value": "🎯 OBJECTIVO DIÁRIO: Valor Limite",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Penalizações (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Selecione o tipo de objetivo diário para este distintivo (por exemplo, pontos, número de tarefas ou dias).",
           "threshold_value": "Defina os pontos diários, a quantidade de tarefas ou o número de dias necessários para ganhar este distintivo. Para objetivos do tipo \"Dias\", introduza 1, uma vez que o distintivo é avaliado diariamente (por exemplo, 1 para completar todas as tarefas selecionadas num dia).",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Conquista Associada",
           "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Penalizações (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)",
           "recurring_frequency": "🔄 CICLO DE REINICIALIZAÇÃO: Frequência",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
           "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)",
           "recurring_frequency": "Defina a frequência de reinicialização deste selo (por exemplo, semanal, mensal).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Rótulos (Opcional)",
           "icon": "Ícone distintivo (mdi:xxx)",
           "associated_achievement": "🏆 Conquista Associada",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
           "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
           "associated_achievement": "Ligue este distintivo a uma conquista específica para fins de acompanhamento.",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Rótulos (Opcional)",
           "icon": "Ícone distintivo (mdi:xxx)",
           "associated_challenge": "🏁 Desafio Associado",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
           "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
           "associated_challenge": "Associe este distintivo a um desafio específico para efeitos de acompanhamento.",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 RECORRÊNCIA: Unidade de intervalo personalizada (necessária para frequência personalizada)",
           "start_date": "🔄 RECORRÊNCIA: Data de início (opcional)",
           "grace_period_days": "🔄 RECORRÊNCIA: Período de Carência em Dias (Opcional)",
-          "assigned_to": "🧒 Crianças Designadas",
+          "assigned_user_ids": "🧒 Crianças Designadas",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
           "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Selecione a unidade para o intervalo personalizado (por exemplo, dias, semanas).",
           "start_date": "Defina a data de início do ciclo de reinicialização (opcional).",
           "grace_period_days": "Especifique o número de dias extra após o final do ciclo para que os alunos atinjam a pontuação necessária antes da descida (opcional).",
-          "assigned_to": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
+          "assigned_user_ids": "Atribua este crachá a crianças específicas para efeitos de acompanhamento.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
         }

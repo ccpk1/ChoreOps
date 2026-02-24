@@ -136,7 +136,7 @@ class EconomyManager(BaseManager):
                 - multiplier: New multiplier value
                 - reference_id: Optional reference (badge_id, etc.) for audit
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         multiplier = payload.get("multiplier")
         reference_id = payload.get("reference_id")
 
@@ -165,7 +165,7 @@ class EconomyManager(BaseManager):
                 - bonus_ids: list[str] (bonus applications)
                 - penalty_ids: list[str] (penalty applications)
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         badge_id = payload.get("badge_id")
         badge_name = payload.get("badge_name")
         if not assignee_id:
@@ -196,7 +196,7 @@ class EconomyManager(BaseManager):
                 new_multiplier = float(multiplier)
                 self.emit(
                     const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-                    assignee_id=assignee_id,
+                    user_id=assignee_id,
                     multiplier=new_multiplier,
                     old_multiplier=old_multiplier,
                     new_multiplier=new_multiplier,
@@ -258,7 +258,7 @@ class EconomyManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, achievement_id, achievement_points
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         achievement_id = payload.get("achievement_id")
         achievement_points = payload.get("achievement_points", 0.0)
 
@@ -276,7 +276,7 @@ class EconomyManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, challenge_id, challenge_points
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         challenge_id = payload.get("challenge_id")
         challenge_points = payload.get("challenge_points", 0.0)
 
@@ -302,7 +302,7 @@ class EconomyManager(BaseManager):
                 - base_points: Raw points before multiplier
                 - apply_multiplier: Whether to apply assignee's multiplier
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         chore_id = payload.get("chore_id")
         base_points = payload.get("base_points", 0.0)
         apply_multiplier = payload.get("apply_multiplier", True)
@@ -331,7 +331,7 @@ class EconomyManager(BaseManager):
                 - reward_id: The reward's internal UUID
                 - cost: Points to deduct
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         reward_id = payload.get("reward_id")
         cost = payload.get("cost", 0.0)
         reward_name = payload.get("reward_name")
@@ -359,7 +359,7 @@ class EconomyManager(BaseManager):
                 - chore_id: The chore's internal UUID
                 - points_to_reclaim: Amount to withdraw
         """
-        assignee_id = payload.get("assignee_id")
+        assignee_id = payload.get("user_id")
         chore_id = payload.get("chore_id")
         points_to_reclaim = payload.get("points_to_reclaim", 0.0)
 
@@ -541,7 +541,7 @@ class EconomyManager(BaseManager):
         # Emit event for listeners (StatisticsManager will handle stats)
         self.emit(
             const.SIGNAL_SUFFIX_POINTS_CHANGED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             old_balance=current_balance,
             new_balance=new_balance,
             delta=actual_amount,
@@ -655,7 +655,7 @@ class EconomyManager(BaseManager):
         # Emit event for listeners (StatisticsManager will handle stats)
         self.emit(
             const.SIGNAL_SUFFIX_POINTS_CHANGED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             old_balance=current_balance,
             new_balance=new_balance,
             delta=-amount,
@@ -760,7 +760,7 @@ class EconomyManager(BaseManager):
         # Emit event for NotificationManager to send notification
         self.emit(
             const.SIGNAL_SUFFIX_PENALTY_APPLIED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             penalty_id=penalty_id,
             penalty_name=penalty_info[const.DATA_PENALTY_NAME],
             points=penalty_pts,
@@ -958,7 +958,7 @@ class EconomyManager(BaseManager):
         # Emit event for NotificationManager to send notification
         self.emit(
             const.SIGNAL_SUFFIX_BONUS_APPLIED,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             bonus_id=bonus_id,
             bonus_name=bonus_info[const.DATA_BONUS_NAME],
             points=bonus_pts,
@@ -1466,7 +1466,7 @@ class EconomyManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_POINTS_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 
@@ -1531,7 +1531,7 @@ class EconomyManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_PENALTY_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 
@@ -1596,7 +1596,7 @@ class EconomyManager(BaseManager):
         self.emit(
             const.SIGNAL_SUFFIX_BONUS_DATA_RESET_COMPLETE,
             scope=scope,
-            assignee_id=assignee_id,
+            user_id=assignee_id,
             item_id=item_id,
         )
 

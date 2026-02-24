@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "points_multiplier": "🎁 PREMIOS: Multiplicador de puntos (Predeterminado 💎 1.0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "points_multiplier": "Si el multiplicador es un premio seleccionado, establezca un multiplicador para los puntos obtenidos mientras esta insignia esté activa (por ejemplo, 1.5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "points_multiplier": "🎁 PREMIOS: Multiplicador de puntos (Predeterminado 💎 1.0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Seleccione las tareas que otorgan puntos para esta insignia. Deje en blanco para registrar todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "points_multiplier": "Si el multiplicador es un premio seleccionado, establezca un multiplicador para los puntos obtenidos mientras esta insignia esté activa (por ejemplo, 1.5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 OBJETIVO DIARIO: Tipo de objetivo",
           "threshold_value": "OBJETIVO DIARIO: Valor Umbral",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Seleccione el tipo de objetivo diario para esta insignia (por ejemplo, puntos, cantidad de tareas o días).",
           "threshold_value": "Establece los puntos diarios, la cantidad de tareas o la cantidad de días necesarios para obtener esta insignia. Para los tipos de objetivo \"Días\", introduce 1, ya que la insignia se evalúa diariamente (p. ej., 1 por completar todas las tareas seleccionadas en un día).",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "recurring_frequency": "🔄 CICLO DE REINICIO: Frecuencia",
@@ -794,7 +794,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "recurring_frequency": "Define el cronograma de reinicio para esta insignia (por ejemplo, semanal, mensual).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_achievement": "🏆 Logro asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_achievement": "Vincula esta insignia a un logro específico para realizar un seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_challenge": "🏁 Desafío asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_challenge": "Vincula esta insignia a un desafío específico para su seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 RECURRENCIA: Unidad de intervalo personalizada (obligatoria para la frecuencia personalizada)",
           "start_date": "🔄 RECURRENCIA: Fecha de inicio (Opcional)",
           "grace_period_days": "🔄 RECURRENCIA: Periodo de gracia en días (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (por ejemplo, días, semanas).",
           "start_date": "Establezca la fecha de inicio para el ciclo de reinicio (opcional).",
           "grace_period_days": "Especifique el número de días adicionales después del final del ciclo para que los niños alcancen los puntos requeridos antes del descenso (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "points_multiplier": "🎁 PREMIOS: Multiplicador de puntos (Predeterminado 💎 1.0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "points_multiplier": "Si el multiplicador es un premio seleccionado, establezca un multiplicador para los puntos obtenidos mientras esta insignia esté activa (por ejemplo, 1.5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 OBJETIVO DIARIO: Tipo de objetivo",
           "threshold_value": "OBJETIVO DIARIO: Valor Umbral",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Seleccione el tipo de objetivo diario para esta insignia (por ejemplo, puntos, cantidad de tareas o días).",
           "threshold_value": "Establece los puntos diarios, la cantidad de tareas o la cantidad de días necesarios para obtener esta insignia. Para los tipos de objetivo \"Días\", introduce 1, ya que la insignia se evalúa diariamente (p. ej., 1 por completar todas las tareas seleccionadas en un día).",
           "selected_chores": "Selecciona las tareas que otorgan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Logro asociado",
           "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)",
           "recurring_frequency": "🔄 CICLO DE REINICIO: Frecuencia",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
           "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que aportan puntos para esta insignia. Deja en blanco si quieres hacer un seguimiento de todas las tareas asignadas (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional).",
           "recurring_frequency": "Define el cronograma de reinicio para esta insignia (por ejemplo, semanal, mensual).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_achievement": "🏆 Logro asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_achievement": "Vincula esta insignia a un logro específico para realizar un seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiquetas (opcional)",
           "icon": "Icono de insignia (mdi:xxx)",
           "associated_challenge": "🏁 Desafío asociado",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_challenge": "Vincula esta insignia a un desafío específico para su seguimiento.",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 RECURRENCIA: Unidad de intervalo personalizada (obligatoria para la frecuencia personalizada)",
           "start_date": "🔄 RECURRENCIA: Fecha de inicio (Opcional)",
           "grace_period_days": "🔄 RECURRENCIA: Periodo de gracia en días (opcional)",
-          "assigned_to": "🧒 Niños asignados",
+          "assigned_user_ids": "🧒 Niños asignados",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
           "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Seleccione la unidad para el intervalo personalizado (por ejemplo, días, semanas).",
           "start_date": "Establezca la fecha de inicio para el ciclo de reinicio (opcional).",
           "grace_period_days": "Especifique el número de días adicionales después del final del ciclo para que los niños alcancen los puntos requeridos antes del descenso (opcional).",
-          "assigned_to": "Asigne esta insignia a niños específicos para su seguimiento.",
+          "assigned_user_ids": "Asigne esta insignia a niños específicos para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
         }

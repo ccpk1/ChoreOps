@@ -126,7 +126,7 @@ class TestEconomyManagerDeposit:
 
         # Payload is passed as third positional arg (dict)
         payload = call_args[0][2]
-        assert payload["assignee_id"] == assignee_id
+        assert payload["user_id"] == assignee_id
         assert payload["old_balance"] == initial_balance
         assert payload["new_balance"] == initial_balance + 25.0
         assert payload["delta"] == 25.0

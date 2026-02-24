@@ -74,6 +74,9 @@ DOC_URL_QUICK_START: Final = (
 DOC_URL_BACKUP_RESTORE: Final = (
     "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Backup-Restore"
 )
+DOC_URL_GENERAL_OPTIONS: Final = (
+    "https://github.com/ccpk1/choreops/wiki/Configuration%3A-General-Options"
+)
 DOC_URL_DASHBOARD_GENERATION: Final = (
     "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Dashboard-Generation"
 )
@@ -654,7 +657,9 @@ CFOF_CHORES_INPUT_NOTIFICATIONS: Final = "chore_notifications"
 # rotation_order removed - unused field, assigned_user_ids defines order
 
 # BADGES
-CFOF_BADGES_INPUT_ASSIGNED_TO: Final = "assigned_to"
+CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
+# Legacy compatibility key (migration-only)
+CFOF_BADGES_INPUT_ASSIGNED_TO_LEGACY: Final = "assigned_to"
 CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 CFOF_BADGES_INPUT_AWARD_ITEMS: Final = "award_items"
@@ -1168,9 +1173,16 @@ DATA_USER_INTERNAL_ID: Final = "internal_id"
 DATA_USER_NAME: Final = "name"
 DATA_USER_HA_USER_ID: Final = "ha_user_id"
 DATA_USER_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
+DATA_USER_ASSOCIATED_USER_IDS: Final = "associated_user_ids"
 DATA_USER_CAN_APPROVE: Final = "can_approve"
 DATA_USER_CAN_MANAGE: Final = "can_manage"
 DATA_USER_CAN_BE_ASSIGNED: Final = "can_be_assigned"
+DATA_USER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
+DATA_USER_ENABLE_GAMIFICATION: Final = "enable_gamification"
+
+# User capability defaults
+DEFAULT_USER_ENABLE_CHORE_WORKFLOW: Final = False
+DEFAULT_USER_ENABLE_GAMIFICATION: Final = False
 
 # Legacy payload compatibility window (Phase 1 contract)
 
@@ -1320,24 +1332,6 @@ PRES_USER_REWARDS_APPROVED_MONTH: Final = "pres_user_rewards_approved_month"
 # --- Presentation: Cache Metadata ---
 PRES_USER_LAST_UPDATED: Final = "pres_user_last_updated"
 
-# =============================================================================
-# TEMPORAL STAT KEY SUFFIXES (for migration stripping - Phase 7.5)
-# =============================================================================
-# These suffixes identify temporal keys in *_stats dicts that should NOT be
-# persisted to storage. Used by migration_pre_v50._strip_temporal_stats() and
-# statistics_engine filter functions. Keys ending with these ARE temporal.
-# Note: all_time and highest_balance_all_time are NOT temporal - they persist.
-
-# Canonical approver constants (runtime-facing names)
-# Canonical approver-linked profile key (legacy storage key retained for compatibility)
-DATA_APPROVER_ASSOCIATED_USERS: Final = "associated_user_ids"
-DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
-DATA_APPROVER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
-DATA_APPROVER_ENABLE_GAMIFICATION: Final = "enable_gamification"
-DATA_APPROVER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-
-# Legacy migration-only approver key (schema <45)
-LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
 
 # CHORES
 DATA_CHORE_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -1501,7 +1495,9 @@ DATA_CHORE_STATE: Final = "state"
 DATA_CHORE_TIMESTAMP: Final = "timestamp"
 
 # BADGES
-DATA_BADGE_ASSIGNED_TO: Final = "assigned_to"
+DATA_BADGE_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
+# Legacy compatibility key (migration-only)
+DATA_BADGE_ASSIGNED_TO_LEGACY: Final = "assigned_to"
 DATA_BADGE_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 DATA_BADGE_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 DATA_BADGE_AWARDS: Final = "awards"
@@ -2110,7 +2106,7 @@ ACTION_SKIP_CHORE = "SKIP_CHORE"
 TRANS_KEY_PURPOSE_CHORE_STATUS: Final = "purpose_chore_status"
 TRANS_KEY_PURPOSE_POINTS: Final = "purpose_points"
 TRANS_KEY_PURPOSE_CHORES: Final = "purpose_chores"
-TRANS_KEY_PURPOSE_ASSIGNEE_BADGES: Final = "purpose_assignee_badges"
+TRANS_KEY_PURPOSE_USER_BADGES: Final = "purpose_user_badges"
 TRANS_KEY_PURPOSE_BADGE_PROGRESS: Final = "purpose_badge_progress"
 TRANS_KEY_PURPOSE_BADGE: Final = "purpose_badge"
 TRANS_KEY_PURPOSE_SHARED_CHORE: Final = "purpose_shared_chore"
@@ -2135,9 +2131,13 @@ TRANS_KEY_PURPOSE_BUTTON_POINTS_ADJUST: Final = "purpose_button_points_adjust"
 TRANS_KEY_PURPOSE_BUTTON_BONUS_APPLY: Final = "purpose_button_bonus_apply"
 
 # Select purpose translation keys (select.py)
-TRANS_KEY_PURPOSE_SELECT_ASSIGNEE_CHORES: Final = "purpose_select_assignee_chores"
-TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE: Final = (
-    "purpose_system_dashboard_admin_assignee"
+TRANS_KEY_PURPOSE_SELECT_CHORES: Final = "purpose_select_chores"
+TRANS_KEY_PURPOSE_SELECT_REWARDS: Final = "purpose_select_rewards"
+TRANS_KEY_PURPOSE_SELECT_PENALTIES: Final = "purpose_select_penalties"
+TRANS_KEY_PURPOSE_SELECT_BONUSES: Final = "purpose_select_bonuses"
+TRANS_KEY_PURPOSE_SELECT_USER_CHORES: Final = "purpose_select_user_chores"
+TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER: Final = (
+    "purpose_system_dashboard_admin_user"
 )
 
 # Calendar purpose translation keys (calendar.py)
@@ -2172,7 +2172,7 @@ ATTR_CAN_CLAIM: Final = "can_claim"
 # Rotation UI attributes removed - not exposed in entity attributes
 ATTR_CLAIMED_BY: Final = "claimed_by"
 ATTR_COMPLETED_BY: Final = "completed_by"
-ATTR_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
+ATTR_ASSIGNED_USER_NAMES: Final = "assigned_user_names"
 ATTR_USER_NAME: Final = "user_name"
 ATTR_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 ATTR_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
@@ -2225,42 +2225,40 @@ PURPOSE_SENSOR_POINTS: Final = "Current point balance and point stats"
 PURPOSE_SENSOR_CHORES: Final = (
     "All time completed chores and chore stats (total, approved, claimed, pending)"
 )
-PURPOSE_SENSOR_PENALTY_APPLIED: Final = "Count of times penalty applied to assignee"
-PURPOSE_SENSOR_BONUS_APPLIED: Final = "Count of times bonus applied to assignee"
+TRANS_KEY_PURPOSE_SENSOR_PENALTY_APPLIED: Final = "purpose_sensor_penalty_applied"
+TRANS_KEY_PURPOSE_SENSOR_BONUS_APPLIED: Final = "purpose_sensor_bonus_applied"
 # Legacy sensors (sensor_legacy.py)
-PURPOSE_SENSOR_CHORE_APPROVALS_ALL_TIME_EXTRA: Final = (
-    "Count of chore approvals all time (extra)"
+TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_ALL_TIME_EXTRA: Final = (
+    "purpose_sensor_chore_approvals_all_time_extra"
 )
-PURPOSE_SENSOR_CHORE_APPROVALS_TODAY_EXTRA: Final = (
-    "Count of chore approvals today (extra)"
+TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_TODAY_EXTRA: Final = (
+    "purpose_sensor_chore_approvals_today_extra"
 )
-PURPOSE_SENSOR_CHORE_APPROVALS_WEEK_EXTRA: Final = (
-    "Count of chore approvals this week (extra)"
+TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_WEEK_EXTRA: Final = (
+    "purpose_sensor_chore_approvals_week_extra"
 )
-PURPOSE_SENSOR_CHORE_APPROVALS_MONTH_EXTRA: Final = (
-    "Count of chore approvals this month (extra)"
+TRANS_KEY_PURPOSE_SENSOR_CHORE_APPROVALS_MONTH_EXTRA: Final = (
+    "purpose_sensor_chore_approvals_month_extra"
 )
-PURPOSE_SENSOR_CHORES_PENDING_APPROVAL_EXTRA: Final = (
-    "Count of chores pending approval across all assignees (extra)"
+TRANS_KEY_PURPOSE_SENSOR_CHORES_PENDING_APPROVAL_EXTRA: Final = (
+    "purpose_sensor_chores_pending_approval_extra"
 )
-PURPOSE_SENSOR_REWARDS_PENDING_APPROVAL_EXTRA: Final = (
-    "Count of rewards pending approval across all assignees (extra)"
+TRANS_KEY_PURPOSE_SENSOR_REWARDS_PENDING_APPROVAL_EXTRA: Final = (
+    "purpose_sensor_rewards_pending_approval_extra"
 )
-PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA: Final = (
-    "Points earned today by assignee (extra)"
+TRANS_KEY_PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA: Final = (
+    "purpose_sensor_points_earned_today_extra"
 )
-PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA: Final = (
-    "Points earned this week by assignee (extra)"
+TRANS_KEY_PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA: Final = (
+    "purpose_sensor_points_earned_week_extra"
 )
-PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA: Final = (
-    "Points earned this month by assignee (extra)"
+TRANS_KEY_PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA: Final = (
+    "purpose_sensor_points_earned_month_extra"
 )
-PURPOSE_SENSOR_POINTS_MAX_EVER_EXTRA: Final = (
-    "Highest point balance ever reached (extra)"
+TRANS_KEY_PURPOSE_SENSOR_POINTS_MAX_EVER_EXTRA: Final = (
+    "purpose_sensor_points_max_ever_extra"
 )
-PURPOSE_SENSOR_CHORE_STREAK_EXTRA: Final = (
-    "Highest chore completion streak for assignee (extra)"
-)
+TRANS_KEY_PURPOSE_SENSOR_CHORE_STREAK_EXTRA: Final = "purpose_sensor_chore_streak_extra"
 
 # PURPOSE values for button attributes (button.py)
 PURPOSE_BUTTON_CHORE_CLAIM: Final = "Assignee claims completion of assigned chore"
@@ -2274,23 +2272,6 @@ PURPOSE_BUTTON_POINTS_ADJUST: Final = "Approver manually adjusts assignee points
 PURPOSE_BUTTON_BONUS_APPLY: Final = "Approver applies bonus (adds points)"
 
 # PURPOSE values for select attributes (select.py)
-PURPOSE_SELECT_CHORES: Final = "Dropdown to select chore from all available chores"
-PURPOSE_SELECT_REWARDS: Final = "Dropdown to select reward from all available rewards"
-PURPOSE_SELECT_PENALTIES: Final = (
-    "Dropdown to select penalty from all available penalties"
-)
-PURPOSE_SELECT_BONUSES: Final = "Dropdown to select bonus from all available bonuses"
-
-# PURPOSE values for calendar attributes (calendar.py)
-PURPOSE_CALENDAR_SCHEDULE: Final = (
-    "Calendar showing assignee chore schedule and due dates"
-)
-
-# PURPOSE values for datetime attributes (datetime.py)
-PURPOSE_DATETIME_DASHBOARD_HELPER: Final = (
-    "Date/time picker for dashboard date range filtering"
-)
-
 ATTR_DUE_DATE: Final = "due_date"
 ATTR_DUE_WINDOW_START: Final = "due_window_start"
 ATTR_END_DATE: Final = "end_date"
@@ -2298,8 +2279,8 @@ ATTR_GLOBAL_STATE: Final = "global_state"
 ATTR_HIGHEST_BADGE_THRESHOLD_VALUE: Final = "highest_badge_threshold_value"
 ATTR_HIGHEST_EARNED_BADGE_EID: Final = "highest_earned_badge_eid"
 ATTR_HIGHEST_EARNED_BADGE_NAME: Final = "highest_earned_badge_name"
-ATTR_USERS_ASSIGNED: Final = "assignees_assigned"
-ATTR_USERS_EARNED: Final = "assignees_earned"
+ATTR_USERS_ASSIGNED: Final = "assigned_user_names"
+ATTR_USERS_EARNED: Final = "earned_user_names"
 ATTR_LABELS: Final = "labels"
 ATTR_LAST_APPROVED: Final = "last_approved"
 ATTR_LAST_CLAIMED: Final = "last_claimed"
@@ -2427,10 +2408,6 @@ SENSOR_KC_PREFIX: Final = "sensor.kc_"
 # DateTime Prefix
 DATETIME_KC_PREFIX: Final = "datetime.kc_"
 
-# DateTime Entity ID Midfix and Suffix
-DATETIME_KC_EID_MIDFIX_UI_DASHBOARD: Final = "_ui_dashboard_"
-DATETIME_KC_EID_SUFFIX_DATE_HELPER: Final = "date_helper"
-
 # DateTime Unique ID Suffix
 DATETIME_KC_UID_SUFFIX_DATE_HELPER: Final = "_dashboard_datetime_picker"
 
@@ -2467,47 +2444,18 @@ SENSOR_KC_UID_SUFFIX_PENDING_REWARD_APPROVALS_SENSOR: Final = (
 SENSOR_KC_UID_SUFFIX_REWARD_STATUS_SENSOR: Final = "_reward_status"
 SENSOR_KC_UID_SUFFIX_SHARED_CHORE_GLOBAL_STATE_SENSOR: Final = "_chore_global_status"
 
-# Sensor Entity ID Mid & Suffixes
-SENSOR_KC_EID_MIDFIX_ACHIEVEMENT_PROGRESS_SENSOR: Final = "_achievement_status_"
-SENSOR_KC_EID_MIDFIX_ACHIEVEMENT_SENSOR: Final = "achievement_status_"
-SENSOR_KC_EID_MIDFIX_BADGE_PROGRESS_SENSOR: Final = "_badge_status_"
-SENSOR_KC_EID_MIDFIX_BONUS_APPLIES_SENSOR: Final = "_bonuses_applied_"
-SENSOR_KC_EID_MIDFIX_CHALLENGE_PROGRESS_SENSOR: Final = "_challenge_status_"
-SENSOR_KC_EID_MIDFIX_CHALLENGE_SENSOR: Final = "challenge_status_"
-SENSOR_KC_EID_MIDFIX_CHORE_STATUS_SENSOR: Final = "_chore_status_"
-SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_DAILY_SENSOR: Final = "_chores_completed_daily"
-SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_MONTHLY_SENSOR: Final = (
-    "_chores_completed_monthly"
-)
-SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_TOTAL_SENSOR: Final = "_chores_completed_total"
-SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_WEEKLY_SENSOR: Final = "_chores_completed_weekly"
-SENSOR_KC_EID_MIDFIX_PENALTY_APPLIES_SENSOR: Final = "_penalties_applied_"
-SENSOR_KC_EID_MIDFIX_REWARD_STATUS_SENSOR: Final = "_reward_status_"
-SENSOR_KC_EID_MIDFIX_SHARED_CHORE_GLOBAL_STATUS_SENSOR: Final = "global_chore_status_"
-SENSOR_KC_EID_SUFFIX_BADGE_SENSOR: Final = "_badge"
-SENSOR_KC_EID_SUFFIX_PENDING_CHORE_APPROVALS_SENSOR: Final = (
-    "global_chore_pending_approvals"
-)
-SENSOR_KC_EID_SUFFIX_PENDING_REWARD_APPROVALS_SENSOR: Final = (
-    "global_reward_pending_approvals"
-)
-# Sensor Entity ID Midfix and Suffix for UI Dashboard Helper
-SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER: Final = "_ui_dashboard_helper"
+# Sensor Entity ID constants still in active use (runtime)
 SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER: Final = "_dashboard_helper"
 
 # System-level dashboard translation sensor (one per language in use)
-SENSOR_KC_EID_PREFIX_DASHBOARD_LANG: Final = "ui_dashboard_lang_"
 SENSOR_KC_UID_SUFFIX_DASHBOARD_LANG: Final = "_dashboard_lang"
 
 # Translation sensor pointer attribute (on dashboard helper)
-ATTR_TRANSLATION_SENSOR: Final = "translation_sensor"
+ATTR_TRANSLATION_SENSOR_EID: Final = "translation_sensor_eid"
 
 # ------------------------------------------------------------------------------------------------
 # Selects
 # ------------------------------------------------------------------------------------------------
-
-# Select Prefixes
-SELECT_KC_PREFIX: Final = "select.kc_"
 
 # Select Unique ID Mid & Suffixes
 # Use SUFFIX pattern for consistent entity unique IDs
@@ -2521,13 +2469,6 @@ SELECT_KC_UID_SUFFIX_BONUSES_SELECT: Final = "_select_bonuses"
 SELECT_KC_UID_SUFFIX_CHORES_SELECT: Final = "_select_chores"
 SELECT_KC_UID_SUFFIX_PENALTIES_SELECT: Final = "_select_penalties"
 SELECT_KC_UID_SUFFIX_REWARDS_SELECT: Final = "_select_rewards"
-
-# Select Entity ID Mid & Suffixes
-SELECT_KC_EID_SUFFIX_ALL_BONUSES: Final = "all_bonuses"
-SELECT_KC_EID_SUFFIX_ALL_CHORES: Final = "all_chores"
-SELECT_KC_EID_SUFFIX_ALL_PENALTIES: Final = "all_penalties"
-SELECT_KC_EID_SUFFIX_ALL_REWARDS: Final = "all_rewards"
-SELECT_KC_EID_SUFFIX_CHORE_LIST: Final = "_ui_dashboard_chore_list_helper"
 
 # ------------------------------------------------------------------------------------------------
 # Buttons
@@ -2548,17 +2489,6 @@ BUTTON_KC_UID_SUFFIX_ASSIGNEE_REWARD_REDEEM: Final = "_assignee_reward_redeem_bu
 BUTTON_KC_UID_SUFFIX_APPROVER_BONUS_APPLY: Final = "_approver_bonus_apply_button"
 BUTTON_KC_UID_SUFFIX_APPROVER_PENALTY_APPLY: Final = "_approver_penalty_apply_button"
 BUTTON_KC_UID_SUFFIX_APPROVER_POINTS_ADJUST: Final = "_approver_points_adjust_button"
-
-# Button Entity ID Mid & Suffixes
-BUTTON_KC_EID_MIDFIX_BONUS: Final = "_bonus_"
-BUTTON_KC_EID_MIDFIX_CHORE_APPROVAL: Final = "_chore_approval_"
-BUTTON_KC_EID_MIDFIX_CHORE_CLAIM: Final = "_chore_claim_"
-BUTTON_KC_EID_MIDFIX_CHORE_DISAPPROVAL: Final = "_chore_disapproval_"
-BUTTON_KC_EID_MIDFIX_PENALTY: Final = "_penalty_"
-BUTTON_KC_EID_MIDFIX_REWARD_APPROVAL: Final = "_reward_approval_"
-BUTTON_KC_EID_MIDFIX_REWARD_CLAIM: Final = "_reward_claim_"
-BUTTON_KC_EID_MIDFIX_REWARD_DISAPPROVAL: Final = "_reward_disapproval_"
-BUTTON_KC_EID_SUFFIX_POINTS: Final = "_points"
 
 # ------------------------------------------------------------------------------------------------
 # Calendars
@@ -3073,6 +3003,9 @@ TRANS_KEY_CFOF_USAGE_REQUIRES_ASSIGNMENT_OR_APPROVAL: Final = (
 TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS: Final = (
     "approval_requires_associated_users"
 )
+TRANS_KEY_CFOF_ASSOCIATED_USERS_REQUIRE_APPROVAL: Final = (
+    "associated_users_require_approval"
+)
 
 
 # Unknown States (Display Translation Keys)
@@ -3131,23 +3064,6 @@ CFOP_ERROR_DAILY_MULTI_DUE_DATE: Final = "due_date"  # Uses due_date field
 CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
     "due_date"  # AT_DUE_DATE_* reset types require due date
 )
-# v0.5.0: Additional validation error field mappings
-
-
-# ------------------------------------------------------------------------------------------------
-# Approver Approval Workflow
-# ------------------------------------------------------------------------------------------------
-
-# Approver Chore Capability Defaults
-LEGACY_DEFAULT_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = False
-DEFAULT_APPROVER_ENABLE_CHORE_WORKFLOW: Final = False
-DEFAULT_APPROVER_ENABLE_GAMIFICATION: Final = False
-
-
-# ------------------------------------------------------------------------------------------------
-# Calendar Attributes
-# ------------------------------------------------------------------------------------------------
-
 
 # ------------------------------------------------------------------------------------------------
 # Dashboard Helper Sensor Attributes (Phase 2b)
@@ -3187,7 +3103,7 @@ TRANS_KEY_CFOF_SELECT_BACKUP_TO_DELETE: Final = "select_backup_to_delete"
 TRANS_KEY_CFOF_SELECT_BACKUP_TO_RESTORE: Final = "select_backup_to_restore"
 
 # Badge Fields
-TRANS_KEY_CFOF_BADGE_ASSIGNED_TO: Final = "assigned_to"
+TRANS_KEY_CFOF_BADGE_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 TRANS_KEY_CFOF_BADGE_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 TRANS_KEY_CFOF_BADGE_AWARD_ITEMS: Final = "award_items"
 TRANS_KEY_CFOF_BADGE_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
@@ -3330,17 +3246,19 @@ TRANS_KEY_CFOF_INVALID_SELECTION: Final = "invalid_selection"
 TRANS_KEY_CFOF_POINTS_LABEL_REQUIRED: Final = "points_label_required"
 TRANS_KEY_CFOF_MAIN_MENU: Final = "main_menu"
 TRANS_KEY_CFOF_MANAGE_ACTIONS: Final = "manage_actions"
-TRANS_KEY_CFOF_NO_ENTITY_TYPE: Final = "no_{}s"
+ABORT_KEY_NO_ENTITY_TEMPLATE: Final = "no_{}"
 TRANS_KEY_CFOF_START_DATE_IN_PAST: Final = "start_date_in_past"
-TRANS_KEY_CFOF_SUMMARY_ACHIEVEMENTS: Final = "Achievements: "
-TRANS_KEY_CFOF_SUMMARY_BADGES: Final = "Badges: "
-TRANS_KEY_CFOF_SUMMARY_BONUSES: Final = "Bonuses: "
-TRANS_KEY_CFOF_SUMMARY_CHALLENGES: Final = "Challenges: "
-TRANS_KEY_CFOF_SUMMARY_CHORES: Final = "Chores: "
-TRANS_KEY_CFOF_SUMMARY_ASSIGNEES: Final = "Assignees: "
-TRANS_KEY_CFOF_SUMMARY_APPROVERS: Final = "Approvers: "
-TRANS_KEY_CFOF_SUMMARY_PENALTIES: Final = "Penalties: "
-TRANS_KEY_CFOF_SUMMARY_REWARDS: Final = "Rewards: "
+
+# Config-flow dynamic summary labels (intentionally not HA translation keys)
+SUMMARY_LABEL_ACHIEVEMENTS: Final = "Achievements: "
+SUMMARY_LABEL_BADGES: Final = "Badges: "
+SUMMARY_LABEL_BONUSES: Final = "Bonuses: "
+SUMMARY_LABEL_CHALLENGES: Final = "Challenges: "
+SUMMARY_LABEL_CHORES: Final = "Chores: "
+SUMMARY_LABEL_ASSIGNMENT_CAPABLE_USERS: Final = "Assignment-capable users: "
+SUMMARY_LABEL_APPROVAL_CAPABLE_USERS: Final = "Approval-capable users: "
+SUMMARY_LABEL_PENALTIES: Final = "Penalties: "
+SUMMARY_LABEL_REWARDS: Final = "Rewards: "
 
 # Phase 3c: System Settings Translation Keys
 TRANS_KEY_CFOF_INVALID_UPDATE_INTERVAL: Final = "invalid_update_interval"
@@ -3458,7 +3376,7 @@ TRANS_KEY_SENSOR_ATTR_BADGE_NAME: Final = "badge_name"
 TRANS_KEY_SENSOR_ATTR_BONUS_NAME: Final = "bonus_name"
 TRANS_KEY_SENSOR_ATTR_CHALLENGE_NAME: Final = "challenge_name"
 TRANS_KEY_SENSOR_ATTR_CHORE_NAME: Final = "chore_name"
-TRANS_KEY_SENSOR_ATTR_ASSIGNEE_NAME: Final = "assignee_name"
+TRANS_KEY_SENSOR_ATTR_ASSIGNEE_NAME: Final = "user_name"
 TRANS_KEY_SENSOR_ATTR_PENALTY_NAME: Final = "penalty_name"
 TRANS_KEY_SENSOR_ATTR_POINTS: Final = "points"
 TRANS_KEY_SENSOR_ATTR_REWARD_NAME: Final = "reward_name"
@@ -3499,7 +3417,7 @@ TRANS_KEY_BUTTON_PENALTY_BUTTON: Final = "approver_penalty_apply_button"
 TRANS_KEY_BUTTON_ATTR_BONUS_NAME: Final = "bonus_name"
 TRANS_KEY_BUTTON_ATTR_CHORE_NAME: Final = "chore_name"
 TRANS_KEY_BUTTON_ATTR_DELTA: Final = "delta"
-TRANS_KEY_BUTTON_ATTR_ASSIGNEE_NAME: Final = "assignee_name"
+TRANS_KEY_BUTTON_ATTR_ASSIGNEE_NAME: Final = "user_name"
 TRANS_KEY_BUTTON_ATTR_PENALTY_NAME: Final = "penalty_name"
 TRANS_KEY_BUTTON_ATTR_POINTS_LABEL: Final = "points_label"
 TRANS_KEY_BUTTON_ATTR_REWARD_NAME: Final = "reward_name"
@@ -3766,8 +3684,8 @@ INCLUDE_CHALLENGE_LINKED_BADGE_TYPES = [
 # Badge types for include_tracked_chores component
 INCLUDE_TRACKED_CHORES_BADGE_TYPES = [BADGE_TYPE_PERIODIC, BADGE_TYPE_DAILY]
 
-# Badge types for include_assigned_to component
-INCLUDE_ASSIGNED_TO_BADGE_TYPES = [
+# Badge types for include_assigned_user_ids component
+INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES = [
     BADGE_TYPE_CUMULATIVE,
     BADGE_TYPE_DAILY,
     BADGE_TYPE_PERIODIC,

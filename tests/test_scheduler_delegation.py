@@ -143,7 +143,7 @@ class TestOverdueEventEmission:
 
         # Verify event payload
         event_payload = overdue_events[0][1]
-        assert event_payload["assignee_id"] == zoe_id
+        assert event_payload["user_id"] == zoe_id
         assert event_payload["chore_id"] == chore_id
         assert "days_overdue" in event_payload
         assert "due_date" in event_payload
@@ -241,7 +241,7 @@ class TestOverdueEventEmission:
             e
             for e in emitted_events
             if e[0] == const.SIGNAL_SUFFIX_CHORE_OVERDUE
-            and e[1].get("assignee_id") == zoe_id
+            and e[1].get("user_id") == zoe_id
             and e[1].get("chore_id") == chore_id
         ]
 
@@ -353,7 +353,7 @@ class TestRecurringResetEventEmission:
 
         # Verify event payload
         event_payload = reset_events[0][1]
-        assert event_payload["assignee_id"] == zoe_id
+        assert event_payload["user_id"] == zoe_id
         assert event_payload["chore_id"] == chore_id
         assert "chore_name" in event_payload
 

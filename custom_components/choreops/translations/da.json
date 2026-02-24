@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Tilknyttet præstation",
           "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, multiplikator (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
           "points_multiplier": "🎁 PRÆMIER: Pointmultiplikator (Standard 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
           "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller en pointmultiplikator. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
           "points_multiplier": "Hvis multiplikatoren er en valgt belønning, skal du indstille en multiplikator for point optjent, mens dette badge er aktivt (f.eks. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Tilknyttet præstation",
           "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, multiplikator (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
           "points_multiplier": "🎁 PRÆMIER: Pointmultiplikator (Standard 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
           "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt for at spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller en pointmultiplikator. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
           "points_multiplier": "Hvis multiplikatoren er en valgt belønning, skal du indstille en multiplikator for point optjent, mens dette badge er aktivt (f.eks. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DAGLIGT MÅL: Måltype",
           "threshold_value": "🎯 DAGLIGT MÅL: Tærskelværdi",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, straffe (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Vælg typen af dagligt mål for dette badge (f.eks. point, antal pligter eller dage).",
           "threshold_value": "Angiv de daglige point, antal opgaver eller antal dage, der kræves for at optjene dette mærke. For måltyperne 'Dage' skal du indtaste 1, da mærket evalueres dagligt (f.eks. 1 for en dags fuldførelse af alle valgte opgaver).",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Tilknyttet præstation",
           "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, straffe (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
           "recurring_frequency": "🔄 NULSTILCYKLUS: Frekvens",
@@ -794,7 +794,7 @@
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
           "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
           "recurring_frequency": "Definer nulstillingsplanen for dette badge (f.eks. ugentligt, månedligt).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiketter (valgfrit)",
           "icon": "Badge-ikon (mdi:xxx)",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
           "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Knyt dette badge til en specifik præstation for sporing.",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiketter (valgfrit)",
           "icon": "Badge-ikon (mdi:xxx)",
           "associated_challenge": "🏁 Tilknyttet udfordring",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
           "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
           "associated_challenge": "Knyt dette badge til en specifik udfordring til sporing.",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 GENTAGENDE: Brugerdefineret intervalenhed (påkrævet for brugerdefineret frekvens)",
           "start_date": "🔄 GENTAGENDE: Startdato (valgfrit)",
           "grace_period_days": "🔄 GENTAGENDE: Frist i dage (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger).",
           "start_date": "Indstil startdatoen for nulstillingscyklussen (valgfrit).",
           "grace_period_days": "Angiv antallet af ekstra dage efter cyklussens afslutning, hvor børnene skal opfylde de nødvendige point før degradering (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Tilknyttet præstation",
           "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, multiplikator (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
           "points_multiplier": "🎁 PRÆMIER: Pointmultiplikator (Standard 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
           "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller en pointmultiplikator. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
           "points_multiplier": "Hvis multiplikatoren er en valgt belønning, skal du indstille en multiplikator for point optjent, mens dette badge er aktivt (f.eks. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DAGLIGT MÅL: Måltype",
           "threshold_value": "🎯 DAGLIGT MÅL: Tærskelværdi",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, straffe (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Vælg typen af dagligt mål for dette badge (f.eks. point, antal pligter eller dage).",
           "threshold_value": "Angiv de daglige point, antal opgaver eller antal dage, der kræves for at optjene dette mærke. For måltyperne 'Dage' skal du indtaste 1, da mærket evalueres dagligt (f.eks. 1 for en dags fuldførelse af alle valgte opgaver).",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Tilknyttet præstation",
           "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, straffe (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)",
           "recurring_frequency": "🔄 NULSTILCYKLUS: Frekvens",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
           "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit).",
           "recurring_frequency": "Definer nulstillingsplanen for dette badge (f.eks. ugentligt, månedligt).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiketter (valgfrit)",
           "icon": "Badge-ikon (mdi:xxx)",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
           "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Knyt dette badge til en specifik præstation for sporing.",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiketter (valgfrit)",
           "icon": "Badge-ikon (mdi:xxx)",
           "associated_challenge": "🏁 Tilknyttet udfordring",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
           "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
           "associated_challenge": "Knyt dette badge til en specifik udfordring til sporing.",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 GENTAGENDE: Brugerdefineret intervalenhed (påkrævet for brugerdefineret frekvens)",
           "start_date": "🔄 GENTAGENDE: Startdato (valgfrit)",
           "grace_period_days": "🔄 GENTAGENDE: Frist i dage (valgfrit)",
-          "assigned_to": "🧒 Tildelte børn",
+          "assigned_user_ids": "🧒 Tildelte børn",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
           "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Vælg enheden for det brugerdefinerede interval (f.eks. dage, uger).",
           "start_date": "Indstil startdatoen for nulstillingscyklussen (valgfrit).",
           "grace_period_days": "Angiv antallet af ekstra dage efter cyklussens afslutning, hvor børnene skal opfylde de nødvendige point før degradering (valgfrit).",
-          "assigned_to": "Tildel dette mærke til bestemte børn til sporing.",
+          "assigned_user_ids": "Tildel dette mærke til bestemte børn til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
         }

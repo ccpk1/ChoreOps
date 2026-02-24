@@ -227,7 +227,7 @@ class UIManager(BaseManager):
 
         return entity_id
 
-    async def ensure_translation_sensor_exists(self, lang_code: str) -> str:
+    async def ensure_translation_sensor_exists(self, lang_code: str) -> str | None:
         """Ensure a translation sensor exists for the given language code.
 
         If the sensor doesn't exist, creates it dynamically using the stored
@@ -240,7 +240,8 @@ class UIManager(BaseManager):
             lang_code: ISO language code (e.g., 'en', 'es', 'de')
 
         Returns:
-            The entity ID of the translation sensor (existing or newly created)
+            The entity ID of the translation sensor if available in registry,
+            otherwise None
         """
         # Import here to avoid circular dependency
         from ..sensor import SystemDashboardTranslationSensor
@@ -252,13 +253,10 @@ class UIManager(BaseManager):
         if eid:
             return eid
 
-        # If sensor was marked as created but not in registry, use constructed entity_id
+        # If sensor was marked as created but not in registry yet, return None.
+        # The caller should retry after entity registry update.
         if lang_code in self._translation_sensors_created:
-            # Construct expected entity_id (sensor exists but not yet in registry)
-            return (
-                f"{const.SENSOR_KC_PREFIX}"
-                f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{lang_code}"
-            )
+            return None
 
         # If no callback registered (shouldn't happen), log warning and return fallback
         if self._sensor_add_entities_callback is None:
@@ -273,11 +271,7 @@ class UIManager(BaseManager):
                 )
                 if fallback_eid:
                     return fallback_eid
-            # Last resort: construct expected entity_id
-            return (
-                f"{const.SENSOR_KC_PREFIX}"
-                f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{lang_code}"
-            )
+            return None
 
         # Create the new translation sensor
         const.LOGGER.info(
@@ -289,11 +283,8 @@ class UIManager(BaseManager):
         self._sensor_add_entities_callback([new_sensor])
         self._translation_sensors_created.add(lang_code)
 
-        # Return expected entity_id (sensor not yet in registry)
-        return (
-            f"{const.SENSOR_KC_PREFIX}"
-            f"{const.SENSOR_KC_EID_PREFIX_DASHBOARD_LANG}{lang_code}"
-        )
+        # Return registry-resolved entity ID if available now; otherwise None.
+        return self.get_translation_sensor_eid(lang_code)
 
     def get_languages_in_use(self) -> set[str]:
         """Get all unique dashboard languages currently in use by assignees and approvers.
@@ -311,7 +302,7 @@ class UIManager(BaseManager):
             languages.add(lang)
         for approver_info in self.coordinator.approvers_data.values():
             lang = approver_info.get(
-                const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             )
             languages.add(lang)
         # Always include English as fallback

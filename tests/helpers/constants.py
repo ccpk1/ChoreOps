@@ -89,7 +89,7 @@ from custom_components.choreops.const import (
     ATTR_LAST_APPROVED,
     ATTR_LAST_CLAIMED,
     ATTR_RECURRING_FREQUENCY,
-    ATTR_TRANSLATION_SENSOR,
+    ATTR_TRANSLATION_SENSOR_EID,
     # =========================================================================
     # SENSOR ATTRIBUTES - Reward Status Sensor
     # =========================================================================
@@ -199,7 +199,7 @@ from custom_components.choreops.const import (
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Badges
     # =========================================================================
-    CFOF_BADGES_INPUT_ASSIGNED_TO,
+    CFOF_BADGES_INPUT_ASSIGNED_USER_IDS,
     CFOF_BADGES_INPUT_AWARD_ITEMS,
     CFOF_BADGES_INPUT_AWARD_POINTS,
     CFOF_BADGES_INPUT_BADGE_COUNT,
@@ -399,10 +399,6 @@ from custom_components.choreops.const import (
     DATA_USER_BADGES_EARNED,
     DATA_USER_CHORE_DATA,
     DATA_USER_CUMULATIVE_BADGE_PROGRESS,
-    DATA_USER_DASHBOARD_LANGUAGE,
-    # =========================================================================
-    # DATA KEYS - KID CHORE DATA
-    # =========================================================================
     DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
     DATA_USER_CHORE_DATA_LAST_APPROVED,
     DATA_USER_CHORE_DATA_LAST_CLAIMED,
@@ -444,9 +440,11 @@ from custom_components.choreops.const import (
     # DATA KEYS - PARENT FIELDS (Shadow Assignee Support)
     # =========================================================================
     DATA_USER_CAN_BE_ASSIGNED,
-    DATA_APPROVER_DASHBOARD_LANGUAGE,
-    DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
-    DATA_APPROVER_ENABLE_GAMIFICATION,
+    DATA_USER_DASHBOARD_LANGUAGE,
+    DATA_USER_ENABLE_CHORE_WORKFLOW,
+    DATA_USER_ENABLE_GAMIFICATION,
+    DATA_USER_ASSOCIATED_USER_IDS,
+    DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
     DATA_USER_MOBILE_NOTIFY_SERVICE,
     DATA_APPROVERS,
     DATA_PENALTIES,
@@ -529,9 +527,6 @@ from custom_components.choreops.const import (
     # =========================================================================
     # SENSOR ENTITY ID COMPONENTS
     # =========================================================================
-    SENSOR_KC_EID_MIDFIX_CHORE_STATUS_SENSOR,
-    SENSOR_KC_EID_PREFIX_DASHBOARD_LANG,
-    SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER,
     SENSOR_KC_PREFIX,
     SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR,
     SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR,
@@ -595,6 +590,11 @@ DATA_APPROVER_NAME = DATA_USER_NAME
 DATA_APPROVER_INTERNAL_ID = DATA_USER_INTERNAL_ID
 DATA_APPROVER_HA_USER_ID = DATA_USER_HA_USER_ID
 DATA_APPROVER_MOBILE_NOTIFY_SERVICE = DATA_USER_MOBILE_NOTIFY_SERVICE
+DATA_APPROVER_DASHBOARD_LANGUAGE = DATA_USER_DASHBOARD_LANGUAGE
+DATA_APPROVER_ENABLE_CHORE_WORKFLOW = DATA_USER_ENABLE_CHORE_WORKFLOW
+DATA_APPROVER_ENABLE_GAMIFICATION = DATA_USER_ENABLE_GAMIFICATION
+DATA_APPROVER_ASSOCIATED_USERS = DATA_USER_ASSOCIATED_USER_IDS
+DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS = DATA_USER_USE_PERSISTENT_NOTIFICATIONS
 CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME = CFOF_USERS_INPUT_NAME
 CFOF_ASSIGNEES_INPUT_HA_USER = CFOF_USERS_INPUT_HA_USER_ID
 CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE = CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE
@@ -603,6 +603,13 @@ CFOF_APPROVERS_INPUT_HA_USER = CFOF_USERS_INPUT_HA_USER_ID
 CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE = CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE
 CFOP_ERROR_ASSIGNEE_NAME = CFOP_ERROR_USER_NAME
 CFOP_ERROR_APPROVER_NAME = CFOP_ERROR_USER_NAME
+
+# Test-local entity ID pattern constants.
+# These are intentionally kept in tests to avoid retaining production constants
+# that only support legacy/commented entity_id patterns.
+SENSOR_KC_EID_MIDFIX_CHORE_STATUS_SENSOR = "_chore_status_"
+SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER = "_ui_dashboard_helper"
+SENSOR_KC_EID_PREFIX_DASHBOARD_LANG = "ui_dashboard_lang_"
 
 
 def construct_entity_id(platform: str, assignee_name: str, suffix: str) -> str:

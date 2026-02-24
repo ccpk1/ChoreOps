@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Assoliment associat",
           "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions, multiplicador (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
           "points_multiplier": "🎁 PREMIS: Multiplicador de punts (per defecte 💎 1.0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
           "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents punts, recompenses, bonificacions o un multiplicador de punts. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
           "points_multiplier": "Si el multiplicador és un premi seleccionat, defineix un multiplicador pels punts guanyats mentre aquesta insígnia estigui activa (per exemple, 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Assoliment associat",
           "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions, multiplicador (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
           "points_multiplier": "🎁 PREMIS: Multiplicador de punts (per defecte 💎 1.0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
           "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc per fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents punts, recompenses, bonificacions o un multiplicador de punts. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
           "points_multiplier": "Si el multiplicador és un premi seleccionat, defineix un multiplicador pels punts guanyats mentre aquesta insígnia estigui activa (per exemple, 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 OBJECTIU DIARI: Tipus d'objectiu",
           "threshold_value": "🎯 OBJECTIU DIARI: Valor llindar",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions i penalitzacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Seleccioneu el tipus d'objectiu diari per a aquesta insígnia (per exemple, punts, recompte de tasques o dies).",
           "threshold_value": "Defineix els punts diaris, el recompte de tasques o el nombre de dies necessaris per obtenir aquesta insígnia. Per als tipus d'objectiu \"Dies\", introdueix 1, ja que la insígnia s'avalua diàriament (per exemple, 1 per completar totes les tasques seleccionades en un dia).",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents opcions: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Assoliment associat",
           "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions i penalitzacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
           "recurring_frequency": "🔄 CICLE DE REINICI: Freqüència",
@@ -794,7 +794,7 @@
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
           "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents opcions: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
           "recurring_frequency": "Defineix la programació de restabliment per a aquesta insígnia (per exemple, setmanal, mensual).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiquetes (opcional)",
           "icon": "Icona de distintiu (mdi:xxx)",
           "associated_achievement": "🏆 Assoliment associat",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment específic per fer-ne el seguiment.",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiquetes (opcional)",
           "icon": "Icona de distintiu (mdi:xxx)",
           "associated_challenge": "🏁 Repte associat",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
           "associated_challenge": "Enllaça aquesta insígnia a un repte específic per al seguiment.",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 RECURRÈNCIA: Unitat d'interval personalitzada (obligatòria per a la freqüència personalitzada)",
           "start_date": "🔄 RECURRÈNCIA: Data d'inici (opcional)",
           "grace_period_days": "🔄 RECURRÈNCIA: Període de gràcia en dies (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes).",
           "start_date": "Estableix la data d'inici del cicle de reinici (opcional).",
           "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle perquè els nens assoleixin els punts requerits abans del descens de categoria (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Assoliment associat",
           "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions, multiplicador (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
           "points_multiplier": "🎁 PREMIS: Multiplicador de punts (per defecte 💎 1.0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
           "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents punts, recompenses, bonificacions o un multiplicador de punts. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
           "points_multiplier": "Si el multiplicador és un premi seleccionat, defineix un multiplicador pels punts guanyats mentre aquesta insígnia estigui activa (per exemple, 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 OBJECTIU DIARI: Tipus d'objectiu",
           "threshold_value": "🎯 OBJECTIU DIARI: Valor llindar",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions i penalitzacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Seleccioneu el tipus d'objectiu diari per a aquesta insígnia (per exemple, punts, recompte de tasques o dies).",
           "threshold_value": "Defineix els punts diaris, el recompte de tasques o el nombre de dies necessaris per obtenir aquesta insígnia. Per als tipus d'objectiu \"Dies\", introdueix 1, ja que la insígnia s'avalua diàriament (per exemple, 1 per completar totes les tasques seleccionades en un dia).",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents opcions: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Assoliment associat",
           "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions i penalitzacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)",
           "recurring_frequency": "🔄 CICLE DE REINICI: Freqüència",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
           "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents opcions: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional).",
           "recurring_frequency": "Defineix la programació de restabliment per a aquesta insígnia (per exemple, setmanal, mensual).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiquetes (opcional)",
           "icon": "Icona de distintiu (mdi:xxx)",
           "associated_achievement": "🏆 Assoliment associat",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment específic per fer-ne el seguiment.",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiquetes (opcional)",
           "icon": "Icona de distintiu (mdi:xxx)",
           "associated_challenge": "🏁 Repte associat",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
           "associated_challenge": "Enllaça aquesta insígnia a un repte específic per al seguiment.",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 RECURRÈNCIA: Unitat d'interval personalitzada (obligatòria per a la freqüència personalitzada)",
           "start_date": "🔄 RECURRÈNCIA: Data d'inici (opcional)",
           "grace_period_days": "🔄 RECURRÈNCIA: Període de gràcia en dies (opcional)",
-          "assigned_to": "🧒 Nens assignats",
+          "assigned_user_ids": "🧒 Nens assignats",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
           "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Seleccioneu la unitat per a l'interval personalitzat (per exemple, dies, setmanes).",
           "start_date": "Estableix la data d'inici del cicle de reinici (opcional).",
           "grace_period_days": "Especifiqueu el nombre de dies addicionals després del final del cicle perquè els nens assoleixin els punts requerits abans del descens de categoria (opcional).",
-          "assigned_to": "Assigna aquesta insígnia a nens específics per al seguiment.",
+          "assigned_user_ids": "Assigna aquesta insígnia a nens específics per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
         }

@@ -195,7 +195,7 @@ class SystemChoresSelect(ChoreOpsSelectBase):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SELECT_CHORES,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_CHORES,
         }
 
 
@@ -247,7 +247,7 @@ class SystemRewardsSelect(ChoreOpsSelectBase):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SELECT_REWARDS,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_REWARDS,
         }
 
 
@@ -299,7 +299,7 @@ class SystemPenaltiesSelect(ChoreOpsSelectBase):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SELECT_PENALTIES,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_PENALTIES,
         }
 
 
@@ -351,7 +351,7 @@ class SystemBonusesSelect(ChoreOpsSelectBase):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
-            const.ATTR_PURPOSE: const.PURPOSE_SELECT_BONUSES,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_BONUSES,
         }
 
 
@@ -427,7 +427,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         current_value = self.current_option
         if not current_value or current_value == const.SENTINEL_NONE_TEXT:
             return {
-                const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE,
+                const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER,
             }
 
         # Find assignee_id by name
@@ -444,7 +444,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         # If assignee not found, return minimal attributes
         if not selected_assignee_id:
             return {
-                const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE,
+                const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER,
             }
 
         # Look up the actual dashboard helper entity from registry
@@ -462,7 +462,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         assignee_slug = slugify(current_value)
 
         return {
-            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER,
             const.ATTR_DASHBOARD_HELPER_EID: dashboard_helper_entity,
             const.ATTR_SELECTED_USER_SLUG: assignee_slug,
             const.ATTR_SELECTED_USER_NAME: current_value,
@@ -554,6 +554,6 @@ class AssigneeDashboardHelperChoresSelect(ChoreOpsSelectBase):
             f"{const.TRANS_KEY_LABEL_ASSIGNEE} {self._assignee_id}",
         )
         return {
-            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_ASSIGNEE_CHORES,
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_USER_CHORES,
             const.ATTR_USER_NAME: assignee_name,
         }

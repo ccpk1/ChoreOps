@@ -39,6 +39,16 @@ def _ensure_str(value):
     return str(value)
 
 
+def _sanitize_select_values(values: Any, valid_values: set[str]) -> list[str]:
+    """Return only selector values that still exist in available options."""
+    if not isinstance(values, list):
+        return []
+
+    return [
+        value for value in values if isinstance(value, str) and value in valid_values
+    ]
+
+
 class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     """Options Flow for adding/editing/deleting configuration elements."""
 
@@ -347,7 +357,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         if not entity_names:
             return self.async_abort(
-                reason=const.TRANS_KEY_CFOF_NO_ENTITY_TYPE.format(self._entity_type)
+                reason=const.ABORT_KEY_NO_ENTITY_TEMPLATE.format(self._entity_type)
             )
 
         return self.async_show_form(
@@ -435,7 +445,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         """Add a new user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        user_profiles = coordinator.approvers_data
+        user_profiles = coordinator.users_for_management
 
         if user_input is not None:
             user_input = fh.normalize_user_form_input(user_input)
@@ -471,11 +481,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
-        # Build sorted assignees dict for dropdown (exclude approver-linked profiles)
+        # Build sorted assignment-participant dict for association dropdown.
         assignees_dict = {
             assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
-            if not eh.is_user_feature_gated_profile(coordinator, assignee_id)
+            if eh.is_user_assignment_participant(coordinator, assignee_id)
         }
 
         user_schema = await fh.build_user_schema(
@@ -503,7 +513,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         """Edit an existing user."""
         coordinator = self._get_coordinator()
         errors: dict[str, str] = {}
-        user_profiles = coordinator.approvers_data
+        user_profiles = coordinator.users_for_management
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
         if not internal_id or internal_id not in user_profiles:
@@ -519,17 +529,17 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Layer 2: UI validation (excludes current user from duplicate check)
             # Note: internal_id is already validated as str above
-            # For approver-linkage conflict checks: only check non-linked assignees
-            non_feature_gated_assignees = {
+            # For assignment-name conflict checks: use assignment participants.
+            assignment_participant_assignees = {
                 assignee_id: data
                 for assignee_id, data in coordinator.assignees_data.items()
                 if assignee_id != str(internal_id)
-                if not eh.is_user_feature_gated_profile(coordinator, assignee_id)
+                if eh.is_user_assignment_participant(coordinator, assignee_id)
             }
             errors = fh.validate_users_inputs(
                 user_input,
                 user_profiles,
-                non_feature_gated_assignees,
+                assignment_participant_assignees,
                 current_user_id=str(internal_id),
             )
 
@@ -548,7 +558,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     )
 
                     await coordinator.system_manager.remove_conditional_entities(
-                        assignee_ids=[str(internal_id)]
+                        user_ids=[str(internal_id)]
                     )
 
                     const.LOGGER.debug(
@@ -565,12 +575,27 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Retrieve HA users and existing assignees for linking
         users = await self.hass.auth.async_get_users()
-        # Exclude approver-linked profiles from association list
+        # Build association list from current assignment participants.
         assignees_dict = {
             assignee_data[const.DATA_USER_NAME]: assignee_id
             for assignee_id, assignee_data in coordinator.assignees_data.items()
-            if not eh.is_user_feature_gated_profile(coordinator, assignee_id)
+            if eh.is_user_assignment_participant(coordinator, assignee_id)
         }
+        valid_associated_user_ids = set(assignees_dict.values())
+
+        current_associated_user_ids_raw = user_profile.get(
+            const.DATA_USER_ASSOCIATED_USER_IDS,
+            [],
+        )
+        current_associated_user_ids = (
+            [
+                user_id
+                for user_id in current_associated_user_ids_raw
+                if isinstance(user_id, str) and user_id in valid_associated_user_ids
+            ]
+            if isinstance(current_associated_user_ids_raw, list)
+            else []
+        )
 
         available_notify_services = {
             f"{const.NOTIFY_DOMAIN}.{service_name}"
@@ -594,23 +619,21 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_USERS_INPUT_HA_USER_ID: (
                 current_ha_user_id or const.SENTINEL_NO_SELECTION
             ),
-            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: user_profile.get(
-                const.DATA_APPROVER_ASSOCIATED_USERS, []
-            ),
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: current_associated_user_ids,
             const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: (
                 current_mobile_notify_service
             ),
             const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: user_profile.get(
-                const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
             const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: user_profile.get(
                 const.DATA_USER_CAN_BE_ASSIGNED, False
             ),
             const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: user_profile.get(
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, False
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW, False
             ),
             const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: user_profile.get(
-                const.DATA_APPROVER_ENABLE_GAMIFICATION, False
+                const.DATA_USER_ENABLE_GAMIFICATION, False
             ),
             const.CFOF_USERS_INPUT_CAN_APPROVE: user_profile.get(
                 const.DATA_USER_CAN_APPROVE, False
@@ -623,6 +646,24 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         # On validation error, merge user's attempted input with existing data
         if user_input:
             suggested_values.update(user_input)
+
+        suggested_associated_user_ids_raw = suggested_values.get(
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+            [],
+        )
+        suggested_can_approve = bool(
+            suggested_values.get(const.CFOF_USERS_INPUT_CAN_APPROVE, False)
+        )
+        suggested_values[const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS] = (
+            [
+                user_id
+                for user_id in suggested_associated_user_ids_raw
+                if isinstance(user_id, str) and user_id in valid_associated_user_ids
+            ]
+            if suggested_can_approve
+            and isinstance(suggested_associated_user_ids_raw, list)
+            else []
+        )
 
         # Build schema with static defaults
         user_schema = await fh.build_user_schema(
@@ -649,7 +690,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_delete_user(self, user_input=None):
         """Delete a user."""
         coordinator = self._get_coordinator()
-        user_profiles = coordinator.approvers_data
+        user_profiles = coordinator.users_for_management
         internal_id = self.context.get(const.DATA_INTERNAL_ID)
 
         if not internal_id or internal_id not in user_profiles:
@@ -2341,6 +2382,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         challenges_dict = coordinator.challenges_data
         bonuses_dict = coordinator.bonuses_data
         penalties_dict = coordinator.penalties_data
+        valid_assignee_ids = set(assignees_dict.keys())
+        valid_chore_ids = set(chores_dict.keys())
+        valid_achievement_ids = set(achievements_dict.keys())
+        valid_challenge_ids = set(challenges_dict.keys())
 
         errors: dict[str, str] = {}
 
@@ -2481,8 +2526,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                 ),
                 # Assigned to
-                const.CFOF_BADGES_INPUT_ASSIGNED_TO: existing_badge.get(
-                    const.DATA_BADGE_ASSIGNED_TO, []
+                const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: existing_badge.get(
+                    const.DATA_BADGE_ASSIGNED_USER_IDS, []
                 ),
                 # Awards
                 const.CFOF_BADGES_INPUT_AWARD_ITEMS: awards_data.get(
@@ -2523,9 +2568,83 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
             }
 
+            suggested_values[const.CFOF_BADGES_INPUT_SELECTED_CHORES] = (
+                _sanitize_select_values(
+                    suggested_values.get(const.CFOF_BADGES_INPUT_SELECTED_CHORES, []),
+                    valid_chore_ids,
+                )
+            )
+            suggested_values[const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS] = (
+                _sanitize_select_values(
+                    suggested_values.get(const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS, []),
+                    valid_assignee_ids,
+                )
+            )
+
+            associated_achievement = suggested_values.get(
+                const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT,
+                const.SENTINEL_NO_SELECTION,
+            )
+            if (
+                associated_achievement != const.SENTINEL_NO_SELECTION
+                and associated_achievement not in valid_achievement_ids
+            ):
+                suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT] = (
+                    const.SENTINEL_NO_SELECTION
+                )
+
+            associated_challenge = suggested_values.get(
+                const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE,
+                const.SENTINEL_NO_SELECTION,
+            )
+            if (
+                associated_challenge != const.SENTINEL_NO_SELECTION
+                and associated_challenge not in valid_challenge_ids
+            ):
+                suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE] = (
+                    const.SENTINEL_NO_SELECTION
+                )
+
         # On validation error, preserve user's attempted input
         if user_input:
             suggested_values.update(user_input)
+
+        suggested_values[const.CFOF_BADGES_INPUT_SELECTED_CHORES] = (
+            _sanitize_select_values(
+                suggested_values.get(const.CFOF_BADGES_INPUT_SELECTED_CHORES, []),
+                valid_chore_ids,
+            )
+        )
+        suggested_values[const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS] = (
+            _sanitize_select_values(
+                suggested_values.get(const.CFOF_BADGES_INPUT_ASSIGNED_USER_IDS, []),
+                valid_assignee_ids,
+            )
+        )
+
+        associated_achievement = suggested_values.get(
+            const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT,
+            const.SENTINEL_NO_SELECTION,
+        )
+        if (
+            associated_achievement != const.SENTINEL_NO_SELECTION
+            and associated_achievement not in valid_achievement_ids
+        ):
+            suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT] = (
+                const.SENTINEL_NO_SELECTION
+            )
+
+        associated_challenge = suggested_values.get(
+            const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE,
+            const.SENTINEL_NO_SELECTION,
+        )
+        if (
+            associated_challenge != const.SENTINEL_NO_SELECTION
+            and associated_challenge not in valid_challenge_ids
+        ):
+            suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE] = (
+                const.SENTINEL_NO_SELECTION
+            )
 
         # Build schema without embedded defaults (values come from suggested_values)
         schema_fields = fh.build_badge_common_schema(
@@ -3372,9 +3491,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         assigned_assignees_ids = achievement_data.get(
             const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
         )
+        valid_assignee_names = set(assignees_dict.keys())
+        valid_chore_ids = set(chores_dict.keys())
         assigned_assignees_names = [
-            id_to_name.get(assignee_id, assignee_id)
+            assignee_name
             for assignee_id in assigned_assignees_ids
+            if isinstance(assignee_id, str)
+            if (assignee_name := id_to_name.get(assignee_id))
+            if assignee_name in valid_assignee_names
         ]
 
         # Build suggested values for form (CFOF keys → existing DATA values)
@@ -3413,6 +3537,25 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         # On validation error, merge user's attempted input (preserves user changes)
         if user_input:
             suggested_values.update(user_input)
+
+        suggested_values[const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS] = (
+            _sanitize_select_values(
+                suggested_values.get(const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS),
+                valid_assignee_names,
+            )
+        )
+
+        selected_chore_id = suggested_values.get(
+            const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID,
+            const.SENTINEL_EMPTY,
+        )
+        if (
+            selected_chore_id != const.SENTINEL_EMPTY
+            and selected_chore_id not in valid_chore_ids
+        ):
+            suggested_values[const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID] = (
+                const.SENTINEL_EMPTY
+            )
 
         # Build schema without defaults (suggestions provide the values)
         schema = fh.build_achievement_schema(
@@ -3735,8 +3878,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
         )
         assigned_assignees_names = [
-            id_to_name.get(assignee_id, assignee_id)
+            assignee_name
             for assignee_id in assigned_assignees_ids
+            if isinstance(assignee_id, str)
+            if (assignee_name := id_to_name.get(assignee_id))
+            if isinstance(assignee_name, str)
         ]
 
         # Convert stored start/end dates to selector format for display
@@ -3763,6 +3909,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             for assignee_id, data in coordinator.assignees_data.items()
         }
         chores_dict = coordinator.chores_data
+        valid_assignee_names = set(assignees_dict.keys())
+        valid_chore_ids = set(chores_dict.keys())
         challenge_schema = fh.build_challenge_schema(
             assignees_dict=assignees_dict,
             chores_dict=chores_dict,
@@ -3811,6 +3959,25 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         # On error, merge user_input to preserve their changes
         if errors and user_input:
             suggested_values.update(user_input)
+
+        suggested_values[const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS] = (
+            _sanitize_select_values(
+                suggested_values.get(const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS),
+                valid_assignee_names,
+            )
+        )
+
+        selected_chore_id = suggested_values.get(
+            const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID,
+            const.SENTINEL_EMPTY,
+        )
+        if (
+            selected_chore_id != const.SENTINEL_EMPTY
+            and selected_chore_id not in valid_chore_ids
+        ):
+            suggested_values[const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID] = (
+                const.SENTINEL_EMPTY
+            )
 
         challenge_schema = self.add_suggested_values_to_schema(
             challenge_schema, suggested_values
@@ -4529,7 +4696,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             step_id=const.OPTIONS_FLOW_STEP_MANAGE_GENERAL_OPTIONS,
             data_schema=general_schema,
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_BACKUP_RESTORE
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_GENERAL_OPTIONS
             },
         )
 

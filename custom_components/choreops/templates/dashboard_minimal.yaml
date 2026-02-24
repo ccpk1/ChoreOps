@@ -97,7 +97,7 @@
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set points = states(points_sensor) | int(default=0) -%}
                     {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
@@ -241,7 +241,7 @@
                     {#-- 3. Collect Data --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
-                    {%- set translation_sensor = state_attr(dashboard_helper, 'translation_sensor') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
                     {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
                     {%- set points_icon = state_attr(points_sensor, 'icon') -%}

@@ -104,7 +104,7 @@ class TestBaseManager:
         ) as mock_send:
             manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_CHANGED,
-                assignee_id="assignee1",
+                user_id="assignee1",
                 old_balance=50.0,
                 new_balance=60.0,
                 delta=10.0,
@@ -125,7 +125,7 @@ class TestBaseManager:
 
             # Verify payload was passed as third positional arg (dict)
             payload = mock_send.call_args[0][2]
-            assert payload["assignee_id"] == "assignee1"
+            assert payload["user_id"] == "assignee1"
             assert payload["delta"] == 10.0
 
     def test_listen_subscribes_and_registers_cleanup(

@@ -896,7 +896,7 @@ class TestClaimWorkflow:
         chore_manager.emit.assert_called()
         call_args = chore_manager.emit.call_args
         assert call_args[0][0] == const.SIGNAL_SUFFIX_CHORE_CLAIMED
-        assert call_args[1]["assignee_id"] == "assignee-1"
+        assert call_args[1]["user_id"] == "assignee-1"
         assert call_args[1]["chore_id"] == "chore-1"
 
         # Verify persist called
@@ -945,7 +945,7 @@ class TestClaimWorkflow:
         assert approved_call is not None, (
             "CHORE_APPROVED signal not emitted (auto-approve failed)"
         )
-        assert approved_call[1]["assignee_id"] == "assignee-1"
+        assert approved_call[1]["user_id"] == "assignee-1"
         assert approved_call[1]["approver_name"] == "auto_approve"
         assert (
             approved_call[1]["approval_origin"]
@@ -997,7 +997,7 @@ class TestApproveWorkflow:
                 approved_call = call
                 break
         assert approved_call is not None, "CHORE_APPROVED signal not emitted"
-        assert approved_call[1]["assignee_id"] == "assignee-1"
+        assert approved_call[1]["user_id"] == "assignee-1"
         assert approved_call[1]["approver_name"] == "Approver"
         # Signal includes base_points for EconomyManager to apply multiplier
         assert "base_points" in approved_call[1]
@@ -1111,7 +1111,7 @@ class TestResetAndOverdue:
         # Mock process_time_checks to return a known overdue entry
         mock_entry = {
             "chore_id": "chore-1",
-            "assignee_id": "assignee-1",
+            const.CHORE_SCAN_ENTRY_USER_ID: "assignee-1",
             "due_dt": dt_now_utc() - timedelta(days=1),
             "time_until_due": timedelta(days=-1),
         }
@@ -1178,7 +1178,7 @@ class TestDataResetChores:
             assignee_dict[const.DATA_USER_CHORE_DATA] = {
                 "chore-1": {"state": "claimed"}
             }
-            for field in db._CHORE_ASSIGNEE_RUNTIME_FIELDS:
+            for field in db._CHORE_USER_RUNTIME_FIELDS:
                 if field == const.DATA_USER_CHORE_DATA:
                     continue
                 assignee_dict[field] = {"marker": 1}
@@ -1205,7 +1205,7 @@ class TestDataResetChores:
         chore_manager.emit.assert_any_call(
             const.SIGNAL_SUFFIX_CHORE_DATA_RESET_COMPLETE,
             scope="global",
-            assignee_id=None,
+            user_id=None,
             item_id=None,
         )
 

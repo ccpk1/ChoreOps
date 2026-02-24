@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Auszeichnung",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "points_multiplier": "🎁 AUSZEICHNUNGEN: Punktemultiplikator (Standard 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere der Optionen Punkte, Belohnungen, Boni oder einen Punktemultiplikator aus. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional).",
           "points_multiplier": "Wenn „Multiplikator“ als Auszeichnung ausgewählt ist, legen Sie einen Multiplikator für die Punkte fest, die während der Gültigkeit dieses Abzeichens gesammelt werden (z. B. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Auszeichnung",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "points_multiplier": "🎁 AUSZEICHNUNGEN: Punktemultiplikator (Standard 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, um alle zugewiesenen Aufgaben zu erfassen (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere der Optionen Punkte, Belohnungen, Boni oder einen Punktemultiplikator aus. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional).",
           "points_multiplier": "Wenn „Multiplikator“ als Auszeichnung ausgewählt ist, legen Sie einen Multiplikator für die Punkte fest, die während der Gültigkeit dieses Abzeichens gesammelt werden (z. B. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 TÄGLICHES ZIEL: Zieltyp",
           "threshold_value": "🎯 TÄGLICHES ZIEL: Schwellenwert",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Wählen Sie die Art des täglichen Ziels für dieses Abzeichen aus (z. B. Punkte, Anzahl der erledigten Aufgaben oder Tage).",
           "threshold_value": "Legen Sie die täglichen Punkte, die Anzahl der Aufgaben oder die Anzahl der Tage fest, die zum Erhalt dieses Abzeichens erforderlich sind. Geben Sie bei Zielvorgaben in Tagen 1 ein, da das Abzeichen täglich bewertet wird (z. B. 1 für die Erledigung aller ausgewählten Aufgaben an einem Tag).",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Belohnungen, Boni oder Strafen. Alle ausgewählten Elemente werden gewährt bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Auszeichnung",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "recurring_frequency": "🔄 RESET-ZYKLUS: Frequenz",
@@ -794,7 +794,7 @@
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Belohnungen, Boni oder Strafen. Alle ausgewählten Elemente werden gewährt bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional).",
           "recurring_frequency": "Legen Sie den Reset-Zeitplan für dieses Abzeichen fest (z. B. wöchentlich, monatlich).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiketten (optional)",
           "icon": "Abzeichen-Symbol (mdi:xxx)",
           "associated_achievement": "🏆 Auszeichnung",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer bestimmten Leistung, um deren Erfolg zu verfolgen.",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiketten (optional)",
           "icon": "Abzeichen-Symbol (mdi:xxx)",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer bestimmten Herausforderung, um den Fortschritt zu verfolgen.",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 WIEDERHOLUNG: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
           "start_date": "🔄 WIEDERHOLUNG: Startdatum (optional)",
           "grace_period_days": "🔄 WIEDERHOLUNG: Nachfrist in Tagen (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall (z. B. Tage, Wochen).",
           "start_date": "Legen Sie das Startdatum für den Reset-Zyklus fest (optional).",
           "grace_period_days": "Geben Sie die Anzahl der zusätzlichen Tage nach Ende des Zyklus an, die den Kindern zur Verfügung stehen, um die erforderlichen Punkte vor der Herabstufung zu erreichen (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Auszeichnung",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "points_multiplier": "🎁 AUSZEICHNUNGEN: Punktemultiplikator (Standard 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere der Optionen Punkte, Belohnungen, Boni oder einen Punktemultiplikator aus. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional).",
           "points_multiplier": "Wenn „Multiplikator“ als Auszeichnung ausgewählt ist, legen Sie einen Multiplikator für die Punkte fest, die während der Gültigkeit dieses Abzeichens gesammelt werden (z. B. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 TÄGLICHES ZIEL: Zieltyp",
           "threshold_value": "🎯 TÄGLICHES ZIEL: Schwellenwert",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Wählen Sie die Art des täglichen Ziels für dieses Abzeichen aus (z. B. Punkte, Anzahl der erledigten Aufgaben oder Tage).",
           "threshold_value": "Legen Sie die täglichen Punkte, die Anzahl der Aufgaben oder die Anzahl der Tage fest, die zum Erhalt dieses Abzeichens erforderlich sind. Geben Sie bei Zielvorgaben in Tagen 1 ein, da das Abzeichen täglich bewertet wird (z. B. 1 für die Erledigung aller ausgewählten Aufgaben an einem Tag).",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Belohnungen, Boni oder Strafen. Alle ausgewählten Elemente werden gewährt bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Auszeichnung",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)",
           "recurring_frequency": "🔄 RESET-ZYKLUS: Frequenz",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Belohnungen, Boni oder Strafen. Alle ausgewählten Elemente werden gewährt bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional).",
           "recurring_frequency": "Legen Sie den Reset-Zeitplan für dieses Abzeichen fest (z. B. wöchentlich, monatlich).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiketten (optional)",
           "icon": "Abzeichen-Symbol (mdi:xxx)",
           "associated_achievement": "🏆 Auszeichnung",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer bestimmten Leistung, um deren Erfolg zu verfolgen.",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiketten (optional)",
           "icon": "Abzeichen-Symbol (mdi:xxx)",
           "associated_challenge": "🏁 Zugehörige Herausforderung",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "associated_challenge": "Verknüpfe dieses Abzeichen mit einer bestimmten Herausforderung, um den Fortschritt zu verfolgen.",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 WIEDERHOLUNG: Benutzerdefinierte Intervalleinheit (erforderlich für benutzerdefinierte Frequenz)",
           "start_date": "🔄 WIEDERHOLUNG: Startdatum (optional)",
           "grace_period_days": "🔄 WIEDERHOLUNG: Nachfrist in Tagen (optional)",
-          "assigned_to": "🧒 Zugewiesene Kinder",
+          "assigned_user_ids": "🧒 Zugewiesene Kinder",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
           "award_points": "🎁 AUSZEICHNUNGEN: Vergebene Punkte (optional)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Wählen Sie die Einheit für das benutzerdefinierte Intervall (z. B. Tage, Wochen).",
           "start_date": "Legen Sie das Startdatum für den Reset-Zyklus fest (optional).",
           "grace_period_days": "Geben Sie die Anzahl der zusätzlichen Tage nach Ende des Zyklus an, die den Kindern zur Verfügung stehen, um die erforderlichen Punkte vor der Herabstufung zu erreichen (optional).",
-          "assigned_to": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
+          "assigned_user_ids": "Weisen Sie dieses Abzeichen bestimmten Kindern zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
         }

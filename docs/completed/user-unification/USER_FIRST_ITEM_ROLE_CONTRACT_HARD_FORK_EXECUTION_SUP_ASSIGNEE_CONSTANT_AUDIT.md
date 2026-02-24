@@ -1,5 +1,9 @@
 # Supporting audit: ASSIGNEE constants and assignee-valued constants
 
+Related side-by-side cleanup matrix:
+
+- `docs/in-process/USER_FIRST_ITEM_ROLE_CONTRACT_HARD_FORK_EXECUTION_SUP_UX_CONTRACT_INCONSISTENCY_MATRIX.md`
+
 - Generated: 2026-02-24
 - Source: `custom_components/choreops/const.py`
 - Constants with `ASSIGNEE` in name: **90**
@@ -140,6 +144,102 @@ Primary user-facing fields in one group (requested focus: `SERVICE_FIELD_*` and 
 | `SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS` | 2709 | `assigned_user_ids`  |
 | `SERVICE_FIELD_ASSIGNED_USER_IDS`            | 2724 | `assigned_user_ids`  |
 | `ATTR_DASHBOARD_USER_NAME`                   | 3165 | `user_name`          |
+
+## UX contract review (attributes, service fields, purpose)
+
+Scope: user-facing contracts only (entity attributes + service call fields + `purpose` attribute keys/values).
+
+### In place (keep)
+
+| Field constant                               | Current key          | Type in runtime               | Status         | Notes                                                     |
+| -------------------------------------------- | -------------------- | ----------------------------- | -------------- | --------------------------------------------------------- |
+| `ATTR_USER_NAME`                             | `user_name`          | name                          | ✅ Keep        | Used broadly as display name in entity attributes         |
+| `ATTR_SELECTED_USER_NAME`                    | `selected_user_name` | name                          | ✅ Keep        | Dashboard admin select attribute                          |
+| `ATTR_SELECTED_USER_SLUG`                    | `selected_user_slug` | derived slug from name        | ✅ Keep        | UI routing/filter convenience                             |
+| `ATTR_CHORE_TURN_USER_NAME`                  | `turn_user_name`     | name                          | ✅ Keep        | Rotation turn-holder display                              |
+| `SERVICE_FIELD_USER_NAME`                    | `user_name`          | name input                    | ✅ Keep        | Present across workflow/reset/report services             |
+| `SERVICE_FIELD_USER_ID`                      | `user_id`            | UUID input                    | ✅ Keep        | Used where id-based target is supported                   |
+| `SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS` | `assigned_user_ids`  | UUID list in storage contract | ✅ Keep (name) | Name is correct target contract for chore assignment list |
+| `SERVICE_FIELD_ASSIGNED_USER_IDS`            | `assigned_user_ids`  | alias to assignment list      | ✅ Keep        | Test/runtime alias for chore CRUD list                    |
+
+### Needs change (high priority)
+
+| Field constant           | Current key          | Actual payload today                                       | Should be                    | Required change                                                                    |
+| ------------------------ | -------------------- | ---------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------- |
+| `ATTR_ASSIGNED_USER_IDS` | `assigned_user_ids`  | **list of names** (resolved via `get_assignee_name_by_id`) | list of UUIDs                | Either (A) make payload true UUID list, or (B) rename key to `assigned_user_names` |
+| `ATTR_USERS_ASSIGNED`    | `assignees_assigned` | list of names                                              | `assigned_user_names` (list) | Rename key/value to explicit names-list contract                                   |
+| `ATTR_USERS_EARNED`      | `assignees_earned`   | list of names                                              | `earned_user_names` (list)   | Rename key/value to explicit names-list contract                                   |
+
+Preferred naming decision for assignment collections:
+
+- Use `assigned_user_ids` for UUID lists only.
+- Use `assigned_user_names` for display-name lists only.
+- Avoid `assigned_to` as a replacement for list fields (too ambiguous: could mean single value, id, name, or role target). If needed, reserve `assigned_to` for a single human-readable summary string only.
+
+### Needs change (service semantics)
+
+| Field constant                               | Current key         | Actual behavior today                                      | Should be                                    | Required change                                                                                |
+| -------------------------------------------- | ------------------- | ---------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS` | `assigned_user_ids` | service currently accepts **names** then converts to UUIDs | key semantics should match payload (`*_ids`) | Accept UUID list directly; if supporting names, add separate `assigned_user_names` input field |
+
+### Correction: points buttons (`assignee_id`) hotspot
+
+You were right to flag this surface for review.
+
+- Verified: `points_buttons` payload in dashboard helper attributes is currently `{eid, name}` only (no explicit `assignee_id` key in the emitted attribute dict).
+- `assignee_id` is still embedded in internal entity identity (unique_id construction and helper lookup pattern), which is expected for routing but not exposed as a named user-facing attribute key.
+- Action: keep reviewing this area as **internal identity only**; no additional user-facing `assignee_id` attribute key was found in `points_buttons` payload.
+
+### Purpose attribute review (`ATTR_PURPOSE`)
+
+`ATTR_PURPOSE` key itself is already correct (`purpose`).
+
+#### Purpose keys/values to keep (role semantic)
+
+- Approver/assignee actor wording in action-specific purpose text can remain role semantic when describing workflow role responsibility.
+
+#### Purpose consistency across entity platforms
+
+| Platform           | Current pattern for `ATTR_PURPOSE` value                     | Consistency status | Recommendation                                                             |
+| ------------------ | ------------------------------------------------------------ | ------------------ | -------------------------------------------------------------------------- |
+| `sensor.py` (main) | mostly `TRANS_KEY_PURPOSE_*` constants                       | ✅ Consistent      | Keep translation-key pattern                                               |
+| `button.py`        | `TRANS_KEY_PURPOSE_BUTTON_*` constants                       | ✅ Consistent      | Keep translation-key pattern                                               |
+| `calendar.py`      | `TRANS_KEY_PURPOSE_CALENDAR_SCHEDULE`                        | ✅ Consistent      | Keep translation-key pattern                                               |
+| `datetime.py`      | `TRANS_KEY_PURPOSE_DATETIME_DASHBOARD_HELPER`                | ✅ Consistent      | Keep translation-key pattern                                               |
+| `select.py`        | mixed: `PURPOSE_SELECT_*` literals and `TRANS_KEY_PURPOSE_*` | ⚠️ Mixed           | Migrate `PURPOSE_SELECT_*` usage to `TRANS_KEY_PURPOSE_*` style for parity |
+| `sensor_legacy.py` | `PURPOSE_SENSOR_*` literals (human text)                     | ⚠️ Mixed/legacy    | Migrate to translation-key constants (or explicitly mark legacy exemption) |
+
+Key finding: `ATTR_PURPOSE` key is consistent, but **value contract style is not** (translation-key values vs literal prose constants).
+
+Recommended standard for all entities:
+
+1. `ATTR_PURPOSE` value must be a translation key constant (`TRANS_KEY_PURPOSE_*`), not literal prose.
+2. User-lifecycle contexts should prefer `user` in key names.
+3. Keep `assignee` only when the purpose is explicitly role-semantic.
+
+#### Purpose keys/values to migrate to user-based naming
+
+| Constant                                            | Current value key                         | Proposed value key                    |
+| --------------------------------------------------- | ----------------------------------------- | ------------------------------------- |
+| `TRANS_KEY_PURPOSE_ASSIGNEE_BADGES`                 | `purpose_assignee_badges`                 | `purpose_user_badges`                 |
+| `TRANS_KEY_PURPOSE_SELECT_ASSIGNEE_CHORES`          | `purpose_select_assignee_chores`          | `purpose_select_user_chores`          |
+| `TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE` | `purpose_system_dashboard_admin_assignee` | `purpose_system_dashboard_admin_user` |
+
+#### Legacy literal PURPOSE values to migrate
+
+The following `PURPOSE_*` literals (legacy/non-translation-key values) still embed `assignee` wording and should be updated to user-based language where not explicitly role-semantic:
+
+- `PURPOSE_SENSOR_PENALTY_APPLIED`
+- `PURPOSE_SENSOR_BONUS_APPLIED`
+- `PURPOSE_SENSOR_CHORES_PENDING_APPROVAL_EXTRA`
+- `PURPOSE_SENSOR_REWARDS_PENDING_APPROVAL_EXTRA`
+- `PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA`
+- `PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA`
+- `PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA`
+- `PURPOSE_SENSOR_CHORE_STREAK_EXTRA`
+- `PURPOSE_CALENDAR_SCHEDULE`
+
+Recommended wording pattern: use `user` for lifecycle/profile context; reserve `assignee` only where role semantics are intentional.
 
 ## Full list A — constants with `ASSIGNEE` in the constant name
 

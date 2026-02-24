@@ -1054,7 +1054,7 @@ class TestMultiplierChangeNotifications:
         ):
             coordinator.gamification_manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 old_multiplier=1.0,
                 new_multiplier=0.8,
                 multiplier=0.8,
@@ -1122,7 +1122,7 @@ class TestMultiplierChangeNotifications:
         ):
             coordinator.gamification_manager.emit(
                 const.SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED,
-                assignee_id=assignee_id,
+                user_id=assignee_id,
                 old_multiplier=1.0,
                 new_multiplier=1.0,
                 multiplier=1.0,
@@ -1195,7 +1195,7 @@ class TestMultiplierChangeNotifications:
         ):
             await coordinator.economy_manager._on_badge_earned(
                 {
-                    "assignee_id": assignee_id,
+                    "user_id": assignee_id,
                     "badge_id": "test_badge",
                     "badge_name": "Test Badge",
                     "points": 0.0,
@@ -1321,10 +1321,10 @@ class TestConcurrentNotifications:
         approver_id_2 = "test_approver_2"
         coordinator._data[const.DATA_USERS][approver_id_2] = {
             "name": "Test Dad",
-            const.DATA_APPROVER_ASSOCIATED_USERS: [assignee_id],
+            const.DATA_USER_ASSOCIATED_USER_IDS: [assignee_id],
             "enable_notifications": True,
             const.DATA_USER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_dad",
-            const.DATA_APPROVER_DASHBOARD_LANGUAGE: "en",
+            const.DATA_USER_DASHBOARD_LANGUAGE: "en",
             const.DATA_USER_CAN_APPROVE: True,
         }
 

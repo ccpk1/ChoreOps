@@ -645,7 +645,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                     )
                     assignee_projection[const.DATA_USER_DASHBOARD_LANGUAGE] = (
                         user_profile_data.get(
-                            const.DATA_APPROVER_DASHBOARD_LANGUAGE,
+                            const.DATA_USER_DASHBOARD_LANGUAGE,
                             const.DEFAULT_DASHBOARD_LANGUAGE,
                         )
                     )
@@ -1407,39 +1407,44 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         if user_input is not None:
             return await self._create_entry()
 
-        # Create a mapping from assignment-profile IDs to display names
-        assignee_id_to_name = {
-            assignee_id: data[const.DATA_USER_NAME]
-            for assignee_id, data in self._assignees_temp.items()
+        # Create a mapping from assignment-capable user IDs to display names
+        assignment_capable_user_id_to_name = {
+            user_id: data[const.DATA_USER_NAME]
+            for user_id, data in self._assignees_temp.items()
         }
 
-        # Enhance approver summary to include associated profile names
-        approvers_summary = []
-        for approver_record in self._approvers_temp.values():
-            associated_assignees_names = [
-                assignee_id_to_name.get(
-                    assignee_id, const.TRANS_KEY_DISPLAY_UNKNOWN_ASSIGNEE
+        # Enhance approval-capable user summary to include associated user names
+        approval_capable_users_summary = []
+        for approval_capable_user_record in self._approvers_temp.values():
+            associated_user_names = [
+                assignment_capable_user_id_to_name.get(
+                    user_id, const.TRANS_KEY_DISPLAY_UNKNOWN_ASSIGNEE
                 )
-                for assignee_id in approver_record.get(
-                    const.DATA_APPROVER_ASSOCIATED_USERS, []
+                for user_id in approval_capable_user_record.get(
+                    const.DATA_USER_ASSOCIATED_USER_IDS, []
                 )
             ]
-            if associated_assignees_names:
-                assignees_str = ", ".join(associated_assignees_names)
-                approvers_summary.append(
-                    f"{approver_record[const.DATA_USER_NAME]} (Assignees: {assignees_str})"
+            if associated_user_names:
+                associated_users_str = ", ".join(associated_user_names)
+                approval_capable_users_summary.append(
+                    f"{approval_capable_user_record[const.DATA_USER_NAME]} "
+                    f"(Associated users: {associated_users_str})"
                 )
             else:
-                approvers_summary.append(approver_record[const.DATA_USER_NAME])
+                approval_capable_users_summary.append(
+                    approval_capable_user_record[const.DATA_USER_NAME]
+                )
 
-        assignees_names = (
+        assignment_capable_user_names = (
             ", ".join(
-                assignee_data[const.DATA_USER_NAME]
-                for assignee_data in self._assignees_temp.values()
+                user_data[const.DATA_USER_NAME]
+                for user_data in self._assignees_temp.values()
             )
             or const.SENTINEL_NONE_TEXT
         )
-        approvers_names = ", ".join(approvers_summary) or const.SENTINEL_NONE_TEXT
+        approval_capable_user_names = (
+            ", ".join(approval_capable_users_summary) or const.SENTINEL_NONE_TEXT
+        )
         chores_names = (
             ", ".join(
                 chore_data[const.DATA_CHORE_NAME]
@@ -1490,17 +1495,17 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             or const.SENTINEL_NONE_TEXT
         )
 
-        # Use TRANS_KEY constants that already contain English labels (e.g., "Assignees: ")
+        # Use explicit summary labels (dynamic summary strings, not HA translation keys)
         summary = (
-            f"{const.TRANS_KEY_CFOF_SUMMARY_ASSIGNEES}{assignees_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_APPROVERS}{approvers_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_CHORES}{chores_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_BADGES}{badges_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_REWARDS}{rewards_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_PENALTIES}{penalties_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_BONUSES}{bonuses_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_ACHIEVEMENTS}{achievements_names}\n\n"
-            f"{const.TRANS_KEY_CFOF_SUMMARY_CHALLENGES}{challenges_names}\n\n"
+            f"{const.SUMMARY_LABEL_ASSIGNMENT_CAPABLE_USERS}{assignment_capable_user_names}\n\n"
+            f"{const.SUMMARY_LABEL_APPROVAL_CAPABLE_USERS}{approval_capable_user_names}\n\n"
+            f"{const.SUMMARY_LABEL_CHORES}{chores_names}\n\n"
+            f"{const.SUMMARY_LABEL_BADGES}{badges_names}\n\n"
+            f"{const.SUMMARY_LABEL_REWARDS}{rewards_names}\n\n"
+            f"{const.SUMMARY_LABEL_PENALTIES}{penalties_names}\n\n"
+            f"{const.SUMMARY_LABEL_BONUSES}{bonuses_names}\n\n"
+            f"{const.SUMMARY_LABEL_ACHIEVEMENTS}{achievements_names}\n\n"
+            f"{const.SUMMARY_LABEL_CHALLENGES}{challenges_names}\n\n"
         )
         return self.async_show_form(
             step_id=const.CONFIG_FLOW_STEP_FINISH,

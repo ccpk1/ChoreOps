@@ -86,7 +86,7 @@ async def _add_cumulative_badge_via_options_flow(
             "type": const.BADGE_TYPE_CUMULATIVE,
             "name": name,
             "icon": "mdi:medal",
-            "assigned_to": [assignee_id],
+            "assigned_user_ids": [assignee_id],
             "award_points": 0,
             "threshold_value": threshold,
             "maintenance_rules": 0,
@@ -166,12 +166,12 @@ class TestCumulativeBadgeLoading:
         assert team_data.get("target", {}).get("threshold_value") == 500.0
         assert team_data.get("awards", {}).get("award_points") == 30.0
 
-    async def test_cumulative_badge_assigned_to_loaded_correctly(
+    async def test_cumulative_badge_assigned_user_ids_loaded_correctly(
         self,
         hass: HomeAssistant,
         setup_badges,  # noqa: F811
     ) -> None:
-        """Test that cumulative badge assigned_to lists are resolved to assignee IDs."""
+        """Test that cumulative badge assigned_user_ids lists are resolved to assignee IDs."""
         coordinator = setup_badges.coordinator
 
         # Get assignee IDs
@@ -182,14 +182,16 @@ class TestCumulativeBadgeLoading:
         # Chore Stär Champion should be assigned to Zoë only
         champion_id = get_badge_by_name(coordinator, "Chore Stär Champion")
         champion_data = coordinator.badges_data[champion_id]
-        assigned_to = champion_data.get("assigned_to", [])
-        assert zoe_id in assigned_to, "Zoë should be assigned to Chore Stär Champion"
-        assert max_id not in assigned_to, "Max! should not be assigned"
+        assigned_user_ids = champion_data.get("assigned_user_ids", [])
+        assert zoe_id in assigned_user_ids, (
+            "Zoë should be assigned to Chore Stär Champion"
+        )
+        assert max_id not in assigned_user_ids, "Max! should not be assigned"
 
         # Team Player Badge should be assigned to Max! and Lila
         team_id = get_badge_by_name(coordinator, "Team Player Badge")
         team_data = coordinator.badges_data[team_id]
-        team_assigned = team_data.get("assigned_to", [])
+        team_assigned = team_data.get("assigned_user_ids", [])
         assert max_id in team_assigned, "Max! should be assigned to Team Player Badge"
         assert lila_id in team_assigned, "Lila should be assigned"
         assert zoe_id not in team_assigned, "Zoë should not be assigned"
@@ -264,6 +266,8 @@ class TestCumulativeBadgeProgress:
             blocking=True,
             context=Context(user_id=mock_hass_users["approver1"].id),
         )
+        await hass.async_block_till_done()
+        await coordinator.gamification_manager._evaluate_pending_assignees()
         await hass.async_block_till_done()
 
         # Verify badge progress increased
@@ -415,7 +419,7 @@ class TestMultiAssigneeCumulativeBadgeProgress:
 
 
 class TestCumulativeBadgeAssignment:
-    """Test cumulative badge assigned_to filtering behavior."""
+    """Test cumulative badge assigned_user_ids filtering behavior."""
 
     async def test_cumulative_badge_only_tracks_assigned_assignees(
         self,
@@ -439,13 +443,15 @@ class TestCumulativeBadgeAssignment:
         team_id = get_badge_by_name(coordinator, "Team Player Badge")
 
         # Verify Chore Stär Champion assignment
-        champion_assigned = coordinator.badges_data[champion_id].get("assigned_to", [])
+        champion_assigned = coordinator.badges_data[champion_id].get(
+            "assigned_user_ids", []
+        )
         assert zoe_id in champion_assigned
         assert max_id not in champion_assigned
         assert lila_id not in champion_assigned
 
         # Verify Team Player Badge assignment
-        team_assigned = coordinator.badges_data[team_id].get("assigned_to", [])
+        team_assigned = coordinator.badges_data[team_id].get("assigned_user_ids", [])
         assert zoe_id not in team_assigned
         assert max_id in team_assigned
         assert lila_id in team_assigned
@@ -575,7 +581,7 @@ class TestCumulativeThreeBadgeSensorAttributes:
 
         badge_name_to_assigned = {
             badge_data.get(const.DATA_BADGE_NAME, ""): badge_data.get(
-                const.DATA_BADGE_ASSIGNED_TO, []
+                const.DATA_BADGE_ASSIGNED_USER_IDS, []
             )
             for badge_data in coordinator.badges_data.values()
         }

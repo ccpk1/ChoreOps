@@ -62,7 +62,7 @@ class BaseManager(ABC):
         Example:
             self.emit(
                 const.SIGNAL_SUFFIX_POINTS_CHANGED,
-                assignee_id=assignee_id,
+                user_id=user_id,
                 old_balance=50.0,
                 new_balance=60.0,
                 delta=10.0,

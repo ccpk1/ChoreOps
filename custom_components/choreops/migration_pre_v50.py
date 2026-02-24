@@ -157,6 +157,23 @@ def _normalize_legacy_kid_keys(data: dict[str, Any]) -> int:
                 const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
             )
 
+    badges = data.get(const.DATA_BADGES, {})
+    if isinstance(badges, dict):
+        for badge_raw in badges.values():
+            if not isinstance(badge_raw, dict):
+                continue
+            badge = cast("dict[str, Any]", badge_raw)
+            remap_count += _remap_legacy_key_in_record(
+                badge,
+                const.DATA_BADGE_ASSIGNED_TO_LEGACY,
+                const.DATA_BADGE_ASSIGNED_USER_IDS,
+            )
+            remap_count += _remap_legacy_key_in_record(
+                badge,
+                const.CFOF_BADGES_INPUT_ASSIGNED_TO_LEGACY,
+                const.DATA_BADGE_ASSIGNED_USER_IDS,
+            )
+
     approvers = data.get(const.DATA_APPROVERS, {})
     if isinstance(approvers, dict):
         for approver_raw in approvers.values():
@@ -166,12 +183,12 @@ def _normalize_legacy_kid_keys(data: dict[str, Any]) -> int:
             remap_count += _remap_legacy_key_in_record(
                 approver,
                 const.CONF_ASSOCIATED_ASSIGNEES_LEGACY,
-                const.DATA_APPROVER_ASSOCIATED_USERS,
+                const.DATA_USER_ASSOCIATED_USER_IDS,
             )
             remap_count += _remap_legacy_key_in_record(
                 approver,
                 "associated_assignees",
-                const.DATA_APPROVER_ASSOCIATED_USERS,
+                const.DATA_USER_ASSOCIATED_USER_IDS,
             )
 
     return remap_count
@@ -267,8 +284,8 @@ async def async_apply_schema45_user_contract(
         user_data.setdefault(const.DATA_USER_CAN_MANAGE, False)
         user_data.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
         if user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
-            user_data.setdefault(const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW, True)
-            user_data.setdefault(const.DATA_APPROVER_ENABLE_GAMIFICATION, True)
+            user_data.setdefault(const.DATA_USER_ENABLE_CHORE_WORKFLOW, True)
+            user_data.setdefault(const.DATA_USER_ENABLE_GAMIFICATION, True)
         users_migrated += 1
 
     for approver_id, approver_data_raw in approvers.items():
@@ -2057,7 +2074,7 @@ class PreV50Migrator:
             highest_badge_data: dict[str, Any] | None = None
             for bid, bdata in sorted_cumulative:
                 # Check assignment: empty list = all assignees
-                assigned = bdata.get(const.DATA_BADGE_ASSIGNED_TO, [])
+                assigned = bdata.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
                 if assigned and assignee_id not in assigned:
                     continue
                 if bid in badges_earned:
@@ -4169,18 +4186,19 @@ class PreV50Migrator:
 
             # --- Ensure all required fields and nested structures exist using constants ---
 
-            # assigned_to: Historically unassigned badges (missing or empty) applied to ALL assignees
+            # assigned_user_ids: Historically unassigned badges (missing or empty)
+            # applied to ALL assignees
             if (
-                const.DATA_BADGE_ASSIGNED_TO not in badge_info
-                or not badge_info[const.DATA_BADGE_ASSIGNED_TO]
+                const.DATA_BADGE_ASSIGNED_USER_IDS not in badge_info
+                or not badge_info[const.DATA_BADGE_ASSIGNED_USER_IDS]
             ):
                 # Get all assignee IDs from the assignees dictionary
                 all_assignee_ids = list(
                     self.coordinator._data.get(const.DATA_USERS, {}).keys()
                 )
-                badge_info[const.DATA_BADGE_ASSIGNED_TO] = all_assignee_ids
+                badge_info[const.DATA_BADGE_ASSIGNED_USER_IDS] = all_assignee_ids
                 const.LOGGER.info(
-                    "Badge '%s' had no/empty assigned_to field - assigned to all %d assignees",
+                    "Badge '%s' had no/empty assigned_user_ids field - assigned to all %d assignees",
                     badge_info.get(const.DATA_BADGE_NAME, "unknown"),
                     len(all_assignee_ids),
                 )
@@ -4762,9 +4780,9 @@ class PreV50Migrator:
                     const.DATA_APPROVERS, {}
                 ).values():
                     if entity_id in approver.get(
-                        const.DATA_APPROVER_ASSOCIATED_USERS, []
+                        const.DATA_USER_ASSOCIATED_USER_IDS, []
                     ):
-                        approver[const.DATA_APPROVER_ASSOCIATED_USERS].remove(entity_id)
+                        approver[const.DATA_USER_ASSOCIATED_USER_IDS].remove(entity_id)
 
             if section == const.DATA_REWARDS:
                 # Remove deleted reward from root-level pending approvals (legacy schema)
@@ -6128,7 +6146,7 @@ class PreV50Migrator:
 
     def _create_approver(self, approver_id: str, approver_data: dict[str, Any]):
         associated_assignees_ids = []
-        for assignee_id in approver_data.get(const.DATA_APPROVER_ASSOCIATED_USERS, []):
+        for assignee_id in approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []):
             if assignee_id in self.coordinator.assignees_data:
                 associated_assignees_ids.append(assignee_id)
             else:
@@ -6145,33 +6163,29 @@ class PreV50Migrator:
             const.DATA_USER_HA_USER_ID: approver_data.get(
                 const.DATA_USER_HA_USER_ID, const.SENTINEL_EMPTY
             ),
-            const.DATA_APPROVER_ASSOCIATED_USERS: associated_assignees_ids,
+            const.DATA_USER_ASSOCIATED_USER_IDS: associated_assignees_ids,
             const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY: approver_data.get(
                 const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY, True
             ),
             const.DATA_USER_MOBILE_NOTIFY_SERVICE: approver_data.get(
                 const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
-            const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: approver_data.get(
-                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
+            const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS: approver_data.get(
+                const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
                 True,
             ),
             const.DATA_USER_INTERNAL_ID: approver_id,
             # Approver chore capability fields (v0.6.0+)
-            const.DATA_APPROVER_DASHBOARD_LANGUAGE: approver_data.get(
-                const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+            const.DATA_USER_DASHBOARD_LANGUAGE: approver_data.get(
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
-            const.LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: approver_data.get(
-                const.LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
-                const.LEGACY_DEFAULT_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+            const.DATA_USER_ENABLE_CHORE_WORKFLOW: approver_data.get(
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+                const.DEFAULT_USER_ENABLE_CHORE_WORKFLOW,
             ),
-            const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: approver_data.get(
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
-                const.DEFAULT_APPROVER_ENABLE_CHORE_WORKFLOW,
-            ),
-            const.DATA_APPROVER_ENABLE_GAMIFICATION: approver_data.get(
-                const.DATA_APPROVER_ENABLE_GAMIFICATION,
-                const.DEFAULT_APPROVER_ENABLE_GAMIFICATION,
+            const.DATA_USER_ENABLE_GAMIFICATION: approver_data.get(
+                const.DATA_USER_ENABLE_GAMIFICATION,
+                const.DEFAULT_USER_ENABLE_GAMIFICATION,
             ),
             LEGACY_APPROVER_LINKED_PROFILE_KEY: approver_data.get(
                 LEGACY_APPROVER_LINKED_PROFILE_KEY
@@ -6197,7 +6211,7 @@ class PreV50Migrator:
 
         # Update associated_assignees
         updated_assignees = []
-        for assignee_id in approver_data.get(const.DATA_APPROVER_ASSOCIATED_USERS, []):
+        for assignee_id in approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []):
             if assignee_id in self.coordinator.assignees_data:
                 updated_assignees.append(assignee_id)
             else:
@@ -6206,7 +6220,7 @@ class PreV50Migrator:
                     approver_info[const.DATA_USER_NAME],
                     assignee_id,
                 )
-        approver_info[const.DATA_APPROVER_ASSOCIATED_USERS] = updated_assignees
+        approver_info[const.DATA_USER_ASSOCIATED_USER_IDS] = updated_assignees
         approver_info[const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY] = (
             approver_data.get(
                 const.DATA_APPROVER_ENABLE_NOTIFICATIONS_LEGACY,
@@ -6221,46 +6235,32 @@ class PreV50Migrator:
                 const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
             ),
         )
-        approver_info[const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS] = (
-            approver_data.get(
-                const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS,
-                approver_info.get(
-                    const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS, True
-                ),
-            )
+        approver_info[const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS] = approver_data.get(
+            const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
+            approver_info.get(const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS, True),
         )
         # Approver chore capability fields (v0.6.0+)
-        approver_info[const.DATA_APPROVER_DASHBOARD_LANGUAGE] = approver_data.get(
-            const.DATA_APPROVER_DASHBOARD_LANGUAGE,
+        approver_info[const.DATA_USER_DASHBOARD_LANGUAGE] = approver_data.get(
+            const.DATA_USER_DASHBOARD_LANGUAGE,
             approver_info.get(
-                const.DATA_APPROVER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             ),
         )
-        approver_info[const.LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT] = (
-            approver_data.get(
-                const.LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
-                approver_info.get(
-                    const.LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
-                    const.LEGACY_DEFAULT_APPROVER_ALLOW_CHORE_ASSIGNMENT,
-                ),
-            )
-        )
-        approver_info[const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW] = approver_data.get(
-            const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
+        approver_info[const.DATA_USER_ENABLE_CHORE_WORKFLOW] = approver_data.get(
+            const.DATA_USER_ENABLE_CHORE_WORKFLOW,
             approver_info.get(
-                const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
-                const.DEFAULT_APPROVER_ENABLE_CHORE_WORKFLOW,
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+                const.DEFAULT_USER_ENABLE_CHORE_WORKFLOW,
             ),
         )
-        approver_info[const.DATA_APPROVER_ENABLE_GAMIFICATION] = approver_data.get(
-            const.DATA_APPROVER_ENABLE_GAMIFICATION,
+        approver_info[const.DATA_USER_ENABLE_GAMIFICATION] = approver_data.get(
+            const.DATA_USER_ENABLE_GAMIFICATION,
             approver_info.get(
-                const.DATA_APPROVER_ENABLE_GAMIFICATION,
-                const.DEFAULT_APPROVER_ENABLE_GAMIFICATION,
+                const.DATA_USER_ENABLE_GAMIFICATION,
+                const.DEFAULT_USER_ENABLE_GAMIFICATION,
             ),
         )
-        # Update shadow assignee link if provided (set by options_flow when toggling
-        # allow_chore_assignment)
+        # Update shadow assignee link if provided
         if LEGACY_APPROVER_LINKED_PROFILE_KEY in approver_data:
             approver_info[LEGACY_APPROVER_LINKED_PROFILE_KEY] = approver_data.get(
                 LEGACY_APPROVER_LINKED_PROFILE_KEY

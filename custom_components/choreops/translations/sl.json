@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Povezan dosežek",
           "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "points_multiplier": "🎁 NAGRADE: Množitelj točk (privzeto 💎 1,0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "points_multiplier": "Če je množitelj izbrana nagrada, nastavite množitelj za točke, pridobljene, ko je ta značka aktivna (npr. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "points_multiplier": "🎁 NAGRADE: Množitelj točk (privzeto 💎 1,0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Pustite prazno, če želite spremljati vsa dodeljena opravila (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "points_multiplier": "Če je množitelj izbrana nagrada, nastavite množitelj za točke, pridobljene, ko je ta značka aktivna (npr. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DNEVNI CILJ: Vrsta cilja",
           "threshold_value": "🎯 DNEVNI CILJ: Mejna vrednost",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Izberite vrsto dnevnega cilja za to značko (npr. točke, število opravil ali dnevi).",
           "threshold_value": "Nastavite dnevne točke, število opravil ali število dni, potrebnih za pridobitev te značke. Za ciljne vrste »Dnevi« vnesite 1, ker se značka ocenjuje dnevno (npr. 1 za enodnevno dokončanje vseh izbranih opravil).",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "recurring_frequency": "🔄 CIKEL PONASTAVITVE: Frekvenca",
@@ -794,7 +794,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "recurring_frequency": "Določite urnik ponastavitve za to značko (npr. tedensko, mesečno).",
@@ -813,7 +813,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_achievement": "🏆 Povezani dosežek",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_achievement": "Povežite to značko z določenim dosežkom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_challenge": "🏁 Povezani izziv",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_challenge": "Povežite to značko z določenim izzivom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 PONAVLJANJE: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 PONAVLJANJE: Začetni datum (neobvezno)",
           "grace_period_days": "🔄 PONAVLJANJE: Obdobje odloga v dnevih (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
           "grace_period_days": "Določite število dodatnih dni po koncu cikla, da otroci izpolnijo zahtevane točke pred degradacijo (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "points_multiplier": "🎁 NAGRADE: Množitelj točk (privzeto 💎 1,0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "points_multiplier": "Če je množitelj izbrana nagrada, nastavite množitelj za točke, pridobljene, ko je ta značka aktivna (npr. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DNEVNI CILJ: Vrsta cilja",
           "threshold_value": "🎯 DNEVNI CILJ: Mejna vrednost",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Izberite vrsto dnevnega cilja za to značko (npr. točke, število opravil ali dnevi).",
           "threshold_value": "Nastavite dnevne točke, število opravil ali število dni, potrebnih za pridobitev te značke. Za ciljne vrste »Dnevi« vnesite 1, ker se značka ocenjuje dnevno (npr. 1 za enodnevno dokončanje vseh izbranih opravil).",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Povezani dosežek",
           "associated_challenge": "🏁 Povezani izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)",
           "recurring_frequency": "🔄 CIKEL PONASTAVITVE: Frekvenca",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
           "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno).",
           "recurring_frequency": "Določite urnik ponastavitve za to značko (npr. tedensko, mesečno).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_achievement": "🏆 Povezani dosežek",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_achievement": "Povežite to značko z določenim dosežkom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Oznake (neobvezno)",
           "icon": "Ikona značke (mdi:xxx)",
           "associated_challenge": "🏁 Povezani izziv",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon materialnega oblikovanja (npr. mdi:star).",
           "associated_challenge": "Povežite to značko z določenim izzivom za sledenje.",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 PONAVLJANJE: Enota intervala po meri (obvezno za frekvenco po meri)",
           "start_date": "🔄 PONAVLJANJE: Začetni datum (neobvezno)",
           "grace_period_days": "🔄 PONAVLJANJE: Obdobje odloga v dnevih (neobvezno)",
-          "assigned_to": "🧒 Dodeljeni otroci",
+          "assigned_user_ids": "🧒 Dodeljeni otroci",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
           "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Izberite enoto za interval po meri (npr. dnevi, tedni).",
           "start_date": "Nastavite začetni datum za cikel ponastavitve (neobvezno).",
           "grace_period_days": "Določite število dodatnih dni po koncu cikla, da otroci izpolnijo zahtevane točke pred degradacijo (neobvezno).",
-          "assigned_to": "To značko dodelite določenim otrokom za sledenje.",
+          "assigned_user_ids": "To značko dodelite določenim otrokom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
         }

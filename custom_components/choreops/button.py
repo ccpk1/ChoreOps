@@ -1653,5 +1653,4 @@ class ApproverPointsAdjustButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_POINTS_ADJUST,
             const.ATTR_USER_NAME: self._assignee_name,
             "delta": self._delta,
-            "assignee_id": self._assignee_id,
         }

@@ -252,7 +252,7 @@
           "associated_achievement": "🏆 Tillhörande prestation",
           "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, multiplikator (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
           "points_multiplier": "🎁 UTMÄRKELSER: Poängmultiplikator (Standard 💎 1.0x)",
@@ -275,7 +275,7 @@
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
           "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller en poängmultiplikator. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt).",
           "points_multiplier": "Om multiplikatorn är en vald utmärkelse, ange en multiplikator för poäng som intjänats medan denna märke är aktivt (t.ex. 1,5x).",
@@ -695,7 +695,7 @@
           "associated_achievement": "🏆 Tillhörande prestation",
           "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, multiplikator (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
           "points_multiplier": "🎁 UTMÄRKELSER: Poängmultiplikator (Standard 💎 1.0x)",
@@ -718,7 +718,7 @@
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
           "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt för att spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller en poängmultiplikator. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt).",
           "points_multiplier": "Om multiplikatorn är en vald utmärkelse, ange en multiplikator för poäng som intjänats medan denna märke är aktivt (t.ex. 1,5x).",
@@ -741,7 +741,7 @@
           "target_type": "🎯 DAGLIGT MÅL: Måltyp",
           "threshold_value": "🎯 DAGLIGT MÅL: Tröskelvärde",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, straff (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -753,7 +753,7 @@
           "target_type": "Välj typ av dagligt mål för detta märke (t.ex. poäng, antal sysslor eller dagar).",
           "threshold_value": "Ange dagliga poäng, sysslor eller antal dagar som krävs för att få detta märke. För måltyperna \"Dagar\" anger du 1 eftersom märket utvärderas dagligen (t.ex. 1 för en dag där alla valda sysslor slutförs).",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -773,7 +773,7 @@
           "associated_achievement": "🏆 Tillhörande prestation",
           "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, straff (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
           "recurring_frequency": "🔄 ÅTERSTÄLLNINGSCYKEL: Frekvens",
@@ -794,7 +794,7 @@
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
           "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt).",
           "recurring_frequency": "Definiera återställningsschemat för den här badgen (t.ex. veckovis, månadsvis).",
@@ -813,7 +813,7 @@
           "badge_labels": "Etiketter (valfritt)",
           "icon": "Märkesikon (mdi:xxx)",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -823,7 +823,7 @@
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
           "associated_achievement": "Koppla detta märke till en specifik prestation för spårning.",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -837,7 +837,7 @@
           "badge_labels": "Etiketter (valfritt)",
           "icon": "Märkesikon (mdi:xxx)",
           "associated_challenge": "🏁 Associerad utmaning",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -847,7 +847,7 @@
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
           "associated_challenge": "Koppla det här märket till en specifik utmaning för spårning.",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -867,7 +867,7 @@
           "custom_interval_unit": "🔄 ÅTERKOMMANDE: Anpassad intervallenhet (Krävs för anpassad frekvens)",
           "start_date": "🔄 ÅTERKOMMANDE: Startdatum (valfritt)",
           "grace_period_days": "🔄 ÅTERKOMMANDE: Respitperiod i dagar (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -883,7 +883,7 @@
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor).",
           "start_date": "Ställ in startdatum för återställningscykeln (valfritt).",
           "grace_period_days": "Ange antalet extra dagar efter cykelns slut för att barnen ska uppnå de poäng som krävs innan degradering (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -1191,7 +1191,7 @@
           "associated_achievement": "🏆 Tillhörande prestation",
           "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, multiplikator (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
           "points_multiplier": "🎁 UTMÄRKELSER: Poängmultiplikator (Standard 💎 1.0x)",
@@ -1214,7 +1214,7 @@
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
           "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller en poängmultiplikator. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt).",
           "points_multiplier": "Om multiplikatorn är en vald utmärkelse, ange en multiplikator för poäng som intjänats medan denna märke är aktivt (t.ex. 1,5x).",
@@ -1237,7 +1237,7 @@
           "target_type": "🎯 DAGLIGT MÅL: Måltyp",
           "threshold_value": "🎯 DAGLIGT MÅL: Tröskelvärde",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, straff (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -1249,7 +1249,7 @@
           "target_type": "Välj typ av dagligt mål för detta märke (t.ex. poäng, antal sysslor eller dagar).",
           "threshold_value": "Ange dagliga poäng, sysslor eller antal dagar som krävs för att få detta märke. För måltyperna \"Dagar\" anger du 1 eftersom märket utvärderas dagligen (t.ex. 1 för en dag där alla valda sysslor slutförs).",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -1269,7 +1269,7 @@
           "associated_achievement": "🏆 Tillhörande prestation",
           "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, straff (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)",
           "recurring_frequency": "🔄 ÅTERSTÄLLNINGSCYKEL: Frekvens",
@@ -1290,7 +1290,7 @@
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
           "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt).",
           "recurring_frequency": "Definiera återställningsschemat för den här badgen (t.ex. veckovis, månadsvis).",
@@ -1309,7 +1309,7 @@
           "badge_labels": "Etiketter (valfritt)",
           "icon": "Märkesikon (mdi:xxx)",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -1319,7 +1319,7 @@
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
           "associated_achievement": "Koppla detta märke till en specifik prestation för spårning.",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -1333,7 +1333,7 @@
           "badge_labels": "Etiketter (valfritt)",
           "icon": "Märkesikon (mdi:xxx)",
           "associated_challenge": "🏁 Associerad utmaning",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -1343,7 +1343,7 @@
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
           "associated_challenge": "Koppla det här märket till en specifik utmaning för spårning.",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
@@ -1363,7 +1363,7 @@
           "custom_interval_unit": "🔄 ÅTERKOMMANDE: Anpassad intervallenhet (Krävs för anpassad frekvens)",
           "start_date": "🔄 ÅTERKOMMANDE: Startdatum (valfritt)",
           "grace_period_days": "🔄 ÅTERKOMMANDE: Respitperiod i dagar (valfritt)",
-          "assigned_to": "🧒 Tilldelade barn",
+          "assigned_user_ids": "🧒 Tilldelade barn",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
           "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
         },
@@ -1379,7 +1379,7 @@
           "custom_interval_unit": "Välj enhet för det anpassade intervallet (t.ex. dagar, veckor).",
           "start_date": "Ställ in startdatum för återställningscykeln (valfritt).",
           "grace_period_days": "Ange antalet extra dagar efter cykelns slut för att barnen ska uppnå de poäng som krävs innan degradering (valfritt).",
-          "assigned_to": "Tilldela den här märket till specifika barn för spårning.",
+          "assigned_user_ids": "Tilldela den här märket till specifika barn för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse erhålls. (valfritt)."
         }
