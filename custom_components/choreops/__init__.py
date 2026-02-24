@@ -103,7 +103,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
     const.LOGGER.debug(
         "DEBUG: __init__ after storage load: %d users, %d assignees, %d chores, %d badges",
         len(loaded_data.get(const.DATA_USERS, {})),
-        len(loaded_data.get(const.DATA_ASSIGNEES, {})),
+        len(loaded_data.get(const.DATA_USERS, {})),
         len(loaded_data.get(const.DATA_CHORES, {})),
         len(loaded_data.get(const.DATA_BADGES, {})),
     )

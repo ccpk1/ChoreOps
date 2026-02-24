@@ -437,7 +437,7 @@
       "invalid_end_date": "Date de fin invalide.",
       "invalid_assignee_count": "Nombre d'enfants invalide",
       "invalid_assignee_name": "Nom d'enfant invalide",
-      "invalid_approver_count": "Nombre de approvers invalide",
+      "invalid_user_count": "Nombre de approvers invalide",
       "invalid_approver_name": "Nom du approver invalide",
       "no_assignees_assigned": "Au moins un enfant doit être affecté à cette tâche.",
       "invalid_penalty": "Pénalité non valable",

@@ -437,7 +437,7 @@
       "invalid_end_date": "Ogiltigt slutdatum.",
       "invalid_assignee_count": "Ogiltigt antal barn",
       "invalid_assignee_name": "Ogiltigt barnnamn",
-      "invalid_approver_count": "Ogiltigt antal föräldrar",
+      "invalid_user_count": "Ogiltigt antal föräldrar",
       "invalid_approver_name": "Ogiltigt föräldernamn",
       "no_assignees_assigned": "Minst ett barn måste tilldelas sysslan",
       "invalid_penalty": "Ogiltig straff",

@@ -90,7 +90,7 @@ Those plans become historical/decision references only and must not carry active
 | Phase 2 – Runtime hard-fork rename    | Remove role-bucket symbols/variables/methods       | 100%       | Batches 2A–2D complete (constants/types + flow routes/helpers + manager/runtime locals + entity/helper surfaces) |
 | Phase 3 – Wrapper elimination         | Remove compatibility aliases/wrappers from runtime | 100%       | Runtime wrappers/aliases removed; guardrails enforced                                                            |
 | Phase 4 – Translation/docs final pass | Clear non-exception wording debt                   | 100%       | Targeted translation/doc wording pass complete                                                                   |
-| Phase 5 – Validation and closure      | Execute gates, publish evidence, archive           | 100%       | Final inventory + handback published; archive move completed with owner sign-off                                |
+| Phase 5 – Validation and closure      | Execute gates, publish evidence, archive           | 100%       | Final inventory + handback published; archive move completed with owner sign-off                                 |
 
 - Overall plan progress (phase-weighted): **100%** (all phases complete and archived)
 
@@ -98,7 +98,7 @@ Those plans become historical/decision references only and must not carry active
 
 - This archived record remains historical evidence only.
 - Strict closure acceptance for hard-fork terminology is now governed by:
-  - `docs/in-process/STRICT_CONST_TERMINOLOGY_ZERO_EXCEPTION_CLOSEOUT_IN-PROCESS.md`
+  - `docs/completed/STRICT_CONST_TERMINOLOGY_ZERO_EXCEPTION_CLOSEOUT_COMPLETED.md`
   - `docs/in-process/STRICT_CONST_TERMINOLOGY_ZERO_EXCEPTION_CLOSEOUT_SUP_CLOSURE_GATES.md`
 - Any prior completion statement in this archived plan does not override strict zero-residual closure gates in the active strict initiative.
 
@@ -116,15 +116,18 @@ Those plans become historical/decision references only and must not carry active
    - `docs/ARCHITECTURE.md`
    - `docs/DEVELOPMENT_STANDARDS.md`
    - `tests/AGENT_TEST_CREATION_INSTRUCTIONS.md`
-  - `docs/completed/CHOREOPS_DATA_MODEL_UNIFICATION_SUP_RENAME_CONTRACT_CATALOG.md`
-  - `docs/completed/CHOREOPS_DATA_MODEL_UNIFICATION_SUP_SERVICE_EVENT_CONTRACT_MAPPING.md`
-  - `docs/completed/REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`
+
+- `docs/completed/CHOREOPS_DATA_MODEL_UNIFICATION_SUP_RENAME_CONTRACT_CATALOG.md`
+- `docs/completed/CHOREOPS_DATA_MODEL_UNIFICATION_SUP_SERVICE_EVENT_CONTRACT_MAPPING.md`
+- `docs/completed/REBRAND_ROLEMODEL_CLOSEOUT_SUP_TERMINOLOGY_POLICY.md`
+
 6. **Decisions & completion check**
    - **Decisions captured**:
      - Hard-fork policy: no runtime compatibility wrappers/aliases.
      - Canonical role model naming is mandatory outside allowed exception surfaces.
      - Existing supplemental docs remain decision references; this plan is sole execution plan.
-  - **Completion confirmation**: `[x]` Archived execution complete for this historical plan; strict zero-residual closure acceptance moved to active initiative `CHOREOPS-HF-STRICT-002`.
+
+- **Completion confirmation**: `[x]` Archived execution complete for this historical plan; strict zero-residual closure acceptance moved to active initiative `CHOREOPS-HF-STRICT-002`.
 
 > **Important:** Update this summary after every significant batch. This is the single execution dashboard.
 
@@ -539,12 +542,12 @@ Approver initials/date:
   - `const.py` whole-word `kid|parent` hits: `75`
 - Before/after inventory table (Phase 5 tracking basis):
 
-| Metric surface | Interim snapshot | Final snapshot |
-| --- | ---: | ---: |
-| Runtime Python whole-word `kid|parent` lines | 1655 | 1919 |
-| Top-level docs whole-word `kid|parent` lines | 60 | 82 |
-| Translations whole-word `kid|parent` lines | 2 | 2 |
-| `const.py` whole-word `kid|parent` lines | 38 | 75 |
+| Metric surface                 | Interim snapshot | Final snapshot |
+| ------------------------------ | ---------------: | -------------: | ---- |
+| Runtime Python whole-word `kid |    parent` lines |           1655 | 1919 |
+| Top-level docs whole-word `kid |    parent` lines |             60 | 82   |
+| Translations whole-word `kid   |    parent` lines |              2 | 2    |
+| `const.py` whole-word `kid     |    parent` lines |             38 | 75   |
 
 - Translation orphan/stale-key report:
   - Boundary gate `Translation Constants` ✅ passed in latest `quick_lint`

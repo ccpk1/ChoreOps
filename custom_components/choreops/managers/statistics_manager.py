@@ -247,7 +247,7 @@ class StatisticsManager(BaseManager):
         # Phase 3B Tenant Rule: Guard against missing point_periods
         # EconomyManager (Landlord) creates point_periods on-demand before emitting POINTS_CHANGED
         periods_data: dict[str, Any] | None = assignee_info.get(
-            const.DATA_ASSIGNEE_POINT_PERIODS
+            const.DATA_USER_POINT_PERIODS
         )
         if periods_data is None:
             const.LOGGER.warning(
@@ -264,9 +264,9 @@ class StatisticsManager(BaseManager):
         # Determine earned vs spent based on delta sign
         # Positive delta → points_earned, Negative delta → points_spent
         if delta > 0:
-            increment_key = const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED
+            increment_key = const.DATA_USER_POINT_PERIOD_POINTS_EARNED
         else:
-            increment_key = const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT
+            increment_key = const.DATA_USER_POINT_PERIOD_POINTS_SPENT
 
         # Record earned OR spent using StatisticsEngine (handles daily/weekly/monthly/yearly)
         # NOTE: all_time is handled manually below due to nested bucket structure (all_time.all_time)
@@ -282,22 +282,19 @@ class StatisticsManager(BaseManager):
         for period_key, period_id in period_ids.items():
             bucket: dict[str, Any] = periods_data.setdefault(period_key, {})
             entry: dict[str, Any] = bucket.setdefault(period_id, {})
-            if (
-                const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE not in entry
-                or not isinstance(
-                    entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE], dict
-                )
+            if const.DATA_USER_POINT_PERIOD_BY_SOURCE not in entry or not isinstance(
+                entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE], dict
             ):
-                entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE] = {}
-            entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE].setdefault(source, 0.0)
-            entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE][source] = round(
-                entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE][source] + delta,
+                entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE] = {}
+            entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE].setdefault(source, 0.0)
+            entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE][source] = round(
+                entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE][source] + delta,
                 const.DATA_FLOAT_PRECISION,
             )
 
         # === 3) Record by_source and highest_balance to all_time bucket ===
         all_time_bucket: dict[str, Any] = periods_data.setdefault(
-            const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME, {}
+            const.DATA_USER_POINT_PERIODS_ALL_TIME, {}
         )
         all_time_entry: dict[str, Any] = all_time_bucket.setdefault(
             const.PERIOD_ALL_TIME, {}
@@ -305,17 +302,15 @@ class StatisticsManager(BaseManager):
 
         # by_source for all_time
         if (
-            const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE not in all_time_entry
+            const.DATA_USER_POINT_PERIOD_BY_SOURCE not in all_time_entry
             or not isinstance(
-                all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE], dict
+                all_time_entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE], dict
             )
         ):
-            all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE] = {}
-        all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE].setdefault(
-            source, 0.0
-        )
-        all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE][source] = round(
-            all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE][source] + delta,
+            all_time_entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE] = {}
+        all_time_entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE].setdefault(source, 0.0)
+        all_time_entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE][source] = round(
+            all_time_entry[const.DATA_USER_POINT_PERIOD_BY_SOURCE][source] + delta,
             const.DATA_FLOAT_PRECISION,
         )
 
@@ -324,24 +319,22 @@ class StatisticsManager(BaseManager):
         # periods["all_time"]["all_time"] for consistency with other period structures
         if delta > 0:
             current_earned = all_time_entry.get(
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED, 0.0
+                const.DATA_USER_POINT_PERIOD_POINTS_EARNED, 0.0
             )
-            all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED] = round(
+            all_time_entry[const.DATA_USER_POINT_PERIOD_POINTS_EARNED] = round(
                 current_earned + delta, const.DATA_FLOAT_PRECISION
             )
         else:
             current_spent = all_time_entry.get(
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT, 0.0
+                const.DATA_USER_POINT_PERIOD_POINTS_SPENT, 0.0
             )
-            all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT] = round(
+            all_time_entry[const.DATA_USER_POINT_PERIOD_POINTS_SPENT] = round(
                 current_spent + delta, const.DATA_FLOAT_PRECISION
             )
 
         # highest_balance tracking (all_time only)
-        highest = all_time_entry.get(
-            const.DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE, 0.0
-        )
-        all_time_entry[const.DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE] = max(
+        highest = all_time_entry.get(const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE, 0.0)
+        all_time_entry[const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE] = max(
             highest, new_balance
         )
 
@@ -399,10 +392,10 @@ class StatisticsManager(BaseManager):
         effective_date = payload.get("effective_date")
 
         increments: dict[str, int | float] = {
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: 1,
+            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 1,
         }
         if points_awarded > 0:
-            increments[const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS] = points_awarded
+            increments[const.DATA_USER_CHORE_DATA_PERIOD_POINTS] = points_awarded
 
         if self._record_chore_transaction(
             assignee_id, chore_id, increments, effective_date
@@ -448,11 +441,11 @@ class StatisticsManager(BaseManager):
         for assignee_id in assignee_ids:
             # Build increments for this assignee
             increments: dict[str, int | float] = {
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED: 1,
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED: 1,
             }
 
             # Reset missed_streak_tally to 0 (completion breaks missed streak)
-            increments[const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY] = 0
+            increments[const.DATA_USER_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY] = 0
 
             # Handle streak_tally with max-1-per-day enforcement
             streak_tally = streak_tallies.get(assignee_id)
@@ -460,13 +453,13 @@ class StatisticsManager(BaseManager):
                 # Get periods structure to check today's bucket
                 assignee_info = self._get_assignee(assignee_id)
                 if assignee_info:
-                    chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+                    chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
                     assignee_chore_data = chore_data.get(chore_id, {})
                     periods = assignee_chore_data.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {}
+                        const.DATA_USER_CHORE_DATA_PERIODS, {}
                     )
                     daily_buckets = periods.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {}
+                        const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {}
                     )
 
                     # Get today's bucket key
@@ -476,7 +469,7 @@ class StatisticsManager(BaseManager):
                     should_write_streak = True
                     if today_key and today_key in daily_buckets:
                         if (
-                            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY
+                            const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY
                             in daily_buckets[today_key]
                         ):
                             should_write_streak = False
@@ -490,34 +483,34 @@ class StatisticsManager(BaseManager):
 
                     # Add to increments if not already set today
                     if should_write_streak:
-                        increments[
-                            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY
-                        ] = streak_tally
+                        increments[const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY] = (
+                            streak_tally
+                        )
 
                         # Update longest_streak in all_time bucket if new high
                         all_time_container = periods.get(
-                            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+                            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
                         )
                         # All-time uses nested structure: periods["all_time"]["all_time"] = {data}
                         all_time_data = all_time_container.setdefault(
                             const.PERIOD_ALL_TIME, {}
                         )
                         current_longest = all_time_data.get(
-                            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK, 0
+                            const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK, 0
                         )
                         if streak_tally > current_longest:
                             all_time_data[
-                                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK
+                                const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK
                             ] = streak_tally
 
                             # Also update assignee-level chore_periods for _chores sensor
                             assignee_chore_periods = assignee_info.get(
-                                const.DATA_ASSIGNEE_CHORE_PERIODS
+                                const.DATA_USER_CHORE_PERIODS
                             )
                             if assignee_chore_periods is not None:
                                 assignee_all_time_container = (
                                     assignee_chore_periods.get(
-                                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME,
+                                        const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME,
                                         {},
                                     )
                                 )
@@ -527,13 +520,13 @@ class StatisticsManager(BaseManager):
                                     )
                                 )
                                 assignee_current_longest = assignee_all_time_data.get(
-                                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK,
+                                    const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK,
                                     0,
                                 )
                                 # Update if this new streak is higher than current assignee-level longest
                                 if streak_tally > assignee_current_longest:
                                     assignee_all_time_data[
-                                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK
+                                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK
                                     ] = streak_tally
 
             if self._record_chore_transaction(
@@ -565,7 +558,7 @@ class StatisticsManager(BaseManager):
         if self._record_chore_transaction(
             assignee_id,
             chore_id,
-            {const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED: 1},
+            {const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 1},
         ):
             # Transactional Flush: cache was refreshed inside _record_chore_transaction,
             # now notify sensors that data has changed
@@ -584,7 +577,7 @@ class StatisticsManager(BaseManager):
         if self._record_chore_transaction(
             assignee_id,
             chore_id,
-            {const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED: 1},
+            {const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 1},
         ):
             # Transactional Flush: cache was refreshed inside _record_chore_transaction,
             # now notify sensors that data has changed
@@ -613,10 +606,10 @@ class StatisticsManager(BaseManager):
             )
             return
 
-        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
         assignee_chore_data = chore_data.get(chore_id, {})
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
-        daily_buckets = periods.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {})
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
+        daily_buckets = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {})
 
         # Get today's bucket key
         today_key = self._stats_engine.get_period_keys().get("daily")
@@ -624,7 +617,7 @@ class StatisticsManager(BaseManager):
         # Check if today's bucket already has overdue >= 1 (max 1 per day rule)
         if today_key and today_key in daily_buckets:
             existing_overdue = daily_buckets[today_key].get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE, 0
             )
             if existing_overdue >= 1:
                 const.LOGGER.debug(
@@ -641,7 +634,7 @@ class StatisticsManager(BaseManager):
         if self._record_chore_transaction(
             assignee_id,
             chore_id,
-            {const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE: 1},
+            {const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 1},
         ):
             # Transactional Flush: cache was refreshed inside _record_chore_transaction,
             # now notify sensors that data has changed
@@ -672,10 +665,10 @@ class StatisticsManager(BaseManager):
             )
             return
 
-        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
         assignee_chore_data = chore_data.get(chore_id, {})
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
-        daily_buckets = periods.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {})
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
+        daily_buckets = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {})
 
         # Get today's bucket key
         today_key = self._stats_engine.get_period_keys().get("daily")
@@ -683,7 +676,7 @@ class StatisticsManager(BaseManager):
         # Check if today's bucket already has missed >= 1 (max 1 per day rule)
         if today_key and today_key in daily_buckets:
             existing_missed = daily_buckets[today_key].get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_MISSED, 0
             )
             if existing_missed >= 1:
                 const.LOGGER.debug(
@@ -698,45 +691,45 @@ class StatisticsManager(BaseManager):
 
         # Build increments: missed counter + streak_tally snapshot
         increments: dict[str, int | float] = {
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED: 1,
+            const.DATA_USER_CHORE_DATA_PERIOD_MISSED: 1,
         }
 
         # Add missed_streak_tally if provided (Phase 5)
         if missed_streak_tally is not None:
-            increments[const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY] = (
+            increments[const.DATA_USER_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY] = (
                 missed_streak_tally
             )
 
             # Update missed_longest_streak in all_time bucket if new high
             all_time_container = periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+                const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
             )
             all_time_data = all_time_container.setdefault(const.PERIOD_ALL_TIME, {})
             current_missed_longest = all_time_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK, 0
             )
             if missed_streak_tally > current_missed_longest:
                 all_time_data[
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK
+                    const.DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK
                 ] = missed_streak_tally
 
                 # Also update assignee-level chore_periods for _chores sensor
                 assignee_chore_periods = assignee_info.get(
-                    const.DATA_ASSIGNEE_CHORE_PERIODS
+                    const.DATA_USER_CHORE_PERIODS
                 )
                 if assignee_chore_periods is not None:
                     assignee_all_time_container = assignee_chore_periods.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+                        const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
                     )
                     assignee_all_time_data = assignee_all_time_container.setdefault(
                         const.PERIOD_ALL_TIME, {}
                     )
                     assignee_current_missed_longest = assignee_all_time_data.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK, 0
+                        const.DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK, 0
                     )
                     if missed_streak_tally > assignee_current_missed_longest:
                         assignee_all_time_data[
-                            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK
+                            const.DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK
                         ] = missed_streak_tally
 
         # Proceed with increment (will create bucket if needed)
@@ -1031,7 +1024,7 @@ class StatisticsManager(BaseManager):
             return
 
         # Tenant responsibility: Update period data ONLY (no structure creation)
-        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_info.get(const.DATA_USER_BADGES_EARNED, {})
         badge_entry = badges_earned.get(badge_id)
 
         if not badge_entry:
@@ -1046,7 +1039,7 @@ class StatisticsManager(BaseManager):
         # Get periods bucket (Landlord should have created this)
         # Note: Use `is None` check, NOT `if not periods`, because Landlord
         # correctly creates an empty dict {} which is falsy but valid.
-        periods = badge_entry.get(const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS)
+        periods = badge_entry.get(const.DATA_USER_BADGES_EARNED_PERIODS)
         if periods is None:
             const.LOGGER.warning(
                 "StatisticsManager._on_badge_earned: Periods bucket missing (Landlord should create): assignee=%s, badge=%s",
@@ -1061,7 +1054,7 @@ class StatisticsManager(BaseManager):
 
         self._stats_engine.record_transaction(
             cast("dict[str, Any]", periods),
-            {const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 1},
+            {const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 1},
             period_key_mapping=period_mapping,
         )
 
@@ -1125,7 +1118,7 @@ class StatisticsManager(BaseManager):
             return
 
         # Tenant responsibility: Read periods created by Landlord (EconomyManager)
-        bonus_applies = assignee_info.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {})
+        bonus_applies = assignee_info.get(const.DATA_USER_BONUS_APPLIES, {})
         bonus_entry = bonus_applies.get(bonus_id)
         if not bonus_entry:
             const.LOGGER.warning(
@@ -1137,7 +1130,7 @@ class StatisticsManager(BaseManager):
 
         # Tenant: Get periods container from Landlord-created structure
         # (record_transaction will create daily/weekly/etc buckets on-demand)
-        periods = bonus_entry.get(const.DATA_ASSIGNEE_BONUS_PERIODS)
+        periods = bonus_entry.get(const.DATA_USER_BONUS_PERIODS)
         if periods is None:
             const.LOGGER.warning(
                 "StatisticsManager._on_bonus_applied: Periods key missing (Landlord should create): assignee=%s, bonus=%s",
@@ -1152,8 +1145,8 @@ class StatisticsManager(BaseManager):
         self._stats_engine.record_transaction(
             periods,
             {
-                const.DATA_ASSIGNEE_BONUS_PERIOD_APPLIES: 1,
-                const.DATA_ASSIGNEE_BONUS_PERIOD_POINTS: points,
+                const.DATA_USER_BONUS_PERIOD_APPLIES: 1,
+                const.DATA_USER_BONUS_PERIOD_POINTS: points,
             },
             reference_date=dt_obj,
         )
@@ -1218,7 +1211,7 @@ class StatisticsManager(BaseManager):
             return
 
         # Tenant responsibility: Read periods created by Landlord (EconomyManager)
-        penalty_applies = assignee_info.get(const.DATA_ASSIGNEE_PENALTY_APPLIES, {})
+        penalty_applies = assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {})
         penalty_entry = penalty_applies.get(penalty_id)
         if not penalty_entry:
             const.LOGGER.warning(
@@ -1230,7 +1223,7 @@ class StatisticsManager(BaseManager):
 
         # Tenant: Get periods container from Landlord-created structure
         # (record_transaction will create daily/weekly/etc buckets on-demand)
-        periods = penalty_entry.get(const.DATA_ASSIGNEE_PENALTY_PERIODS)
+        periods = penalty_entry.get(const.DATA_USER_PENALTY_PERIODS)
         if periods is None:
             const.LOGGER.warning(
                 "StatisticsManager._on_penalty_applied: Periods key missing (Landlord should create): assignee=%s, penalty=%s",
@@ -1245,8 +1238,8 @@ class StatisticsManager(BaseManager):
         self._stats_engine.record_transaction(
             periods,
             {
-                const.DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES: 1,
-                const.DATA_ASSIGNEE_PENALTY_PERIOD_POINTS: points,
+                const.DATA_USER_PENALTY_PERIOD_APPLIES: 1,
+                const.DATA_USER_PENALTY_PERIOD_POINTS: points,
             },
             reference_date=dt_obj,
         )
@@ -1274,8 +1267,8 @@ class StatisticsManager(BaseManager):
         the updated source data.
 
         Payload format (standard across all *_DATA_RESET_COMPLETE signals):
-            scope: "global" | "assignee" | "item_type" | "item"
-            assignee_id: str | None - specific assignee for assignee scope
+            scope: "global" | "user" | "item_type" | "item"
+            assignee_id: str | None - specific assignee for user scope
             item_id: str | None - specific item for item scope
 
         Args:
@@ -1293,7 +1286,7 @@ class StatisticsManager(BaseManager):
         if scope in {"global", "item_type"}:
             # Full reset - invalidate all caches
             self.invalidate_cache()
-        elif scope == "assignee" and assignee_id:
+        elif scope == const.DATA_RESET_SCOPE_USER and assignee_id:
             # Assignee-specific reset - only invalidate that assignee's cache
             self.invalidate_cache(assignee_id)
         elif scope == "item":
@@ -1347,7 +1340,7 @@ class StatisticsManager(BaseManager):
         # Phase 3B Tenant Rule: Guard against missing landlord-owned structures
         # ChoreManager (Landlord) creates chore_data on-demand via _get_assignee_chore_data()
         chore_data: dict[str, Any] | None = assignee_info.get(
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         )
         if chore_data is None:
             const.LOGGER.warning(
@@ -1372,7 +1365,7 @@ class StatisticsManager(BaseManager):
         # Phase 3B Tenant Rule: Use ChoreManager's Landlord-created periods structure
         # ChoreManager (Landlord) should have called _ensure_assignee_structures(assignee_id, chore_id)
         # before emitting the signal that triggered this transaction
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS)
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS)
         if periods is None:
             const.LOGGER.warning(
                 "StatisticsManager._record_chore_transaction: periods structure missing for "
@@ -1398,7 +1391,7 @@ class StatisticsManager(BaseManager):
         # Record transaction to per-chore period buckets
         # NOTE: Do NOT pass period_mapping as period_key_mapping!
         # period_mapping contains date strings like '2026-01-31'
-        # period_key_mapping expects structure keys like DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY
+        # period_key_mapping expects structure keys like DATA_USER_CHORE_DATA_PERIODS_DAILY
         # Engine will use default mapping which is correct for chore periods
         self._stats_engine.record_transaction(
             periods,
@@ -1408,7 +1401,7 @@ class StatisticsManager(BaseManager):
 
         # PHASE 2: Also record to assignee-level chore_periods bucket (v44+)
         # ChoreManager (Landlord) should have created this via _ensure_assignee_structures(assignee_id)
-        assignee_chore_periods = assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS)
+        assignee_chore_periods = assignee_info.get(const.DATA_USER_CHORE_PERIODS)
         if assignee_chore_periods is not None:
             # Record same transaction to aggregated bucket
             self._stats_engine.record_transaction(
@@ -1477,7 +1470,7 @@ class StatisticsManager(BaseManager):
         # Phase 3 Tenant Rule: Guard against missing landlord-owned structures
         # RewardManager (Landlord) creates reward_data on-demand via get_assignee_reward_data()
         reward_data: dict[str, Any] | None = assignee_info.get(
-            const.DATA_ASSIGNEE_REWARD_DATA
+            const.DATA_USER_REWARD_DATA
         )
         if reward_data is None:
             const.LOGGER.warning(
@@ -1502,7 +1495,7 @@ class StatisticsManager(BaseManager):
         # Phase 3 Tenant Rule: Use RewardManager's Landlord-created periods structure
         # RewardManager (Landlord) should have called _ensure_assignee_structures(assignee_id, reward_id)
         # before emitting the signal that triggered this transaction
-        periods = assignee_reward_data.get(const.DATA_ASSIGNEE_REWARD_DATA_PERIODS)
+        periods = assignee_reward_data.get(const.DATA_USER_REWARD_DATA_PERIODS)
         if periods is None:
             const.LOGGER.warning(
                 "StatisticsManager._record_reward_transaction: periods structure missing for "
@@ -1534,7 +1527,7 @@ class StatisticsManager(BaseManager):
 
         # PHASE 3: Also record to assignee-level reward_periods bucket (v43+)
         # RewardManager (Landlord) should have created this via _ensure_assignee_structures(assignee_id)
-        assignee_reward_periods = assignee_info.get(const.DATA_ASSIGNEE_REWARD_PERIODS)
+        assignee_reward_periods = assignee_info.get(const.DATA_USER_REWARD_PERIODS)
         if assignee_reward_periods is not None:
             # Record same transaction to aggregated bucket
             self._stats_engine.record_transaction(
@@ -1605,30 +1598,30 @@ class StatisticsManager(BaseManager):
 
         points_periods = cast(
             "dict[str, Any]",
-            assignee_info.get(const.DATA_ASSIGNEE_POINT_PERIODS, {}),
+            assignee_info.get(const.DATA_USER_POINT_PERIODS, {}),
         )
         chore_periods = cast(
             "dict[str, Any]",
-            assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {}),
+            assignee_info.get(const.DATA_USER_CHORE_PERIODS, {}),
         )
         reward_periods = cast(
             "dict[str, Any]",
-            assignee_info.get(const.DATA_ASSIGNEE_REWARD_PERIODS, {}),
+            assignee_info.get(const.DATA_USER_REWARD_PERIODS, {}),
         )
 
         bonus_periods = [
-            cast("dict[str, Any]", entry.get(const.DATA_ASSIGNEE_BONUS_PERIODS, {}))
+            cast("dict[str, Any]", entry.get(const.DATA_USER_BONUS_PERIODS, {}))
             for entry in cast(
                 "dict[str, Any]",
-                assignee_info.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {}),
+                assignee_info.get(const.DATA_USER_BONUS_APPLIES, {}),
             ).values()
             if isinstance(entry, dict)
         ]
         penalty_periods = [
-            cast("dict[str, Any]", entry.get(const.DATA_ASSIGNEE_PENALTY_PERIODS, {}))
+            cast("dict[str, Any]", entry.get(const.DATA_USER_PENALTY_PERIODS, {}))
             for entry in cast(
                 "dict[str, Any]",
-                assignee_info.get(const.DATA_ASSIGNEE_PENALTY_APPLIES, {}),
+                assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {}),
             ).values()
             if isinstance(entry, dict)
         ]
@@ -1636,8 +1629,8 @@ class StatisticsManager(BaseManager):
         points_rollup = self._rollup_period_metrics(
             points_periods,
             [
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT,
+                const.DATA_USER_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_USER_POINT_PERIOD_POINTS_SPENT,
             ],
             start_iso,
             end_iso,
@@ -1645,11 +1638,11 @@ class StatisticsManager(BaseManager):
         chores_rollup = self._rollup_period_metrics(
             chore_periods,
             [
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED,
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED,
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED,
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED,
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE,
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
+                const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED,
+                const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED,
+                const.DATA_USER_CHORE_DATA_PERIOD_MISSED,
+                const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE,
             ],
             start_iso,
             end_iso,
@@ -1657,10 +1650,10 @@ class StatisticsManager(BaseManager):
         rewards_rollup = self._rollup_period_metrics(
             reward_periods,
             [
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED,
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED,
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_DISAPPROVED,
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_POINTS,
+                const.DATA_USER_REWARD_DATA_PERIOD_APPROVED,
+                const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED,
+                const.DATA_USER_REWARD_DATA_PERIOD_DISAPPROVED,
+                const.DATA_USER_REWARD_DATA_PERIOD_POINTS,
             ],
             start_iso,
             end_iso,
@@ -1669,8 +1662,8 @@ class StatisticsManager(BaseManager):
         bonuses_rollup = self._rollup_period_collections(
             bonus_periods,
             [
-                const.DATA_ASSIGNEE_BONUS_PERIOD_APPLIES,
-                const.DATA_ASSIGNEE_BONUS_PERIOD_POINTS,
+                const.DATA_USER_BONUS_PERIOD_APPLIES,
+                const.DATA_USER_BONUS_PERIOD_POINTS,
             ],
             start_iso,
             end_iso,
@@ -1678,8 +1671,8 @@ class StatisticsManager(BaseManager):
         penalties_rollup = self._rollup_period_collections(
             penalty_periods,
             [
-                const.DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES,
-                const.DATA_ASSIGNEE_PENALTY_PERIOD_POINTS,
+                const.DATA_USER_PENALTY_PERIOD_APPLIES,
+                const.DATA_USER_PENALTY_PERIOD_POINTS,
             ],
             start_iso,
             end_iso,
@@ -1693,7 +1686,7 @@ class StatisticsManager(BaseManager):
                 "in_range_earned": round(
                     float(
                         points_rollup["in_range"][
-                            const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED
+                            const.DATA_USER_POINT_PERIOD_POINTS_EARNED
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
@@ -1701,7 +1694,7 @@ class StatisticsManager(BaseManager):
                 "in_range_spent": round(
                     float(
                         points_rollup["in_range"][
-                            const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT
+                            const.DATA_USER_POINT_PERIOD_POINTS_SPENT
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
@@ -1709,7 +1702,7 @@ class StatisticsManager(BaseManager):
                 "all_time_earned": round(
                     float(
                         points_rollup["all_time"][
-                            const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED
+                            const.DATA_USER_POINT_PERIOD_POINTS_EARNED
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
@@ -1717,7 +1710,7 @@ class StatisticsManager(BaseManager):
                 "all_time_spent": round(
                     float(
                         points_rollup["all_time"][
-                            const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT
+                            const.DATA_USER_POINT_PERIOD_POINTS_SPENT
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
@@ -1726,98 +1719,86 @@ class StatisticsManager(BaseManager):
             "chores": {
                 "in_range_approved": int(
                     chores_rollup["in_range"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
                     ]
                 ),
                 "in_range_claimed": int(
-                    chores_rollup["in_range"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED
-                    ]
+                    chores_rollup["in_range"][const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED]
                 ),
                 "in_range_disapproved": int(
                     chores_rollup["in_range"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED
                     ]
                 ),
                 "in_range_missed": int(
-                    chores_rollup["in_range"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED
-                    ]
+                    chores_rollup["in_range"][const.DATA_USER_CHORE_DATA_PERIOD_MISSED]
                 ),
                 "in_range_overdue": int(
-                    chores_rollup["in_range"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE
-                    ]
+                    chores_rollup["in_range"][const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE]
                 ),
                 "all_time_approved": int(
                     chores_rollup["all_time"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED
                     ]
                 ),
                 "all_time_claimed": int(
-                    chores_rollup["all_time"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED
-                    ]
+                    chores_rollup["all_time"][const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED]
                 ),
                 "all_time_disapproved": int(
                     chores_rollup["all_time"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED
                     ]
                 ),
                 "all_time_missed": int(
-                    chores_rollup["all_time"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED
-                    ]
+                    chores_rollup["all_time"][const.DATA_USER_CHORE_DATA_PERIOD_MISSED]
                 ),
                 "all_time_overdue": int(
-                    chores_rollup["all_time"][
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE
-                    ]
+                    chores_rollup["all_time"][const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE]
                 ),
             },
             "rewards": {
                 "in_range_approved": int(
                     rewards_rollup["in_range"][
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED
+                        const.DATA_USER_REWARD_DATA_PERIOD_APPROVED
                     ]
                 ),
                 "in_range_claimed": int(
                     rewards_rollup["in_range"][
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED
+                        const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED
                     ]
                 ),
                 "in_range_disapproved": int(
                     rewards_rollup["in_range"][
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_DISAPPROVED
+                        const.DATA_USER_REWARD_DATA_PERIOD_DISAPPROVED
                     ]
                 ),
                 "in_range_points_spent": round(
                     float(
                         rewards_rollup["in_range"][
-                            const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_POINTS
+                            const.DATA_USER_REWARD_DATA_PERIOD_POINTS
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
                 ),
                 "all_time_approved": int(
                     rewards_rollup["all_time"][
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED
+                        const.DATA_USER_REWARD_DATA_PERIOD_APPROVED
                     ]
                 ),
                 "all_time_claimed": int(
                     rewards_rollup["all_time"][
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED
+                        const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED
                     ]
                 ),
                 "all_time_disapproved": int(
                     rewards_rollup["all_time"][
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_DISAPPROVED
+                        const.DATA_USER_REWARD_DATA_PERIOD_DISAPPROVED
                     ]
                 ),
                 "all_time_points_spent": round(
                     float(
                         rewards_rollup["all_time"][
-                            const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_POINTS
+                            const.DATA_USER_REWARD_DATA_PERIOD_POINTS
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
@@ -1825,51 +1806,43 @@ class StatisticsManager(BaseManager):
             },
             "bonuses": {
                 "in_range_applies": int(
-                    bonuses_rollup["in_range"][const.DATA_ASSIGNEE_BONUS_PERIOD_APPLIES]
+                    bonuses_rollup["in_range"][const.DATA_USER_BONUS_PERIOD_APPLIES]
                 ),
                 "in_range_points": round(
                     float(
-                        bonuses_rollup["in_range"][
-                            const.DATA_ASSIGNEE_BONUS_PERIOD_POINTS
-                        ]
+                        bonuses_rollup["in_range"][const.DATA_USER_BONUS_PERIOD_POINTS]
                     ),
                     const.DATA_FLOAT_PRECISION,
                 ),
                 "all_time_applies": int(
-                    bonuses_rollup["all_time"][const.DATA_ASSIGNEE_BONUS_PERIOD_APPLIES]
+                    bonuses_rollup["all_time"][const.DATA_USER_BONUS_PERIOD_APPLIES]
                 ),
                 "all_time_points": round(
                     float(
-                        bonuses_rollup["all_time"][
-                            const.DATA_ASSIGNEE_BONUS_PERIOD_POINTS
-                        ]
+                        bonuses_rollup["all_time"][const.DATA_USER_BONUS_PERIOD_POINTS]
                     ),
                     const.DATA_FLOAT_PRECISION,
                 ),
             },
             "penalties": {
                 "in_range_applies": int(
-                    penalties_rollup["in_range"][
-                        const.DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES
-                    ]
+                    penalties_rollup["in_range"][const.DATA_USER_PENALTY_PERIOD_APPLIES]
                 ),
                 "in_range_points": round(
                     float(
                         penalties_rollup["in_range"][
-                            const.DATA_ASSIGNEE_PENALTY_PERIOD_POINTS
+                            const.DATA_USER_PENALTY_PERIOD_POINTS
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
                 ),
                 "all_time_applies": int(
-                    penalties_rollup["all_time"][
-                        const.DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES
-                    ]
+                    penalties_rollup["all_time"][const.DATA_USER_PENALTY_PERIOD_APPLIES]
                 ),
                 "all_time_points": round(
                     float(
                         penalties_rollup["all_time"][
-                            const.DATA_ASSIGNEE_PENALTY_PERIOD_POINTS
+                            const.DATA_USER_PENALTY_PERIOD_POINTS
                         ]
                     ),
                     const.DATA_FLOAT_PRECISION,
@@ -1993,22 +1966,20 @@ class StatisticsManager(BaseManager):
         current_streak = 0
         current_missed_streak = 0
 
-        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
         if isinstance(assignee_chore_data, dict):
             for chore_data in assignee_chore_data.values():
                 if not isinstance(chore_data, dict):
                     continue
                 current_streak = max(
                     current_streak,
-                    int(
-                        chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK, 0)
-                    ),
+                    int(chore_data.get(const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0)),
                 )
                 current_missed_streak = max(
                     current_missed_streak,
                     int(
                         chore_data.get(
-                            const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK,
+                            const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK,
                             0,
                         )
                     ),
@@ -2021,14 +1992,14 @@ class StatisticsManager(BaseManager):
                 self._stats_engine.get_period_total(
                     chore_periods,
                     const.PERIOD_ALL_TIME,
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK,
+                    const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK,
                 )
             ),
             "all_time_longest_missed_streak": int(
                 self._stats_engine.get_period_total(
                     chore_periods,
                     const.PERIOD_ALL_TIME,
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK,
+                    const.DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK,
                 )
             ),
         }
@@ -2037,7 +2008,7 @@ class StatisticsManager(BaseManager):
         """Build badge rollup with per-badge details from assignee badge data."""
         badges_earned = cast(
             "dict[str, Any]",
-            assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            assignee_info.get(const.DATA_USER_BADGES_EARNED, {}),
         )
         if not isinstance(badges_earned, dict):
             return {
@@ -2056,12 +2027,12 @@ class StatisticsManager(BaseManager):
                 continue
 
             badge_name = str(
-                badge_info.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME, "")
+                badge_info.get(const.DATA_USER_BADGES_EARNED_NAME, "")
             ).strip()
             if badge_name:
                 earned_badge_names.append(badge_name)
 
-            periods = badge_info.get(const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS, {})
+            periods = badge_info.get(const.DATA_USER_BADGES_EARNED_PERIODS, {})
             award_count = 0
             if isinstance(periods, dict):
                 all_time_bucket = periods.get(const.PERIOD_ALL_TIME, {})
@@ -2069,16 +2040,14 @@ class StatisticsManager(BaseManager):
                     all_time_entry = all_time_bucket.get(const.PERIOD_ALL_TIME, {})
                     if isinstance(all_time_entry, dict):
                         raw_count = all_time_entry.get(
-                            const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT,
+                            const.DATA_USER_BADGES_EARNED_AWARD_COUNT,
                             0,
                         )
                         if isinstance(raw_count, (int, float)):
                             award_count = int(raw_count)
 
             if award_count == 0:
-                raw_count = badge_info.get(
-                    const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT, 0
-                )
+                raw_count = badge_info.get(const.DATA_USER_BADGES_EARNED_AWARD_COUNT, 0)
                 if isinstance(raw_count, (int, float)):
                     award_count = int(raw_count)
 
@@ -2087,7 +2056,7 @@ class StatisticsManager(BaseManager):
                 "badge_id": str(badge_id),
                 "badge_name": badge_name,
                 "last_awarded_date": badge_info.get(
-                    const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED
+                    const.DATA_USER_BADGES_EARNED_LAST_AWARDED
                 ),
                 "all_time_award_count": award_count,
                 "periods": periods if isinstance(periods, dict) else {},
@@ -2184,7 +2153,7 @@ class StatisticsManager(BaseManager):
             }
 
         chore_data = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_DATA, {})
         )
 
         total_earned = 0.0
@@ -2195,21 +2164,21 @@ class StatisticsManager(BaseManager):
             chore_entry = cast("dict[str, Any]", chore_data.get(chore_id, {}))
             periods = cast(
                 "dict[str, Any]",
-                chore_entry.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {}),
+                chore_entry.get(const.DATA_USER_CHORE_DATA_PERIODS, {}),
             )
 
             total_earned += float(
                 self._stats_engine.get_period_total(
                     periods,
                     const.PERIOD_ALL_TIME,
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS,
+                    const.DATA_USER_CHORE_DATA_PERIOD_POINTS,
                 )
             )
             today_points += float(
                 self._stats_engine.get_period_total(
                     periods,
                     const.PERIOD_DAILY,
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS,
+                    const.DATA_USER_CHORE_DATA_PERIOD_POINTS,
                     period_key=today_iso,
                 )
             )
@@ -2217,7 +2186,7 @@ class StatisticsManager(BaseManager):
                 self._stats_engine.get_period_total(
                     periods,
                     const.PERIOD_DAILY,
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED,
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
                     period_key=today_iso,
                 )
             )
@@ -2230,11 +2199,9 @@ class StatisticsManager(BaseManager):
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
         streak_yesterday = (
-            str(progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, ""))
+            str(progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, ""))
             == str(yesterday_iso)
-            and int(
-                progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
-            )
+            and int(progress.get(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0))
             > 0
         )
 
@@ -2275,7 +2242,7 @@ class StatisticsManager(BaseManager):
             }
 
         chore_data = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_DATA, {})
         )
 
         approved_count = 0
@@ -2294,7 +2261,7 @@ class StatisticsManager(BaseManager):
             chore_entry = cast("dict[str, Any]", chore_data.get(chore_id, {}))
             periods = cast(
                 "dict[str, Any]",
-                chore_entry.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {}),
+                chore_entry.get(const.DATA_USER_CHORE_DATA_PERIODS, {}),
             )
 
             total_count += 1
@@ -2303,7 +2270,7 @@ class StatisticsManager(BaseManager):
                 self._stats_engine.get_period_total(
                     periods,
                     const.PERIOD_DAILY,
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED,
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED,
                     period_key=today_iso,
                 )
             )
@@ -2311,7 +2278,7 @@ class StatisticsManager(BaseManager):
                 approved_count += 1
 
             if (
-                chore_entry.get(const.DATA_ASSIGNEE_CHORE_DATA_STATE)
+                chore_entry.get(const.DATA_USER_CHORE_DATA_STATE)
                 == const.CHORE_STATE_OVERDUE
             ):
                 has_overdue = True
@@ -2398,7 +2365,7 @@ class StatisticsManager(BaseManager):
 
         # Set last updated timestamp
         cache = self._stats_cache.setdefault(assignee_id, {})
-        cache[const.PRES_ASSIGNEE_LAST_UPDATED] = dt_now_local().isoformat()
+        cache[const.PRES_USER_LAST_UPDATED] = dt_now_local().isoformat()
 
     def _refresh_point_cache(self, assignee_id: str) -> None:
         """Refresh point statistics cache for a assignee.
@@ -2414,7 +2381,7 @@ class StatisticsManager(BaseManager):
             return
 
         cache = self._stats_cache.setdefault(assignee_id, {})
-        pts_periods = assignee_info.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
+        pts_periods = assignee_info.get(const.DATA_USER_POINT_PERIODS, {})
 
         now_local = dt_now_local()
         today_local_iso = now_local.date().isoformat()
@@ -2432,15 +2399,15 @@ class StatisticsManager(BaseManager):
             """
             period = pts_periods.get(period_key, {})
             entry = period.get(period_id, {})
-            by_source = entry.get(const.DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE, {})
+            by_source = entry.get(const.DATA_USER_POINT_PERIOD_BY_SOURCE, {})
 
             # Read earned/spent directly from period entry (v44+ structure)
             earned = round(
-                entry.get(const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED, 0.0),
+                entry.get(const.DATA_USER_POINT_PERIOD_POINTS_EARNED, 0.0),
                 const.DATA_FLOAT_PRECISION,
             )
             spent = round(
-                entry.get(const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT, 0.0),
+                entry.get(const.DATA_USER_POINT_PERIOD_POINTS_SPENT, 0.0),
                 const.DATA_FLOAT_PRECISION,
             )
             # Net is DERIVED (earned + spent, where spent is negative)
@@ -2449,50 +2416,50 @@ class StatisticsManager(BaseManager):
 
         # Daily
         earned, spent, net, by_source = get_period_values(
-            const.DATA_ASSIGNEE_POINT_PERIODS_DAILY, today_local_iso
+            const.DATA_USER_POINT_PERIODS_DAILY, today_local_iso
         )
-        cache[const.PRES_ASSIGNEE_POINTS_EARNED_TODAY] = earned
-        cache[const.PRES_ASSIGNEE_POINTS_SPENT_TODAY] = spent
-        cache[const.PRES_ASSIGNEE_POINTS_NET_TODAY] = net
-        cache[const.PRES_ASSIGNEE_POINTS_BY_SOURCE_TODAY] = by_source
+        cache[const.PRES_USER_POINTS_EARNED_TODAY] = earned
+        cache[const.PRES_USER_POINTS_SPENT_TODAY] = spent
+        cache[const.PRES_USER_POINTS_NET_TODAY] = net
+        cache[const.PRES_USER_POINTS_BY_SOURCE_TODAY] = by_source
 
         # Weekly
         earned, spent, net, by_source = get_period_values(
-            const.DATA_ASSIGNEE_POINT_PERIODS_WEEKLY, week_local_iso
+            const.DATA_USER_POINT_PERIODS_WEEKLY, week_local_iso
         )
-        cache[const.PRES_ASSIGNEE_POINTS_EARNED_WEEK] = earned
-        cache[const.PRES_ASSIGNEE_POINTS_SPENT_WEEK] = spent
-        cache[const.PRES_ASSIGNEE_POINTS_NET_WEEK] = net
-        cache[const.PRES_ASSIGNEE_POINTS_BY_SOURCE_WEEK] = by_source
+        cache[const.PRES_USER_POINTS_EARNED_WEEK] = earned
+        cache[const.PRES_USER_POINTS_SPENT_WEEK] = spent
+        cache[const.PRES_USER_POINTS_NET_WEEK] = net
+        cache[const.PRES_USER_POINTS_BY_SOURCE_WEEK] = by_source
 
         # Monthly
         earned, spent, net, by_source = get_period_values(
-            const.DATA_ASSIGNEE_POINT_PERIODS_MONTHLY, month_local_iso
+            const.DATA_USER_POINT_PERIODS_MONTHLY, month_local_iso
         )
-        cache[const.PRES_ASSIGNEE_POINTS_EARNED_MONTH] = earned
-        cache[const.PRES_ASSIGNEE_POINTS_SPENT_MONTH] = spent
-        cache[const.PRES_ASSIGNEE_POINTS_NET_MONTH] = net
-        cache[const.PRES_ASSIGNEE_POINTS_BY_SOURCE_MONTH] = by_source
+        cache[const.PRES_USER_POINTS_EARNED_MONTH] = earned
+        cache[const.PRES_USER_POINTS_SPENT_MONTH] = spent
+        cache[const.PRES_USER_POINTS_NET_MONTH] = net
+        cache[const.PRES_USER_POINTS_BY_SOURCE_MONTH] = by_source
 
         # Yearly
         earned, spent, net, by_source = get_period_values(
-            const.DATA_ASSIGNEE_POINT_PERIODS_YEARLY, year_local_iso
+            const.DATA_USER_POINT_PERIODS_YEARLY, year_local_iso
         )
-        cache[const.PRES_ASSIGNEE_POINTS_EARNED_YEAR] = earned
-        cache[const.PRES_ASSIGNEE_POINTS_SPENT_YEAR] = spent
-        cache[const.PRES_ASSIGNEE_POINTS_NET_YEAR] = net
-        cache[const.PRES_ASSIGNEE_POINTS_BY_SOURCE_YEAR] = by_source
+        cache[const.PRES_USER_POINTS_EARNED_YEAR] = earned
+        cache[const.PRES_USER_POINTS_SPENT_YEAR] = spent
+        cache[const.PRES_USER_POINTS_NET_YEAR] = net
+        cache[const.PRES_USER_POINTS_BY_SOURCE_YEAR] = by_source
 
         # Averages (derived from period aggregates)
         days_in_week = 7
         days_in_month = 30  # Approximate
-        week_earned = cache.get(const.PRES_ASSIGNEE_POINTS_EARNED_WEEK, 0.0)
-        month_earned = cache.get(const.PRES_ASSIGNEE_POINTS_EARNED_MONTH, 0.0)
-        cache[const.PRES_ASSIGNEE_POINTS_AVG_PER_DAY_WEEK] = round(
+        week_earned = cache.get(const.PRES_USER_POINTS_EARNED_WEEK, 0.0)
+        month_earned = cache.get(const.PRES_USER_POINTS_EARNED_MONTH, 0.0)
+        cache[const.PRES_USER_POINTS_AVG_PER_DAY_WEEK] = round(
             week_earned / days_in_week if week_earned else 0.0,
             const.DATA_FLOAT_PRECISION,
         )
-        cache[const.PRES_ASSIGNEE_POINTS_AVG_PER_DAY_MONTH] = round(
+        cache[const.PRES_USER_POINTS_AVG_PER_DAY_MONTH] = round(
             month_earned / days_in_month if month_earned else 0.0,
             const.DATA_FLOAT_PRECISION,
         )
@@ -2514,7 +2481,7 @@ class StatisticsManager(BaseManager):
         cache = self._stats_cache.setdefault(assignee_id, {})
 
         # === Temporal aggregates from period buckets ===
-        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
 
         now_local = dt_now_local()
         today_local = now_local.date()
@@ -2557,10 +2524,10 @@ class StatisticsManager(BaseManager):
         current_due_today = 0
 
         for chore_id, chore_info in chore_data.items():
-            periods = chore_info.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+            periods = chore_info.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
 
             # === Snapshot counts based on current state ===
-            state = chore_info.get(const.DATA_ASSIGNEE_CHORE_DATA_STATE)
+            state = chore_info.get(const.DATA_USER_CHORE_DATA_STATE)
             if state == const.CHORE_STATE_OVERDUE:
                 current_overdue += 1
             elif state == const.CHORE_STATE_CLAIMED:
@@ -2598,95 +2565,69 @@ class StatisticsManager(BaseManager):
                     pass
 
             # Daily
-            daily_periods = periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {}
-            )
+            daily_periods = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {})
             today_entry = daily_periods.get(today_local_iso, {})
             approved_today += today_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
             )
             completed_today += today_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
             )
             claimed_today += today_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
             )
-            missed_today += today_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0
-            )
-            points_today += today_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS, 0
-            )
+            missed_today += today_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_MISSED, 0)
+            points_today += today_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0)
 
             # Weekly
-            weekly_periods = periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY, {}
-            )
+            weekly_periods = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_WEEKLY, {})
             week_entry = weekly_periods.get(week_local_iso, {})
             week_completed = week_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
             )
             approved_week += week_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
             )
             completed_week += week_completed
-            claimed_week += week_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED, 0
-            )
-            missed_week += week_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0
-            )
-            points_week += week_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS, 0
-            )
+            claimed_week += week_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0)
+            missed_week += week_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_MISSED, 0)
+            points_week += week_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0)
             if week_completed > 0:
                 chore_completed_week[chore_id] = week_completed
 
             # Monthly
             monthly_periods = periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY, {}
+                const.DATA_USER_CHORE_DATA_PERIODS_MONTHLY, {}
             )
             month_entry = monthly_periods.get(month_local_iso, {})
             month_completed = month_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
             )
             approved_month += month_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
             )
             completed_month += month_completed
             claimed_month += month_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0
             )
-            missed_month += month_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0
-            )
-            points_month += month_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS, 0
-            )
+            missed_month += month_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_MISSED, 0)
+            points_month += month_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0)
             if month_completed > 0:
                 chore_completed_month[chore_id] = month_completed
 
             # Yearly
-            yearly_periods = periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY, {}
-            )
+            yearly_periods = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_YEARLY, {})
             year_entry = yearly_periods.get(year_local_iso, {})
             year_completed = year_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
             )
             approved_year += year_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
             )
             completed_year += year_completed
-            claimed_year += year_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED, 0
-            )
-            missed_year += year_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0
-            )
-            points_year += year_entry.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS, 0
-            )
+            claimed_year += year_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED, 0)
+            missed_year += year_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_MISSED, 0)
+            points_year += year_entry.get(const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0)
             if year_completed > 0:
                 chore_completed_year[chore_id] = year_completed
 
@@ -2696,42 +2637,42 @@ class StatisticsManager(BaseManager):
         # by _record_chore_transaction() writing to both per-chore and assignee-level buckets
 
         # Store snapshot counts in cache (computed inline above)
-        cache[const.PRES_ASSIGNEE_CHORES_CURRENT_OVERDUE] = current_overdue
-        cache[const.PRES_ASSIGNEE_CHORES_CURRENT_CLAIMED] = current_claimed
-        cache[const.PRES_ASSIGNEE_CHORES_CURRENT_APPROVED] = current_approved
-        cache[const.PRES_ASSIGNEE_CHORES_CURRENT_DUE_TODAY] = current_due_today
+        cache[const.PRES_USER_CHORES_CURRENT_OVERDUE] = current_overdue
+        cache[const.PRES_USER_CHORES_CURRENT_CLAIMED] = current_claimed
+        cache[const.PRES_USER_CHORES_CURRENT_APPROVED] = current_approved
+        cache[const.PRES_USER_CHORES_CURRENT_DUE_TODAY] = current_due_today
 
         # Store temporal aggregates in cache
-        cache[const.PRES_ASSIGNEE_CHORES_APPROVED_TODAY] = approved_today
-        cache[const.PRES_ASSIGNEE_CHORES_APPROVED_WEEK] = approved_week
-        cache[const.PRES_ASSIGNEE_CHORES_APPROVED_MONTH] = approved_month
-        cache[const.PRES_ASSIGNEE_CHORES_APPROVED_YEAR] = approved_year
+        cache[const.PRES_USER_CHORES_APPROVED_TODAY] = approved_today
+        cache[const.PRES_USER_CHORES_APPROVED_WEEK] = approved_week
+        cache[const.PRES_USER_CHORES_APPROVED_MONTH] = approved_month
+        cache[const.PRES_USER_CHORES_APPROVED_YEAR] = approved_year
         # NOTE: all_time stats omitted from cache - must be read from storage only
-        cache[const.PRES_ASSIGNEE_CHORES_COMPLETED_TODAY] = completed_today
-        cache[const.PRES_ASSIGNEE_CHORES_COMPLETED_WEEK] = completed_week
-        cache[const.PRES_ASSIGNEE_CHORES_COMPLETED_MONTH] = completed_month
-        cache[const.PRES_ASSIGNEE_CHORES_COMPLETED_YEAR] = completed_year
+        cache[const.PRES_USER_CHORES_COMPLETED_TODAY] = completed_today
+        cache[const.PRES_USER_CHORES_COMPLETED_WEEK] = completed_week
+        cache[const.PRES_USER_CHORES_COMPLETED_MONTH] = completed_month
+        cache[const.PRES_USER_CHORES_COMPLETED_YEAR] = completed_year
         # NOTE: all_time stats omitted from cache - must be read from storage only
-        cache[const.PRES_ASSIGNEE_CHORES_CLAIMED_TODAY] = claimed_today
-        cache[const.PRES_ASSIGNEE_CHORES_CLAIMED_WEEK] = claimed_week
-        cache[const.PRES_ASSIGNEE_CHORES_CLAIMED_MONTH] = claimed_month
-        cache[const.PRES_ASSIGNEE_CHORES_CLAIMED_YEAR] = claimed_year
+        cache[const.PRES_USER_CHORES_CLAIMED_TODAY] = claimed_today
+        cache[const.PRES_USER_CHORES_CLAIMED_WEEK] = claimed_week
+        cache[const.PRES_USER_CHORES_CLAIMED_MONTH] = claimed_month
+        cache[const.PRES_USER_CHORES_CLAIMED_YEAR] = claimed_year
         # NOTE: all_time stats omitted from cache - must be read from storage only
-        cache[const.PRES_ASSIGNEE_CHORES_MISSED_TODAY] = missed_today
-        cache[const.PRES_ASSIGNEE_CHORES_MISSED_WEEK] = missed_week
-        cache[const.PRES_ASSIGNEE_CHORES_MISSED_MONTH] = missed_month
-        cache[const.PRES_ASSIGNEE_CHORES_MISSED_YEAR] = missed_year
+        cache[const.PRES_USER_CHORES_MISSED_TODAY] = missed_today
+        cache[const.PRES_USER_CHORES_MISSED_WEEK] = missed_week
+        cache[const.PRES_USER_CHORES_MISSED_MONTH] = missed_month
+        cache[const.PRES_USER_CHORES_MISSED_YEAR] = missed_year
         # NOTE: all_time stats omitted from cache - must be read from storage only
-        cache[const.PRES_ASSIGNEE_CHORES_POINTS_TODAY] = round(
+        cache[const.PRES_USER_CHORES_POINTS_TODAY] = round(
             points_today, const.DATA_FLOAT_PRECISION
         )
-        cache[const.PRES_ASSIGNEE_CHORES_POINTS_WEEK] = round(
+        cache[const.PRES_USER_CHORES_POINTS_WEEK] = round(
             points_week, const.DATA_FLOAT_PRECISION
         )
-        cache[const.PRES_ASSIGNEE_CHORES_POINTS_MONTH] = round(
+        cache[const.PRES_USER_CHORES_POINTS_MONTH] = round(
             points_month, const.DATA_FLOAT_PRECISION
         )
-        cache[const.PRES_ASSIGNEE_CHORES_POINTS_YEAR] = round(
+        cache[const.PRES_USER_CHORES_POINTS_YEAR] = round(
             points_year, const.DATA_FLOAT_PRECISION
         )
         # NOTE: all_time stats omitted from cache - must be read from storage only
@@ -2740,15 +2681,15 @@ class StatisticsManager(BaseManager):
         days_in_week = 7
         days_in_month = 30  # Approximate
         days_in_year = 365  # Approximate
-        cache[const.PRES_ASSIGNEE_CHORES_AVG_PER_DAY_WEEK] = round(
+        cache[const.PRES_USER_CHORES_AVG_PER_DAY_WEEK] = round(
             completed_week / days_in_week if completed_week else 0.0,
             const.DATA_FLOAT_PRECISION,
         )
-        cache[const.PRES_ASSIGNEE_CHORES_AVG_PER_DAY_MONTH] = round(
+        cache[const.PRES_USER_CHORES_AVG_PER_DAY_MONTH] = round(
             completed_month / days_in_month if completed_month else 0.0,
             const.DATA_FLOAT_PRECISION,
         )
-        cache[const.PRES_ASSIGNEE_CHORES_AVG_PER_DAY_YEAR] = round(
+        cache[const.PRES_USER_CHORES_AVG_PER_DAY_YEAR] = round(
             completed_year / days_in_year if completed_year else 0.0,
             const.DATA_FLOAT_PRECISION,
         )
@@ -2764,11 +2705,9 @@ class StatisticsManager(BaseManager):
             )
             return str(chore_def.get(const.DATA_CHORE_NAME, ""))
 
-        cache[const.PRES_ASSIGNEE_TOP_CHORES_WEEK] = get_top_chore(chore_completed_week)
-        cache[const.PRES_ASSIGNEE_TOP_CHORES_MONTH] = get_top_chore(
-            chore_completed_month
-        )
-        cache[const.PRES_ASSIGNEE_TOP_CHORES_YEAR] = get_top_chore(chore_completed_year)
+        cache[const.PRES_USER_TOP_CHORES_WEEK] = get_top_chore(chore_completed_week)
+        cache[const.PRES_USER_TOP_CHORES_MONTH] = get_top_chore(chore_completed_month)
+        cache[const.PRES_USER_TOP_CHORES_YEAR] = get_top_chore(chore_completed_year)
 
     def _refresh_reward_cache(self, assignee_id: str) -> None:
         """Refresh reward statistics cache for a assignee.
@@ -2784,7 +2723,7 @@ class StatisticsManager(BaseManager):
             return
 
         cache = self._stats_cache.setdefault(assignee_id, {})
-        reward_data = assignee_info.get(const.DATA_ASSIGNEE_REWARD_DATA, {})
+        reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
 
         now_local = dt_now_local()
         today_local_iso = now_local.date().isoformat()
@@ -2800,51 +2739,47 @@ class StatisticsManager(BaseManager):
         approved_month = 0
 
         for _reward_id, reward_info in reward_data.items():
-            periods = reward_info.get(const.DATA_ASSIGNEE_REWARD_DATA_PERIODS, {})
+            periods = reward_info.get(const.DATA_USER_REWARD_DATA_PERIODS, {})
 
             # Daily
-            daily_periods = periods.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_DAILY, {}
-            )
+            daily_periods = periods.get(const.DATA_USER_REWARD_DATA_PERIODS_DAILY, {})
             today_entry = daily_periods.get(today_local_iso, {})
             claimed_today += today_entry.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED, 0
+                const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED, 0
             )
             approved_today += today_entry.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_REWARD_DATA_PERIOD_APPROVED, 0
             )
 
             # Weekly
-            weekly_periods = periods.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_WEEKLY, {}
-            )
+            weekly_periods = periods.get(const.DATA_USER_REWARD_DATA_PERIODS_WEEKLY, {})
             week_entry = weekly_periods.get(week_local_iso, {})
             claimed_week += week_entry.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED, 0
+                const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED, 0
             )
             approved_week += week_entry.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_REWARD_DATA_PERIOD_APPROVED, 0
             )
 
             # Monthly
             monthly_periods = periods.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_MONTHLY, {}
+                const.DATA_USER_REWARD_DATA_PERIODS_MONTHLY, {}
             )
             month_entry = monthly_periods.get(month_local_iso, {})
             claimed_month += month_entry.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED, 0
+                const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED, 0
             )
             approved_month += month_entry.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_REWARD_DATA_PERIOD_APPROVED, 0
             )
 
         # Store in cache
-        cache[const.PRES_ASSIGNEE_REWARDS_CLAIMED_TODAY] = claimed_today
-        cache[const.PRES_ASSIGNEE_REWARDS_CLAIMED_WEEK] = claimed_week
-        cache[const.PRES_ASSIGNEE_REWARDS_CLAIMED_MONTH] = claimed_month
-        cache[const.PRES_ASSIGNEE_REWARDS_APPROVED_TODAY] = approved_today
-        cache[const.PRES_ASSIGNEE_REWARDS_APPROVED_WEEK] = approved_week
-        cache[const.PRES_ASSIGNEE_REWARDS_APPROVED_MONTH] = approved_month
+        cache[const.PRES_USER_REWARDS_CLAIMED_TODAY] = claimed_today
+        cache[const.PRES_USER_REWARDS_CLAIMED_WEEK] = claimed_week
+        cache[const.PRES_USER_REWARDS_CLAIMED_MONTH] = claimed_month
+        cache[const.PRES_USER_REWARDS_APPROVED_TODAY] = approved_today
+        cache[const.PRES_USER_REWARDS_APPROVED_WEEK] = approved_week
+        cache[const.PRES_USER_REWARDS_APPROVED_MONTH] = approved_month
 
     def invalidate_cache(self, assignee_id: str | None = None) -> None:
         """Invalidate presentation cache (Phase 7.5).
@@ -2944,21 +2879,19 @@ class StatisticsManager(BaseManager):
                 continue
 
             # Navigate to per-chore period data
-            chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             assignee_chore_data = chore_data.get(chore_id, {})
-            periods = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {}
-            )
+            periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
 
             # Get all_time bucket (nested structure: periods["all_time"]["all_time"])
             all_time_container = periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+                const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
             )
             all_time_data = all_time_container.get(const.PERIOD_ALL_TIME, {})
 
             # Extract completed count (work done)
             completed_count = all_time_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, 0
             )
             result[assignee_id] = int(completed_count)
 
@@ -2994,12 +2927,12 @@ class StatisticsManager(BaseManager):
                 continue
 
             # Navigate to per-chore data
-            chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             assignee_chore_data = chore_data.get(chore_id, {})
 
             # Get last_completed timestamp (when assignee did the work)
             last_completed = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
+                const.DATA_USER_CHORE_DATA_LAST_COMPLETED
             )
             result[assignee_id] = last_completed
 

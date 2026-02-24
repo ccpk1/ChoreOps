@@ -27,26 +27,17 @@ from tests.helpers import (
     BADGE_TYPE_PERIODIC,
     BADGE_TYPE_SPECIAL_OCCASION,
     # Config/Options flow field names - Achievements
-    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS,
     CFOF_ACHIEVEMENTS_INPUT_DESCRIPTION,
     CFOF_ACHIEVEMENTS_INPUT_ICON,
     CFOF_ACHIEVEMENTS_INPUT_NAME,
     CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS,
     CFOF_ACHIEVEMENTS_INPUT_TARGET_VALUE,
     CFOF_ACHIEVEMENTS_INPUT_TYPE,
-    # Config/Options flow field names - Approvers
-    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
-    CFOF_APPROVERS_INPUT_CAN_APPROVE,
-    CFOF_APPROVERS_INPUT_CAN_MANAGE,
-    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
-    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
     CFOF_APPROVERS_INPUT_HA_USER,
     CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
     CFOF_APPROVERS_INPUT_NAME,
     CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME,
-    # Config/Options flow field names - Assignees
-    CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
     CFOF_ASSIGNEES_INPUT_HA_USER,
     CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE,
     # Config/Options flow field names - Badges
@@ -67,7 +58,7 @@ from tests.helpers import (
     CFOF_BONUSES_INPUT_NAME,
     CFOF_BONUSES_INPUT_POINTS,
     # Config/Options flow field names - Challenges
-    CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHALLENGES_INPUT_DESCRIPTION,
     CFOF_CHALLENGES_INPUT_END_DATE,
     CFOF_CHALLENGES_INPUT_ICON,
@@ -77,7 +68,7 @@ from tests.helpers import (
     CFOF_CHALLENGES_INPUT_TARGET_VALUE,
     CFOF_CHALLENGES_INPUT_TYPE,
     # Config/Options flow field names - Chores
-    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_DESCRIPTION,
@@ -94,6 +85,15 @@ from tests.helpers import (
     CFOF_REWARDS_INPUT_DESCRIPTION,
     CFOF_REWARDS_INPUT_ICON,
     CFOF_REWARDS_INPUT_NAME,
+    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+    CFOF_USERS_INPUT_CAN_APPROVE,
+    # Config/Options flow field names - Approvers
+    CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    CFOF_USERS_INPUT_CAN_MANAGE,
+    # Config/Options flow field names - Assignees
+    CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
+    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
     # Domain and coordinator
     DOMAIN,
     # Options flow navigation constants
@@ -137,7 +137,7 @@ class FlowTestHelper:
         return {
             CFOF_ASSIGNEES_INPUT_ASSIGNEE_NAME: yaml_assignee["name"],
             CFOF_ASSIGNEES_INPUT_HA_USER: ha_user,
-            CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: yaml_assignee.get(
+            CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: yaml_assignee.get(
                 "dashboard_language", "en"
             ),
             CFOF_ASSIGNEES_INPUT_MOBILE_NOTIFY_SERVICE: notify_service,
@@ -166,19 +166,20 @@ class FlowTestHelper:
         return {
             CFOF_APPROVERS_INPUT_NAME: yaml_approver["name"],
             CFOF_APPROVERS_INPUT_HA_USER: ha_user,
-            CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: yaml_approver.get(
+            CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: yaml_approver.get(
                 "associated_assignees", []
             ),
             CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: notify_service,
-            CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: yaml_approver.get(
-                "allow_chore_assignment", False
+            CFOF_USERS_INPUT_CAN_BE_ASSIGNED: yaml_approver.get(
+                "can_be_assigned",
+                yaml_approver.get("allow_chore_assignment", False),
             ),
-            CFOF_APPROVERS_INPUT_CAN_APPROVE: yaml_approver.get("can_approve", False),
-            CFOF_APPROVERS_INPUT_CAN_MANAGE: yaml_approver.get("can_manage", False),
-            CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: yaml_approver.get(
+            CFOF_USERS_INPUT_CAN_APPROVE: yaml_approver.get("can_approve", False),
+            CFOF_USERS_INPUT_CAN_MANAGE: yaml_approver.get("can_manage", False),
+            CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: yaml_approver.get(
                 "enable_chore_workflow", False
             ),
-            CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: yaml_approver.get(
+            CFOF_USERS_INPUT_ENABLE_GAMIFICATION: yaml_approver.get(
                 "enable_gamification", False
             ),
         }
@@ -213,7 +214,7 @@ class FlowTestHelper:
             CFOF_CHORES_INPUT_DEFAULT_POINTS: yaml_chore.get("points", 10),
             CFOF_CHORES_INPUT_ICON: yaml_chore.get("icon", "mdi:check"),
             CFOF_CHORES_INPUT_DESCRIPTION: yaml_chore.get("description", ""),
-            CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: yaml_chore.get("assigned_to", []),
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: yaml_chore.get("assigned_to", []),
             CFOF_CHORES_INPUT_RECURRING_FREQUENCY: recurring_frequency,
             CFOF_CHORES_INPUT_COMPLETION_CRITERIA: yaml_chore.get(
                 "completion_criteria", "independent"
@@ -358,7 +359,7 @@ class FlowTestHelper:
             CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS: yaml_achievement.get(
                 "reward_points", 50
             ),
-            CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: yaml_achievement.get(
+            CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: yaml_achievement.get(
                 "assigned_to", []
             ),
         }
@@ -384,7 +385,7 @@ class FlowTestHelper:
             ),
             CFOF_CHALLENGES_INPUT_START_DATE: yaml_challenge.get("start_date"),
             CFOF_CHALLENGES_INPUT_END_DATE: yaml_challenge.get("end_date"),
-            CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: yaml_challenge.get(
+            CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS: yaml_challenge.get(
                 "assigned_to", []
             ),
         }

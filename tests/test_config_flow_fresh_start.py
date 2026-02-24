@@ -82,7 +82,7 @@ async def test_fresh_start_points_only(hass: HomeAssistant) -> None:
         # Assignee count = 0 (skips approver_count, goes to chore_count)
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 0},
+            user_input={const.CFOF_USERS_INPUT_COUNT: 0},
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_CHORE_COUNT
@@ -217,7 +217,7 @@ async def test_fresh_start_points_and_assignee(
         # Step 5: Set assignee count = 1
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 1},
+            user_input={const.CFOF_USERS_INPUT_COUNT: 1},
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
@@ -386,7 +386,7 @@ async def test_fresh_start_assignee_with_notify_services(
         # Step 5: Set assignee count = 1
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 1},
+            user_input={const.CFOF_USERS_INPUT_COUNT: 1},
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
@@ -504,7 +504,7 @@ async def test_fresh_start_with_approver_no_notifications(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 2}
+            result["flow_id"], user_input={const.CFOF_USERS_INPUT_COUNT: 2}
         )
         result = await _configure_assignee_step(
             hass,
@@ -521,7 +521,7 @@ async def test_fresh_start_with_approver_no_notifications(
         data_schema = _require_data_schema(result)
         associated_assignees_field = _find_field_in_schema(
             data_schema,
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
         )
         assert associated_assignees_field is not None, (
             "associated_assignees field not found in schema"
@@ -539,7 +539,7 @@ async def test_fresh_start_with_approver_no_notifications(
             user_input={
                 const.CFOF_USERS_INPUT_NAME: "Môm Astrid Stârblüm",
                 const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users["approver1"].id,
-                const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [
+                const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: [
                     assignee_id
                 ],  # Use the extracted assignee ID
                 const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: const.SENTINEL_NO_SELECTION,
@@ -645,7 +645,7 @@ async def test_fresh_start_with_approver_with_notifications(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 2}
+            result["flow_id"], user_input={const.CFOF_USERS_INPUT_COUNT: 2}
         )
         result = await _configure_assignee_step(
             hass,
@@ -727,7 +727,7 @@ async def test_fresh_start_two_approvers_mixed_notifications(
             },
         )
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 3}
+            result["flow_id"], user_input={const.CFOF_USERS_INPUT_COUNT: 3}
         )
         result = await _configure_assignee_step(
             hass,
@@ -852,14 +852,14 @@ async def _configure_assignee_step(
         user_input={
             const.CFOF_USERS_INPUT_NAME: assignee_name,
             const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[assignee_ha_user_key].id,
-            const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE: dashboard_language,
+            const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: dashboard_language,
             const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
-            const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
-            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: True,
-            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: True,
-            const.CFOF_APPROVERS_INPUT_CAN_APPROVE: False,
-            const.CFOF_APPROVERS_INPUT_CAN_MANAGE: False,
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [],
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: True,
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: True,
+            const.CFOF_USERS_INPUT_CAN_APPROVE: False,
+            const.CFOF_USERS_INPUT_CAN_MANAGE: False,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: [],
         },
     )
 
@@ -893,7 +893,7 @@ async def _configure_approver_step(
         user_input={
             const.CFOF_USERS_INPUT_NAME: approver_name,
             const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[approver_ha_user_key].id,
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: associated_assignee_ids,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignee_ids,
             const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_notify_service,
         },
     )
@@ -1096,7 +1096,7 @@ async def _setup_full_family_scenario(
 
     # Step 2: Set total user count = 5 (3 assignable users + 2 approvers)
     result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 5}
+        result["flow_id"], user_input={const.CFOF_USERS_INPUT_COUNT: 5}
     )
     assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
 
@@ -1236,7 +1236,7 @@ def _extract_assignee_ids_from_schema(result: Any) -> list[str]:
     data_schema = _require_data_schema(result)
     associated_assignees_field = _find_field_in_schema(
         data_schema,
-        const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
     )
     assert associated_assignees_field is not None, (
         "associated_assignees field not found in schema"
@@ -1295,7 +1295,7 @@ async def test_fresh_start_with_approvers(hass: HomeAssistant, mock_hass_users):
 
         # Configure total users (1 assignable + 1 approver)
         result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: 2}
+            result["flow_id"], user_input={const.CFOF_USERS_INPUT_COUNT: 2}
         )
         assert result["type"] == FlowResultType.FORM
         assert result["step_id"] == const.CONFIG_FLOW_STEP_USERS
@@ -1318,7 +1318,7 @@ async def test_fresh_start_with_approvers(hass: HomeAssistant, mock_hass_users):
         # Find the associated_assignees field schema in flat or sectioned form payloads
         associated_assignees_field = _find_field_in_schema(
             data_schema,
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
         )
         assert associated_assignees_field is not None, (
             "associated_assignees field not found in schema"
@@ -1341,7 +1341,7 @@ async def test_fresh_start_with_approvers(hass: HomeAssistant, mock_hass_users):
         approver_input = {
             const.CFOF_USERS_INPUT_NAME: "Jane Approver",
             const.CFOF_USERS_INPUT_HA_USER_ID: approver_user.id,
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: [
                 assignee_id
             ],  # Use the captured assignee ID
             const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_jane_phone",  # Include notify. prefix
@@ -1497,7 +1497,7 @@ async def _configure_chore_step(
     # Configure this chore
     user_input = {
         const.CFOF_CHORES_INPUT_NAME: chore_name,
-        const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignee_names,
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignee_names,
         const.CFOF_CHORES_INPUT_DEFAULT_POINTS: points,
         const.CFOF_CHORES_INPUT_DESCRIPTION: description,
         const.CFOF_CHORES_INPUT_ICON: icon,

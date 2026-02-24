@@ -25,10 +25,10 @@ import pytest_asyncio
 
 # Test framework imports
 from tests.helpers import (
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
     DATA_ASSIGNEE_NAME,
     DATA_CHORE_NAME,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_STATE,
     approve_chore,
     claim_chore,
     find_chore,
@@ -190,12 +190,10 @@ class TestDailyMultiUponCompletionReset:
         if zoe_assignee_id and chore_id:
             assignee_chore_data = (
                 coordinator.assignees_data[zoe_assignee_id]
-                .get(DATA_ASSIGNEE_CHORE_DATA, {})
+                .get(DATA_USER_CHORE_DATA, {})
                 .get(chore_id, {})
             )
-            raw_state = assignee_chore_data.get(
-                DATA_ASSIGNEE_CHORE_DATA_STATE, "no_state"
-            )
+            raw_state = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE, "no_state")
 
         zoe_state = get_chore_state_from_dashboard_helper(hass, "zoe", chore_name)
 

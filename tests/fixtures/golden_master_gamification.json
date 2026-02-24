@@ -1,14 +1,14 @@
 {
   "achievements_data": {
-    "8efd639b-c98b-47ef-bfe4-78948b2d7dc4": {
+    "3856707e-47b1-4593-95f2-28f4d440b015": {
       "achievement_labels": [],
-      "assigned_assignees": [
-        "1c7c42eb-0c1e-43f3-aa8a-1d00899b03fa"
+      "assigned_user_ids": [
+        "c5502536-b76b-4268-b46f-48a40ce45b76"
       ],
       "criteria": "",
       "description": "Complete 50 total chores",
       "icon": "mdi:trophy",
-      "internal_id": "8efd639b-c98b-47ef-bfe4-78948b2d7dc4",
+      "internal_id": "3856707e-47b1-4593-95f2-28f4d440b015",
       "name": "Chore Champion",
       "progress": {},
       "reward_points": 30.0,
@@ -16,16 +16,16 @@
       "target_value": 50.0,
       "type": "chore_total"
     },
-    "e09c4a18-990a-4827-ae6f-b9c73ca3e38f": {
+    "4dc9aea3-b66e-447f-b28d-2bd3500a2242": {
       "achievement_labels": [],
-      "assigned_assignees": [
-        "20f23505-777d-4bf6-975d-f693c98cc08b",
-        "d2602638-0243-479d-b374-9693729bb3f4"
+      "assigned_user_ids": [
+        "ecbb1b79-e587-4dcd-a5b0-efa12a7fc646",
+        "772e997b-7568-49e6-a56a-5af702d7f626"
       ],
       "criteria": "",
       "description": "Complete 7 total chores",
       "icon": "mdi:alarm",
-      "internal_id": "e09c4a18-990a-4827-ae6f-b9c73ca3e38f",
+      "internal_id": "4dc9aea3-b66e-447f-b28d-2bd3500a2242",
       "name": "Early Bird",
       "progress": {},
       "reward_points": 25.0,
@@ -35,42 +35,10 @@
     }
   },
   "badges_data": {
-    "19a0068e-3790-428d-848e-48b701d45bec": {
+    "764d86e1-bb9d-4a3e-bd83-2ee0a8579aa5": {
       "assigned_to": [
-        "20f23505-777d-4bf6-975d-f693c98cc08b"
-      ],
-      "awards": {
-        "award_items": [
-          "points"
-        ],
-        "award_points": 50.0,
-        "points_multiplier": null
-      },
-      "badge_labels": [],
-      "badge_type": "cumulative",
-      "description": "",
-      "earned_by": [],
-      "icon": "mdi:medal-outline",
-      "internal_id": "19a0068e-3790-428d-848e-48b701d45bec",
-      "name": "Chore St\u00e4r Champion",
-      "reset_schedule": {
-        "custom_interval": null,
-        "custom_interval_unit": null,
-        "end_date": null,
-        "grace_period_days": 0,
-        "recurring_frequency": "none",
-        "start_date": null
-      },
-      "target": {
-        "maintenance_rules": 0,
-        "target_type": "points_all_time",
-        "threshold_value": 100.0
-      }
-    },
-    "2de4c442-827b-41de-beef-8e4d8eae1ab6": {
-      "assigned_to": [
-        "d2602638-0243-479d-b374-9693729bb3f4",
-        "1c7c42eb-0c1e-43f3-aa8a-1d00899b03fa"
+        "772e997b-7568-49e6-a56a-5af702d7f626",
+        "c5502536-b76b-4268-b46f-48a40ce45b76"
       ],
       "awards": {
         "award_items": [
@@ -84,7 +52,7 @@
       "description": "",
       "earned_by": [],
       "icon": "mdi:account-group",
-      "internal_id": "2de4c442-827b-41de-beef-8e4d8eae1ab6",
+      "internal_id": "764d86e1-bb9d-4a3e-bd83-2ee0a8579aa5",
       "name": "Team Player Badge",
       "reset_schedule": {
         "custom_interval": null,
@@ -99,20 +67,52 @@
         "target_type": "points_all_time",
         "threshold_value": 500.0
       }
+    },
+    "77f3973f-fadf-4cd6-9ddb-32ff5e08f1ff": {
+      "assigned_to": [
+        "ecbb1b79-e587-4dcd-a5b0-efa12a7fc646"
+      ],
+      "awards": {
+        "award_items": [
+          "points"
+        ],
+        "award_points": 50.0,
+        "points_multiplier": null
+      },
+      "badge_labels": [],
+      "badge_type": "cumulative",
+      "description": "",
+      "earned_by": [],
+      "icon": "mdi:medal-outline",
+      "internal_id": "77f3973f-fadf-4cd6-9ddb-32ff5e08f1ff",
+      "name": "Chore St\u00e4r Champion",
+      "reset_schedule": {
+        "custom_interval": null,
+        "custom_interval_unit": null,
+        "end_date": null,
+        "grace_period_days": 0,
+        "recurring_frequency": "none",
+        "start_date": null
+      },
+      "target": {
+        "maintenance_rules": 0,
+        "target_type": "points_all_time",
+        "threshold_value": 100.0
+      }
     }
   },
   "challenges_data": {
-    "2d0930ad-8a84-4797-93d2-ebe9a1785ae6": {
-      "assigned_assignees": [
-        "d2602638-0243-479d-b374-9693729bb3f4",
-        "1c7c42eb-0c1e-43f3-aa8a-1d00899b03fa"
+    "9ade4b69-6062-48f6-8dfb-5517d4c60828": {
+      "assigned_user_ids": [
+        "772e997b-7568-49e6-a56a-5af702d7f626",
+        "c5502536-b76b-4268-b46f-48a40ce45b76"
       ],
       "challenge_labels": [],
       "criteria": "",
       "description": "Complete 20 chores before end of summer",
       "end_date": "2026-03-02T23:59:00+00:00",
       "icon": "mdi:run-fast",
-      "internal_id": "2d0930ad-8a84-4797-93d2-ebe9a1785ae6",
+      "internal_id": "9ade4b69-6062-48f6-8dfb-5517d4c60828",
       "name": "Summer Sprint",
       "progress": {},
       "reward_points": 75.0,
@@ -121,18 +121,18 @@
       "target_value": 20.0,
       "type": "total_within_window"
     },
-    "4cfbf701-b9c6-4db5-9046-894df2fd09e7": {
-      "assigned_assignees": [
-        "20f23505-777d-4bf6-975d-f693c98cc08b",
-        "d2602638-0243-479d-b374-9693729bb3f4",
-        "1c7c42eb-0c1e-43f3-aa8a-1d00899b03fa"
+    "daf0e949-c139-4aa2-93f1-fbc1fd0d62f4": {
+      "assigned_user_ids": [
+        "ecbb1b79-e587-4dcd-a5b0-efa12a7fc646",
+        "772e997b-7568-49e6-a56a-5af702d7f626",
+        "c5502536-b76b-4268-b46f-48a40ce45b76"
       ],
       "challenge_labels": [],
       "criteria": "",
       "description": "Complete at least 3 chores every day",
       "end_date": "2026-03-02T23:59:00+00:00",
       "icon": "mdi:calendar-star",
-      "internal_id": "4cfbf701-b9c6-4db5-9046-894df2fd09e7",
+      "internal_id": "daf0e949-c139-4aa2-93f1-fbc1fd0d62f4",
       "name": "Weekend Warrior",
       "progress": {},
       "reward_points": 50.0,
@@ -148,209 +148,7 @@
     "scenario": "scenario_full.yaml"
   },
   "per_assignee_data": {
-    "1c7c42eb-0c1e-43f3-aa8a-1d00899b03fa": {
-      "aggregate_chore_stats": {},
-      "assignee_name": "Lila",
-      "badge_progress": {},
-      "badges_earned": {},
-      "chore_stats": {
-        "2d2d0666-8ba3-44cc-9b7c-9335c7d58db8": {
-          "name": "Sibling R\u00f6\u00f6m Cleanup",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "37b01876-b389-48e0-9b52-1e3c70bb22b7": {
-          "name": "T\u00e4ke \u00d6ut Trash",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "5b7f6f46-72ba-417f-8e27-51b6aef1cc1a": {
-          "approval_period_start": "2026-02-23T05:17:50.531342-08:00",
-          "name": "\u00d8rg\u00e4nize Bookshelf",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "6192b925-fa36-4094-88fb-97bfd0a14803": {
-          "name": "M\u00e5il Pickup Race",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "61a86bb1-07c1-40ce-ae1a-7d27ac76d073": {
-          "approval_period_start": "2026-02-23T05:17:50.531293-08:00",
-          "name": "Paint the r\u00e3inbow",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "88c8e979-3782-4fb4-aaf1-66921c2fb72b": {
-          "approval_period_start": "2026-02-23T05:17:50.531302-08:00",
-          "name": "Sweep the p@tio",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "aa050bc9-281d-41b2-a94c-a8e8b05fb0ed": {
-          "name": "Family Dinner Prep",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "aa18f33f-93e8-427e-bfcc-0d3f4d492966": {
-          "name": "W\u00e5sh Family Car",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "aee995ab-5708-47d2-a492-4bfbe6362647": {
-          "approval_period_start": "2026-02-23T05:17:50.531326-08:00",
-          "name": "St\u00e4r sweep",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "dcb4f954-f2a8-4ae7-93d7-10096b78cfa2": {
-          "name": "Cl\u00eban Pool F\u00eflter",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "e618ab0b-ecf1-4757-9d17-cf4442a4adb4": {
-          "name": "Weekend Y\u00e4rd Work",
-          "pending_claim_count": 0,
-          "state": "pending"
-        }
-      },
-      "cumulative_badge_progress": {}
-    },
-    "20f23505-777d-4bf6-975d-f693c98cc08b": {
-      "aggregate_chore_stats": {
-        "all_time": {
-          "approved": 1,
-          "claimed": 1,
-          "completed": 1,
-          "longest_streak": 1,
-          "missed_streak_tally": 0,
-          "points": 10.0
-        }
-      },
-      "assignee_name": "Zo\u00eb",
-      "badge_progress": {},
-      "badges_earned": {},
-      "chore_stats": {
-        "37b01876-b389-48e0-9b52-1e3c70bb22b7": {
-          "name": "T\u00e4ke \u00d6ut Trash",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "5b7f6f46-72ba-417f-8e27-51b6aef1cc1a": {
-          "approval_period_start": "2026-02-23T05:17:50.531334-08:00",
-          "name": "\u00d8rg\u00e4nize Bookshelf",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "6192b925-fa36-4094-88fb-97bfd0a14803": {
-          "name": "M\u00e5il Pickup Race",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "7a3fd24e-5658-4122-bca0-0da7b58d3820": {
-          "name": "Garage Cleanup",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "9d29661a-00a9-446b-b533-00658d24dc8e": {
-          "approval_period_start": "2026-02-23T05:17:50.531253-08:00",
-          "claimed_by": "Zo\u00eb",
-          "completed_by": "Zo\u00eb",
-          "current_missed_streak": 0,
-          "current_streak": 1,
-          "last_approved": "2026-02-23T05:17:51.263816-08:00",
-          "last_claimed": "2026-02-23T05:17:51.245319-08:00",
-          "last_completed": "2026-02-23T05:17:51.245319-08:00",
-          "name": "Feed the c\u00e5ts",
-          "pending_claim_count": 0,
-          "periods": {
-            "all_time": {
-              "all_time": {
-                "approved": 1,
-                "claimed": 1,
-                "completed": 1,
-                "longest_streak": 1,
-                "missed_streak_tally": 0,
-                "points": 10.0
-              }
-            },
-            "daily": {
-              "2026-02-23": {
-                "approved": 1,
-                "claimed": 1,
-                "completed": 1,
-                "missed_streak_tally": 0,
-                "points": 10.0,
-                "streak_tally": 1
-              }
-            },
-            "monthly": {
-              "2026-02": {
-                "approved": 1,
-                "claimed": 1,
-                "completed": 1,
-                "missed_streak_tally": 0,
-                "points": 10.0
-              }
-            },
-            "weekly": {
-              "2026-W09": {
-                "approved": 1,
-                "claimed": 1,
-                "completed": 1,
-                "missed_streak_tally": 0,
-                "points": 10.0
-              }
-            },
-            "yearly": {
-              "2026": {
-                "approved": 1,
-                "claimed": 1,
-                "completed": 1,
-                "missed_streak_tally": 0,
-                "points": 10.0
-              }
-            }
-          },
-          "state": "approved"
-        },
-        "aa050bc9-281d-41b2-a94c-a8e8b05fb0ed": {
-          "name": "Family Dinner Prep",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "aa18f33f-93e8-427e-bfcc-0d3f4d492966": {
-          "name": "W\u00e5sh Family Car",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "aee995ab-5708-47d2-a492-4bfbe6362647": {
-          "approval_period_start": "2026-02-23T05:17:50.531310-08:00",
-          "name": "St\u00e4r sweep",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "d88ca02d-4a9c-483f-a5ee-68e3d46cee60": {
-          "approval_period_start": "2026-02-23T05:17:50.531268-08:00",
-          "name": "W\u00e5ter the pl\u00e4nts",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "e618ab0b-ecf1-4757-9d17-cf4442a4adb4": {
-          "name": "Weekend Y\u00e4rd Work",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "f16c76b2-4001-462d-a4fb-7dd840220378": {
-          "approval_period_start": "2026-02-23T05:17:50.531359-08:00",
-          "name": "Refill Bird F\u00ebeder",
-          "pending_claim_count": 0,
-          "state": "pending"
-        }
-      },
-      "cumulative_badge_progress": {}
-    },
-    "d2602638-0243-479d-b374-9693729bb3f4": {
+    "772e997b-7568-49e6-a56a-5af702d7f626": {
       "aggregate_chore_stats": {
         "all_time": {
           "approved": 1,
@@ -365,58 +163,63 @@
       "badge_progress": {},
       "badges_earned": {},
       "chore_stats": {
-        "2d2d0666-8ba3-44cc-9b7c-9335c7d58db8": {
-          "name": "Sibling R\u00f6\u00f6m Cleanup",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "37b01876-b389-48e0-9b52-1e3c70bb22b7": {
-          "name": "T\u00e4ke \u00d6ut Trash",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "6192b925-fa36-4094-88fb-97bfd0a14803": {
-          "name": "M\u00e5il Pickup Race",
-          "pending_claim_count": 0,
-          "state": "pending"
-        },
-        "795e9286-73b3-4d71-9038-0cd309a0d6f0": {
-          "approval_period_start": "2026-02-23T05:17:50.531351-08:00",
+        "030c76ec-bfc1-49a7-aa00-c8cb8ee72537": {
+          "approval_period_start": "2026-02-23T09:56:10.640067-08:00",
           "name": "Deep Clean T\u00f8y Chest",
           "pending_claim_count": 0,
           "state": "pending"
         },
-        "7a3fd24e-5658-4122-bca0-0da7b58d3820": {
-          "name": "Garage Cleanup",
+        "0bbf7862-5aa5-4b03-802d-b6df20a40082": {
+          "name": "M\u00e5il Pickup Race",
           "pending_claim_count": 0,
           "state": "pending"
         },
-        "aa050bc9-281d-41b2-a94c-a8e8b05fb0ed": {
+        "2968ce5c-7e54-4be4-b14c-e59fa264fede": {
+          "name": "T\u00e4ke \u00d6ut Trash",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "4c22eada-3f53-4eee-9f84-2855cfe16fb9": {
           "name": "Family Dinner Prep",
           "pending_claim_count": 0,
           "state": "pending"
         },
-        "aee995ab-5708-47d2-a492-4bfbe6362647": {
-          "approval_period_start": "2026-02-23T05:17:50.531318-08:00",
+        "733030a7-71b1-4805-b84b-00075f72e605": {
+          "name": "Weekend Y\u00e4rd Work",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "7398a814-a1e7-45b9-9221-b784a9acd77c": {
+          "name": "Garage Cleanup",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "b1bb36b9-a157-47c5-9ef3-a9db89c82db4": {
+          "approval_period_start": "2026-02-23T09:56:10.640035-08:00",
           "name": "St\u00e4r sweep",
           "pending_claim_count": 0,
           "state": "pending"
         },
-        "c739f955-e922-4b5c-b7ae-6d27374ad1a7": {
-          "approval_period_start": "2026-02-23T05:17:50.531276-08:00",
+        "b3d5e785-ebdc-4a4a-8243-6e60a65c83b6": {
+          "name": "Cl\u00eban Pool F\u00eflter",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "cc3a859f-da09-4062-b1e1-25ead242b2db": {
+          "approval_period_start": "2026-02-23T09:56:10.639992-08:00",
           "name": "Pick up L\u00ebgo!",
           "pending_claim_count": 0,
           "state": "pending"
         },
-        "cee0eae5-9bb5-443e-abb3-62a3ee394671": {
-          "approval_period_start": "2026-02-23T05:17:50.531285-08:00",
+        "d1edb1e3-bcc6-4851-8971-aebe17e23e60": {
+          "approval_period_start": "2026-02-23T09:56:10.640001-08:00",
           "claimed_by": "Max!",
           "completed_by": "Max!",
           "current_missed_streak": 0,
           "current_streak": 1,
-          "last_approved": "2026-02-23T05:17:51.338361-08:00",
-          "last_claimed": "2026-02-23T05:17:51.320765-08:00",
-          "last_completed": "2026-02-23T05:17:51.320765-08:00",
+          "last_approved": "2026-02-23T09:56:11.446021-08:00",
+          "last_claimed": "2026-02-23T09:56:11.428428-08:00",
+          "last_completed": "2026-02-23T09:56:11.428428-08:00",
           "name": "Charge R\u00f8bot",
           "pending_claim_count": 0,
           "periods": {
@@ -470,13 +273,210 @@
           },
           "state": "approved"
         },
-        "dcb4f954-f2a8-4ae7-93d7-10096b78cfa2": {
+        "d903ec9f-7c0a-49c2-aeb1-4f5af0d6b2c1": {
+          "name": "Sibling R\u00f6\u00f6m Cleanup",
+          "pending_claim_count": 0,
+          "state": "pending"
+        }
+      },
+      "cumulative_badge_progress": {}
+    },
+    "c5502536-b76b-4268-b46f-48a40ce45b76": {
+      "aggregate_chore_stats": {},
+      "assignee_name": "Lila",
+      "badge_progress": {},
+      "badges_earned": {},
+      "chore_stats": {
+        "001865e2-bdd5-4cde-9a41-e586ff9c05c7": {
+          "name": "W\u00e5sh Family Car",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "008a3276-8370-4048-98b2-415939fa3de5": {
+          "approval_period_start": "2026-02-23T09:56:10.640018-08:00",
+          "name": "Sweep the p@tio",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "0bbf7862-5aa5-4b03-802d-b6df20a40082": {
+          "name": "M\u00e5il Pickup Race",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "2968ce5c-7e54-4be4-b14c-e59fa264fede": {
+          "name": "T\u00e4ke \u00d6ut Trash",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "4c22eada-3f53-4eee-9f84-2855cfe16fb9": {
+          "name": "Family Dinner Prep",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "733030a7-71b1-4805-b84b-00075f72e605": {
+          "name": "Weekend Y\u00e4rd Work",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "b1bb36b9-a157-47c5-9ef3-a9db89c82db4": {
+          "approval_period_start": "2026-02-23T09:56:10.640043-08:00",
+          "name": "St\u00e4r sweep",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "b3d5e785-ebdc-4a4a-8243-6e60a65c83b6": {
           "name": "Cl\u00eban Pool F\u00eflter",
           "pending_claim_count": 0,
           "state": "pending"
         },
-        "e618ab0b-ecf1-4757-9d17-cf4442a4adb4": {
+        "d4fe54a5-dcc1-4f65-b984-e42c92b4f896": {
+          "approval_period_start": "2026-02-23T09:56:10.640009-08:00",
+          "name": "Paint the r\u00e3inbow",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "d903ec9f-7c0a-49c2-aeb1-4f5af0d6b2c1": {
+          "name": "Sibling R\u00f6\u00f6m Cleanup",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "da1f6a92-9abe-43e6-9822-3a5a0b5a10c3": {
+          "approval_period_start": "2026-02-23T09:56:10.640059-08:00",
+          "name": "\u00d8rg\u00e4nize Bookshelf",
+          "pending_claim_count": 0,
+          "state": "pending"
+        }
+      },
+      "cumulative_badge_progress": {}
+    },
+    "ecbb1b79-e587-4dcd-a5b0-efa12a7fc646": {
+      "aggregate_chore_stats": {
+        "all_time": {
+          "approved": 1,
+          "claimed": 1,
+          "completed": 1,
+          "longest_streak": 1,
+          "missed_streak_tally": 0,
+          "points": 10.0
+        }
+      },
+      "assignee_name": "Zo\u00eb",
+      "badge_progress": {},
+      "badges_earned": {},
+      "chore_stats": {
+        "001865e2-bdd5-4cde-9a41-e586ff9c05c7": {
+          "name": "W\u00e5sh Family Car",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "0bbf7862-5aa5-4b03-802d-b6df20a40082": {
+          "name": "M\u00e5il Pickup Race",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "2968ce5c-7e54-4be4-b14c-e59fa264fede": {
+          "name": "T\u00e4ke \u00d6ut Trash",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "4c22eada-3f53-4eee-9f84-2855cfe16fb9": {
+          "name": "Family Dinner Prep",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "5bb5bc87-2d70-404d-b14c-4e6ce4e98c2c": {
+          "approval_period_start": "2026-02-23T09:56:10.639982-08:00",
+          "name": "W\u00e5ter the pl\u00e4nts",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "684677de-a1a3-44dd-9c9f-013b24e25c0c": {
+          "approval_period_start": "2026-02-23T09:56:10.639968-08:00",
+          "claimed_by": "Zo\u00eb",
+          "completed_by": "Zo\u00eb",
+          "current_missed_streak": 0,
+          "current_streak": 1,
+          "last_approved": "2026-02-23T09:56:11.373941-08:00",
+          "last_claimed": "2026-02-23T09:56:11.355733-08:00",
+          "last_completed": "2026-02-23T09:56:11.355733-08:00",
+          "name": "Feed the c\u00e5ts",
+          "pending_claim_count": 0,
+          "periods": {
+            "all_time": {
+              "all_time": {
+                "approved": 1,
+                "claimed": 1,
+                "completed": 1,
+                "longest_streak": 1,
+                "missed_streak_tally": 0,
+                "points": 10.0
+              }
+            },
+            "daily": {
+              "2026-02-23": {
+                "approved": 1,
+                "claimed": 1,
+                "completed": 1,
+                "missed_streak_tally": 0,
+                "points": 10.0,
+                "streak_tally": 1
+              }
+            },
+            "monthly": {
+              "2026-02": {
+                "approved": 1,
+                "claimed": 1,
+                "completed": 1,
+                "missed_streak_tally": 0,
+                "points": 10.0
+              }
+            },
+            "weekly": {
+              "2026-W09": {
+                "approved": 1,
+                "claimed": 1,
+                "completed": 1,
+                "missed_streak_tally": 0,
+                "points": 10.0
+              }
+            },
+            "yearly": {
+              "2026": {
+                "approved": 1,
+                "claimed": 1,
+                "completed": 1,
+                "missed_streak_tally": 0,
+                "points": 10.0
+              }
+            }
+          },
+          "state": "approved"
+        },
+        "733030a7-71b1-4805-b84b-00075f72e605": {
           "name": "Weekend Y\u00e4rd Work",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "7398a814-a1e7-45b9-9221-b784a9acd77c": {
+          "name": "Garage Cleanup",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "8c4cbe94-f88d-44e8-9978-c3a821fbbc92": {
+          "approval_period_start": "2026-02-23T09:56:10.640076-08:00",
+          "name": "Refill Bird F\u00ebeder",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "b1bb36b9-a157-47c5-9ef3-a9db89c82db4": {
+          "approval_period_start": "2026-02-23T09:56:10.640027-08:00",
+          "name": "St\u00e4r sweep",
+          "pending_claim_count": 0,
+          "state": "pending"
+        },
+        "da1f6a92-9abe-43e6-9822-3a5a0b5a10c3": {
+          "approval_period_start": "2026-02-23T09:56:10.640051-08:00",
+          "name": "\u00d8rg\u00e4nize Bookshelf",
           "pending_claim_count": 0,
           "state": "pending"
         }

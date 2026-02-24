@@ -116,14 +116,14 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
         }
 
         # Badge progress
-        badge_progress = assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
+        badge_progress = assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
         for badge_id, progress in badge_progress.items():
             assignee_gamification["badge_progress"][badge_id] = _sanitize_for_json(
                 progress
             )
 
         # Badges earned
-        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_info.get(const.DATA_USER_BADGES_EARNED, {})
         for badge_id, earned_data in badges_earned.items():
             assignee_gamification["badges_earned"][badge_id] = _sanitize_for_json(
                 earned_data
@@ -131,7 +131,7 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
 
         # Cumulative badge progress (for badge tier maintenance)
         cumulative_progress = assignee_info.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
         )
         assignee_gamification["cumulative_badge_progress"] = _sanitize_for_json(
             cumulative_progress
@@ -139,7 +139,7 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
 
         # Chore stats (for achievement/challenge checking)
         # Extract per-chore data for this assignee
-        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
         for chore_id, chore_info in chore_data.items():
             # Extract all chore info - sanitize to make JSON-safe
             assignee_gamification["chore_stats"][chore_id] = _sanitize_for_json(
@@ -147,9 +147,9 @@ def extract_gamification_data(coordinator: Any) -> dict[str, Any]:
             )
 
         # Extract aggregate chore stats from chore_periods.all_time (v43+)
-        chore_periods = assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {})
+        chore_periods = assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
         all_time_stats = chore_periods.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
         assignee_gamification["aggregate_chore_stats"] = _sanitize_for_json(
             all_time_stats
@@ -267,7 +267,7 @@ class TestGoldenMasterCapture:
 
             # Check if assignee is assigned to this chore
             assigned = coordinator.chores_data[chore_id].get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             )
             if assignee_id not in assigned:
                 continue

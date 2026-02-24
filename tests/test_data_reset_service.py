@@ -45,7 +45,7 @@ FIELD_ITEM_NAME = "item_name"
 
 # Scope values
 SCOPE_GLOBAL = "global"
-SCOPE_ASSIGNEE = "assignee"
+SCOPE_ASSIGNEE = "user"
 
 # Item types
 ITEM_TYPE_POINTS = "points"

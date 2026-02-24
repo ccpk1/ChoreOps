@@ -36,7 +36,7 @@ from tests.helpers import (
     ACTION_APPROVE_CHORE,
     DATA_APPROVER_DASHBOARD_LANGUAGE,
     DATA_APPROVER_MOBILE_NOTIFY_SERVICE,
-    DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
+    DATA_USER_DASHBOARD_LANGUAGE,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -366,7 +366,7 @@ class TestAuthorizationAcceptance:
                 const.SERVICE_APPROVE_CHORE,
                 {
                     const.SERVICE_FIELD_APPROVER_NAME: "Max!",
-                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
                     const.SERVICE_FIELD_CHORE_NAME: "Feed the cat",
                 },
                 blocking=True,
@@ -424,7 +424,7 @@ class TestNotificationLanguage:
 
         # Verify assignee is configured for English
         assignee_lang = coordinator.assignees_data[assignee_id].get(
-            DATA_ASSIGNEE_DASHBOARD_LANGUAGE
+            DATA_USER_DASHBOARD_LANGUAGE
         )
         assert assignee_lang == "en", (
             f"Expected assignee language 'en', got '{assignee_lang}'"
@@ -468,7 +468,7 @@ class TestNotificationLanguage:
 
         # Verify assignee is configured for Slovak
         assignee_lang = coordinator.assignees_data[assignee_id].get(
-            DATA_ASSIGNEE_DASHBOARD_LANGUAGE
+            DATA_USER_DASHBOARD_LANGUAGE
         )
         assert assignee_lang == "sk", (
             f"Expected assignee language 'sk', got '{assignee_lang}'"
@@ -848,11 +848,9 @@ class TestDueDateReminders:
         # Advance the approval_period_start (simulates chore reset after approval)
         assignee_info = coordinator.assignees_data.get(assignee_id)
         assert assignee_info is not None
-        assignee_chore_data = assignee_info.setdefault(
-            const.DATA_ASSIGNEE_CHORE_DATA, {}
-        )
+        assignee_chore_data = assignee_info.setdefault(const.DATA_USER_CHORE_DATA, {})
         chore_data = assignee_chore_data.setdefault(chore_id, {})
-        chore_data[const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
+        chore_data[const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
             "2026-01-30T00:00:00+00:00"  # Period advances past the timestamps
         )
 
@@ -1146,9 +1144,7 @@ class TestMultiplierChangeNotifications:
         coordinator = scenario_notifications.coordinator
         assignee_id = scenario_notifications.assignee_ids["Zoë"]
 
-        coordinator.assignees_data[assignee_id][
-            const.DATA_ASSIGNEE_POINTS_MULTIPLIER
-        ] = 1.0
+        coordinator.assignees_data[assignee_id][const.DATA_USER_POINTS_MULTIPLIER] = 1.0
 
         assignee_calls: list[dict[str, Any]] = []
         approver_calls: list[dict[str, Any]] = []
@@ -1212,9 +1208,7 @@ class TestMultiplierChangeNotifications:
             await hass.async_block_till_done()
 
         assert (
-            coordinator.assignees_data[assignee_id][
-                const.DATA_ASSIGNEE_POINTS_MULTIPLIER
-            ]
+            coordinator.assignees_data[assignee_id][const.DATA_USER_POINTS_MULTIPLIER]
             == 1.2
         )
         assert len(assignee_calls) == 1

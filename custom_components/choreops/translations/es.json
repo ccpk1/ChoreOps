@@ -437,7 +437,7 @@
       "invalid_end_date": "Fecha de finalización no válida.",
       "invalid_assignee_count": "Recuento de niños no válido",
       "invalid_assignee_name": "Nombre de niño no válido",
-      "invalid_approver_count": "Recuento de padres no válido",
+      "invalid_user_count": "Recuento de padres no válido",
       "invalid_approver_name": "Nombre de padre no válido",
       "no_assignees_assigned": "Al menos un niño debe estar asignado a la tarea.",
       "invalid_penalty": "Penalización inválida",

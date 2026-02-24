@@ -50,7 +50,7 @@ def sample_chore_data() -> dict[str, Any]:
     return {
         const.DATA_CHORE_NAME: "Wash Dishes",
         const.DATA_CHORE_DEFAULT_POINTS: 10.0,
-        const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"],
+        const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"],
         const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
         const.DATA_CHORE_AUTO_APPROVE: False,
@@ -63,8 +63,8 @@ def sample_assignee_data() -> dict[str, Any]:
     """Create sample assignee data."""
     return {
         const.DATA_USER_NAME: "Alice",
-        const.DATA_ASSIGNEE_POINTS_MULTIPLIER: 1.0,
-        const.DATA_ASSIGNEE_CHORE_DATA: {},
+        const.DATA_USER_POINTS_MULTIPLIER: 1.0,
+        const.DATA_USER_CHORE_DATA: {},
     }
 
 
@@ -78,8 +78,8 @@ def mock_coordinator(sample_chore_data: dict, sample_assignee_data: dict) -> Mag
         "assignee-1": sample_assignee_data.copy(),
         "assignee-2": {
             const.DATA_USER_NAME: "Bob",
-            const.DATA_ASSIGNEE_POINTS_MULTIPLIER: 1.5,
-            const.DATA_ASSIGNEE_CHORE_DATA: {},
+            const.DATA_USER_POINTS_MULTIPLIER: 1.5,
+            const.DATA_USER_CHORE_DATA: {},
         },
     }
     coordinator._persist = MagicMock()
@@ -414,9 +414,7 @@ class TestResetExecutor:
         """Approval reset processing routes through shared reset executor."""
         chore_manager._apply_reset_action = MagicMock()
         chore_manager._get_assignee_chore_data = MagicMock(
-            return_value={
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
-            }
+            return_value={const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -426,7 +424,7 @@ class TestResetExecutor:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1"],
+                        const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
                         const.DATA_CHORE_STATE: const.CHORE_STATE_PENDING,
                         const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
                             const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
@@ -476,9 +474,7 @@ class TestResetExecutor:
         """Periodic shared reset routes through executor with chore-level reschedule."""
         chore_manager._apply_reset_action = MagicMock()
         chore_manager._get_assignee_chore_data = MagicMock(
-            return_value={
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
-            }
+            return_value={const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -488,7 +484,7 @@ class TestResetExecutor:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                        const.DATA_CHORE_ASSIGNED_USER_IDS: [
                             "assignee-1",
                             "assignee-2",
                         ],
@@ -540,9 +536,7 @@ class TestResetExecutor:
         """Periodic independent reset routes through executor with per-assignee reschedule."""
         chore_manager._apply_reset_action = MagicMock()
         chore_manager._get_assignee_chore_data = MagicMock(
-            return_value={
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
-            }
+            return_value={const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -566,7 +560,7 @@ class TestResetExecutor:
                             const.COMPLETION_CRITERIA_INDEPENDENT
                         ),
                     },
-                    "assignees": [{const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: "assignee-1"}],
+                    "assignees": [{const.CHORE_SCAN_ENTRY_USER_ID: "assignee-1"}],
                 }
             ],
         }
@@ -602,9 +596,7 @@ class TestResetExecutor:
     ) -> None:
         """Midnight missed boundary advances rotation once and emits once."""
         chore_manager._get_assignee_chore_data = MagicMock(
-            return_value={
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_MISSED
-            }
+            return_value={const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_MISSED}
         )
         chore_manager._coordinator._persist = MagicMock()
         chore_manager._coordinator.async_set_updated_data = MagicMock()
@@ -618,7 +610,7 @@ class TestResetExecutor:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                        const.DATA_CHORE_ASSIGNED_USER_IDS: [
                             "assignee-1",
                             "assignee-2",
                         ],
@@ -755,9 +747,7 @@ class TestApprovalResetExecutorLane:
 
         chore_manager._apply_reset_action.reset_mock()
         chore_manager._get_assignee_chore_data = MagicMock(
-            return_value={
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
-            }
+            return_value={const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
         )
 
         scan: dict[str, list[dict[str, Any]]] = {
@@ -779,7 +769,7 @@ class TestApprovalResetExecutorLane:
                             const.COMPLETION_CRITERIA_INDEPENDENT
                         ),
                     },
-                    "assignees": [{const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: "assignee-1"}],
+                    "assignees": [{const.CHORE_SCAN_ENTRY_USER_ID: "assignee-1"}],
                 }
             ],
         }
@@ -826,9 +816,7 @@ class TestApprovalResetExecutorLane:
 
         chore_manager._apply_reset_action.reset_mock()
         chore_manager._get_assignee_chore_data = MagicMock(
-            return_value={
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
-            }
+            return_value={const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
         )
 
         scan: dict[str, list[dict[str, Any]]] = {
@@ -836,7 +824,7 @@ class TestApprovalResetExecutorLane:
                 {
                     const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
                     const.CHORE_SCAN_ENTRY_CHORE_INFO: {
-                        const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                        const.DATA_CHORE_ASSIGNED_USER_IDS: [
                             "assignee-1",
                             "assignee-2",
                         ],
@@ -894,17 +882,15 @@ class TestClaimWorkflow:
 
         # Verify state changed to claimed
         assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_CLAIMED
         )
 
         # Verify pending count incremented
-        assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] == 1
-        )
+        assert assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] == 1
 
         # Verify event emitted
         chore_manager.emit.assert_called()
@@ -924,7 +910,7 @@ class TestClaimWorkflow:
         # Assignee-3 is not assigned
         chore_manager._coordinator.assignees_data["assignee-3"] = {
             const.DATA_USER_NAME: "Charlie",
-            const.DATA_ASSIGNEE_CHORE_DATA: {},
+            const.DATA_USER_CHORE_DATA: {},
         }
 
         with pytest.raises(HomeAssistantError) as exc_info:
@@ -991,17 +977,15 @@ class TestApproveWorkflow:
 
         # Verify state changed to approved
         assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_APPROVED
         )
 
         # Verify pending count decremented
-        assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] == 0
-        )
+        assert assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] == 0
 
         # Verify CHORE_APPROVED signal emitted with correct payload
         # (Signal-First Architecture: EconomyManager deposits points via signal listener)
@@ -1064,10 +1048,10 @@ class TestDisapproveWorkflow:
 
         # Verify state changed back to pending
         assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_PENDING
         )
 
@@ -1104,10 +1088,10 @@ class TestResetAndOverdue:
 
         # Verify state reset to pending
         assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_PENDING
         )
 
@@ -1191,11 +1175,11 @@ class TestDataResetChores:
 
         for assignee_id in ("assignee-1", "assignee-2"):
             assignee_dict = mock_coordinator.assignees_data[assignee_id]
-            assignee_dict[const.DATA_ASSIGNEE_CHORE_DATA] = {
+            assignee_dict[const.DATA_USER_CHORE_DATA] = {
                 "chore-1": {"state": "claimed"}
             }
             for field in db._CHORE_ASSIGNEE_RUNTIME_FIELDS:
-                if field == const.DATA_ASSIGNEE_CHORE_DATA:
+                if field == const.DATA_USER_CHORE_DATA:
                     continue
                 assignee_dict[field] = {"marker": 1}
 
@@ -1215,7 +1199,7 @@ class TestDataResetChores:
 
         for assignee_id in ("assignee-1", "assignee-2"):
             assignee_dict = mock_coordinator.assignees_data[assignee_id]
-            assert assignee_dict.get(const.DATA_ASSIGNEE_CHORE_DATA) == {}
+            assert assignee_dict.get(const.DATA_USER_CHORE_DATA) == {}
 
         mock_coordinator._persist_and_update.assert_called_once()
         chore_manager.emit.assert_any_call(
@@ -1234,7 +1218,7 @@ class TestDataResetChores:
         """Assignee scope reset only touches chores assigned to that assignee and assignee-scoped config."""
         chore_two = {
             const.DATA_CHORE_NAME: "Second chore",
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-2"],
+            const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-2"],
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
         }
         mock_coordinator.chores_data["chore-2"] = chore_two
@@ -1292,9 +1276,7 @@ class TestDataResetChores:
     ) -> None:
         """Item scope only removes the targeted chore record from assignee chore data."""
         for assignee_id in ("assignee-1", "assignee-2"):
-            mock_coordinator.assignees_data[assignee_id][
-                const.DATA_ASSIGNEE_CHORE_DATA
-            ] = {
+            mock_coordinator.assignees_data[assignee_id][const.DATA_USER_CHORE_DATA] = {
                 "chore-1": {"state": "approved"},
                 "chore-2": {"state": "pending"},
             }
@@ -1309,7 +1291,7 @@ class TestDataResetChores:
 
         for assignee_id in ("assignee-1", "assignee-2"):
             assignee_chore_data = mock_coordinator.assignees_data[assignee_id][
-                const.DATA_ASSIGNEE_CHORE_DATA
+                const.DATA_USER_CHORE_DATA
             ]
             assert "chore-1" not in assignee_chore_data
             assert "chore-2" in assignee_chore_data
@@ -1328,19 +1310,19 @@ class TestUndoWorkflow:
         """Test chore undo."""
         # Set up approved state with points
         assignee_data = chore_manager._coordinator.assignees_data["assignee-1"]
-        assignee_data[const.DATA_ASSIGNEE_CHORE_DATA] = {
+        assignee_data[const.DATA_USER_CHORE_DATA] = {
             "chore-1": {
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED,
-                const.DATA_ASSIGNEE_CHORE_DATA_TOTAL_POINTS: 10.0,
+                const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED,
+                const.DATA_USER_CHORE_DATA_TOTAL_POINTS: 10.0,
             }
         }
 
         await chore_manager.undo_chore("assignee-1", "chore-1", "Approver")
 
         # Verify state reset to pending
-        assignee_chore_data = assignee_data[const.DATA_ASSIGNEE_CHORE_DATA]["chore-1"]
+        assignee_chore_data = assignee_data[const.DATA_USER_CHORE_DATA]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_PENDING
         )
 
@@ -1364,13 +1346,13 @@ class TestCompletionCriteria:
 
         # Verify Alice's completed_by is set
         assignee1_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert assignee1_data.get(const.DATA_CHORE_COMPLETED_BY) == "Alice"
 
         # Verify Bob's completed_by is not affected
         assignee2_chores = chore_manager._coordinator.assignees_data["assignee-2"].get(
-            const.DATA_ASSIGNEE_CHORE_DATA, {}
+            const.DATA_USER_CHORE_DATA, {}
         )
         assignee2_chore_data = assignee2_chores.get("chore-1", {})
         assert const.DATA_CHORE_COMPLETED_BY not in assignee2_chore_data
@@ -1395,7 +1377,7 @@ class TestCompletionCriteria:
 
         # Bob's completed_by should show Alice
         assignee2_data = mock_coordinator.assignees_data["assignee-2"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert assignee2_data.get(const.DATA_CHORE_COMPLETED_BY) == "Alice"
 
@@ -1419,12 +1401,12 @@ class TestCompletionCriteria:
 
         # Both assignees should have Alice in their list
         assignee1_data = mock_coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert assignee1_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
 
         assignee2_data = mock_coordinator.assignees_data["assignee-2"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert assignee2_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
 
@@ -1445,7 +1427,7 @@ class TestCriteriaTransitions:
         mock_coordinator: MagicMock,
     ) -> None:
         """Transition applies engine changes, persists, and emits update signal."""
-        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_ASSIGNEES] = [
+        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_USER_IDS] = [
             "assignee-1",
             "assignee-2",
         ]
@@ -1480,7 +1462,7 @@ class TestCriteriaTransitions:
         mock_coordinator: MagicMock,
     ) -> None:
         """Rotation criteria requires at least two assigned assignees."""
-        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_ASSIGNEES] = [
+        mock_coordinator.chores_data["chore-1"][const.DATA_CHORE_ASSIGNED_USER_IDS] = [
             "assignee-1"
         ]
 
@@ -1533,7 +1515,7 @@ class TestRotationManagementValidation:
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_ROTATION_SIMPLE
         mock_coordinator._data[const.DATA_CHORES]["chore-1"][
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES
+            const.DATA_CHORE_ASSIGNED_USER_IDS
         ] = ["assignee-1", "assignee-2"]
 
         with pytest.raises(ServiceValidationError) as exc:
@@ -1551,7 +1533,7 @@ class TestRotationManagementValidation:
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_ROTATION_SIMPLE
         mock_coordinator._data[const.DATA_CHORES]["chore-1"][
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES
+            const.DATA_CHORE_ASSIGNED_USER_IDS
         ] = []
 
         with pytest.raises(ServiceValidationError) as exc:
@@ -1664,10 +1646,10 @@ class TestStatePersistenceContract:
         chore_manager._apply_effect(effect, "chore-1")
 
         assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_PENDING
         )
 
@@ -1684,9 +1666,9 @@ class TestStatePersistenceContract:
         chore_manager._apply_effect(effect, "chore-1")
 
         assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         ]["chore-1"]
         assert (
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE]
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
             == const.CHORE_STATE_MISSED
         )

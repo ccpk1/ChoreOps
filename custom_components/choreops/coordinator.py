@@ -358,7 +358,7 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
                 if isinstance(user_data, dict)
             }
 
-        legacy_assignees = self._data.get(const.DATA_ASSIGNEES, {})
+        legacy_assignees = self._data.get(const.DATA_USERS, {})
         if not isinstance(legacy_assignees, dict):
             return {}
         return {
@@ -390,7 +390,7 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         else:
             merged_users = {}
 
-            legacy_assignees = self._data.get(const.DATA_ASSIGNEES, {})
+            legacy_assignees = self._data.get(const.DATA_USERS, {})
             if isinstance(legacy_assignees, dict):
                 for user_id, user_data in legacy_assignees.items():
                     if isinstance(user_data, dict):
@@ -441,7 +441,6 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
                 and (
                     user_data.get(const.DATA_USER_CAN_APPROVE, False)
                     or user_data.get(const.DATA_USER_CAN_MANAGE, False)
-                    or const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT in user_data
                     or const.DATA_APPROVER_ASSOCIATED_USERS in user_data
                 )
             }

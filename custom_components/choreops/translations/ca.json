@@ -437,7 +437,7 @@
       "invalid_end_date": "Data de finalització no vàlida.",
       "invalid_assignee_count": "Recompte de nens no vàlid",
       "invalid_assignee_name": "Nom de nen no vàlid",
-      "invalid_approver_count": "Recompte de pares no vàlid",
+      "invalid_user_count": "Recompte de pares no vàlid",
       "invalid_approver_name": "Nom del pare no vàlid",
       "no_assignees_assigned": "Com a mínim un nen ha de tenir assignat la tasca",
       "invalid_penalty": "Penalització no vàlida",

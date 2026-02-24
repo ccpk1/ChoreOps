@@ -26,16 +26,16 @@ pytestmark = pytest.mark.asyncio
 def mock_storage_data():
     """Create mock raw storage data (simulates choreops_data file)."""
     return {
-        const.DATA_ASSIGNEES: {
+        const.DATA_USERS: {
             "assignee1": {
                 const.DATA_USER_NAME: "Alice",
                 const.DATA_USER_INTERNAL_ID: "assignee1",
-                const.DATA_ASSIGNEE_POINTS: 100,
+                const.DATA_USER_POINTS: 100,
             },
             "assignee2": {
                 const.DATA_USER_NAME: "Bob",
                 const.DATA_USER_INTERNAL_ID: "assignee2",
-                const.DATA_ASSIGNEE_POINTS: 50,
+                const.DATA_USER_POINTS: 50,
             },
         },
         const.DATA_CHORES: {
@@ -66,7 +66,7 @@ def mock_coordinator(mock_storage_data):
     coordinator.store = store
 
     # Mock convenience accessors (point to same data)
-    coordinator.assignees_data = mock_storage_data[const.DATA_ASSIGNEES]
+    coordinator.assignees_data = mock_storage_data[const.DATA_USERS]
 
     return coordinator
 
@@ -131,7 +131,7 @@ async def test_config_entry_diagnostics_has_all_storage_keys(
     result = await async_get_config_entry_diagnostics(mock_hass, mock_config_entry)
 
     # Verify all core storage keys are present
-    assert const.DATA_ASSIGNEES in result
+    assert const.DATA_USERS in result
     assert const.DATA_CHORES in result
     assert const.DATA_REWARDS in result
     assert const.DATA_PENALTIES in result
@@ -160,9 +160,9 @@ async def test_config_entry_diagnostics_byte_for_byte_compatibility(
         assert result[key] == mock_storage_data[key]
 
     # Verify assignees data structure preserved exactly
-    assert result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_USER_NAME] == "Alice"
-    assert result[const.DATA_ASSIGNEES]["assignee1"][const.DATA_ASSIGNEE_POINTS] == 100
-    assert result[const.DATA_ASSIGNEES]["assignee2"][const.DATA_USER_NAME] == "Bob"
+    assert result[const.DATA_USERS]["assignee1"][const.DATA_USER_NAME] == "Alice"
+    assert result[const.DATA_USERS]["assignee1"][const.DATA_USER_POINTS] == 100
+    assert result[const.DATA_USERS]["assignee2"][const.DATA_USER_NAME] == "Bob"
 
     # Verify chores data structure preserved exactly
     assert result[const.DATA_CHORES]["chore1"][const.DATA_CHORE_NAME] == "Clean Room"
@@ -186,7 +186,7 @@ async def test_device_diagnostics_returns_assignee_data(
     # Verify assignee data
     assert result["assignee_id"] == "assignee1"
     assert result["assignee_data"][const.DATA_USER_NAME] == "Alice"
-    assert result["assignee_data"][const.DATA_ASSIGNEE_POINTS] == 100
+    assert result["assignee_data"][const.DATA_USER_POINTS] == 100
 
 
 async def test_device_diagnostics_missing_assignee_id(

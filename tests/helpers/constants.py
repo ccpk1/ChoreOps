@@ -77,7 +77,7 @@ from custom_components.choreops.const import (
     ATTR_DASHBOARD_BONUSES,
     ATTR_DASHBOARD_CHALLENGES,
     ATTR_DASHBOARD_CHORES,
-    ATTR_DASHBOARD_ASSIGNEE_NAME,
+    ATTR_DASHBOARD_USER_NAME,
     ATTR_DASHBOARD_PENALTIES,
     ATTR_DASHBOARD_PENDING_APPROVALS,
     ATTR_DASHBOARD_POINTS_BUTTONS,
@@ -120,8 +120,6 @@ from custom_components.choreops.const import (
     CONFIG_FLOW_STEP_DATA_RECOVERY,
     CONFIG_FLOW_STEP_FINISH,
     CONFIG_FLOW_STEP_INTRO,
-    CONFIG_FLOW_STEP_ASSIGNEE_COUNT,
-    CONFIG_FLOW_STEP_ASSIGNEES,
     CONFIG_FLOW_STEP_USER_COUNT,
     CONFIG_FLOW_STEP_USERS,
     CONFIG_FLOW_STEP_PENALTY_COUNT,
@@ -133,21 +131,20 @@ from custom_components.choreops.const import (
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Assignees
     # =========================================================================
-    CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT,
-    CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
+    CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
     CFOF_USERS_INPUT_NAME,
     CFOF_USERS_INPUT_HA_USER_ID,
     CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Approvers
     # =========================================================================
-    CFOF_APPROVERS_INPUT_APPROVER_COUNT,
-    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
-    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    CFOF_APPROVERS_INPUT_CAN_APPROVE,
-    CFOF_APPROVERS_INPUT_CAN_MANAGE,
-    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
-    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+    CFOF_USERS_INPUT_COUNT,
+    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+    CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    CFOF_USERS_INPUT_CAN_APPROVE,
+    CFOF_USERS_INPUT_CAN_MANAGE,
+    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Chores
     # =========================================================================
@@ -156,7 +153,7 @@ from custom_components.choreops.const import (
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_ICON,
     CFOF_CHORES_INPUT_DESCRIPTION,
-    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_APPLICABLE_DAYS,
@@ -226,7 +223,7 @@ from custom_components.choreops.const import (
     CFOF_ACHIEVEMENTS_INPUT_TYPE,
     CFOF_ACHIEVEMENTS_INPUT_TARGET_VALUE,
     CFOF_ACHIEVEMENTS_INPUT_REWARD_POINTS,
-    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - Challenges
     # =========================================================================
@@ -239,7 +236,7 @@ from custom_components.choreops.const import (
     CFOF_CHALLENGES_INPUT_REWARD_POINTS,
     CFOF_CHALLENGES_INPUT_START_DATE,
     CFOF_CHALLENGES_INPUT_END_DATE,
-    CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS,
     # =========================================================================
     # CONFIG/OPTIONS FLOW FIELD NAMES - System Settings
     # =========================================================================
@@ -266,8 +263,6 @@ from custom_components.choreops.const import (
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
     OPTIONS_FLOW_STEP_SELECT_ENTITY,
-    OPTIONS_FLOW_STEP_ADD_ASSIGNEE,
-    OPTIONS_FLOW_STEP_EDIT_ASSIGNEE,
     OPTIONS_FLOW_STEP_ADD_USER,
     OPTIONS_FLOW_STEP_EDIT_USER,
     OPTIONS_FLOW_STEP_ADD_CHORE,
@@ -279,12 +274,11 @@ from custom_components.choreops.const import (
     OPTIONS_FLOW_STEP_ADD_CHALLENGE,
     OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI,
     # Per-assignee helper step IDs (PKAD-2026-001)
-    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DATES,
-    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS,
+    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DATES,
+    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS,
     OPTIONS_FLOW_STEP_EDIT_CHORE,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
-    OPTIONS_FLOW_ASSIGNEES,
     OPTIONS_FLOW_USERS,
     OPTIONS_FLOW_CHORES,
     OPTIONS_FLOW_REWARDS,
@@ -375,7 +369,7 @@ from custom_components.choreops.const import (
     DATA_CHORE_APPROVAL_PERIOD_START,
     DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_CUSTOM_INTERVAL,
     DATA_CHORE_CUSTOM_INTERVAL_UNIT,
@@ -401,55 +395,55 @@ from custom_components.choreops.const import (
     # =========================================================================
     # DATA KEYS - KID FIELDS
     # =========================================================================
-    DATA_ASSIGNEE_BADGE_PROGRESS,
-    DATA_ASSIGNEE_BADGES_EARNED,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS,
-    DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
+    DATA_USER_BADGE_PROGRESS,
+    DATA_USER_BADGES_EARNED,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CUMULATIVE_BADGE_PROGRESS,
+    DATA_USER_DASHBOARD_LANGUAGE,
     # =========================================================================
     # DATA KEYS - KID CHORE DATA
     # =========================================================================
-    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED,  # Phase 5: Missed tracking
-    DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS,  # Phase 5: Period buckets structure
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,  # Phase 5: Daily buckets
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY,  # Phase 5: Weekly buckets
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY,  # Phase 5: Monthly buckets
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY,  # Phase 5: Yearly buckets
-    DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED,  # Phase 5: Missed count key
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
-    DATA_ASSIGNEE_CHORE_DATA_TOTAL_COUNT,
-    DATA_ASSIGNEE_CHORE_DATA_TOTAL_POINTS,
-    DATA_ASSIGNEE_CHORE_PERIODS,  # v43+ aggregated chore periods
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME,  # v43+ all_time bucket key
-    DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED,  # v43+ approved count key
-    DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS,  # v43+ points key
-    DATA_ASSIGNEE_CHORE_STATS_LEGACY,  # v43+ moved to LEGACY, use DATA_ASSIGNEE_CHORE_PERIODS
+    DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_USER_CHORE_DATA_LAST_APPROVED,
+    DATA_USER_CHORE_DATA_LAST_CLAIMED,
+    DATA_USER_CHORE_DATA_LAST_DISAPPROVED,
+    DATA_USER_CHORE_DATA_LAST_MISSED,  # Phase 5: Missed tracking
+    DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT,
+    DATA_USER_CHORE_DATA_PERIODS,  # Phase 5: Period buckets structure
+    DATA_USER_CHORE_DATA_PERIODS_DAILY,  # Phase 5: Daily buckets
+    DATA_USER_CHORE_DATA_PERIODS_WEEKLY,  # Phase 5: Weekly buckets
+    DATA_USER_CHORE_DATA_PERIODS_MONTHLY,  # Phase 5: Monthly buckets
+    DATA_USER_CHORE_DATA_PERIODS_YEARLY,  # Phase 5: Yearly buckets
+    DATA_USER_CHORE_DATA_PERIOD_MISSED,  # Phase 5: Missed count key
+    DATA_USER_CHORE_DATA_STATE,
+    DATA_USER_CHORE_DATA_TOTAL_COUNT,
+    DATA_USER_CHORE_DATA_TOTAL_POINTS,
+    DATA_USER_CHORE_PERIODS,  # v43+ aggregated chore periods
+    DATA_USER_CHORE_DATA_PERIODS_ALL_TIME,  # v43+ all_time bucket key
+    DATA_USER_CHORE_DATA_PERIOD_APPROVED,  # v43+ approved count key
+    DATA_USER_CHORE_DATA_PERIOD_POINTS,  # v43+ points key
+    DATA_ASSIGNEE_CHORE_STATS_LEGACY,  # v43+ moved to LEGACY, use DATA_USER_CHORE_PERIODS
     # Phase 2: DATA_KID_COMPLETED_BY_OTHER_CHORES removed (was line 419)
     DATA_USER_HA_USER_ID,
     DATA_USER_INTERNAL_ID,
     DATA_USER_NAME,
     # DATA_KID_OVERDUE_CHORES removed - dead code, see DATA_KID_OVERDUE_CHORES_LEGACY
-    DATA_ASSIGNEE_POINT_PERIODS,  # v43+ flat structure
+    DATA_USER_POINT_PERIODS,  # v43+ flat structure
     DATA_ASSIGNEE_POINT_DATA_LEGACY,  # LEGACY v42 - for migration tests only
-    DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE,  # v43+ renamed
-    DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,  # v43+ renamed
-    DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT,  # v43+ renamed
+    DATA_USER_POINT_PERIOD_HIGHEST_BALANCE,  # v43+ renamed
+    DATA_USER_POINT_PERIOD_POINTS_EARNED,  # v43+ renamed
+    DATA_USER_POINT_PERIOD_POINTS_SPENT,  # v43+ renamed
     DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY,  # LEGACY v42 - for migration tests only
-    DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME,  # v43+ renamed
+    DATA_USER_POINT_PERIODS_ALL_TIME,  # v43+ renamed
     DATA_ASSIGNEE_POINT_STATS_LEGACY,
-    DATA_ASSIGNEE_POINTS,
-    DATA_ASSIGNEE_REWARD_DATA,
-    DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT,
-    DATA_ASSIGNEES,
+    DATA_USER_POINTS,
+    DATA_USER_REWARD_DATA,
+    DATA_USER_REWARD_DATA_PENDING_COUNT,
+    DATA_USERS,
     # =========================================================================
     # DATA KEYS - PARENT FIELDS (Shadow Assignee Support)
     # =========================================================================
-    DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+    DATA_USER_CAN_BE_ASSIGNED,
     DATA_APPROVER_DASHBOARD_LANGUAGE,
     DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
     DATA_APPROVER_ENABLE_GAMIFICATION,
@@ -527,7 +521,7 @@ from custom_components.choreops.const import (
     # NOTIFICATION DATA KEYS
     # =========================================================================
     DATA_CHORE_ID,
-    DATA_ASSIGNEE_ID,
+    DATA_USER_ID,
     DATA_REWARD_ID,
     NOTIFY_ACTION,
     NOTIFY_NOTIFICATION_ID,
@@ -562,8 +556,8 @@ from custom_components.choreops.const import (
     # =========================================================================
     # SERVICE FIELD NAMES (for service call payloads)
     # =========================================================================
-    SERVICE_FIELD_ASSIGNEE_NAME,
-    SERVICE_FIELD_ASSIGNEE_ID,
+    SERVICE_FIELD_USER_NAME,
+    SERVICE_FIELD_USER_ID,
     SERVICE_FIELD_APPROVER_NAME,
     SERVICE_FIELD_REWARD_ID,
     SERVICE_FIELD_REWARD_NAME,

@@ -205,8 +205,10 @@ def normalize_legacy_sample_keys(payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(data, dict):
         return normalized
 
-    if "kids" in data and "assignees" not in data:
-        data["assignees"] = data.pop("kids")
+    if "kids" in data and const.DATA_USERS not in data:
+        data[const.DATA_USERS] = data.pop("kids")
+    if "assignees" in data and const.DATA_USERS not in data:
+        data[const.DATA_USERS] = data.pop("assignees")
     if "parents" in data and "approvers" not in data:
         data["approvers"] = data.pop("parents")
 
@@ -324,7 +326,7 @@ class TestPointsMigrationFromV40:
 
         # Count historical periods in original data
         original_data = v40beta1_data["data"]
-        original_assignees = original_data.get("assignees", {})
+        original_assignees = original_data.get(const.DATA_USERS, {})
         assert isinstance(original_assignees, dict)
         original_monthly_count = sum(
             len(

@@ -33,8 +33,8 @@ from tests.helpers import (
     ATTR_CHORE_APPROVE_BUTTON_ENTITY_ID,
     ATTR_CHORE_CLAIM_BUTTON_ENTITY_ID,
     ATTR_DASHBOARD_BADGES,
-    DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS,
-    DATA_ASSIGNEE_POINTS,
+    DATA_USER_CUMULATIVE_BADGE_PROGRESS,
+    DATA_USER_POINTS,
 )
 from tests.helpers.flow_test_helpers import FlowTestHelper
 from tests.test_badge_helpers import (
@@ -229,7 +229,7 @@ class TestCumulativeBadgeProgress:
 
         # Get initial cumulative badge progress
         initial_progress = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+            DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
         )
         initial_chores_completed = initial_progress.get("cycle_chores_completed", 0)
 
@@ -268,7 +268,7 @@ class TestCumulativeBadgeProgress:
 
         # Verify badge progress increased
         updated_progress = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+            DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
         )
         updated_chores_completed = updated_progress.get("cycle_chores_completed", 0)
 
@@ -278,7 +278,7 @@ class TestCumulativeBadgeProgress:
         )
 
         # Verify points were awarded
-        zoe_points = coordinator.assignees_data[zoe_id].get(DATA_ASSIGNEE_POINTS, 0)
+        zoe_points = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
         assert zoe_points == 10, f"Expected 10 points, got {zoe_points}"
 
     async def test_demoted_current_badge_multiplier_is_applied(
@@ -329,7 +329,7 @@ class TestCumulativeBadgeProgress:
         await hass.async_block_till_done()
 
         multiplier = coordinator.assignees_data[max_id].get(
-            const.DATA_ASSIGNEE_POINTS_MULTIPLIER
+            const.DATA_USER_POINTS_MULTIPLIER
         )
         assert multiplier == 1.25, (
             f"Expected multiplier from demotion-aware current badge, got {multiplier}"
@@ -367,7 +367,7 @@ class TestMultiAssigneeCumulativeBadgeProgress:
         max_id = get_assignee_by_name(coordinator, "Max!")
 
         # Get initial points
-        initial_points = coordinator.assignees_data[max_id].get(DATA_ASSIGNEE_POINTS, 0)
+        initial_points = coordinator.assignees_data[max_id].get(DATA_USER_POINTS, 0)
 
         # Get dashboard helper to find chore entity
         dashboard_eid = get_dashboard_helper_eid(hass, "Max!")
@@ -403,7 +403,7 @@ class TestMultiAssigneeCumulativeBadgeProgress:
         await hass.async_block_till_done()
 
         # Verify points were awarded (Pick up Lëgo! is 15 points)
-        final_points = coordinator.assignees_data[max_id].get(DATA_ASSIGNEE_POINTS, 0)
+        final_points = coordinator.assignees_data[max_id].get(DATA_USER_POINTS, 0)
         assert final_points == initial_points + 15, (
             f"Expected {initial_points + 15} points, got {final_points}"
         )
@@ -797,7 +797,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         )
         higher_badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 2.0
 
-        coordinator.assignees_data[zoe_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 1.0
+        coordinator.assignees_data[zoe_id][const.DATA_USER_POINTS_MULTIPLIER] = 1.0
 
         def _mock_progress(_: str) -> dict[str, Any]:
             return {
@@ -820,8 +820,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         await hass.async_block_till_done()
 
         assert (
-            coordinator.assignees_data[zoe_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER]
-            == 2.0
+            coordinator.assignees_data[zoe_id][const.DATA_USER_POINTS_MULTIPLIER] == 2.0
         )
 
     async def test_multiplier_changes_correctly_on_demotion(
@@ -847,7 +846,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         lower_badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 1.25
         higher_badge_awards[const.DATA_BADGE_AWARDS_POINT_MULTIPLIER] = 2.0
 
-        coordinator.assignees_data[max_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 2.0
+        coordinator.assignees_data[max_id][const.DATA_USER_POINTS_MULTIPLIER] = 2.0
 
         def _mock_progress(_: str) -> dict[str, Any]:
             return {
@@ -870,7 +869,7 @@ class TestCumulativeBadgeMultiplierTransitions:
         await hass.async_block_till_done()
 
         assert (
-            coordinator.assignees_data[max_id][const.DATA_ASSIGNEE_POINTS_MULTIPLIER]
+            coordinator.assignees_data[max_id][const.DATA_USER_POINTS_MULTIPLIER]
             == 1.25
         )
 
@@ -909,33 +908,31 @@ class TestCumulativeBadgeMultiplierTransitions:
         )
 
         assignee_data = coordinator.assignees_data[zoe_id]
-        assignee_data[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 1.25
-        initial_points = float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0))
+        assignee_data[const.DATA_USER_POINTS_MULTIPLIER] = 1.25
+        initial_points = float(assignee_data.get(const.DATA_USER_POINTS, 0.0))
         assignee_badges_earned = assignee_data.setdefault(
-            const.DATA_ASSIGNEE_BADGES_EARNED, {}
+            const.DATA_USER_BADGES_EARNED, {}
         )
         assignee_badges_earned[higher_badge_id] = {
-            const.DATA_ASSIGNEE_BADGES_EARNED_NAME: coordinator.badges_data[
+            const.DATA_USER_BADGES_EARNED_NAME: coordinator.badges_data[
                 higher_badge_id
             ][const.DATA_BADGE_NAME],
-            const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: "2026-02-01",
-            const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS: {},
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED: "2026-02-01",
+            const.DATA_USER_BADGES_EARNED_PERIODS: {},
         }
 
         assignee_progress = assignee_data.setdefault(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
         )
-        assignee_progress[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        assignee_progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_DEMOTED
         )
+        assignee_progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 6.0
         assignee_progress[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
-        ] = 6.0
-        assignee_progress[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
         ] = "2099-01-01"
         assignee_progress[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = None
 
         original_get_progress = gamification_manager.get_cumulative_badge_progress
@@ -945,9 +942,9 @@ class TestCumulativeBadgeMultiplierTransitions:
                 return original_get_progress(assignee_id)
 
             status = assignee_data.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
             ).get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
                 const.CUMULATIVE_BADGE_STATE_ACTIVE,
             )
             current_badge_id = (
@@ -994,24 +991,22 @@ class TestCumulativeBadgeMultiplierTransitions:
         await hass.async_block_till_done()
 
         assert (
-            assignee_data[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS][
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS
+            assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS][
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS
             ]
             == const.CUMULATIVE_BADGE_STATE_ACTIVE
         )
         assert (
-            assignee_data[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS][
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
+            assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS][
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
             ]
             == 0.0
         )
-        assert assignee_data[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] == 2.0
+        assert assignee_data[const.DATA_USER_POINTS_MULTIPLIER] == 2.0
+        assert float(assignee_data.get(const.DATA_USER_POINTS, 0.0)) == initial_points
         assert (
-            float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)) == initial_points
-        )
-        assert (
-            assignee_data[const.DATA_ASSIGNEE_BADGES_EARNED][higher_badge_id][
-                const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED
+            assignee_data[const.DATA_USER_BADGES_EARNED][higher_badge_id][
+                const.DATA_USER_BADGES_EARNED_LAST_AWARDED
             ]
             == "2026-02-01"
         )

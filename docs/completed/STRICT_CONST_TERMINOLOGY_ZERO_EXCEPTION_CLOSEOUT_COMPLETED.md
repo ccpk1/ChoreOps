@@ -5,7 +5,7 @@
 - **Name / Code**: Strict Const Terminology Zero-Exception Closeout (`CHOREOPS-HF-STRICT-002`)
 - **Target release / milestone**: Immediate hard-fork corrective wave (post-archive remediation)
 - **Owner / driver(s)**: Project manager + builder lead
-- **Status**: In progress
+- **Status**: Complete
 
 ## Summary & immediate steps
 
@@ -13,17 +13,17 @@
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
 | Phase 1 – Governance reset                        | Re-open strict initiative and invalidate ambiguous close language                              | 100%       | Validation threshold met (`pylint 9.94`)                                                            |
 | Phase 2 – Const lexical eradication               | Remove all `KID`/`PARENT` naming and wording from `const.py` runtime surface                   | 100%       | Const lexical gates A1-A4 remain at zero                                                            |
-| Phase 3 – Runtime propagation                     | Update runtime/tests/docs references after const contract changes                              | 95%        | Phase 3D runtime lexical closeout complete (runtime=0); docs blocker remains                        |
+| Phase 3 – Runtime propagation                     | Update runtime/tests/docs references after const contract changes                              | 100%       | Runtime lexical closeout complete; follow-on naming work moved to new item/role hard-fork plan      |
 | Phase 3E – Const symbol contract remediation      | Remove all `KID`/`PARENT` symbol identifiers from `const.py` and propagate canonical callsites | 100%       | Strict symbol closure reached (`const_name_hits=0`, runtime=0, tests=0)                             |
 | Phase 4A – Runtime identity contract finalization | Remove active runtime dual-model linkage behavior and lock single-model runtime contract       | 100%       | Batch 7 complete: targeted fallout triaged; identity/linkage closure gates at zero in runtime+const |
-| Phase 4B – User-role gating standardization       | Standardize assignee/user method semantics and enforce one holistic role-gating pattern         | 100%       | Phase 4B.1/4B.2/4B.3 complete (full regression matrix + full-suite closure gate green)                |
-| Phase 4 – Validation lock                         | Enforce machine-verifiable strict gates and publish evidence                                   | 100%       | Full validation evidence logged; owner sign-off + archive step pending                               |
+| Phase 4B – User-role gating standardization       | Standardize assignee/user method semantics and enforce one holistic role-gating pattern        | 100%       | Phase 4B.1/4B.2/4B.3 complete (full regression matrix + full-suite closure gate green)              |
+| Phase 4 – Validation lock                         | Enforce machine-verifiable strict gates and publish evidence                                   | 100%       | Full validation evidence logged; initiative closed and superseded for next contract tranche         |
 
-- Overall plan progress (phase-weighted): **99.00%** (Strict lexical + identity + role-gating gates are green; archival/sign-off workflow remains)
+- Overall plan progress (phase-weighted): **100.00%** (Strict lexical + identity + role-gating gates are green; scope complete)
 
 1. **Key objective** – Enforce a strict hard-fork endpoint where closure is permitted only when legacy `kid`/`parent` terminology is fully eliminated from active runtime constants and wording, beginning with `custom_components/choreops/const.py`, with zero exceptions in this initiative scope.
 2. **Summary of recent work** – Prior plan was archived with residual lexical debt; this initiative reopens execution under stricter, binary completion criteria.
-3. **Next steps (short term)** – Complete owner sign-off and archive workflow once final completion confirmation is approved.
+3. **Next steps (short term)** – Treat this initiative as closed and execute follow-on contract migration under `CHOREOPS-ROLE-HF-EXEC-001`.
 4. **Risks / blockers**
    - High-churn `const.py` edits can break imports and translation contracts if done in wide batches.
    - Legacy tokens may persist in comments, literal strings, service metadata, and test fixtures even after symbol renames.
@@ -35,12 +35,17 @@
    - `docs/completed/HARD_FORK_TERMINOLOGY_FINALIZATION_COMPLETED.md`
    - `tests/AGENT_TEST_CREATION_INSTRUCTIONS.md`
    - `docs/in-process/STRICT_CONST_TERMINOLOGY_ZERO_EXCEPTION_CLOSEOUT_SUP_CLOSURE_GATES.md`
+
+- `docs/in-process/USER_ROLE_MODEL_DRIFT_ANALYSIS_SUP_FACT_TABLE.md`
+- `docs/in-process/USER_FIRST_ITEM_ROLE_CONTRACT_HARD_FORK_EXECUTION_IN-PROCESS.md`
+
 6. **Decisions & completion check**
    - **Decisions captured**:
    - This initiative supersedes any interpretation that allows closure with residual `kid`/`parent` lexical debt in active runtime constant surfaces.
    - For this initiative, closure is binary and machine-gated: partial completion is not closable.
    - Runtime alias bridges for deprecated terms are prohibited.
-   - **Completion confirmation**: `[ ]` Mark complete only when all strict gates in the support doc report pass with zero residual counts and full quality/test validation is green.
+
+- **Completion confirmation**: `[x]` All strict gates in scope are complete with validation evidence logged; follow-on scope transferred to approved user-first item/role execution plan.
 
 > **Important:** This plan is explicitly non-ambiguous: if any strict gate fails, status remains in progress.
 

@@ -26,19 +26,19 @@ from tests.helpers import (
     APPROVAL_RESET_AT_DUE_DATE_ONCE,
     CHORE_STATE_OVERDUE,
     CHORE_STATE_PENDING,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED,
-    DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY,
-    DATA_ASSIGNEE_CHORE_PERIODS,
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_OVERDUE_HANDLING_TYPE,
     DATA_CHORE_STATE,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_LAST_MISSED,
+    DATA_USER_CHORE_DATA_PERIOD_MISSED,
+    DATA_USER_CHORE_DATA_PERIODS,
+    DATA_USER_CHORE_DATA_PERIODS_DAILY,
+    DATA_USER_CHORE_DATA_PERIODS_MONTHLY,
+    DATA_USER_CHORE_DATA_PERIODS_WEEKLY,
+    DATA_USER_CHORE_DATA_PERIODS_YEARLY,
+    DATA_USER_CHORE_PERIODS,
     DOMAIN,
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED,
     SERVICE_SKIP_CHORE_DUE_DATE,
@@ -102,9 +102,9 @@ def get_assignee_chore_last_missed(
 ) -> str | None:
     """Get last_missed timestamp for a assignee's chore."""
     assignee_info = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {})
     assignee_chore_data = chore_data.get(chore_id, {})
-    return assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED)
+    return assignee_chore_data.get(DATA_USER_CHORE_DATA_LAST_MISSED)
 
 
 def get_missed_count_from_period(
@@ -120,19 +120,19 @@ def get_missed_count_from_period(
         coordinator: The coordinator instance
         assignee_id: Assignee's internal ID
         chore_id: Chore's internal ID
-        period_type: Period type constant (DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, etc.)
+        period_type: Period type constant (DATA_USER_CHORE_DATA_PERIODS_DAILY, etc.)
         period_key: Period key (e.g., "2026-02-09" for daily)
 
     Returns:
         Missed count from the specified bucket, or 0 if not found
     """
     assignee_info = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {})
     assignee_chore_data = chore_data.get(chore_id, {})
-    periods = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+    periods = assignee_chore_data.get(DATA_USER_CHORE_DATA_PERIODS, {})
     period_buckets = periods.get(period_type, {})
     bucket = period_buckets.get(period_key, {})
-    return bucket.get(DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0)
+    return bucket.get(DATA_USER_CHORE_DATA_PERIOD_MISSED, 0)
 
 
 def get_assignee_level_missed_count(
@@ -146,17 +146,17 @@ def get_assignee_level_missed_count(
     Args:
         coordinator: The coordinator instance
         assignee_id: Assignee's internal ID
-        period_type: Period type constant (DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, etc.)
+        period_type: Period type constant (DATA_USER_CHORE_DATA_PERIODS_DAILY, etc.)
         period_key: Period key (e.g., "2026-02-09" for daily)
 
     Returns:
         Missed count from assignee-level bucket, or 0 if not found
     """
     assignee_info = coordinator.assignees_data.get(assignee_id, {})
-    assignee_chore_periods = assignee_info.get(DATA_ASSIGNEE_CHORE_PERIODS, {})
+    assignee_chore_periods = assignee_info.get(DATA_USER_CHORE_PERIODS, {})
     period_buckets = assignee_chore_periods.get(period_type, {})
     bucket = period_buckets.get(period_key, {})
-    return bucket.get(DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED, 0)
+    return bucket.get(DATA_USER_CHORE_DATA_PERIOD_MISSED, 0)
 
 
 # ============================================================================
@@ -281,7 +281,7 @@ class TestAutomatedMissRecording:
 
         # Get all assigned assignees
         assigned_assignees = coordinator.chores_data[chore_id][
-            DATA_CHORE_ASSIGNED_ASSIGNEES
+            DATA_CHORE_ASSIGNED_USER_IDS
         ]
         assert len(assigned_assignees) == 3  # Zoë, Max, Lila
 
@@ -330,7 +330,7 @@ class TestAutomatedMissRecording:
                 coordinator,
                 assignee_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             assert missed_count == 1  # First miss recorded
@@ -408,7 +408,7 @@ class TestAutomatedMissRecording:
             coordinator,
             zoe_id,
             chore_id,
-            DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+            DATA_USER_CHORE_DATA_PERIODS_DAILY,
             today_key,
         )
         assert missed_count == 1  # First miss recorded
@@ -467,7 +467,7 @@ class TestSkipChoreWithMissMarking:
             coordinator,
             zoe_id,
             chore_id,
-            DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+            DATA_USER_CHORE_DATA_PERIODS_DAILY,
             today_key,
         )
         assert missed_count == 1  # First miss recorded
@@ -488,7 +488,7 @@ class TestSkipChoreWithMissMarking:
 
         # Get assigned assignees
         assigned_assignees = coordinator.chores_data[chore_id][
-            DATA_CHORE_ASSIGNED_ASSIGNEES
+            DATA_CHORE_ASSIGNED_USER_IDS
         ]
         assert len(assigned_assignees) == 3
 
@@ -533,7 +533,7 @@ class TestSkipChoreWithMissMarking:
                 coordinator,
                 assignee_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             assert missed_count == 1  # First miss recorded
@@ -611,7 +611,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 0
@@ -627,7 +627,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 1
@@ -665,7 +665,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 period_keys["daily"],
             )
             == 1
@@ -675,7 +675,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY,
+                DATA_USER_CHORE_DATA_PERIODS_WEEKLY,
                 period_keys["weekly"],
             )
             == 1
@@ -685,7 +685,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY,
+                DATA_USER_CHORE_DATA_PERIODS_MONTHLY,
                 period_keys["monthly"],
             )
             == 1
@@ -695,7 +695,7 @@ class TestMissedPeriodBuckets:
                 coordinator,
                 zoe_id,
                 chore_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY,
+                DATA_USER_CHORE_DATA_PERIODS_YEARLY,
                 period_keys["yearly"],
             )
             == 1
@@ -728,7 +728,7 @@ class TestMissedPeriodBuckets:
             get_assignee_level_missed_count(
                 coordinator,
                 zoe_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 0
@@ -743,7 +743,7 @@ class TestMissedPeriodBuckets:
             get_assignee_level_missed_count(
                 coordinator,
                 zoe_id,
-                DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
+                DATA_USER_CHORE_DATA_PERIODS_DAILY,
                 today_key,
             )
             == 1

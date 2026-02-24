@@ -81,7 +81,7 @@ class _DummyStatisticsManager:
                         "periods": {
                             const.PERIOD_ALL_TIME: {
                                 const.PERIOD_ALL_TIME: {
-                                    const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 2,
+                                    const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 2,
                                 }
                             }
                         },
@@ -114,9 +114,9 @@ def _build_test_assignees_data() -> dict[str, Any]:
     return {
         "assignee-1": {
             const.DATA_USER_NAME: "Zoë",
-            const.DATA_ASSIGNEE_POINTS: 100.0,
-            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE: "en",
-            const.DATA_ASSIGNEE_LEDGER: [
+            const.DATA_USER_POINTS: 100.0,
+            const.DATA_USER_DASHBOARD_LANGUAGE: "en",
+            const.DATA_USER_LEDGER: [
                 {
                     const.DATA_LEDGER_TIMESTAMP: "2026-02-10T12:00:00+00:00",
                     const.DATA_LEDGER_AMOUNT: 10.0,
@@ -130,71 +130,71 @@ def _build_test_assignees_data() -> dict[str, Any]:
                     const.DATA_LEDGER_ITEM_NAME: "Screen Time",
                 },
             ],
-            const.DATA_ASSIGNEE_POINT_PERIODS: {
+            const.DATA_USER_POINT_PERIODS: {
                 const.PERIOD_ALL_TIME: {
                     const.PERIOD_ALL_TIME: {
-                        const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED: 50.0,
-                        const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT: 20.0,
+                        const.DATA_USER_POINT_PERIOD_POINTS_EARNED: 50.0,
+                        const.DATA_USER_POINT_PERIOD_POINTS_SPENT: 20.0,
                     }
                 }
             },
-            const.DATA_ASSIGNEE_CHORE_PERIODS: {
+            const.DATA_USER_CHORE_PERIODS: {
                 const.PERIOD_ALL_TIME: {
                     const.PERIOD_ALL_TIME: {
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: 7,
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED: 9,
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED: 1,
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED: 2,
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE: 6,
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK: 5,
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: 3,
+                        const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 7,
+                        const.DATA_USER_CHORE_DATA_PERIOD_CLAIMED: 9,
+                        const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: 1,
+                        const.DATA_USER_CHORE_DATA_PERIOD_MISSED: 2,
+                        const.DATA_USER_CHORE_DATA_PERIOD_OVERDUE: 6,
+                        const.DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK: 5,
+                        const.DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: 3,
                     }
                 }
             },
-            const.DATA_ASSIGNEE_REWARD_PERIODS: {
+            const.DATA_USER_REWARD_PERIODS: {
                 const.PERIOD_ALL_TIME: {
                     const.PERIOD_ALL_TIME: {
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED: 4,
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED: 4,
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_DISAPPROVED: 0,
-                        const.DATA_ASSIGNEE_REWARD_DATA_PERIOD_POINTS: 12.0,
+                        const.DATA_USER_REWARD_DATA_PERIOD_APPROVED: 4,
+                        const.DATA_USER_REWARD_DATA_PERIOD_CLAIMED: 4,
+                        const.DATA_USER_REWARD_DATA_PERIOD_DISAPPROVED: 0,
+                        const.DATA_USER_REWARD_DATA_PERIOD_POINTS: 12.0,
                     }
                 }
             },
-            const.DATA_ASSIGNEE_CHORE_DATA: {
+            const.DATA_USER_CHORE_DATA: {
                 "chore-1": {
-                    const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK: 4,
-                    const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK: 1,
+                    const.DATA_USER_CHORE_DATA_CURRENT_STREAK: 4,
+                    const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK: 1,
                 }
             },
-            const.DATA_ASSIGNEE_BADGES_EARNED: {
+            const.DATA_USER_BADGES_EARNED: {
                 "badge-1": {
-                    const.DATA_ASSIGNEE_BADGES_EARNED_NAME: "Consistency",
-                    const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: "2026-02-11",
-                    const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS: {
+                    const.DATA_USER_BADGES_EARNED_NAME: "Consistency",
+                    const.DATA_USER_BADGES_EARNED_LAST_AWARDED: "2026-02-11",
+                    const.DATA_USER_BADGES_EARNED_PERIODS: {
                         "2026-02-11": {
                             "2026-02-11": {
-                                const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 1,
+                                const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 1,
                             }
                         },
                         "2026-W07": {
                             "2026-W07": {
-                                const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 2,
+                                const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 2,
                             }
                         },
                         "2026-02": {
                             "2026-02": {
-                                const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 2,
+                                const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 2,
                             }
                         },
                         "2026": {
                             "2026": {
-                                const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 2,
+                                const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 2,
                             }
                         },
                         const.PERIOD_ALL_TIME: {
                             const.PERIOD_ALL_TIME: {
-                                const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: 2,
+                                const.DATA_USER_BADGES_EARNED_AWARD_COUNT: 2,
                             }
                         },
                     },
@@ -241,7 +241,7 @@ def test_build_activity_report_includes_streaks_badges_and_translation() -> None
         report["supplemental"]["badges"]["by_badge"]["badge-1"]["periods"]
         .get(const.PERIOD_ALL_TIME, {})
         .get(const.PERIOD_ALL_TIME, {})
-        .get(const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT)
+        .get(const.DATA_USER_BADGES_EARNED_AWARD_COUNT)
         == 2
     )
 

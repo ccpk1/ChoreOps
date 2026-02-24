@@ -26,6 +26,8 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.choreops import const, migration_pre_v50 as mp50
 from custom_components.choreops.store import ChoreOpsStore
 
+LEGACY_ASSIGNEES_BUCKET = "assignees"
+
 # =============================================================================
 # FIXTURES
 # =============================================================================
@@ -40,11 +42,11 @@ def base_storage_data() -> dict[str, Any]:
             const.DATA_META_LAST_MIGRATION_DATE: "2025-01-01T00:00:00+00:00",
             const.DATA_META_MIGRATIONS_APPLIED: [],
         },
-        const.DATA_ASSIGNEES: {
+        LEGACY_ASSIGNEES_BUCKET: {
             "assignee-uuid-1": {
                 const.DATA_USER_INTERNAL_ID: "assignee-uuid-1",
                 const.DATA_USER_NAME: "Alice",
-                const.DATA_ASSIGNEE_POINTS: 150.0,
+                const.DATA_USER_POINTS: 150.0,
                 const.DATA_USER_HA_USER_ID: "",
             },
         },
@@ -53,7 +55,7 @@ def base_storage_data() -> dict[str, Any]:
                 const.DATA_CHORE_INTERNAL_ID: "chore-uuid-1",
                 const.DATA_CHORE_NAME: "Dishes",
                 const.DATA_CHORE_DEFAULT_POINTS: 10.0,
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-uuid-1"],
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-uuid-1"],
             },
         },
         const.DATA_REWARDS: {},
@@ -160,7 +162,7 @@ class TestSchemaStampFix:
         users = migrated_data.get(const.DATA_USERS)
         assert isinstance(users, dict)
         assert "assignee-uuid-1" in users
-        assert const.DATA_ASSIGNEES not in migrated_data
+        assert LEGACY_ASSIGNEES_BUCKET not in migrated_data
 
         alice = users["assignee-uuid-1"]
         assert alice[const.DATA_USER_CAN_APPROVE] is False
@@ -280,11 +282,11 @@ class TestNuclearRebuild:
     def test_rebuild_preserves_assignee_points(self, migrator) -> None:
         """Nuclear rebuild preserves assignee points value."""
         # Set up assignee with points
-        migrator.coordinator._data[const.DATA_ASSIGNEES] = {
+        migrator.coordinator._data[const.DATA_USERS] = {
             "assignee-uuid-1": {
                 const.DATA_USER_INTERNAL_ID: "assignee-uuid-1",
                 const.DATA_USER_NAME: "Alice",
-                const.DATA_ASSIGNEE_POINTS: 250.5,
+                const.DATA_USER_POINTS: 250.5,
                 const.DATA_USER_HA_USER_ID: "",
             },
         }
@@ -292,9 +294,9 @@ class TestNuclearRebuild:
         result = migrator._attempt_nuclear_rebuild()
         assert result is True
 
-        assignee = migrator.coordinator._data[const.DATA_ASSIGNEES]["assignee-uuid-1"]
+        assignee = migrator.coordinator._data[const.DATA_USERS]["assignee-uuid-1"]
         assert assignee[const.DATA_USER_NAME] == "Alice"
-        assert assignee[const.DATA_ASSIGNEE_POINTS] == 250.5
+        assert assignee[const.DATA_USER_POINTS] == 250.5
 
     def test_rebuild_preserves_chore_assigned_assignees(self, migrator) -> None:
         """Nuclear rebuild preserves chore assignments."""
@@ -303,7 +305,7 @@ class TestNuclearRebuild:
                 const.DATA_CHORE_INTERNAL_ID: "chore-uuid-1",
                 const.DATA_CHORE_NAME: "Dishes",
                 const.DATA_CHORE_DEFAULT_POINTS: 10.0,
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES: [
+                const.DATA_CHORE_ASSIGNED_USER_IDS: [
                     "assignee-uuid-1",
                     "assignee-uuid-2",
                 ],
@@ -315,8 +317,8 @@ class TestNuclearRebuild:
 
         chore = migrator.coordinator._data[const.DATA_CHORES]["chore-uuid-1"]
         assert chore[const.DATA_CHORE_NAME] == "Dishes"
-        assert "assignee-uuid-1" in chore[const.DATA_CHORE_ASSIGNED_ASSIGNEES]
-        assert "assignee-uuid-2" in chore[const.DATA_CHORE_ASSIGNED_ASSIGNEES]
+        assert "assignee-uuid-1" in chore[const.DATA_CHORE_ASSIGNED_USER_IDS]
+        assert "assignee-uuid-2" in chore[const.DATA_CHORE_ASSIGNED_USER_IDS]
 
     def test_rebuild_stamps_schema_43(self, migrator) -> None:
         """Nuclear rebuild stamps SCHEMA_VERSION_STORAGE_ONLY."""
@@ -328,14 +330,15 @@ class TestNuclearRebuild:
 
     def test_rebuild_skips_bad_items(self, migrator) -> None:
         """Nuclear rebuild skips items that fail to build, continues others."""
-        migrator.coordinator._data[const.DATA_ASSIGNEES] = {
+        migrator.coordinator._data[const.DATA_USERS] = {
             "good-assignee": {
                 const.DATA_USER_INTERNAL_ID: "good-assignee",
                 const.DATA_USER_NAME: "Alice",
-                const.DATA_ASSIGNEE_POINTS: 100.0,
+                const.DATA_USER_POINTS: 100.0,
             },
             "bad-assignee": {
-                # Missing required name field — may cause build_assignee() to fail
+                # Missing required name field — may cause
+                # build_user_assignment_profile() to fail
                 const.DATA_USER_INTERNAL_ID: "bad-assignee",
             },
         }
@@ -345,7 +348,7 @@ class TestNuclearRebuild:
         assert result is True
 
         # Good assignee should be preserved
-        assert "good-assignee" in migrator.coordinator._data[const.DATA_ASSIGNEES]
+        assert "good-assignee" in migrator.coordinator._data[const.DATA_USERS]
 
     def test_wipe_all_kc_entities(self, migrator) -> None:
         """Entity wipe removes all KC entities from registry."""
@@ -389,7 +392,7 @@ class TestAutoRestore:
             const.DATA_META: {
                 const.DATA_META_SCHEMA_VERSION: 41,
             },
-            const.DATA_ASSIGNEES: {"assignee-1": {"name": "Alice"}},
+            const.DATA_USERS: {"assignee-1": {"name": "Alice"}},
             const.DATA_CHORES: {},
             const.DATA_REWARDS: {},
             const.DATA_BADGES: {},
@@ -521,28 +524,27 @@ class TestSchema44Gate:
             const.DATA_META_MIGRATIONS_APPLIED: ["config_to_storage"],
         }
 
-        assignees = migrator.coordinator._data.setdefault(const.DATA_ASSIGNEES, {})
-        assignees["assignee-uuid-1"][const.DATA_ASSIGNEE_CHORE_DATA] = {
+        assignees = migrator.coordinator._data.setdefault(const.DATA_USERS, {})
+        assignee_data = assignees.setdefault("assignee-uuid-1", {})
+        assignee_data[const.DATA_USER_CHORE_DATA] = {
             "chore-uuid-1": {
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
-                const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS: ["badge-a", "badge-b"],
+                const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                const.DATA_USER_CHORE_DATA_BADGE_REFS: ["badge-a", "badge-b"],
             },
             "chore-uuid-2": {
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
             },
         }
 
         migrator._migrate_to_schema_44()
 
-        assignee_chore_data = assignees["assignee-uuid-1"][
-            const.DATA_ASSIGNEE_CHORE_DATA
-        ]
+        assignee_chore_data = assignees["assignee-uuid-1"][const.DATA_USER_CHORE_DATA]
         assert (
-            const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS
+            const.DATA_USER_CHORE_DATA_BADGE_REFS
             not in assignee_chore_data["chore-uuid-1"]
         )
         assert (
-            const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS
+            const.DATA_USER_CHORE_DATA_BADGE_REFS
             not in assignee_chore_data["chore-uuid-2"]
         )
 

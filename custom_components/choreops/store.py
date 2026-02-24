@@ -252,12 +252,12 @@ class ChoreOpsStore:
         """Update a specific section of the data structure.
 
         Args:
-            key: The data key to update (e.g., const.DATA_ASSIGNEES, const.DATA_CHORES).
+            key: The data key to update (e.g., const.DATA_USERS, const.DATA_CHORES).
             value: The new value for the specified key.
 
         Note:
             If the key doesn't exist, a warning is logged and no update occurs.
-            Valid keys are defined in const.py (DATA_ASSIGNEES, DATA_CHORES, etc.).
+            Valid keys are defined in const.py (DATA_USERS, DATA_CHORES, etc.).
         """
         if key in self._data:
             const.LOGGER.debug("DEBUG: Updating data for key: %s", key)

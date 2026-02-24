@@ -58,32 +58,32 @@ def _get_coordinator_by_entry_id(
 
 # Common schema base patterns for DRY principle
 _ASSIGNEE_CHORE_BASE = {
-    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Required(const.FIELD_CHORE_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
 }
 
 _APPROVER_ASSIGNEE_CHORE_BASE = {
-    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
-    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Required(const.FIELD_CHORE_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
 }
 
 _APPROVER_ASSIGNEE_REWARD_BASE = {
-    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
-    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Required(const.FIELD_REWARD_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_REWARD_NAME): cv.string,
 }
 
 _APPROVER_ASSIGNEE_PENALTY_BASE = {
-    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
-    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Required(const.FIELD_PENALTY_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_PENALTY_NAME): cv.string,
 }
 
 _APPROVER_ASSIGNEE_BONUS_BASE = {
-    vol.Required(const.FIELD_APPROVER_NAME): cv.string,
-    vol.Required(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Required(const.FIELD_BONUS_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_APPROVER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Required(const.SERVICE_FIELD_BONUS_NAME): cv.string,
 }
 
 # Service schemas using base patterns
@@ -92,7 +92,7 @@ CLAIM_CHORE_SCHEMA = vol.Schema(_ASSIGNEE_CHORE_BASE)
 APPROVE_CHORE_SCHEMA = vol.Schema(
     {
         **_APPROVER_ASSIGNEE_CHORE_BASE,  # type: ignore[misc]
-        vol.Optional(const.FIELD_POINTS_AWARDED): vol.Coerce(float),
+        vol.Optional(const.SERVICE_FIELD_CHORE_POINTS_AWARDED): vol.Coerce(float),
     }
 )
 
@@ -103,7 +103,7 @@ REDEEM_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
 APPROVE_REWARD_SCHEMA = vol.Schema(
     {
         **_APPROVER_ASSIGNEE_REWARD_BASE,  # type: ignore[misc]
-        vol.Optional(const.FIELD_COST_OVERRIDE): vol.Coerce(float),
+        vol.Optional(const.SERVICE_FIELD_REWARD_COST_OVERRIDE): vol.Coerce(float),
     }
 )
 
@@ -114,35 +114,35 @@ APPLY_PENALTY_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_PENALTY_BASE)
 APPLY_BONUS_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_BONUS_BASE)
 
 # Optional filter base patterns for reset operations
-_OPTIONAL_ASSIGNEE_FILTER = {vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string}
+_OPTIONAL_ASSIGNEE_FILTER = {vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string}
 
 _OPTIONAL_ASSIGNEE_PENALTY_FILTER = {
-    vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Optional(const.FIELD_PENALTY_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_PENALTY_NAME): cv.string,
 }
 
 _OPTIONAL_ASSIGNEE_BONUS_FILTER = {
-    vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Optional(const.FIELD_BONUS_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_BONUS_NAME): cv.string,
 }
 
 _OPTIONAL_ASSIGNEE_REWARD_FILTER = {
-    vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
-    vol.Optional(const.FIELD_REWARD_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+    vol.Optional(const.SERVICE_FIELD_REWARD_NAME): cv.string,
 }
 
 RESET_OVERDUE_CHORES_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
     }
 )
 
 REMOVE_AWARDED_BADGES_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_ASSIGNEE_NAME): vol.Any(cv.string, None),
-        vol.Optional(const.FIELD_BADGE_NAME): vol.Any(cv.string, None),
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): vol.Any(cv.string, None),
+        vol.Optional(const.SERVICE_FIELD_BADGE_NAME): vol.Any(cv.string, None),
     }
 )
 
@@ -155,9 +155,9 @@ RESET_TRANSACTIONAL_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(const.SERVICE_FIELD_CONFIRM_DESTRUCTIVE): cv.boolean,
         vol.Optional(const.SERVICE_FIELD_SCOPE): vol.In(
-            [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_ASSIGNEE]
+            [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_USER]
         ),
-        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
         vol.Optional(const.SERVICE_FIELD_ITEM_TYPE): vol.In(
             [
                 const.DATA_RESET_ITEM_TYPE_POINTS,
@@ -176,26 +176,26 @@ RESET_TRANSACTIONAL_DATA_SCHEMA = vol.Schema(
 
 SET_CHORE_DUE_DATE_SCHEMA = vol.Schema(
     {
-        vol.Required(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_DUE_DATE): vol.Any(cv.string, None),
-        vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
-        vol.Optional(const.FIELD_ASSIGNEE_ID): cv.string,
+        vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_DUE_DATE): vol.Any(cv.string, None),
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
     }
 )
 
 SKIP_CHORE_DUE_DATE_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.FIELD_ASSIGNEE_NAME): cv.string,
-        vol.Optional(const.FIELD_ASSIGNEE_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
     }
 )
 
 GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
     {
-        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_LANGUAGE): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_NOTIFY_SERVICE): cv.string,
         vol.Optional(const.SERVICE_FIELD_REPORT_TITLE): cv.string,
@@ -320,7 +320,7 @@ _DAY_OF_WEEK_VALUES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 CREATE_CHORE_SCHEMA = vol.Schema(
     {
         vol.Required(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-        vol.Required(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES): vol.All(
+        vol.Required(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
             cv.ensure_list, [cv.string]
         ),
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
@@ -372,7 +372,7 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
             _COMPLETION_CRITERIA_VALUES
         ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES): vol.All(
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
             cv.ensure_list, [cv.string]
         ),
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
@@ -427,7 +427,7 @@ _SERVICE_TO_CHORE_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION: const.DATA_CHORE_DESCRIPTION,
     const.SERVICE_FIELD_CHORE_CRUD_ICON: const.DATA_CHORE_ICON,
     const.SERVICE_FIELD_CHORE_CRUD_LABELS: const.DATA_CHORE_LABELS,
-    const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES: const.DATA_CHORE_ASSIGNED_ASSIGNEES,
+    const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS: const.DATA_CHORE_ASSIGNED_USER_IDS,
     const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY: const.DATA_CHORE_RECURRING_FREQUENCY,
     const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: const.DATA_CHORE_APPLICABLE_DAYS,
     const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA: const.DATA_CHORE_COMPLETION_CRITERIA,
@@ -463,8 +463,8 @@ SET_ROTATION_TURN_SCHEMA = vol.Schema(
         vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
         vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
         # Either assignee_id OR assignee_name required
-        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_ASSIGNEE_NAME): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
     }
 )
 
@@ -549,13 +549,16 @@ def async_setup_services(hass: HomeAssistant):
 
         # Resolve assignee names to UUIDs
         assignee_names = call.data.get(
-            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES, []
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS, []
         )
         assignee_ids = []
         for assignee_name in assignee_names:
             try:
                 assignee_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
                 assignee_ids.append(assignee_id)
             except HomeAssistantError as err:
@@ -567,7 +570,7 @@ def async_setup_services(hass: HomeAssistant):
             dict(call.data), _SERVICE_TO_CHORE_DATA_MAPPING
         )
         # Override assigned assignees with resolved UUIDs
-        data_input[const.DATA_CHORE_ASSIGNED_ASSIGNEES] = assignee_ids
+        data_input[const.DATA_CHORE_ASSIGNED_USER_IDS] = assignee_ids
 
         # Extract due_date for special handling (not passed to build_chore)
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE)
@@ -673,7 +676,7 @@ def async_setup_services(hass: HomeAssistant):
         if not chore_id and chore_name:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Update Chore: %s", err)
@@ -702,15 +705,18 @@ def async_setup_services(hass: HomeAssistant):
             service_data.pop(const.SERVICE_FIELD_CHORE_CRUD_NAME, None)
 
         # Resolve assignee names to UUIDs if assignees are being updated
-        if const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES in service_data:
+        if const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS in service_data:
             assignee_names = service_data[
-                const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES
+                const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
             ]
             assignee_ids = []
             for assignee_name in assignee_names:
                 try:
                     assignee_id = get_item_id_or_raise(
-                        coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                        coordinator,
+                        const.ITEM_TYPE_USER,
+                        assignee_name,
+                        role=const.ROLE_ASSIGNEE,
                     )
                     assignee_ids.append(assignee_id)
                 except HomeAssistantError as err:
@@ -718,7 +724,7 @@ def async_setup_services(hass: HomeAssistant):
                         "Update Chore - assignee lookup failed: %s", err
                     )
                     raise
-            service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES] = (
+            service_data[const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS] = (
                 assignee_ids
             )
 
@@ -737,9 +743,9 @@ def async_setup_services(hass: HomeAssistant):
         # For update: merge with existing data for accurate validation
         # (assigned_assignees may not be in data_input if not being updated)
         validation_data = dict(data_input)
-        if const.DATA_CHORE_ASSIGNED_ASSIGNEES not in validation_data:
-            validation_data[const.DATA_CHORE_ASSIGNED_ASSIGNEES] = existing_chore.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+        if const.DATA_CHORE_ASSIGNED_USER_IDS not in validation_data:
+            validation_data[const.DATA_CHORE_ASSIGNED_USER_IDS] = existing_chore.get(
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             )
         # Similarly for other fields needed for combination validation
         for key in (
@@ -835,7 +841,7 @@ def async_setup_services(hass: HomeAssistant):
         if not chore_id and chore_name:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Delete Chore: %s", err)
@@ -874,16 +880,19 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
         user_id = call.context.user_id
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        chore_name = call.data[const.FIELD_CHORE_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
 
         # Map assignee_name and chore_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             chore_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                coordinator, const.ITEM_TYPE_CHORE, chore_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Claim Chore: %s", err)
@@ -939,12 +948,12 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
         user_id = call.context.user_id
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        points_awarded = call.data.get(const.FIELD_POINTS_AWARDED)
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        points_awarded = call.data.get(const.SERVICE_FIELD_CHORE_POINTS_AWARDED)
 
         # Resolve assignee_id (either from assignee_id or assignee_name)
-        assignee_id = call.data.get(const.SERVICE_FIELD_ASSIGNEE_ID)
-        assignee_name = call.data.get(const.SERVICE_FIELD_ASSIGNEE_NAME)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
         if not assignee_id and not assignee_name:
             raise HomeAssistantError(
@@ -954,7 +963,10 @@ def async_setup_services(hass: HomeAssistant):
         if assignee_name and not assignee_id:
             try:
                 assignee_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Approve Chore: %s", err)
@@ -970,17 +982,17 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Approve Chore: %s", err)
                 raise
-            approver_name = call.data[const.FIELD_APPROVER_NAME]
+            approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
         # Ensure IDs are resolved (type safety)
         if not assignee_id:
             raise HomeAssistantError("Could not resolve assignee_id")
         if not chore_id:
-            assignee_name = call.data.get(const.SERVICE_FIELD_ASSIGNEE_NAME)
+            assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
         # Check if user is authorized
         if user_id and not await is_user_authorized_for_action(
@@ -1035,17 +1047,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        chore_name = call.data[const.FIELD_CHORE_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
 
         # Map assignee_name and chore_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             chore_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                coordinator, const.ITEM_TYPE_CHORE, chore_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Disapprove Chore: %s", err)
@@ -1106,15 +1121,15 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        chore_name = call.data[const.FIELD_CHORE_NAME]
-        due_date_input = call.data.get(const.FIELD_DUE_DATE)
-        assignee_name = call.data.get(const.FIELD_ASSIGNEE_NAME)
-        assignee_id = call.data.get(const.FIELD_ASSIGNEE_ID)
+        chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
+        due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_DUE_DATE)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
 
         # Look up the chore by name:
         try:
             chore_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                coordinator, const.ITEM_TYPE_CHORE, chore_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Set Chore Due Date: %s", err)
@@ -1124,7 +1139,10 @@ def async_setup_services(hass: HomeAssistant):
         if assignee_name and not assignee_id:
             try:
                 assignee_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Set Chore Due Date: %s", err)
@@ -1156,7 +1174,7 @@ def async_setup_services(hass: HomeAssistant):
                     translation_placeholders={"chore_name": str(chore_name)},
                 )
 
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             if assignee_id not in assigned_assignees:
                 const.LOGGER.warning(
                     "Set Chore Due Date: Assignee '%s' not assigned to chore '%s'",
@@ -1245,13 +1263,13 @@ def async_setup_services(hass: HomeAssistant):
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
         # Get parameters: either chore_id or chore_name must be provided.
-        chore_id = call.data.get(const.FIELD_CHORE_ID)
-        chore_name = call.data.get(const.FIELD_CHORE_NAME)
+        chore_id = call.data.get(const.SERVICE_FIELD_CHORE_ID)
+        chore_name = call.data.get(const.SERVICE_FIELD_CHORE_NAME)
 
         try:
             if not chore_id and chore_name:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
         except HomeAssistantError as err:
             const.LOGGER.warning("Skip Chore Due Date: %s", err)
@@ -1264,13 +1282,16 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         # Get assignee parameters (for INDEPENDENT chores only)
-        assignee_name = call.data.get(const.FIELD_ASSIGNEE_NAME)
-        assignee_id = call.data.get(const.FIELD_ASSIGNEE_ID)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
 
         # Resolve assignee_name to assignee_id if provided
         if assignee_name and not assignee_id:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
 
         # Validate assignee_id (if provided)
@@ -1299,7 +1320,7 @@ def async_setup_services(hass: HomeAssistant):
                     translation_placeholders={"chore_name": str(chore_name)},
                 )
 
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             if assignee_id not in assigned_assignees:
                 const.LOGGER.warning(
                     "Skip Chore Due Date: Assignee '%s' not assigned to chore '%s'",
@@ -1327,7 +1348,7 @@ def async_setup_services(hass: HomeAssistant):
                     "ChoreData", coordinator.chores_data.get(chore_id, {})
                 )
                 assigned_assignees = chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 )
                 for assigned_assignee_id in assigned_assignees:
                     coordinator.chore_manager._record_chore_missed(
@@ -1475,7 +1496,7 @@ def async_setup_services(hass: HomeAssistant):
         if not reward_id and reward_name:
             try:
                 reward_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                    coordinator, const.ITEM_TYPE_REWARD, reward_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Update Reward: %s", err)
@@ -1586,7 +1607,7 @@ def async_setup_services(hass: HomeAssistant):
         if not reward_id and reward_name:
             try:
                 reward_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                    coordinator, const.ITEM_TYPE_REWARD, reward_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Delete Reward: %s", err)
@@ -1624,17 +1645,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        reward_name = call.data[const.FIELD_REWARD_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        reward_name = call.data[const.SERVICE_FIELD_REWARD_NAME]
 
         # Map assignee_name and reward_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             reward_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                coordinator, const.ITEM_TYPE_REWARD, reward_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Redeem Reward: %s", err)
@@ -1681,7 +1705,7 @@ def async_setup_services(hass: HomeAssistant):
                 },
             )
 
-        if assignee_info[const.DATA_ASSIGNEE_POINTS] < reward_info.get(
+        if assignee_info[const.DATA_USER_POINTS] < reward_info.get(
             const.DATA_REWARD_COST, const.DEFAULT_ZERO
         ):
             const.LOGGER.warning(
@@ -1731,17 +1755,20 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
         user_id = call.context.user_id
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        reward_name = call.data[const.FIELD_REWARD_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        reward_name = call.data[const.SERVICE_FIELD_REWARD_NAME]
 
         # Map assignee_name and reward_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             reward_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                coordinator, const.ITEM_TYPE_REWARD, reward_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Approve Reward: %s", err)
@@ -1765,7 +1792,7 @@ def async_setup_services(hass: HomeAssistant):
 
         # Approve reward redemption and deduct points
         # Extract optional cost_override (None if not provided)
-        cost_override = call.data.get(const.FIELD_COST_OVERRIDE)
+        cost_override = call.data.get(const.SERVICE_FIELD_REWARD_COST_OVERRIDE)
 
         try:
             await coordinator.reward_manager.approve(
@@ -1805,17 +1832,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        reward_name = call.data[const.FIELD_REWARD_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        reward_name = call.data[const.SERVICE_FIELD_REWARD_NAME]
 
         # Map assignee_name and reward_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             reward_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_REWARD, reward_name
+                coordinator, const.ITEM_TYPE_REWARD, reward_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Disapprove Reward: %s", err)
@@ -1878,17 +1908,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        penalty_name = call.data[const.FIELD_PENALTY_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        penalty_name = call.data[const.SERVICE_FIELD_PENALTY_NAME]
 
         # Map assignee_name and penalty_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             penalty_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_PENALTY, penalty_name
+                coordinator, const.ITEM_TYPE_PENALTY, penalty_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Apply Penalty: %s", err)
@@ -1951,17 +1984,20 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        approver_name = call.data[const.FIELD_APPROVER_NAME]
-        assignee_name = call.data[const.FIELD_ASSIGNEE_NAME]
-        bonus_name = call.data[const.FIELD_BONUS_NAME]
+        approver_name = call.data[const.SERVICE_FIELD_APPROVER_NAME]
+        assignee_name = call.data[const.SERVICE_FIELD_USER_NAME]
+        bonus_name = call.data[const.SERVICE_FIELD_BONUS_NAME]
 
         # Map assignee_name and bonus_name to internal_ids
         try:
             assignee_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             bonus_id = get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_BONUS, bonus_name
+                coordinator, const.ITEM_TYPE_BONUS, bonus_name
             )
         except HomeAssistantError as err:
             const.LOGGER.warning("Apply Bonus: %s", err)
@@ -2022,8 +2058,8 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        assignee_name = call.data.get(const.FIELD_ASSIGNEE_NAME)
-        badge_name = call.data.get(const.FIELD_BADGE_NAME)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+        badge_name = call.data.get(const.SERVICE_FIELD_BADGE_NAME)
 
         # Check if user is authorized
         user_id = call.context.user_id
@@ -2088,7 +2124,7 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Set Rotation Turn: %s", err)
@@ -2098,8 +2134,8 @@ def async_setup_services(hass: HomeAssistant):
             raise HomeAssistantError("Could not resolve chore_id")
 
         # Resolve assignee_id (either from assignee_id or assignee_name)
-        assignee_id = call.data.get(const.SERVICE_FIELD_ASSIGNEE_ID)
-        assignee_name = call.data.get(const.SERVICE_FIELD_ASSIGNEE_NAME)
+        assignee_id = call.data.get(const.SERVICE_FIELD_USER_ID)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
         if not assignee_id and not assignee_name:
             raise HomeAssistantError(
@@ -2109,7 +2145,10 @@ def async_setup_services(hass: HomeAssistant):
         if assignee_name and not assignee_id:
             try:
                 assignee_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Set Rotation Turn: %s", err)
@@ -2143,7 +2182,7 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Reset Rotation: %s", err)
@@ -2177,7 +2216,7 @@ def async_setup_services(hass: HomeAssistant):
         if chore_name and not chore_id:
             try:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
             except HomeAssistantError as err:
                 const.LOGGER.warning("Open Rotation Cycle: %s", err)
@@ -2226,13 +2265,14 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        assignee_name = call.data.get(const.SERVICE_FIELD_ASSIGNEE_NAME)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
         assignee_id: str | None = None
         if assignee_name:
             assignee_id = get_item_id_or_raise(
                 coordinator,
-                const.ENTITY_TYPE_ASSIGNEE,
+                const.ITEM_TYPE_USER,
                 str(assignee_name),
+                role=const.ROLE_ASSIGNEE,
             )
 
         try:
@@ -2395,7 +2435,7 @@ def async_setup_services(hass: HomeAssistant):
         if assignee_id is not None:
             assignee_info = assignees_data.get(assignee_id, {})
             if isinstance(assignee_info, dict):
-                preferred = assignee_info.get(const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE)
+                preferred = assignee_info.get(const.DATA_USER_DASHBOARD_LANGUAGE)
                 if isinstance(preferred, str) and preferred:
                     return preferred
 
@@ -2459,15 +2499,15 @@ def async_setup_services(hass: HomeAssistant):
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
         # Get parameters
-        chore_id = call.data.get(const.FIELD_CHORE_ID)
-        chore_name = call.data.get(const.FIELD_CHORE_NAME)
-        assignee_name = call.data.get(const.FIELD_ASSIGNEE_NAME)
+        chore_id = call.data.get(const.SERVICE_FIELD_CHORE_ID)
+        chore_name = call.data.get(const.SERVICE_FIELD_CHORE_NAME)
+        assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
 
         # Map names to IDs (optional parameters)
         try:
             if not chore_id and chore_name:
                 chore_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_CHORE, chore_name
+                    coordinator, const.ITEM_TYPE_CHORE, chore_name
                 )
         except HomeAssistantError as err:
             const.LOGGER.warning("Reset Overdue Chores: %s", err)
@@ -2477,7 +2517,10 @@ def async_setup_services(hass: HomeAssistant):
         try:
             if assignee_name:
                 assignee_id = get_item_id_or_raise(
-                    coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                    coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
         except HomeAssistantError as err:
             const.LOGGER.warning("Reset Overdue Chores: %s", err)

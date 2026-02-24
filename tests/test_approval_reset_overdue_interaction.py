@@ -25,13 +25,13 @@ from custom_components.choreops import const
 from custom_components.choreops.const import (
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
     DATA_CHORE_APPROVAL_PERIOD_START,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
 )
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers.setup import SetupResult, setup_from_yaml
@@ -84,16 +84,16 @@ def get_assignee_state_for_chore(
         == const.COMPLETION_CRITERIA_SHARED_FIRST
     ):
         # Check if another assignee has claimed or approved this chore
-        assigned_assignees = chore.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         for other_assignee_id in assigned_assignees:
             if other_assignee_id == assignee_id:
                 continue
             other_assignee_data = coordinator.assignees_data.get(other_assignee_id, {})
             other_chore_data = other_assignee_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA, {}
+                const.DATA_USER_CHORE_DATA, {}
             ).get(chore_id, {})
             other_state = other_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
             if other_state in (const.CHORE_STATE_CLAIMED, const.CHORE_STATE_APPROVED):
                 return (
@@ -171,26 +171,26 @@ def set_chore_due_date_to_past(
         if assignee_id:
             per_assignee_due_dates[assignee_id] = past_date_iso
             assignee_info = coordinator.assignees_data.get(assignee_id, {})
-            assignee_chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
                 chore_id, {}
             )
             if assignee_chore_data:
-                assignee_chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     period_start_iso
                 )
         else:
             for assigned_assignee_id in chore_info.get(
-                DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 per_assignee_due_dates[assigned_assignee_id] = past_date_iso
                 assignee_info = coordinator.assignees_data.get(assigned_assignee_id, {})
-                assignee_chore_data = assignee_info.get(
-                    DATA_ASSIGNEE_CHORE_DATA, {}
-                ).get(chore_id, {})
+                assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
+                    chore_id, {}
+                )
                 if assignee_chore_data:
-                    assignee_chore_data[
-                        DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
-                    ] = period_start_iso
+                    assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                        period_start_iso
+                    )
     else:
         chore_info[DATA_CHORE_DUE_DATE] = past_date_iso
         chore_info[DATA_CHORE_APPROVAL_PERIOD_START] = period_start_iso
@@ -227,7 +227,7 @@ def set_chore_due_date_to_future(
             per_assignee_due_dates[assignee_id] = future_date_iso
         else:
             for assigned_assignee_id in chore_info.get(
-                DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 per_assignee_due_dates[assigned_assignee_id] = future_date_iso
     else:
@@ -593,7 +593,7 @@ class TestOverdueResetValidation:
         # Create minimal chore input with invalid combination
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
             const.CFOF_CHORES_INPUT_ICON: "mdi:check",
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -646,7 +646,7 @@ class TestOverdueResetValidation:
 
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
             const.CFOF_CHORES_INPUT_ICON: "mdi:check",
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -688,7 +688,7 @@ class TestOverdueResetValidation:
 
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
             const.CFOF_CHORES_INPUT_ICON: "mdi:check",
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -731,7 +731,7 @@ class TestOverdueResetValidation:
 
         user_input = {
             const.CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
             const.CFOF_CHORES_INPUT_ICON: "mdi:check",
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -1086,11 +1086,11 @@ class TestPerAssigneeResetIsolation:
         )
 
         assignee1_before = coordinator.assignees_data[assignee1_id][
-            DATA_ASSIGNEE_CHORE_DATA
-        ][chore_id].get(DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START)
+            DATA_USER_CHORE_DATA
+        ][chore_id].get(DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START)
         assignee2_before = coordinator.assignees_data[assignee2_id][
-            DATA_ASSIGNEE_CHORE_DATA
-        ][chore_id].get(DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START)
+            DATA_USER_CHORE_DATA
+        ][chore_id].get(DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START)
 
         with patch.object(
             coordinator.notification_manager, "notify_assignee", new=AsyncMock()
@@ -1098,11 +1098,11 @@ class TestPerAssigneeResetIsolation:
             await coordinator.chore_manager._on_midnight_rollover(now_utc=fixed_now)
 
         assignee1_after = coordinator.assignees_data[assignee1_id][
-            DATA_ASSIGNEE_CHORE_DATA
-        ][chore_id].get(DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START)
+            DATA_USER_CHORE_DATA
+        ][chore_id].get(DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START)
         assignee2_after = coordinator.assignees_data[assignee2_id][
-            DATA_ASSIGNEE_CHORE_DATA
-        ][chore_id].get(DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START)
+            DATA_USER_CHORE_DATA
+        ][chore_id].get(DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START)
 
         assert assignee1_after is not None and assignee1_before is not None
         assert datetime.fromisoformat(assignee1_after) > datetime.fromisoformat(

@@ -19,8 +19,8 @@ from custom_components.choreops import const
 from tests.helpers.constants import (
     CHORE_STATE_NOT_MY_TURN,
     CHORE_STATE_PENDING,
-    SERVICE_FIELD_ASSIGNEE_ID,
     SERVICE_FIELD_CHORE_ID,
+    SERVICE_FIELD_USER_ID,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 from tests.helpers.workflows import find_chore, get_dashboard_helper
@@ -62,7 +62,7 @@ async def test_set_rotation_turn_service(
     - New turn holder sees 'pending'
     - Previous turn holder sees 'not_my_turn'
     - Other assignees remain 'not_my_turn'
-    - turn_assignee_name attribute updates correctly
+    - turn_user_name attribute updates correctly
     """
     result = scenario_shared
     await hass.async_block_till_done()
@@ -155,7 +155,7 @@ async def test_set_rotation_turn_service(
         "set_rotation_turn",
         {
             SERVICE_FIELD_CHORE_ID: chore_id,
-            SERVICE_FIELD_ASSIGNEE_ID: target_assignee_id,
+            SERVICE_FIELD_USER_ID: target_assignee_id,
         },
         blocking=True,
     )
@@ -180,7 +180,7 @@ async def test_set_rotation_turn_service(
             )
             assert sensor.state == CHORE_STATE_PENDING
             assert sensor.attributes.get("can_claim") is True
-            assert sensor.attributes.get("turn_assignee_name") == new_name
+            assert sensor.attributes.get(const.ATTR_CHORE_TURN_USER_NAME) == new_name
         else:
             # Others see not_my_turn
             assert current_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
@@ -189,8 +189,8 @@ async def test_set_rotation_turn_service(
             assert sensor.state == CHORE_STATE_NOT_MY_TURN
             assert sensor.attributes.get("can_claim") is False
             assert sensor.attributes.get("lock_reason") == "not_my_turn"
-            # turn_assignee_name should point to new holder
-            assert sensor.attributes.get("turn_assignee_name") == new_name
+            # turn_user_name should point to new holder
+            assert sensor.attributes.get(const.ATTR_CHORE_TURN_USER_NAME) == new_name
 
 
 @pytest.mark.asyncio
@@ -224,7 +224,7 @@ async def test_reset_rotation_service(
 
     # Get assigned assignees list (ordered)
     chore_data = coordinator._data["chores"][chore_id]
-    assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+    assigned_assignee_ids = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
     assert len(assigned_assignee_ids) >= 2, "Need at least 2 assignees for rotation"
 
     # Get first assignee's name
@@ -270,13 +270,19 @@ async def test_reset_rotation_service(
             )
             assert sensor.state == CHORE_STATE_PENDING
             assert sensor.attributes.get("can_claim") is True
-            assert sensor.attributes.get("turn_assignee_name") == first_assignee_name
+            assert (
+                sensor.attributes.get(const.ATTR_CHORE_TURN_USER_NAME)
+                == first_assignee_name
+            )
         else:
             # Others see not_my_turn
             assert chore["status"] == CHORE_STATE_NOT_MY_TURN
             assert sensor.state == CHORE_STATE_NOT_MY_TURN
             assert sensor.attributes.get("can_claim") is False
-            assert sensor.attributes.get("turn_assignee_name") == first_assignee_name
+            assert (
+                sensor.attributes.get(const.ATTR_CHORE_TURN_USER_NAME)
+                == first_assignee_name
+            )
 
 
 @pytest.mark.asyncio
@@ -346,7 +352,7 @@ async def test_rotation_advancement_with_skipped_assignees(
     """Test rotation correctly handles assignees who aren't assigned to chore.
 
     Validates:
-    - Rotation skips assignees not in assigned_assignees list
+    - Rotation skips assignees not in assigned user IDs list
     - Only assigned assignees participate in rotation
     - Turn advances correctly among assigned assignees only
     """
@@ -368,7 +374,7 @@ async def test_rotation_advancement_with_skipped_assignees(
 
     # Verify assigned assignees (should be Max and Lila only)
     chore_data = coordinator._data["chores"][chore_id]
-    assigned_assignees = chore_data.get("assigned_assignees", [])
+    assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
     # Should have exactly 2 assignees assigned
     assert len(assigned_assignees) == 2, "Water Plants should have 2 assigned assignees"
@@ -439,7 +445,7 @@ async def test_set_turn_then_reset_preserves_single_pending_holder_invariant(
     await hass.services.async_call(
         const.DOMAIN,
         "set_rotation_turn",
-        {SERVICE_FIELD_CHORE_ID: chore_id, SERVICE_FIELD_ASSIGNEE_ID: max_id},
+        {SERVICE_FIELD_CHORE_ID: chore_id, SERVICE_FIELD_USER_ID: max_id},
         blocking=True,
     )
     await hass.async_block_till_done(wait_background_tasks=True)
@@ -462,7 +468,7 @@ async def test_set_turn_then_reset_preserves_single_pending_holder_invariant(
         assert chore is not None
         sensor = hass.states.get(chore["eid"])
         assert sensor is not None
-        turn_name = sensor.attributes.get("turn_assignee_name")
+        turn_name = sensor.attributes.get(const.ATTR_CHORE_TURN_USER_NAME)
         if isinstance(turn_name, str):
             turn_names.add(turn_name)
 

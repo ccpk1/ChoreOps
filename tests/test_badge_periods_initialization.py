@@ -55,10 +55,10 @@ class TestBadgePeriodStructureCreation:
         champion_id = get_badge_by_name(coordinator, "Chore Stär Champion")
 
         # Manually create badge entry WITHOUT periods (simulate pre-fix bug)
-        badges_earned = zoe_data.setdefault(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = zoe_data.setdefault(const.DATA_USER_BADGES_EARNED, {})
         badges_earned[champion_id] = {
-            const.DATA_ASSIGNEE_BADGES_EARNED_NAME: "Chore Stär Champion",
-            const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: "2026-02-11",
+            const.DATA_USER_BADGES_EARNED_NAME: "Chore Stär Champion",
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED: "2026-02-11",
             # Intentionally missing periods key to test structure creation
         }
 
@@ -69,11 +69,11 @@ class TestBadgePeriodStructureCreation:
 
         # Verify Landlord created ONLY empty dict (Tenant populates later)
         champion_entry = badges_earned[champion_id]
-        assert const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS in champion_entry, (
+        assert const.DATA_USER_BADGES_EARNED_PERIODS in champion_entry, (
             "Landlord should create periods key"
         )
 
-        periods = champion_entry[const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS]
+        periods = champion_entry[const.DATA_USER_BADGES_EARNED_PERIODS]
         assert isinstance(periods, dict), "periods should be dict type"
         assert periods == {}, (
             "Landlord should create ONLY empty dict, Tenant populates via signal"

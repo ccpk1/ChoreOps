@@ -80,7 +80,7 @@ class TestEconomyManagerDeposit:
 
         # Clear any existing ledger
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Deposit (async method)
         await manager.deposit(
@@ -143,7 +143,7 @@ class TestEconomyManagerDeposit:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = 1.5  # 1.5x multiplier
+        assignee[const.DATA_USER_POINTS_MULTIPLIER] = 1.5  # 1.5x multiplier
 
         initial_balance = manager.get_balance(assignee_id)
 
@@ -191,7 +191,7 @@ class TestEconomyManagerWithdraw:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 100.0  # Ensure sufficient balance
+        assignee[const.DATA_USER_POINTS] = 100.0  # Ensure sufficient balance
 
         new_balance = await manager.withdraw(
             assignee_id=assignee_id,
@@ -213,8 +213,8 @@ class TestEconomyManagerWithdraw:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 50.0
-        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee[const.DATA_USER_POINTS] = 50.0
+        assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         await manager.withdraw(
             assignee_id=assignee_id,
@@ -246,7 +246,7 @@ class TestEconomyManagerWithdraw:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 10.0  # Only 10 points
+        assignee[const.DATA_USER_POINTS] = 10.0  # Only 10 points
 
         with pytest.raises(InsufficientFundsError) as exc_info:
             await manager.withdraw(
@@ -273,7 +273,7 @@ class TestEconomyManagerWithdraw:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 100.0
+        assignee[const.DATA_USER_POINTS] = 100.0
 
         await manager.withdraw(
             assignee_id=assignee_id,
@@ -320,8 +320,8 @@ class TestEconomyManagerHistory:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
-        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee[const.DATA_USER_POINTS] = 0.0
+        assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Multiple deposits (async method)
         await manager.deposit(assignee_id, 10.0, source=const.POINTS_SOURCE_CHORES)
@@ -346,8 +346,8 @@ class TestEconomyManagerHistory:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
-        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee[const.DATA_USER_POINTS] = 0.0
+        assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Add 5 entries (async method)
         for i in range(5):
@@ -387,7 +387,7 @@ class TestEconomyManagerBalance:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 42.5
+        assignee[const.DATA_USER_POINTS] = 42.5
 
         assert manager.get_balance(assignee_id) == 42.5
 
@@ -412,7 +412,7 @@ class TestEconomyManagerBalance:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = "not a number"  # type: ignore[typeddict-item]
+        assignee[const.DATA_USER_POINTS] = "not a number"  # type: ignore[typeddict-item]
 
         # Should return 0.0 instead of crashing
         assert manager.get_balance(assignee_id) == 0.0
@@ -432,8 +432,8 @@ class TestEconomyManagerLedgerIntegration:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
-        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee[const.DATA_USER_POINTS] = 0.0
+        assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Use economy_manager.deposit
         await manager.deposit(
@@ -441,7 +441,7 @@ class TestEconomyManagerLedgerIntegration:
         )
 
         # Check ledger was created
-        ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
+        ledger = assignee.get(const.DATA_USER_LEDGER, [])
         assert len(ledger) == 1
         entry = ledger[0]
         # Source is passed through directly (no mapping)
@@ -469,12 +469,12 @@ class TestEconomyManagerLedgerIntegration:
         ]
 
         for source in test_sources:
-            assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
-            assignee[const.DATA_ASSIGNEE_POINTS] = 100.0
+            assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+            assignee[const.DATA_USER_POINTS] = 100.0
 
             await manager.deposit(assignee_id, amount=5.0, source=source)
 
-            ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
+            ledger = assignee.get(const.DATA_USER_LEDGER, [])
             assert len(ledger) == 1, f"Failed for source {source}"
             assert ledger[0][const.DATA_LEDGER_SOURCE] == source
 
@@ -489,8 +489,8 @@ class TestEconomyManagerLedgerIntegration:
 
         assignee_id = list(coordinator.assignees_data.keys())[0]
         assignee = coordinator.assignees_data[assignee_id]
-        assignee[const.DATA_ASSIGNEE_POINTS] = 0.0
-        assignee[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        assignee[const.DATA_USER_POINTS] = 0.0
+        assignee[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
 
         # Add more than max entries
         for i in range(const.DEFAULT_LEDGER_MAX_ENTRIES + 10):
@@ -498,5 +498,5 @@ class TestEconomyManagerLedgerIntegration:
                 assignee_id, amount=1.0, source=const.POINTS_SOURCE_OTHER
             )
 
-        ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
+        ledger = assignee.get(const.DATA_USER_LEDGER, [])
         assert len(ledger) == const.DEFAULT_LEDGER_MAX_ENTRIES

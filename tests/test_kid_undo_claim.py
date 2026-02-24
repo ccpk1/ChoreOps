@@ -31,12 +31,12 @@ from custom_components.choreops import const
 from tests.helpers import (
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED,
-    DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT,
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
-    DATA_ASSIGNEE_REWARD_DATA,
-    DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_LAST_DISAPPROVED,
+    DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT,
+    DATA_USER_CHORE_DATA_STATE,
+    DATA_USER_REWARD_DATA,
+    DATA_USER_REWARD_DATA_PENDING_COUNT,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -96,9 +96,9 @@ def get_assignee_chore_state(
 ) -> str:
     """Get the current state of a chore for a specific assignee."""
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
-    return per_chore.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return per_chore.get(DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def get_disapproval_stats(
@@ -108,14 +108,12 @@ def get_disapproval_stats(
 ) -> dict[str, Any]:
     """Get disapproval stats for a assignee/chore combination."""
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
 
     return {
-        "last_disapproved": per_chore.get(
-            DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED, ""
-        ),
-        "pending_count": per_chore.get(DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0),
+        "last_disapproved": per_chore.get(DATA_USER_CHORE_DATA_LAST_DISAPPROVED, ""),
+        "pending_count": per_chore.get(DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT, 0),
     }
 
 
@@ -130,7 +128,7 @@ def get_chore_stats_disapproved(
     The all_time structure uses nested all_time keys for consistency with other periods.
     """
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
     periods = per_chore.get("periods", {})
     all_time_container = periods.get("all_time", {})
@@ -145,9 +143,9 @@ def get_reward_pending_count(
 ) -> int:
     """Get pending count for a reward."""
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    reward_data = assignee_data.get(DATA_ASSIGNEE_REWARD_DATA, {})
+    reward_data = assignee_data.get(DATA_USER_REWARD_DATA, {})
     reward_entry = reward_data.get(reward_id, {})
-    return reward_entry.get(DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0)
+    return reward_entry.get(DATA_USER_REWARD_DATA_PENDING_COUNT, 0)
 
 
 # =============================================================================
@@ -329,7 +327,7 @@ class TestAssigneeUndoReward:
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
 
         # Ensure enough points to claim reward in scenario
-        coordinator.assignees_data[assignee_id][const.DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.assignees_data[assignee_id][const.DATA_USER_POINTS] = 100.0
 
         with patch.object(
             coordinator.notification_manager,

@@ -36,8 +36,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._penalties_temp: dict[str, dict[str, Any]] = {}
         self._bonuses_temp: dict[str, dict[str, Any]] = {}
 
-        self._assignee_count: int = 0
-        self._approvers_count: int = 0
+        self._users_count: int = 0
         self._chore_count: int = 0
         self._badge_count: int = 0
         self._reward_count: int = 0
@@ -46,8 +45,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._penalty_count: int = 0
         self._bonus_count: int = 0
 
-        self._assignee_index: int = 0
-        self._approvers_index: int = 0
+        self._users_index: int = 0
         self._chore_index: int = 0
         self._badge_index: int = 0
         self._reward_index: int = 0
@@ -55,8 +53,6 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._challenge_index: int = 0
         self._penalty_index: int = 0
         self._bonus_index: int = 0
-        self._legacy_split_user_counts: bool = False
-        self._legacy_collecting_assignable_users: bool = False
 
     # --------------------------------------------------------------------------
     # INTRO
@@ -542,77 +538,6 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         )
 
     # --------------------------------------------------------------------------
-    # ASSIGNEES (canonical)
-    # --------------------------------------------------------------------------
-
-    async def async_step_assignee_count(self, user_input: dict[str, Any] | None = None):
-        """Ask how many assignee profiles to define for setup compatibility."""
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            try:
-                self._assignee_count = int(
-                    user_input[const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT]
-                )
-                if self._assignee_count < 0:
-                    raise ValueError
-                if self._assignee_count == 0:
-                    return await self.async_step_chore_count()
-                self._assignee_index = 0
-                return await self.async_step_assignees()
-            except ValueError:
-                errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_COUNT
-                )
-
-        schema = vol.Schema(
-            {
-                vol.Required(
-                    const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT, default=1
-                ): vol.Coerce(int)
-            }
-        )
-        return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_ASSIGNEE_COUNT,
-            data_schema=schema,
-            errors=errors,
-        )
-
-    async def async_step_assignees(self, user_input: dict[str, Any] | None = None):
-        """Collect each assignee profile using internal_id as the primary key."""
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            errors = fh.validate_assignee_inputs(
-                user_input,
-                self._assignees_temp,
-                self._approvers_temp,
-            )
-
-            if not errors:
-                assignee_profile_data = dict(db.build_user_assignee_profile(user_input))
-                internal_id = str(assignee_profile_data[const.DATA_USER_INTERNAL_ID])
-                self._assignees_temp[internal_id] = assignee_profile_data
-
-                assignee_name = str(assignee_profile_data[const.DATA_USER_NAME])
-                const.LOGGER.debug(
-                    "Added assignee profile: %s with ID: %s",
-                    assignee_name,
-                    internal_id,
-                )
-
-            self._assignee_index += 1
-            if self._assignee_index >= self._assignee_count:
-                return await self.async_step_user_count()
-            return await self.async_step_assignees()
-
-        users = await self.hass.auth.async_get_users()
-        assignee_schema = await fh.build_assignee_schema(self.hass, users=users)
-        return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_ASSIGNEES,
-            data_schema=assignee_schema,
-            errors=errors,
-        )
-
-    # --------------------------------------------------------------------------
     # USERS
     # --------------------------------------------------------------------------
 
@@ -620,46 +545,21 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         """Ask how many users to define initially."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            count_input_key = const.CFOF_APPROVERS_INPUT_APPROVER_COUNT
-            if const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT in user_input:
-                count_input_key = const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT
-                self._legacy_split_user_counts = True
-                self._legacy_collecting_assignable_users = True
-            elif (
-                self._legacy_split_user_counts
-                and self._legacy_collecting_assignable_users
-                and const.CFOF_APPROVERS_INPUT_APPROVER_COUNT in user_input
-            ):
-                self._legacy_collecting_assignable_users = False
-
             try:
-                self._approvers_count = int(user_input[count_input_key])
-                if self._approvers_count < 0:
+                self._users_count = int(user_input[const.CFOF_USERS_INPUT_COUNT])
+                if self._users_count < 0:
                     raise ValueError
-                if self._approvers_count == 0:
-                    if (
-                        self._legacy_split_user_counts
-                        and self._legacy_collecting_assignable_users
-                    ):
-                        self._legacy_collecting_assignable_users = False
-                        return await self.async_step_user_count()
+                if self._users_count == 0:
                     return await self.async_step_chore_count()
-                self._approvers_index = 0
+                self._users_index = 0
                 return await self.async_step_users()
             except ValueError:
-                if count_input_key == const.CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT:
-                    errors[const.CFOP_ERROR_BASE] = (
-                        const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_COUNT
-                    )
-                else:
-                    errors[const.CFOP_ERROR_BASE] = (
-                        const.TRANS_KEY_CFOF_INVALID_APPROVER_COUNT
-                    )
+                errors[const.CFOP_ERROR_BASE] = const.TRANS_KEY_CFOF_INVALID_USER_COUNT
 
         schema = vol.Schema(
             {
                 vol.Required(
-                    const.CFOF_APPROVERS_INPUT_APPROVER_COUNT,
+                    const.CFOF_USERS_INPUT_COUNT,
                     default=1,
                 ): vol.Coerce(int)
             }
@@ -674,99 +574,93 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         """Collect each user profile using internal_id as the primary key."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            is_assignee_payload = (
-                const.CFOF_USERS_INPUT_NAME in user_input
-                and const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES not in user_input
-                and const.CFOF_APPROVERS_INPUT_CAN_APPROVE not in user_input
-                and const.CFOF_APPROVERS_INPUT_CAN_MANAGE not in user_input
-                and const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT not in user_input
+            user_input = fh.normalize_user_form_input(user_input)
+
+            user_input.setdefault(
+                const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+                [],
             )
-            is_assignee_payload = is_assignee_payload or (
-                bool(user_input.get(const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT))
-                and not bool(user_input.get(const.CFOF_APPROVERS_INPUT_CAN_APPROVE))
-                and not bool(user_input.get(const.CFOF_APPROVERS_INPUT_CAN_MANAGE))
-                and not user_input.get(
-                    const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES, []
-                )
+            user_input.setdefault(const.CFOF_USERS_INPUT_CAN_APPROVE, False)
+            user_input.setdefault(const.CFOF_USERS_INPUT_CAN_MANAGE, False)
+            user_input.setdefault(
+                const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+                False,
+            )
+            user_input.setdefault(
+                const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
+                False,
             )
 
-            if is_assignee_payload:
-                assignee_input = {
-                    const.CFOF_USERS_INPUT_NAME: user_input.get(
-                        const.CFOF_USERS_INPUT_NAME,
-                        const.SENTINEL_EMPTY,
-                    ),
-                    const.CFOF_USERS_INPUT_HA_USER_ID: user_input.get(
-                        const.CFOF_USERS_INPUT_HA_USER_ID,
-                        const.SENTINEL_EMPTY,
-                    ),
-                    const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: user_input.get(
-                        const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
-                        user_input.get(
-                            const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
-                            const.DEFAULT_DASHBOARD_LANGUAGE,
-                        ),
-                    ),
-                    const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: user_input.get(
-                        const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
-                        const.SENTINEL_EMPTY,
-                    ),
-                }
-                errors = fh.validate_assignee_inputs(
-                    assignee_input,
-                    self._assignees_temp,
-                    self._approvers_temp,
+            has_usage_context = any(
+                user_input.get(key)
+                for key in (
+                    const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+                    const.CFOF_USERS_INPUT_CAN_APPROVE,
+                    const.CFOF_USERS_INPUT_CAN_MANAGE,
+                    const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+                    const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
+                )
+            )
+            user_input.setdefault(
+                const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+                not has_usage_context,
+            )
+
+            errors = fh.validate_users_inputs(
+                user_input,
+                self._approvers_temp,
+                self._assignees_temp,
+            )
+
+            if not errors:
+                user_profile_data = dict(db.build_user_profile(user_input))
+                internal_id = str(user_profile_data[const.DATA_USER_INTERNAL_ID])
+                user_name = str(user_profile_data[const.DATA_USER_NAME])
+                user_profile_data[const.DATA_USER_CAN_BE_ASSIGNED] = bool(
+                    user_profile_data.get(
+                        const.DATA_USER_CAN_BE_ASSIGNED,
+                        False,
+                    )
                 )
 
-                if not errors:
-                    assignee_profile_data = dict(
-                        db.build_user_assignee_profile(assignee_input)
-                    )
-                    internal_id = str(
-                        assignee_profile_data[const.DATA_USER_INTERNAL_ID]
-                    )
-                    self._assignees_temp[internal_id] = assignee_profile_data
-                    assignee_name = str(assignee_profile_data[const.DATA_USER_NAME])
-                    const.LOGGER.debug(
-                        "Added assignee profile: %s with ID: %s",
-                        assignee_name,
-                        internal_id,
-                    )
-            else:
-                user_input = fh.normalize_user_form_input(user_input)
+                self._approvers_temp[internal_id] = user_profile_data
 
-                errors = fh.validate_users_inputs(
-                    user_input,
-                    self._approvers_temp,
-                    self._assignees_temp,
-                )
-
-                if not errors:
-                    approver_data = dict(db.build_user_profile(user_input))
-                    internal_id = str(approver_data[const.DATA_USER_INTERNAL_ID])
-                    approver_name = str(approver_data[const.DATA_USER_NAME])
-                    approver_data[const.DATA_USER_CAN_BE_ASSIGNED] = bool(
-                        approver_data.get(
-                            const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
-                            False,
+                if user_profile_data[const.DATA_USER_CAN_BE_ASSIGNED]:
+                    assignee_projection = dict(
+                        db.build_user_assignment_profile(user_input)
+                    )
+                    assignee_projection[const.DATA_USER_INTERNAL_ID] = internal_id
+                    assignee_projection[const.DATA_USER_NAME] = user_name
+                    assignee_projection[const.DATA_USER_HA_USER_ID] = (
+                        user_profile_data.get(
+                            const.DATA_USER_HA_USER_ID,
+                            "",
                         )
                     )
-
-                    self._approvers_temp[internal_id] = approver_data
-                    const.LOGGER.debug(
-                        "Added user profile: %s with ID: %s",
-                        approver_name,
-                        internal_id,
+                    assignee_projection[const.DATA_USER_MOBILE_NOTIFY_SERVICE] = (
+                        user_profile_data.get(
+                            const.DATA_USER_MOBILE_NOTIFY_SERVICE,
+                            "",
+                        )
                     )
+                    assignee_projection[const.DATA_USER_DASHBOARD_LANGUAGE] = (
+                        user_profile_data.get(
+                            const.DATA_APPROVER_DASHBOARD_LANGUAGE,
+                            const.DEFAULT_DASHBOARD_LANGUAGE,
+                        )
+                    )
+                    self._assignees_temp[internal_id] = assignee_projection
+                else:
+                    self._assignees_temp.pop(internal_id, None)
 
-            self._approvers_index += 1
-            if self._approvers_index >= self._approvers_count:
-                if (
-                    self._legacy_split_user_counts
-                    and self._legacy_collecting_assignable_users
-                ):
-                    self._legacy_collecting_assignable_users = False
-                    return await self.async_step_user_count()
+                const.LOGGER.debug(
+                    "Added user profile: %s with ID: %s",
+                    user_name,
+                    internal_id,
+                )
+
+            self._users_index += 1
+            if self._users_index >= self._users_count:
                 return await self.async_step_chore_count()
             return await self.async_step_users()
 
@@ -775,13 +669,11 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             for assignee_id, assignee_data in self._assignees_temp.items()
         }
         for user_id, user_data in self._approvers_temp.items():
-            if not bool(
-                user_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
-            ):
+            if not bool(user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)):
                 continue
-            user_name = user_data.get(const.DATA_USER_NAME)
-            if isinstance(user_name, str) and user_name:
-                assignees_dict.setdefault(user_name, user_id)
+            candidate_user_name = user_data.get(const.DATA_USER_NAME)
+            if isinstance(candidate_user_name, str) and candidate_user_name:
+                assignees_dict.setdefault(candidate_user_name, user_id)
 
         users = await self.hass.auth.async_get_users()
         user_schema = await fh.build_user_schema(
@@ -1315,7 +1207,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                     # Convert assigned assignees from names to IDs
                     assigned_assignees_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, []
+                        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
                     )
                     if not isinstance(assigned_assignees_names, list):
                         assigned_assignees_names = (
@@ -1323,7 +1215,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                             if assigned_assignees_names
                             else []
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES] = [
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = [
                         assignees_name_to_id.get(name, name)
                         for name in assigned_assignees_names
                     ]
@@ -1428,7 +1320,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                     # Convert assigned assignees from names to IDs
                     assigned_assignees_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
+                        const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
                     )
                     if not isinstance(assigned_assignees_names, list):
                         assigned_assignees_names = (
@@ -1436,7 +1328,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                             if assigned_assignees_names
                             else []
                         )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES] = [
+                    data_input[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] = [
                         assignees_name_to_id.get(name, name)
                         for name in assigned_assignees_names
                     ]
@@ -1624,13 +1516,13 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         storage_data = ChoreOpsStore.get_default_structure()
 
         # Populate with user-configured entities from config flow
-        storage_data[const.DATA_ASSIGNEES] = self._assignees_temp
+        storage_data[const.DATA_USERS] = self._assignees_temp
         approver_users = {
             approver_id: {
                 **dict(approver_data),
                 const.DATA_USER_CAN_BE_ASSIGNED: bool(
                     approver_data.get(
-                        const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+                        const.DATA_USER_CAN_BE_ASSIGNED,
                         False,
                     )
                 ),

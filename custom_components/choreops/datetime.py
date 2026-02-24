@@ -139,5 +139,5 @@ class AssigneeDashboardHelperDateTimePicker(DateTimeEntity, RestoreEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DATETIME_DASHBOARD_HELPER,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }

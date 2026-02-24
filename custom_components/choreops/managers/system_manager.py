@@ -104,7 +104,7 @@ class SystemManager(BaseManager):
         )
 
         # 2. Signal Listener: Subscribe to lifecycle DELETED signals
-        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._handle_assignee_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._handle_assignee_deleted)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DELETED, self._handle_chore_deleted)
         self.listen(const.SIGNAL_SUFFIX_REWARD_DELETED, self._handle_reward_deleted)
         self.listen(const.SIGNAL_SUFFIX_BADGE_DELETED, self._handle_badge_deleted)
@@ -279,9 +279,12 @@ class SystemManager(BaseManager):
         Args:
             payload: Signal payload with assignee_id, assignee_name, was_shadow
         """
-        assignee_id = payload.get("assignee_id")
+        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+            return
+
+        assignee_id = payload.get("user_id")
         if not assignee_id:
-            const.LOGGER.warning("KID_DELETED signal missing assignee_id in payload")
+            const.LOGGER.warning("USER_DELETED signal missing user_id in payload")
             return
 
         # Domain Managers already do targeted cleanup - this is for any stragglers
@@ -441,7 +444,7 @@ class SystemManager(BaseManager):
             self.coordinator.achievements_data,
             entity_type="achievement",
             progress_suffix=const.DATA_ACHIEVEMENT_PROGRESS_SUFFIX,
-            assigned_assignees_key=const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
+            assigned_assignees_key=const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
         )
 
         # Challenge progress orphans
@@ -451,7 +454,7 @@ class SystemManager(BaseManager):
             self.coordinator.challenges_data,
             entity_type="challenge",
             progress_suffix=const.DATA_CHALLENGE_PROGRESS_SUFFIX,
-            assigned_assignees_key=const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
+            assigned_assignees_key=const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
         )
 
         # Manual adjustment button orphans
@@ -611,7 +614,7 @@ class SystemManager(BaseManager):
             scope = const.DATA_RESET_SCOPE_GLOBAL
 
         # Validate scope value
-        valid_scopes = {const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_ASSIGNEE}
+        valid_scopes = {const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_USER}
         if scope not in valid_scopes:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
@@ -619,16 +622,16 @@ class SystemManager(BaseManager):
                 translation_placeholders={"scope": str(scope)},
             )
 
-        assignee_name = service_data.get(const.SERVICE_FIELD_ASSIGNEE_NAME)
+        assignee_name = service_data.get(const.SERVICE_FIELD_USER_NAME)
         item_type = service_data.get(const.SERVICE_FIELD_ITEM_TYPE)
         item_name = service_data.get(const.SERVICE_FIELD_ITEM_NAME)
 
-        # Validate scope=assignee requires assignee_name
-        if scope == const.DATA_RESET_SCOPE_ASSIGNEE and not assignee_name:
+        # Validate scope=user requires assignee_name
+        if scope == const.DATA_RESET_SCOPE_USER and not assignee_name:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE,
-                translation_placeholders={"scope": "assignee (requires assignee_name)"},
+                translation_placeholders={"scope": "user (requires assignee_name)"},
             )
 
         # Validate item_type if provided
@@ -658,7 +661,10 @@ class SystemManager(BaseManager):
         if assignee_name:
             try:
                 assignee_id = get_item_id_or_raise(
-                    self.coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                    self.coordinator,
+                    const.ITEM_TYPE_USER,
+                    assignee_name,
+                    role=const.ROLE_ASSIGNEE,
                 )
             except HomeAssistantError:
                 raise ServiceValidationError(
@@ -670,13 +676,13 @@ class SystemManager(BaseManager):
         if item_name and item_type:
             # Map item_type to entity_type for lookup
             item_type_to_entity_type = {
-                const.DATA_RESET_ITEM_TYPE_CHORES: const.ENTITY_TYPE_CHORE,
-                const.DATA_RESET_ITEM_TYPE_REWARDS: const.ENTITY_TYPE_REWARD,
-                const.DATA_RESET_ITEM_TYPE_BADGES: const.ENTITY_TYPE_BADGE,
-                const.DATA_RESET_ITEM_TYPE_ACHIEVEMENTS: const.ENTITY_TYPE_ACHIEVEMENT,
-                const.DATA_RESET_ITEM_TYPE_CHALLENGES: const.ENTITY_TYPE_CHALLENGE,
-                const.DATA_RESET_ITEM_TYPE_PENALTIES: const.ENTITY_TYPE_PENALTY,
-                const.DATA_RESET_ITEM_TYPE_BONUSES: const.ENTITY_TYPE_BONUS,
+                const.DATA_RESET_ITEM_TYPE_CHORES: const.ITEM_TYPE_CHORE,
+                const.DATA_RESET_ITEM_TYPE_REWARDS: const.ITEM_TYPE_REWARD,
+                const.DATA_RESET_ITEM_TYPE_BADGES: const.ITEM_TYPE_BADGE,
+                const.DATA_RESET_ITEM_TYPE_ACHIEVEMENTS: const.ITEM_TYPE_ACHIEVEMENT,
+                const.DATA_RESET_ITEM_TYPE_CHALLENGES: const.ITEM_TYPE_CHALLENGE,
+                const.DATA_RESET_ITEM_TYPE_PENALTIES: const.ITEM_TYPE_PENALTY,
+                const.DATA_RESET_ITEM_TYPE_BONUSES: const.ITEM_TYPE_BONUS,
             }
             entity_type = item_type_to_entity_type.get(item_type)
             if entity_type:
@@ -838,7 +844,7 @@ class SystemManager(BaseManager):
         elif item_type:
             message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM_TYPE
             placeholders = {"item_type": str(item_type)}
-        elif scope == const.DATA_RESET_SCOPE_ASSIGNEE and assignee_name:
+        elif scope == const.DATA_RESET_SCOPE_USER and assignee_name:
             message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ASSIGNEE
             placeholders = {"assignee_name": str(assignee_name)}
         else:

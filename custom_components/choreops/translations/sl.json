@@ -437,7 +437,7 @@
       "invalid_end_date": "Neveljaven končni datum.",
       "invalid_assignee_count": "Neveljavno število otrok",
       "invalid_assignee_name": "Neveljavno ime otroka",
-      "invalid_approver_count": "Neveljavno število staršev",
+      "invalid_user_count": "Neveljavno število staršev",
       "invalid_approver_name": "Neveljavno ime starša",
       "no_assignees_assigned": "Vsaj en otrok mora biti dodeljen opravilu",
       "invalid_penalty": "Neveljavna kazen",

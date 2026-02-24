@@ -59,7 +59,7 @@ class TestGetEventSignal:
             (const.SIGNAL_SUFFIX_POINTS_CHANGED, "points_changed"),
             (const.SIGNAL_SUFFIX_CHORE_CLAIMED, "chore_claimed"),
             (const.SIGNAL_SUFFIX_BADGE_EARNED, "badge_earned"),
-            (const.SIGNAL_SUFFIX_ASSIGNEE_CREATED, "assignee_created"),
+            (const.SIGNAL_SUFFIX_USER_CREATED, "user_created"),
         ]
 
         for suffix, expected_suffix in signals:

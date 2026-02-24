@@ -77,7 +77,7 @@ async def test_idempotency_overdue_already_overdue(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Idempotency Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_OVERDUE_HANDLING: const.OVERDUE_HANDLING_AT_DUE_DATE,
@@ -150,7 +150,7 @@ async def test_gremlin1_prevention_overdue_after_approval(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Gremlin 1 Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -172,7 +172,7 @@ async def test_gremlin1_prevention_overdue_after_approval(
         const.DOMAIN,
         const.SERVICE_CLAIM_CHORE,
         {
-            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+            const.SERVICE_FIELD_USER_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 1 Test Chore",
         },
         blocking=True,
@@ -183,7 +183,7 @@ async def test_gremlin1_prevention_overdue_after_approval(
         const.SERVICE_APPROVE_CHORE,
         {
             const.SERVICE_FIELD_APPROVER_NAME: "Môm Astrid Stârblüm",
-            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+            const.SERVICE_FIELD_USER_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 1 Test Chore",
         },
         blocking=True,
@@ -232,7 +232,7 @@ async def test_gremlin2_prevention_double_processing(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Gremlin 2 Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -254,7 +254,7 @@ async def test_gremlin2_prevention_double_processing(
         const.DOMAIN,
         const.SERVICE_CLAIM_CHORE,
         {
-            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+            const.SERVICE_FIELD_USER_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 2 Test Chore",
         },
         blocking=True,
@@ -312,7 +312,7 @@ async def test_gremlin3_prevention_non_recurring_past_due(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Gremlin 3 Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_NONE,
             const.SERVICE_FIELD_POINTS: 10,
             const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
@@ -342,7 +342,7 @@ async def test_gremlin3_prevention_non_recurring_past_due(
         const.DOMAIN,
         const.SERVICE_CLAIM_CHORE,
         {
-            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+            const.SERVICE_FIELD_USER_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 3 Test Chore",
         },
         blocking=True,
@@ -353,7 +353,7 @@ async def test_gremlin3_prevention_non_recurring_past_due(
         const.SERVICE_APPROVE_CHORE,
         {
             const.SERVICE_FIELD_APPROVER_NAME: "Môm Astrid Stârblüm",
-            const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+            const.SERVICE_FIELD_USER_NAME: "Zoë",
             const.SERVICE_FIELD_CHORE_NAME: "Gremlin 3 Test Chore",
         },
         blocking=True,
@@ -405,7 +405,7 @@ async def test_debug_mode_tracking_warns_on_duplicate(
         const.SERVICE_ADD_CHORE,
         {
             const.SERVICE_FIELD_NAME: "Debug Tracking Test Chore",
-            const.SERVICE_FIELD_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
             const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_DAILY,
             const.SERVICE_FIELD_POINTS: 10,
         },

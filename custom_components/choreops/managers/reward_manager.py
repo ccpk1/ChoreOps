@@ -173,24 +173,24 @@ class RewardManager(BaseManager):
         assignee_info: UserData = cast(
             "UserData", self.coordinator.assignees_data.get(assignee_id, {})
         )
-        reward_data = assignee_info.setdefault(const.DATA_ASSIGNEE_REWARD_DATA, {})
+        reward_data = assignee_info.setdefault(const.DATA_USER_REWARD_DATA, {})
         if create and reward_id not in reward_data:
             reward_data[reward_id] = {
-                const.DATA_ASSIGNEE_REWARD_DATA_NAME: cast(
+                const.DATA_USER_REWARD_DATA_NAME: cast(
                     "RewardData", self.coordinator.rewards_data.get(reward_id, {})
                 ).get(const.DATA_REWARD_NAME)
                 or "",
-                const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT: 0,
-                const.DATA_ASSIGNEE_REWARD_DATA_LAST_CLAIMED: "",
-                const.DATA_ASSIGNEE_REWARD_DATA_LAST_APPROVED: "",
-                const.DATA_ASSIGNEE_REWARD_DATA_LAST_DISAPPROVED: "",
+                const.DATA_USER_REWARD_DATA_PENDING_COUNT: 0,
+                const.DATA_USER_REWARD_DATA_LAST_CLAIMED: "",
+                const.DATA_USER_REWARD_DATA_LAST_APPROVED: "",
+                const.DATA_USER_REWARD_DATA_LAST_DISAPPROVED: "",
                 # REMOVED v43: total_* fields - use periods.all_time.* instead
                 # REMOVED v43: notification_ids - NotificationManager owns lifecycle
-                const.DATA_ASSIGNEE_REWARD_DATA_PERIODS: {
-                    const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_DAILY: {},
-                    const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_WEEKLY: {},
-                    const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_MONTHLY: {},
-                    const.DATA_ASSIGNEE_REWARD_DATA_PERIODS_YEARLY: {},
+                const.DATA_USER_REWARD_DATA_PERIODS: {
+                    const.DATA_USER_REWARD_DATA_PERIODS_DAILY: {},
+                    const.DATA_USER_REWARD_DATA_PERIODS_WEEKLY: {},
+                    const.DATA_USER_REWARD_DATA_PERIODS_MONTHLY: {},
+                    const.DATA_USER_REWARD_DATA_PERIODS_YEARLY: {},
                 },
             }
         return cast("dict[str, Any]", reward_data.get(reward_id, {}))
@@ -222,9 +222,9 @@ class RewardManager(BaseManager):
         assignee_info = cast("dict[str, Any]", assignee_record)
 
         # Assignee-level reward_periods bucket (v44+)
-        if const.DATA_ASSIGNEE_REWARD_PERIODS not in assignee_info:
+        if const.DATA_USER_REWARD_PERIODS not in assignee_info:
             assignee_info[
-                const.DATA_ASSIGNEE_REWARD_PERIODS
+                const.DATA_USER_REWARD_PERIODS
             ] = {}  # Tenant populates sub-keys
 
         # Per-reward periods structure (if reward_id provided)
@@ -234,10 +234,10 @@ class RewardManager(BaseManager):
             )
             if (
                 assignee_reward_data
-                and const.DATA_ASSIGNEE_REWARD_DATA_PERIODS not in assignee_reward_data
+                and const.DATA_USER_REWARD_DATA_PERIODS not in assignee_reward_data
             ):
                 assignee_reward_data[
-                    const.DATA_ASSIGNEE_REWARD_DATA_PERIODS
+                    const.DATA_USER_REWARD_DATA_PERIODS
                 ] = {}  # Tenant populates sub-keys
 
     def get_pending_approvals(self) -> list[dict[str, Any]]:
@@ -252,22 +252,20 @@ class RewardManager(BaseManager):
         """
         pending: list[dict[str, Any]] = []
         for assignee_id, assignee_info in self.coordinator.assignees_data.items():
-            reward_data = assignee_info.get(const.DATA_ASSIGNEE_REWARD_DATA, {})
+            reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
             for reward_id, entry in reward_data.items():
                 # Skip rewards that no longer exist
                 if reward_id not in self.coordinator.rewards_data:
                     continue
-                pending_count = entry.get(
-                    const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0
-                )
+                pending_count = entry.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0)
                 if pending_count > 0:
                     pending.append(
                         {
-                            const.DATA_ASSIGNEE_ID: assignee_id,
+                            const.DATA_USER_ID: assignee_id,
                             const.DATA_REWARD_ID: reward_id,
                             "pending_count": pending_count,
                             const.DATA_REWARD_TIMESTAMP: entry.get(
-                                const.DATA_ASSIGNEE_REWARD_DATA_LAST_CLAIMED, ""
+                                const.DATA_USER_REWARD_DATA_LAST_CLAIMED, ""
                             ),
                         }
                     )
@@ -338,13 +336,13 @@ class RewardManager(BaseManager):
             )
 
         cost = reward_info.get(const.DATA_REWARD_COST, const.DEFAULT_ZERO)
-        if assignee_info[const.DATA_ASSIGNEE_POINTS] < cost:
+        if assignee_info[const.DATA_USER_POINTS] < cost:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_INSUFFICIENT_POINTS,
                 translation_placeholders={
                     "assignee": assignee_info[const.DATA_USER_NAME],
-                    "current": str(assignee_info[const.DATA_ASSIGNEE_POINTS]),
+                    "current": str(assignee_info[const.DATA_USER_POINTS]),
                     "required": str(cost),
                 },
             )
@@ -353,10 +351,10 @@ class RewardManager(BaseManager):
         reward_entry = self.get_assignee_reward_data(
             assignee_id, reward_id, create=True
         )
-        reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT] = (
-            reward_entry.get(const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0) + 1
+        reward_entry[const.DATA_USER_REWARD_DATA_PENDING_COUNT] = (
+            reward_entry.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0) + 1
         )
-        reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_LAST_CLAIMED] = (
+        reward_entry[const.DATA_USER_REWARD_DATA_LAST_CLAIMED] = (
             dt_util.utcnow().isoformat()
         )
         # REMOVED v43: total_claims increment - StatisticsManager writes to periods
@@ -470,21 +468,19 @@ class RewardManager(BaseManager):
         reward_entry = self.get_assignee_reward_data(
             assignee_id, reward_id, create=False
         )
-        pending_count = reward_entry.get(
-            const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0
-        )
+        pending_count = reward_entry.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0)
 
         # Determine if this is a pending claim approval
         is_pending = pending_count > 0
 
         # Validate sufficient points
-        if assignee_info[const.DATA_ASSIGNEE_POINTS] < cost:
+        if assignee_info[const.DATA_USER_POINTS] < cost:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
                 translation_key=const.TRANS_KEY_ERROR_INSUFFICIENT_POINTS,
                 translation_placeholders={
                     "assignee": assignee_info[const.DATA_USER_NAME],
-                    "current": str(assignee_info[const.DATA_ASSIGNEE_POINTS]),
+                    "current": str(assignee_info[const.DATA_USER_POINTS]),
                     "required": str(cost),
                 },
             )
@@ -544,20 +540,20 @@ class RewardManager(BaseManager):
 
         # Handle pending claim decrement if applicable
         if is_pending_claim:
-            reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT] = max(
+            reward_entry[const.DATA_USER_REWARD_DATA_PENDING_COUNT] = max(
                 0,
-                reward_entry.get(const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0) - 1,
+                reward_entry.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0) - 1,
             )
 
         # Update timestamps
-        reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_LAST_APPROVED] = (
+        reward_entry[const.DATA_USER_REWARD_DATA_LAST_APPROVED] = (
             dt_util.utcnow().isoformat()
         )
 
         # If NOT from a pending claim, this is a direct approval or badge grant
         # Set last_claimed to match approval (combined claim+approve action)
         if not is_pending_claim:
-            reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_LAST_CLAIMED] = (
+            reward_entry[const.DATA_USER_REWARD_DATA_LAST_CLAIMED] = (
                 dt_util.utcnow().isoformat()
             )
 
@@ -619,12 +615,11 @@ class RewardManager(BaseManager):
                 assignee_id, reward_id, create=False
             )
             if reward_entry:
-                reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT] = max(
+                reward_entry[const.DATA_USER_REWARD_DATA_PENDING_COUNT] = max(
                     0,
-                    reward_entry.get(const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0)
-                    - 1,
+                    reward_entry.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0) - 1,
                 )
-                reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_LAST_DISAPPROVED] = (
+                reward_entry[const.DATA_USER_REWARD_DATA_LAST_DISAPPROVED] = (
                     dt_util.utcnow().isoformat()
                 )
                 # REMOVED v43: total_disapproved increment - StatisticsManager writes to periods
@@ -695,9 +690,9 @@ class RewardManager(BaseManager):
             assignee_id, reward_id, create=False
         )
         if reward_entry:
-            reward_entry[const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT] = max(
+            reward_entry[const.DATA_USER_REWARD_DATA_PENDING_COUNT] = max(
                 0,
-                reward_entry.get(const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0) - 1,
+                reward_entry.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0) - 1,
             )
 
         # REMOVED v43: _recalculate_stats_for_assignee() - reward_stats dict deleted
@@ -750,16 +745,14 @@ class RewardManager(BaseManager):
                 )
 
             # Clear reward_data entry for this reward
-            reward_data = assignee_info.get(const.DATA_ASSIGNEE_REWARD_DATA, {})
+            reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
             reward_data.pop(reward_id, None)
 
         elif reward_id:
             # Reset a specific reward for all assignees
             found = False
             for assignee_info_loop in self.coordinator.assignees_data.values():
-                reward_data = assignee_info_loop.get(
-                    const.DATA_ASSIGNEE_REWARD_DATA, {}
-                )
+                reward_data = assignee_info_loop.get(const.DATA_USER_REWARD_DATA, {})
                 if reward_id in reward_data:
                     found = True
                     reward_data.pop(reward_id, None)
@@ -789,8 +782,8 @@ class RewardManager(BaseManager):
                 )
 
             # Clear all reward_data for this assignee
-            if const.DATA_ASSIGNEE_REWARD_DATA in assignee_info_elif:
-                assignee_info_elif[const.DATA_ASSIGNEE_REWARD_DATA].clear()
+            if const.DATA_USER_REWARD_DATA in assignee_info_elif:
+                assignee_info_elif[const.DATA_USER_REWARD_DATA].clear()
 
         else:
             # Reset all rewards for all assignees
@@ -799,8 +792,8 @@ class RewardManager(BaseManager):
             )
             for assignee_info in self.coordinator.assignees_data.values():
                 # Clear all reward_data for this assignee
-                if const.DATA_ASSIGNEE_REWARD_DATA in assignee_info:
-                    assignee_info[const.DATA_ASSIGNEE_REWARD_DATA].clear()
+                if const.DATA_USER_REWARD_DATA in assignee_info:
+                    assignee_info[const.DATA_USER_REWARD_DATA].clear()
 
         const.LOGGER.debug(
             "DEBUG: Reset Rewards completed - Assignee ID '%s', Reward ID '%s'",
@@ -956,7 +949,7 @@ class RewardManager(BaseManager):
         # Clean own domain: remove deleted reward refs from assignee reward data
         valid_reward_ids = set(self.coordinator.rewards_data.keys())
         for assignee_data in self.coordinator.assignees_data.values():
-            reward_data = assignee_data.get(const.DATA_ASSIGNEE_REWARD_DATA, {})
+            reward_data = assignee_data.get(const.DATA_USER_REWARD_DATA, {})
             orphaned = [rid for rid in reward_data if rid not in valid_reward_ids]
             for rid in orphaned:
                 del reward_data[rid]
@@ -1024,7 +1017,7 @@ class RewardManager(BaseManager):
                 continue
 
             # Reset reward_data tracking
-            reward_data = assignee_info.get(const.DATA_ASSIGNEE_REWARD_DATA, {})
+            reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
             if item_id:
                 # Item scope - only clear specific reward tracking
                 reward_data.pop(item_id, None)

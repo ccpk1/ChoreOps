@@ -102,6 +102,40 @@ def _pass_through_field(value: Any, default: Any = None) -> Any:
     return value if value is not None else default
 
 
+def _normalize_name_field(raw_name: Any) -> str:
+    """Normalize user name values for validation and storage."""
+    return str(raw_name).strip() if raw_name else ""
+
+
+def _resolve_user_input_field(
+    user_input: dict[str, Any],
+    existing: dict[str, Any] | None,
+    cfof_key: str,
+    data_key: str,
+    default: Any,
+) -> Any:
+    """Resolve field value using precedence: user_input > existing > default."""
+    if cfof_key in user_input:
+        return user_input[cfof_key]
+    if existing is not None:
+        return existing.get(data_key, default)
+    return default
+
+
+def _normalize_user_select_value(value: Any) -> str:
+    """Normalize selector sentinel values used by user-profile forms."""
+    if value in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
+        return ""
+    return str(value) if value else ""
+
+
+def _resolve_or_create_internal_id(existing: dict[str, Any] | None) -> str:
+    """Resolve existing internal ID or generate a new UUID."""
+    if existing is None:
+        return str(uuid.uuid4())
+    return str(existing.get(const.DATA_USER_INTERNAL_ID, str(uuid.uuid4())))
+
+
 # ==============================================================================
 # EXCEPTIONS
 # ==============================================================================
@@ -315,7 +349,7 @@ def build_reward(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Rewards have no runtime fields on the reward record itself.
-# All runtime state is in assignee-side DATA_ASSIGNEE_REWARD_DATA structure.
+# All runtime state is in assignee-side DATA_USER_REWARD_DATA structure.
 
 _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -330,15 +364,15 @@ _REWARD_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Reward assignee runtime fields (for data_reset_rewards) ---
-# These are assignee-side structures owned by RewardManager.
-# On data reset: CLEAR these structures for affected assignee profile(s).
+# --- Reward user runtime fields (for data_reset_rewards) ---
+# These are user-record runtime structures owned by RewardManager.
+# On data reset: CLEAR these structures for affected assignee-capable users.
 # Note: reward_stats will be deleted in v43; reward_periods holds aggregated all-time stats.
 
-_REWARD_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_REWARD_USER_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_ASSIGNEE_REWARD_DATA,  # Per-reward claim tracking
-        const.DATA_ASSIGNEE_REWARD_PERIODS,  # Aggregated reward periods (v43+, all_time bucket)
+        const.DATA_USER_REWARD_DATA,  # Per-reward claim tracking
+        const.DATA_USER_REWARD_PERIODS,  # Aggregated reward periods (v43+, all_time bucket)
     }
 )
 
@@ -541,7 +575,7 @@ def build_bonus_or_penalty(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Bonuses have no runtime fields on the bonus record itself.
-# All runtime state is in assignee-side DATA_ASSIGNEE_BONUS_APPLIES structure.
+# All runtime state is in assignee-side DATA_USER_BONUS_APPLIES structure.
 
 _BONUS_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -556,13 +590,13 @@ _BONUS_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Bonus assignee runtime fields (for data_reset_bonuses) ---
-# These are assignee-side structures owned by EconomyManager (via bonuses domain).
-# On data reset: CLEAR these structures for affected assignee profile(s).
+# --- Bonus user runtime fields (for data_reset_bonuses) ---
+# These are user-record runtime structures owned by EconomyManager.
+# On data reset: CLEAR these structures for affected assignee-capable users.
 
-_BONUS_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_BONUS_USER_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_ASSIGNEE_BONUS_APPLIES,  # Active bonus tracking
+        const.DATA_USER_BONUS_APPLIES,  # Active bonus tracking
     }
 )
 
@@ -572,7 +606,7 @@ _BONUS_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
 # - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 #
 # NOTE: Penalties have no runtime fields on the penalty record itself.
-# All runtime state is in assignee-side DATA_ASSIGNEE_PENALTY_APPLIES structure.
+# All runtime state is in assignee-side DATA_USER_PENALTY_APPLIES structure.
 
 _PENALTY_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     {
@@ -587,27 +621,28 @@ _PENALTY_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Penalty assignee runtime fields (for data_reset_penalties) ---
-# These are assignee-side structures owned by EconomyManager (via penalties domain).
-# On data reset: CLEAR these structures for affected assignee profile(s).
+# --- Penalty user runtime fields (for data_reset_penalties) ---
+# These are user-record runtime structures owned by EconomyManager.
+# On data reset: CLEAR these structures for affected assignee-capable users.
 
-_PENALTY_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_PENALTY_USER_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_ASSIGNEE_PENALTY_APPLIES,  # Active penalty tracking
+        const.DATA_USER_PENALTY_APPLIES,  # Active penalty tracking
     }
 )
 
 
 # ==============================================================================
-# KIDS
+# USER PROFILES - ASSIGNMENT CAPABILITY SURFACE
 # ==============================================================================
 
-# Note: CFOF_KIDS_INPUT_* values are now aligned with DATA_KID_* values
-# (Phase 6 CFOF Key Alignment), so no mapping function is needed.
-# Canonical assignee lifecycle builders use user-centric naming.
+# Note: This section handles USER records with assignment capability.
+# Storage keys remain DATA_USER_*; "assignee" terminology is legacy role UX only.
+# USER form surfaces use CFOF_USERS_INPUT_* keys; any legacy aliases are
+# normalized before these builders are called.
 
 
-def validate_user_assignee_profile_data(
+def validate_user_assignment_profile_data(
     data: dict[str, Any],
     existing_assignees: dict[str, Any] | None = None,
     existing_users: dict[str, Any] | None = None,
@@ -615,62 +650,23 @@ def validate_user_assignee_profile_data(
     is_update: bool = False,
     current_assignee_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate user profile data for assignee-capability flows.
+    """Validate assignment-capable USER profile business rules.
 
-    This is the canonical runtime entrypoint for assignee-capability validation.
-    """
-    return validate_assignee_data(
-        data,
-        existing_assignees,
-        existing_users,
-        is_update=is_update,
-        current_assignee_id=current_assignee_id,
-    )
-
-
-def validate_assignee_profile_data(
-    data: dict[str, Any],
-    existing_assignees: dict[str, Any] | None = None,
-    existing_users: dict[str, Any] | None = None,
-    *,
-    is_update: bool = False,
-    current_assignee_id: str | None = None,
-) -> dict[str, str]:
-    """Compatibility alias for `validate_user_assignee_profile_data()`.
-
-    Keep this wrapper during migration batches to avoid broad churn in callers.
-    """
-    return validate_user_assignee_profile_data(
-        data,
-        existing_assignees,
-        existing_users,
-        is_update=is_update,
-        current_assignee_id=current_assignee_id,
-    )
-
-
-def validate_assignee_data(
-    data: dict[str, Any],
-    existing_assignees: dict[str, Any] | None = None,
-    existing_approvers: dict[str, Any] | None = None,
-    *,
-    is_update: bool = False,
-    current_assignee_id: str | None = None,
-) -> dict[str, str]:
-    """Validate assignee business rules - SINGLE SOURCE OF TRUTH.
-
-    This function contains all assignee validation logic used by both:
-    - Options Flow (UI) via flow_helpers.validate_assignee_inputs()
+    This is the canonical implementation for assignment-profile validation used by:
+    - Options Flow (UI) via sectioned USER-form validation wrappers
     - Services (API) via handle_create_assignee() / handle_update_assignee()
 
     Works with DATA_* keys (canonical storage format).
 
     Args:
-        data: Assignee data dict with DATA_* keys
-        existing_assignees: All existing assignees for duplicate checking (optional)
-        existing_approvers: All existing approvers for cross-validation (optional)
+        data: User-record data dict with DATA_USER_* keys
+        existing_assignees: All existing assignment-capable users for duplicate
+            checking (optional)
+        existing_users: User records with approval capabilities for
+            cross-validation (optional)
         is_update: True if updating existing assignee (some validations skip)
-        current_assignee_id: ID of assignee being updated (to exclude from duplicate check)
+        current_assignee_id: ID of assignment-capable user being updated (excluded
+            from duplicate checks)
 
     Returns:
         Dict of errors: {error_field: translation_key}
@@ -678,15 +674,13 @@ def validate_assignee_data(
 
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
-        2. Name not duplicate among assignees
-        3. Name not conflict with assignment-enabled approver profiles
+        2. Name not duplicate among assignment-capable users
+        3. Name not conflict with assignment-enabled approval-capable users
     """
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
-    name = data.get(const.DATA_USER_NAME, "")
-    if isinstance(name, str):
-        name = name.strip()
+    name = _normalize_name_field(data.get(const.DATA_USER_NAME, ""))
 
     if not is_update and not name:
         errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME
@@ -712,12 +706,12 @@ def validate_assignee_data(
                 )
                 return errors
 
-    # === 3. Conflict with assignment-enabled approver profiles ===
+    # === 3. Conflict with assignment-enabled user profiles ===
     # Check conflicts only for assignment-enabled approvers
     # Approvers without assignment capability do not create linked assignee-like profiles
-    if name and existing_approvers:
-        for approver_data in existing_approvers.values():
-            if approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False):
+    if name and existing_users:
+        for approver_data in existing_users.values():
+            if approver_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False):
                 if approver_data.get(const.DATA_USER_NAME) == name:
                     errors[const.CFOP_ERROR_USER_NAME] = (
                         const.TRANS_KEY_CFOF_DUPLICATE_NAME
@@ -727,17 +721,17 @@ def validate_assignee_data(
     return errors
 
 
-def build_user_assignee_profile(
+def build_user_assignment_profile(
     user_input: dict[str, Any],
     existing: AssigneeData | None = None,
 ) -> AssigneeData:
-    """Build user record data for assignee-capability create/update operations.
+    """Build assignment-capable USER profile data for create/update operations.
 
-    This is the SINGLE SOURCE OF TRUTH for assignee-capability field handling.
-    One function handles both create (existing=None) and update (existing=AssigneeData).
+    This is the canonical builder for assignment-profile field handling. One function
+    handles both create (existing=None) and update (existing=AssigneeData).
 
     Args:
-        user_input: Form/service data with CFOF_* keys (may have missing fields)
+        user_input: Form/service data with USER-surface CFOF_* keys
         existing: None for create, existing AssigneeData for update
 
     Returns:
@@ -748,35 +742,26 @@ def build_user_assignee_profile(
 
     Examples:
         # CREATE mode - generates UUID, applies defaults for missing fields
-        assignee = build_user_assignee_profile({CFOF_USERS_INPUT_NAME: "Alice"})
+        user_profile = build_user_assignment_profile({CFOF_USERS_INPUT_NAME: "Alice"})
 
         # UPDATE mode - preserves existing fields not in user_input
-        assignee = build_user_assignee_profile({CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_assignee)
+        user_profile = build_user_assignment_profile({CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: "es"}, existing=old_assignee)
 
-        # Create mode with assignee defaults
-        assignee = build_user_assignee_profile(approver_derived_input)
+        # Create mode with approval-derived assignment defaults
+        user_profile = build_user_assignment_profile(approver_derived_input)
     """
     is_create = existing is None
-
-    def get_field(
-        cfof_key: str,
-        data_key: str,
-        default: Any,
-    ) -> Any:
-        """Get field value: user_input > existing > default."""
-        if cfof_key in user_input:
-            return user_input[cfof_key]
-        if existing is not None:
-            return existing.get(data_key, default)
-        return default
+    existing_data = cast("dict[str, Any] | None", existing)
 
     # --- Name validation (required for create, optional for update) ---
-    raw_name = get_field(
+    raw_name = _resolve_user_input_field(
+        user_input,
+        existing_data,
         const.CFOF_USERS_INPUT_NAME,
         const.DATA_USER_NAME,
         "",
     )
-    name = str(raw_name).strip() if raw_name else ""
+    name = _normalize_name_field(raw_name)
 
     if is_create and not name:
         raise EntityValidationError(
@@ -790,47 +775,50 @@ def build_user_assignee_profile(
         )
 
     # --- Internal ID: generate for create, preserve for update ---
-    if is_create or existing is None:
-        internal_id = str(uuid.uuid4())
-    else:
-        internal_id = existing.get(const.DATA_USER_INTERNAL_ID, str(uuid.uuid4()))
+    internal_id = _resolve_or_create_internal_id(existing_data)
 
     # --- Handle HA user and notification service sentinels ---
-    ha_user_id = get_field(
-        const.CFOF_USERS_INPUT_HA_USER_ID,
-        const.DATA_USER_HA_USER_ID,
-        "",
+    ha_user_id = _normalize_user_select_value(
+        _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_HA_USER_ID,
+            const.DATA_USER_HA_USER_ID,
+            "",
+        )
     )
-    if ha_user_id in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
-        ha_user_id = ""
 
-    notify_service = get_field(
-        const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
-        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
-        const.SENTINEL_EMPTY,
+    notify_service = _normalize_user_select_value(
+        _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE,
+            const.SENTINEL_EMPTY,
+        )
     )
-    if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
-        notify_service = ""
 
-    # --- Build complete assignee structure ---
-    # Include all runtime fields that _create_assignee() used to add
+    # --- Build complete assignment-capable USER structure ---
+    # Include runtime fields expected for assignment workflows
     assignee_data: AssigneeData = {
         # Core identification
         const.DATA_USER_INTERNAL_ID: internal_id,
         const.DATA_USER_NAME: name,
         # Points (runtime initialized)
-        const.DATA_ASSIGNEE_POINTS: float(
-            get_field(
+        const.DATA_USER_POINTS: float(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
                 const.CFOF_GLOBAL_INPUT_INTERNAL_ID,  # Not a real form field
-                const.DATA_ASSIGNEE_POINTS,
+                const.DATA_USER_POINTS,
                 const.DEFAULT_ZERO,
             )
             if existing
             else const.DEFAULT_ZERO
         ),
-        const.DATA_ASSIGNEE_POINTS_MULTIPLIER: float(
+        const.DATA_USER_POINTS_MULTIPLIER: float(
             existing.get(
-                const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
+                const.DATA_USER_POINTS_MULTIPLIER,
                 const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
             )
             if existing
@@ -840,32 +828,34 @@ def build_user_assignee_profile(
         const.DATA_USER_HA_USER_ID: ha_user_id,
         # Notifications
         const.DATA_USER_MOBILE_NOTIFY_SERVICE: notify_service,
-        const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS: (
-            existing.get(const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, False)
+        const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS: (
+            existing.get(const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS, False)
             if existing
             else False
         ),
-        const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE: str(
-            get_field(
-                const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
-                const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
+        const.DATA_USER_DASHBOARD_LANGUAGE: str(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
+                const.DATA_USER_DASHBOARD_LANGUAGE,
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
         # Badge tracking (runtime initialized)
-        const.DATA_ASSIGNEE_BADGES_EARNED: (
-            existing.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}) if existing else {}
+        const.DATA_USER_BADGES_EARNED: (
+            existing.get(const.DATA_USER_BADGES_EARNED, {}) if existing else {}
         ),
         # Reward tracking (runtime initialized)
-        const.DATA_ASSIGNEE_REWARD_DATA: (
-            existing.get(const.DATA_ASSIGNEE_REWARD_DATA, {}) if existing else {}
+        const.DATA_USER_REWARD_DATA: (
+            existing.get(const.DATA_USER_REWARD_DATA, {}) if existing else {}
         ),
         # Penalty/bonus tracking (runtime initialized)
-        const.DATA_ASSIGNEE_PENALTY_APPLIES: (
-            existing.get(const.DATA_ASSIGNEE_PENALTY_APPLIES, {}) if existing else {}
+        const.DATA_USER_PENALTY_APPLIES: (
+            existing.get(const.DATA_USER_PENALTY_APPLIES, {}) if existing else {}
         ),
-        const.DATA_ASSIGNEE_BONUS_APPLIES: (
-            existing.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {}) if existing else {}
+        const.DATA_USER_BONUS_APPLIES: (
+            existing.get(const.DATA_USER_BONUS_APPLIES, {}) if existing else {}
         ),
         # NOTE: DATA_KID_OVERDUE_CHORES removed - dead code, overdue tracked in chore_data[chore_id].state
     }
@@ -873,76 +863,13 @@ def build_user_assignee_profile(
     return assignee_data
 
 
-def build_assignee(
-    user_input: dict[str, Any],
-    existing: AssigneeData | None = None,
-) -> AssigneeData:
-    """Compatibility alias for `build_user_assignee_profile()`.
-
-    Keep this wrapper during migration batches to avoid broad churn in callers.
-    """
-    return build_user_assignee_profile(
-        user_input,
-        existing=existing,
-    )
-
-
-def build_assignee_profile(
-    user_input: dict[str, Any],
-    existing: AssigneeData | None = None,
-) -> AssigneeData:
-    """Build assignee-profile data for create or update operations.
-
-    Compatibility alias for `build_user_assignee_profile()`.
-    """
-    return build_user_assignee_profile(
-        user_input,
-        existing=existing,
-    )
-
-
-# --- Assignee Data Reset Support ---
-# MAINTENANCE CONTRACT: When adding fields to build_user_assignee_profile():
-# - CONFIG fields: Add to _KID_DATA_RESET_PRESERVE_FIELDS (preserved during data reset)
-# - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
-
-_ASSIGNEE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
-    {
-        # System identity (never changes)
-        const.DATA_USER_INTERNAL_ID,
-        # User-configured fields
-        const.DATA_USER_NAME,
-        const.DATA_USER_HA_USER_ID,
-        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
-        const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS,
-        const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
-        const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
-    }
-)
-
-
-# --- Economy Manager Assignee Runtime Fields (for data_reset_assignees) ---
-# These are assignee-side fields owned by EconomyManager.
-# EconomyManager creates these on-demand before recording transactions.
-# On data reset: reset points to 0, clear ledger, clear point stats/data.
-
-_ECONOMY_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
-    {
-        const.DATA_ASSIGNEE_POINTS,  # Current point balance
-        const.DATA_ASSIGNEE_POINTS_MULTIPLIER,  # Reset to DEFAULT_KID_POINTS_MULTIPLIER
-        const.DATA_ASSIGNEE_LEDGER,  # Transaction history
-        const.DATA_ASSIGNEE_POINT_PERIODS,  # Period point breakdowns (EconomyManager owns, v43+)
-    }
-)
-
-
 # ==============================================================================
-# PARENTS
+# USER PROFILES - APPROVAL CAPABILITY SURFACE
 # ==============================================================================
-
-# Note: CFOF_PARENTS_INPUT_* values are now aligned with DATA_PARENT_* values
-# (Phase 6 CFOF Key Alignment), so no mapping function is needed.
-# build_approver() accepts keys directly from UI forms.
+# Note: This section handles USER records with approval/management capability.
+# Storage keys remain DATA_USER_*; "approver" terminology is legacy role UX only.
+# USER form surfaces use CFOF_USERS_INPUT_* keys; any legacy aliases are
+# normalized before these builders are called.
 
 
 def validate_user_profile_data(
@@ -953,41 +880,20 @@ def validate_user_profile_data(
     is_update: bool = False,
     current_user_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate user-profile business rules.
+    """Validate approval-capable USER profile business rules.
 
-    Canonical runtime alias for `validate_approver_data()`.
-    """
-    return validate_approver_data(
-        data,
-        existing_users,
-        existing_assignees,
-        is_update=is_update,
-        current_approver_id=current_user_id,
-    )
-
-
-def validate_approver_data(
-    data: dict[str, Any],
-    existing_approvers: dict[str, Any] | None = None,
-    existing_assignees: dict[str, Any] | None = None,
-    *,
-    is_update: bool = False,
-    current_approver_id: str | None = None,
-) -> dict[str, str]:
-    """Validate approver business rules - SINGLE SOURCE OF TRUTH.
-
-    This function contains all approver validation logic used by both:
+    This is the canonical implementation for approval-capability validation used by:
     - Options Flow (UI) via flow_helpers.validate_users_inputs()
     - Services (API) via handle_create_approver() / handle_update_approver()
 
     Works with DATA_* keys (canonical storage format).
 
     Args:
-        data: Approver data dict with DATA_* keys
-        existing_approvers: All existing approvers for duplicate checking (optional)
-        existing_assignees: All existing assignees for cross-validation (optional)
-        is_update: True if updating existing approver (some validations skip)
-        current_approver_id: ID of approver being updated (to exclude from duplicate check)
+        data: User-profile data dict with DATA_* keys
+        existing_users: All existing user profiles for duplicate checking
+        existing_assignees: Assignment-capable users for cross-validation (optional)
+        is_update: True if updating existing user profile (some validations skip)
+        current_user_id: ID of user profile being updated (to exclude from duplicate check)
 
     Returns:
         Dict of errors: {error_field: translation_key}
@@ -995,8 +901,8 @@ def validate_approver_data(
 
     Validation Rules:
         1. Name not empty (create) or not blank (update if provided)
-        2. Name not duplicate among approvers
-        3. Name not conflict with assignees (only when assignment is enabled)
+        2. Name not duplicate among user profiles
+        3. Name not conflict with assignment-capable users (when assignment is enabled)
         4. Workflow/gamification require assignment enablement
         5. At least one of assignment or approval must be enabled
         6. Approval requires non-empty associated users list
@@ -1004,9 +910,7 @@ def validate_approver_data(
     errors: dict[str, str] = {}
 
     # === 1. Name validation ===
-    name = data.get(const.DATA_USER_NAME, "")
-    if isinstance(name, str):
-        name = name.strip()
+    name = _normalize_name_field(data.get(const.DATA_USER_NAME, ""))
 
     if not is_update and not name:
         errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
@@ -1016,12 +920,12 @@ def validate_approver_data(
         errors[const.CFOP_ERROR_USER_NAME] = const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
         return errors
 
-    # === 2. Duplicate name check among approvers ===
-    if name and existing_approvers:
-        for approver_id, approver_data in existing_approvers.items():
-            if approver_id == current_approver_id:
+    # === 2. Duplicate name check among user profiles ===
+    if name and existing_users:
+        for user_id, user_data in existing_users.items():
+            if user_id == current_user_id:
                 continue  # Skip self when updating
-            if approver_data.get(const.DATA_USER_NAME) == name:
+            if user_data.get(const.DATA_USER_NAME) == name:
                 errors[const.CFOP_ERROR_USER_NAME] = (
                     const.TRANS_KEY_CFOF_DUPLICATE_APPROVER
                 )
@@ -1029,11 +933,11 @@ def validate_approver_data(
 
     # === 3. Conflict with assignees (only when assignment is enabled) ===
     # When assignment is enabled, a linked profile record may use this name
-    assignment_enabled = data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
+    assignment_enabled = data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
     if assignment_enabled and name and existing_assignees:
         for assignee_id, assignee_data in existing_assignees.items():
             assignee_internal_id = assignee_data.get(const.DATA_USER_INTERNAL_ID)
-            if current_approver_id is not None and current_approver_id in {
+            if current_user_id is not None and current_user_id in {
                 assignee_id,
                 assignee_internal_id,
             }:
@@ -1045,7 +949,7 @@ def validate_approver_data(
     has_usage_context = any(
         key in data
         for key in (
-            const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+            const.DATA_USER_CAN_BE_ASSIGNED,
             const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
             const.DATA_APPROVER_ENABLE_GAMIFICATION,
             const.DATA_USER_CAN_APPROVE,
@@ -1077,7 +981,7 @@ def validate_approver_data(
 
     # === 6. Approval requires non-empty associated users list ===
     if can_approve and not associated_users:
-        errors[const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES] = (
+        errors[const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS] = (
             const.TRANS_KEY_CFOF_APPROVAL_REQUIRES_ASSOCIATED_USERS
         )
         return errors
@@ -1085,17 +989,18 @@ def validate_approver_data(
     return errors
 
 
-def build_approver(
+def build_user_profile(
     user_input: dict[str, Any],
     existing: ApproverData | None = None,
 ) -> ApproverData:
-    """Build approver data for create or update operations.
+    """Build approval-capable USER profile data for create or update operations.
 
-    This is the SINGLE SOURCE OF TRUTH for approver field handling.
-    One function handles both create (existing=None) and update (existing=ApproverData).
+    This is the canonical builder for approval-capability field handling. One
+    function handles both create (existing=None) and update
+    (existing=ApproverData).
 
     Args:
-        user_input: Form/service data with CFOF_* keys (may have missing fields)
+        user_input: Form/service data with role-aware CFOF_* keys
         existing: None for create, existing ApproverData for update
 
     Returns:
@@ -1106,32 +1011,23 @@ def build_approver(
 
     Examples:
         # CREATE mode - generates UUID, applies defaults for missing fields
-        approver = build_approver({CFOF_USERS_INPUT_NAME: "Dad"})
+        user_profile = build_user_profile({CFOF_USERS_INPUT_NAME: "Dad"})
 
         # UPDATE mode - preserves existing fields not in user_input
-        approver = build_approver({CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: ["uuid1"]}, existing=old)
+        user_profile = build_user_profile({CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: ["uuid1"]}, existing=old)
     """
     is_create = existing is None
-
-    def get_field(
-        cfof_key: str,
-        data_key: str,
-        default: Any,
-    ) -> Any:
-        """Get field value: user_input > existing > default."""
-        if cfof_key in user_input:
-            return user_input[cfof_key]
-        if existing is not None:
-            return existing.get(data_key, default)
-        return default
+    existing_data = cast("dict[str, Any] | None", existing)
 
     # --- Name validation (required for create, optional for update) ---
-    raw_name = get_field(
+    raw_name = _resolve_user_input_field(
+        user_input,
+        existing_data,
         const.CFOF_USERS_INPUT_NAME,
         const.DATA_USER_NAME,
         "",
     )
-    name = str(raw_name).strip() if raw_name else ""
+    name = _normalize_name_field(raw_name)
 
     if is_create and not name:
         raise EntityValidationError(
@@ -1145,38 +1041,41 @@ def build_approver(
         )
 
     # --- Internal ID: generate for create, preserve for update ---
-    if is_create or existing is None:
-        internal_id = str(uuid.uuid4())
-    else:
-        internal_id = existing.get(const.DATA_USER_INTERNAL_ID, str(uuid.uuid4()))
+    internal_id = _resolve_or_create_internal_id(existing_data)
 
     # --- Handle HA user and notification service sentinels ---
-    ha_user_id = get_field(
-        const.CFOF_USERS_INPUT_HA_USER_ID,
-        const.DATA_USER_HA_USER_ID,
-        "",
+    ha_user_id = _normalize_user_select_value(
+        _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_HA_USER_ID,
+            const.DATA_USER_HA_USER_ID,
+            "",
+        )
     )
-    if ha_user_id in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
-        ha_user_id = ""
 
-    notify_service = get_field(
-        const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
-        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
-        "",
+    notify_service = _normalize_user_select_value(
+        _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE,
+            "",
+        )
     )
-    if notify_service in (const.SENTINEL_EMPTY, const.SENTINEL_NO_SELECTION):
-        notify_service = ""
 
     associated_assignees = list(
-        get_field(
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+        _resolve_user_input_field(
+            user_input,
+            existing_data,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
             const.DATA_APPROVER_ASSOCIATED_USERS,
             [],
         )
     )
 
-    # --- Build complete approver structure ---
-    approver_data: dict[str, Any] = {
+    # --- Build complete user-profile structure ---
+    user_profile_data: dict[str, Any] = {
         const.DATA_USER_INTERNAL_ID: internal_id,
         const.DATA_USER_NAME: name,
         const.DATA_USER_HA_USER_ID: ha_user_id,
@@ -1188,60 +1087,95 @@ def build_approver(
             else False
         ),
         const.DATA_APPROVER_DASHBOARD_LANGUAGE: str(
-            get_field(
-                const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
                 const.DATA_APPROVER_DASHBOARD_LANGUAGE,
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
-        const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: bool(
-            get_field(
-                const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT,
+        const.DATA_USER_CAN_BE_ASSIGNED: bool(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+                const.DATA_USER_CAN_BE_ASSIGNED,
                 False,
             )
         ),
         const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: bool(
-            get_field(
-                const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
                 const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW,
                 False,
             )
         ),
         const.DATA_APPROVER_ENABLE_GAMIFICATION: bool(
-            get_field(
-                const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
                 const.DATA_APPROVER_ENABLE_GAMIFICATION,
                 False,
             )
         ),
         const.DATA_USER_CAN_APPROVE: bool(
-            get_field(
-                const.CFOF_APPROVERS_INPUT_CAN_APPROVE,
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_CAN_APPROVE,
                 const.DATA_USER_CAN_APPROVE,
                 False,
             )
         ),
         const.DATA_USER_CAN_MANAGE: bool(
-            get_field(
-                const.CFOF_APPROVERS_INPUT_CAN_MANAGE,
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.CFOF_USERS_INPUT_CAN_MANAGE,
                 const.DATA_USER_CAN_MANAGE,
                 False,
             )
         ),
     }
-    return cast("ApproverData", approver_data)
+    return cast("ApproverData", user_profile_data)
 
 
-def build_user_profile(
-    user_input: dict[str, Any],
-    existing: ApproverData | None = None,
-) -> ApproverData:
-    """Build user-profile data for create or update operations.
+# --- User profile preserve fields (for data_reset_users) ---
+# MAINTENANCE CONTRACT: When adding fields to build_user_assignment_profile():
+# - USER PROFILE CONFIG fields: Add here (preserved during user-profile data reset)
+# - RUNTIME fields: No change needed (auto-cleared to defaults on data reset)
 
-    Canonical runtime alias for `build_approver()`.
-    """
-    return build_approver(user_input, existing=existing)
+_USER_MANAGER_PROFILE_PRESERVE_FIELDS: frozenset[str] = frozenset(
+    {
+        # System identity (never changes)
+        const.DATA_USER_INTERNAL_ID,
+        # User-configured fields
+        const.DATA_USER_NAME,
+        const.DATA_USER_HA_USER_ID,
+        const.DATA_USER_MOBILE_NOTIFY_SERVICE,
+        const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
+        const.DATA_USER_DASHBOARD_LANGUAGE,
+    }
+)
+
+
+# --- Economy manager user runtime fields (for data_reset_points) ---
+# These are user-record runtime fields owned by EconomyManager.
+# EconomyManager creates these on-demand before recording transactions.
+# On data reset: reset points to 0, clear ledger, clear point stats/data.
+
+_ECONOMY_USER_RUNTIME_FIELDS: frozenset[str] = frozenset(
+    {
+        const.DATA_USER_POINTS,  # Current point balance
+        const.DATA_USER_POINTS_MULTIPLIER,  # Reset to DEFAULT_ASSIGNEE_POINTS_MULTIPLIER
+        const.DATA_USER_LEDGER,  # Transaction history
+        const.DATA_USER_POINT_PERIODS,  # Period point breakdowns (EconomyManager owns, v43+)
+    }
+)
 
 
 # ==============================================================================
@@ -1319,9 +1253,9 @@ def validate_chore_data(
                 return errors
 
     # === 3. Assigned assignees validation (create only) ===
-    assigned_assignees = data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+    assigned_assignees = data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
     if not is_update and not assigned_assignees:
-        errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+        errors[const.CFOP_ERROR_ASSIGNED_USER_IDS] = (
             const.TRANS_KEY_CFOF_NO_ASSIGNEES_ASSIGNED
         )
         return errors
@@ -1435,7 +1369,7 @@ def validate_chore_data(
     }
     if completion_criteria in rotation_criteria:
         if len(assigned_assignees) < 2:
-            errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+            errors[const.CFOP_ERROR_ASSIGNED_USER_IDS] = (
                 const.TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES
             )
             return errors
@@ -1482,7 +1416,7 @@ def build_chore(
 
     Examples:
         # CREATE mode - generates UUID, applies const.DEFAULT_* for missing fields
-        chore = build_chore({DATA_CHORE_NAME: "Clean Room", DATA_CHORE_ASSIGNED_ASSIGNEES: [...]})
+        chore = build_chore({DATA_CHORE_NAME: "Clean Room", DATA_CHORE_ASSIGNED_USER_IDS: [...]})
 
         # UPDATE mode - preserves existing fields not in user_input
         chore = build_chore({DATA_CHORE_DEFAULT_POINTS: 15}, existing=old_chore)
@@ -1548,7 +1482,7 @@ def build_chore(
 
     # --- Build complete chore structure ---
     # Extract values needed for rotation genesis logic
-    assigned_assignees_value = get_field(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+    assigned_assignees_value = get_field(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
     completion_criteria_value = get_field(
         const.DATA_CHORE_COMPLETION_CRITERIA,
         const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -1591,7 +1525,7 @@ def build_chore(
                 get_field(const.DATA_CHORE_ICON, const.SENTINEL_EMPTY)
             ),
             # Assignment
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES: list(assigned_assignees_value),
+            const.DATA_CHORE_ASSIGNED_USER_IDS: list(assigned_assignees_value),
             # Scheduling
             const.DATA_CHORE_RECURRING_FREQUENCY: recurring_frequency,
             const.DATA_CHORE_CUSTOM_INTERVAL: custom_interval,
@@ -1743,7 +1677,7 @@ _CHORE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_CHORE_LABELS,
         const.DATA_CHORE_ICON,
         # Assignment (per-assignee CONFIG, not runtime)
-        const.DATA_CHORE_ASSIGNED_ASSIGNEES,
+        const.DATA_CHORE_ASSIGNED_USER_IDS,
         # Scheduling configuration
         const.DATA_CHORE_RECURRING_FREQUENCY,
         const.DATA_CHORE_CUSTOM_INTERVAL,
@@ -1805,16 +1739,16 @@ _CHORE_PER_ASSIGNEE_RUNTIME_LISTS: frozenset[str] = frozenset(
     }
 )
 
-# --- Chore Assignee Runtime Fields (for data_reset_chores) ---
-# These are assignee-side structures owned by ChoreManager.
+# --- Chore user runtime fields (for data_reset_chores) ---
+# These are user-record runtime structures owned by ChoreManager.
 # ChoreManager creates these on-demand before recording data (not at assignee genesis).
-# On data reset: CLEAR these structures for affected assignee(s).
+# On data reset: CLEAR these structures for affected assignee-capable users.
 # Note: chore_stats deleted in v43; chore_periods holds aggregated all-time stats.
 
-_CHORE_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_CHORE_USER_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_ASSIGNEE_CHORE_DATA,  # Per-chore tracking (ChoreManager creates on-demand)
-        const.DATA_ASSIGNEE_CHORE_PERIODS,  # Aggregated chore periods (v43+, all_time bucket)
+        const.DATA_USER_CHORE_DATA,  # Per-chore tracking (ChoreManager creates on-demand)
+        const.DATA_USER_CHORE_PERIODS,  # Aggregated chore periods (v43+, all_time bucket)
     }
 )
 
@@ -2268,15 +2202,15 @@ _BADGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
     }
 )
 
-# --- Badge Assignee Runtime Fields (for data_reset_badges) ---
-# These are assignee-side structures owned by GamificationManager.
-# On data reset: CLEAR these structures for affected assignee(s).
+# --- Badge user runtime fields (for data_reset_badges) ---
+# These are user-record runtime structures owned by GamificationManager.
+# On data reset: CLEAR these structures for affected assignee-capable users.
 
-_BADGE_ASSIGNEE_RUNTIME_FIELDS: frozenset[str] = frozenset(
+_BADGE_USER_RUNTIME_FIELDS: frozenset[str] = frozenset(
     {
-        const.DATA_ASSIGNEE_BADGES_EARNED,  # Badge award history
-        const.DATA_ASSIGNEE_BADGE_PROGRESS,  # Current badge progress
-        const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS,  # Cumulative badge tracking
+        const.DATA_USER_BADGES_EARNED,  # Badge award history
+        const.DATA_USER_BADGE_PROGRESS,  # Current badge progress
+        const.DATA_USER_CUMULATIVE_BADGE_PROGRESS,  # Cumulative badge tracking
     }
 )
 
@@ -2299,7 +2233,7 @@ _CFOF_TO_ACHIEVEMENT_DATA_MAPPING: dict[str, str] = {
     const.CFOF_ACHIEVEMENTS_INPUT_DESCRIPTION: const.DATA_ACHIEVEMENT_DESCRIPTION,
     const.CFOF_ACHIEVEMENTS_INPUT_LABELS: const.DATA_ACHIEVEMENT_LABELS,
     const.CFOF_ACHIEVEMENTS_INPUT_ICON: const.DATA_ACHIEVEMENT_ICON,
-    const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
+    const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
     const.CFOF_ACHIEVEMENTS_INPUT_TYPE: const.DATA_ACHIEVEMENT_TYPE,
     const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID: const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID,
     const.CFOF_ACHIEVEMENTS_INPUT_CRITERIA: const.DATA_ACHIEVEMENT_CRITERIA,
@@ -2382,9 +2316,9 @@ def validate_achievement_data(
                 return errors
 
     # === 3. At least one assignee must be assigned ===
-    assigned_assignees = data.get(const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, [])
+    assigned_assignees = data.get(const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, [])
     if not assigned_assignees:
-        errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+        errors[const.CFOP_ERROR_ASSIGNED_USER_IDS] = (
             const.TRANS_KEY_CFOF_ACHIEVEMENT_NO_ASSIGNEES_ASSIGNED
         )
         return errors
@@ -2478,8 +2412,8 @@ def build_achievement(
         const.DATA_ACHIEVEMENT_ICON: str(
             get_field(const.DATA_ACHIEVEMENT_ICON, const.SENTINEL_EMPTY)
         ),
-        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: _normalize_list_field(
-            get_field(const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES, [])
+        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: _normalize_list_field(
+            get_field(const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, [])
         ),
         const.DATA_ACHIEVEMENT_TYPE: str(
             get_field(const.DATA_ACHIEVEMENT_TYPE, const.ACHIEVEMENT_TYPE_STREAK)
@@ -2526,7 +2460,7 @@ _ACHIEVEMENT_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_ACHIEVEMENT_LABELS,
         const.DATA_ACHIEVEMENT_ICON,
         # Configuration
-        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES,
+        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
         const.DATA_ACHIEVEMENT_TYPE,
         const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID,
         const.DATA_ACHIEVEMENT_CRITERIA,
@@ -2555,7 +2489,7 @@ _CFOF_TO_CHALLENGE_DATA_MAPPING: dict[str, str] = {
     const.CFOF_CHALLENGES_INPUT_DESCRIPTION: const.DATA_CHALLENGE_DESCRIPTION,
     const.CFOF_CHALLENGES_INPUT_LABELS: const.DATA_CHALLENGE_LABELS,
     const.CFOF_CHALLENGES_INPUT_ICON: const.DATA_CHALLENGE_ICON,
-    const.CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
+    const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS: const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
     const.CFOF_CHALLENGES_INPUT_TYPE: const.DATA_CHALLENGE_TYPE,
     const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID: const.DATA_CHALLENGE_SELECTED_CHORE_ID,
     const.CFOF_CHALLENGES_INPUT_CRITERIA: const.DATA_CHALLENGE_CRITERIA,
@@ -2630,9 +2564,9 @@ def validate_challenge_data(
         return errors
 
     # === 2. At least one assignee must be assigned ===
-    assigned_assignees = data.get(const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, [])
+    assigned_assignees = data.get(const.DATA_CHALLENGE_ASSIGNED_USER_IDS, [])
     if not assigned_assignees:
-        errors[const.CFOP_ERROR_ASSIGNED_ASSIGNEES] = (
+        errors[const.CFOP_ERROR_ASSIGNED_USER_IDS] = (
             const.TRANS_KEY_CFOF_CHALLENGE_NO_ASSIGNEES_ASSIGNED
         )
         return errors
@@ -2781,8 +2715,8 @@ def build_challenge(
         const.DATA_CHALLENGE_ICON: str(
             get_field(const.DATA_CHALLENGE_ICON, const.SENTINEL_EMPTY)
         ),
-        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES: _normalize_list_field(
-            get_field(const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, [])
+        const.DATA_CHALLENGE_ASSIGNED_USER_IDS: _normalize_list_field(
+            get_field(const.DATA_CHALLENGE_ASSIGNED_USER_IDS, [])
         ),
         const.DATA_CHALLENGE_TYPE: str(
             get_field(const.DATA_CHALLENGE_TYPE, const.CHALLENGE_TYPE_DAILY_MIN)
@@ -2833,7 +2767,7 @@ _CHALLENGE_DATA_RESET_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_CHALLENGE_LABELS,
         const.DATA_CHALLENGE_ICON,
         # Configuration
-        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES,
+        const.DATA_CHALLENGE_ASSIGNED_USER_IDS,
         const.DATA_CHALLENGE_TYPE,
         const.DATA_CHALLENGE_SELECTED_CHORE_ID,
         const.DATA_CHALLENGE_CRITERIA,

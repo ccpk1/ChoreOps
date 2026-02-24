@@ -141,7 +141,7 @@ class ChoreManager(BaseManager):
         self.listen(const.SIGNAL_SUFFIX_DATA_READY, self._on_data_ready)
 
         # Listen for assignee deletion to remove orphaned assignments
-        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_assignee_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._on_assignee_deleted)
 
         # Listen for midnight rollover to perform nightly tasks
         self.listen(const.SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER, self._on_midnight_rollover)
@@ -165,12 +165,8 @@ class ChoreManager(BaseManager):
         self.listen(
             const.SIGNAL_SUFFIX_CHORE_STATUS_RESET, self._on_time_scan_inputs_changed
         )
-        self.listen(
-            const.SIGNAL_SUFFIX_ASSIGNEE_UPDATED, self._on_time_scan_inputs_changed
-        )
-        self.listen(
-            const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_time_scan_inputs_changed
-        )
+        self.listen(const.SIGNAL_SUFFIX_USER_UPDATED, self._on_time_scan_inputs_changed)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._on_time_scan_inputs_changed)
 
         const.LOGGER.debug("ChoreManager initialized for entry %s", self.entry_id)
 
@@ -334,7 +330,7 @@ class ChoreManager(BaseManager):
                 e
                 for e in scan[const.CHORE_SCAN_RESULT_OVERDUE]
                 if (
-                    e[const.CHORE_SCAN_ENTRY_ASSIGNEE_ID],
+                    e[const.CHORE_SCAN_ENTRY_USER_ID],
                     e[const.CHORE_SCAN_ENTRY_CHORE_ID],
                 )
                 not in reset_pairs
@@ -411,7 +407,7 @@ class ChoreManager(BaseManager):
             filtered_overdue = [
                 e
                 for e in scan["overdue"]
-                if (e["assignee_id"], e["chore_id"]) not in reset_pairs
+                if (e[const.CHORE_SCAN_ENTRY_USER_ID], e["chore_id"]) not in reset_pairs
             ]
             await self._process_overdue(filtered_overdue, now_utc, persist=False)
             state_modified = state_modified or len(filtered_overdue) > 0
@@ -449,7 +445,10 @@ class ChoreManager(BaseManager):
         Args:
             payload: Event data containing assignee_id
         """
-        assignee_id = payload.get("assignee_id", "")
+        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+            return
+
+        assignee_id = payload.get("user_id", "")
         if not assignee_id:
             return
 
@@ -457,9 +456,9 @@ class ChoreManager(BaseManager):
         cleaned = False
         chores_data = self._coordinator._data.get(const.DATA_CHORES, {})
         for _, chore_info in chores_data.items():
-            assigned_assignees = chore_info.get(const.DATA_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_ASSIGNED_USER_IDS, [])
             if assignee_id in assigned_assignees:
-                chore_info[const.DATA_ASSIGNED_ASSIGNEES] = [
+                chore_info[const.DATA_ASSIGNED_USER_IDS] = [
                     entry_id
                     for entry_id in assigned_assignees
                     if entry_id != assignee_id
@@ -479,7 +478,7 @@ class ChoreManager(BaseManager):
                     )
                     if current_turn_holder == assignee_id:
                         remaining_assignees = chore_info.get(
-                            const.DATA_ASSIGNED_ASSIGNEES, []
+                            const.DATA_ASSIGNED_USER_IDS, []
                         )
                         if remaining_assignees:
                             # Reassign to first remaining assignee
@@ -588,7 +587,7 @@ class ChoreManager(BaseManager):
         chore_name = chore_data.get(const.DATA_CHORE_NAME, "")
 
         # Validate assignment
-        if assignee_id not in chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+        if assignee_id not in chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
             assignee_name = assignee_info.get(const.DATA_USER_NAME, "")
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -623,7 +622,7 @@ class ChoreManager(BaseManager):
         )
         other_assignee_states = None
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
@@ -632,7 +631,7 @@ class ChoreManager(BaseManager):
                     )
                     other_assignee_states[other_assignee_id] = (
                         other_assignee_chore_data.get(
-                            const.DATA_ASSIGNEE_CHORE_DATA_STATE,
+                            const.DATA_USER_CHORE_DATA_STATE,
                             const.CHORE_STATE_PENDING,
                         )
                     )
@@ -698,7 +697,7 @@ class ChoreManager(BaseManager):
 
         # Get assignee name for effects
         assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # Calculate state transitions
         effects = ChoreEngine.calculate_transition(
@@ -714,7 +713,7 @@ class ChoreManager(BaseManager):
             self._apply_effect(effect, chore_id)
 
         # Set last_claimed timestamp for the claiming assignee
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED] = dt_now_iso()
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_CLAIMED] = dt_now_iso()
 
         # Update global chore state
         self._update_global_state(chore_id)
@@ -817,7 +816,7 @@ class ChoreManager(BaseManager):
 
         # Get previous state for event payload
         previous_state = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+            const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
         # Get validation inputs
@@ -843,9 +842,7 @@ class ChoreManager(BaseManager):
         base_points = points_override or float(
             chore_data.get(const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS)
         )
-        multiplier = float(
-            assignee_info.get(const.DATA_ASSIGNEE_POINTS_MULTIPLIER, 1.0)
-        )
+        multiplier = float(assignee_info.get(const.DATA_USER_POINTS_MULTIPLIER, 1.0))
         points_to_award = ChoreEngine.calculate_points(chore_data, multiplier)
 
         # Use override if specified
@@ -856,7 +853,7 @@ class ChoreManager(BaseManager):
 
         # Get assignee name for effects
         assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # =====================================================================
         # CAPTURE OLD STATE (Required for streak calculation)
@@ -878,7 +875,7 @@ class ChoreManager(BaseManager):
         # Phase 5 Fix: Read from chore data level to survive retention pruning
         # (daily buckets only retained for 7 days, breaks weekly/monthly streaks)
         previous_streak = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK, 0
+            const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0
         )
 
         # Calculate effects
@@ -902,10 +899,10 @@ class ChoreManager(BaseManager):
         # Calculate completion streak using schedule-aware logic
         # This checks if any scheduled occurrences were missed between completions
         previous_last_completed = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
+            const.DATA_USER_CHORE_DATA_LAST_COMPLETED
         )
         work_date_iso = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED, now_iso
+            const.DATA_USER_CHORE_DATA_LAST_CLAIMED, now_iso
         )
         new_streak = ChoreEngine.calculate_streak(
             current_streak=previous_streak,
@@ -915,25 +912,25 @@ class ChoreManager(BaseManager):
         )
 
         # Store new completion streak at chore data level (survives retention)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK] = new_streak
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_STREAK] = new_streak
 
         # Reset missed streak to 0 on completion (completion breaks missed streak)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
 
         # Set last_approved timestamp (audit/financial timestamp)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED] = now_iso
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_APPROVED] = now_iso
 
         # If no pending claim existed, this is a direct approval
         # Set claim fields to match approval (combined claim+approve action)
         if not has_pending_claim:
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED] = now_iso
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_CLAIMED] = now_iso
             assignee_chore_data[const.DATA_CHORE_CLAIMED_BY] = assignee_name
 
         # Extract effective_date (when assignee did the work) for statistics/scheduling
         # Fallback hierarchy: last_claimed → last_approved → now_iso
         effective_date_iso = (
-            assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED)
-            or assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED)
+            assignee_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_CLAIMED)
+            or assignee_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_APPROVED)
             or now_iso
         )
 
@@ -948,10 +945,10 @@ class ChoreManager(BaseManager):
         )
 
         # Store current streak at chore data level (never pruned)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK] = new_streak
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_STREAK] = new_streak
 
         # Reset missed streak to 0 on completion (failure chain broken)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK] = 0
 
         # Update global chore state
         self._update_global_state(chore_id)
@@ -1147,17 +1144,17 @@ class ChoreManager(BaseManager):
                     if not assigned_assignee_info:
                         continue
                     assignee_chore_dict: dict[str, Any] = assigned_assignee_info.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA, {}
+                        const.DATA_USER_CHORE_DATA, {}
                     )
                     assigned_chore_data = assignee_chore_dict.get(chore_id, {})
                     assigned_periods = assigned_chore_data.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {}
+                        const.DATA_USER_CHORE_DATA_PERIODS, {}
                     )
                     assigned_daily = assigned_periods.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {}
+                        const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {}
                     )
                     assigned_last_completed = assigned_chore_data.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
+                        const.DATA_USER_CHORE_DATA_LAST_COMPLETED
                     )
                     # Get streak from last completion date (not yesterday - schedule-aware!)
                     assigned_previous_streak = 0
@@ -1175,7 +1172,7 @@ class ChoreManager(BaseManager):
                                 assigned_date_key, {}
                             )
                             assigned_previous_streak = assigned_last_data.get(
-                                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY, 0
+                                const.DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0
                             )
                     # Calculate streak for this assignee
                     assigned_streak = ChoreEngine.calculate_streak(
@@ -1250,12 +1247,12 @@ class ChoreManager(BaseManager):
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         previous_state = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+            const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
         # Get assignee name for effects
         assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # Check if chore is past its due date (not just if state is overdue)
         # Use same logic as overdue scan: due_date exists and now > due_date
@@ -1285,9 +1282,7 @@ class ChoreManager(BaseManager):
         self._decrement_pending_count(assignee_id, chore_id)
 
         # Set last_disapproved timestamp for the disapproved assignee
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED] = (
-            dt_now_iso()
-        )
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_DISAPPROVED] = dt_now_iso()
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self._coordinator._persist_and_update()
@@ -1339,16 +1334,14 @@ class ChoreManager(BaseManager):
 
         # Get assignee name for effects
         assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # Get previous points to reclaim from periods.all_time.points (v43+ canonical source)
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
-        all_time_bucket = periods.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
-        )
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
+        all_time_bucket = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {})
         all_time_entry = all_time_bucket.get(const.PERIOD_ALL_TIME, {})
         previous_points = all_time_entry.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS, 0.0
+            const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0
         )
 
         # Calculate effects with skip_stats=True (undo doesn't count for stats)
@@ -1425,9 +1418,9 @@ class ChoreManager(BaseManager):
         # Decrement pending_count
         assignee_chore_entry = self._get_assignee_chore_data(assignee_id, chore_id)
         current_count = assignee_chore_entry.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+            const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT, 0
         )
-        assignee_chore_entry[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
+        assignee_chore_entry[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
             0, current_count - 1
         )
 
@@ -1449,7 +1442,7 @@ class ChoreManager(BaseManager):
                 chore_info.get(const.DATA_CHORE_NAME),
             )
             for other_assignee_id in chore_info.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 # Use skip_stats via undo action through Engine
                 effects = ChoreEngine.calculate_transition(
@@ -1457,7 +1450,7 @@ class ChoreManager(BaseManager):
                     actor_assignee_id=other_assignee_id,
                     action=CHORE_ACTION_UNDO,
                     assigned_assignees=chore_info.get(
-                        const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                        const.DATA_CHORE_ASSIGNED_USER_IDS, []
                     ),
                     skip_stats=True,
                     is_overdue=is_past_due,
@@ -1481,7 +1474,7 @@ class ChoreManager(BaseManager):
                 actor_assignee_id=assignee_id,
                 action=CHORE_ACTION_UNDO,
                 assigned_assignees=chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ),
                 skip_stats=True,
                 is_overdue=is_past_due,
@@ -1661,7 +1654,7 @@ class ChoreManager(BaseManager):
 
         for chore_id, chore_info in self._coordinator.chores_data.items():
             # Get assigned assignees for this chore
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             if not assigned_assignees:
                 continue
 
@@ -1759,7 +1752,7 @@ class ChoreManager(BaseManager):
                     if self.chore_is_actionable(assignee_id, chore_id):
                         entry: ChoreTimeEntry = {
                             const.CHORE_SCAN_ENTRY_CHORE_ID: chore_id,
-                            const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: assignee_id,
+                            const.CHORE_SCAN_ENTRY_USER_ID: assignee_id,
                             const.CHORE_SCAN_ENTRY_DUE_DT: due_dt,
                             const.CHORE_SCAN_ENTRY_CHORE_INFO: cast(
                                 "dict[str, Any]", chore_info
@@ -1815,7 +1808,7 @@ class ChoreManager(BaseManager):
                     if include_assignee_in_reset:
                         independent_reset_assignees.append(
                             {
-                                const.CHORE_SCAN_ENTRY_ASSIGNEE_ID: assignee_id,
+                                const.CHORE_SCAN_ENTRY_USER_ID: assignee_id,
                                 const.CHORE_SCAN_ENTRY_DUE_DT: due_dt,
                             }
                         )
@@ -1873,15 +1866,13 @@ class ChoreManager(BaseManager):
 
         for entry in entries:
             chore_id = entry["chore_id"]
-            assignee_id = entry["assignee_id"]
+            assignee_id = entry[const.CHORE_SCAN_ENTRY_USER_ID]
             due_dt = entry["due_dt"]
             chore_info = entry["chore_info"]
 
             # Phase 4 Guard Rail: Idempotency - check current state before processing
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
-            current_state = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE
-            )
+            current_state = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_STATE)
 
             if current_state == const.CHORE_STATE_OVERDUE:
                 skipped_already_overdue += 1
@@ -1909,7 +1900,7 @@ class ChoreManager(BaseManager):
             chore_data = self._coordinator.chores_data[chore_id]
             assignee_info = self._coordinator.assignees_data[assignee_id]
             assignee_name = assignee_info.get(const.DATA_USER_NAME, "Unknown")
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
             # Phase 3 Step 2: Check for mark_missed_and_lock overdue handling
             overdue_handling = chore_data.get(
@@ -1922,7 +1913,7 @@ class ChoreManager(BaseManager):
                 == const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK
             ):
                 # Lock the chore in MISSED state (not claimable)
-                assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE] = (
+                assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE] = (
                     const.CHORE_STATE_MISSED
                 )
                 self._update_global_state(chore_id)
@@ -2006,7 +1997,7 @@ class ChoreManager(BaseManager):
             time_until_due = entry["time_until_due"]
             hours_remaining = max(0, int(time_until_due.total_seconds() / 3600))
 
-            assignee_id = entry["assignee_id"]
+            assignee_id = entry[const.CHORE_SCAN_ENTRY_USER_ID]
             chore_name = chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
@@ -2046,7 +2037,7 @@ class ChoreManager(BaseManager):
             time_until_due = entry["time_until_due"]
             minutes_remaining = max(0, int(time_until_due.total_seconds() / 60))
 
-            assignee_id = entry["assignee_id"]
+            assignee_id = entry[const.CHORE_SCAN_ENTRY_USER_ID]
             chore_name = chore_info.get(const.DATA_CHORE_NAME, "Unknown Chore")
             points = chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, 0)
 
@@ -2118,7 +2109,7 @@ class ChoreManager(BaseManager):
             )
 
             # Reset all assigned assignees
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             for assignee_id in assigned_assignees:
                 if not assignee_id:
                     continue
@@ -2245,7 +2236,7 @@ class ChoreManager(BaseManager):
             assignee_entries = entry.get("assignees", [])
 
             for assignee_entry in assignee_entries:
-                assignee_id = assignee_entry["assignee_id"]
+                assignee_id = assignee_entry[const.CHORE_SCAN_ENTRY_USER_ID]
 
                 # Derive state from timestamp-based checks
                 if self.chore_is_overdue(assignee_id, chore_id):
@@ -2458,7 +2449,7 @@ class ChoreManager(BaseManager):
                 chore_info.get(const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS)
             )
             multiplier = float(
-                assignee_info.get(const.DATA_ASSIGNEE_POINTS_MULTIPLIER, 1.0)
+                assignee_info.get(const.DATA_USER_POINTS_MULTIPLIER, 1.0)
             )
             points_awarded = ChoreEngine.calculate_points(chore_info, multiplier)
             completion_criteria = chore_info.get(
@@ -2471,13 +2462,13 @@ class ChoreManager(BaseManager):
             )
             is_multi_claim = ChoreEngine.chore_allows_multiple_claims(chore_info)
             previous_state = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE,
+                const.DATA_USER_CHORE_DATA_STATE,
                 const.CHORE_STATE_PENDING,
             )
             now_iso = dt_now_iso()
             effective_date_iso = (
-                assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED)
-                or assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED)
+                assignee_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_CLAIMED)
+                or assignee_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_APPROVED)
                 or now_iso
             )
 
@@ -2506,7 +2497,7 @@ class ChoreManager(BaseManager):
 
         # CLEAR (default) or after AUTO_APPROVE: Clear pending_claim_count
         if assignee_chore_data:
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
 
         return False  # Continue with reset
 
@@ -2566,7 +2557,7 @@ class ChoreManager(BaseManager):
             if assignee_id:
                 # Update only specified assignee's due date
                 if assignee_id not in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -2586,7 +2577,7 @@ class ChoreManager(BaseManager):
                     const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
                 )
                 for assigned_assignee_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     per_assignee_due_dates[assigned_assignee_id] = new_due_date_iso
 
@@ -2604,7 +2595,7 @@ class ChoreManager(BaseManager):
         # Reset chore state to PENDING for all assigned assignees
         # Use persist=False since we persist once at the end
         for assigned_assignee_id in chore_info.get(
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+            const.DATA_CHORE_ASSIGNED_USER_IDS, []
         ):
             if assigned_assignee_id:
                 self._transition_chore_state(
@@ -2665,7 +2656,7 @@ class ChoreManager(BaseManager):
             if assignee_id:
                 # Skip only specified assignee
                 if assignee_id not in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     raise HomeAssistantError(
                         translation_domain=const.DOMAIN,
@@ -2696,7 +2687,7 @@ class ChoreManager(BaseManager):
                 # Skip all assigned assignees
                 self._reschedule_chore_next_due(chore_info)
                 for assigned_assignee_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     if (
                         assigned_assignee_id
@@ -2726,7 +2717,7 @@ class ChoreManager(BaseManager):
                 )
             self._reschedule_chore_next_due(chore_info)
             for assigned_assignee_id in chore_info.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 if (
                     assigned_assignee_id
@@ -2768,7 +2759,7 @@ class ChoreManager(BaseManager):
             return
 
         reset_count = 0
-        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
             if assignee_id:
                 self._transition_chore_state(
                     assignee_id,
@@ -3046,7 +3037,7 @@ class ChoreManager(BaseManager):
         chore_name = chore_info.get(const.DATA_CHORE_NAME, chore_id)
         # Capture assigned_assignees before deletion for notification cleanup
         assigned_assignees = list(
-            chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         )
 
         # Delete from storage
@@ -3062,7 +3053,7 @@ class ChoreManager(BaseManager):
         # Clean own domain: remove deleted chore refs from assignee chore_data
         # (This is chore-tracking data that lives in assignee records)
         for assignee_data in self._coordinator.assignees_data.values():
-            assignee_chore_data = assignee_data.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            assignee_chore_data = assignee_data.get(const.DATA_USER_CHORE_DATA, {})
             if chore_id in assignee_chore_data:
                 del assignee_chore_data[chore_id]
                 const.LOGGER.debug(
@@ -3086,7 +3077,7 @@ class ChoreManager(BaseManager):
             const.SIGNAL_SUFFIX_CHORE_DELETED,
             chore_id=chore_id,
             chore_name=chore_name,
-            assigned_assignees=assigned_assignees,
+            **{const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_assignees},
         )
 
         const.LOGGER.info(
@@ -3194,7 +3185,7 @@ class ChoreManager(BaseManager):
             return False
 
         last_approved = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED
+            const.DATA_USER_CHORE_DATA_LAST_APPROVED
         )
         if not last_approved:
             return False
@@ -3244,7 +3235,7 @@ class ChoreManager(BaseManager):
                 assignee_data, chore_id
             )
             return assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+                const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START
             )
         # SHARED/SHARED_FIRST/etc.: Period start is at chore level
         return chore_info.get(const.DATA_CHORE_APPROVAL_PERIOD_START)
@@ -3311,7 +3302,7 @@ class ChoreManager(BaseManager):
         """
         pending: list[dict[str, Any]] = []
         for assignee_id, assignee_info in self._coordinator.assignees_data.items():
-            chore_data_map = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+            chore_data_map = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
             for chore_id, chore_entry in chore_data_map.items():
                 # Skip chores that no longer exist
                 if chore_id not in self._coordinator.chores_data:
@@ -3319,10 +3310,10 @@ class ChoreManager(BaseManager):
                 if self.chore_has_pending_claim(assignee_id, chore_id):
                     pending.append(
                         {
-                            const.DATA_ASSIGNEE_ID: assignee_id,
+                            const.DATA_USER_ID: assignee_id,
                             const.DATA_CHORE_ID: chore_id,
                             const.DATA_CHORE_TIMESTAMP: chore_entry.get(
-                                const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED, ""
+                                const.DATA_USER_CHORE_DATA_LAST_CLAIMED, ""
                             ),
                         }
                     )
@@ -3344,7 +3335,7 @@ class ChoreManager(BaseManager):
         assignee_info: UserData | dict[str, Any] = self._coordinator.assignees_data.get(
             assignee_id, {}
         )
-        chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
 
         for chore_id in chore_data:
             # Skip chores that no longer exist
@@ -3392,7 +3383,7 @@ class ChoreManager(BaseManager):
         )
         other_assignee_states = None
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
@@ -3401,7 +3392,7 @@ class ChoreManager(BaseManager):
                     )
                     other_assignee_states[other_assignee_id] = (
                         other_assignee_chore_data.get(
-                            const.DATA_ASSIGNEE_CHORE_DATA_STATE,
+                            const.DATA_USER_CHORE_DATA_STATE,
                             const.CHORE_STATE_PENDING,
                         )
                     )
@@ -3563,7 +3554,7 @@ class ChoreManager(BaseManager):
         other_assignee_states = None
         is_completed_by_other = False
         if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
@@ -3571,7 +3562,7 @@ class ChoreManager(BaseManager):
                         other_assignee_id, chore_id
                     )
                     other_state = other_assignee_chore_data.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                        const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
                     )
                     other_assignee_states[other_assignee_id] = other_state
                     other_claimed_by = other_assignee_chore_data.get(
@@ -3607,7 +3598,7 @@ class ChoreManager(BaseManager):
 
         # Raw stored state
         stored_state = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+            const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
         # Apply completed_by_other display state for SHARED_FIRST if another assignee
@@ -3662,7 +3653,7 @@ class ChoreManager(BaseManager):
         assignee_info: UserData = cast(
             "UserData", self._coordinator.assignees_data.get(assignee_id, {})
         )
-        return assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(chore_id, {})
+        return assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(chore_id, {})
 
     def get_chore_claimant(self, chore_id: str) -> str | None:
         """Get the assignee_id of the current claimant for a chore.
@@ -3681,7 +3672,7 @@ class ChoreManager(BaseManager):
         if not chore_info:
             return None
 
-        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         for assignee_id in assigned_assignees:
             if assignee_id and self.chore_has_pending_claim(assignee_id, chore_id):
                 return assignee_id
@@ -3761,9 +3752,9 @@ class ChoreManager(BaseManager):
         assignee_info = cast("dict[str, Any]", assignee)
 
         # Assignee-level chore_periods bucket (v44+)
-        if const.DATA_ASSIGNEE_CHORE_PERIODS not in assignee_info:
+        if const.DATA_USER_CHORE_PERIODS not in assignee_info:
             assignee_info[
-                const.DATA_ASSIGNEE_CHORE_PERIODS
+                const.DATA_USER_CHORE_PERIODS
             ] = {}  # Tenant populates sub-keys
 
         # Per-chore periods structure (if chore_id provided)
@@ -3771,10 +3762,10 @@ class ChoreManager(BaseManager):
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
             if (
                 assignee_chore_data
-                and const.DATA_ASSIGNEE_CHORE_DATA_PERIODS not in assignee_chore_data
+                and const.DATA_USER_CHORE_DATA_PERIODS not in assignee_chore_data
             ):
                 assignee_chore_data[
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIODS
+                    const.DATA_USER_CHORE_DATA_PERIODS
                 ] = {}  # Tenant populates sub-keys
 
     def _iter_assignee_chore_pairs(
@@ -3803,7 +3794,7 @@ class ChoreManager(BaseManager):
             chore_info = self._coordinator.chores_data.get(chore_id)
             if chore_info:
                 for iter_assignee_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     if (
                         iter_assignee_id
@@ -3818,7 +3809,7 @@ class ChoreManager(BaseManager):
             # Specific assignee: iterate all chores assigned to them
             for iter_chore_id, chore_info in self._coordinator.chores_data.items():
                 if assignee_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     if filter_fn and not filter_fn(assignee_id, iter_chore_id):
                         continue
@@ -3827,7 +3818,7 @@ class ChoreManager(BaseManager):
             # All: iterate all assignee-chore pairs
             for iter_chore_id, chore_info in self._coordinator.chores_data.items():
                 for iter_assignee_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     if (
                         iter_assignee_id
@@ -3896,7 +3887,7 @@ class ChoreManager(BaseManager):
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
 
         # Update state
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE] = new_state
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE] = new_state
 
         # Phase 2: completed_by_other_chores list management removed
         # SHARED_FIRST blocking is now computed dynamically in can_claim_chore()
@@ -3919,7 +3910,7 @@ class ChoreManager(BaseManager):
 
         # Clear pending claim count on reset
         if new_state == const.CHORE_STATE_PENDING:
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
 
             if reset_approval_period:
                 now_iso = dt_now_iso()
@@ -3928,7 +3919,7 @@ class ChoreManager(BaseManager):
                 )
                 if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
                     assignee_chore_data[
-                        const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
+                        const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START
                     ] = now_iso
                 else:
                     chore_info[const.DATA_CHORE_APPROVAL_PERIOD_START] = now_iso
@@ -4026,11 +4017,11 @@ class ChoreManager(BaseManager):
 
         # Phase 3B Landlord duty: Ensure chore_data container exists
         assignee_chores: dict[str, dict[str, Any]] | None = assignee_info.get(
-            const.DATA_ASSIGNEE_CHORE_DATA
+            const.DATA_USER_CHORE_DATA
         )
         if assignee_chores is None:
             assignee_chores = {}
-            assignee_info[const.DATA_ASSIGNEE_CHORE_DATA] = assignee_chores
+            assignee_info[const.DATA_USER_CHORE_DATA] = assignee_chores
 
         # v44+: chore_stats deleted - fully ephemeral now (generate_chore_stats())
         # All stats derived on-demand from chore_periods.all_time.* buckets
@@ -4041,11 +4032,11 @@ class ChoreManager(BaseManager):
                 chore_id, {}
             )
             default_data: dict[str, Any] = {
-                const.DATA_ASSIGNEE_CHORE_DATA_NAME: chore_info.get(
+                const.DATA_USER_CHORE_DATA_NAME: chore_info.get(
                     const.DATA_CHORE_NAME, chore_id
                 ),
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
-                const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: 0,
+                const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+                const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT: 0,
             }
             # Only set assignee-level approval_period_start for INDEPENDENT chores
             # SHARED chores use chore-level approval_period_start instead
@@ -4054,7 +4045,7 @@ class ChoreManager(BaseManager):
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             )
             if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                default_data[const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                default_data[const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     dt_now_iso()
                 )
             assignee_chores[chore_id] = default_data
@@ -4070,9 +4061,9 @@ class ChoreManager(BaseManager):
         """
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
         current = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+            const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT, 0
         )
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = (
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = (
             current + 1
         )
 
@@ -4085,9 +4076,9 @@ class ChoreManager(BaseManager):
         """
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
         current = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+            const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT, 0
         )
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = max(
             0, current - 1
         )
 
@@ -4119,7 +4110,7 @@ class ChoreManager(BaseManager):
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
             # Update other assignees' completed_by
             for other_assignee_id in chore_data.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 if other_assignee_id == assignee_id:
                     continue
@@ -4133,7 +4124,7 @@ class ChoreManager(BaseManager):
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
             # Append to list for all assigned assignees
             for assigned_assignee_id in chore_data.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 assigned_chore_data = self._get_assignee_chore_data(
                     assigned_assignee_id, chore_id
@@ -4179,7 +4170,7 @@ class ChoreManager(BaseManager):
                 continue
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
             state = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
             if state != const.CHORE_STATE_APPROVED:
                 return False
@@ -4222,7 +4213,7 @@ class ChoreManager(BaseManager):
         )
 
         # Get assigned assignees list
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # Calculate next turn based on rotation type
         new_assignee_id: str | None = None
@@ -4331,7 +4322,7 @@ class ChoreManager(BaseManager):
             const.COMPLETION_CRITERIA_ROTATION_SMART,
         )
         if new_is_rotation:
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             if len(assigned_assignees) < 2:
                 raise ServiceValidationError(
                     translation_domain=const.DOMAIN,
@@ -4397,7 +4388,7 @@ class ChoreManager(BaseManager):
             )
 
         # Validate assignee is assigned
-        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         if assignee_id not in assigned_assignees:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
@@ -4452,7 +4443,7 @@ class ChoreManager(BaseManager):
             )
 
         # Validate has assigned assignees
-        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         if not assigned_assignees:
             raise ServiceValidationError(
                 translation_domain=const.DOMAIN,
@@ -4538,13 +4529,13 @@ class ChoreManager(BaseManager):
         # Apply state change
         if effect.new_state:
             state_to_persist = effect.new_state
-            if state_to_persist not in const.CHORE_PERSISTED_ASSIGNEE_STATES:
+            if state_to_persist not in const.CHORE_PERSISTED_USER_STATES:
                 const.LOGGER.debug(
                     "Normalizing non-persisted chore state to pending: %s",
                     state_to_persist,
                 )
                 state_to_persist = const.CHORE_STATE_PENDING
-            assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_STATE] = state_to_persist
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE] = state_to_persist
 
         # Phase 2: completed_by_other_chores list management removed
         # SHARED_FIRST blocking is now computed dynamically in can_claim_chore()
@@ -4573,7 +4564,7 @@ class ChoreManager(BaseManager):
 
         This mirrors the logic from coordinator's _transition_chore_state to ensure
         the chore-level state (chores_data[chore_id][DATA_CHORE_STATE]) is consistent
-        with the per-assignee states (assignee_chore_data[chore_id][DATA_ASSIGNEE_CHORE_DATA_STATE]).
+        with the per-assignee states (assignee_chore_data[chore_id][DATA_USER_CHORE_DATA_STATE]).
 
         Args:
             chore_id: The chore's internal ID
@@ -4582,7 +4573,7 @@ class ChoreManager(BaseManager):
         if not chore_data:
             return
 
-        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         if not assigned_assignees:
             chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_UNKNOWN
             return
@@ -4597,7 +4588,7 @@ class ChoreManager(BaseManager):
                 assigned_assignees[0], chore_id
             )
             state = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
             chore_data[const.DATA_CHORE_STATE] = state
             return
@@ -4612,7 +4603,7 @@ class ChoreManager(BaseManager):
         for assignee_id in assigned_assignees:
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
             state = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
             )
 
             if state == const.CHORE_STATE_APPROVED:
@@ -4701,9 +4692,9 @@ class ChoreManager(BaseManager):
                 )
                 return
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
-            assignee_chore_data[
-                const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
-            ] = timestamp
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                timestamp
+            )
         else:
             # SHARED/SHARED_FIRST: chore-level
             chore_info[const.DATA_CHORE_APPROVAL_PERIOD_START] = timestamp
@@ -4751,9 +4742,9 @@ class ChoreManager(BaseManager):
         if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
             # INDEPENDENT: Store per-assignee approval_period_start in assignee_chore_data
             assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
-            assignee_chore_data[
-                const.DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
-            ] = now_iso
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                now_iso
+            )
         # SHARED/SHARED_FIRST: Store at chore level
         # Only set if not already set OR force_update is True
         # - force_update=False (default): preserves period start for all assignees
@@ -4822,13 +4813,13 @@ class ChoreManager(BaseManager):
             assignee_chore_data_item = self._get_assignee_chore_data(
                 assignee_id, chore_id
             )
-            assignee_chore_data_item[const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED] = (
+            assignee_chore_data_item[const.DATA_USER_CHORE_DATA_LAST_COMPLETED] = (
                 effective_date_iso
             )
 
         elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
             # SHARED_ALL: Collect all assigned assignees' last_claimed, use max
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             claim_timestamps: list[str] = []
             for assigned_assignee_id in assigned_assignees:
                 if not assigned_assignee_id:
@@ -4837,7 +4828,7 @@ class ChoreManager(BaseManager):
                     assigned_assignee_id, chore_id
                 )
                 claim_ts = assignee_chore_data_item.get(
-                    const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED
+                    const.DATA_USER_CHORE_DATA_LAST_CLAIMED
                 )
                 if claim_ts:
                     claim_timestamps.append(claim_ts)
@@ -4890,19 +4881,19 @@ class ChoreManager(BaseManager):
         # Get previous missed streak from chore data (not from daily buckets)
         # Phase 5: Read from chore level to survive retention pruning
         previous_missed_streak = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK, 0
+            const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK, 0
         )
 
         # Calculate new missed streak (simple increment, not schedule-aware)
         new_missed_streak = previous_missed_streak + 1
 
         # Store current missed streak at chore data level (never pruned)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK] = (
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK] = (
             new_missed_streak
         )
 
         # Update top-level timestamp (like last_approved, last_claimed)
-        assignee_chore_data[const.DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED] = dt_now_iso()
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_MISSED] = dt_now_iso()
 
         # Ensure periods structure exists for StatisticsManager to write to
         # Phase 3B Landlord/Tenant: ChoreManager must create containers before emitting
@@ -4963,7 +4954,7 @@ class ChoreManager(BaseManager):
             else:
                 # All assigned assignees
                 for assigned_assignee_id in chore_info.get(
-                    const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                    const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 ):
                     if assigned_assignee_id:
                         self._reschedule_chore_next_due_date_for_assignee(
@@ -5080,18 +5071,18 @@ class ChoreManager(BaseManager):
         # Extract per-assignee completion timestamp (Phase 5: use last_claimed for work date)
         # Fallback hierarchy: last_claimed → last_approved (backward compat)
         completion_utc = None
-        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
             chore_id, {}
         )
         last_claimed_str = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED
+            const.DATA_USER_CHORE_DATA_LAST_CLAIMED
         )
         if last_claimed_str:
             completion_utc = dt_to_utc(last_claimed_str)
         else:
             # Backward compat: fall back to last_approved for legacy data
             last_approved_str = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED
+                const.DATA_USER_CHORE_DATA_LAST_APPROVED
             )
             if last_approved_str:
                 completion_utc = dt_to_utc(last_approved_str)
@@ -5185,8 +5176,7 @@ class ChoreManager(BaseManager):
             chore_ids = [
                 chore_id
                 for chore_id, chore_info in chores_data.items()
-                if assignee_id
-                in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+                if assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             ]
         else:
             # Global or item_type scope - all chores
@@ -5262,12 +5252,10 @@ class ChoreManager(BaseManager):
             # Cast for dynamic field access (TypedDict requires literal keys)
             assignee_dict = cast("dict[str, Any]", assignee_info)
 
-            for field in db._CHORE_ASSIGNEE_RUNTIME_FIELDS:
-                if field == const.DATA_ASSIGNEE_CHORE_DATA and item_id:
+            for field in db._CHORE_USER_RUNTIME_FIELDS:
+                if field == const.DATA_USER_CHORE_DATA and item_id:
                     # Item scope - only clear data for specific chore
-                    chore_data_dict = assignee_dict.get(
-                        const.DATA_ASSIGNEE_CHORE_DATA, {}
-                    )
+                    chore_data_dict = assignee_dict.get(const.DATA_USER_CHORE_DATA, {})
                     chore_data_dict.pop(item_id, None)
                 elif field in assignee_dict:
                     # Clear entire structure

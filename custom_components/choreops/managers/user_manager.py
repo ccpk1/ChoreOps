@@ -58,7 +58,7 @@ class UserManager(BaseManager):
         if isinstance(users, dict) and users:
             return users
 
-        assignees = self._data.get(const.DATA_ASSIGNEES)
+        assignees = self._data.get(const.DATA_USERS)
         if isinstance(assignees, dict) and assignees:
             return assignees
 
@@ -90,7 +90,7 @@ class UserManager(BaseManager):
         Subscribes to cross-domain events for cleanup coordination.
         """
         # Listen for assignee deletion to clean approver associations
-        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_assignee_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._on_assignee_deleted)
         const.LOGGER.debug("UserManager async_setup complete")
 
     def _on_assignee_deleted(self, payload: dict[str, Any]) -> None:
@@ -102,7 +102,10 @@ class UserManager(BaseManager):
         Args:
             payload: Event data containing assignee_id
         """
-        assignee_id = payload.get("assignee_id", "")
+        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+            return
+
+        assignee_id = payload.get("user_id", "")
         if not assignee_id:
             return
 
@@ -161,7 +164,7 @@ class UserManager(BaseManager):
             assignee_data = dict(user_input)
             assignee_id = str(assignee_data[const.DATA_USER_INTERNAL_ID])
         else:
-            assignee_data = dict(db.build_user_assignee_profile(user_input))
+            assignee_data = dict(db.build_user_assignment_profile(user_input))
             assignee_id = str(assignee_data[const.DATA_USER_INTERNAL_ID])
 
         # Override internal_id if provided
@@ -180,9 +183,10 @@ class UserManager(BaseManager):
 
         # Emit assignee created event
         self.emit(
-            const.SIGNAL_SUFFIX_ASSIGNEE_CREATED,
-            assignee_id=assignee_id,
-            assignee_name=assignee_name,
+            const.SIGNAL_SUFFIX_USER_CREATED,
+            user_id=assignee_id,
+            user_name=assignee_name,
+            user_role=const.ROLE_ASSIGNEE,
         )
 
         return assignee_id
@@ -227,9 +231,10 @@ class UserManager(BaseManager):
 
         # Emit assignee updated event
         self.emit(
-            const.SIGNAL_SUFFIX_ASSIGNEE_UPDATED,
-            assignee_id=assignee_id,
-            assignee_name=assignee_name,
+            const.SIGNAL_SUFFIX_USER_UPDATED,
+            user_id=assignee_id,
+            user_name=assignee_name,
+            user_role=const.ROLE_ASSIGNEE,
         )
 
     def delete_assignee(
@@ -290,9 +295,10 @@ class UserManager(BaseManager):
 
         # Emit assignee deleted event AFTER persist so managers see consistent state
         self.emit(
-            const.SIGNAL_SUFFIX_ASSIGNEE_DELETED,
-            assignee_id=assignee_id,
-            assignee_name=assignee_name,
+            const.SIGNAL_SUFFIX_USER_DELETED,
+            user_id=assignee_id,
+            user_name=assignee_name,
+            user_role=const.ROLE_ASSIGNEE,
             was_shadow=False,
         )
 
@@ -330,7 +336,7 @@ class UserManager(BaseManager):
             approver_data = dict(user_input)
             approver_id = str(approver_data[const.DATA_USER_INTERNAL_ID])
         else:
-            approver_data = dict(db.build_approver(user_input))
+            approver_data = dict(db.build_user_profile(user_input))
             approver_id = str(approver_data[const.DATA_USER_INTERNAL_ID])
 
         # Override internal_id if provided
@@ -344,7 +350,7 @@ class UserManager(BaseManager):
         approver_records = self._approver_records()
         user_records = self._user_records()
         can_be_assigned = bool(
-            approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False)
+            approver_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
         )
         approver_records[approver_id] = approver_data
         user_records[approver_id] = {
@@ -359,9 +365,10 @@ class UserManager(BaseManager):
 
         # Emit approver created event
         self.emit(
-            const.SIGNAL_SUFFIX_APPROVER_CREATED,
-            approver_id=approver_id,
-            approver_name=approver_name,
+            const.SIGNAL_SUFFIX_USER_CREATED,
+            user_id=approver_id,
+            user_name=approver_name,
+            user_role=const.ROLE_APPROVER,
             shadow_assignee_id=None,
         )
 
@@ -400,9 +407,7 @@ class UserManager(BaseManager):
         # Merge updates into existing approver data
         approver_records[approver_id].update(updates)
         can_be_assigned = bool(
-            approver_records[approver_id].get(
-                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False
-            )
+            approver_records[approver_id].get(const.DATA_USER_CAN_BE_ASSIGNED, False)
         )
         existing_user = user_records.get(approver_id)
         if isinstance(existing_user, dict):
@@ -424,9 +429,10 @@ class UserManager(BaseManager):
 
         # Emit approver updated event
         self.emit(
-            const.SIGNAL_SUFFIX_APPROVER_UPDATED,
-            approver_id=approver_id,
-            approver_name=approver_name,
+            const.SIGNAL_SUFFIX_USER_UPDATED,
+            user_id=approver_id,
+            user_name=approver_name,
+            user_role=const.ROLE_APPROVER,
         )
 
     def delete_approver(
@@ -466,9 +472,10 @@ class UserManager(BaseManager):
         # Emit approver deleted event - UIManager listens to clean up translation sensors
         # (Platinum Architecture: signal-first, no cross-manager writes)
         self.emit(
-            const.SIGNAL_SUFFIX_APPROVER_DELETED,
-            approver_id=approver_id,
-            approver_name=approver_name,
+            const.SIGNAL_SUFFIX_USER_DELETED,
+            user_id=approver_id,
+            user_name=approver_name,
+            user_role=const.ROLE_APPROVER,
         )
 
         self.coordinator.async_update_listeners()

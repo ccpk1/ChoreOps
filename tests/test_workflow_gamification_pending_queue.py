@@ -96,7 +96,7 @@ class TestGamificationPendingQueueEvents:
             const.DATA_CHALLENGE_NAME: "Future window challenge",
             const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_DAILY_MIN,
             const.DATA_CHALLENGE_TARGET_VALUE: 1,
-            const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES: [assignee_id],
+            const.DATA_CHALLENGE_ASSIGNED_USER_IDS: [assignee_id],
             const.DATA_CHALLENGE_PROGRESS: {
                 assignee_id: {const.DATA_CHALLENGE_AWARDED: False}
             },
@@ -237,7 +237,7 @@ class TestGamificationPendingQueueEvents:
 
         selected_chore_id = next(iter(coordinator.chores_data.keys()))
         coordinator.chores_data[selected_chore_id][
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES
+            const.DATA_CHORE_ASSIGNED_USER_IDS
         ] = ["non-existent-assignee"]
 
         achievement_id = "achievement-unassigned-scope"
@@ -250,7 +250,7 @@ class TestGamificationPendingQueueEvents:
             const.DATA_ACHIEVEMENT_PROGRESS: {
                 assignee_id: {const.DATA_ACHIEVEMENT_AWARDED: False}
             },
-            const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: [assignee_id],
+            const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: [assignee_id],
             const.DATA_ACHIEVEMENT_REWARD_POINTS: 1.0,
             const.DATA_ACHIEVEMENT_CRITERIA: "test",
             const.DATA_ACHIEVEMENT_DESCRIPTION: "test",

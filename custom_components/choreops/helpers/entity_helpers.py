@@ -428,7 +428,11 @@ def get_friendly_label(hass: HomeAssistant, label_name: str) -> str:
 
 
 def get_item_id_by_name(
-    coordinator: ChoreOpsDataCoordinator, item_type: str, item_name: str
+    coordinator: ChoreOpsDataCoordinator,
+    item_type: str,
+    item_name: str,
+    *,
+    role: str | None = None,
 ) -> str | None:
     """Look up a Domain Item's internal ID (UUID) by name.
 
@@ -437,9 +441,10 @@ def get_item_id_by_name(
 
     Args:
         coordinator: The ChoreOps data coordinator.
-        item_type: The type of Domain Item ("assignee", "chore", "reward", "penalty",
-            "badge", "bonus", "approver", "achievement", "challenge").
+        item_type: The type of Domain Item ("user", "chore", "reward", "penalty",
+            "badge", "bonus", "achievement", "challenge").
         item_name: The name of the Item to look up.
+        role: Optional role qualifier for user lookups ("assignee" or "approver").
 
     Returns:
         The internal ID (UUID) of the Item, or None if not found.
@@ -449,47 +454,61 @@ def get_item_id_by_name(
     """
     # Map item type to (data dict, name key constant)
     item_map = {
-        const.ENTITY_TYPE_ASSIGNEE: (
-            coordinator.assignees_data,
-            const.DATA_USER_NAME,
-        ),
-        const.ENTITY_TYPE_CHORE: (coordinator.chores_data, const.DATA_CHORE_NAME),
-        const.ENTITY_TYPE_REWARD: (coordinator.rewards_data, const.DATA_REWARD_NAME),
-        const.ENTITY_TYPE_PENALTY: (
+        const.ITEM_TYPE_CHORE: (coordinator.chores_data, const.DATA_CHORE_NAME),
+        const.ITEM_TYPE_REWARD: (coordinator.rewards_data, const.DATA_REWARD_NAME),
+        const.ITEM_TYPE_PENALTY: (
             coordinator.penalties_data,
             const.DATA_PENALTY_NAME,
         ),
-        const.ENTITY_TYPE_BADGE: (coordinator.badges_data, const.DATA_BADGE_NAME),
-        const.ENTITY_TYPE_BONUS: (coordinator.bonuses_data, const.DATA_BONUS_NAME),
-        const.ENTITY_TYPE_APPROVER: (
-            coordinator.approvers_data,
-            const.DATA_USER_NAME,
-        ),
-        const.ENTITY_TYPE_ACHIEVEMENT: (
+        const.ITEM_TYPE_BADGE: (coordinator.badges_data, const.DATA_BADGE_NAME),
+        const.ITEM_TYPE_BONUS: (coordinator.bonuses_data, const.DATA_BONUS_NAME),
+        const.ITEM_TYPE_ACHIEVEMENT: (
             coordinator.achievements_data,
             const.DATA_ACHIEVEMENT_NAME,
         ),
-        const.ENTITY_TYPE_CHALLENGE: (
+        const.ITEM_TYPE_CHALLENGE: (
             coordinator.challenges_data,
             const.DATA_CHALLENGE_NAME,
         ),
     }
+
+    if item_type == const.ITEM_TYPE_USER:
+        if role == const.ROLE_ASSIGNEE:
+            user_records = cast("dict[str, Any]", coordinator.assignees_data)
+            name_key = const.DATA_USER_NAME
+        elif role == const.ROLE_APPROVER:
+            user_records = cast("dict[str, Any]", coordinator.approvers_data)
+            name_key = const.DATA_USER_NAME
+        else:
+            raise ValueError(
+                "item_type 'user' requires role to be one of: "
+                f"{const.ROLE_ASSIGNEE}, {const.ROLE_APPROVER}"
+            )
+
+        for item_id, item_info in user_records.items():
+            if item_info.get(name_key) == item_name:
+                return item_id
+        return None
 
     if item_type not in item_map:
         raise ValueError(
             f"Unknown item_type: {item_type}. Valid options: {', '.join(item_map.keys())}"
         )
 
-    data_dict, name_key = item_map[item_type]
-    data_dict = cast("dict[str, Any]", data_dict)
-    for item_id, item_info in data_dict.items():
+    mapped_records, name_key = item_map[item_type]
+    records = cast("dict[str, Any]", mapped_records)
+    for item_id, item_info in records.items():
         if item_info.get(name_key) == item_name:
             return item_id
     return None
 
 
 def get_item_id_or_raise(
-    coordinator: ChoreOpsDataCoordinator, item_type: str, item_name: str
+    coordinator: ChoreOpsDataCoordinator,
+    item_type: str,
+    item_name: str,
+    *,
+    role: str | None = None,
 ) -> str:
     """Look up a Domain Item's internal ID (UUID) by name, or raise error if not found.
 
@@ -498,9 +517,10 @@ def get_item_id_or_raise(
 
     Args:
         coordinator: The ChoreOps data coordinator.
-        item_type: The type of Domain Item ("assignee", "chore", "reward", "penalty",
-            "badge", "bonus", "approver", "achievement", "challenge").
+        item_type: The type of Domain Item ("user", "chore", "reward", "penalty",
+            "badge", "bonus", "achievement", "challenge").
         item_name: The name of the Item to look up.
+        role: Optional role qualifier for user lookups ("assignee" or "approver").
 
     Returns:
         The internal ID (UUID) of the Item.
@@ -508,7 +528,7 @@ def get_item_id_or_raise(
     Raises:
         HomeAssistantError: If the Item is not found in storage.
     """
-    item_id = get_item_id_by_name(coordinator, item_type, item_name)
+    item_id = get_item_id_by_name(coordinator, item_type, item_name, role=role)
     if not item_id:
         raise HomeAssistantError(
             f"{item_type.capitalize()} item '{item_name}' not found"
@@ -735,7 +755,7 @@ async def remove_orphaned_assignee_chore_entities(
     # Build valid assignee-chore combinations
     valid_combinations: set[tuple[str, str]] = set()
     for chore_id, chore_info in chores_data.items():
-        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
             valid_combinations.add((assignee_id, chore_id))
 
     # Build regex for efficient extraction
@@ -893,7 +913,7 @@ def is_user_feature_gated_profile(
     if not approver_data:
         return False
 
-    return bool(approver_data.get(const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT, False))
+    return bool(approver_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False))
 
 
 def is_user_assignment_participant(

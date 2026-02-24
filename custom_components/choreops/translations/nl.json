@@ -437,7 +437,7 @@
       "invalid_end_date": "Ongeldige einddatum.",
       "invalid_assignee_count": "Ongeldig aantal kinderen",
       "invalid_assignee_name": "Ongeldige kindernaam",
-      "invalid_approver_count": "Ongeldig aantal ouders",
+      "invalid_user_count": "Ongeldig aantal ouders",
       "invalid_approver_name": "Ongeldige oudernaam",
       "no_assignees_assigned": "Er moet minstens één kind worden aangewezen voor deze taak.",
       "invalid_penalty": "Ongeldige straf",

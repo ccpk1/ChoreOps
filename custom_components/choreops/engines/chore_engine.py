@@ -527,7 +527,7 @@ class ChoreEngine:
         decremented on approve/disapprove.
         """
         pending_count = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT, 0
+            const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT, 0
         )
         return pending_count > 0
 
@@ -536,7 +536,7 @@ class ChoreEngine:
         assignee_chore_data: dict[str, Any],
     ) -> bool:
         """Check if a chore is in overdue state for a specific assignee."""
-        current_state = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_STATE)
         return current_state == const.CHORE_STATE_OVERDUE
 
     @staticmethod
@@ -607,7 +607,7 @@ class ChoreEngine:
         chore_id: str,
     ) -> dict[str, Any]:
         """Get the chore data dict for a specific assignee+chore combination."""
-        chore_tracking = assignee_data.get(const.DATA_ASSIGNEE_CHORE_DATA, {})
+        chore_tracking = assignee_data.get(const.DATA_USER_CHORE_DATA, {})
         return (
             chore_tracking.get(chore_id, {}) if isinstance(chore_tracking, dict) else {}
         )
@@ -815,9 +815,7 @@ class ChoreEngine:
             assignee_chore_data = ChoreEngine.get_chore_data_for_assignee(
                 assignee_data, chore_id
             )
-            return assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED
-            )
+            return assignee_chore_data.get(const.DATA_USER_CHORE_DATA_LAST_COMPLETED)
 
         # SHARED or SHARED_FIRST: Use chore-level last_completed
         return chore_data.get(const.DATA_CHORE_LAST_COMPLETED)
@@ -918,7 +916,7 @@ class ChoreEngine:
         """
 
         last_approved = assignee_chore_data.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED
+            const.DATA_USER_CHORE_DATA_LAST_APPROVED
         )
         if not last_approved:
             return False
@@ -1037,7 +1035,7 @@ class ChoreEngine:
 
         # Non-rotation → rotation: Initialize rotation fields
         if not old_is_rotation and new_is_rotation:
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             if assigned_assignees:
                 changes[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = (
                     assigned_assignees[0]

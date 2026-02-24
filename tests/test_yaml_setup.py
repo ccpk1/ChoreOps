@@ -11,6 +11,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 import pytest
 
+from custom_components.choreops import const
 from tests.helpers.setup import setup_from_yaml
 
 # Note: mock_hass_users fixture is provided by conftest.py
@@ -91,12 +92,12 @@ async def test_setup_from_yaml_assignee_chore_assignment(
     # "Feed the cåts" is assigned only to Zoë
     feed_cats_id = result.chore_ids["Feed the cåts"]
     feed_cats_data = coordinator.chores_data[feed_cats_id]
-    assert zoe_id in feed_cats_data.get("assigned_assignees", [])
+    assert zoe_id in feed_cats_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
     # "Stär sweep" is assigned to all 3 assignees
     star_sweep_id = result.chore_ids["Stär sweep"]
     star_sweep_data = coordinator.chores_data[star_sweep_id]
-    assigned = star_sweep_data.get("assigned_assignees", [])
+    assigned = star_sweep_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
     assert len(assigned) == 3
     assert result.assignee_ids["Zoë"] in assigned
     assert result.assignee_ids["Max!"] in assigned

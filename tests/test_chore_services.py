@@ -38,16 +38,16 @@ from tests.helpers import (
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
     COMPLETION_CRITERIA_SHARED_FIRST,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
-    DATA_ASSIGNEE_POINTS,
     DATA_CHORE_APPROVAL_PERIOD_START,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_NAME,
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_USER_CHORE_DATA_STATE,
+    DATA_USER_POINTS,
     DOMAIN,
     SERVICE_RESET_CHORES_TO_PENDING_STATE,
 )
@@ -95,16 +95,16 @@ def get_assignee_state_for_chore(
     chore = coordinator.chores_data.get(chore_id, {})
     if chore.get(DATA_CHORE_COMPLETION_CRITERIA) == COMPLETION_CRITERIA_SHARED_FIRST:
         # Check if another assignee has claimed or approved this chore
-        assigned_assignees = chore.get(DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
         for other_assignee_id in assigned_assignees:
             if other_assignee_id == assignee_id:
                 continue
             other_assignee_data = coordinator.assignees_data.get(other_assignee_id, {})
-            other_chore_data = other_assignee_data.get(
-                DATA_ASSIGNEE_CHORE_DATA, {}
-            ).get(chore_id, {})
+            other_chore_data = other_assignee_data.get(DATA_USER_CHORE_DATA, {}).get(
+                chore_id, {}
+            )
             other_state = other_chore_data.get(
-                DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING
+                DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING
             )
             if other_state in (CHORE_STATE_CLAIMED, CHORE_STATE_APPROVED):
                 return (
@@ -150,7 +150,7 @@ def get_assignee_chore_data_due_date(
 def get_assignee_points(coordinator: Any, assignee_id: str) -> float:
     """Get assignee's current points."""
     assignee_info = coordinator.assignees_data.get(assignee_id, {})
-    return assignee_info.get(DATA_ASSIGNEE_POINTS, 0.0)
+    return assignee_info.get(DATA_USER_POINTS, 0.0)
 
 
 def set_ha_user_capabilities(
@@ -228,26 +228,26 @@ def set_chore_due_date_to_past(
         if assignee_id:
             per_assignee_due_dates[assignee_id] = past_date_iso
             assignee_info = coordinator.assignees_data.get(assignee_id, {})
-            assignee_chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
                 chore_id, {}
             )
             if assignee_chore_data:
-                assignee_chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     period_start_iso
                 )
         else:
             for assigned_assignee_id in chore_info.get(
-                DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 per_assignee_due_dates[assigned_assignee_id] = past_date_iso
                 assignee_info = coordinator.assignees_data.get(assigned_assignee_id, {})
-                assignee_chore_data = assignee_info.get(
-                    DATA_ASSIGNEE_CHORE_DATA, {}
-                ).get(chore_id, {})
+                assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
+                    chore_id, {}
+                )
                 if assignee_chore_data:
-                    assignee_chore_data[
-                        DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
-                    ] = period_start_iso
+                    assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                        period_start_iso
+                    )
     else:
         # SHARED or SHARED_FIRST - use chore-level due date
         chore_info[DATA_CHORE_DUE_DATE] = past_date_iso
@@ -1015,7 +1015,7 @@ class TestAuthorizationAcceptance:
                 const.SERVICE_APPROVE_CHORE,
                 {
                     const.SERVICE_FIELD_APPROVER_NAME: "Zoë",
-                    const.SERVICE_FIELD_ASSIGNEE_NAME: other_assignee_name,
+                    const.SERVICE_FIELD_USER_NAME: other_assignee_name,
                     const.SERVICE_FIELD_CHORE_NAME: "Shared All Daily Task",
                 },
                 blocking=True,
@@ -1050,7 +1050,7 @@ class TestAuthorizationAcceptance:
             const.SERVICE_APPROVE_CHORE,
             {
                 const.SERVICE_FIELD_APPROVER_NAME: "Admin User",
-                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
                 const.SERVICE_FIELD_CHORE_NAME: "Independent Daily Task",
             },
             blocking=True,
@@ -1097,7 +1097,7 @@ class TestAuthorizationAcceptance:
                 const.SERVICE_APPROVE_CHORE,
                 {
                     const.SERVICE_FIELD_APPROVER_NAME: "Max!",
-                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
                     const.SERVICE_FIELD_CHORE_NAME: "Independent Daily Task",
                 },
                 blocking=True,
@@ -1375,9 +1375,7 @@ class TestSkipDueDateAssigneeChoreDataFallback:
 
         # Set due date in assignee's chore_data (for backward compat validation)
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        _ = assignee_info.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
-            chore_id, {}
-        )
+        _ = assignee_info.setdefault(DATA_USER_CHORE_DATA, {}).setdefault(chore_id, {})
 
         # Call skip for Zoë - should be no-op since per_assignee_due_dates[zoe_id] is None
         # (modern coordinator only reads from per_assignee_due_dates, not assignee_chore_data)

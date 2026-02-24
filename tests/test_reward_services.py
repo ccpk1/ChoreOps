@@ -21,10 +21,10 @@ import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.const import (
-    DATA_ASSIGNEE_POINTS,
-    DATA_ASSIGNEE_REWARD_DATA,
-    DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT,
     DATA_REWARD_COST,
+    DATA_USER_POINTS,
+    DATA_USER_REWARD_DATA,
+    DATA_USER_REWARD_DATA_PENDING_COUNT,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -58,15 +58,15 @@ async def scenario_full(
 def get_assignee_points(coordinator: Any, assignee_id: str) -> float:
     """Get current points for a assignee."""
     assignee_info = coordinator.assignees_data.get(assignee_id, {})
-    return assignee_info.get(DATA_ASSIGNEE_POINTS, 0.0)
+    return assignee_info.get(DATA_USER_POINTS, 0.0)
 
 
 def get_pending_reward_count(coordinator: Any, assignee_id: str, reward_id: str) -> int:
     """Get pending claim count for a assignee's reward."""
     assignee_info = coordinator.assignees_data.get(assignee_id, {})
-    reward_data = assignee_info.get(DATA_ASSIGNEE_REWARD_DATA, {})
+    reward_data = assignee_info.get(DATA_USER_REWARD_DATA, {})
     reward_entry = reward_data.get(reward_id, {})
-    return reward_entry.get(DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0)
+    return reward_entry.get(DATA_USER_REWARD_DATA_PENDING_COUNT, 0)
 
 
 def set_ha_user_capabilities(
@@ -147,7 +147,7 @@ class TestApproveRewardCostOverride:
 
         # Give assignee enough points to afford the reward
         starting_points = 100.0
-        coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_POINTS] = starting_points
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = starting_points
 
         with patch.object(
             coordinator.notification_manager, "notify_assignee", new=AsyncMock()
@@ -206,7 +206,7 @@ class TestAuthorizationAcceptance:
         coordinator = scenario_full.coordinator
         assignee_id = scenario_full.assignee_ids["Zoë"]
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
-        coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
 
         actor_user = await hass.auth.async_create_user(
             "Reward Matrix Actor",
@@ -238,7 +238,7 @@ class TestAuthorizationAcceptance:
                 const.SERVICE_APPLY_BONUS,
                 {
                     const.SERVICE_FIELD_APPROVER_NAME: "Zoë",
-                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
                     const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
                 },
                 blocking=True,
@@ -256,7 +256,7 @@ class TestAuthorizationAcceptance:
         coordinator = scenario_full.coordinator
         assignee_id = scenario_full.assignee_ids["Zoë"]
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
-        coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
 
         actor_user_internal_id = get_non_target_user_id(coordinator, assignee_id)
         actor_user_id = mock_hass_users["assignee3"].id
@@ -286,7 +286,7 @@ class TestAuthorizationAcceptance:
             const.SERVICE_APPROVE_REWARD,
             {
                 const.SERVICE_FIELD_APPROVER_NAME: "Lila",
-                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
                 const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
             },
             blocking=True,
@@ -301,7 +301,7 @@ class TestAuthorizationAcceptance:
                 const.SERVICE_APPLY_BONUS,
                 {
                     const.SERVICE_FIELD_APPROVER_NAME: "Lila",
-                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
                     const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
                 },
                 blocking=True,
@@ -320,7 +320,7 @@ class TestAuthorizationAcceptance:
         assignee_id = scenario_full.assignee_ids["Zoë"]
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
         bonus_id = scenario_full.bonus_ids["Extra Effort"]
-        coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
 
         actor_user_internal_id = get_non_target_user_id(coordinator, assignee_id)
         actor_user_id = mock_hass_users["assignee3"].id
@@ -348,7 +348,7 @@ class TestAuthorizationAcceptance:
                 const.SERVICE_APPROVE_REWARD,
                 {
                     const.SERVICE_FIELD_APPROVER_NAME: "Lila",
-                    const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
                     const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
                 },
                 blocking=True,
@@ -362,7 +362,7 @@ class TestAuthorizationAcceptance:
             const.SERVICE_APPLY_BONUS,
             {
                 const.SERVICE_FIELD_APPROVER_NAME: "Lila",
-                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
                 const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
             },
             blocking=True,
@@ -385,7 +385,7 @@ class TestAuthorizationAcceptance:
         assignee_id = scenario_full.assignee_ids["Zoë"]
         reward_id = scenario_full.reward_ids["Extra Screen Time"]
         bonus_id = scenario_full.bonus_ids["Extra Effort"]
-        coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.assignees_data[assignee_id][DATA_USER_POINTS] = 100.0
 
         actor_user_internal_id = get_non_target_user_id(coordinator, assignee_id)
         actor_user_id = mock_hass_users["assignee3"].id
@@ -412,7 +412,7 @@ class TestAuthorizationAcceptance:
             const.SERVICE_APPROVE_REWARD,
             {
                 const.SERVICE_FIELD_APPROVER_NAME: "Lila",
-                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
                 const.SERVICE_FIELD_REWARD_NAME: "Extra Screen Time",
             },
             blocking=True,
@@ -428,7 +428,7 @@ class TestAuthorizationAcceptance:
             const.SERVICE_APPLY_BONUS,
             {
                 const.SERVICE_FIELD_APPROVER_NAME: "Lila",
-                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
                 const.SERVICE_FIELD_BONUS_NAME: "Extra Effort",
             },
             blocking=True,

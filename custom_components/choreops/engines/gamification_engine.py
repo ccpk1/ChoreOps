@@ -621,7 +621,7 @@ class GamificationEngine:
             achievement_progress = context.get("current_achievement_progress") or {}
             current_value = float(
                 cast("dict[str, Any]", achievement_progress).get(
-                    const.DATA_ASSIGNEE_CURRENT_STREAK,
+                    const.DATA_USER_CURRENT_STREAK,
                     0,
                 )
             )
@@ -632,7 +632,7 @@ class GamificationEngine:
             baseline = float(canonical_target.get("baseline_value", 0.0))
             total_approved = float(
                 chore_periods_all_time.get(
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
                 )
             )
             current_value = max(total_approved - baseline, 0.0)
@@ -654,7 +654,7 @@ class GamificationEngine:
             badge_entry = badges_earned.get(source_badge_id, {})
             current_value = float(
                 cast("dict[str, Any]", badge_entry).get(
-                    const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT,
+                    const.DATA_USER_BADGES_EARNED_AWARD_COUNT,
                     0,
                 )
             )
@@ -701,7 +701,7 @@ class GamificationEngine:
         # Use per-badge cycle count
         badge_progress = context.get("current_badge_progress") or {}
         cycle_count = badge_progress.get(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
+            const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
         )
 
         # Get today's point progress from pre-computed stats in context
@@ -779,7 +779,7 @@ class GamificationEngine:
         # PERIODIC BADGES ONLY: Use per-badge cycle count
         badge_progress = context.get("current_badge_progress") or {}
         cycle_count = badge_progress.get(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
+            const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
         )
 
         # Get chore-specific points from pre-computed stats
@@ -829,7 +829,7 @@ class GamificationEngine:
         # Get cycle count from badge progress
         badge_progress = context.get("current_badge_progress") or {}
         cycle_count = badge_progress.get(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
+            const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
         )
 
         # Get today's chore completion count from pre-computed stats
@@ -1232,10 +1232,10 @@ class GamificationEngine:
         """Resolve normalized daily state for day-count and streak evaluators."""
         badge_progress: Any = context.get("current_badge_progress") or {}
         cycle_count = int(
-            badge_progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
+            badge_progress.get(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
         )
         last_update_day = str(
-            badge_progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
+            badge_progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
         )
         today_iso = str(context.get("today_iso") or _today_iso())
         already_counted_today = last_update_day == today_iso
@@ -1316,7 +1316,7 @@ class GamificationEngine:
         # For total chore achievements, use approved from chore_periods.all_time
         if achievement_type == const.ACHIEVEMENT_TYPE_TOTAL:
             return chore_periods_all_time.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0
+                const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0
             )
 
         # For point achievements, use total_points_earned from context

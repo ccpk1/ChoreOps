@@ -101,7 +101,10 @@ class TestEntityLookupHelpers:
         assignee_name = assignee_info.get(const.DATA_USER_NAME)
 
         result = get_item_id_by_name(
-            coordinator, const.ENTITY_TYPE_ASSIGNEE, str(assignee_name)
+            coordinator,
+            const.ITEM_TYPE_USER,
+            str(assignee_name),
+            role=const.ROLE_ASSIGNEE,
         )
 
         assert result == assignee_id
@@ -113,7 +116,10 @@ class TestEntityLookupHelpers:
         coordinator = scenario_minimal.coordinator
 
         result = get_item_id_by_name(
-            coordinator, const.ENTITY_TYPE_ASSIGNEE, "NonexistentAssignee"
+            coordinator,
+            const.ITEM_TYPE_USER,
+            "NonexistentAssignee",
+            role=const.ROLE_ASSIGNEE,
         )
 
         assert result is None
@@ -128,7 +134,10 @@ class TestEntityLookupHelpers:
 
         with pytest.raises(HomeAssistantError):
             get_item_id_or_raise(
-                coordinator, const.ENTITY_TYPE_ASSIGNEE, "NonexistentAssignee"
+                coordinator,
+                const.ITEM_TYPE_USER,
+                "NonexistentAssignee",
+                role=const.ROLE_ASSIGNEE,
             )
 
 

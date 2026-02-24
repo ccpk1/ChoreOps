@@ -34,8 +34,8 @@ from tests.helpers import (
     CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,
-    DATA_ASSIGNEE_POINTS,
     DATA_CHORE_DEFAULT_POINTS,
+    DATA_USER_POINTS,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 from tests.helpers.workflows import (
@@ -967,7 +967,7 @@ class TestRewardClaimingWorkflow:
 
         # First, give Zoë enough points to claim "Extra Screen Time" (50 pts)
         assignee_id = scenario_full.assignee_ids["Zoë"]
-        coordinator.users_data[assignee_id][DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.users_data[assignee_id][DATA_USER_POINTS] = 100.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1000,7 +1000,7 @@ class TestRewardClaimingWorkflow:
 
         # Ensure Zoë has few points (less than reward cost)
         assignee_id = scenario_full.assignee_ids["Zoë"]
-        coordinator.users_data[assignee_id][DATA_ASSIGNEE_POINTS] = 10.0  # Less than 50
+        coordinator.users_data[assignee_id][DATA_USER_POINTS] = 10.0  # Less than 50
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1046,7 +1046,7 @@ class TestPenaltyApplicationWorkflow:
 
         # Give Zoë some starting points
         assignee_id = scenario_full.assignee_ids["Zoë"]
-        coordinator.users_data[assignee_id][DATA_ASSIGNEE_POINTS] = 50.0
+        coordinator.users_data[assignee_id][DATA_USER_POINTS] = 50.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1100,7 +1100,7 @@ class TestBonusApplicationWorkflow:
 
         # Give Zoë some starting points
         assignee_id = scenario_full.assignee_ids["Zoë"]
-        coordinator.users_data[assignee_id][DATA_ASSIGNEE_POINTS] = 50.0
+        coordinator.users_data[assignee_id][DATA_USER_POINTS] = 50.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1163,7 +1163,7 @@ class TestRewardApprovalWorkflow:
 
         # Give Zoë enough points for reward
         assignee_id = scenario_full.assignee_ids["Zoë"]
-        coordinator.users_data[assignee_id][DATA_ASSIGNEE_POINTS] = 100.0
+        coordinator.users_data[assignee_id][DATA_USER_POINTS] = 100.0
         await coordinator.async_refresh()
 
         initial_points = get_points_from_sensor(hass, "zoe")
@@ -1396,14 +1396,14 @@ class TestOverdueEngine:
 
         # Test with OVERDUE state
         assignee_chore_data_overdue = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE
         }
         result = ChoreEngine.chore_is_overdue(assignee_chore_data_overdue)
         assert result is True, "Should detect OVERDUE state"
 
         # Test with PENDING state
         assignee_chore_data_pending = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING
         }
         result = ChoreEngine.chore_is_overdue(assignee_chore_data_pending)
         assert result is False, "PENDING is not overdue"

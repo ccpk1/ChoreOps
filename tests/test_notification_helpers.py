@@ -32,9 +32,9 @@ from tests.helpers import (
     ACTION_DISAPPROVE_CHORE,
     ACTION_DISAPPROVE_REWARD,
     ACTION_REMIND_30,
-    DATA_ASSIGNEE_ID,
     DATA_CHORE_ID,
     DATA_REWARD_ID,
+    DATA_USER_ID,
     NOTIFY_ACTION,
     NOTIFY_NOTIFICATION_ID,
     NOTIFY_TITLE,
@@ -189,14 +189,14 @@ class TestBuildExtraData:
         """Test that assignee_id is always present in returned dict."""
         data = build_extra_data("assignee-123")
 
-        assert DATA_ASSIGNEE_ID in data
-        assert data[DATA_ASSIGNEE_ID] == "assignee-123"
+        assert DATA_USER_ID in data
+        assert data[DATA_USER_ID] == "assignee-123"
 
     def test_includes_chore_id_when_provided(self) -> None:
         """Test that chore_id is included when not None."""
         data = build_extra_data("assignee-123", chore_id="chore-456")
 
-        assert DATA_ASSIGNEE_ID in data
+        assert DATA_USER_ID in data
         assert DATA_CHORE_ID in data
         assert data[DATA_CHORE_ID] == "chore-456"
 
@@ -204,7 +204,7 @@ class TestBuildExtraData:
         """Test that reward_id is included when not None."""
         data = build_extra_data("assignee-123", reward_id="reward-456")
 
-        assert DATA_ASSIGNEE_ID in data
+        assert DATA_USER_ID in data
         assert DATA_REWARD_ID in data
         assert data[DATA_REWARD_ID] == "reward-456"
 
@@ -212,7 +212,7 @@ class TestBuildExtraData:
         """Test that notification_id is included when not None."""
         data = build_extra_data("assignee-123", notif_id="notif-789")
 
-        assert DATA_ASSIGNEE_ID in data
+        assert DATA_USER_ID in data
         assert NOTIFY_NOTIFICATION_ID in data
         assert data[NOTIFY_NOTIFICATION_ID] == "notif-789"
 
@@ -223,7 +223,7 @@ class TestBuildExtraData:
         )
 
         assert len(data) == 1  # Only assignee_id
-        assert DATA_ASSIGNEE_ID in data
+        assert DATA_USER_ID in data
         assert DATA_CHORE_ID not in data
         assert DATA_REWARD_ID not in data
         assert NOTIFY_NOTIFICATION_ID not in data
@@ -238,7 +238,7 @@ class TestBuildExtraData:
         )
 
         assert len(data) == 4
-        assert data[DATA_ASSIGNEE_ID] == "assignee-123"
+        assert data[DATA_USER_ID] == "assignee-123"
         assert data[DATA_CHORE_ID] == "chore-456"
         assert data[DATA_REWARD_ID] == "reward-789"
         assert data[NOTIFY_NOTIFICATION_ID] == "notif-abc"
@@ -253,7 +253,7 @@ class TestParseNotificationAction:
     """Tests for parse_notification_action() function."""
 
     def test_parse_valid_chore_action_three_parts(self) -> None:
-        """Test parsing valid chore action: ACTION|entry_id|assignee_id|chore_id."""
+        """Test parsing valid chore action: ACTION|entry_id|user_id|chore_id."""
         action_string = f"{ACTION_APPROVE_CHORE}|entry123|assignee-123|chore-456"
         parsed = parse_notification_action(action_string)
 
@@ -261,12 +261,12 @@ class TestParseNotificationAction:
         assert isinstance(parsed, ParsedAction)
         assert parsed.action_type == ACTION_APPROVE_CHORE
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "assignee-123"
+        assert parsed.user_id == "assignee-123"
         assert parsed.entity_id == "chore-456"
         assert parsed.notif_id is None
 
     def test_parse_valid_reward_action_four_parts(self) -> None:
-        """Test parsing valid reward action: ACTION|entry_id|assignee_id|reward_id|notif_id."""
+        """Test parsing valid reward action: ACTION|entry_id|user_id|reward_id|notif_id."""
         action_string = (
             f"{ACTION_APPROVE_REWARD}|entry123|assignee-123|reward-456|notif-789"
         )
@@ -276,7 +276,7 @@ class TestParseNotificationAction:
         assert isinstance(parsed, ParsedAction)
         assert parsed.action_type == ACTION_APPROVE_REWARD
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "assignee-123"
+        assert parsed.user_id == "assignee-123"
         assert parsed.entity_id == "reward-456"
         assert parsed.notif_id == "notif-789"
 
@@ -288,7 +288,7 @@ class TestParseNotificationAction:
 
     def test_parse_too_few_parts_returns_none(self) -> None:
         """Test that malformed string with <3 parts returns None."""
-        action_string = "approve_chore|entry123"  # Missing assignee_id/chore_id
+        action_string = "approve_chore|entry123"  # Missing user_id/chore_id
         parsed = parse_notification_action(action_string)
 
         assert parsed is None
@@ -316,7 +316,7 @@ class TestParseNotificationAction:
         assert parsed is not None
         assert parsed.action_type == ACTION_DISAPPROVE_CHORE
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "assignee-123"
+        assert parsed.user_id == "assignee-123"
         assert parsed.entity_id == "chore-456"
 
     def test_parse_remind_action_chore_three_parts(self) -> None:
@@ -327,7 +327,7 @@ class TestParseNotificationAction:
         assert parsed is not None
         assert parsed.action_type == ACTION_REMIND_30
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "assignee-123"
+        assert parsed.user_id == "assignee-123"
         assert parsed.entity_id == "chore-456"
         assert parsed.notif_id is None
 
@@ -339,7 +339,7 @@ class TestParseNotificationAction:
         assert parsed is not None
         assert parsed.action_type == ACTION_REMIND_30
         assert parsed.entry_id == "entry123"
-        assert parsed.assignee_id == "assignee-123"
+        assert parsed.user_id == "assignee-123"
         assert parsed.entity_id == "reward-456"
         assert parsed.notif_id == "notif-789"
 
@@ -357,7 +357,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -370,7 +370,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_DISAPPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -383,7 +383,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -397,7 +397,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_DISAPPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -411,7 +411,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -424,7 +424,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="chore-456",
         )
 
@@ -436,7 +436,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="chore-456",
             notif_id=None,
         )
@@ -449,7 +449,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -462,7 +462,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_REMIND_30,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -475,7 +475,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_REWARD,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="reward-456",
             notif_id="notif-789",
         )
@@ -487,7 +487,7 @@ class TestParsedActionProperties:
         parsed = ParsedAction(
             action_type=ACTION_APPROVE_CHORE,
             entry_id="entry123",
-            assignee_id="assignee-123",
+            user_id="assignee-123",
             entity_id="chore-456",
         )
 

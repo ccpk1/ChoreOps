@@ -437,7 +437,7 @@
       "invalid_end_date": "Data de fim inválida.",
       "invalid_assignee_count": "Contagem de crianças inválida",
       "invalid_assignee_name": "Nome de criança inválido",
-      "invalid_approver_count": "Contagem de pais inválida",
+      "invalid_user_count": "Contagem de pais inválida",
       "invalid_approver_name": "Nome do pai inválido",
       "no_assignees_assigned": "Pelo menos uma criança deve ser atribuída à tarefa.",
       "invalid_penalty": "Penalidade inválida",

@@ -13,16 +13,16 @@ import pytest
 
 from custom_components.choreops import const
 from tests.helpers import (
-    # Approver form constants
-    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
-    CFOF_APPROVERS_INPUT_CAN_APPROVE,
-    CFOF_APPROVERS_INPUT_CAN_MANAGE,
-    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
-    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
     CFOF_APPROVERS_INPUT_HA_USER,
     CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE,
     CFOF_APPROVERS_INPUT_NAME,
+    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
+    CFOF_USERS_INPUT_CAN_APPROVE,
+    # Approver form constants
+    CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    CFOF_USERS_INPUT_CAN_MANAGE,
+    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
     # Common constants
     DATA_APPROVER_HA_USER_ID,
     OPTIONS_FLOW_ACTIONS_EDIT,
@@ -34,6 +34,8 @@ from tests.helpers import (
     SENTINEL_NO_SELECTION,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
+
+REMOVED_OPTIONS_FLOW_MENU_MANAGE_ASSIGNEE = "manage_assignee"
 
 
 @pytest.fixture
@@ -70,7 +72,7 @@ class TestHaUserIdClearing:
             await hass.config_entries.options.async_configure(
                 result.get("flow_id"),
                 user_input={
-                    OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_ASSIGNEES
+                    OPTIONS_FLOW_INPUT_MENU_SELECTION: REMOVED_OPTIONS_FLOW_MENU_MANAGE_ASSIGNEE
                 },
             )
 
@@ -136,13 +138,13 @@ class TestHaUserIdClearing:
                 user_input={
                     CFOF_APPROVERS_INPUT_NAME: approver_name,
                     CFOF_APPROVERS_INPUT_HA_USER: test_ha_user.id,  # Set a user ID
-                    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: associated_assignees,
+                    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
                     CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
-                    CFOF_APPROVERS_INPUT_CAN_APPROVE: False,
-                    CFOF_APPROVERS_INPUT_CAN_MANAGE: False,
-                    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
-                    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: False,
+                    CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+                    CFOF_USERS_INPUT_CAN_APPROVE: False,
+                    CFOF_USERS_INPUT_CAN_MANAGE: False,
+                    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
+                    CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
                 },
             )
         assert result.get("type") == FlowResultType.FORM
@@ -179,13 +181,13 @@ class TestHaUserIdClearing:
                 user_input={
                     CFOF_APPROVERS_INPUT_NAME: approver_name,
                     CFOF_APPROVERS_INPUT_HA_USER: SENTINEL_NO_SELECTION,  # Clear the user ID
-                    CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: associated_assignees,
+                    CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignees,
                     CFOF_APPROVERS_INPUT_MOBILE_NOTIFY_SERVICE: SENTINEL_NO_SELECTION,
-                    CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
-                    CFOF_APPROVERS_INPUT_CAN_APPROVE: False,
-                    CFOF_APPROVERS_INPUT_CAN_MANAGE: False,
-                    CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
-                    CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: False,
+                    CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+                    CFOF_USERS_INPUT_CAN_APPROVE: False,
+                    CFOF_USERS_INPUT_CAN_MANAGE: False,
+                    CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
+                    CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
                 },
             )
         assert result.get("type") == FlowResultType.FORM

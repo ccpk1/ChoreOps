@@ -189,7 +189,7 @@ class EconomyManager(BaseManager):
             if assignee_info:
                 old_multiplier = float(
                     assignee_info.get(
-                        const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
+                        const.DATA_USER_POINTS_MULTIPLIER,
                         const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
                     )
                 )
@@ -238,11 +238,11 @@ class EconomyManager(BaseManager):
             return
 
         old_multiplier = assignee_info.get(
-            const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
+            const.DATA_USER_POINTS_MULTIPLIER,
             const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
         )
         if multiplier > const.DEFAULT_ZERO:
-            assignee_info[const.DATA_ASSIGNEE_POINTS_MULTIPLIER] = multiplier
+            assignee_info[const.DATA_USER_POINTS_MULTIPLIER] = multiplier
             const.LOGGER.info(
                 "EconomyManager: Updated multiplier for assignee %s: %.2f -> %.2f (ref: %s)",
                 assignee_id,
@@ -392,9 +392,9 @@ class EconomyManager(BaseManager):
         Returns:
             The ledger list (possibly empty but never None)
         """
-        if const.DATA_ASSIGNEE_LEDGER not in assignee_data:
-            assignee_data[const.DATA_ASSIGNEE_LEDGER] = []  # type: ignore[typeddict-unknown-key]
-        return assignee_data[const.DATA_ASSIGNEE_LEDGER]  # type: ignore[typeddict-item]
+        if const.DATA_USER_LEDGER not in assignee_data:
+            assignee_data[const.DATA_USER_LEDGER] = []  # type: ignore[typeddict-unknown-key]
+        return assignee_data[const.DATA_USER_LEDGER]  # type: ignore[typeddict-item]
 
     def _ensure_point_structures(self, assignee_data: AssigneeData) -> None:
         """Ensure point_periods structure exists (Landlord duty).
@@ -408,8 +408,8 @@ class EconomyManager(BaseManager):
         """
         # point_periods: Flat period buckets container (v43+)
         # StatisticsManager (tenant) creates and writes the period sub-keys
-        if const.DATA_ASSIGNEE_POINT_PERIODS not in assignee_data:
-            assignee_data[const.DATA_ASSIGNEE_POINT_PERIODS] = {}
+        if const.DATA_USER_POINT_PERIODS not in assignee_data:
+            assignee_data[const.DATA_USER_POINT_PERIODS] = {}
 
     def get_balance(self, assignee_id: str) -> float:
         """Get current point balance for a assignee.
@@ -429,7 +429,7 @@ class EconomyManager(BaseManager):
             return 0.0
 
         try:
-            return float(assignee.get(const.DATA_ASSIGNEE_POINTS, 0.0))
+            return float(assignee.get(const.DATA_USER_POINTS, 0.0))
         except (ValueError, TypeError):
             return 0.0
 
@@ -451,7 +451,7 @@ class EconomyManager(BaseManager):
         if not assignee:
             return []
 
-        ledger = assignee.get(const.DATA_ASSIGNEE_LEDGER, [])
+        ledger = assignee.get(const.DATA_USER_LEDGER, [])
         if not isinstance(ledger, list):
             return []
 
@@ -498,7 +498,7 @@ class EconomyManager(BaseManager):
         # Apply multiplier if requested (e.g., for chore approvals)
         actual_amount = amount
         if apply_multiplier:
-            multiplier = float(assignee.get(const.DATA_ASSIGNEE_POINTS_MULTIPLIER, 1.0))
+            multiplier = float(assignee.get(const.DATA_USER_POINTS_MULTIPLIER, 1.0))
             actual_amount = EconomyEngine.calculate_with_multiplier(amount, multiplier)
 
         # Get current balance
@@ -517,7 +517,7 @@ class EconomyManager(BaseManager):
         new_balance = EconomyEngine.calculate_new_balance(
             current_balance, actual_amount
         )
-        assignee[const.DATA_ASSIGNEE_POINTS] = new_balance
+        assignee[const.DATA_USER_POINTS] = new_balance
 
         # Append to ledger and prune
         ledger = self._ensure_ledger(assignee)
@@ -631,7 +631,7 @@ class EconomyManager(BaseManager):
 
         # Update balance
         new_balance = EconomyEngine.calculate_new_balance(current_balance, -amount)
-        assignee[const.DATA_ASSIGNEE_POINTS] = new_balance
+        assignee[const.DATA_USER_POINTS] = new_balance
 
         # Append to ledger and prune
         ledger = self._ensure_ledger(assignee)
@@ -740,12 +740,10 @@ class EconomyManager(BaseManager):
         # Landlord: Ensure penalty_applies entry exists with periods structure
         # StatisticsEngine (via StatisticsManager) creates period buckets (daily/weekly/etc)
         # on-demand via record_transaction() - matching the points pattern
-        penalty_applies = assignee_info.setdefault(
-            const.DATA_ASSIGNEE_PENALTY_APPLIES, {}
-        )
+        penalty_applies = assignee_info.setdefault(const.DATA_USER_PENALTY_APPLIES, {})
         if penalty_id not in penalty_applies:
             penalty_applies[penalty_id] = {
-                const.DATA_ASSIGNEE_PENALTY_PERIODS: {},
+                const.DATA_USER_PENALTY_PERIODS: {},
             }
 
         const.LOGGER.debug(
@@ -805,9 +803,7 @@ class EconomyManager(BaseManager):
                         "name": assignee_id,
                     },
                 )
-            if penalty_id not in assignee_info.get(
-                const.DATA_ASSIGNEE_PENALTY_APPLIES, {}
-            ):
+            if penalty_id not in assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {}):
                 const.LOGGER.error(
                     "ERROR: Reset Penalties - Penalty ID '%s' does not apply to Assignee ID '%s'",
                     penalty_id,
@@ -822,17 +818,17 @@ class EconomyManager(BaseManager):
                     },
                 )
 
-            assignee_info[const.DATA_ASSIGNEE_PENALTY_APPLIES].pop(penalty_id, None)
+            assignee_info[const.DATA_USER_PENALTY_APPLIES].pop(penalty_id, None)
 
         elif penalty_id:
             # Reset a specific penalty for all assignees
             found = False
             for assignee_info_loop in self._coordinator.assignees_data.values():
                 if penalty_id in assignee_info_loop.get(
-                    const.DATA_ASSIGNEE_PENALTY_APPLIES, {}
+                    const.DATA_USER_PENALTY_APPLIES, {}
                 ):
                     found = True
-                    assignee_info_loop[const.DATA_ASSIGNEE_PENALTY_APPLIES].pop(
+                    assignee_info_loop[const.DATA_USER_PENALTY_APPLIES].pop(
                         penalty_id, None
                     )
 
@@ -858,7 +854,7 @@ class EconomyManager(BaseManager):
                     },
                 )
 
-            assignee_info_elif[const.DATA_ASSIGNEE_PENALTY_APPLIES].clear()
+            assignee_info_elif[const.DATA_USER_PENALTY_APPLIES].clear()
 
         else:
             # Reset all penalties for all assignees
@@ -866,7 +862,7 @@ class EconomyManager(BaseManager):
                 "INFO: Reset Penalties - Resetting all penalties for all assignees"
             )
             for assignee_info in self._coordinator.assignees_data.values():
-                assignee_info[const.DATA_ASSIGNEE_PENALTY_APPLIES].clear()
+                assignee_info[const.DATA_USER_PENALTY_APPLIES].clear()
 
         const.LOGGER.debug(
             "DEBUG: Reset Penalties completed - Assignee ID '%s', Penalty ID '%s'",
@@ -942,10 +938,10 @@ class EconomyManager(BaseManager):
         # Landlord: Ensure bonus_applies entry exists with periods structure
         # StatisticsEngine (via StatisticsManager) creates period buckets (daily/weekly/etc)
         # on-demand via record_transaction() - matching the points pattern
-        bonus_applies = assignee_info.setdefault(const.DATA_ASSIGNEE_BONUS_APPLIES, {})
+        bonus_applies = assignee_info.setdefault(const.DATA_USER_BONUS_APPLIES, {})
         if bonus_id not in bonus_applies:
             bonus_applies[bonus_id] = {
-                const.DATA_ASSIGNEE_BONUS_PERIODS: {},
+                const.DATA_USER_BONUS_PERIODS: {},
             }
 
         const.LOGGER.debug(
@@ -1005,7 +1001,7 @@ class EconomyManager(BaseManager):
                         "name": assignee_id,
                     },
                 )
-            if bonus_id not in assignee_info.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {}):
+            if bonus_id not in assignee_info.get(const.DATA_USER_BONUS_APPLIES, {}):
                 const.LOGGER.error(
                     "ERROR: Reset Bonuses - Bonus '%s' does not apply to Assignee ID '%s'",
                     bonus_id,
@@ -1020,17 +1016,17 @@ class EconomyManager(BaseManager):
                     },
                 )
 
-            assignee_info[const.DATA_ASSIGNEE_BONUS_APPLIES].pop(bonus_id, None)
+            assignee_info[const.DATA_USER_BONUS_APPLIES].pop(bonus_id, None)
 
         elif bonus_id:
             # Reset a specific bonus for all assignees
             found = False
             for assignee_info_loop in self._coordinator.assignees_data.values():
                 if bonus_id in assignee_info_loop.get(
-                    const.DATA_ASSIGNEE_BONUS_APPLIES, {}
+                    const.DATA_USER_BONUS_APPLIES, {}
                 ):
                     found = True
-                    assignee_info_loop[const.DATA_ASSIGNEE_BONUS_APPLIES].pop(
+                    assignee_info_loop[const.DATA_USER_BONUS_APPLIES].pop(
                         bonus_id, None
                     )
 
@@ -1056,7 +1052,7 @@ class EconomyManager(BaseManager):
                     },
                 )
 
-            assignee_info_elif[const.DATA_ASSIGNEE_BONUS_APPLIES].clear()
+            assignee_info_elif[const.DATA_USER_BONUS_APPLIES].clear()
 
         else:
             # Reset all bonuses for all assignees
@@ -1064,7 +1060,7 @@ class EconomyManager(BaseManager):
                 "INFO: Reset Bonuses - Resetting all bonuses for all assignees"
             )
             for assignee_info in self._coordinator.assignees_data.values():
-                assignee_info[const.DATA_ASSIGNEE_BONUS_APPLIES].clear()
+                assignee_info[const.DATA_USER_BONUS_APPLIES].clear()
 
         const.LOGGER.debug(
             "DEBUG: Reset Bonuses completed - Assignee ID '%s', Bonus ID '%s'",
@@ -1097,9 +1093,7 @@ class EconomyManager(BaseManager):
             SIGNAL_SUFFIX_BONUS_CREATED with bonus_id and bonus_name.
         """
         # Build complete bonus data structure
-        bonus_data = dict(
-            db.build_bonus_or_penalty(user_input, const.ENTITY_TYPE_BONUS)
-        )
+        bonus_data = dict(db.build_bonus_or_penalty(user_input, const.ITEM_TYPE_BONUS))
         internal_id = str(bonus_data[const.DATA_BONUS_INTERNAL_ID])
         bonus_name = str(bonus_data.get(const.DATA_BONUS_NAME, ""))
 
@@ -1156,9 +1150,7 @@ class EconomyManager(BaseManager):
         existing = bonuses_data[bonus_id]
         # Build updated bonus (merge existing with updates)
         updated_bonus = dict(
-            db.build_bonus_or_penalty(
-                updates, const.ENTITY_TYPE_BONUS, existing=existing
-            )
+            db.build_bonus_or_penalty(updates, const.ITEM_TYPE_BONUS, existing=existing)
         )
 
         # Store updated bonus
@@ -1258,7 +1250,7 @@ class EconomyManager(BaseManager):
         """
         # Build complete penalty data structure
         penalty_data = dict(
-            db.build_bonus_or_penalty(user_input, const.ENTITY_TYPE_PENALTY)
+            db.build_bonus_or_penalty(user_input, const.ITEM_TYPE_PENALTY)
         )
         internal_id = str(penalty_data[const.DATA_PENALTY_INTERNAL_ID])
         penalty_name = str(penalty_data.get(const.DATA_PENALTY_NAME, ""))
@@ -1321,7 +1313,7 @@ class EconomyManager(BaseManager):
         # Build updated penalty (merge existing with updates)
         updated_penalty = dict(
             db.build_bonus_or_penalty(
-                updates, const.ENTITY_TYPE_PENALTY, existing=existing
+                updates, const.ITEM_TYPE_PENALTY, existing=existing
             )
         )
 
@@ -1450,12 +1442,12 @@ class EconomyManager(BaseManager):
             assignee_dict = cast("dict[str, Any]", assignee_info)
 
             # Reset economy-owned scalar fields
-            for field in db._ECONOMY_ASSIGNEE_RUNTIME_FIELDS:
-                if field == const.DATA_ASSIGNEE_POINTS:
+            for field in db._ECONOMY_USER_RUNTIME_FIELDS:
+                if field == const.DATA_USER_POINTS:
                     assignee_dict[field] = const.DEFAULT_ZERO
-                elif field == const.DATA_ASSIGNEE_POINTS_MULTIPLIER:
+                elif field == const.DATA_USER_POINTS_MULTIPLIER:
                     assignee_dict[field] = const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER
-                elif field == const.DATA_ASSIGNEE_LEDGER:
+                elif field == const.DATA_USER_LEDGER:
                     assignee_dict[field] = []
                 elif field in assignee_dict:
                     # Clear any other economy fields
@@ -1523,7 +1515,7 @@ class EconomyManager(BaseManager):
             if not assignee_info:
                 continue
 
-            penalty_applies = assignee_info.get(const.DATA_ASSIGNEE_PENALTY_APPLIES, {})
+            penalty_applies = assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {})
             if item_id:
                 # Item scope - only clear specific penalty
                 penalty_applies.pop(item_id, None)
@@ -1588,7 +1580,7 @@ class EconomyManager(BaseManager):
             if not assignee_info:
                 continue
 
-            bonus_applies = assignee_info.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {})
+            bonus_applies = assignee_info.get(const.DATA_USER_BONUS_APPLIES, {})
             if item_id:
                 # Item scope - only clear specific bonus
                 bonus_applies.pop(item_id, None)

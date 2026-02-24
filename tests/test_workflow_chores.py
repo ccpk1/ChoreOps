@@ -1719,17 +1719,17 @@ class TestWorkflowIntegrationEdgeCases:
         assignee_info: AssigneeData | dict[str, Any] = coordinator.assignees_data.get(
             assignee_id, {}
         )
-        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
             chore_id, {}
         )
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
         all_time_container = periods.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
         all_time = all_time_container.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
-        initial_count = all_time.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0)
+        initial_count = all_time.get(const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0)
 
         # Claim and approve via button presses
         assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
@@ -1740,17 +1740,17 @@ class TestWorkflowIntegrationEdgeCases:
 
         # Get final approval count from period all_time bucket
         assignee_info = coordinator.assignees_data.get(assignee_id, {})
-        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
             chore_id, {}
         )
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
         all_time_container = periods.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
         all_time = all_time_container.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
-        final_count = all_time.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, 0)
+        final_count = all_time.get(const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0)
 
         assert final_count == initial_count + 1, (
             f"Approval count should increment: {initial_count} -> {final_count}"
@@ -1778,19 +1778,17 @@ class TestWorkflowIntegrationEdgeCases:
         assignee_info: AssigneeData | dict[str, Any] = coordinator.assignees_data.get(
             assignee_id, {}
         )
-        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
             chore_id, {}
         )
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
         all_time_container = periods.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
         all_time = all_time_container.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
-        initial_count = all_time.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED, 0
-        )
+        initial_count = all_time.get(const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED, 0)
 
         # Claim and disapprove via button presses
         assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
@@ -1801,17 +1799,17 @@ class TestWorkflowIntegrationEdgeCases:
 
         # Get final disapproval count from period all_time bucket
         assignee_info = coordinator.assignees_data.get(assignee_id, {})
-        assignee_chore_data = assignee_info.get(const.DATA_ASSIGNEE_CHORE_DATA, {}).get(
+        assignee_chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {}).get(
             chore_id, {}
         )
-        periods = assignee_chore_data.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
+        periods = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
         all_time_container = periods.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
         all_time = all_time_container.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+            const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
         )
-        final_count = all_time.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED, 0)
+        final_count = all_time.get(const.DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED, 0)
 
         assert final_count == initial_count + 1, (
             f"Disapproval count should increment: {initial_count} -> {final_count}"
@@ -2443,13 +2441,11 @@ class TestEnhancedFrequencyWorkflows:
 
         assignee_chore_data: AssigneeData | dict[str, Any] = (
             coordinator.assignees_data.get(assignee_id, {}).get(
-                const.DATA_ASSIGNEE_CHORE_DATA, {}
+                const.DATA_USER_CHORE_DATA, {}
             )
         )
         chore_entry = assignee_chore_data.get(chore_id, {})
-        completion_anchor_iso = chore_entry.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED
-        )
+        completion_anchor_iso = chore_entry.get(const.DATA_USER_CHORE_DATA_LAST_CLAIMED)
         new_due_dt = coordinator.chore_manager.get_due_date(chore_id, assignee_id)
 
         assert isinstance(completion_anchor_iso, str)

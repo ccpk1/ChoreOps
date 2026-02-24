@@ -31,14 +31,13 @@ async def test_remove_conditional_entities_respects_user_feature_flags(
         users_data={
             assignee_id: {
                 const.DATA_USER_CAN_BE_ASSIGNED: True,
-                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: True,
                 const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
                 const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
             }
         },
         approvers_data={
             assignee_id: {
-                const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: True,
+                const.DATA_USER_CAN_BE_ASSIGNED: True,
                 const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW: False,
                 const.DATA_APPROVER_ENABLE_GAMIFICATION: False,
             }

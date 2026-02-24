@@ -132,7 +132,7 @@ def _extract_assignee_ids_from_schema(result: ConfigFlowResult) -> list[str]:
     data_schema = _require_data_schema(result)
     associated_assignees_field = _find_field_in_schema(
         data_schema,
-        const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
     )
     assert associated_assignees_field is not None, (
         "associated_assignees field not found in schema"
@@ -157,7 +157,7 @@ def _extract_assignee_names_from_schema(result: ConfigFlowResult) -> list[str]:
     data_schema = _require_data_schema(result)
     assigned_assignees_field = _find_field_in_schema(
         data_schema,
-        const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     )
     assert assigned_assignees_field is not None, (
         "assigned_assignees field not found in schema"
@@ -233,7 +233,7 @@ async def _configure_assignee_step(
             const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[
                 assignee_config["ha_user"]
             ].id,
-            const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: assignee_config.get(
+            const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: assignee_config.get(
                 "dashboard_language", "en"
             ),
             const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: assignee_config.get(
@@ -292,26 +292,25 @@ async def _configure_approver_step(
             const.CFOF_USERS_INPUT_HA_USER_ID: mock_hass_users[
                 approver_config["ha_user"]
             ].id,
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: associated_assignee_ids,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: associated_assignee_ids,
             const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: mobile_service,
             # Approver chore assignment fields (shadow assignee support)
-            const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: approver_config.get(
-                "allow_chore_assignment", False
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: approver_config.get(
+                "can_be_assigned",
+                approver_config.get("allow_chore_assignment", False),
             ),
-            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: approver_config.get(
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: approver_config.get(
                 "enable_chore_workflow", False
             ),
-            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: approver_config.get(
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: approver_config.get(
                 "enable_gamification", False
             ),
             # Hard-fork role model: scenario "approvers" represent approver/admin users
             # unless explicitly overridden per scenario.
-            const.CFOF_APPROVERS_INPUT_CAN_APPROVE: approver_config.get(
+            const.CFOF_USERS_INPUT_CAN_APPROVE: approver_config.get(
                 "can_approve", True
             ),
-            const.CFOF_APPROVERS_INPUT_CAN_MANAGE: approver_config.get(
-                "can_manage", True
-            ),
+            const.CFOF_USERS_INPUT_CAN_MANAGE: approver_config.get("can_manage", True),
         },
     )
 
@@ -385,7 +384,7 @@ async def _configure_chore_step(
 
     user_input = {
         const.CFOF_CHORES_INPUT_NAME: chore_config["name"],
-        const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: chore_config["assigned_to"],
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: chore_config["assigned_to"],
         const.CFOF_CHORES_INPUT_DEFAULT_POINTS: chore_config.get("points", 10.0),
         const.CFOF_CHORES_INPUT_DESCRIPTION: chore_config.get("description", ""),
         const.CFOF_CHORES_INPUT_ICON: chore_config.get("icon", "mdi:check"),
@@ -959,7 +958,7 @@ async def setup_scenario(
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        user_input={const.CFOF_APPROVERS_INPUT_APPROVER_COUNT: total_user_count},
+        user_input={const.CFOF_USERS_INPUT_COUNT: total_user_count},
     )
 
     if total_user_count > 0:

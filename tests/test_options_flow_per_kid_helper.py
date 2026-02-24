@@ -27,7 +27,7 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL,
     CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL,
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
-    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_DESCRIPTION,
@@ -37,6 +37,7 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS,
     DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES,
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
@@ -51,7 +52,7 @@ from tests.helpers import (
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_STEP_ADD_CHORE,
     OPTIONS_FLOW_STEP_EDIT_CHORE,
-    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS,
+    OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS,
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
 )
@@ -206,7 +207,7 @@ class TestPerAssigneeHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 15.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:test-tube",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test chore for PKH-01",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "tue", "wed"],
@@ -215,9 +216,9 @@ class TestPerAssigneeHelperAdd:
 
         # Should route to per-assignee details step
         assert result.get("type") == FlowResultType.FORM
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        ), f"Expected per-assignee details step, got {result.get('step_id')}"
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS, (
+            f"Expected per-assignee details step, got {result.get('step_id')}"
+        )
 
         # Submit per-assignee details with individual values (no template)
         # Field names are: days_{assignee_name}, date_{assignee_name}
@@ -285,7 +286,7 @@ class TestPerAssigneeHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:calendar",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test template date",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_DUE_DATE: future_date,
@@ -294,9 +295,7 @@ class TestPerAssigneeHelperAdd:
 
         # Should route to per-assignee details step
         assert result.get("type") == FlowResultType.FORM
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Submit with "Apply template date to all" checked
         per_assignee_input: dict[str, Any] = {
@@ -362,16 +361,14 @@ class TestPerAssigneeHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 15.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:calendar-week",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test template days",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "wed", "fri"],
             },
         )
 
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Submit with "Apply days to all" checked
         per_assignee_input: dict[str, Any] = {
@@ -438,7 +435,7 @@ class TestPerAssigneeHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 18.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:checkbox-multiple-marked",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test mixed template options",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["tue", "thu", "sat"],
@@ -446,9 +443,7 @@ class TestPerAssigneeHelperAdd:
             },
         )
 
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Submit with mixed options:
         # - Apply days to all: TRUE (use template days)
@@ -531,7 +526,7 @@ class TestPerAssigneeHelperAdd:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:clock-multiple",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Test daily multi",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 # DAILY_MULTI needs upon_completion reset (not at_midnight_once)
@@ -546,9 +541,7 @@ class TestPerAssigneeHelperAdd:
         if result.get("errors"):
             raise AssertionError(f"Form had errors: {result.get('errors')}")
 
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Submit per-assignee details with times
         per_assignee_input: dict[str, Any] = {}
@@ -639,7 +632,7 @@ class TestPerAssigneeHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 25.0,  # Change points
                 CFOF_CHORES_INPUT_ICON: "mdi:star",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Updated description",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "tue", "wed"],
@@ -647,9 +640,7 @@ class TestPerAssigneeHelperEdit:
         )
 
         # Should route to per-assignee details (3 assignees = multiple)
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Submit per-assignee details
         per_assignee_input: dict[str, Any] = {}
@@ -693,7 +684,7 @@ class TestPerAssigneeHelperEdit:
 
         # Get the assigned assignees for this chore
         chore_data = coordinator.chores_data[chore_id]
-        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignee_ids = chore_data.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
         assigned_assignees = [
             coordinator.assignees_data[assignee_id]["name"]
             for assignee_id in assigned_assignee_ids
@@ -709,16 +700,14 @@ class TestPerAssigneeHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 18.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:bookshelf",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: "weekly",
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
             },
         )
 
         # Should route to per-assignee details (2 assignees)
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Set different dates for each assignee using datetime objects
         per_assignee_input: dict[str, Any] = {}
@@ -766,7 +755,7 @@ class TestPerAssigneeHelperEdit:
 
         assert chore_id is not None
         chore_data = coordinator.chores_data[chore_id]
-        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignee_ids = chore_data.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
         assigned_assignees = [
             coordinator.assignees_data[assignee_id]["name"]
             for assignee_id in assigned_assignee_ids
@@ -781,15 +770,13 @@ class TestPerAssigneeHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:star",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
             },
         )
 
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Set different days for each assignee
         day_sets = [
@@ -854,7 +841,7 @@ class TestPerAssigneeHelperEdit:
         ), "Chore should start as INDEPENDENT"
 
         chore_data = coordinator.chores_data[chore_id]
-        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignee_ids = chore_data.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
         assigned_assignees = [
             coordinator.assignees_data[assignee_id]["name"]
             for assignee_id in assigned_assignee_ids
@@ -870,7 +857,7 @@ class TestPerAssigneeHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 20.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:star",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Now a shared chore",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
             },
@@ -913,7 +900,7 @@ class TestPerAssigneeHelperEdit:
         ), "Chore should start as SHARED_ALL"
 
         chore_data = coordinator.chores_data[chore_id]
-        assigned_assignee_ids = chore_data.get("assigned_assignees", [])
+        assigned_assignee_ids = chore_data.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
         assigned_assignees = [
             coordinator.assignees_data[assignee_id]["name"]
             for assignee_id in assigned_assignee_ids
@@ -932,16 +919,16 @@ class TestPerAssigneeHelperEdit:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 15.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:food",
                 CFOF_CHORES_INPUT_DESCRIPTION: "Now independent",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
             },
         )
 
         # Should route to per-assignee helper (INDEPENDENT with 2+ assignees)
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        ), f"Expected per-assignee step, got {result.get('step_id')}"
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS, (
+            f"Expected per-assignee step, got {result.get('step_id')}"
+        )
 
         # Complete the per-assignee form
         per_assignee_input: dict[str, Any] = {}
@@ -998,7 +985,7 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:test-tube",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 # Don't specify applicable_days - will be None
@@ -1051,7 +1038,7 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:calendar-blank",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
                 # No due_date specified
@@ -1059,9 +1046,7 @@ class TestSchemaEdgeCases:
         )
 
         # Routes to per-assignee helper for 2+ assignees INDEPENDENT
-        assert (
-            result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS
-        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
 
         # Complete per-assignee without dates
         per_assignee_input: dict[str, Any] = {}
@@ -1137,7 +1122,7 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:clock",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: assigned_assignees,
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -1204,7 +1189,7 @@ class TestSchemaEdgeCases:
                 CFOF_CHORES_INPUT_DEFAULT_POINTS: 5.0,
                 CFOF_CHORES_INPUT_ICON: "mdi:check",
                 CFOF_CHORES_INPUT_DESCRIPTION: "",
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_NONE,
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 # All optional fields omitted

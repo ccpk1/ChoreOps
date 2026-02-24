@@ -437,7 +437,7 @@
       "invalid_end_date": "Ugyldig sluttdato.",
       "invalid_assignee_count": "Ugyldig antall barn",
       "invalid_assignee_name": "Ugyldig barnenavn",
-      "invalid_approver_count": "Ugyldig antall overordnede",
+      "invalid_user_count": "Ugyldig antall overordnede",
       "invalid_approver_name": "Ugyldig foreldrenavn",
       "no_assignees_assigned": "Minst ett barn må tildeles gjøremålet",
       "invalid_penalty": "Ugyldig straff",

@@ -30,7 +30,7 @@ from tests.helpers import (
     ATTR_COMPLETED_BY,
     ATTR_DASHBOARD_CHORES,
     ATTR_TRANSLATION_SENSOR,
-    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
     SENSOR_KC_EID_PREFIX_DASHBOARD_LANG,
     SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER,
     construct_entity_id,
@@ -572,9 +572,9 @@ class TestGapAttributes:
         assert chore_sensor is not None
 
         # Use the const key name for the attribute
-        assert (
-            DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START in chore_sensor.attributes
-        ), f"approval_period_start attribute missing from {chore_sensor_eid}"
+        assert DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START in chore_sensor.attributes, (
+            f"approval_period_start attribute missing from {chore_sensor_eid}"
+        )
 
 
 # =============================================================================

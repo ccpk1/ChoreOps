@@ -77,7 +77,7 @@ With over 1,000 constants, we follow strict naming patterns to ensure the code r
 | Prefix               | Plurality    | Usage                               | Example                             |
 | -------------------- | ------------ | ----------------------------------- | ----------------------------------- |
 | `DATA_*`             | **Singular** | Storage keys for specific entities  | `DATA_USER_NAME`                    |
-| `CFOF_*`             | **Plural**   | Config/Options flow input fields    | `CFOF_ASSIGNEES_INPUT_NAME`         |
+| `CFOF_*`             | **Plural**   | Config/Options flow input fields    | `CFOF_USERS_INPUT_NAME`             |
 | `CONF_*`             | **N/A**      | Config entry data access only       | `CONF_POINTS_LABEL`                 |
 | `CFOP_ERROR_*`       | **Singular** | Flow validation error keys          | `CFOP_ERROR_USER_NAME`              |
 | `TRANS_KEY_*`        | **N/A**      | Stable identifiers for translations | `TRANS_KEY_CFOF_DUPLICATE_ASSIGNEE` |
@@ -136,24 +136,15 @@ vol.Required(const.CFOF_USERS_INPUT_NAME, default=name): str
 - **`ACTION_*`**: Notification action button titles.
 - **`AWARD_ITEMS_*`**: Badge award composition (e.g., `AWARD_ITEMS_KEY_POINTS`).
 
-#### User-first role naming and gating contract (Phase 4B)
+#### User-first role naming and gating contract
 
 - **Lifecycle model**: User records are the only runtime lifecycle model. Assignee/approver are role capabilities on users.
 - **Method naming**:
-    - Methods that create or mutate lifecycle records must use `user` naming.
-    - Assignee wording is allowed for role-projection/filtering surfaces only.
-- **Assignment list naming**:
-    - Prefer `assigned_assignees` for local variable names, kwargs, helper parameters, and docstrings.
-    - Treat `assignees_assigned` as legacy wording and normalize remaining narrow-scope runtime/test usages when touched.
+  - Methods that create or mutate lifecycle records must use `user` naming.
+  - Assignee wording is allowed for role-projection/filtering surfaces only.
 - **Entity gating authority**:
-    - `ENTITY_REGISTRY` in `custom_components/choreops/const.py` is the primary source of truth for requirement categories.
-    - Runtime platforms/managers must consume centralized gating helpers and must not define duplicated requirement maps.
-- **Anti-shortcut rules (required)**:
-    - Do not branch on linked/shadow legacy concepts for active runtime gating.
-    - Do not infer profile type from key presence; use explicit capability values (`can_be_assigned`, `enable_chore_workflow`, `enable_gamification`).
-    - Do not reimplement per-platform gating logic when centralized helper contracts already provide the decision.
-- **Scope guardrail**:
-    - Do not rename storage keys, public service payload keys, or translation keys in narrow naming-cleanup tasks unless explicitly planned as a migration tranche.
+  - `ENTITY_REGISTRY` in `custom_components/choreops/const.py` is the primary source of truth for requirement categories.
+  - Runtime platforms/managers must consume centralized gating helpers and must not define duplicated requirement maps.
 
 #### Internal Scanner API Patterns
 

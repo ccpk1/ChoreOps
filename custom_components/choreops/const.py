@@ -263,14 +263,10 @@ SIGNAL_SUFFIX_CHALLENGE_COMPLETED: Final = "challenge_completed"
 
 # Gamification Events (GamificationManager) - Engine Coordination
 
-# System/Entity Lifecycle Events - Assignee/Approver (canonical runtime names)
-# NOTE: Signal payload values remain legacy-compatible to avoid event-bus breakage.
-SIGNAL_SUFFIX_ASSIGNEE_CREATED: Final = "assignee_created"
-SIGNAL_SUFFIX_ASSIGNEE_UPDATED: Final = "assignee_updated"
-SIGNAL_SUFFIX_ASSIGNEE_DELETED: Final = "assignee_deleted"
-SIGNAL_SUFFIX_APPROVER_CREATED: Final = "approver_created"
-SIGNAL_SUFFIX_APPROVER_UPDATED: Final = "approver_updated"
-SIGNAL_SUFFIX_APPROVER_DELETED: Final = "approver_deleted"
+# System/Entity Lifecycle Events - User
+SIGNAL_SUFFIX_USER_CREATED: Final = "user_created"
+SIGNAL_SUFFIX_USER_UPDATED: Final = "user_updated"
+SIGNAL_SUFFIX_USER_DELETED: Final = "user_deleted"
 
 # System/Entity Lifecycle Events - Chore
 SIGNAL_SUFFIX_CHORE_CREATED: Final = "chore_created"
@@ -356,17 +352,20 @@ DATA_META_LAST_MIDNIGHT_PROCESSED: Final = "last_midnight_processed"
 # Top-level keys in .storage/choreops_data (not entity-specific DATA_ASSIGNEE_*, DATA_CHORE_*, etc.)
 DATA_CONFIG_ENTRY_SETTINGS: Final = "config_entry_settings"  # Backup/restore key
 
-# Entity Type Identifiers (Phase 2 Step 2 - DRY Refactoring)
-# Used in generic entity lookup functions to identify entity type
-ENTITY_TYPE_ASSIGNEE: Final = "assignee"
-ENTITY_TYPE_CHORE: Final = "chore"
-ENTITY_TYPE_REWARD: Final = "reward"
-ENTITY_TYPE_PENALTY: Final = "penalty"
-ENTITY_TYPE_BADGE: Final = "badge"
-ENTITY_TYPE_BONUS: Final = "bonus"
-ENTITY_TYPE_APPROVER: Final = "approver"
-ENTITY_TYPE_ACHIEVEMENT: Final = "achievement"
-ENTITY_TYPE_CHALLENGE: Final = "challenge"
+# Item Type Identifiers (Phase 1 hard-fork user-first contract)
+# Used in generic item lookup functions to identify item class.
+ITEM_TYPE_USER: Final = "user"
+ITEM_TYPE_CHORE: Final = "chore"
+ITEM_TYPE_REWARD: Final = "reward"
+ITEM_TYPE_PENALTY: Final = "penalty"
+ITEM_TYPE_BADGE: Final = "badge"
+ITEM_TYPE_BONUS: Final = "bonus"
+ITEM_TYPE_ACHIEVEMENT: Final = "achievement"
+ITEM_TYPE_CHALLENGE: Final = "challenge"
+
+# User role qualifiers for user item lookups
+ROLE_ASSIGNEE: Final = "assignee"
+ROLE_APPROVER: Final = "approver"
 
 # Storage Structure Keys (Phase 3 - config_flow remediation)
 # Common keys used in storage file structure validation and diagnostics
@@ -453,7 +452,7 @@ SENTINEL_NO_SELECTION: Final = (
 DISPLAY_DOT: Final = "."
 DISPLAY_UNKNOWN: Final = "Unknown"
 DISPLAY_UNNAMED_CHORE: Final = "Unnamed Chore"
-DISPLAY_UNNAMED_ASSIGNEE: Final = "An assignee"
+DISPLAY_UNNAMED_USER: Final = "An assignee"
 
 # Occasion Types
 OCCASION_BIRTHDAY: Final = "birthday"
@@ -479,8 +478,6 @@ CONFIG_FLOW_STEP_CHORES: Final = "chores"
 CONFIG_FLOW_STEP_FINISH: Final = "finish"
 CONFIG_FLOW_STEP_DATA_RECOVERY: Final = "data_recovery"
 CONFIG_FLOW_STEP_INTRO: Final = "intro"
-CONFIG_FLOW_STEP_ASSIGNEE_COUNT: Final = "assignee_count"
-CONFIG_FLOW_STEP_ASSIGNEES: Final = "assignees"
 CONFIG_FLOW_STEP_USER_COUNT: Final = "user_count"
 CONFIG_FLOW_STEP_USERS: Final = "users"
 CONFIG_FLOW_STEP_PENALTY_COUNT: Final = "penalty_count"
@@ -500,7 +497,6 @@ OPTIONS_FLOW_DIC_BADGE: Final = "badge"
 OPTIONS_FLOW_DIC_BONUS: Final = "bonus"
 OPTIONS_FLOW_DIC_CHALLENGE: Final = "challenge"
 OPTIONS_FLOW_DIC_CHORE: Final = "chore"
-OPTIONS_FLOW_DIC_ASSIGNEE: Final = "assignee"
 OPTIONS_FLOW_DIC_USER: Final = "user"
 OPTIONS_FLOW_DIC_PENALTY: Final = "penalty"
 OPTIONS_FLOW_DIC_REWARD: Final = "reward"
@@ -521,7 +517,6 @@ OPTIONS_FLOW_CHALLENGES: Final = "manage_challenge"
 OPTIONS_FLOW_CHORES: Final = "manage_chore"
 OPTIONS_FLOW_DASHBOARD_GENERATOR: Final = "dashboard_generator"
 OPTIONS_FLOW_GENERAL_OPTIONS: Final = "general_options"
-OPTIONS_FLOW_ASSIGNEES: Final = "manage_assignee"
 OPTIONS_FLOW_USERS: Final = "manage_user"
 OPTIONS_FLOW_PENALTIES: Final = "manage_penalty"
 OPTIONS_FLOW_POINTS: Final = "manage_points"
@@ -561,7 +556,6 @@ OPTIONS_FLOW_STEP_ADD_BADGE_CHALLENGE: Final = "add_badge_challenge"
 OPTIONS_FLOW_STEP_ADD_BONUS: Final = "add_bonus"
 OPTIONS_FLOW_STEP_ADD_CHALLENGE: Final = "add_challenge"
 OPTIONS_FLOW_STEP_ADD_CHORE: Final = "add_chore"
-OPTIONS_FLOW_STEP_ADD_ASSIGNEE: Final = "add_assignee"
 OPTIONS_FLOW_STEP_ADD_USER: Final = "add_user"
 OPTIONS_FLOW_STEP_ADD_PENALTY: Final = "add_penalty"
 OPTIONS_FLOW_STEP_ADD_REWARD: Final = "add_reward"
@@ -570,12 +564,10 @@ OPTIONS_FLOW_STEP_EDIT_ACHIEVEMENT: Final = "edit_achievement"
 OPTIONS_FLOW_STEP_EDIT_BONUS: Final = "edit_bonus"
 OPTIONS_FLOW_STEP_EDIT_CHALLENGE: Final = "edit_challenge"
 OPTIONS_FLOW_STEP_EDIT_CHORE: Final = "edit_chore"
-OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DATES: Final = "edit_chore_per_assignee_dates"
-OPTIONS_FLOW_STEP_EDIT_CHORE_PER_ASSIGNEE_DETAILS: Final = (
-    "edit_chore_per_assignee_details"  # PKAD-2026-001
+OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DATES: Final = "edit_chore_per_user_dates"
+OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS: Final = (
+    "edit_chore_per_user_details"  # PKAD-2026-001
 )
-OPTIONS_FLOW_STEP_EDIT_ASSIGNEE: Final = "edit_assignee"
-OPTIONS_FLOW_STEP_EDIT_ASSIGNEE_LINKED: Final = "edit_assignee_linked"
 OPTIONS_FLOW_STEP_EDIT_BADGE_ACHIEVEMENT: Final = "edit_badge_achievement"
 OPTIONS_FLOW_STEP_EDIT_BADGE_CHALLENGE: Final = "edit_badge_challenge"
 OPTIONS_FLOW_STEP_EDIT_BADGE_CUMULATIVE: Final = "edit_badge_cumulative"
@@ -591,7 +583,6 @@ OPTIONS_FLOW_STEP_DELETE_BADGE: Final = "delete_badge"
 OPTIONS_FLOW_STEP_DELETE_BONUS: Final = "delete_bonus"
 OPTIONS_FLOW_STEP_DELETE_CHALLENGE: Final = "delete_challenge"
 OPTIONS_FLOW_STEP_DELETE_CHORE: Final = "delete_chore"
-OPTIONS_FLOW_STEP_DELETE_ASSIGNEE: Final = "delete_assignee"
 OPTIONS_FLOW_STEP_DELETE_USER: Final = "delete_user"
 OPTIONS_FLOW_STEP_DELETE_PENALTY: Final = "delete_penalty"
 OPTIONS_FLOW_STEP_DELETE_REWARD: Final = "delete_reward"
@@ -611,26 +602,22 @@ CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: Final = "mobile_notify_service"
 CFOF_DATA_RECOVERY_INPUT_SELECTION: Final = "backup_selection"
 CFOF_DATA_RECOVERY_INPUT_JSON_DATA: Final = "json_data"
 
-# ASSIGNEES
-CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-CFOF_ASSIGNEES_INPUT_ASSIGNEE_COUNT: Final = "assignee_count"
+# USER COUNT
+CFOF_USERS_INPUT_COUNT: Final = "user_count"
 
-# APPROVERS
-CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: Final = "associated_assignees"
-CFOF_APPROVERS_INPUT_APPROVER_COUNT: Final = "approver_count"
-
-# Approver Chore Capability Options
-CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
-CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
-CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: Final = "enable_gamification"
-CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
-CFOF_APPROVERS_INPUT_CAN_APPROVE: Final = "can_approve"
-CFOF_APPROVERS_INPUT_CAN_MANAGE: Final = "can_manage"
+# USERS (capability fields)
+CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: Final = "associated_user_ids"
+CFOF_USERS_INPUT_CAN_BE_ASSIGNED: Final = "can_be_assigned"
+CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
+CFOF_USERS_INPUT_ENABLE_GAMIFICATION: Final = "enable_gamification"
+CFOF_USERS_INPUT_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+CFOF_USERS_INPUT_CAN_APPROVE: Final = "can_approve"
+CFOF_USERS_INPUT_CAN_MANAGE: Final = "can_manage"
 
 # CHORES
 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
 CFOF_CHORES_INPUT_APPLICABLE_DAYS: Final = "applicable_days"
-CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 CFOF_CHORES_INPUT_CHORE_COUNT: Final = "chore_count"
 CFOF_CHORES_INPUT_CUSTOM_INTERVAL: Final = "custom_interval"
 CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
@@ -664,7 +651,7 @@ CFOF_CHORES_INPUT_APPLY_TIMES_TO_ALL: Final = "apply_times_to_all"  # PKAD-2026-
 CFOF_CHORES_INPUT_AUTO_APPROVE: Final = "auto_approve"
 CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: Final = "show_on_calendar"
 CFOF_CHORES_INPUT_NOTIFICATIONS: Final = "chore_notifications"
-# rotation_order removed - unused field, assigned_assignees defines order
+# rotation_order removed - unused field, assigned_user_ids defines order
 
 # BADGES
 CFOF_BADGES_INPUT_ASSIGNED_TO: Final = "assigned_to"
@@ -723,7 +710,7 @@ CFOF_PENALTIES_INPUT_POINTS: Final = "penalty_points"
 
 # ACHIEVEMENTS
 CFOF_ACHIEVEMENTS_INPUT_ACHIEVEMENT_COUNT: Final = "achievement_count"
-CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 CFOF_ACHIEVEMENTS_INPUT_CRITERIA: Final = "criteria"
 CFOF_ACHIEVEMENTS_INPUT_DESCRIPTION: Final = "description"
 CFOF_ACHIEVEMENTS_INPUT_ICON: Final = "icon"
@@ -735,7 +722,7 @@ CFOF_ACHIEVEMENTS_INPUT_TARGET_VALUE: Final = "target_value"
 CFOF_ACHIEVEMENTS_INPUT_TYPE: Final = "type"
 
 # CHALLENGES
-CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 CFOF_CHALLENGES_INPUT_CHALLENGE_COUNT: Final = "challenge_count"
 CFOF_CHALLENGES_INPUT_CRITERIA: Final = "criteria"
 CFOF_CHALLENGES_INPUT_DESCRIPTION: Final = "description"
@@ -770,7 +757,7 @@ OPTIONS_FLOW_PLACEHOLDER_BONUS_NAME: Final = "bonus_name"
 OPTIONS_FLOW_PLACEHOLDER_CHALLENGE_NAME: Final = "challenge_name"
 OPTIONS_FLOW_PLACEHOLDER_CHORE_NAME: Final = "chore_name"
 OPTIONS_FLOW_PLACEHOLDER_ENTITY_TYPE: Final = "entity_type"
-OPTIONS_FLOW_PLACEHOLDER_ASSIGNEE_NAME: Final = "assignee_name"
+OPTIONS_FLOW_PLACEHOLDER_TARGET_USER_NAME: Final = "user_name"
 OPTIONS_FLOW_PLACEHOLDER_USER_NAME: Final = "user_name"
 OPTIONS_FLOW_PLACEHOLDER_PENALTY_NAME: Final = "penalty_name"
 OPTIONS_FLOW_PLACEHOLDER_REWARD_NAME: Final = "reward_name"
@@ -934,14 +921,13 @@ CHALLENGE_TO_CANONICAL_TARGET_MAP: Final = {
 
 # GLOBAL
 DATA_ACHIEVEMENTS: Final = "achievements"
-DATA_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+DATA_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 DATA_BADGES: Final = "badges"
 DATA_BONUSES: Final = "bonuses"
 DATA_CHALLENGES: Final = "challenges"
 DATA_CHORES: Final = "chores"
 DATA_GLOBAL_STATE_SUFFIX: Final = "_global_state"
 DATA_INTERNAL_ID: Final = "internal_id"
-DATA_ASSIGNEES: Final = "assignees"
 DATA_LAST_CHANGE: Final = "last_change"
 DATA_NAME: Final = "name"
 DATA_APPROVERS: Final = "approvers"
@@ -960,102 +946,100 @@ DATA_NOTIF_LAST_DUE_REMINDER: Final = "last_due_reminder"
 DATA_NOTIF_LAST_OVERDUE: Final = "last_overdue"
 
 # ASSIGNEE / USER (legacy-key backed during hard-fork transition)
-DATA_ASSIGNEE_BADGES_EARNED_NAME: Final = "badge_name"
-DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: Final = "last_awarded_date"
-DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT: Final = "award_count"
-DATA_ASSIGNEE_BADGES_EARNED: Final = "badges_earned"
-DATA_ASSIGNEE_BADGES_EARNED_PERIODS: Final = "periods"
-DATA_ASSIGNEE_BADGES_EARNED_PERIODS_ALL_TIME: Final = "all_time"
+DATA_USER_BADGES_EARNED_NAME: Final = "badge_name"
+DATA_USER_BADGES_EARNED_LAST_AWARDED: Final = "last_awarded_date"
+DATA_USER_BADGES_EARNED_AWARD_COUNT: Final = "award_count"
+DATA_USER_BADGES_EARNED: Final = "badges_earned"
+DATA_USER_BADGES_EARNED_PERIODS: Final = "periods"
+DATA_USER_BADGES_EARNED_PERIODS_ALL_TIME: Final = "all_time"
 
 
 # Badge Progress Data Structure
-DATA_ASSIGNEE_BADGE_PROGRESS: Final = "badge_progress"
+DATA_USER_BADGE_PROGRESS: Final = "badge_progress"
 
 # Common Badge Progress Fields
-DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED: Final = "chores_completed"
-DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT: Final = "chores_cycle_count"
-DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET: Final = "criteria_met"
-DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT: Final = "cycle_count"
-DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED: Final = "days_completed"
-DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT: Final = "days_cycle_count"
-DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE: Final = "end_date"
-DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY: Final = "last_update_day"
-DATA_ASSIGNEE_BADGE_PROGRESS_NAME: Final = "name"
-DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS: Final = "overall_progress"
-DATA_ASSIGNEE_BADGE_PROGRESS_PENALTY_APPLIED: Final = "penalty_applied"
-DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
-DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
-DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE: Final = "start_date"
-DATA_ASSIGNEE_BADGE_PROGRESS_STATUS: Final = "status"
-DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE: Final = "threshold_value"
-DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE: Final = "target_type"
-DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES: Final = "tracked_chores"
-DATA_ASSIGNEE_BADGE_PROGRESS_TYPE: Final = "badge_type"
+DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED: Final = "chores_completed"
+DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT: Final = "chores_cycle_count"
+DATA_USER_BADGE_PROGRESS_CRITERIA_MET: Final = "criteria_met"
+DATA_USER_BADGE_PROGRESS_CYCLE_COUNT: Final = "cycle_count"
+DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED: Final = "days_completed"
+DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT: Final = "days_cycle_count"
+DATA_USER_BADGE_PROGRESS_END_DATE: Final = "end_date"
+DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY: Final = "last_update_day"
+DATA_USER_BADGE_PROGRESS_NAME: Final = "name"
+DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS: Final = "overall_progress"
+DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED: Final = "penalty_applied"
+DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
+DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
+DATA_USER_BADGE_PROGRESS_START_DATE: Final = "start_date"
+DATA_USER_BADGE_PROGRESS_STATUS: Final = "status"
+DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE: Final = "threshold_value"
+DATA_USER_BADGE_PROGRESS_TARGET_TYPE: Final = "target_type"
+DATA_USER_BADGE_PROGRESS_TRACKED_CHORES: Final = "tracked_chores"
+DATA_USER_BADGE_PROGRESS_TYPE: Final = "badge_type"
 
 # Note: Shared fields already defined above in Common Badge Progress Fields section
 
-DATA_ASSIGNEE_BONUS_APPLIES: Final = "bonus_applies"
+DATA_USER_BONUS_APPLIES: Final = "bonus_applies"
 # Legacy completed-by-other assignee list removed in v0.5.0+ (Phase 2)
 # SHARED_FIRST blocking now computed dynamically, not tracked in assignee lists
 
 # Assignee Chore Data Structure Constants
-DATA_ASSIGNEE_CHORE_DATA: Final = "chore_data"
-DATA_ASSIGNEE_CHORE_DATA_STATE: Final = "state"
-DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: Final = "pending_claim_count"
-DATA_ASSIGNEE_CHORE_DATA_NAME: Final = "name"
+DATA_USER_CHORE_DATA: Final = "chore_data"
+DATA_USER_CHORE_DATA_STATE: Final = "state"
+DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT: Final = "pending_claim_count"
+DATA_USER_CHORE_DATA_NAME: Final = "name"
 # due_date moved to LEGACY section - use per_assignee_due_dates at chore level instead
-DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED: Final = "last_approved"
-DATA_ASSIGNEE_CHORE_DATA_LAST_CLAIMED: Final = "last_claimed"
-DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED: Final = "last_completed"
-DATA_ASSIGNEE_CHORE_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
-DATA_ASSIGNEE_CHORE_DATA_LAST_OVERDUE: Final = "last_overdue"
-DATA_ASSIGNEE_CHORE_DATA_LAST_MISSED: Final = (
-    "last_missed"  # Phase 5: Last miss timestamp
-)
-DATA_ASSIGNEE_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: Final = (
+DATA_USER_CHORE_DATA_LAST_APPROVED: Final = "last_approved"
+DATA_USER_CHORE_DATA_LAST_CLAIMED: Final = "last_claimed"
+DATA_USER_CHORE_DATA_LAST_COMPLETED: Final = "last_completed"
+DATA_USER_CHORE_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
+DATA_USER_CHORE_DATA_LAST_OVERDUE: Final = "last_overdue"
+DATA_USER_CHORE_DATA_LAST_MISSED: Final = "last_missed"  # Phase 5: Last miss timestamp
+DATA_USER_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: Final = (
     "last_longest_streak_all_time"
 )
-DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START: Final = (
+DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START: Final = (
     "approval_period_start"  # INDEPENDENT: per-assignee period start
 )
-DATA_ASSIGNEE_CHORE_DATA_TOTAL_COUNT: Final = "total_count"
-DATA_ASSIGNEE_CHORE_DATA_TOTAL_POINTS: Final = "total_points"
-DATA_ASSIGNEE_CHORE_DATA_PERIODS: Final = "periods"
-DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME: Final = "all_time"
-DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY: Final = "daily"
-DATA_ASSIGNEE_CHORE_DATA_PERIODS_WEEKLY: Final = "weekly"
-DATA_ASSIGNEE_CHORE_DATA_PERIODS_MONTHLY: Final = "monthly"
-DATA_ASSIGNEE_CHORE_DATA_PERIODS_YEARLY: Final = "yearly"
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: Final = "approved"
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_CLAIMED: Final = "claimed"
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED: Final = "completed"
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY: Final = (
+DATA_USER_CHORE_DATA_TOTAL_COUNT: Final = "total_count"
+DATA_USER_CHORE_DATA_TOTAL_POINTS: Final = "total_points"
+DATA_USER_CHORE_DATA_PERIODS: Final = "periods"
+DATA_USER_CHORE_DATA_PERIODS_ALL_TIME: Final = "all_time"
+DATA_USER_CHORE_DATA_PERIODS_DAILY: Final = "daily"
+DATA_USER_CHORE_DATA_PERIODS_WEEKLY: Final = "weekly"
+DATA_USER_CHORE_DATA_PERIODS_MONTHLY: Final = "monthly"
+DATA_USER_CHORE_DATA_PERIODS_YEARLY: Final = "yearly"
+DATA_USER_CHORE_DATA_PERIOD_APPROVED: Final = "approved"
+DATA_USER_CHORE_DATA_PERIOD_CLAIMED: Final = "claimed"
+DATA_USER_CHORE_DATA_PERIOD_COMPLETED: Final = "completed"
+DATA_USER_CHORE_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
+DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY: Final = (
     "streak_tally"  # Daily: streak value on that day
 )
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK: Final = (
+DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK: Final = (
     "longest_streak"  # All-time: high water mark (HWM)
 )
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_OVERDUE: Final = "overdue"
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED: Final = "missed"  # Phase 5: Period miss counter
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY: Final = (
+DATA_USER_CHORE_DATA_PERIOD_OVERDUE: Final = "overdue"
+DATA_USER_CHORE_DATA_PERIOD_MISSED: Final = "missed"  # Phase 5: Period miss counter
+DATA_USER_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY: Final = (
     "missed_streak_tally"  # Phase 5: Daily consecutive misses
 )
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: Final = (
+DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: Final = (
     "missed_longest_streak"  # Phase 5: All-time missed streak HWM
 )
-DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS: Final = "points"
-DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS: Final = "badge_refs"
+DATA_USER_CHORE_DATA_PERIOD_POINTS: Final = "points"
+DATA_USER_CHORE_DATA_BADGE_REFS: Final = "badge_refs"
 
 # Current Streak Values (Chore Data Level - Never Pruned)
 # Phase 5: Store current streak values at chore data level to survive retention pruning
-DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK: Final = "current_streak"  # Completion streak
-DATA_ASSIGNEE_CHORE_DATA_CURRENT_MISSED_STREAK: Final = (
+DATA_USER_CHORE_DATA_CURRENT_STREAK: Final = "current_streak"  # Completion streak
+DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK: Final = (
     "current_missed_streak"  # Consecutive misses
 )
 
 # Chore Periods (Global Bucket) - v44+ (Phase 2)
-DATA_ASSIGNEE_CHORE_PERIODS: Final = "chore_periods"
+DATA_USER_CHORE_PERIODS: Final = "chore_periods"
 # Chore periods use the same bucket keys as chore_data periods
 # (daily, weekly, monthly, yearly, all_time) - see assignee chore data period keys
 
@@ -1066,16 +1050,14 @@ DATA_ASSIGNEE_CHORE_PERIODS: Final = "chore_periods"
 
 # --- Last Completion Date (lives in chore_data, NOT in deleted chore_stats) ---
 # --- Badge Progress Tracking ---
-DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
+DATA_USER_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
 
 # Phase 3A: Only state fields stored - derived fields computed on-read
 # Maintenance tracking (state fields)
-DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: Final = "cycle_points"
-DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS: Final = "status"
-DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE: Final = (
-    "maintenance_end_date"
-)
-DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE = (
+DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: Final = "cycle_points"
+DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS: Final = "status"
+DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE: Final = "maintenance_end_date"
+DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE = (
     "maintenance_grace_end_date"
 )
 
@@ -1100,17 +1082,15 @@ CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_BADGE_ID: Final = "next_lower_badge_id"
 CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_BADGE_NAME: Final = "next_lower_badge_name"
 CUMULATIVE_BADGE_PROGRESS_NEXT_LOWER_THRESHOLD: Final = "next_lower_threshold"
 
-# Canonical assignee constants (runtime-facing names)
-DATA_ASSIGNEE_ID: Final = "assignee_id"
-DATA_ASSIGNEE_POINTS: Final = "points"
-DATA_ASSIGNEE_POINTS_MULTIPLIER: Final = "points_multiplier"
-DATA_ASSIGNEE_LEDGER: Final = "ledger"
+# Canonical user constants (runtime-facing names)
+DATA_USER_POINTS: Final = "points"
+DATA_USER_POINTS_MULTIPLIER: Final = "points_multiplier"
+DATA_USER_LEDGER: Final = "ledger"
 
-# Legacy aliases for runtime compatibility
-DATA_ASSIGNEE_CURRENT_STREAK: Final = "current_streak"
-DATA_ASSIGNEE_LAST_STREAK_DATE: Final = "last_date"
+DATA_USER_CURRENT_STREAK: Final = "current_streak"
+DATA_USER_LAST_STREAK_DATE: Final = "last_date"
 # NOTE: Legacy overdue chore list removed - dead code (see legacy section)
-DATA_ASSIGNEE_PENALTY_APPLIES: Final = "penalty_applies"
+DATA_USER_PENALTY_APPLIES: Final = "penalty_applies"
 
 # ——————————————————————————————————————————————
 # Ledger Entry Structure Constants (Phase 3 - Economy Stack)
@@ -1130,44 +1110,42 @@ DEFAULT_LEDGER_MAX_ENTRIES: Final = 1000
 # Assignee Reward Data Structure Constants (Modern - v0.5.0+)
 # Supports multi-claim: assignee can claim same reward multiple times before approval
 # ——————————————————————————————————————————————
-DATA_ASSIGNEE_REWARD_DATA: Final = "reward_data"
-DATA_ASSIGNEE_REWARD_DATA_NAME: Final = "name"
-DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT: Final = (
-    "pending_count"  # Number of pending claims
-)
-DATA_ASSIGNEE_REWARD_DATA_LAST_CLAIMED: Final = "last_claimed"
-DATA_ASSIGNEE_REWARD_DATA_LAST_APPROVED: Final = "last_approved"
-DATA_ASSIGNEE_REWARD_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
+DATA_USER_REWARD_DATA: Final = "reward_data"
+DATA_USER_REWARD_DATA_NAME: Final = "name"
+DATA_USER_REWARD_DATA_PENDING_COUNT: Final = "pending_count"  # Number of pending claims
+DATA_USER_REWARD_DATA_LAST_CLAIMED: Final = "last_claimed"
+DATA_USER_REWARD_DATA_LAST_APPROVED: Final = "last_approved"
+DATA_USER_REWARD_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
 
 # LEGACY v43: Removed - use periods.all_time.* instead
-DATA_ASSIGNEE_REWARD_DATA_TOTAL_CLAIMS: Final = (
+DATA_USER_REWARD_DATA_TOTAL_CLAIMS: Final = (
     "total_claims"  # LEGACY v43: Use periods.all_time.claimed
 )
-DATA_ASSIGNEE_REWARD_DATA_TOTAL_APPROVED: Final = (
+DATA_USER_REWARD_DATA_TOTAL_APPROVED: Final = (
     "total_approved"  # LEGACY v43: Use periods.all_time.approved
 )
-DATA_ASSIGNEE_REWARD_DATA_TOTAL_DISAPPROVED: Final = (
+DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED: Final = (
     "total_disapproved"  # LEGACY v43: Use periods.all_time.disapproved
 )
-DATA_ASSIGNEE_REWARD_DATA_TOTAL_POINTS_SPENT: Final = (
+DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT: Final = (
     "total_points_spent"  # LEGACY v43: Use periods.all_time.points
 )
-DATA_ASSIGNEE_REWARD_DATA_NOTIFICATION_IDS: Final = "notification_ids"  # LEGACY v43: NotificationManager owns lifecycle (embeds in action buttons)
+DATA_USER_REWARD_DATA_NOTIFICATION_IDS: Final = "notification_ids"  # LEGACY v43: NotificationManager owns lifecycle (embeds in action buttons)
 
 # Period-based reward tracking (aligned with chore_data and point_data patterns)
-DATA_ASSIGNEE_REWARD_DATA_PERIODS: Final = "periods"
-DATA_ASSIGNEE_REWARD_DATA_PERIODS_DAILY: Final = "daily"
-DATA_ASSIGNEE_REWARD_DATA_PERIODS_WEEKLY: Final = "weekly"
-DATA_ASSIGNEE_REWARD_DATA_PERIODS_MONTHLY: Final = "monthly"
-DATA_ASSIGNEE_REWARD_DATA_PERIODS_YEARLY: Final = "yearly"
-DATA_ASSIGNEE_REWARD_DATA_PERIODS_ALL_TIME: Final = "all_time"
-DATA_ASSIGNEE_REWARD_DATA_PERIOD_CLAIMED: Final = "claimed"
-DATA_ASSIGNEE_REWARD_DATA_PERIOD_APPROVED: Final = "approved"
-DATA_ASSIGNEE_REWARD_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
-DATA_ASSIGNEE_REWARD_DATA_PERIOD_POINTS: Final = "points"
+DATA_USER_REWARD_DATA_PERIODS: Final = "periods"
+DATA_USER_REWARD_DATA_PERIODS_DAILY: Final = "daily"
+DATA_USER_REWARD_DATA_PERIODS_WEEKLY: Final = "weekly"
+DATA_USER_REWARD_DATA_PERIODS_MONTHLY: Final = "monthly"
+DATA_USER_REWARD_DATA_PERIODS_YEARLY: Final = "yearly"
+DATA_USER_REWARD_DATA_PERIODS_ALL_TIME: Final = "all_time"
+DATA_USER_REWARD_DATA_PERIOD_CLAIMED: Final = "claimed"
+DATA_USER_REWARD_DATA_PERIOD_APPROVED: Final = "approved"
+DATA_USER_REWARD_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
+DATA_USER_REWARD_DATA_PERIOD_POINTS: Final = "points"
 
 # Reward Periods (Global Bucket) - v43+ (Phase 3)
-DATA_ASSIGNEE_REWARD_PERIODS: Final = "reward_periods"
+DATA_USER_REWARD_PERIODS: Final = "reward_periods"
 # Reward periods use the same bucket keys as reward_data periods
 # (daily, weekly, monthly, yearly, all_time) - see assignee reward data period keys
 
@@ -1177,12 +1155,12 @@ DATA_ASSIGNEE_REWARD_PERIODS: Final = "reward_periods"
 # reward_data[uuid].periods buckets. See _LEGACY constants at end of file.
 
 # Reward Stats Keys (aggregated stats across all rewards for an assignee)
-DATA_ASSIGNEE_REWARD_STATS: Final = "reward_stats"
+DATA_USER_REWARD_STATS: Final = "reward_stats"
 
 # --- Claimed Counts (pending approval) ---
 
-DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
-DATA_ASSIGNEE_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+DATA_USER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
+DATA_USER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 
 # USERS (schema 45+ capability model)
 DATA_USER_ID: Final = "user_id"
@@ -1208,21 +1186,19 @@ NOTIFICATION_TRANSLATIONS_SUFFIX: Final = (
 )
 REPORT_TRANSLATIONS_SUFFIX: Final = "_report"  # File naming: en_report.json
 
-# Legacy alias for backward compatibility
-
 # ——————————————————————————————————————————————
 # Assignee Point History Data Structure
 # ——————————————————————————————————————————————
 
 # Top‑level key for storing period‑by‑period point history (v43+)
-DATA_ASSIGNEE_POINT_PERIODS: Final = "point_periods"
+DATA_USER_POINT_PERIODS: Final = "point_periods"
 
 # Individual period buckets
-DATA_ASSIGNEE_POINT_PERIODS_DAILY: Final = "daily"
-DATA_ASSIGNEE_POINT_PERIODS_WEEKLY: Final = "weekly"
-DATA_ASSIGNEE_POINT_PERIODS_MONTHLY: Final = "monthly"
-DATA_ASSIGNEE_POINT_PERIODS_YEARLY: Final = "yearly"
-DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME: Final = "all_time"
+DATA_USER_POINT_PERIODS_DAILY: Final = "daily"
+DATA_USER_POINT_PERIODS_WEEKLY: Final = "weekly"
+DATA_USER_POINT_PERIODS_MONTHLY: Final = "monthly"
+DATA_USER_POINT_PERIODS_YEARLY: Final = "yearly"
+DATA_USER_POINT_PERIODS_ALL_TIME: Final = "all_time"
 
 # Within each period entry:
 #   – points_earned: sum of positive deltas (v44+)
@@ -1230,10 +1206,10 @@ DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME: Final = "all_time"
 #   – by_source: breakdown of delta by source type
 #   – highest_balance: cumulative peak (all_time bucket only, v44+)
 # DEPRECATED (v44): points_total will be deleted after migration
-DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED: Final = "points_earned"
-DATA_ASSIGNEE_POINT_PERIOD_POINTS_SPENT: Final = "points_spent"
-DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE: Final = "highest_balance"
-DATA_ASSIGNEE_POINT_PERIOD_BY_SOURCE: Final = "by_source"
+DATA_USER_POINT_PERIOD_POINTS_EARNED: Final = "points_earned"
+DATA_USER_POINT_PERIOD_POINTS_SPENT: Final = "points_spent"
+DATA_USER_POINT_PERIOD_HIGHEST_BALANCE: Final = "highest_balance"
+DATA_USER_POINT_PERIOD_BY_SOURCE: Final = "by_source"
 
 # Point Sources
 # --- Point Source Types (all plural) ---
@@ -1262,87 +1238,87 @@ POINTS_SOURCE_OTHER: Final = "other"
 # They represent ephemeral, derived data that can be regenerated from buckets.
 # Directive: Derivative Data is Ephemeral - these MUST NOT be persisted.
 # See Phase 7.5: Statistics Presenter & Data Sanitization
-# Naming: PRES_ASSIGNEE_* follows DATA_ASSIGNEE_* pattern for assignee-specific values.
+# Naming: PRES_USER_* follows DATA_ASSIGNEE_* pattern for assignee-specific values.
 
 # --- Presentation: Point Stats (derived from period buckets) ---
-PRES_ASSIGNEE_POINTS_EARNED_TODAY: Final = "pres_assignee_points_earned_today"
-PRES_ASSIGNEE_POINTS_EARNED_WEEK: Final = "pres_assignee_points_earned_week"
-PRES_ASSIGNEE_POINTS_EARNED_MONTH: Final = "pres_assignee_points_earned_month"
-PRES_ASSIGNEE_POINTS_EARNED_YEAR: Final = "pres_assignee_points_earned_year"
+PRES_USER_POINTS_EARNED_TODAY: Final = "pres_user_points_earned_today"
+PRES_USER_POINTS_EARNED_WEEK: Final = "pres_user_points_earned_week"
+PRES_USER_POINTS_EARNED_MONTH: Final = "pres_user_points_earned_month"
+PRES_USER_POINTS_EARNED_YEAR: Final = "pres_user_points_earned_year"
 
-PRES_ASSIGNEE_POINTS_SPENT_TODAY: Final = "pres_assignee_points_spent_today"
-PRES_ASSIGNEE_POINTS_SPENT_WEEK: Final = "pres_assignee_points_spent_week"
-PRES_ASSIGNEE_POINTS_SPENT_MONTH: Final = "pres_assignee_points_spent_month"
-PRES_ASSIGNEE_POINTS_SPENT_YEAR: Final = "pres_assignee_points_spent_year"
+PRES_USER_POINTS_SPENT_TODAY: Final = "pres_user_points_spent_today"
+PRES_USER_POINTS_SPENT_WEEK: Final = "pres_user_points_spent_week"
+PRES_USER_POINTS_SPENT_MONTH: Final = "pres_user_points_spent_month"
+PRES_USER_POINTS_SPENT_YEAR: Final = "pres_user_points_spent_year"
 
-PRES_ASSIGNEE_POINTS_NET_TODAY: Final = "pres_assignee_points_net_today"
-PRES_ASSIGNEE_POINTS_NET_WEEK: Final = "pres_assignee_points_net_week"
-PRES_ASSIGNEE_POINTS_NET_MONTH: Final = "pres_assignee_points_net_month"
-PRES_ASSIGNEE_POINTS_NET_YEAR: Final = "pres_assignee_points_net_year"
+PRES_USER_POINTS_NET_TODAY: Final = "pres_user_points_net_today"
+PRES_USER_POINTS_NET_WEEK: Final = "pres_user_points_net_week"
+PRES_USER_POINTS_NET_MONTH: Final = "pres_user_points_net_month"
+PRES_USER_POINTS_NET_YEAR: Final = "pres_user_points_net_year"
 
-PRES_ASSIGNEE_POINTS_BY_SOURCE_TODAY: Final = "pres_assignee_points_by_source_today"
-PRES_ASSIGNEE_POINTS_BY_SOURCE_WEEK: Final = "pres_assignee_points_by_source_week"
-PRES_ASSIGNEE_POINTS_BY_SOURCE_MONTH: Final = "pres_assignee_points_by_source_month"
-PRES_ASSIGNEE_POINTS_BY_SOURCE_YEAR: Final = "pres_assignee_points_by_source_year"
+PRES_USER_POINTS_BY_SOURCE_TODAY: Final = "pres_user_points_by_source_today"
+PRES_USER_POINTS_BY_SOURCE_WEEK: Final = "pres_user_points_by_source_week"
+PRES_USER_POINTS_BY_SOURCE_MONTH: Final = "pres_user_points_by_source_month"
+PRES_USER_POINTS_BY_SOURCE_YEAR: Final = "pres_user_points_by_source_year"
 
-PRES_ASSIGNEE_POINTS_AVG_PER_DAY_WEEK: Final = "pres_assignee_avg_points_per_day_week"
-PRES_ASSIGNEE_POINTS_AVG_PER_DAY_MONTH: Final = "pres_assignee_avg_points_per_day_month"
+PRES_USER_POINTS_AVG_PER_DAY_WEEK: Final = "pres_user_avg_points_per_day_week"
+PRES_USER_POINTS_AVG_PER_DAY_MONTH: Final = "pres_user_avg_points_per_day_month"
 
 # --- Presentation: Chore Stats (derived from period buckets) ---
-PRES_ASSIGNEE_CHORES_APPROVED_TODAY: Final = "pres_assignee_chores_approved_today"
-PRES_ASSIGNEE_CHORES_APPROVED_WEEK: Final = "pres_assignee_chores_approved_week"
-PRES_ASSIGNEE_CHORES_APPROVED_MONTH: Final = "pres_assignee_chores_approved_month"
-PRES_ASSIGNEE_CHORES_APPROVED_YEAR: Final = "pres_assignee_chores_approved_year"
+PRES_USER_CHORES_APPROVED_TODAY: Final = "pres_user_chores_approved_today"
+PRES_USER_CHORES_APPROVED_WEEK: Final = "pres_user_chores_approved_week"
+PRES_USER_CHORES_APPROVED_MONTH: Final = "pres_user_chores_approved_month"
+PRES_USER_CHORES_APPROVED_YEAR: Final = "pres_user_chores_approved_year"
 
 # --- Presentation: Completed Stats (work date tracking - approver-lag-proof) ---
 # These track when work was DONE (claim date), not when approved.
-PRES_ASSIGNEE_CHORES_COMPLETED_TODAY: Final = "pres_assignee_chores_completed_today"
-PRES_ASSIGNEE_CHORES_COMPLETED_WEEK: Final = "pres_assignee_chores_completed_week"
-PRES_ASSIGNEE_CHORES_COMPLETED_MONTH: Final = "pres_assignee_chores_completed_month"
-PRES_ASSIGNEE_CHORES_COMPLETED_YEAR: Final = "pres_assignee_chores_completed_year"
+PRES_USER_CHORES_COMPLETED_TODAY: Final = "pres_user_chores_completed_today"
+PRES_USER_CHORES_COMPLETED_WEEK: Final = "pres_user_chores_completed_week"
+PRES_USER_CHORES_COMPLETED_MONTH: Final = "pres_user_chores_completed_month"
+PRES_USER_CHORES_COMPLETED_YEAR: Final = "pres_user_chores_completed_year"
 
-PRES_ASSIGNEE_CHORES_CLAIMED_TODAY: Final = "pres_assignee_chores_claimed_today"
-PRES_ASSIGNEE_CHORES_CLAIMED_WEEK: Final = "pres_assignee_chores_claimed_week"
-PRES_ASSIGNEE_CHORES_CLAIMED_MONTH: Final = "pres_assignee_chores_claimed_month"
-PRES_ASSIGNEE_CHORES_CLAIMED_YEAR: Final = "pres_assignee_chores_claimed_year"
+PRES_USER_CHORES_CLAIMED_TODAY: Final = "pres_user_chores_claimed_today"
+PRES_USER_CHORES_CLAIMED_WEEK: Final = "pres_user_chores_claimed_week"
+PRES_USER_CHORES_CLAIMED_MONTH: Final = "pres_user_chores_claimed_month"
+PRES_USER_CHORES_CLAIMED_YEAR: Final = "pres_user_chores_claimed_year"
 
-PRES_ASSIGNEE_CHORES_MISSED_TODAY: Final = "pres_assignee_chores_missed_today"
-PRES_ASSIGNEE_CHORES_MISSED_WEEK: Final = "pres_assignee_chores_missed_week"
-PRES_ASSIGNEE_CHORES_MISSED_MONTH: Final = "pres_assignee_chores_missed_month"
-PRES_ASSIGNEE_CHORES_MISSED_YEAR: Final = "pres_assignee_chores_missed_year"
+PRES_USER_CHORES_MISSED_TODAY: Final = "pres_user_chores_missed_today"
+PRES_USER_CHORES_MISSED_WEEK: Final = "pres_user_chores_missed_week"
+PRES_USER_CHORES_MISSED_MONTH: Final = "pres_user_chores_missed_month"
+PRES_USER_CHORES_MISSED_YEAR: Final = "pres_user_chores_missed_year"
 
-PRES_ASSIGNEE_CHORES_POINTS_TODAY: Final = "pres_assignee_chores_points_today"
-PRES_ASSIGNEE_CHORES_POINTS_WEEK: Final = "pres_assignee_chores_points_week"
-PRES_ASSIGNEE_CHORES_POINTS_MONTH: Final = "pres_assignee_chores_points_month"
-PRES_ASSIGNEE_CHORES_POINTS_YEAR: Final = "pres_assignee_chores_points_year"
+PRES_USER_CHORES_POINTS_TODAY: Final = "pres_user_chores_points_today"
+PRES_USER_CHORES_POINTS_WEEK: Final = "pres_user_chores_points_week"
+PRES_USER_CHORES_POINTS_MONTH: Final = "pres_user_chores_points_month"
+PRES_USER_CHORES_POINTS_YEAR: Final = "pres_user_chores_points_year"
 
-PRES_ASSIGNEE_CHORES_AVG_PER_DAY_WEEK: Final = "pres_assignee_chores_avg_per_day_week"
-PRES_ASSIGNEE_CHORES_AVG_PER_DAY_MONTH: Final = "pres_assignee_chores_avg_per_day_month"
-PRES_ASSIGNEE_CHORES_AVG_PER_DAY_YEAR: Final = "pres_assignee_chores_avg_per_day_year"
+PRES_USER_CHORES_AVG_PER_DAY_WEEK: Final = "pres_user_chores_avg_per_day_week"
+PRES_USER_CHORES_AVG_PER_DAY_MONTH: Final = "pres_user_chores_avg_per_day_month"
+PRES_USER_CHORES_AVG_PER_DAY_YEAR: Final = "pres_user_chores_avg_per_day_year"
 
-PRES_ASSIGNEE_TOP_CHORES_WEEK: Final = "pres_assignee_top_chores_week"
-PRES_ASSIGNEE_TOP_CHORES_MONTH: Final = "pres_assignee_top_chores_month"
-PRES_ASSIGNEE_TOP_CHORES_YEAR: Final = "pres_assignee_top_chores_year"
+PRES_USER_TOP_CHORES_WEEK: Final = "pres_user_top_chores_week"
+PRES_USER_TOP_CHORES_MONTH: Final = "pres_user_top_chores_month"
+PRES_USER_TOP_CHORES_YEAR: Final = "pres_user_top_chores_year"
 
 # --- Presentation: Snapshot Counts (current state, not historical) ---
 # These are volatile counts of chores in specific states RIGHT NOW.
 # Derived from current chore states, NOT from period buckets.
-PRES_ASSIGNEE_CHORES_CURRENT_OVERDUE: Final = "pres_assignee_chores_current_overdue"
-PRES_ASSIGNEE_CHORES_CURRENT_CLAIMED: Final = "pres_assignee_chores_current_claimed"
-PRES_ASSIGNEE_CHORES_CURRENT_APPROVED: Final = "pres_assignee_chores_current_approved"
-PRES_ASSIGNEE_CHORES_CURRENT_DUE_TODAY: Final = "pres_assignee_chores_current_due_today"
+PRES_USER_CHORES_CURRENT_OVERDUE: Final = "pres_user_chores_current_overdue"
+PRES_USER_CHORES_CURRENT_CLAIMED: Final = "pres_user_chores_current_claimed"
+PRES_USER_CHORES_CURRENT_APPROVED: Final = "pres_user_chores_current_approved"
+PRES_USER_CHORES_CURRENT_DUE_TODAY: Final = "pres_user_chores_current_due_today"
 
 # --- Presentation: Reward Stats (derived from period buckets) ---
-PRES_ASSIGNEE_REWARDS_CLAIMED_TODAY: Final = "pres_assignee_rewards_claimed_today"
-PRES_ASSIGNEE_REWARDS_CLAIMED_WEEK: Final = "pres_assignee_rewards_claimed_week"
-PRES_ASSIGNEE_REWARDS_CLAIMED_MONTH: Final = "pres_assignee_rewards_claimed_month"
+PRES_USER_REWARDS_CLAIMED_TODAY: Final = "pres_user_rewards_claimed_today"
+PRES_USER_REWARDS_CLAIMED_WEEK: Final = "pres_user_rewards_claimed_week"
+PRES_USER_REWARDS_CLAIMED_MONTH: Final = "pres_user_rewards_claimed_month"
 
-PRES_ASSIGNEE_REWARDS_APPROVED_TODAY: Final = "pres_assignee_rewards_approved_today"
-PRES_ASSIGNEE_REWARDS_APPROVED_WEEK: Final = "pres_assignee_rewards_approved_week"
-PRES_ASSIGNEE_REWARDS_APPROVED_MONTH: Final = "pres_assignee_rewards_approved_month"
+PRES_USER_REWARDS_APPROVED_TODAY: Final = "pres_user_rewards_approved_today"
+PRES_USER_REWARDS_APPROVED_WEEK: Final = "pres_user_rewards_approved_week"
+PRES_USER_REWARDS_APPROVED_MONTH: Final = "pres_user_rewards_approved_month"
 
 # --- Presentation: Cache Metadata ---
-PRES_ASSIGNEE_LAST_UPDATED: Final = "pres_assignee_last_updated"
+PRES_USER_LAST_UPDATED: Final = "pres_user_last_updated"
 
 # =============================================================================
 # TEMPORAL STAT KEY SUFFIXES (for migration stripping - Phase 7.5)
@@ -1354,12 +1330,14 @@ PRES_ASSIGNEE_LAST_UPDATED: Final = "pres_assignee_last_updated"
 
 # Canonical approver constants (runtime-facing names)
 # Canonical approver-linked profile key (legacy storage key retained for compatibility)
-DATA_APPROVER_ASSOCIATED_USERS: Final = "associated_assignees"
+DATA_APPROVER_ASSOCIATED_USERS: Final = "associated_user_ids"
 DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
-DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
 DATA_APPROVER_ENABLE_CHORE_WORKFLOW: Final = "enable_chore_workflow"
 DATA_APPROVER_ENABLE_GAMIFICATION: Final = "enable_gamification"
 DATA_APPROVER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
+
+# Legacy migration-only approver key (schema <45)
+LEGACY_DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = "allow_chore_assignment"
 
 # CHORES
 DATA_CHORE_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
@@ -1367,7 +1345,7 @@ DATA_CHORE_APPROVAL_PERIOD_START: Final = (
     "approval_period_start"  # When current approval period started
 )
 DATA_CHORE_APPLICABLE_DAYS: Final = "applicable_days"
-DATA_CHORE_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+DATA_CHORE_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 DATA_CHORE_CUSTOM_INTERVAL: Final = "custom_interval"
 DATA_CHORE_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
 DATA_CHORE_DEFAULT_POINTS: Final = "default_points"
@@ -1575,9 +1553,9 @@ DATA_BONUS_NAME: Final = "name"
 DATA_BONUS_POINTS: Final = "points"
 
 # Bonus period tracking (item-level only, no aggregate bucket at assignee level)
-DATA_ASSIGNEE_BONUS_PERIODS: Final = "periods"
-DATA_ASSIGNEE_BONUS_PERIOD_APPLIES: Final = "applies"
-DATA_ASSIGNEE_BONUS_PERIOD_POINTS: Final = "points"
+DATA_USER_BONUS_PERIODS: Final = "periods"
+DATA_USER_BONUS_PERIOD_APPLIES: Final = "applies"
+DATA_USER_BONUS_PERIOD_POINTS: Final = "points"
 
 # PENALTIES
 DATA_PENALTY_DESCRIPTION: Final = "description"
@@ -1589,16 +1567,16 @@ DATA_PENALTY_NAME: Final = "name"
 DATA_PENALTY_POINTS: Final = "points"
 
 # Penalty period tracking (item-level only, no aggregate bucket at assignee level)
-DATA_ASSIGNEE_PENALTY_PERIODS: Final = "periods"
-DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES: Final = "applies"
-DATA_ASSIGNEE_PENALTY_PERIOD_POINTS: Final = "points"
+DATA_USER_PENALTY_PERIODS: Final = "periods"
+DATA_USER_PENALTY_PERIOD_APPLIES: Final = "applies"
+DATA_USER_PENALTY_PERIOD_POINTS: Final = "points"
 
 # Transaction ledger item name field (universal across all item types)
 # Used in metadata to store human-readable name (chores, rewards, badges, bonuses, penalties)
 DATA_LEDGER_ITEM_NAME: Final = "item_name"
 
 # ACHIEVEMENTS
-DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 DATA_ACHIEVEMENT_AWARDED: Final = "awarded"
 DATA_ACHIEVEMENT_BASELINE: Final = "baseline"
 DATA_ACHIEVEMENT_CRITERIA: Final = "criteria"
@@ -1619,7 +1597,7 @@ DATA_ACHIEVEMENT_TARGET_VALUE: Final = "target_value"
 DATA_ACHIEVEMENT_TYPE: Final = "type"
 
 # CHALLENGES
-DATA_CHALLENGE_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+DATA_CHALLENGE_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 DATA_CHALLENGE_AWARDED: Final = "awarded"
 DATA_CHALLENGE_COUNT: Final = "count"
 DATA_CHALLENGE_CRITERIA: Final = "criteria"
@@ -1807,7 +1785,7 @@ CHORE_STATE_NOT_MY_TURN = "not_my_turn"
 # - Assignee-level persisted state: workflow checkpoints stored in assignee_chore_data
 # - Assignee-level derived state: display/claimability states resolved at runtime
 # - Chore-level persisted state: aggregate snapshot stored on chore record
-CHORE_PERSISTED_ASSIGNEE_STATES: Final[frozenset[str]] = frozenset(
+CHORE_PERSISTED_USER_STATES: Final[frozenset[str]] = frozenset(
     {
         CHORE_STATE_PENDING,
         CHORE_STATE_CLAIMED,
@@ -1872,7 +1850,7 @@ CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT: Final = (
 )
 
 # Scanner Entry Field Keys (ChoreTimeEntry structure field keys)
-CHORE_SCAN_ENTRY_ASSIGNEE_ID: Final = "assignee_id"  # Assignee UUID
+CHORE_SCAN_ENTRY_USER_ID: Final = "user_id"  # User UUID
 CHORE_SCAN_ENTRY_CHORE_ID: Final = "chore_id"  # Chore UUID
 CHORE_SCAN_ENTRY_DUE_DT: Final = "due_dt"  # Due datetime object
 CHORE_SCAN_ENTRY_CHORE_INFO: Final = "chore_info"  # Chore data dict
@@ -2194,8 +2172,8 @@ ATTR_CAN_CLAIM: Final = "can_claim"
 # Rotation UI attributes removed - not exposed in entity attributes
 ATTR_CLAIMED_BY: Final = "claimed_by"
 ATTR_COMPLETED_BY: Final = "completed_by"
-ATTR_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
-ATTR_ASSIGNEE_NAME: Final = "assignee_name"
+ATTR_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
+ATTR_USER_NAME: Final = "user_name"
 ATTR_ASSOCIATED_ACHIEVEMENT: Final = "associated_achievement"
 ATTR_ASSOCIATED_CHALLENGE: Final = "associated_challenge"
 ATTR_ASSOCIATED_CHORE: Final = "associated_chore"
@@ -2302,9 +2280,6 @@ PURPOSE_SELECT_PENALTIES: Final = (
     "Dropdown to select penalty from all available penalties"
 )
 PURPOSE_SELECT_BONUSES: Final = "Dropdown to select bonus from all available bonuses"
-PURPOSE_SELECT_ASSIGNEE_CHORES: Final = (
-    "Assignee chore selection for dashboard filtering"
-)
 
 # PURPOSE values for calendar attributes (calendar.py)
 PURPOSE_CALENDAR_SCHEDULE: Final = (
@@ -2323,8 +2298,8 @@ ATTR_GLOBAL_STATE: Final = "global_state"
 ATTR_HIGHEST_BADGE_THRESHOLD_VALUE: Final = "highest_badge_threshold_value"
 ATTR_HIGHEST_EARNED_BADGE_EID: Final = "highest_earned_badge_eid"
 ATTR_HIGHEST_EARNED_BADGE_NAME: Final = "highest_earned_badge_name"
-ATTR_ASSIGNEES_ASSIGNED: Final = "assignees_assigned"
-ATTR_ASSIGNEES_EARNED: Final = "assignees_earned"
+ATTR_USERS_ASSIGNED: Final = "assignees_assigned"
+ATTR_USERS_EARNED: Final = "assignees_earned"
 ATTR_LABELS: Final = "labels"
 ATTR_LAST_APPROVED: Final = "last_approved"
 ATTR_LAST_CLAIMED: Final = "last_claimed"
@@ -2332,8 +2307,8 @@ ATTR_LAST_COMPLETED: Final = "last_completed"
 ATTR_LAST_DISAPPROVED: Final = "last_disapproved"
 ATTR_LAST_OVERDUE: Final = "last_overdue"
 ATTR_DASHBOARD_HELPER_EID: Final = "dashboard_helper_eid"
-ATTR_SELECTED_ASSIGNEE_SLUG: Final = "selected_assignee_slug"
-ATTR_SELECTED_ASSIGNEE_NAME: Final = "selected_assignee_name"
+ATTR_SELECTED_USER_SLUG: Final = "selected_user_slug"
+ATTR_SELECTED_USER_NAME: Final = "selected_user_name"
 ATTR_NEXT_HIGHER_BADGE_NAME: Final = "next_higher_badge_name"
 ATTR_NEXT_HIGHER_BADGE_EID: Final = "next_higher_badge_eid"
 ATTR_NEXT_LOWER_BADGE_NAME: Final = "next_lower_badge_name"
@@ -2404,7 +2379,7 @@ ATTR_CHORE_PRIMARY_GROUP: Final = "primary_group"
 
 # Phase 4: Rotation and availability dashboard attributes
 ATTR_CHORE_LOCK_REASON: Final = "lock_reason"
-ATTR_CHORE_TURN_ASSIGNEE_NAME: Final = "turn_assignee_name"
+ATTR_CHORE_TURN_USER_NAME: Final = "turn_user_name"
 ATTR_CHORE_AVAILABLE_AT: Final = "available_at"
 
 # Common attributes for chores and rewards in dashboard helper
@@ -2506,22 +2481,10 @@ SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_MONTHLY_SENSOR: Final = (
 )
 SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_TOTAL_SENSOR: Final = "_chores_completed_total"
 SENSOR_KC_EID_SUFFIX_CHORES_COMPLETED_WEEKLY_SENSOR: Final = "_chores_completed_weekly"
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_CHORES_SENSOR: Final = "_chores"
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_BADGES_SENSOR: Final = "_badges"
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR: Final = "_chores_highest_streak"
 SENSOR_KC_EID_MIDFIX_PENALTY_APPLIES_SENSOR: Final = "_penalties_applied_"
 SENSOR_KC_EID_MIDFIX_REWARD_STATUS_SENSOR: Final = "_reward_status_"
 SENSOR_KC_EID_MIDFIX_SHARED_CHORE_GLOBAL_STATUS_SENSOR: Final = "global_chore_status_"
 SENSOR_KC_EID_SUFFIX_BADGE_SENSOR: Final = "_badge"
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_MAX_POINTS_EARNED_SENSOR: Final = "_points_max_ever"
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_EARNED_DAILY_SENSOR: Final = "_points_earned_daily"
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_EARNED_MONTHLY_SENSOR: Final = (
-    "_points_earned_monthly"
-)
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_EARNED_WEEKLY_SENSOR: Final = (
-    "_points_earned_weekly"
-)
-SENSOR_KC_EID_SUFFIX_ASSIGNEE_POINTS_SENSOR: Final = "_points"
 SENSOR_KC_EID_SUFFIX_PENDING_CHORE_APPROVALS_SENSOR: Final = (
     "global_chore_pending_approvals"
 )
@@ -2703,9 +2666,9 @@ SERVICE_FIELD_ITEM_TYPE: Final = (
 )
 
 # Data reset service scope types (NEVER use "reset" alone - always qualify)
-# Scope = WHO is affected (all assignees vs one assignee)
-DATA_RESET_SCOPE_GLOBAL: Final = "global"  # All assignees
-DATA_RESET_SCOPE_ASSIGNEE: Final = "assignee"  # One assignee (requires assignee_name)
+# Scope = WHO is affected (all users vs one user)
+DATA_RESET_SCOPE_GLOBAL: Final = "global"  # All users
+DATA_RESET_SCOPE_USER: Final = "user"  # One user (requires assignee_name)
 
 # Data reset service item type values (WHAT domain to reset)
 # Optional - if omitted, resets ALL domains for the scope
@@ -2725,8 +2688,8 @@ DATA_RESET_ITEM_TYPE_BONUSES: Final = "bonuses"
 # ------------------------------------------------------------------------------------------------
 
 # Cross-entity service fields (used by multiple services)
-SERVICE_FIELD_ASSIGNEE_NAME: Final = "assignee_name"
-SERVICE_FIELD_ASSIGNEE_ID: Final = "assignee_id"
+SERVICE_FIELD_USER_NAME: Final = "user_name"
+SERVICE_FIELD_USER_ID: Final = "user_id"
 SERVICE_FIELD_APPROVER_NAME: Final = "approver_name"
 
 # Chore service fields (workflow)
@@ -2743,7 +2706,7 @@ SERVICE_FIELD_CHORE_CRUD_POINTS: Final = "points"
 SERVICE_FIELD_CHORE_CRUD_DESCRIPTION: Final = "description"
 SERVICE_FIELD_CHORE_CRUD_ICON: Final = "icon"
 SERVICE_FIELD_CHORE_CRUD_LABELS: Final = "labels"
-SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 SERVICE_FIELD_CHORE_CRUD_FREQUENCY: Final = "frequency"
 SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: Final = "applicable_days"
 SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA: Final = "completion_criteria"
@@ -2758,8 +2721,8 @@ SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: Final = "due_reminder_offset"
 
 # ==== Test aliases for convenience (used in Phase 1 tests) ====
 SERVICE_FIELD_NAME: Final = "name"  # Alias for SERVICE_FIELD_CHORE_CRUD_NAME
-SERVICE_FIELD_ASSIGNED_ASSIGNEES: Final = (
-    "assigned_assignees"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_ASSIGNEES
+SERVICE_FIELD_ASSIGNED_USER_IDS: Final = (
+    "assigned_user_ids"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
 )
 SERVICE_FIELD_FREQUENCY: Final = (
     "frequency"  # Alias for SERVICE_FIELD_CHORE_CRUD_FREQUENCY
@@ -2794,7 +2757,7 @@ SERVICE_FIELD_BONUS_NAME: Final = "bonus_name"
 # Badge service fields
 SERVICE_FIELD_BADGE_NAME: Final = "badge_name"
 
-# Shared workflow fields used across legacy aliases
+# Shared workflow fields
 SERVICE_FIELD_CHORE_DUE_DATE: Final = "due_date"
 SERVICE_FIELD_CHORE_POINTS_AWARDED: Final = "points_awarded"
 
@@ -2818,23 +2781,6 @@ REPORT_RANGE_MODE_CUSTOM: Final = "custom"
 REPORT_STYLE_ASSIGNEE: Final = "assignee"
 REPORT_STYLE_AUTOMATION: Final = "automation"
 REPORT_STYLE_BOTH: Final = "both"
-
-# Legacy aliases (for backwards compatibility with existing automations)
-# TODO: Deprecate in v0.6.0 after migration period
-FIELD_BADGE_NAME = SERVICE_FIELD_BADGE_NAME
-FIELD_BONUS_NAME = SERVICE_FIELD_BONUS_NAME
-FIELD_CHORE_ID = SERVICE_FIELD_CHORE_ID
-FIELD_CHORE_NAME = SERVICE_FIELD_CHORE_NAME
-FIELD_COST_OVERRIDE = SERVICE_FIELD_REWARD_COST_OVERRIDE
-FIELD_DUE_DATE = SERVICE_FIELD_CHORE_DUE_DATE
-FIELD_ASSIGNEE_ID = SERVICE_FIELD_ASSIGNEE_ID
-FIELD_ASSIGNEE_NAME = SERVICE_FIELD_ASSIGNEE_NAME
-FIELD_APPROVER_NAME = SERVICE_FIELD_APPROVER_NAME
-FIELD_PENALTY_NAME = SERVICE_FIELD_PENALTY_NAME
-FIELD_POINTS_AWARDED = SERVICE_FIELD_CHORE_POINTS_AWARDED
-FIELD_REWARD_NAME = SERVICE_FIELD_REWARD_NAME
-FIELD_NAME = "name"  # Generic, kept for simple services
-
 
 # ------------------------------------------------------------------------------------------------
 # Labels
@@ -2860,7 +2806,6 @@ LABEL_CHALLENGE: Final = "Challenge"
 # Migration identifiers (for schema version tracking in DATA_META_MIGRATIONS_APPLIED)
 MIGRATION_DATETIME_UTC: Final = "datetime_utc"
 MIGRATION_CHORE_DATA_STRUCTURE: Final = "chore_data_structure"
-MIGRATION_ASSIGNEE_DATA_STRUCTURE: Final = "assignee_data_structure"
 MIGRATION_BADGE_RESTRUCTURE: Final = "badge_restructure"
 MIGRATION_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
 MIGRATION_BADGES_EARNED_DICT: Final = "badges_earned_dict"
@@ -2870,7 +2815,7 @@ MIGRATION_CHORE_DATA_AND_STREAKS: Final = "chore_data_and_streaks"
 DEFAULT_MIGRATIONS_APPLIED: Final = [
     MIGRATION_DATETIME_UTC,
     MIGRATION_CHORE_DATA_STRUCTURE,
-    MIGRATION_ASSIGNEE_DATA_STRUCTURE,
+    "assignee_data_structure",
     MIGRATION_BADGE_RESTRUCTURE,
     MIGRATION_CUMULATIVE_BADGE_PROGRESS,
     MIGRATION_BADGES_EARNED_DICT,
@@ -3090,7 +3035,7 @@ TRANS_KEY_ERROR_DATA_RESET_ASSIGNEE_NOT_FOUND: Final = (
 TRANS_KEY_ERROR_DATA_RESET_ITEM_NOT_FOUND: Final = (
     "data_reset_item_not_found"  # {item_type} '{item_name}' not found
 )
-TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE: Final = "data_reset_invalid_scope"  # Invalid scope '{scope}'. Must be: global, assignee, item_type, or item
+TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE: Final = "data_reset_invalid_scope"  # Invalid scope '{scope}'. Must be: global, user, item_type, or item
 TRANS_KEY_ERROR_DATA_RESET_INVALID_ITEM_TYPE: Final = "data_reset_invalid_item_type"  # Invalid item_type '{item_type}'. Must be: assignees, chores, etc.
 
 # Translation Keys for Phase 2-4 Error Migration (Action Templating)
@@ -3139,7 +3084,7 @@ TRANS_KEY_DISPLAY_UNKNOWN_ENTITY: Final = "display_unknown_entity"
 
 # Config Flow & Options Flow Error Keys
 CFOP_ERROR_ACHIEVEMENT_NAME: Final = "name"
-CFOP_ERROR_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+CFOP_ERROR_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 CFOP_ERROR_BASE: Final = "base"
 CFOP_ERROR_CORRUPT_FILE: Final = "corrupt_file"
 CFOP_ERROR_FILE_NOT_FOUND: Final = "file_not_found"
@@ -3179,8 +3124,8 @@ CFOP_ERROR_POINTS_ADJUST_VALUES: Final = "points_adjust_values"
 CFOP_ERROR_CHORE_POINTS: Final = "points"  # Invalid chore points value
 # CFE-2026-001: Daily Multi validation error keys
 CFOP_ERROR_DAILY_MULTI_RESET: Final = "recurring_frequency"  # Uses frequency field
-CFOP_ERROR_DAILY_MULTI_ASSIGNEES: Final = (
-    "assigned_assignees"  # Uses assigned_assignees field
+CFOP_ERROR_DAILY_MULTI_USER_IDS: Final = (
+    "assigned_user_ids"  # Uses assigned_user_ids field
 )
 CFOP_ERROR_DAILY_MULTI_DUE_DATE: Final = "due_date"  # Uses due_date field
 CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
@@ -3194,7 +3139,7 @@ CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
 # ------------------------------------------------------------------------------------------------
 
 # Approver Chore Capability Defaults
-DEFAULT_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = False
+LEGACY_DEFAULT_APPROVER_ALLOW_CHORE_ASSIGNMENT: Final = False
 DEFAULT_APPROVER_ENABLE_CHORE_WORKFLOW: Final = False
 DEFAULT_APPROVER_ENABLE_GAMIFICATION: Final = False
 
@@ -3217,7 +3162,7 @@ ATTR_DASHBOARD_CHALLENGES: Final = "challenges"
 ATTR_DASHBOARD_BADGES: Final = "badges"
 ATTR_DASHBOARD_PENDING_APPROVALS: Final = "pending_approvals"
 ATTR_DASHBOARD_POINTS_BUTTONS: Final = "points_buttons"
-ATTR_DASHBOARD_ASSIGNEE_NAME: Final = "assignee_name"
+ATTR_DASHBOARD_USER_NAME: Final = "user_name"
 ATTR_DASHBOARD_UI_TRANSLATIONS: Final = "ui_translations"
 
 
@@ -3367,7 +3312,7 @@ TRANS_KEY_CFOF_INVALID_ASSIGNEE: Final = "invalid_assignee"
 TRANS_KEY_CFOF_INVALID_ASSIGNEE_COUNT: Final = "invalid_assignee_count"
 TRANS_KEY_CFOF_INVALID_ASSIGNEE_NAME: Final = "invalid_assignee_name"
 TRANS_KEY_CFOF_INVALID_APPROVER: Final = "invalid_approver"
-TRANS_KEY_CFOF_INVALID_APPROVER_COUNT: Final = "invalid_approver_count"
+TRANS_KEY_CFOF_INVALID_USER_COUNT: Final = "invalid_user_count"
 TRANS_KEY_CFOF_INVALID_APPROVER_NAME: Final = "invalid_approver_name"
 
 # Approver Chore Capability Translation Keys
@@ -3410,7 +3355,6 @@ TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_ERROR: Final = "dashboard_template_error"
 TRANS_KEY_CFOF_DASHBOARD_RENDER_ERROR: Final = "dashboard_render_error"
 TRANS_KEY_CFOF_DASHBOARD_SAVE_ERROR: Final = "dashboard_save_error"
 TRANS_KEY_CFOF_DASHBOARD_NO_NAME: Final = "dashboard_no_name"
-TRANS_KEY_CFOF_DASHBOARD_NO_ASSIGNEES: Final = "dashboard_no_assignees"
 TRANS_KEY_CFOF_DASHBOARD_ACTION: Final = "dashboard_action"
 TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 TRANS_KEY_CFOF_DASHBOARD_UPDATE_SELECTION: Final = "dashboard_update_selection"
@@ -3446,10 +3390,10 @@ TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
     "approval_reset_pending_claim_action"
 )
 TRANS_KEY_FLOW_HELPERS_APPROVAL_RESET_TYPE: Final = "approval_reset_type"
-TRANS_KEY_FLOW_HELPERS_ASSIGNED_ASSIGNEES: Final = "assigned_assignees"
+TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 TRANS_KEY_FLOW_HELPERS_CHORE_NOTIFICATIONS: Final = "chore_notifications"
 TRANS_KEY_FLOW_HELPERS_COMPLETION_CRITERIA: Final = "completion_criteria"
-TRANS_KEY_FLOW_HELPERS_ASSOCIATED_ASSIGNEES: Final = "associated_assignees"
+TRANS_KEY_FLOW_HELPERS_ASSOCIATED_USER_IDS: Final = "associated_user_ids"
 TRANS_KEY_FLOW_HELPERS_CUSTOM_INTERVAL_UNIT: Final = "custom_interval_unit"
 TRANS_KEY_FLOW_HELPERS_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
 TRANS_KEY_FLOW_HELPERS_RECURRING_FREQUENCY: Final = "recurring_frequency"

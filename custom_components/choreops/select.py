@@ -464,8 +464,8 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE,
             const.ATTR_DASHBOARD_HELPER_EID: dashboard_helper_entity,
-            const.ATTR_SELECTED_ASSIGNEE_SLUG: assignee_slug,
-            const.ATTR_SELECTED_ASSIGNEE_NAME: current_value,
+            const.ATTR_SELECTED_USER_SLUG: assignee_slug,
+            const.ATTR_SELECTED_USER_NAME: current_value,
         }
 
 
@@ -527,7 +527,7 @@ class AssigneeDashboardHelperChoresSelect(ChoreOpsSelectBase):
         chore_names = []
         for chore_id, chore_info in self.coordinator.chores_data.items():
             if self._assignee_id in chore_info.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 chore_name = chore_info.get(
                     const.DATA_CHORE_NAME,
@@ -555,5 +555,5 @@ class AssigneeDashboardHelperChoresSelect(ChoreOpsSelectBase):
         )
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SELECT_ASSIGNEE_CHORES,
-            const.ATTR_ASSIGNEE_NAME: assignee_name,
+            const.ATTR_USER_NAME: assignee_name,
         }

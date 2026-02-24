@@ -182,9 +182,9 @@ class TestDailyMultiValidation:
             COMPLETION_CRITERIA_INDEPENDENT,
             ["assignee1_id", "assignee2_id"],  # Multiple assignees
         )
-        assert const.CFOP_ERROR_DAILY_MULTI_ASSIGNEES in errors
+        assert const.CFOP_ERROR_DAILY_MULTI_USER_IDS in errors
         assert (
-            errors[const.CFOP_ERROR_DAILY_MULTI_ASSIGNEES]
+            errors[const.CFOP_ERROR_DAILY_MULTI_USER_IDS]
             == const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_ASSIGNEES
         )
 
@@ -487,7 +487,7 @@ class TestAtDueDateResetRequiresDueDate:
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
@@ -513,7 +513,7 @@ class TestAtDueDateResetRequiresDueDate:
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
@@ -544,7 +544,7 @@ class TestAtDueDateResetRequiresDueDate:
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë", "Max!"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë", "Max!"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
@@ -574,7 +574,7 @@ class TestAtDueDateResetRequiresDueDate:
 
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["Zoë", "Max!"],
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë", "Max!"],
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_MULTI,

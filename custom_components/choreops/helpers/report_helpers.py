@@ -418,7 +418,7 @@ def _iter_ledger_entries_in_range(
     end_dt: datetime,
 ) -> list[dict[str, Any]]:
     """Return ledger entries for an assignee in the requested datetime range."""
-    ledger = assignee_info.get(const.DATA_ASSIGNEE_LEDGER, [])
+    ledger = assignee_info.get(const.DATA_USER_LEDGER, [])
     if not isinstance(ledger, list):
         return []
 
@@ -1007,16 +1007,16 @@ def _build_badge_highlights_from_assignees_data(
         assignee_name = str(assignee_info.get(const.DATA_USER_NAME, assignee_id))
         badges_earned = cast(
             "dict[str, dict[str, Any]]",
-            assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            assignee_info.get(const.DATA_USER_BADGES_EARNED, {}),
         )
 
         for badge_info in badges_earned.values():
             badge_name = str(
-                badge_info.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME, "Badge")
+                badge_info.get(const.DATA_USER_BADGES_EARNED_NAME, "Badge")
             )
             last_awarded = cast(
                 "str | None",
-                badge_info.get(const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED),
+                badge_info.get(const.DATA_USER_BADGES_EARNED_LAST_AWARDED),
             )
             if not last_awarded:
                 continue

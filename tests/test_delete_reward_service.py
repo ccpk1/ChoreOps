@@ -113,13 +113,13 @@ class TestDeleteRewardByID:
 
         # Ensure assignee has data for this reward
         if reward_id not in coordinator.assignees_data[assignee_id].get(
-            const.DATA_ASSIGNEE_REWARD_DATA, {}
+            const.DATA_USER_REWARD_DATA, {}
         ):
             coordinator.assignees_data[assignee_id].setdefault(
-                const.DATA_ASSIGNEE_REWARD_DATA, {}
+                const.DATA_USER_REWARD_DATA, {}
             )[reward_id] = {
-                const.DATA_ASSIGNEE_REWARD_DATA_NAME: "Extra Screen Time",
-                const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT: 1,
+                const.DATA_USER_REWARD_DATA_NAME: "Extra Screen Time",
+                const.DATA_USER_REWARD_DATA_PENDING_COUNT: 1,
             }
 
         # Mock _persist to avoid file operations
@@ -135,7 +135,7 @@ class TestDeleteRewardByID:
 
         # Verify cleanup: reward removed from assignee's reward_data
         assert reward_id not in coordinator.assignees_data[assignee_id].get(
-            const.DATA_ASSIGNEE_REWARD_DATA, {}
+            const.DATA_USER_REWARD_DATA, {}
         )
 
 

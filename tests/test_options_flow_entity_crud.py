@@ -32,7 +32,7 @@ from tests.helpers import (
     CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE,
     CFOF_BADGES_INPUT_TYPE,
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
-    CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
     CFOF_CHORES_INPUT_DESCRIPTION,
@@ -224,7 +224,7 @@ async def test_add_assignee_via_options_flow(
         "icon": "mdi:account-tie",
         "ha_user_name": "",
         "dashboard_language": "en",
-        "allow_chore_assignment": True,
+        "can_be_assigned": True,
     }
 
     form_data = FlowTestHelper.build_approver_form_data(yaml_approver)
@@ -259,7 +259,7 @@ async def test_add_approver_via_options_flow(
         "icon": "mdi:account-tie",
         "ha_user_name": "",
         "enable_notifications": False,
-        "allow_chore_assignment": True,
+        "can_be_assigned": True,
     }
 
     form_data = FlowTestHelper.build_approver_form_data(yaml_approver)
@@ -592,7 +592,7 @@ async def test_add_entities_from_minimal_scenario(
     config_entry = init_integration_with_coordinator.config_entry
 
     # Add a NEW user (not from scenario - that would be duplicate)
-    new_approver_data = {"name": "New Scenario User", "allow_chore_assignment": True}
+    new_approver_data = {"name": "New Scenario User", "can_be_assigned": True}
     form_data = FlowTestHelper.build_approver_form_data(new_approver_data)
     result = await FlowTestHelper.add_entity_via_options_flow(
         hass,
@@ -642,7 +642,7 @@ async def test_add_duplicate_assignee_name_error(
 
     # Add first user
     form_data = FlowTestHelper.build_approver_form_data(
-        {"name": "Duplicate User", "allow_chore_assignment": True}
+        {"name": "Duplicate User", "can_be_assigned": True}
     )
     await FlowTestHelper.add_entity_via_options_flow(
         hass,
@@ -731,8 +731,8 @@ async def _navigate_to_add_chore_form(
     ("overrides", "expected_field", "expected_error"),
     [
         (
-            {CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: []},
-            CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+            {CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: []},
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
             "no_assignees_assigned",
         ),
         (
@@ -784,9 +784,9 @@ async def _navigate_to_add_chore_form(
         (
             {
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_ROTATION_SIMPLE,
-                CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: ["__single_assignee__"],
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["__single_assignee__"],
             },
-            CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
             "rotation_min_assignees",
         ),
         (
@@ -834,7 +834,7 @@ async def test_chore_validation_error_matrix_field_level_and_translated(
         CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
         CFOF_CHORES_INPUT_ICON: "mdi:check",
         CFOF_CHORES_INPUT_DESCRIPTION: "",
-        CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
+        CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
         CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
         CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
         CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -845,10 +845,10 @@ async def test_chore_validation_error_matrix_field_level_and_translated(
 
     # Replace single-assignee sentinel with the first real assignee name for the
     # rotation-min-assignees case.
-    if overrides.get(CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES) == ["__single_assignee__"]:
+    if overrides.get(CFOF_CHORES_INPUT_ASSIGNED_USER_IDS) == ["__single_assignee__"]:
         overrides = {
             **overrides,
-            CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
         }
 
     form_input.update(overrides)
@@ -888,7 +888,7 @@ async def test_chore_validation_duplicate_name_field_level_and_translated(
         CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
         CFOF_CHORES_INPUT_ICON: "mdi:check",
         CFOF_CHORES_INPUT_DESCRIPTION: "",
-        CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [assignee_names[0]],
+        CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
         CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
         CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
         CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
@@ -929,7 +929,7 @@ async def test_chore_validation_no_assignees_surfaces_section_error_with_section
             CFOF_CHORES_INPUT_DEFAULT_POINTS: 10,
             CFOF_CHORES_INPUT_ICON: "mdi:check",
             CFOF_CHORES_INPUT_DESCRIPTION: "",
-            CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES: [],
+            CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [],
             CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
         },
         CHORE_SECTION_SCHEDULE: {

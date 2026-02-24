@@ -94,7 +94,7 @@ async def scenario_per_assignee(
     modified = False
 
     for chore_info in chores_data.values():
-        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         if (
             len(assigned_assignees) >= 2
             and zoe_id in assigned_assignees
@@ -439,7 +439,7 @@ class TestPerAssigneeMigration:
         old_chore = {
             const.DATA_CHORE_NAME: "Migration Test Chore",
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES: [zoe_id],
+            const.DATA_CHORE_ASSIGNED_USER_IDS: [zoe_id],
             const.DATA_CHORE_APPLICABLE_DAYS: [0, 1, 2],  # Mon-Wed at chore level
             const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
             const.DATA_CHORE_ICON: "mdi:test",
@@ -513,7 +513,7 @@ class TestPerAssigneeMigration:
         chore = {
             const.DATA_CHORE_NAME: "Already Migrated",
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
-            const.DATA_CHORE_ASSIGNED_ASSIGNEES: [zoe_id],
+            const.DATA_CHORE_ASSIGNED_USER_IDS: [zoe_id],
             const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
             const.DATA_CHORE_ICON: "mdi:check",
             const.DATA_CHORE_DEFAULT_POINTS: 3.0,

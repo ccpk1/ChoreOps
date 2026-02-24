@@ -126,7 +126,7 @@ class GamificationManager(BaseManager):
         self.listen(const.SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER, self._on_midnight_rollover)
 
         # Lifecycle events - reactive cleanup (Platinum Architecture)
-        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_assignee_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._on_assignee_deleted)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DELETED, self._on_chore_deleted)
         self.listen(const.SIGNAL_SUFFIX_CHORE_UPDATED, self._on_chore_updated)
 
@@ -168,7 +168,7 @@ class GamificationManager(BaseManager):
         normalized = 0
 
         for assignee_info in self.coordinator.assignees_data.values():
-            badge_progress = assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS)
+            badge_progress = assignee_info.get(const.DATA_USER_BADGE_PROGRESS)
             if not isinstance(badge_progress, dict):
                 continue
 
@@ -191,7 +191,7 @@ class GamificationManager(BaseManager):
                     const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                 )
                 tracked_chores = progress.get(
-                    const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES
+                    const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES
                 )
 
                 if (
@@ -200,7 +200,7 @@ class GamificationManager(BaseManager):
                     and isinstance(tracked_chores, list)
                     and len(tracked_chores) > 0
                 ):
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = []
+                    progress[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = []
                     normalized += 1
 
         return normalized
@@ -261,13 +261,13 @@ class GamificationManager(BaseManager):
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
                 progress = assignee_info.get(
-                    const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
                 )
                 cycle_points = progress.get(
-                    const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
+                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
                 )
                 cycle_points += delta
-                progress[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = (
+                progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = (
                     round(cycle_points, const.DATA_FLOAT_PRECISION)
                 )
 
@@ -425,11 +425,11 @@ class GamificationManager(BaseManager):
             # Cast to dict[str, Any] since chore_periods is a runtime-added bucket
             chore_periods: dict[str, Any] = cast(
                 "dict[str, Any]",
-                assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {}),
+                assignee_info.get(const.DATA_USER_CHORE_PERIODS, {}),
             )
             all_time_container: dict[str, Any] = cast(
                 "dict[str, Any]",
-                chore_periods.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
+                chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
             )
             # All-time uses nested structure: periods["all_time"]["all_time"] = {data}
             all_time_data: dict[str, Any] = cast(
@@ -437,7 +437,7 @@ class GamificationManager(BaseManager):
             )
             progress_dict = {
                 const.DATA_ACHIEVEMENT_BASELINE: all_time_data.get(
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
+                    const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, const.DEFAULT_ZERO
                 ),
                 const.DATA_ACHIEVEMENT_CURRENT_VALUE: const.DEFAULT_ZERO,
                 const.DATA_ACHIEVEMENT_AWARDED: False,
@@ -554,7 +554,7 @@ class GamificationManager(BaseManager):
             today: Current date for streak calculation
         """
         last_date = None
-        last_date_str = progress.get(const.DATA_ASSIGNEE_LAST_STREAK_DATE)
+        last_date_str = progress.get(const.DATA_USER_LAST_STREAK_DATE)
         if last_date_str:
             try:
                 last_date = date.fromisoformat(last_date_str)
@@ -567,14 +567,14 @@ class GamificationManager(BaseManager):
 
         # If yesterday was the last update, increment the streak
         if last_date == today - timedelta(days=1):
-            current_streak = progress.get(const.DATA_ASSIGNEE_CURRENT_STREAK, 0)
-            progress[const.DATA_ASSIGNEE_CURRENT_STREAK] = current_streak + 1
+            current_streak = progress.get(const.DATA_USER_CURRENT_STREAK, 0)
+            progress[const.DATA_USER_CURRENT_STREAK] = current_streak + 1
 
         # Reset to 1 if not done yesterday
         else:
-            progress[const.DATA_ASSIGNEE_CURRENT_STREAK] = 1
+            progress[const.DATA_USER_CURRENT_STREAK] = 1
 
-        progress[const.DATA_ASSIGNEE_LAST_STREAK_DATE] = today.isoformat()
+        progress[const.DATA_USER_LAST_STREAK_DATE] = today.isoformat()
 
     # =========================================================================
     # PENDING TRACKING AND DEBOUNCE (Phase 7.4: Persisted Queue)
@@ -631,7 +631,10 @@ class GamificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id
         """
-        assignee_id = payload.get("assignee_id", "")
+        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+            return
+
+        assignee_id = payload.get("user_id", "")
         if not assignee_id:
             return
 
@@ -663,10 +666,10 @@ class GamificationManager(BaseManager):
                     cleaned = True
 
                 # Remove assignee from assigned_assignees list
-                if const.DATA_ASSIGNED_ASSIGNEES in entity:
-                    original_assigned = entity[const.DATA_ASSIGNED_ASSIGNEES]
+                if const.DATA_ASSIGNED_USER_IDS in entity:
+                    original_assigned = entity[const.DATA_ASSIGNED_USER_IDS]
                     if assignee_id in original_assigned:
-                        entity[const.DATA_ASSIGNED_ASSIGNEES] = [
+                        entity[const.DATA_ASSIGNED_USER_IDS] = [
                             entry_id
                             for entry_id in original_assigned
                             if entry_id != assignee_id
@@ -909,7 +912,7 @@ class GamificationManager(BaseManager):
         if not assignee_data:
             return
 
-        badges_earned = assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_data.get(const.DATA_USER_BADGES_EARNED, {})
         already_earned = badge_id in badges_earned
 
         if not already_earned:
@@ -937,21 +940,21 @@ class GamificationManager(BaseManager):
             return  # No maintenance = always ACTIVE
 
         # Read maintenance state from cumulative_badge_progress
-        progress = assignee_data.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
         progress_dict = cast("dict[str, Any]", progress)
         status = progress_dict.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
             const.CUMULATIVE_BADGE_STATE_ACTIVE,
         )
         end_date_str: str | None = progress_dict.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
         )
         grace_end_str: str | None = progress_dict.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         )
         cycle_points = float(
             progress_dict.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
             )
         )
 
@@ -1085,7 +1088,7 @@ class GamificationManager(BaseManager):
         if schedule_changed:
             self.coordinator._persist_and_update()
 
-        badges_earned = assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_data.get(const.DATA_USER_BADGES_EARNED, {})
         already_earned = badge_id in badges_earned
 
         # Cast TypedDict to dict for engine
@@ -1235,24 +1238,22 @@ class GamificationManager(BaseManager):
         )
 
         badges_earned = cast(
-            "dict[str, Any]", assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+            "dict[str, Any]", assignee_data.get(const.DATA_USER_BADGES_EARNED, {})
         )
         badge_entry = cast("dict[str, Any]", badges_earned.get(badge_id, {}))
         last_awarded_raw = badge_entry.get(
-            const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED, ""
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED, ""
         )
         last_awarded_day = str(last_awarded_raw)[:10]
         if not last_awarded_day:
             return False
 
         badge_progress_all = cast(
-            "dict[str, Any]", assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {})
         )
         progress = cast("dict[str, Any]", badge_progress_all.get(badge_id, {}))
-        start_date = str(
-            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE, "")
-        )
-        end_date = str(progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE, ""))
+        start_date = str(progress.get(const.DATA_USER_BADGE_PROGRESS_START_DATE, ""))
+        end_date = str(progress.get(const.DATA_USER_BADGE_PROGRESS_END_DATE, ""))
 
         if start_date and end_date:
             return start_date <= last_awarded_day <= end_date
@@ -1287,7 +1288,7 @@ class GamificationManager(BaseManager):
         )
         badge_progress = cast(
             "dict[str, Any]",
-            assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {}),
         )
         current_badge_progress = cast(
             "dict[str, Any]", badge_progress.get(badge_id, {})
@@ -1349,11 +1350,11 @@ class GamificationManager(BaseManager):
         if not assignee_info:
             return
 
-        if const.DATA_ASSIGNEE_BADGE_PROGRESS not in assignee_info:
-            assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS] = {}
+        if const.DATA_USER_BADGE_PROGRESS not in assignee_info:
+            assignee_info[const.DATA_USER_BADGE_PROGRESS] = {}
 
         badge_progress = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
         )
         entry = cast("dict[str, Any]", badge_progress.setdefault(badge_id, {}))
 
@@ -1361,31 +1362,31 @@ class GamificationManager(BaseManager):
         target = cast("dict[str, Any]", badge_data.get(const.DATA_BADGE_TARGET, {}))
 
         entry.setdefault(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_NAME,
+            const.DATA_USER_BADGE_PROGRESS_NAME,
             badge_data.get(const.DATA_BADGE_NAME),
         )
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_TYPE, badge_type)
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_TYPE, badge_type)
         entry.setdefault(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS,
+            const.DATA_USER_BADGE_PROGRESS_STATUS,
             const.BADGE_STATE_IN_PROGRESS,
         )
         entry.setdefault(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE,
+            const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE,
             target.get(const.DATA_BADGE_TARGET_TYPE),
         )
         entry.setdefault(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE,
+            const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE,
             float(target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0.0)),
         )
 
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0)
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED, {})
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED, {})
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS, 0.0)
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET, False)
-        entry.setdefault(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0)
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED, {})
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED, {})
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS, 0.0)
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET, False)
+        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
 
     def _advance_non_cumulative_badge_cycle_if_needed(
         self,
@@ -1411,7 +1412,7 @@ class GamificationManager(BaseManager):
             return False
 
         badge_progress = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
         )
         progress = cast("dict[str, Any]", badge_progress.get(badge_id, {}))
         if not progress:
@@ -1419,16 +1420,14 @@ class GamificationManager(BaseManager):
 
         recurring_frequency = str(
             progress.get(
-                const.DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY,
+                const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY,
                 const.FREQUENCY_NONE,
             )
         )
         if recurring_frequency == const.FREQUENCY_NONE:
             return False
 
-        end_date_iso = str(
-            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE, "")
-        )
+        end_date_iso = str(progress.get(const.DATA_USER_BADGE_PROGRESS_END_DATE, ""))
         if not end_date_iso:
             return False
 
@@ -1452,22 +1451,22 @@ class GamificationManager(BaseManager):
         if rolled_cycles == 0:
             return False
 
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = current_end
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = previous_end
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT] = (
-            int(progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT, 0))
+        progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = current_end
+        progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = previous_end
+        progress[const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT] = (
+            int(progress.get(const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT, 0))
             + rolled_cycles
         )
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_PENALTY_APPLIED] = False
+        progress[const.DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED] = False
 
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 0.0
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = 0
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = 0
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED] = {}
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED] = {}
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS] = 0.0
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET] = False
-        progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = ""
+        progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 0.0
+        progress[const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = 0
+        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = 0
+        progress[const.DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED] = {}
+        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED] = {}
+        progress[const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS] = 0.0
+        progress[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] = False
+        progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = ""
 
         return True
 
@@ -1578,7 +1577,7 @@ class GamificationManager(BaseManager):
             return False
 
         badge_progress_all = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
         )
         progress = cast("dict[str, Any]", badge_progress_all.get(badge_id, {}))
         if not progress:
@@ -1592,26 +1591,21 @@ class GamificationManager(BaseManager):
         )
         criteria_met = bool(result.get("criteria_met", False))
         if (
-            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS)
+            progress.get(const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS)
             != overall_progress
         ):
-            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_OVERALL_PROGRESS] = (
-                overall_progress
-            )
+            progress[const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS] = overall_progress
             changed = True
-        if (
-            progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET)
-            != criteria_met
-        ):
-            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CRITERIA_MET] = criteria_met
+        if progress.get(const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET) != criteria_met:
+            progress[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] = criteria_met
             changed = True
 
         expected_status = self._resolve_target_status_transition(
             criteria_met=criteria_met,
             already_earned=already_earned,
         )
-        if progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS) != expected_status:
-            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS] = expected_status
+        if progress.get(const.DATA_USER_BADGE_PROGRESS_STATUS) != expected_status:
+            progress[const.DATA_USER_BADGE_PROGRESS_STATUS] = expected_status
             changed = True
 
         if canonical_target is not None:
@@ -1639,69 +1633,55 @@ class GamificationManager(BaseManager):
         if persist_bucket == "points_cycle":
             if (
                 float(
-                    progress.get(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
-                    )
+                    progress.get(const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
                 )
                 != criterion_current_value
             ):
-                progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = (
+                progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = (
                     criterion_current_value
                 )
                 changed = True
                 if (
-                    progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY)
+                    progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY)
                     != today_iso
                 ):
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = (
-                        today_iso
-                    )
+                    progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
                     changed = True
 
         elif persist_bucket == "chores_cycle":
             chores_count = int(criterion_current_value)
             if (
-                int(
-                    progress.get(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
-                    )
-                )
+                int(progress.get(const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0))
                 != chores_count
             ):
-                progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = (
+                progress[const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = (
                     chores_count
                 )
                 changed = True
                 if (
-                    progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY)
+                    progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY)
                     != today_iso
                 ):
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = (
-                        today_iso
-                    )
+                    progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
                     changed = True
 
         elif persist_bucket == "days_cycle":
             previous_days = int(
-                progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
+                progress.get(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
             )
             days_count = int(criterion_current_value)
             if previous_days != days_count:
-                progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = (
-                    days_count
-                )
+                progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = days_count
                 changed = True
 
             previous_update_day = str(
-                progress.get(const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
+                progress.get(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
             )
             if days_count > 0 and (
                 days_count != previous_days or previous_update_day == today_iso
             ):
                 if previous_update_day != today_iso:
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_LAST_UPDATE_DAY] = (
-                        today_iso
-                    )
+                    progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = today_iso
                     changed = True
 
         elif persist_bucket == "unknown":
@@ -1740,10 +1720,10 @@ class GamificationManager(BaseManager):
         )
 
         # Initialize cumulative badge progress
-        progress = assignee_data.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
         progress_dict = cast("dict[str, Any]", progress)
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_ACTIVE
         )
 
@@ -1752,10 +1732,10 @@ class GamificationManager(BaseManager):
         if maintenance_enabled:
             end_date, grace_end = self._calculate_maintenance_dates(badge_data)
             progress_dict[
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
             ] = end_date
             progress_dict[
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
             ] = grace_end
 
         # Update badge tracking (calls _persist_and_update)
@@ -1793,10 +1773,10 @@ class GamificationManager(BaseManager):
         """
         end_date, grace_end = self._calculate_maintenance_dates(badge_data)
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
         ] = end_date
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = grace_end
         self.coordinator._persist_and_update()
 
@@ -1834,7 +1814,7 @@ class GamificationManager(BaseManager):
             end_date_str: The maintenance end date (ISO string) grace starts from
             grace_days: Number of grace days
         """
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_GRACE
         )
         grace_end = dt_add_interval(
@@ -1844,7 +1824,7 @@ class GamificationManager(BaseManager):
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = str(grace_end) if grace_end else None
         self.coordinator._persist_and_update()
 
@@ -1881,18 +1861,18 @@ class GamificationManager(BaseManager):
             cycle_points: Points earned this cycle (for logging)
             maintenance_threshold: Required threshold (for logging)
         """
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_DEMOTED
         )
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
 
         # Advance dates for next cycle (so demotion evaluation starts fresh)
         end_date, grace_end = self._calculate_maintenance_dates(badge_data)
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
         ] = end_date
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = grace_end
 
         # Recalculate multiplier (uses next-lower badge)
@@ -1948,10 +1928,10 @@ class GamificationManager(BaseManager):
         if not assignee_data:
             return
 
-        progress = assignee_data.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
         progress_dict = cast("dict[str, Any]", progress)
         current_status = progress_dict.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
             const.CUMULATIVE_BADGE_STATE_ACTIVE,
         )
         was_demoted = current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED
@@ -1962,7 +1942,7 @@ class GamificationManager(BaseManager):
             not maintenance_enabled
             and current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED
         ):
-            progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+            progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
                 const.CUMULATIVE_BADGE_STATE_ACTIVE
             )
             self.coordinator._persist_and_update()
@@ -1975,18 +1955,18 @@ class GamificationManager(BaseManager):
             return
 
         # Set ACTIVE, reset cycle
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
             const.CUMULATIVE_BADGE_STATE_ACTIVE
         )
-        progress_dict[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
+        progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
 
         # Advance maintenance dates for next cycle
         end_date, grace_end = self._calculate_maintenance_dates(badge_data)
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
         ] = end_date
         progress_dict[
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
         ] = grace_end
 
         # Update badge tracking (period stats) only for non-demoted maintenance cycles.
@@ -2107,7 +2087,7 @@ class GamificationManager(BaseManager):
         if not assignee_data:
             return
 
-        badges_earned = assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_data.get(const.DATA_USER_BADGES_EARNED, {})
         badge_entry = badges_earned.get(badge_id)
         if not badge_entry:
             return
@@ -2121,14 +2101,12 @@ class GamificationManager(BaseManager):
         # Increment award_count (badge re-award)
         badge_entry_dict = cast("dict[str, Any]", badge_entry)
         current_count = badge_entry_dict.get(
-            const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT, 1
+            const.DATA_USER_BADGES_EARNED_AWARD_COUNT, 1
         )
-        badge_entry_dict[const.DATA_ASSIGNEE_BADGES_EARNED_AWARD_COUNT] = (
-            current_count + 1
-        )
+        badge_entry_dict[const.DATA_USER_BADGES_EARNED_AWARD_COUNT] = current_count + 1
 
         # Update last award date
-        badge_entry_dict[const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED] = dt_now_iso()
+        badge_entry_dict[const.DATA_USER_BADGES_EARNED_LAST_AWARDED] = dt_now_iso()
 
         # Persist changes
         self.coordinator._persist_and_update()
@@ -2319,7 +2297,7 @@ class GamificationManager(BaseManager):
         )
         assignee_data = self.coordinator.assignees_data.get(assignee_id)
         assignee_badges_earned = (
-            assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+            assignee_data.get(const.DATA_USER_BADGES_EARNED, {})
             if assignee_data
             else {}
         )
@@ -2504,21 +2482,21 @@ class GamificationManager(BaseManager):
         today_iso = dt_today_iso()
 
         # Get total earned from all_time period bucket using stats engine
-        point_periods = assignee_data.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
+        point_periods = assignee_data.get(const.DATA_USER_POINT_PERIODS, {})
         period_key_mapping = {
-            const.PERIOD_ALL_TIME: const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME
+            const.PERIOD_ALL_TIME: const.DATA_USER_POINT_PERIODS_ALL_TIME
         }
         total_earned = float(
             self.coordinator.stats.get_period_total(
                 point_periods,
                 const.PERIOD_ALL_TIME,
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_USER_POINT_PERIOD_POINTS_EARNED,
                 period_key_mapping=period_key_mapping,
             )
         )
 
         # Get badge progress from assignee data
-        badge_progress = assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {})
+        badge_progress = assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {})
 
         # Build achievement progress from achievements_data
         # (progress is stored in each achievement, keyed by assignee_id)
@@ -2539,26 +2517,24 @@ class GamificationManager(BaseManager):
         # Build context (using cast pattern for TypedDict compatibility)
         chore_periods = cast(
             "dict[str, Any]",
-            assignee_data.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {}),
+            assignee_data.get(const.DATA_USER_CHORE_PERIODS, {}),
         )
         context: EvaluationContext = {
             "assignee_id": assignee_id,
             "assignee_name": assignee_data.get(const.DATA_USER_NAME, "Unknown"),
-            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
+            "current_points": float(assignee_data.get(const.DATA_USER_POINTS, 0.0)),
             "total_points_earned": total_earned,
             "badge_progress": badge_progress,
             "cumulative_badge_progress": assignee_data.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_USER_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time for totals
             # Cast to dict[str, Any] since chore_periods is a runtime-added bucket
             # All-time uses nested structure: periods["all_time"]["all_time"] = {data}
             "chore_periods_all_time": cast(
                 "dict[str, Any]",
-                chore_periods.get(
-                    const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
-                ).get(
+                chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}).get(
                     const.PERIOD_ALL_TIME,
                     {},
                 ),
@@ -2781,7 +2757,7 @@ class GamificationManager(BaseManager):
         """Return all chore IDs currently assigned to the assignee."""
         assignee_assigned_chores: list[str] = []
         for chore_id, chore_info in self.coordinator.chores_data.items():
-            chore_assigned_to = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            chore_assigned_to = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             if not chore_assigned_to or assignee_id in chore_assigned_to:
                 assignee_assigned_chores.append(chore_id)
         return assignee_assigned_chores
@@ -2813,32 +2789,30 @@ class GamificationManager(BaseManager):
             return None, None, None, 0.0, 0.0
 
         # Get total earned from point_periods using stats engine
-        point_periods = assignee_info.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
+        point_periods = assignee_info.get(const.DATA_USER_POINT_PERIODS, {})
         period_key_mapping = {
-            const.PERIOD_ALL_TIME: const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME
+            const.PERIOD_ALL_TIME: const.DATA_USER_POINT_PERIODS_ALL_TIME
         }
         total_points_earned = float(
             self.coordinator.stats.get_period_total(
                 point_periods,
                 const.PERIOD_ALL_TIME,
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_USER_POINT_PERIOD_POINTS_EARNED,
                 period_key_mapping=period_key_mapping,
             )
         )
 
         # Get cycle_points for maintenance tracking
-        progress = assignee_info.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = assignee_info.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
         cycle_points = round(
             float(
-                progress.get(
-                    const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0
-                )
+                progress.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0)
             ),
             const.DATA_FLOAT_PRECISION,
         )
 
         # Get badges this assignee has earned (from badges_earned dict)
-        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_info.get(const.DATA_USER_BADGES_EARNED, {})
 
         # Get sorted list of cumulative badges (lowest to highest threshold)
         cumulative_badges = sorted(
@@ -2917,7 +2891,7 @@ class GamificationManager(BaseManager):
 
         old_multiplier = float(
             assignee_info.get(
-                const.DATA_ASSIGNEE_POINTS_MULTIPLIER,
+                const.DATA_USER_POINTS_MULTIPLIER,
                 const.DEFAULT_ASSIGNEE_POINTS_MULTIPLIER,
             )
         )
@@ -2986,7 +2960,7 @@ class GamificationManager(BaseManager):
 
         today_local_iso = dt_today_iso()
 
-        badges_earned = assignee_info.setdefault(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_info.setdefault(const.DATA_USER_BADGES_EARNED, {})
 
         # Phase 4: GamificationManager (Landlord) creates/updates structure only
         # StatisticsManager (Tenant) handles period updates via _on_badge_earned listener
@@ -2997,11 +2971,11 @@ class GamificationManager(BaseManager):
             # Top-level award_count is manager-owned for periodic re-awards.
             # Tenant-owned period aggregates remain in periods buckets.
             badges_earned[badge_id] = {  # pyright: ignore[reportArgumentType]
-                const.DATA_ASSIGNEE_BADGES_EARNED_NAME: badge_info.get(
+                const.DATA_USER_BADGES_EARNED_NAME: badge_info.get(
                     const.DATA_BADGE_NAME, ""
                 ),
-                const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED: today_local_iso,
-                const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS: {},  # Tenant populates sub-keys
+                const.DATA_USER_BADGES_EARNED_LAST_AWARDED: today_local_iso,
+                const.DATA_USER_BADGES_EARNED_PERIODS: {},  # Tenant populates sub-keys
             }
             const.LOGGER.info(
                 "Update Assignee Badges Earned - Created new tracking for badge '%s' for assignee '%s'",
@@ -3013,17 +2987,15 @@ class GamificationManager(BaseManager):
             # award_count increment for periodic re-award is manager-owned.
             # Tenant-owned period aggregates are still handled in periods buckets.
             tracking_entry = badges_earned[badge_id]
-            tracking_entry[const.DATA_ASSIGNEE_BADGES_EARNED_NAME] = badge_info.get(
+            tracking_entry[const.DATA_USER_BADGES_EARNED_NAME] = badge_info.get(
                 const.DATA_BADGE_NAME, ""
             )
-            tracking_entry[const.DATA_ASSIGNEE_BADGES_EARNED_LAST_AWARDED] = (
-                today_local_iso
-            )
+            tracking_entry[const.DATA_USER_BADGES_EARNED_LAST_AWARDED] = today_local_iso
 
             # Ensure periods structure exists (Landlord ensures container)
             # StatisticsEngine creates daily/weekly/monthly/yearly keys on-demand
             tracking_entry.setdefault(
-                const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS,
+                const.DATA_USER_BADGES_EARNED_PERIODS,
                 {},  # type: ignore[typeddict-item]  # Tenant populates sub-keys
             )
 
@@ -3066,7 +3038,7 @@ class GamificationManager(BaseManager):
         if not assignee_info:
             return
 
-        badges_earned = assignee_info.get(const.DATA_ASSIGNEE_BADGES_EARNED, {})
+        badges_earned = assignee_info.get(const.DATA_USER_BADGES_EARNED, {})
         badge_entry = badges_earned.get(badge_id)
         if not badge_entry:
             const.LOGGER.warning(
@@ -3081,8 +3053,8 @@ class GamificationManager(BaseManager):
 
         # Landlord creates ONLY empty periods container
         # Tenant (StatisticsEngine.record_transaction) creates ALL sub-keys on-demand
-        if const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS not in badge_entry_dict:
-            badge_entry_dict[const.DATA_ASSIGNEE_BADGES_EARNED_PERIODS] = {}
+        if const.DATA_USER_BADGES_EARNED_PERIODS not in badge_entry_dict:
+            badge_entry_dict[const.DATA_USER_BADGES_EARNED_PERIODS] = {}
 
         const.LOGGER.debug(
             "_ensure_assignee_badge_structures: Ensured periods container for assignee=%s, badge=%s",
@@ -3108,11 +3080,11 @@ class GamificationManager(BaseManager):
         """
         # Clear existing badge references
         for _assignee_id, assignee_info in self.coordinator.assignees_data.items():
-            if const.DATA_ASSIGNEE_CHORE_DATA not in assignee_info:
+            if const.DATA_USER_CHORE_DATA not in assignee_info:
                 continue
 
-            for chore_data in assignee_info[const.DATA_ASSIGNEE_CHORE_DATA].values():
-                chore_data[const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS] = []
+            for chore_data in assignee_info[const.DATA_USER_CHORE_DATA].values():
+                chore_data[const.DATA_USER_CHORE_DATA_BADGE_REFS] = []
 
         # Add badge references to relevant chores
         for badge_id, badge_info in self.coordinator.badges_data.items():
@@ -3131,7 +3103,7 @@ class GamificationManager(BaseManager):
                 assignee_info_loop = self.coordinator.assignees_data.get(assignee_id)
                 if (
                     not assignee_info_loop
-                    or const.DATA_ASSIGNEE_CHORE_DATA not in assignee_info_loop
+                    or const.DATA_USER_CHORE_DATA not in assignee_info_loop
                 ):
                     continue
 
@@ -3142,16 +3114,16 @@ class GamificationManager(BaseManager):
 
                 # Add badge reference to each tracked chore
                 for chore_id in in_scope_chores_list:
-                    if chore_id in assignee_info_loop[const.DATA_ASSIGNEE_CHORE_DATA]:
-                        chore_entry = assignee_info_loop[
-                            const.DATA_ASSIGNEE_CHORE_DATA
-                        ][chore_id]
+                    if chore_id in assignee_info_loop[const.DATA_USER_CHORE_DATA]:
+                        chore_entry = assignee_info_loop[const.DATA_USER_CHORE_DATA][
+                            chore_id
+                        ]
                         badge_refs: list[str] = chore_entry.get(
-                            const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS, []
+                            const.DATA_USER_CHORE_DATA_BADGE_REFS, []
                         )
                         if badge_id not in badge_refs:
                             badge_refs.append(badge_id)
-                            chore_entry[const.DATA_ASSIGNEE_CHORE_DATA_BADGE_REFS] = (
+                            chore_entry[const.DATA_USER_CHORE_DATA_BADGE_REFS] = (
                                 badge_refs
                             )
 
@@ -3176,7 +3148,7 @@ class GamificationManager(BaseManager):
 
         # Get stored state fields (only 4 fields remain in storage)
         stored_progress = assignee_info.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
         ).copy()
 
         # Compute values from badge level logic
@@ -3185,15 +3157,15 @@ class GamificationManager(BaseManager):
         )
 
         # Get assignee's total points from point_periods using stats engine
-        point_periods = assignee_info.get(const.DATA_ASSIGNEE_POINT_PERIODS, {})
+        point_periods = assignee_info.get(const.DATA_USER_POINT_PERIODS, {})
         period_key_mapping = {
-            const.PERIOD_ALL_TIME: const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME
+            const.PERIOD_ALL_TIME: const.DATA_USER_POINT_PERIODS_ALL_TIME
         }
         total_points = float(
             self.coordinator.stats.get_period_total(
                 point_periods,
                 const.PERIOD_ALL_TIME,
-                const.DATA_ASSIGNEE_POINT_PERIOD_POINTS_EARNED,
+                const.DATA_USER_POINT_PERIOD_POINTS_EARNED,
                 period_key_mapping=period_key_mapping,
             )
         )
@@ -3219,7 +3191,7 @@ class GamificationManager(BaseManager):
         else:
             # Has reset schedule → use stored status and cycle_points
             current_status = stored_progress.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
                 const.CUMULATIVE_BADGE_STATE_ACTIVE,
             )
             if current_status == const.CUMULATIVE_BADGE_STATE_DEMOTED:
@@ -3332,7 +3304,7 @@ class GamificationManager(BaseManager):
             )
             return
 
-        progress = assignee_info.get(const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS)
+        progress = assignee_info.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS)
         if not progress:
             const.LOGGER.debug(
                 "Demote Cumulative Badge - No cumulative badge progress for assignee '%s'",
@@ -3342,11 +3314,11 @@ class GamificationManager(BaseManager):
 
         # Only update if not already demoted
         current_status = progress.get(
-            const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS,
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
             const.CUMULATIVE_BADGE_STATE_ACTIVE,
         )
         if current_status != const.CUMULATIVE_BADGE_STATE_DEMOTED:
-            progress[const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+            progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
                 const.CUMULATIVE_BADGE_STATE_DEMOTED
             )
 
@@ -3453,7 +3425,10 @@ class GamificationManager(BaseManager):
         assignee_id: str | None = None
         if assignee_name:
             assignee_id = get_item_id_by_name(
-                self.coordinator, const.ENTITY_TYPE_ASSIGNEE, assignee_name
+                self.coordinator,
+                const.ITEM_TYPE_USER,
+                assignee_name,
+                role=const.ROLE_ASSIGNEE,
             )
             if assignee_id is None:
                 const.LOGGER.error(
@@ -3473,7 +3448,7 @@ class GamificationManager(BaseManager):
         badge_id: str | None = None
         if badge_name:
             badge_id = get_item_id_by_name(
-                self.coordinator, const.ENTITY_TYPE_BADGE, badge_name
+                self.coordinator, const.ITEM_TYPE_BADGE, badge_name
             )
             if not badge_id:
                 # Badge isn't found, may have been deleted - clean up assignee data only
@@ -3487,12 +3462,12 @@ class GamificationManager(BaseManager):
                     assignee_info = self.coordinator.assignees_data.get(assignee_id)
                     if assignee_info:
                         badges_earned = assignee_info.get(
-                            const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                            const.DATA_USER_BADGES_EARNED, {}
                         )
                         to_remove = [
                             bid
                             for bid, entry in badges_earned.items()
-                            if entry.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME)
+                            if entry.get(const.DATA_USER_BADGES_EARNED_NAME)
                             == badge_name
                         ]
                         for bid in to_remove:
@@ -3500,12 +3475,12 @@ class GamificationManager(BaseManager):
                 else:
                     for assignee_info in self.coordinator.assignees_data.values():
                         badges_earned = assignee_info.get(
-                            const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                            const.DATA_USER_BADGES_EARNED, {}
                         )
                         to_remove = [
                             bid
                             for bid, entry in badges_earned.items()
-                            if entry.get(const.DATA_ASSIGNEE_BADGES_EARNED_NAME)
+                            if entry.get(const.DATA_USER_BADGES_EARNED_NAME)
                             == badge_name
                         ]
                         for bid in to_remove:
@@ -3564,9 +3539,7 @@ class GamificationManager(BaseManager):
             badge_type = badge_info.get(const.DATA_BADGE_TYPE)
 
             # Remove the badge from the assignee's badges_earned
-            badges_earned = assignee_info.setdefault(
-                const.DATA_ASSIGNEE_BADGES_EARNED, {}
-            )
+            badges_earned = assignee_info.setdefault(const.DATA_USER_BADGES_EARNED, {})
             if badge_id in badges_earned:
                 found = True
                 const.LOGGER.warning(
@@ -3614,7 +3587,7 @@ class GamificationManager(BaseManager):
                         const.DATA_USER_NAME, "Unknown Assignee"
                     )
                     badges_earned = assignee_info.setdefault(
-                        const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                        const.DATA_USER_BADGES_EARNED, {}
                     )
                     if badge_id in badges_earned:
                         found = True
@@ -3672,7 +3645,7 @@ class GamificationManager(BaseManager):
                 badge_type = badge_info.get(const.DATA_BADGE_TYPE)
                 earned_by_list = badge_info.get(const.DATA_BADGE_EARNED_BY, [])
                 badges_earned = assignee_info_elif.setdefault(
-                    const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                    const.DATA_USER_BADGES_EARNED, {}
                 )
                 if assignee_id in earned_by_list:
                     found = True
@@ -3688,8 +3661,8 @@ class GamificationManager(BaseManager):
                         del badges_earned[loop_badge_id]
 
             # Clear orphan badges_earned
-            if const.DATA_ASSIGNEE_BADGES_EARNED in assignee_info_elif:
-                assignee_info_elif[const.DATA_ASSIGNEE_BADGES_EARNED].clear()
+            if const.DATA_USER_BADGES_EARNED in assignee_info_elif:
+                assignee_info_elif[const.DATA_USER_BADGES_EARNED].clear()
 
             # Update multiplier if any cumulative badges were removed
             if had_cumulative:
@@ -3718,7 +3691,7 @@ class GamificationManager(BaseManager):
                         const.DATA_USER_NAME, "Unknown Assignee"
                     )
                     badges_earned = assignee_info.setdefault(
-                        const.DATA_ASSIGNEE_BADGES_EARNED, {}
+                        const.DATA_USER_BADGES_EARNED, {}
                     )
                     if loop_badge_id in badges_earned:
                         found = True
@@ -3737,8 +3710,8 @@ class GamificationManager(BaseManager):
                         earned_by_list.remove(loop_assignee_id)
 
                     # Clear orphan badges_earned
-                    if const.DATA_ASSIGNEE_BADGES_EARNED in assignee_info:
-                        assignee_info[const.DATA_ASSIGNEE_BADGES_EARNED].clear()
+                    if const.DATA_USER_BADGES_EARNED in assignee_info:
+                        assignee_info[const.DATA_USER_BADGES_EARNED].clear()
 
                 # Clear orphan earned_by references
                 if const.DATA_BADGE_EARNED_BY in badge_info:
@@ -3882,9 +3855,9 @@ class GamificationManager(BaseManager):
             return
 
         # Phase 4: Clean up badge_progress for badges no longer assigned to this assignee
-        if const.DATA_ASSIGNEE_BADGE_PROGRESS in assignee_info:
+        if const.DATA_USER_BADGE_PROGRESS in assignee_info:
             badges_to_remove = []
-            for progress_badge_id in assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS]:
+            for progress_badge_id in assignee_info[const.DATA_USER_BADGE_PROGRESS]:
                 badge_info: BadgeData | None = self.coordinator.badges_data.get(
                     progress_badge_id
                 )
@@ -3895,7 +3868,7 @@ class GamificationManager(BaseManager):
                     badges_to_remove.append(progress_badge_id)
 
             for badge_id in badges_to_remove:
-                del assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS][badge_id]
+                del assignee_info[const.DATA_USER_BADGE_PROGRESS][badge_id]
                 const.LOGGER.debug(
                     "DEBUG: Removed badge_progress for badge '%s' from assignee '%s' "
                     "(unassigned or deleted)",
@@ -3916,8 +3889,8 @@ class GamificationManager(BaseManager):
                 continue
 
             # Initialize progress structure if it doesn't exist
-            if const.DATA_ASSIGNEE_BADGE_PROGRESS not in assignee_info:
-                assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS] = {}
+            if const.DATA_USER_BADGE_PROGRESS not in assignee_info:
+                assignee_info[const.DATA_USER_BADGE_PROGRESS] = {}
 
             badge_type = badge_info.get(const.DATA_BADGE_TYPE)
 
@@ -3939,17 +3912,15 @@ class GamificationManager(BaseManager):
             # ===============================================================
             # SECTION 1: NEW BADGE SETUP - Create initial progress structure
             # ===============================================================
-            badge_progress_dict = assignee_info.get(
-                const.DATA_ASSIGNEE_BADGE_PROGRESS, {}
-            )
+            badge_progress_dict = assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
             if badge_id not in badge_progress_dict:
                 # --- Common fields ---
                 progress: dict[str, Any] = {
-                    const.DATA_ASSIGNEE_BADGE_PROGRESS_NAME: badge_info.get(
+                    const.DATA_USER_BADGE_PROGRESS_NAME: badge_info.get(
                         const.DATA_BADGE_NAME
                     ),
-                    const.DATA_ASSIGNEE_BADGE_PROGRESS_TYPE: badge_type,
-                    const.DATA_ASSIGNEE_BADGE_PROGRESS_STATUS: const.BADGE_STATE_IN_PROGRESS,
+                    const.DATA_USER_BADGE_PROGRESS_TYPE: badge_type,
+                    const.DATA_USER_BADGE_PROGRESS_STATUS: const.BADGE_STATE_IN_PROGRESS,
                 }
 
                 # --- Target fields ---
@@ -3962,28 +3933,26 @@ class GamificationManager(BaseManager):
                             const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0
                         )
                     )
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE] = (
-                        target_type
+                    progress[const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE] = target_type
+                    progress[const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE] = (
+                        threshold_value
                     )
-                    progress[
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
-                    ] = threshold_value
 
                     # Initialize all possible progress fields to their defaults
                     progress.setdefault(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
+                        const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
                     )
                     progress.setdefault(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
+                        const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0
                     )
                     progress.setdefault(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0
+                        const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0
                     )
                     progress.setdefault(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_COMPLETED, {}
+                        const.DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED, {}
                     )
                     progress.setdefault(
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_DAYS_COMPLETED, {}
+                        const.DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED, {}
                     )
 
                 # --- Achievement Linked fields ---
@@ -4010,7 +3979,7 @@ class GamificationManager(BaseManager):
                     selected_chores = tracked_chores_cfg.get(
                         const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                     )
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = list(
+                    progress[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = list(
                         selected_chores
                     )
 
@@ -4032,20 +4001,20 @@ class GamificationManager(BaseManager):
                     end_date_iso = reset_schedule.get(
                         const.DATA_BADGE_RESET_SCHEDULE_END_DATE
                     )
-                    progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
+                    progress[const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
                         recurring_frequency
                     )
 
                     # Set initial schedule if there is a frequency and no end date
                     if recurring_frequency != const.FREQUENCY_NONE:
                         if end_date_iso:
-                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = (
+                            progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
                                 start_date_iso
                             )
-                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = (
+                            progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
                                 end_date_iso
                             )
-                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT] = (
+                            progress[const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT] = (
                                 const.DEFAULT_ZERO
                             )
                         else:
@@ -4101,20 +4070,20 @@ class GamificationManager(BaseManager):
                                     return_type=const.HELPER_RETURN_ISO_DATE,
                                 )
 
-                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = (
+                            progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
                                 start_date_iso
                             )
-                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = (
+                            progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
                                 new_end_date_iso
                             )
-                            progress[const.DATA_ASSIGNEE_BADGE_PROGRESS_CYCLE_COUNT] = (
+                            progress[const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT] = (
                                 const.DEFAULT_ZERO
                             )
 
                             # Set penalty applied to False
-                            progress[
-                                const.DATA_ASSIGNEE_BADGE_PROGRESS_PENALTY_APPLIED
-                            ] = False
+                            progress[const.DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED] = (
+                                False
+                            )
 
                 # --- Special Occasion fields ---
                 if has_special_occasion:
@@ -4123,7 +4092,7 @@ class GamificationManager(BaseManager):
                         progress[const.DATA_BADGE_OCCASION_TYPE] = occasion_type
 
                 # Store the progress data
-                assignee_info[const.DATA_ASSIGNEE_BADGE_PROGRESS][badge_id] = cast(  # pyright: ignore[reportTypedDictNotRequiredAccess]
+                assignee_info[const.DATA_USER_BADGE_PROGRESS][badge_id] = cast(  # pyright: ignore[reportTypedDictNotRequiredAccess]
                     "AssigneeBadgeProgress", progress
                 )
 
@@ -4153,10 +4122,10 @@ class GamificationManager(BaseManager):
                 )
 
                 # --- Common fields ---
-                progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_NAME] = badge_info.get(
+                progress_sync[const.DATA_USER_BADGE_PROGRESS_NAME] = badge_info.get(
                     const.DATA_BADGE_NAME, "Unknown Badge"
                 )
-                progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_TYPE] = badge_type
+                progress_sync[const.DATA_USER_BADGE_PROGRESS_TYPE] = badge_type
 
                 # --- Target fields ---
                 if has_target:
@@ -4164,12 +4133,12 @@ class GamificationManager(BaseManager):
                         const.DATA_BADGE_TARGET_TYPE,
                         const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
                     )
-                    progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_TYPE] = (
+                    progress_sync[const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE] = (
                         target_type
                     )
 
                     progress_sync[
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
+                        const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
                     ] = badge_info.get(const.DATA_BADGE_TARGET, {}).get(
                         const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0
                     )
@@ -4206,8 +4175,8 @@ class GamificationManager(BaseManager):
                     selected_chores = tracked_chores_cfg.get(
                         const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
                     )
-                    progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_TRACKED_CHORES] = (
-                        list(selected_chores)
+                    progress_sync[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = list(
+                        selected_chores
                     )
 
                 # --- Assigned To fields ---
@@ -4229,15 +4198,15 @@ class GamificationManager(BaseManager):
                         const.DATA_BADGE_RESET_SCHEDULE_END_DATE
                     )
                     progress_sync[
-                        const.DATA_ASSIGNEE_BADGE_PROGRESS_RECURRING_FREQUENCY
+                        const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY
                     ] = recurring_frequency
                     # Only update start and end dates if they have values
                     if start_date_iso:
-                        progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_START_DATE] = (
+                        progress_sync[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
                             start_date_iso
                         )
                     if end_date_iso:
-                        progress_sync[const.DATA_ASSIGNEE_BADGE_PROGRESS_END_DATE] = (
+                        progress_sync[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
                             end_date_iso
                         )
 
@@ -4839,7 +4808,7 @@ class GamificationManager(BaseManager):
             assignee_info_dict = cast("dict[str, Any]", assignee_info)
 
             # Reset badge-related fields from _BADGE_KID_RUNTIME_FIELDS
-            for field in db._BADGE_ASSIGNEE_RUNTIME_FIELDS:
+            for field in db._BADGE_USER_RUNTIME_FIELDS:
                 if field not in assignee_info_dict:
                     continue
                 field_data = assignee_info_dict[field]

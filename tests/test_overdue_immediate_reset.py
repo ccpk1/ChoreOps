@@ -35,19 +35,19 @@ from tests.helpers import (
     # Constants for chore data access
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
-    # Assignee chore data
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
     DATA_CHORE_APPROVAL_PERIOD_START,
     # Approval reset types
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_DUE_DATE,
     # Overdue handling
     DATA_CHORE_OVERDUE_HANDLING_TYPE,
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
+    # Assignee chore data
+    DATA_USER_CHORE_DATA_STATE,
     OVERDUE_HANDLING_AT_DUE_DATE,
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE,
 )
@@ -69,7 +69,7 @@ def get_assignee_state_for_chore(
     assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
         assignee_id, chore_id
     )
-    return assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def set_chore_due_date_directly(
@@ -96,16 +96,16 @@ def set_chore_due_date_directly(
         if assignee_id:
             per_assignee_due_dates[assignee_id] = due_date_iso
             assignee_info = coordinator.assignees_data.get(assignee_id, {})
-            assignee_chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
                 chore_id, {}
             )
             if assignee_chore_data:
-                assignee_chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     period_start_iso
                 )
         else:
             for assigned_assignee_id in chore_info.get(
-                DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 per_assignee_due_dates[assigned_assignee_id] = due_date_iso
     else:
@@ -413,7 +413,7 @@ class TestImmediateOnLateIndependent:
         )
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[DATA_CHORE_COMPLETION_CRITERIA] = COMPLETION_CRITERIA_INDEPENDENT
-        chore_info[DATA_CHORE_ASSIGNED_ASSIGNEES] = [zoe_id, max_id]
+        chore_info[DATA_CHORE_ASSIGNED_USER_IDS] = [zoe_id, max_id]
 
         # Set both assignees' due dates to 2 days ago (definitively late)
         # Use 2 days ago to ensure it's before midnight in any timezone
@@ -496,7 +496,7 @@ class TestImmediateOnLateShared:
         )
         chore_info = coordinator.chores_data.get(chore_id, {})
         chore_info[DATA_CHORE_COMPLETION_CRITERIA] = COMPLETION_CRITERIA_SHARED
-        chore_info[DATA_CHORE_ASSIGNED_ASSIGNEES] = [zoe_id, max_id]
+        chore_info[DATA_CHORE_ASSIGNED_USER_IDS] = [zoe_id, max_id]
 
         # Set due date to 2 days ago (definitively late)
         # Use 2 days ago to ensure it's before midnight in any timezone

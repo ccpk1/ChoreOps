@@ -237,151 +237,52 @@ def validate_points_inputs(user_input: dict[str, Any]) -> dict[str, str]:
 
 
 # ----------------------------------------------------------------------------------
-# ASSIGNEE SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
+# USER PROFILE SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
 # ----------------------------------------------------------------------------------
 
+# Section organization (intentional):
+# 1) Sectioned USER-form pipeline for current config/options UX
+#    - constants: USER_SECTION_* and USER_*_FIELDS
+#    - internals: _build/_normalize/_map/_validate *_impl helpers
+#    - public wrappers: build_user_schema, normalize_user_form_input,
+#      map_user_form_errors, validate_users_inputs
+#
+# Sectioned schema + validation is the only supported path for USER forms.
 
-async def build_assignee_schema(
-    hass,
-    users,
-):
-    """Build a Voluptuous schema for adding/editing an assignee profile.
-
-    Uses static defaults for optional fields - use suggested_value for edit forms.
-
-    Notification configuration simplified to single service selector:
-    - Service selected = notifications enabled to that service
-    - None selected = notifications disabled
-    """
-    # Use SENTINEL_NO_SELECTION for "None" option - empty string doesn't work reliably
-    user_options = [
-        {"value": const.SENTINEL_NO_SELECTION, "label": const.LABEL_NONE}
-    ] + [{"value": user.id, "label": user.name} for user in users]
-    # Notification service options: None = disabled, service = enabled
-    notify_options = [
-        {"value": const.SENTINEL_NO_SELECTION, "label": const.LABEL_DISABLED},
-        *_get_notify_services(hass),
-    ]
-
-    # Get available dashboard languages
-    language_options = await th.get_available_dashboard_languages(hass)
-
-    return vol.Schema(
-        {
-            vol.Required(
-                const.CFOF_USERS_INPUT_NAME, default=const.SENTINEL_EMPTY
-            ): str,
-            vol.Optional(
-                const.CFOF_USERS_INPUT_HA_USER_ID,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=user_options,
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
-            ),
-            vol.Optional(
-                const.CFOF_ASSIGNEES_INPUT_DASHBOARD_LANGUAGE,
-                default=const.DEFAULT_DASHBOARD_LANGUAGE,  # Static default
-            ): selector.LanguageSelector(
-                selector.LanguageSelectorConfig(
-                    languages=language_options,
-                    native_name=True,
-                )
-            ),
-            # Single notification service selector (None = disabled, service = enabled)
-            vol.Optional(
-                const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
-                default=const.SENTINEL_NO_SELECTION,  # Static default enables clearing
-            ): selector.SelectSelector(
-                selector.SelectSelectorConfig(
-                    options=cast("list[selector.SelectOptionDict]", notify_options),
-                    mode=selector.SelectSelectorMode.DROPDOWN,
-                    multiple=False,
-                )
-            ),
-            # Note: Due date reminders moved to per-chore control (v0.5.0+)
-            # See chore configuration "Send Reminders" toggle
-        }
-    )
-
-
-def validate_assignee_inputs(
-    user_input: dict[str, Any],
-    existing_assignees: dict[str, Any] | None = None,
-    existing_users: dict[str, Any] | None = None,
-    *,
-    current_assignee_id: str | None = None,
-) -> dict[str, str]:
-    """Validate assignee-profile inputs for flow surfaces.
-
-    This is a UI-specific wrapper that:
-    1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
-    2. Calls data_builders.validate_user_assignee_profile_data() (single source of truth)
-
-    Note: Since Phase 6 CFOF Key Alignment, CFOF_USERS_INPUT_NAME = "name"
-    matches DATA_USER_NAME = "name", so no key transformation is needed.
-
-    Args:
-        user_input: Dictionary containing user inputs from the form (CFOF_* keys).
-        existing_assignees: Optional dictionary of existing assignee profiles for duplicate checking.
-        existing_users: Optional dictionary of existing user profiles for cross-validation.
-        current_assignee_id: ID of assignee profile being edited (to exclude from duplicate check).
-
-    Returns:
-        Dictionary of errors (empty if validation passes).
-    """
-    from .. import data_builders as db
-
-    # Build DATA_* dict for shared validation
-    data_dict: dict[str, Any] = {
-        const.DATA_USER_NAME: user_input.get(const.CFOF_USERS_INPUT_NAME, ""),
-    }
-
-    # Call shared validation (single source of truth)
-    is_update = current_assignee_id is not None
-    return db.validate_user_assignee_profile_data(
-        data_dict,
-        existing_assignees,
-        existing_users,
-        is_update=is_update,
-        current_assignee_id=current_assignee_id,
-    )
-
-
-# ----------------------------------------------------------------------------------
-# PARENTS SCHEMA (Layer 1: Schema + Layer 2: UI Validation Wrapper)
-# ----------------------------------------------------------------------------------
 
 USER_SECTION_IDENTITY_PROFILE = "section_identity_profile"
 USER_SECTION_SYSTEM_USAGE = "section_system_usage"
 USER_SECTION_ADMIN_APPROVAL = "section_admin_approval"
 
+# Section field group contracts:
+# - Identity profile: personal mapping and notification preferences
+# - System usage: assignment + workflow/gamification capability flags
+# - Admin approval: approval/management flags and associated user links
+
 USER_IDENTITY_FIELDS = (
     const.CFOF_USERS_INPUT_NAME,
     const.CFOF_USERS_INPUT_HA_USER_ID,
-    const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
+    const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
     const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE,
 )
 
 USER_SYSTEM_USAGE_FIELDS = (
-    const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
-    const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
-    const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+    const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
+    const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
+    const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
 )
 
 USER_ADMIN_APPROVAL_FIELDS = (
-    const.CFOF_APPROVERS_INPUT_CAN_APPROVE,
-    const.CFOF_APPROVERS_INPUT_CAN_MANAGE,
-    const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+    const.CFOF_USERS_INPUT_CAN_APPROVE,
+    const.CFOF_USERS_INPUT_CAN_MANAGE,
+    const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
 )
 
 
 def _build_user_section_suggested_values_impl(
     flat_values: dict[str, Any],
 ) -> dict[str, Any]:
-    """Build sectioned suggested values from a flat user form dictionary."""
+    """Build sectioned suggested values from flat persisted user values."""
     return {
         USER_SECTION_IDENTITY_PROFILE: {
             key: flat_values[key] for key in USER_IDENTITY_FIELDS if key in flat_values
@@ -400,7 +301,11 @@ def _build_user_section_suggested_values_impl(
 
 
 def _normalize_user_form_input_impl(user_input: dict[str, Any]) -> dict[str, Any]:
-    """Normalize user form input for sectioned and non-sectioned payloads."""
+    """Normalize user form payload for sectioned and non-sectioned modes.
+
+    Home Assistant `section()` wraps values under section keys. This helper
+    flattens those values so downstream validation/builders consume one shape.
+    """
     normalized: dict[str, Any] = dict(user_input)
     for section_key in (
         USER_SECTION_IDENTITY_PROFILE,
@@ -418,7 +323,7 @@ async def _build_user_schema_impl(
     users,
     assignees_dict,
 ):
-    """Build a Voluptuous schema for adding/editing a user profile.
+    """Build sectioned USER-form schema for add/edit user profile.
 
     Uses static defaults for optional fields - use suggested_value for edit forms.
 
@@ -456,7 +361,7 @@ async def _build_user_schema_impl(
             )
         ),
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_DASHBOARD_LANGUAGE,
+            const.CFOF_USERS_INPUT_DASHBOARD_LANGUAGE,
             default=const.DEFAULT_DASHBOARD_LANGUAGE,
         ): selector.LanguageSelector(
             selector.LanguageSelectorConfig(
@@ -478,35 +383,35 @@ async def _build_user_schema_impl(
 
     usage_fields: dict[Any, Any] = {
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
             default=False,
         ): selector.BooleanSelector(),
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
             default=False,
         ): selector.BooleanSelector(),
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
             default=False,
         ): selector.BooleanSelector(),
     }
 
     admin_fields: dict[Any, Any] = {
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_CAN_APPROVE,
+            const.CFOF_USERS_INPUT_CAN_APPROVE,
             default=False,
         ): selector.BooleanSelector(),
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_CAN_MANAGE,
+            const.CFOF_USERS_INPUT_CAN_MANAGE,
             default=False,
         ): selector.BooleanSelector(),
         vol.Optional(
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
             default=[],
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=cast("list[selector.SelectOptionDict]", assignee_options),
-                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSOCIATED_ASSIGNEES,
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSOCIATED_USER_IDS,
                 multiple=True,
             )
         ),
@@ -528,7 +433,11 @@ async def _build_user_schema_impl(
 
 
 def _map_user_form_errors_impl(errors: dict[str, str]) -> dict[str, str]:
-    """Map user form errors to section-level aliases for sectioned UI."""
+    """Map field-level errors to section aliases for sectioned UI rendering.
+
+    This preserves original field keys and additionally maps section keys so
+    the UI can highlight collapsed groups with validation issues.
+    """
     mapped_errors: dict[str, str] = {}
 
     field_to_section: dict[str, str] = {
@@ -538,7 +447,7 @@ def _map_user_form_errors_impl(errors: dict[str, str]) -> dict[str, str]:
     }
 
     field_aliases = {
-        const.CFOP_ERROR_CHORE_OPTIONS: const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+        const.CFOP_ERROR_CHORE_OPTIONS: const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
     }
 
     for error_field, translation_key in errors.items():
@@ -564,7 +473,7 @@ def _validate_users_inputs_impl(
     *,
     current_user_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate user configuration inputs for flow surfaces.
+    """Validate sectioned USER-form configuration inputs.
 
     This is a UI-specific wrapper that:
     1. Extracts DATA_* values from user_input (keys are aligned: CFOF_* = DATA_*)
@@ -589,34 +498,34 @@ def _validate_users_inputs_impl(
         const.DATA_USER_NAME: user_input.get(const.CFOF_USERS_INPUT_NAME, ""),
     }
 
-    if const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES in user_input:
+    if const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS in user_input:
         data_dict[const.DATA_APPROVER_ASSOCIATED_USERS] = user_input.get(
-            const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES,
+            const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS,
             [],
         )
-    if const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT in user_input:
-        data_dict[const.DATA_APPROVER_ALLOW_CHORE_ASSIGNMENT] = user_input.get(
-            const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT,
+    if const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED in user_input:
+        data_dict[const.DATA_USER_CAN_BE_ASSIGNED] = user_input.get(
+            const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED,
             False,
         )
-    if const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW in user_input:
+    if const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW in user_input:
         data_dict[const.DATA_APPROVER_ENABLE_CHORE_WORKFLOW] = user_input.get(
-            const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW,
+            const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW,
             False,
         )
-    if const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION in user_input:
+    if const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION in user_input:
         data_dict[const.DATA_APPROVER_ENABLE_GAMIFICATION] = user_input.get(
-            const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION,
+            const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION,
             False,
         )
-    if const.CFOF_APPROVERS_INPUT_CAN_APPROVE in user_input:
+    if const.CFOF_USERS_INPUT_CAN_APPROVE in user_input:
         data_dict[const.DATA_USER_CAN_APPROVE] = user_input.get(
-            const.CFOF_APPROVERS_INPUT_CAN_APPROVE,
+            const.CFOF_USERS_INPUT_CAN_APPROVE,
             False,
         )
-    if const.CFOF_APPROVERS_INPUT_CAN_MANAGE in user_input:
+    if const.CFOF_USERS_INPUT_CAN_MANAGE in user_input:
         data_dict[const.DATA_USER_CAN_MANAGE] = user_input.get(
-            const.CFOF_APPROVERS_INPUT_CAN_MANAGE,
+            const.CFOF_USERS_INPUT_CAN_MANAGE,
             False,
         )
 
@@ -632,17 +541,17 @@ def _validate_users_inputs_impl(
 
 
 def build_user_section_suggested_values(flat_values: dict[str, Any]) -> dict[str, Any]:
-    """Build sectioned suggested values for the role-based user form."""
+    """Public wrapper for sectioned suggested values in USER form."""
     return _build_user_section_suggested_values_impl(flat_values)
 
 
 def normalize_user_form_input(user_input: dict[str, Any]) -> dict[str, Any]:
-    """Normalize role-based user form input for sectioned payloads."""
+    """Public wrapper to normalize USER-form payload shape."""
     return _normalize_user_form_input_impl(user_input)
 
 
 async def build_user_schema(hass, users, assignees_dict):
-    """Build role-based user form schema.
+    """Public schema builder for sectioned USER-form surfaces.
 
     Args:
         hass: Home Assistant instance.
@@ -653,7 +562,7 @@ async def build_user_schema(hass, users, assignees_dict):
 
 
 def map_user_form_errors(errors: dict[str, str]) -> dict[str, str]:
-    """Map role-based user form errors to section-level aliases."""
+    """Public wrapper for section-aware USER-form error mapping."""
     return _map_user_form_errors_impl(errors)
 
 
@@ -664,7 +573,7 @@ def validate_users_inputs(
     *,
     current_user_id: str | None = None,
 ) -> dict[str, str]:
-    """Validate role-based user form input using shared user-profile rules."""
+    """Public wrapper for sectioned USER-form validation rules."""
     return _validate_users_inputs_impl(
         user_input,
         existing_users,
@@ -692,7 +601,7 @@ CHORE_ROOT_FORM_FIELDS = (
     const.CFOF_CHORES_INPUT_DESCRIPTION,
     const.CFOF_CHORES_INPUT_ICON,
     const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
-    const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
+    const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
 )
 
@@ -846,14 +755,14 @@ def build_chore_schema(
             )
         ),
         vol.Required(
-            const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES,
-            default=default.get(const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES, []),
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+            default=default.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []),
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=list(assignee_choices.keys()),
                 multiple=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
-                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_ASSIGNEES,
+                translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
             )
         ),
         vol.Required(
@@ -1101,7 +1010,7 @@ def validate_chores_inputs(
     # === Transform CFOF_* keys to DATA_* keys for shared validation ===
     # Resolve assigned assignees from names to IDs
     assigned_assignees_names = user_input.get(
-        const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES, []
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []
     )
     assigned_assignees_ids = [
         assignees_dict[assignee_name]
@@ -1150,7 +1059,7 @@ def validate_chores_inputs(
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
         const.DATA_CHORE_NAME: user_input.get(const.CFOF_CHORES_INPUT_NAME, ""),
-        const.DATA_CHORE_ASSIGNED_ASSIGNEES: assigned_assignees_ids,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_assignees_ids,
         const.DATA_CHORE_RECURRING_FREQUENCY: user_input.get(
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         ),
@@ -1225,7 +1134,7 @@ def transform_chore_cfof_to_data(
     """
     # Convert assigned assignee names to UUIDs
     assigned_assignees_names = user_input.get(
-        const.CFOF_CHORES_INPUT_ASSIGNED_ASSIGNEES, []
+        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []
     )
     assigned_assignees_ids = [
         assignees_dict[assignee_name]
@@ -1294,7 +1203,7 @@ def transform_chore_cfof_to_data(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
             const.DEFAULT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
         ),
-        const.DATA_CHORE_ASSIGNED_ASSIGNEES: assigned_assignees_ids,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_assignees_ids,
         const.DATA_CHORE_DESCRIPTION: user_input.get(
             const.CFOF_CHORES_INPUT_DESCRIPTION, const.SENTINEL_EMPTY
         ),
@@ -1437,7 +1346,7 @@ def validate_daily_multi_assignees(
             and len(assigned_assignees) > 1
             and not per_assignee_times
         ):
-            errors[const.CFOP_ERROR_DAILY_MULTI_ASSIGNEES] = (
+            errors[const.CFOP_ERROR_DAILY_MULTI_USER_IDS] = (
                 const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_INDEPENDENT_MULTI_ASSIGNEES
             )
 
@@ -2753,12 +2662,12 @@ def build_achievement_schema(assignees_dict, chores_dict, default=None):
             ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
             vol.Optional(const.CFOF_ACHIEVEMENTS_INPUT_ICON): selector.IconSelector(),
             vol.Required(
-                const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES,
+                const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS,
                 default=[],
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=cast("list[selector.SelectOptionDict]", assignee_options),
-                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_ASSIGNEES,
+                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
                     multiple=True,
                 )
             ),
@@ -2841,7 +2750,7 @@ def validate_achievements_inputs(
 
     # Transform CFOF_* keys to DATA_* keys
     assigned_assignees = user_input.get(
-        const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_ASSIGNEES, []
+        const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS, []
     )
     if not isinstance(assigned_assignees, list):
         assigned_assignees = [assigned_assignees] if assigned_assignees else []
@@ -2856,7 +2765,7 @@ def validate_achievements_inputs(
         const.DATA_ACHIEVEMENT_SELECTED_CHORE_ID: user_input.get(
             const.CFOF_ACHIEVEMENTS_INPUT_SELECTED_CHORE_ID, const.SENTINEL_EMPTY
         ),
-        const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES: assigned_assignees,
+        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS: assigned_assignees,
     }
 
     return db.validate_achievement_data(
@@ -2903,12 +2812,12 @@ def build_challenge_schema(assignees_dict, chores_dict, default=None):
             ): selector.LabelSelector(selector.LabelSelectorConfig(multiple=True)),
             vol.Optional(const.CFOF_CHALLENGES_INPUT_ICON): selector.IconSelector(),
             vol.Required(
-                const.CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES,
+                const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS,
                 default=[],
             ): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=assignee_choices,
-                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_ASSIGNEES,
+                    translation_key=const.TRANS_KEY_FLOW_HELPERS_ASSIGNED_USER_IDS,
                     multiple=True,
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
@@ -2999,14 +2908,14 @@ def validate_challenges_inputs(
 
     # Transform CFOF_* keys to DATA_* keys
     assigned_assignees = user_input.get(
-        const.CFOF_CHALLENGES_INPUT_ASSIGNED_ASSIGNEES, []
+        const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS, []
     )
     if not isinstance(assigned_assignees, list):
         assigned_assignees = [assigned_assignees] if assigned_assignees else []
 
     data = {
         const.DATA_CHALLENGE_NAME: user_input.get(const.CFOF_CHALLENGES_INPUT_NAME, ""),
-        const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES: assigned_assignees,
+        const.DATA_CHALLENGE_ASSIGNED_USER_IDS: assigned_assignees,
         const.DATA_CHALLENGE_START_DATE: user_input.get(
             const.CFOF_CHALLENGES_INPUT_START_DATE
         ),

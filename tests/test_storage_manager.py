@@ -56,7 +56,7 @@ async def test_async_initialize_loads_existing_data(
 ) -> None:
     """Test that async_initialize loads existing storage data."""
     existing_data = {
-        const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}},
+        const.DATA_USERS: {"assignee_1": {"name": "Alice"}},
         const.DATA_CHORES: {"chore_1": {"name": "Clean room"}},
         const.DATA_SCHEMA_VERSION: 42,
     }
@@ -65,7 +65,7 @@ async def test_async_initialize_loads_existing_data(
         await store.async_initialize()
 
     assert store.data == existing_data
-    assert store.data[const.DATA_ASSIGNEES] == {"assignee_1": {"name": "Alice"}}
+    assert store.data[const.DATA_USERS] == {"assignee_1": {"name": "Alice"}}
     assert store.data[const.DATA_CHORES] == {"chore_1": {"name": "Clean room"}}
 
 
@@ -75,7 +75,7 @@ async def test_getter_methods_return_correct_data(
 ) -> None:
     """Test all getter methods return correct data."""
     test_data = {
-        const.DATA_ASSIGNEES: {"assignee_1": {}},
+        const.DATA_USERS: {"assignee_1": {}},
         const.DATA_APPROVERS: {"approver_1": {}},
         const.DATA_CHORES: {"chore_1": {}},
         const.DATA_BADGES: {"badge_1": {}},
@@ -89,7 +89,7 @@ async def test_getter_methods_return_correct_data(
 
     store.set_data(test_data)
 
-    assert store.data[const.DATA_ASSIGNEES] == {"assignee_1": {}}
+    assert store.data[const.DATA_USERS] == {"assignee_1": {}}
     assert store.data[const.DATA_APPROVERS] == {"approver_1": {}}
     assert store.data[const.DATA_CHORES] == {"chore_1": {}}
     assert store.data[const.DATA_BADGES] == {"badge_1": {}}
@@ -108,7 +108,7 @@ async def test_getter_methods_return_defaults_for_missing_keys(
     """Test getter methods return empty defaults when keys don't exist."""
     store.set_data({})
 
-    assert store.data.get(const.DATA_ASSIGNEES, {}) == {}
+    assert store.data.get(const.DATA_USERS, {}) == {}
     assert store.data.get(const.DATA_APPROVERS, {}) == {}
     assert store.data.get(const.DATA_CHORES, {}) == {}
     assert store.data.get(const.DATA_BADGES, {}) == {}
@@ -125,7 +125,7 @@ async def test_async_save_success(
     store: ChoreOpsStore,
 ) -> None:
     """Test successful async_save operation."""
-    test_data = {const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}}}
+    test_data = {const.DATA_USERS: {"assignee_1": {"name": "Alice"}}}
     store.set_data(test_data)
 
     mock_store_save = AsyncMock()
@@ -141,7 +141,7 @@ async def test_async_save_handles_oserror(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_save handles OSError (file system errors)."""
-    store.set_data({const.DATA_ASSIGNEES: {}})
+    store.set_data({const.DATA_USERS: {}})
 
     with patch.object(
         store._store,
@@ -161,7 +161,7 @@ async def test_async_save_handles_typeerror(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_save handles TypeError (serialization errors)."""
-    store.set_data({const.DATA_ASSIGNEES: {}})
+    store.set_data({const.DATA_USERS: {}})
 
     with patch.object(
         store._store,
@@ -181,7 +181,7 @@ async def test_async_save_handles_valueerror(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_save handles ValueError (validation errors)."""
-    store.set_data({const.DATA_ASSIGNEES: {}})
+    store.set_data({const.DATA_USERS: {}})
 
     with patch.object(
         store._store,
@@ -204,7 +204,7 @@ async def test_async_clear_data_resets_to_default_structure(
     # Start with populated data
     store.set_data(
         {
-            const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}},
+            const.DATA_USERS: {"assignee_1": {"name": "Alice"}},
             const.DATA_CHORES: {"chore_1": {"name": "Clean"}},
             const.DATA_SCHEMA_VERSION: 42,
         }
@@ -237,7 +237,7 @@ async def test_async_clear_data_includes_schema_version(
     This is a regression test for the bug where schema_version was missing
     from async_clear_data but present in async_initialize.
     """
-    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
+    store.set_data({const.DATA_USERS: {"assignee_1": {}}})
 
     mock_save = AsyncMock()
     with patch.object(store, "async_save", mock_save):
@@ -254,7 +254,7 @@ async def test_async_delete_storage_clears_and_removes_file(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_delete_storage clears data and removes file via Store API."""
-    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
+    store.set_data({const.DATA_USERS: {"assignee_1": {}}})
 
     mock_clear = AsyncMock()
     mock_store_remove = AsyncMock()
@@ -280,7 +280,7 @@ async def test_async_delete_storage_handles_missing_file(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_delete_storage handles FileNotFoundError from Store API."""
-    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
+    store.set_data({const.DATA_USERS: {"assignee_1": {}}})
 
     mock_clear = AsyncMock()
     # Store API raises FileNotFoundError (subclass of OSError) if file doesn't exist
@@ -307,7 +307,7 @@ async def test_async_delete_storage_handles_oserror(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_delete_storage handles OSError from Store API."""
-    store.set_data({const.DATA_ASSIGNEES: {"assignee_1": {}}})
+    store.set_data({const.DATA_USERS: {"assignee_1": {}}})
 
     mock_store_remove = AsyncMock(side_effect=OSError("Permission denied"))
     with (
@@ -329,7 +329,7 @@ async def test_async_update_data_updates_and_saves(
     """Test async_update_data updates specific key and saves."""
     store.set_data(
         {
-            const.DATA_ASSIGNEES: {"assignee_1": {}},
+            const.DATA_USERS: {"assignee_1": {}},
             const.DATA_CHORES: {},
         }
     )
@@ -338,10 +338,10 @@ async def test_async_update_data_updates_and_saves(
 
     mock_save = AsyncMock()
     with patch.object(store, "async_save", mock_save):
-        await store.async_update_data(const.DATA_ASSIGNEES, new_assignees_data)
+        await store.async_update_data(const.DATA_USERS, new_assignees_data)
 
     # Verify data was updated
-    assert store.data[const.DATA_ASSIGNEES] == new_assignees_data
+    assert store.data[const.DATA_USERS] == new_assignees_data
 
     # Verify save was called
     mock_save.assert_called_once()
@@ -356,7 +356,7 @@ async def test_async_update_data_warns_on_unknown_key(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test async_update_data warns when updating unknown key."""
-    store.set_data({const.DATA_ASSIGNEES: {}})
+    store.set_data({const.DATA_USERS: {}})
 
     mock_save = AsyncMock()
     with patch.object(store, "async_save", mock_save):
@@ -382,7 +382,7 @@ async def test_data_property_returns_internal_data(
     store: ChoreOpsStore,
 ) -> None:
     """Test data property returns the internal data dictionary."""
-    test_data = {const.DATA_ASSIGNEES: {"assignee_1": {"name": "Alice"}}}
+    test_data = {const.DATA_USERS: {"assignee_1": {"name": "Alice"}}}
     store.set_data(test_data)
 
     assert store.data is store._data
@@ -394,11 +394,11 @@ async def test_set_data_replaces_entire_structure(
     store: ChoreOpsStore,
 ) -> None:
     """Test set_data completely replaces the data structure."""
-    original_data = {const.DATA_ASSIGNEES: {"assignee_1": {}}}
+    original_data = {const.DATA_USERS: {"assignee_1": {}}}
     store.set_data(original_data)
 
     new_data = {
-        const.DATA_ASSIGNEES: {"assignee_2": {}},
+        const.DATA_USERS: {"assignee_2": {}},
         const.DATA_CHORES: {"chore_1": {}},
     }
     store.set_data(new_data)

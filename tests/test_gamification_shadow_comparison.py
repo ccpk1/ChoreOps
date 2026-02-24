@@ -91,7 +91,7 @@ class TestBadgeShadowComparison:
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 100)
 
         # Set assignee's points above threshold
-        assignee_data[const.DATA_ASSIGNEE_POINTS] = float(threshold + 50)
+        assignee_data[const.DATA_USER_POINTS] = float(threshold + 50)
 
         # Also update point_stats for total_earned (LEGACY - kept for test compatibility)
         point_stats = assignee_data.setdefault(
@@ -105,21 +105,21 @@ class TestBadgeShadowComparison:
         context: EvaluationContext = {
             "assignee_id": assignee_id,
             "assignee_name": assignee_name,
-            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
+            "current_points": float(assignee_data.get(const.DATA_USER_POINTS, 0.0)),
             "total_points_earned": float(
                 point_stats.get(
                     const.DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY, 0.0
                 )
             ),
-            "badge_progress": assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            "badge_progress": assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {}),
             "cumulative_badge_progress": assignee_data.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_USER_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
             "chore_periods_all_time": assignee_data.get(
-                const.DATA_ASSIGNEE_CHORE_PERIODS, {}
-            ).get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
+                const.DATA_USER_CHORE_PERIODS, {}
+            ).get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
             "achievement_progress": {},
             "challenge_progress": {},
             "today_iso": dt_today_iso(),
@@ -173,14 +173,12 @@ class TestBadgeShadowComparison:
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 5)
 
         # Set up badge progress with enough chores
-        badge_progress = assignee_data.setdefault(
-            const.DATA_ASSIGNEE_BADGE_PROGRESS, {}
-        )
+        badge_progress = assignee_data.setdefault(const.DATA_USER_BADGE_PROGRESS, {})
         badge_progress[chore_badge_id] = cast(
             "dict[str, Any]",
             {
-                const.DATA_ASSIGNEE_BADGE_PROGRESS_CHORES_CYCLE_COUNT: threshold + 2,
-                const.DATA_ASSIGNEE_BADGE_PROGRESS_POINTS_CYCLE_COUNT: 100.0,
+                const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT: threshold + 2,
+                const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT: 100.0,
             },
         )
 
@@ -188,17 +186,17 @@ class TestBadgeShadowComparison:
         context: EvaluationContext = {
             "assignee_id": assignee_id,
             "assignee_name": assignee_name,
-            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
+            "current_points": float(assignee_data.get(const.DATA_USER_POINTS, 0.0)),
             "total_points_earned": 100.0,
             "badge_progress": badge_progress,
             "cumulative_badge_progress": assignee_data.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_USER_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
             "chore_periods_all_time": assignee_data.get(
-                const.DATA_ASSIGNEE_CHORE_PERIODS, {}
-            ).get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
+                const.DATA_USER_CHORE_PERIODS, {}
+            ).get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
             "achievement_progress": {},
             "challenge_progress": {},
             "today_iso": dt_today_iso(),
@@ -248,26 +246,26 @@ class TestAchievementShadowComparison:
         target_count = achievement_data.get(const.DATA_ACHIEVEMENT_TARGET_VALUE, 10)
 
         # Set up chore_periods.all_time with enough completions (v43+ structure)
-        chore_periods = assignee_data.setdefault(const.DATA_ASSIGNEE_CHORE_PERIODS, {})
-        chore_periods[const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME] = {
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_APPROVED: target_count + 5,
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_POINTS: 500.0,
+        chore_periods = assignee_data.setdefault(const.DATA_USER_CHORE_PERIODS, {})
+        chore_periods[const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME] = {
+            const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: target_count + 5,
+            const.DATA_USER_CHORE_DATA_PERIOD_POINTS: 500.0,
         }
 
         # Build evaluation context
         context: EvaluationContext = {
             "assignee_id": assignee_id,
             "assignee_name": assignee_name,
-            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
+            "current_points": float(assignee_data.get(const.DATA_USER_POINTS, 0.0)),
             "total_points_earned": 500.0,
-            "badge_progress": assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            "badge_progress": assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {}),
             "cumulative_badge_progress": assignee_data.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_USER_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
             "chore_periods_all_time": chore_periods.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}
+                const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}
             ),
             "achievement_progress": {},
             "challenge_progress": {},
@@ -325,17 +323,17 @@ class TestChallengeShadowComparison:
         context: EvaluationContext = {
             "assignee_id": assignee_id,
             "assignee_name": assignee_name,
-            "current_points": float(assignee_data.get(const.DATA_ASSIGNEE_POINTS, 0.0)),
+            "current_points": float(assignee_data.get(const.DATA_USER_POINTS, 0.0)),
             "total_points_earned": 100.0,
-            "badge_progress": assignee_data.get(const.DATA_ASSIGNEE_BADGE_PROGRESS, {}),
+            "badge_progress": assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {}),
             "cumulative_badge_progress": assignee_data.get(
-                const.DATA_ASSIGNEE_CUMULATIVE_BADGE_PROGRESS, {}
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
             ),
-            "badges_earned": assignee_data.get(const.DATA_ASSIGNEE_BADGES_EARNED, {}),
+            "badges_earned": assignee_data.get(const.DATA_USER_BADGES_EARNED, {}),
             # v43+: chore_stats deleted, use chore_periods.all_time
             "chore_periods_all_time": assignee_data.get(
-                const.DATA_ASSIGNEE_CHORE_PERIODS, {}
-            ).get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
+                const.DATA_USER_CHORE_PERIODS, {}
+            ).get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
             "achievement_progress": {},
             "challenge_progress": {},
             "today_iso": dt_today_iso(),

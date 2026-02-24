@@ -34,12 +34,12 @@ from tests.helpers import (
     CHORE_STATE_UNKNOWN,
     # Phase 2: DATA_KID_COMPLETED_BY_OTHER_CHORES removed (was line 38)
     COMPLETION_CRITERIA_SHARED_FIRST,
-    # Data keys
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_STATE,
+    # Data keys
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_STATE,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
@@ -97,9 +97,9 @@ def get_assignee_chore_state(
         State string (e.g., 'pending', 'claimed', 'approved')
     """
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
-    return per_chore.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return per_chore.get(DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def get_global_chore_state(
@@ -141,16 +141,16 @@ def is_in_completed_by_other(
         return False
 
     # Check if another assignee has claimed or approved this chore
-    assigned_assignees = chore.get(DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+    assigned_assignees = chore.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
     for other_assignee_id in assigned_assignees:
         if other_assignee_id == assignee_id:
             continue
         other_assignee_data = coordinator.assignees_data.get(other_assignee_id, {})
-        other_chore_data = other_assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {}).get(
+        other_chore_data = other_assignee_data.get(DATA_USER_CHORE_DATA, {}).get(
             chore_id, {}
         )
         other_state = other_chore_data.get(
-            DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING
+            DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING
         )
         if other_state in (CHORE_STATE_CLAIMED, CHORE_STATE_APPROVED):
             return True
@@ -835,7 +835,7 @@ class TestGlobalStateConsistency:
         coordinator = scenario_shared.coordinator
         chore_id = scenario_shared.chore_ids["Dishes Rotation"]
         assigned_assignees = coordinator.chores_data[chore_id][
-            DATA_CHORE_ASSIGNED_ASSIGNEES
+            DATA_CHORE_ASSIGNED_USER_IDS
         ]
 
         turn_holder = None

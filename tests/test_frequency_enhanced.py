@@ -39,14 +39,14 @@ from tests.helpers import (
     CHORE_STATE_CLAIMED,
     CHORE_STATE_PENDING,
     COMPLETION_CRITERIA_INDEPENDENT,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
-    DATA_ASSIGNEE_POINTS,
     DATA_CHORE_CUSTOM_INTERVAL,
     DATA_CHORE_CUSTOM_INTERVAL_UNIT,
     DATA_CHORE_DAILY_MULTI_TIMES,
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_RECURRING_FREQUENCY,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_STATE,
+    DATA_USER_POINTS,
     FREQUENCY_CUSTOM,
     FREQUENCY_CUSTOM_FROM_COMPLETE,
     FREQUENCY_DAILY_MULTI,
@@ -147,15 +147,15 @@ def get_assignee_chore_state(
 ) -> str:
     """Get the current state of a chore for a specific assignee."""
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
-    return per_chore.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return per_chore.get(DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def get_assignee_points(coordinator: Any, assignee_id: str) -> float:
     """Get a assignee's current point balance."""
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    return assignee_data.get(DATA_ASSIGNEE_POINTS, 0.0)
+    return assignee_data.get(DATA_USER_POINTS, 0.0)
 
 
 def get_chore_due_date(coordinator: Any, chore_id: str) -> str | None:
@@ -874,7 +874,7 @@ class TestDailyMulti:
         )
 
         # Only one assignee assigned
-        assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         assert len(assigned) == 1
 
         # Should work normally

@@ -206,7 +206,7 @@ async def test_service_claim_auth_stays_strict_with_kiosk_enabled(
             const.DOMAIN,
             const.SERVICE_CLAIM_CHORE,
             {
-                const.SERVICE_FIELD_ASSIGNEE_NAME: "Zoë",
+                const.SERVICE_FIELD_USER_NAME: "Zoë",
                 const.SERVICE_FIELD_CHORE_NAME: "Make bed",
             },
             blocking=True,

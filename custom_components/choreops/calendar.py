@@ -158,7 +158,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
 
         for chore in self.coordinator.chores_data.values():
             if self._assignee_id not in chore.get(
-                const.DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 continue
             if not chore.get(const.DATA_CHORE_SHOW_ON_CALENDAR, True):
@@ -196,7 +196,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
 
         for challenge in self.coordinator.challenges_data.values():
             if self._assignee_id not in challenge.get(
-                const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
             ):
                 continue
 
@@ -1024,7 +1024,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
         events = []
         # chores
         for chore in self.coordinator.chores_data.values():
-            if self._assignee_id in chore.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, []):
+            if self._assignee_id in chore.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
                 if not chore.get(const.DATA_CHORE_SHOW_ON_CALENDAR, True):
                     continue
                 events.extend(
@@ -1033,7 +1033,7 @@ class AssigneeScheduleCalendar(CalendarEntity):
         # challenges
         for challenge in self.coordinator.challenges_data.values():
             if self._assignee_id in challenge.get(
-                const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES, []
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
             ):
                 events.extend(
                     self._generate_events_for_challenge(
@@ -1047,5 +1047,5 @@ class AssigneeScheduleCalendar(CalendarEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_CALENDAR_SCHEDULE,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }

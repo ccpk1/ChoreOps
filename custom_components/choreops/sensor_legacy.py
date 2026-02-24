@@ -126,14 +126,14 @@ class AssigneeChoreCompletionSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # v43+: chore_stats deleted, use chore_periods.all_time
         # Cast to dict[str, Any] since chore_periods is a runtime-added bucket
         chore_periods: dict[str, Any] = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_ASSIGNEE_CHORE_PERIODS, {})
+            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
         )
         all_time: dict[str, Any] = cast(
             "dict[str, Any]",
-            chore_periods.get(const.DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {}),
+            chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
         )
         return all_time.get(
-            const.DATA_ASSIGNEE_CHORE_DATA_PERIOD_COMPLETED, const.DEFAULT_ZERO
+            const.DATA_USER_CHORE_DATA_PERIOD_COMPLETED, const.DEFAULT_ZERO
         )
 
     @property
@@ -141,7 +141,7 @@ class AssigneeChoreCompletionSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_ALL_TIME_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -199,14 +199,14 @@ class AssigneeChoreCompletionDailySensor(ChoreOpsCoordinatorEntity, SensorEntity
         Phase 4.5: Uses 'completed' metric (work date) for accurate tracking.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
-        return stats.get(const.PRES_ASSIGNEE_CHORES_COMPLETED_TODAY, const.DEFAULT_ZERO)
+        return stats.get(const.PRES_USER_CHORES_COMPLETED_TODAY, const.DEFAULT_ZERO)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_TODAY_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -264,14 +264,14 @@ class AssigneeChoreCompletionWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntit
         Phase 4.5: Uses 'completed' metric (work date) for accurate tracking.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
-        return stats.get(const.PRES_ASSIGNEE_CHORES_COMPLETED_WEEK, const.DEFAULT_ZERO)
+        return stats.get(const.PRES_USER_CHORES_COMPLETED_WEEK, const.DEFAULT_ZERO)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_WEEK_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -329,14 +329,14 @@ class AssigneeChoreCompletionMonthlySensor(ChoreOpsCoordinatorEntity, SensorEnti
         Phase 4.5: Uses 'completed' metric (work date) for accurate tracking.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
-        return stats.get(const.PRES_ASSIGNEE_CHORES_COMPLETED_MONTH, const.DEFAULT_ZERO)
+        return stats.get(const.PRES_USER_CHORES_COMPLETED_MONTH, const.DEFAULT_ZERO)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_APPROVALS_MONTH_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -392,7 +392,7 @@ class SystemChoresPendingApprovalSensor(ChoreOpsCoordinatorEntity, SensorEntity)
             entity_registry = None
 
         for approval in approvals:
-            assignee_id = approval[const.DATA_ASSIGNEE_ID]
+            assignee_id = approval[const.DATA_USER_ID]
             chore_id = approval[const.DATA_CHORE_ID]
             assignee_name = (
                 get_assignee_name_by_id(self.coordinator, assignee_id)
@@ -496,7 +496,7 @@ class SystemRewardsPendingApprovalSensor(ChoreOpsCoordinatorEntity, SensorEntity
             entity_registry = None
 
         for approval in approvals:
-            assignee_id = approval[const.DATA_ASSIGNEE_ID]
+            assignee_id = approval[const.DATA_USER_ID]
             reward_id = approval[const.DATA_REWARD_ID]
             assignee_name = (
                 get_assignee_name_by_id(self.coordinator, assignee_id)
@@ -609,7 +609,7 @@ class AssigneePointsEarnedDailySensor(ChoreOpsCoordinatorEntity, SensorEntity):
         Phase 7.5: Uses presentation cache instead of persisted stats.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
-        value = stats.get(const.PRES_ASSIGNEE_POINTS_NET_TODAY, const.DEFAULT_ZERO)
+        value = stats.get(const.PRES_USER_POINTS_NET_TODAY, const.DEFAULT_ZERO)
         return int(cast("float | int", value))
 
     @property
@@ -627,7 +627,7 @@ class AssigneePointsEarnedDailySensor(ChoreOpsCoordinatorEntity, SensorEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_EARNED_TODAY_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -687,7 +687,7 @@ class AssigneePointsEarnedWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntity):
         Phase 7.5: Uses presentation cache instead of persisted stats.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
-        value = stats.get(const.PRES_ASSIGNEE_POINTS_NET_WEEK, const.DEFAULT_ZERO)
+        value = stats.get(const.PRES_USER_POINTS_NET_WEEK, const.DEFAULT_ZERO)
         return int(cast("float | int", value))
 
     @property
@@ -705,7 +705,7 @@ class AssigneePointsEarnedWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_EARNED_WEEK_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -765,7 +765,7 @@ class AssigneePointsEarnedMonthlySensor(ChoreOpsCoordinatorEntity, SensorEntity)
         Phase 7.5: Uses presentation cache instead of persisted stats.
         """
         stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
-        value = stats.get(const.PRES_ASSIGNEE_POINTS_NET_MONTH, const.DEFAULT_ZERO)
+        value = stats.get(const.PRES_USER_POINTS_NET_MONTH, const.DEFAULT_ZERO)
         return int(cast("float | int", value))
 
     @property
@@ -783,7 +783,7 @@ class AssigneePointsEarnedMonthlySensor(ChoreOpsCoordinatorEntity, SensorEntity)
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_EARNED_MONTH_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -844,17 +844,15 @@ class AssigneePointsMaxEverSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
         # Read highest_balance from point_periods.all_time.all_time (v43+)
-        periods: dict[str, Any] = assignee_info.get(
-            const.DATA_ASSIGNEE_POINT_PERIODS, {}
-        )
+        periods: dict[str, Any] = assignee_info.get(const.DATA_USER_POINT_PERIODS, {})
         all_time_periods: dict[str, Any] = periods.get(
-            const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME, {}
+            const.DATA_USER_POINT_PERIODS_ALL_TIME, {}
         )
         all_time_bucket: dict[str, Any] = all_time_periods.get(
-            const.DATA_ASSIGNEE_POINT_PERIODS_ALL_TIME, {}
+            const.DATA_USER_POINT_PERIODS_ALL_TIME, {}
         )
         value = all_time_bucket.get(
-            const.DATA_ASSIGNEE_POINT_PERIOD_HIGHEST_BALANCE, const.DEFAULT_ZERO
+            const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE, const.DEFAULT_ZERO
         )
         return int(value)
 
@@ -873,7 +871,7 @@ class AssigneePointsMaxEverSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         """Return extra state attributes."""
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_POINTS_MAX_EVER_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
         }
 
 
@@ -978,7 +976,7 @@ class AssigneeChoreStreakSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_CHORE_STREAK_EXTRA,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_STREAKS_BY_ACHIEVEMENT: streaks,
         }
 
@@ -1001,7 +999,7 @@ class AssigneePenaltyAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
     Migration Path:
     - Dashboard helper: penalties[].application_count
-    - Direct access: coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_PENALTY_APPLIES][penalty_id]
+    - Direct access: coordinator.assignees_data[assignee_id][DATA_USER_PENALTY_APPLIES][penalty_id]
 
     Counts penalty applications for individual assignee/penalty combinations. Provides penalty
     metadata including points deducted, description, and button entity ID for UI integration.
@@ -1058,16 +1056,16 @@ class AssigneePenaltyAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         assignee_info: AssigneeData = cast(
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
-        penalty_applies = assignee_info.get(const.DATA_ASSIGNEE_PENALTY_APPLIES, {})
+        penalty_applies = assignee_info.get(const.DATA_USER_PENALTY_APPLIES, {})
         penalty_entry = penalty_applies.get(self._penalty_id)
         if not penalty_entry:
             return const.DEFAULT_ZERO
 
-        periods = penalty_entry.get(const.DATA_ASSIGNEE_PENALTY_PERIODS, {})
+        periods = penalty_entry.get(const.DATA_USER_PENALTY_PERIODS, {})
         return self.coordinator.stats.get_period_total(
             periods,
             const.PERIOD_ALL_TIME,
-            const.DATA_ASSIGNEE_PENALTY_PERIOD_APPLIES,
+            const.DATA_USER_PENALTY_PERIOD_APPLIES,
         )
 
     @property
@@ -1095,7 +1093,7 @@ class AssigneePenaltyAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_PENALTY_APPLIED,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_PENALTY_NAME: self._penalty_name,
             const.ATTR_DESCRIPTION: penalty_info.get(
                 const.DATA_PENALTY_DESCRIPTION, const.SENTINEL_EMPTY
@@ -1124,7 +1122,7 @@ class AssigneeBonusAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
     Migration Path:
     - Dashboard helper: bonuses[].application_count
-    - Direct access: coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_BONUS_APPLIES][bonus_id]
+    - Direct access: coordinator.assignees_data[assignee_id][DATA_USER_BONUS_APPLIES][bonus_id]
 
     Counts bonus applications for individual assignee/bonus combinations. Provides bonus
     metadata including points awarded, description, and button entity ID for UI integration.
@@ -1184,16 +1182,16 @@ class AssigneeBonusAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         assignee_info: AssigneeData = cast(
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
-        bonus_applies = assignee_info.get(const.DATA_ASSIGNEE_BONUS_APPLIES, {})
+        bonus_applies = assignee_info.get(const.DATA_USER_BONUS_APPLIES, {})
         bonus_entry = bonus_applies.get(self._bonus_id)
         if not bonus_entry:
             return const.DEFAULT_ZERO
 
-        periods = bonus_entry.get(const.DATA_ASSIGNEE_BONUS_PERIODS, {})
+        periods = bonus_entry.get(const.DATA_USER_BONUS_PERIODS, {})
         return self.coordinator.stats.get_period_total(
             periods,
             const.PERIOD_ALL_TIME,
-            const.DATA_ASSIGNEE_BONUS_PERIOD_APPLIES,
+            const.DATA_USER_BONUS_PERIOD_APPLIES,
         )
 
     @property
@@ -1221,7 +1219,7 @@ class AssigneeBonusAppliedSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         return {
             const.ATTR_PURPOSE: const.PURPOSE_SENSOR_BONUS_APPLIED,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_BONUS_NAME: self._bonus_name,
             const.ATTR_DESCRIPTION: bonus_info.get(
                 const.DATA_BONUS_DESCRIPTION, const.SENTINEL_EMPTY

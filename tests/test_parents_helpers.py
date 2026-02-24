@@ -1,6 +1,6 @@
-"""Test approvers configuration helper functions.
+"""Test user-profile configuration helper functions.
 
-Tests validate that data_builders.build_approver() correctly builds approver data
+Tests validate that data_builders.build_user_profile() correctly builds user-profile data
 and flow_helpers.validate_users_inputs() validates form input.
 """
 
@@ -11,16 +11,16 @@ from custom_components.choreops.data_builders import EntityValidationError
 from custom_components.choreops.helpers import flow_helpers as fh
 
 
-def test_build_approver_with_all_values() -> None:
-    """Test build_approver extracts all values correctly."""
+def test_build_user_profile_with_all_values() -> None:
+    """Test build_user_profile extracts all values correctly."""
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "Mom",
         const.CFOF_USERS_INPUT_HA_USER_ID: "user_456",
-        const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: ["assignee-1", "assignee-2"],
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: ["assignee-1", "assignee-2"],
         const.CFOF_USERS_INPUT_MOBILE_NOTIFY_SERVICE: "mobile_app_iphone",
     }
 
-    result = db.build_approver(user_input)
+    result = db.build_user_profile(user_input)
 
     assert result[const.DATA_USER_NAME] == "Mom"
     assert result[const.DATA_USER_HA_USER_ID] == "user_456"
@@ -33,26 +33,26 @@ def test_build_approver_with_all_values() -> None:
     assert len(result[const.DATA_USER_INTERNAL_ID]) == 36
 
 
-def test_build_approver_generates_uuid() -> None:
-    """Test build_approver generates UUID when internal_id not provided."""
+def test_build_user_profile_generates_uuid() -> None:
+    """Test build_user_profile generates UUID when internal_id not provided."""
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "Dad",
     }
 
-    result = db.build_approver(user_input)
+    result = db.build_user_profile(user_input)
 
     # Should have a generated UUID
     assert len(result[const.DATA_USER_INTERNAL_ID]) == 36
     assert result[const.DATA_USER_NAME] == "Dad"
 
 
-def test_build_approver_with_defaults() -> None:
-    """Test build_approver uses defaults for optional fields."""
+def test_build_user_profile_with_defaults() -> None:
+    """Test build_user_profile uses defaults for optional fields."""
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "Grandma",
     }
 
-    result = db.build_approver(user_input)
+    result = db.build_user_profile(user_input)
 
     assert result[const.DATA_USER_NAME] == "Grandma"
     assert result[const.DATA_USER_HA_USER_ID] == ""
@@ -63,37 +63,37 @@ def test_build_approver_with_defaults() -> None:
     assert result[const.DATA_APPROVER_USE_PERSISTENT_NOTIFICATIONS] is False
 
 
-def test_build_approver_strips_whitespace_from_name() -> None:
-    """Test build_approver strips leading/trailing whitespace from name."""
+def test_build_user_profile_strips_whitespace_from_name() -> None:
+    """Test build_user_profile strips leading/trailing whitespace from name."""
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "  Uncle Bob  ",
     }
 
-    result = db.build_approver(user_input)
+    result = db.build_user_profile(user_input)
 
     assert result[const.DATA_USER_NAME] == "Uncle Bob"
 
 
-def test_build_approver_with_empty_associated_assignees() -> None:
-    """Test build_approver handles empty associated assignees list."""
+def test_build_user_profile_with_empty_associated_assignees() -> None:
+    """Test build_user_profile handles empty associated assignees list."""
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "Aunt Sue",
-        const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [],
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: [],
     }
 
-    result = db.build_approver(user_input)
+    result = db.build_user_profile(user_input)
 
     assert result[const.DATA_APPROVER_ASSOCIATED_USERS] == []
 
 
-def test_build_approver_raises_on_empty_name() -> None:
-    """Test build_approver raises EntityValidationError for empty name."""
+def test_build_user_profile_raises_on_empty_name() -> None:
+    """Test build_user_profile raises EntityValidationError for empty name."""
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "",
     }
 
     with pytest.raises(EntityValidationError) as exc_info:
-        db.build_approver(user_input)
+        db.build_user_profile(user_input)
 
     assert exc_info.value.field == const.CFOF_USERS_INPUT_NAME
     assert exc_info.value.translation_key == const.TRANS_KEY_CFOF_INVALID_APPROVER_NAME
@@ -200,11 +200,11 @@ def test_validate_users_inputs_update_ignores_self_in_assignee_conflict() -> Non
     current_user_id = "user-1"
     user_input = {
         const.CFOF_USERS_INPUT_NAME: "Mom",
-        const.CFOF_APPROVERS_INPUT_ALLOW_CHORE_ASSIGNMENT: True,
-        const.CFOF_APPROVERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
-        const.CFOF_APPROVERS_INPUT_ENABLE_GAMIFICATION: False,
-        const.CFOF_APPROVERS_INPUT_CAN_APPROVE: False,
-        const.CFOF_APPROVERS_INPUT_ASSOCIATED_ASSIGNEES: [],
+        const.CFOF_USERS_INPUT_CAN_BE_ASSIGNED: True,
+        const.CFOF_USERS_INPUT_ENABLE_CHORE_WORKFLOW: False,
+        const.CFOF_USERS_INPUT_ENABLE_GAMIFICATION: False,
+        const.CFOF_USERS_INPUT_CAN_APPROVE: False,
+        const.CFOF_USERS_INPUT_ASSOCIATED_USER_IDS: [],
     }
     existing_users = {
         current_user_id: {

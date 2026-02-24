@@ -132,26 +132,26 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_assignees": "Associated assignees/users"
+              "associated_user_ids": "Associated assignees/users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_assignees": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
         },
         "data": {
           "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_assignees": "Associated Users",
+          "associated_user_ids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language"
         },
         "data_description": {
           "name": "Unique name for this user profile, used throughout the system.",
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_assignees": "Select which users this approver/admin supervises for notifications and approval actions.",
+          "associated_user_ids": "Select which users this approver/admin supervises for notifications and approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
@@ -196,26 +196,26 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_assignees": "Associated assignees/users"
+              "associated_user_ids": "Associated assignees/users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_assignees": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
         },
         "data": {
           "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_assignees": "Associated Users",
+          "associated_user_ids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language"
         },
         "data_description": {
           "name": "Unique name for this user profile, used throughout the system.",
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_assignees": "Select which users this approver/admin supervises for notifications and approval actions.",
+          "associated_user_ids": "Select which users this approver/admin supervises for notifications and approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "dashboard_language": "Language used for your chore dashboard and notifications."
         }
@@ -239,7 +239,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_assignees": "👥 Assigned to",
+              "assigned_user_ids": "👥 Assigned to",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -247,7 +247,7 @@
               "chore_description": "Optional instructions or details about how to complete this chore.",
               "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
               "default_points": "Points earned when completed.",
-              "assigned_assignees": "Assignees who can see and claim this chore.",
+              "assigned_user_ids": "Assignees who can see and claim this chore.",
               "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation."
             }
           },
@@ -306,7 +306,7 @@
           "icon": "📋 Icon (mdi:xxx)",
           "chore_labels": "📋 Labels (optional)",
           "default_points": "💰 Points Awarded",
-          "assigned_assignees": "👥 Assigned to",
+          "assigned_user_ids": "👥 Assigned to",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -329,7 +329,7 @@
           "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
           "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed.",
           "default_points": "Points earned when completed.",
-          "assigned_assignees": "Assignees who can see and claim this chore.",
+          "assigned_user_ids": "Assignees who can see and claim this chore.",
           "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
           "approval_reset_pending_claim_action": "This is what happens to claims still waiting for approval when the approval reset occurs.",
@@ -476,7 +476,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned to",
+          "assigned_user_ids": "Assigned to",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -500,7 +500,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned to",
+          "assigned_user_ids": "Assigned to",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -553,7 +553,7 @@
       "invalid_end_date": "Invalid end date.",
       "invalid_assignee_count": "Invalid assignee count",
       "invalid_assignee_name": "Invalid assignee name",
-      "invalid_approver_count": "Invalid user count",
+      "invalid_user_count": "Invalid user count",
       "invalid_approver_name": "Invalid user name",
       "no_assignees_assigned": "At least one assignee must be assigned to the chore",
       "invalid_penalty": "Invalid penalty",
@@ -684,19 +684,19 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_assignees": "Associated assignees/users"
+              "associated_user_ids": "Associated assignees/users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_assignees": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
         },
         "data": {
           "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_assignees": "Associated Users",
+          "associated_user_ids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "allow_chore_assignment": "Allow Chores to be Assigned",
@@ -709,7 +709,7 @@
         "data_description": {
           "name": "Unique name for this user profile, used throughout the system.",
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_assignees": "Select which users this approver/admin supervises for approval actions.",
+          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the assignee profile with '_unlinked' suffix for manual cleanup.",
           "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
@@ -757,19 +757,19 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_assignees": "Associated assignees/users"
+              "associated_user_ids": "Associated assignees/users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_assignees": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
         },
         "data": {
           "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_assignees": "Associated Users",
+          "associated_user_ids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "allow_chore_assignment": "Allow Chores to be Assigned",
@@ -782,7 +782,7 @@
         "data_description": {
           "name": "Unique name for this user profile, used throughout the system.",
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_assignees": "Select which users this approver/admin supervises for approval actions.",
+          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "allow_chore_assignment": "Allows this profile to receive chore assignments.",
           "enable_chore_workflow": "Enables claim and disapprove workflow actions for assigned chores.",
@@ -802,7 +802,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_assignees": "👥 Assigned to",
+              "assigned_user_ids": "👥 Assigned to",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -810,7 +810,7 @@
               "chore_description": "Optional instructions or details about how to complete this chore.",
               "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
               "default_points": "Points earned when completed.",
-              "assigned_assignees": "Assignees who can see and claim this chore.",
+              "assigned_user_ids": "Assignees who can see and claim this chore.",
               "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation."
             }
           },
@@ -869,7 +869,7 @@
           "icon": "📋 Icon (mdi:xxx)",
           "chore_labels": "📋 Labels (optional)",
           "default_points": "💰 Points Awarded",
-          "assigned_assignees": "👥 Assigned to",
+          "assigned_user_ids": "👥 Assigned to",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -893,7 +893,7 @@
           "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
           "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed.",
           "default_points": "Points earned when completed.",
-          "assigned_assignees": "Assignees who can see and claim this chore.",
+          "assigned_user_ids": "Assignees who can see and claim this chore.",
           "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
           "approval_reset_pending_claim_action": "Controls what happens to unapproved claims when the approval reset boundary fires.",
@@ -1171,7 +1171,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned to",
+          "assigned_user_ids": "Assigned to",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -1188,7 +1188,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned to",
+          "assigned_user_ids": "Assigned to",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -1273,19 +1273,19 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_assignees": "Associated assignees/users"
+              "associated_user_ids": "Associated assignees/users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_assignees": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
         },
         "data": {
           "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_assignees": "Associated Users",
+          "associated_user_ids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "allow_chore_assignment": "Allow Chores to be Assigned",
@@ -1298,7 +1298,7 @@
         "data_description": {
           "name": "Unique name for this user profile, used throughout the system.",
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_assignees": "Select which users this approver/admin supervises for approval actions.",
+          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user, or leave empty to disable.",
           "allow_chore_assignment": "Creates a profile so tasks can be assigned to you. By default, only an Approve button is shown for one-click completion. Note: Unchecking preserves the assignee profile with '_unlinked' suffix for manual cleanup.",
           "enable_chore_workflow": "Adds Claim and Disapprove buttons for full workflow (claim → approve/disapprove).",
@@ -1346,19 +1346,19 @@
             "data": {
               "can_approve": "Can approve",
               "can_manage": "Can manage",
-              "associated_assignees": "Associated assignees/users"
+              "associated_user_ids": "Associated assignees/users"
             },
             "data_description": {
               "can_approve": "Allows approval and disapproval actions.",
               "can_manage": "Allows management actions that require elevated permissions.",
-              "associated_assignees": "Users this approver/admin supervises for approval actions."
+              "associated_user_ids": "Users this approver/admin supervises for approval actions."
             }
           }
         },
         "data": {
           "name": "User Name",
           "ha_user_id": "Home Assistant User",
-          "associated_assignees": "Associated Users",
+          "associated_user_ids": "Associated Users",
           "mobile_notify_service": "Notifications",
           "dashboard_language": "Language",
           "allow_chore_assignment": "Allow Chores to be Assigned",
@@ -1371,7 +1371,7 @@
         "data_description": {
           "name": "Unique name for this user profile, used throughout the system.",
           "ha_user_id": "Optional: Link this profile to a Home Assistant user for notifications and dashboard access.",
-          "associated_assignees": "Select which users this approver/admin supervises for approval actions.",
+          "associated_user_ids": "Select which users this approver/admin supervises for approval actions.",
           "mobile_notify_service": "Select a notification service to enable notifications for this user.",
           "allow_chore_assignment": "Allows this profile to receive chore assignments.",
           "enable_chore_workflow": "Enables claim and disapprove workflow actions for assigned chores.",
@@ -1391,7 +1391,7 @@
               "chore_description": "📋 Description (optional)",
               "icon": "📋 Icon (mdi:xxx)",
               "default_points": "💰 Points Awarded",
-              "assigned_assignees": "👥 Assigned to",
+              "assigned_user_ids": "👥 Assigned to",
               "completion_criteria": "👥 Completion Criteria"
             },
             "data_description": {
@@ -1399,7 +1399,7 @@
               "chore_description": "Optional instructions or details about how to complete this chore.",
               "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
               "default_points": "Points earned when completed.",
-              "assigned_assignees": "Assignees who can see and claim this chore.",
+              "assigned_user_ids": "Assignees who can see and claim this chore.",
               "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation."
             }
           },
@@ -1459,7 +1459,7 @@
           "chore_labels": "📋 Labels (optional)",
           "internal_id": "Internal ID",
           "default_points": "💰 Points Awarded",
-          "assigned_assignees": "👥 Assigned to",
+          "assigned_user_ids": "👥 Assigned to",
           "completion_criteria": "👥 Completion Criteria",
           "approval_reset_type": "➡️ Completions Allowed and Approval Reset Timing",
           "approval_reset_pending_claim_action": "➡️ Pending Claims Handling at Approval Reset",
@@ -1483,7 +1483,7 @@
           "icon": "Material Design Icon (e.g., mdi:broom, mdi:dishwasher).",
           "chore_labels": "Tags to organize chores (e.g., 'kitchen', 'outdoor'). Leave blank if not needed.",
           "default_points": "Points earned when completed.",
-          "assigned_assignees": "Assignees who can see and claim this chore.",
+          "assigned_user_ids": "Assignees who can see and claim this chore.",
           "completion_criteria": "Controls how the chore is completed when multiple assignees are assigned: individual tracking, shared completion, or turn-based rotation.",
           "approval_reset_type": "Controls when the chore's approval cycle boundary fires (midnight, due date, upon completion, or manual trigger).",
           "approval_reset_pending_claim_action": "Controls what happens to unapproved claims when the approval reset boundary fires.",
@@ -1788,7 +1788,7 @@
           "description": "Description (optional)",
           "achievement_labels": "Achievement Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned to",
+          "assigned_user_ids": "Assigned to",
           "type": "Type of Achievement",
           "selected_chore_id": "Select Chore Associated",
           "criteria": "Criteria (optional)",
@@ -1805,7 +1805,7 @@
           "description": "Description (optional)",
           "challenge_labels": "Challenge Labels",
           "icon": "Icon (mdi:xxx)",
-          "assigned_assignees": "Assigned to",
+          "assigned_user_ids": "Assigned to",
           "type": "Type of Challenge",
           "selected_chore_id": "Select Chore Associated with Challenge (Optional)",
           "criteria": "Criteria (optional)",
@@ -2738,7 +2738,7 @@
           "description": "The name of the chore to create.",
           "example": "Clean Room"
         },
-        "assigned_assignees": {
+        "assigned_user_ids": {
           "name": "Assigned to",
           "description": "List of assignee names to assign this chore to.",
           "example": "['Emma', 'Jack']"
@@ -2834,7 +2834,7 @@
           "description": "The name of the chore to update (alternative to id). More user-friendly than id.",
           "example": "Clean Room"
         },
-        "assigned_assignees": {
+        "assigned_user_ids": {
           "name": "Assigned to",
           "description": "New list of assignee names to assign this chore to.",
           "example": "['Emma', 'Jack']"
@@ -3173,7 +3173,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_assignees": {
+          "assigned_user_ids": {
             "name": "Assigned to"
           },
           "labels": {
@@ -3957,7 +3957,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_assignees": {
+          "assigned_user_ids": {
             "name": "Assigned to"
           },
           "labels": {
@@ -4244,7 +4244,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_assignees": {
+          "assigned_user_ids": {
             "name": "Assigned to"
           },
           "type": {
@@ -4290,7 +4290,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_assignees": {
+          "assigned_user_ids": {
             "name": "Assigned to"
           },
           "type": {
@@ -4344,7 +4344,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_assignees": {
+          "assigned_user_ids": {
             "name": "Assigned to"
           },
           "type": {
@@ -4400,7 +4400,7 @@
           "description": {
             "name": "Description"
           },
-          "assigned_assignees": {
+          "assigned_user_ids": {
             "name": "Assigned to"
           },
           "type": {

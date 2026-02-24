@@ -67,8 +67,7 @@ class UIManager(BaseManager):
         # Listen for user deletion to clean up translation sensors
         # Follows Platinum Architecture: UIManager reacts to signals instead of
         # being called directly by UserManager
-        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._on_user_deleted)
-        self.listen(const.SIGNAL_SUFFIX_APPROVER_DELETED, self._on_user_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._on_user_deleted)
 
         # Listen for chore state changes that affect pending approvals
         # These signals are already emitted by ChoreManager - no coupling needed
@@ -307,7 +306,7 @@ class UIManager(BaseManager):
         languages: set[str] = set()
         for assignee_info in self.coordinator.assignees_data.values():
             lang = assignee_info.get(
-                const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
+                const.DATA_USER_DASHBOARD_LANGUAGE, const.DEFAULT_DASHBOARD_LANGUAGE
             )
             languages.add(lang)
         for approver_info in self.coordinator.approvers_data.values():

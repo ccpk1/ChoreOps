@@ -67,7 +67,7 @@ async def async_setup_entry(
         chore_name = chore_info.get(
             const.DATA_CHORE_NAME, f"{const.TRANS_KEY_LABEL_CHORE} {chore_id}"
         )
-        assigned_assignees_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+        assigned_assignees_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # If user defined an icon, use it; else fallback to SENTINEL_EMPTY for chore claim
         chore_claim_icon = chore_info.get(const.DATA_CHORE_ICON, const.SENTINEL_EMPTY)
@@ -413,7 +413,7 @@ class AssigneeChoreClaimButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_CHORE_CLAIM,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_CHORE_NAME: self._chore_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -547,7 +547,7 @@ class ApproverChoreApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_CHORE_APPROVE,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_CHORE_NAME: self._chore_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -622,7 +622,7 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             # Check if there's a pending approval for this assignee and chore.
             pending_approvals = self.coordinator.chore_manager.pending_chore_approvals
             if not any(
-                approval[const.DATA_ASSIGNEE_ID] == self._assignee_id
+                approval[const.DATA_USER_ID] == self._assignee_id
                 and approval[const.DATA_CHORE_ID] == self._chore_id
                 for approval in pending_approvals
             ):
@@ -721,7 +721,7 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_CHORE_DISAPPROVE,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_CHORE_NAME: self._chore_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -865,7 +865,7 @@ class AssigneeRewardRedeemButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_REWARD_REDEEM,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_REWARD_NAME: self._reward_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -1001,7 +1001,7 @@ class ApproverRewardApproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_REWARD_APPROVE,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_REWARD_NAME: self._reward_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -1076,7 +1076,7 @@ class ApproverRewardDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             # Check if there's a pending approval for this assignee and reward.
             pending_approvals = self.coordinator.reward_manager.get_pending_approvals()
             if not any(
-                approval[const.DATA_ASSIGNEE_ID] == self._assignee_id
+                approval[const.DATA_USER_ID] == self._assignee_id
                 and approval[const.DATA_REWARD_ID] == self._reward_id
                 for approval in pending_approvals
             ):
@@ -1172,7 +1172,7 @@ class ApproverRewardDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_REWARD_DISAPPROVE,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_REWARD_NAME: self._reward_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -1318,7 +1318,7 @@ class ApproverBonusApplyButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_BONUS_APPLY,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_BONUS_NAME: self._bonus_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -1471,7 +1471,7 @@ class ApproverPenaltyApplyButton(ChoreOpsCoordinatorEntity, ButtonEntity):
 
         attributes: dict[str, Any] = {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_PENALTY_APPLY,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             const.ATTR_PENALTY_NAME: self._penalty_name,
             const.ATTR_LABELS: friendly_labels,
         }
@@ -1651,7 +1651,7 @@ class ApproverPointsAdjustButton(ChoreOpsCoordinatorEntity, ButtonEntity):
         """
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_BUTTON_POINTS_ADJUST,
-            const.ATTR_ASSIGNEE_NAME: self._assignee_name,
+            const.ATTR_USER_NAME: self._assignee_name,
             "delta": self._delta,
             "assignee_id": self._assignee_id,
         }

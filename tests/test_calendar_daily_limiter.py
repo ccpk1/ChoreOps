@@ -92,7 +92,7 @@ def test_event_window_cache_invalidates_when_chore_revision_changes() -> None:
     chore_id = "chore-1"
     calendar.coordinator.chores_data[chore_id] = {
         const.DATA_CHORE_INTERNAL_ID: chore_id,
-        const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1"],
+        const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1"],
         const.DATA_CHORE_SHOW_ON_CALENDAR: True,
         const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
         const.DATA_CHORE_DUE_DATE: "2025-01-01T10:00:00+00:00",

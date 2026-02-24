@@ -307,7 +307,7 @@ DATA_BADGE_THRESHOLD_VALUE_LEGACY = (
 )
 
 DATA_ASSIGNEE_POINT_DATA_LEGACY: Final = (
-    "point_data"  # v42 top-level key → v43+ use DATA_ASSIGNEE_POINT_PERIODS
+    "point_data"  # v42 top-level key → v43+ use DATA_USER_POINT_PERIODS
 )
 
 DATA_ASSIGNEE_POINT_DATA_PERIODS_LEGACY: Final = (

@@ -76,10 +76,11 @@ class ApproverData(TypedDict):
     name: str
     ha_user_id: str
     associated_assignees: list[str]  # List of assignee UUIDs
+    associated_user_ids: NotRequired[list[str]]  # Phase 3 key migration target
     mobile_notify_service: str
     use_persistent_notifications: bool
     dashboard_language: str
-    allow_chore_assignment: bool
+    can_be_assigned: bool
     enable_chore_workflow: bool
     enable_gamification: bool
 
@@ -222,6 +223,7 @@ class ChoreData(TypedDict):
 
     # Assignment
     assigned_assignees: list[str]  # List of assignee UUIDs
+    assigned_user_ids: NotRequired[list[str]]  # Phase 3 key migration target
 
     # Scheduling
     recurring_frequency: str
@@ -738,6 +740,7 @@ class AchievementData(TypedDict):
 
     # Assignment
     assigned_assignees: list[str]  # Assignee UUIDs
+    assigned_user_ids: NotRequired[list[str]]  # Phase 3 key migration target
 
     # Progress tracking (per-assignee)
     progress: dict[str, AchievementProgress]  # assignee_id -> progress data
@@ -797,6 +800,7 @@ class ChallengeData(TypedDict):
 
     # Assignment
     assigned_assignees: list[str]
+    assigned_user_ids: NotRequired[list[str]]  # Phase 3 key migration target
 
     # Schedule
     start_date: str  # ISO date

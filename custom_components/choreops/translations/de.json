@@ -437,7 +437,7 @@
       "invalid_end_date": "Ungültiges Enddatum.",
       "invalid_assignee_count": "Ungültige Kinderanzahl",
       "invalid_assignee_name": "Ungültiger Kindername",
-      "invalid_approver_count": "Ungültige Elternanzahl",
+      "invalid_user_count": "Ungültige Elternanzahl",
       "invalid_approver_name": "Ungültiger Elternname",
       "no_assignees_assigned": "Mindestens einem Kind muss diese Aufgabe zugeteilt werden.",
       "invalid_penalty": "Ungültige Strafe",

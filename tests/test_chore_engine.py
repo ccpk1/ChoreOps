@@ -493,7 +493,7 @@ class TestCanClaimChore:
     def test_completed_by_other_blocks_claim(self) -> None:
         """Phase 2: SHARED_FIRST with other assignee CLAIMED/APPROVED blocks claim."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED_FIRST,
@@ -515,7 +515,7 @@ class TestCanClaimChore:
     def test_pending_claim_blocks_new_claim(self) -> None:
         """Cannot claim if there's already a pending claim (single-claim)."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -534,7 +534,7 @@ class TestCanClaimChore:
     def test_already_approved_blocks_claim(self) -> None:
         """Cannot claim if already approved in period (single-claim)."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -553,7 +553,7 @@ class TestCanClaimChore:
     def test_multi_claim_allows_pending(self) -> None:
         """Multi-claim chore allows claiming even with pending claim."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_MULTI,
@@ -572,7 +572,7 @@ class TestCanClaimChore:
     def test_upon_completion_allows_pending(self) -> None:
         """UPON_COMPLETION chore allows claiming even with pending."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
@@ -591,7 +591,7 @@ class TestCanClaimChore:
     def test_valid_claim_succeeds(self) -> None:
         """Normal claim with no blockers succeeds."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         chore_data: dict[str, object] = {}
 
@@ -620,7 +620,7 @@ class TestCanApproveChore:
     def test_already_approved_blocks_single_claim(self) -> None:
         """Single-claim chore cannot be approved twice in period."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
@@ -636,7 +636,7 @@ class TestCanApproveChore:
     def test_multi_claim_allows_multiple_approvals(self) -> None:
         """Multi-claim chore allows multiple approvals in period."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
         }
         chore_data = {
             const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_MULTI,
@@ -652,7 +652,7 @@ class TestCanApproveChore:
     def test_valid_approve_succeeds(self) -> None:
         """Normal approval with no blockers succeeds."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_CLAIMED,
         }
         chore_data: dict[str, object] = {}
 
@@ -675,7 +675,7 @@ class TestQueryFunctions:
     def test_chore_has_pending_claim_true(self) -> None:
         """Returns True when pending_claim_count > 0."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: 2,
+            const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT: 2,
         }
         assert ChoreEngine.chore_has_pending_claim(assignee_chore_data) is True
 
@@ -684,7 +684,7 @@ class TestQueryFunctions:
         assert ChoreEngine.chore_has_pending_claim({}) is False
         assert (
             ChoreEngine.chore_has_pending_claim(
-                {const.DATA_ASSIGNEE_CHORE_DATA_PENDING_CLAIM_COUNT: 0}
+                {const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT: 0}
             )
             is False
         )
@@ -692,14 +692,14 @@ class TestQueryFunctions:
     def test_chore_is_overdue_true(self) -> None:
         """Returns True when state is OVERDUE."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_OVERDUE,
         }
         assert ChoreEngine.chore_is_overdue(assignee_chore_data) is True
 
     def test_chore_is_overdue_false(self) -> None:
         """Returns False when state is not OVERDUE."""
         assignee_chore_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
+            const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING,
         }
         assert ChoreEngine.chore_is_overdue(assignee_chore_data) is False
 
@@ -757,7 +757,7 @@ class TestQueryFunctions:
     def test_get_chore_data_for_assignee_exists(self) -> None:
         """Returns chore data when it exists."""
         assignee_data = {
-            const.DATA_ASSIGNEE_CHORE_DATA: {
+            const.DATA_USER_CHORE_DATA: {
                 "chore-123": {"state": "claimed", "streak": 5},
             }
         }
@@ -766,7 +766,7 @@ class TestQueryFunctions:
 
     def test_get_chore_data_for_assignee_not_exists(self) -> None:
         """Returns empty dict when chore data doesn't exist."""
-        assignee_data = {const.DATA_ASSIGNEE_CHORE_DATA: {}}
+        assignee_data = {const.DATA_USER_CHORE_DATA: {}}
         result = ChoreEngine.get_chore_data_for_assignee(assignee_data, "chore-999")
         assert result == {}
 
@@ -1411,7 +1411,7 @@ class TestCriteriaTransitionActions:
 
     def test_non_rotation_to_rotation_with_assignees_initializes_turn(self) -> None:
         """Transition to rotation initializes current turn and override flag."""
-        chore_data = {const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"]}
+        chore_data = {const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"]}
 
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -1428,7 +1428,7 @@ class TestCriteriaTransitionActions:
         self,
     ) -> None:
         """No assigned assignees means no current turn id is set."""
-        chore_data: dict[str, object] = {const.DATA_CHORE_ASSIGNED_ASSIGNEES: []}
+        chore_data: dict[str, object] = {const.DATA_CHORE_ASSIGNED_USER_IDS: []}
 
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_SHARED,
@@ -1443,7 +1443,7 @@ class TestCriteriaTransitionActions:
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_SHARED,
-            {const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"]},
+            {const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"]},
         )
 
         assert changes == {
@@ -1456,7 +1456,7 @@ class TestCriteriaTransitionActions:
         changes = ChoreEngine.get_criteria_transition_actions(
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
-            {const.DATA_CHORE_ASSIGNED_ASSIGNEES: ["assignee-1", "assignee-2"]},
+            {const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"]},
         )
 
         assert changes == {}

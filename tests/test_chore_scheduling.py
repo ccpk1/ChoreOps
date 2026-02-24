@@ -96,16 +96,12 @@ from tests.helpers import (
     CHORE_STATE_WAITING,
     COMPLETION_CRITERIA_INDEPENDENT,
     COMPLETION_CRITERIA_SHARED,
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START,
-    DATA_ASSIGNEE_CHORE_DATA_STATE,
     DATA_ASSIGNEE_NAME,
-    DATA_ASSIGNEE_POINTS,
     DATA_CHORE_APPLICABLE_DAYS,
     DATA_CHORE_APPROVAL_PERIOD_START,
     DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
     DATA_CHORE_APPROVAL_RESET_TYPE,
-    DATA_CHORE_ASSIGNED_ASSIGNEES,
+    DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
     DATA_CHORE_DEFAULT_POINTS,
     DATA_CHORE_DUE_DATE,
@@ -113,6 +109,10 @@ from tests.helpers import (
     DATA_CHORE_OVERDUE_HANDLING_TYPE,
     DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
     DATA_CHORE_RECURRING_FREQUENCY,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START,
+    DATA_USER_CHORE_DATA_STATE,
+    DATA_USER_POINTS,
     DOMAIN,
     FREQUENCY_DAILY,
     FREQUENCY_NONE,
@@ -204,27 +204,27 @@ def set_chore_due_date_to_past(
             # Single assignee
             per_assignee_due_dates[assignee_id] = past_date_iso
             assignee_info = coordinator.assignees_data.get(assignee_id, {})
-            assignee_chore_data = assignee_info.get(DATA_ASSIGNEE_CHORE_DATA, {}).get(
+            assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
                 chore_id, {}
             )
             if assignee_chore_data:
-                assignee_chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
                     period_start_iso
                 )
         else:
             # All assigned assignees
             for assigned_assignee_id in chore_info.get(
-                DATA_CHORE_ASSIGNED_ASSIGNEES, []
+                DATA_CHORE_ASSIGNED_USER_IDS, []
             ):
                 per_assignee_due_dates[assigned_assignee_id] = past_date_iso
                 assignee_info = coordinator.assignees_data.get(assigned_assignee_id, {})
-                assignee_chore_data = assignee_info.get(
-                    DATA_ASSIGNEE_CHORE_DATA, {}
-                ).get(chore_id, {})
+                assignee_chore_data = assignee_info.get(DATA_USER_CHORE_DATA, {}).get(
+                    chore_id, {}
+                )
                 if assignee_chore_data:
-                    assignee_chore_data[
-                        DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START
-                    ] = period_start_iso
+                    assignee_chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
+                        period_start_iso
+                    )
     else:
         # SHARED: due date and approval_period_start are at chore level
         chore_info[DATA_CHORE_DUE_DATE] = past_date_iso
@@ -306,9 +306,9 @@ def get_assignee_chore_state(
         State string (e.g., 'pending', 'claimed', 'approved', 'overdue')
     """
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.get(chore_id, {})
-    return per_chore.get(DATA_ASSIGNEE_CHORE_DATA_STATE, CHORE_STATE_PENDING)
+    return per_chore.get(DATA_USER_CHORE_DATA_STATE, CHORE_STATE_PENDING)
 
 
 def get_chore_by_name(
@@ -751,7 +751,7 @@ class TestChoreConfigurationVerification:
 
         for chore_name, chore_id in chore_map.items():
             chore_info = coordinator.chores_data.get(chore_id, {})
-            assigned = chore_info.get(DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned = chore_info.get(DATA_CHORE_ASSIGNED_USER_IDS, [])
             assert zoe_id in assigned, f"'{chore_name}' should be assigned to Zoë"
 
 
@@ -1143,15 +1143,13 @@ class TestApprovalResetAtDueDateMulti:
         chore_id = chore_map["Reset Due Date Multi"]
 
         # Track points earned to verify multiple approvals work
-        initial_points = coordinator.assignees_data[zoe_id].get(DATA_ASSIGNEE_POINTS, 0)
+        initial_points = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
 
         # First approval
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
         await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
-        points_after_first = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_POINTS, 0
-        )
+        points_after_first = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
         assert points_after_first > initial_points, "First approval should grant points"
 
         # Second approval
@@ -1159,7 +1157,7 @@ class TestApprovalResetAtDueDateMulti:
         await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
         points_after_second = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_POINTS, 0
+            DATA_USER_POINTS, 0
         )
         assert points_after_second > points_after_first, (
             "Second approval should grant additional points"
@@ -1169,9 +1167,7 @@ class TestApprovalResetAtDueDateMulti:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
         await coordinator.chore_manager.approve_chore("approver", zoe_id, chore_id)
 
-        points_after_third = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_POINTS, 0
-        )
+        points_after_third = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
         assert points_after_third > points_after_second, (
             "Third approval should grant additional points"
         )
@@ -1209,7 +1205,7 @@ class TestOverdueAtDueDate:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
 
         assert current_state == CHORE_STATE_OVERDUE, (
             f"at_due_date chore with past due date should be OVERDUE, got {current_state}"
@@ -1270,7 +1266,7 @@ class TestOverdueNeverOverdue:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        initial_state_value = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        initial_state_value = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
         assert initial_state_value in (None, CHORE_STATE_PENDING), (
             f"Initial state should be None or PENDING, got {initial_state_value}"
         )
@@ -1285,7 +1281,7 @@ class TestOverdueNeverOverdue:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
 
         assert current_state in (None, CHORE_STATE_PENDING), (
             f"never_overdue chore should stay PENDING/None, got {current_state}"
@@ -1330,7 +1326,7 @@ class TestOverdueThenReset:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
 
         assert current_state == CHORE_STATE_OVERDUE, (
             f"at_due_date_then_reset chore should be OVERDUE, got {current_state}"
@@ -1373,8 +1369,7 @@ class TestOverdueThenReset:
             zoe_id, chore_id
         )
         assert (
-            assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
-            == CHORE_STATE_OVERDUE
+            assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE) == CHORE_STATE_OVERDUE
         )
 
         # Run the daily reset - this is what clears AT_DUE_DATE_THEN_RESET chores
@@ -1385,7 +1380,7 @@ class TestOverdueThenReset:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        current_state = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        current_state = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
 
         assert current_state == CHORE_STATE_PENDING, (
             f"at_due_date_then_reset should reset to PENDING after window, got {current_state}"
@@ -1452,7 +1447,7 @@ class TestOverdueClaimedChoreNotOverdue:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        state_before = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        state_before = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
         assert state_before == CHORE_STATE_CLAIMED, (
             f"State should be CLAIMED after claim, got {state_before}"
         )
@@ -1467,7 +1462,7 @@ class TestOverdueClaimedChoreNotOverdue:
         assignee_chore_data = coordinator.chore_manager.get_chore_data_for_assignee(
             zoe_id, chore_id
         )
-        state_after = assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
+        state_after = assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE)
 
         assert state_after == CHORE_STATE_CLAIMED, (
             f"Claimed chore should stay CLAIMED, not become overdue. Got {state_after}"
@@ -1616,7 +1611,7 @@ class TestPendingClaimHold:
 
         # Get points before
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_before = assignee_info.get(DATA_USER_POINTS, 0)
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
@@ -1626,7 +1621,7 @@ class TestPendingClaimHold:
 
         # Verify points unchanged (no auto-approval)
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_after = assignee_info.get(DATA_USER_POINTS, 0)
 
         assert points_after == points_before, (
             f"HOLD action should NOT award points. Before: {points_before}, After: {points_after}"
@@ -1726,7 +1721,7 @@ class TestPendingClaimClear:
 
         # Get points before
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_before = assignee_info.get(DATA_USER_POINTS, 0)
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
@@ -1739,7 +1734,7 @@ class TestPendingClaimClear:
 
         # Verify points unchanged
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_after = assignee_info.get(DATA_USER_POINTS, 0)
 
         assert points_after == points_before, (
             f"CLEAR action should NOT award points. Before: {points_before}, After: {points_after}"
@@ -1779,7 +1774,7 @@ class TestPendingClaimAutoApprove:
 
         # Get points before
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_before = assignee_info.get(DATA_USER_POINTS, 0)
 
         # Claim the chore
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Test User")
@@ -1792,7 +1787,7 @@ class TestPendingClaimAutoApprove:
 
         # Verify points awarded (auto-approval happened)
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_after = assignee_info.get(DATA_USER_POINTS, 0)
 
         assert points_after == points_before + chore_points, (
             f"AUTO_APPROVE should award {chore_points} points. "
@@ -1922,14 +1917,14 @@ class TestPendingClaimEdgeCases:
 
         # Get points before (no claim, no approval)
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_before = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_before = assignee_info.get(DATA_USER_POINTS, 0)
 
         # Don't claim - just trigger reset
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # Verify points unchanged (no pending claim to auto-approve)
         assignee_info = coordinator.assignees_data.get(zoe_id, {})
-        points_after = assignee_info.get(DATA_ASSIGNEE_POINTS, 0)
+        points_after = assignee_info.get(DATA_USER_POINTS, 0)
 
         assert points_after == points_before, (
             f"Unclaimed chore should NOT award points on reset. "
@@ -2233,12 +2228,12 @@ class TestTimeBoundaryCrossing:
 
         # Set last_approved to yesterday via assignee_chore_data
         assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
-        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
+        chore_data = assignee_data.setdefault(DATA_USER_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = yesterday
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
+        chore_data[DATA_USER_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
 
         # Approval was before period_start → not approved in current period
@@ -2282,12 +2277,12 @@ class TestTimeBoundaryCrossing:
 
         # Set up state
         assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
-        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
+        chore_data = assignee_data.setdefault(DATA_USER_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = yesterday_11pm
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = today_midnight
+        chore_data[DATA_USER_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
 
         # Approval was before period_start → not in current period
@@ -2322,12 +2317,12 @@ class TestTimeBoundaryCrossing:
 
         # Set up state
         assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
-        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
+        chore_data = assignee_data.setdefault(DATA_USER_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = three_days_ago
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = now
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = now
+        chore_data[DATA_USER_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
 
         # Approval was before period_start → not in current period
@@ -2385,12 +2380,12 @@ class TestTimeBoundaryCrossing:
         approved_at = now_utc.isoformat()
 
         assignee_data = coordinator.assignees_data.setdefault(zoe_id, {})
-        chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {}).setdefault(
+        chore_data = assignee_data.setdefault(DATA_USER_CHORE_DATA, {}).setdefault(
             chore_id, {}
         )
         chore_data["last_approved"] = approved_at
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = approved_at
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_STATE] = CHORE_STATE_PENDING
+        chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = approved_at
+        chore_data[DATA_USER_CHORE_DATA_STATE] = CHORE_STATE_PENDING
         coordinator._persist()
         coordinator.async_set_updated_data(coordinator._data)
         await hass.async_block_till_done()
@@ -2405,7 +2400,7 @@ class TestTimeBoundaryCrossing:
         assert sensor.state == CHORE_STATE_APPROVED
 
         period_after = (now_utc + timedelta(seconds=1)).isoformat()
-        chore_data[DATA_ASSIGNEE_CHORE_DATA_APPROVAL_PERIOD_START] = period_after
+        chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = period_after
         coordinator._persist()
         coordinator.async_set_updated_data(coordinator._data)
         await hass.async_block_till_done()
@@ -2752,9 +2747,7 @@ class TestPendingClaimActionBehavior:
         chore_id = chore_map["Pending Auto Approve"]
 
         # Get initial points using existing pattern from this file
-        zoe_points_before = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_POINTS, 0
-        )
+        zoe_points_before = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
 
         # Get chore points for later comparison (before setting due date to past)
         chore_info = coordinator.chores_data.get(chore_id, {})
@@ -2770,7 +2763,7 @@ class TestPendingClaimActionBehavior:
         state_before = get_assignee_chore_state(coordinator, zoe_id, chore_id)
         assert state_before == CHORE_STATE_CLAIMED
         assert (
-            coordinator.assignees_data[zoe_id].get(DATA_ASSIGNEE_POINTS, 0)
+            coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
             == zoe_points_before
         )
 
@@ -2779,9 +2772,7 @@ class TestPendingClaimActionBehavior:
         await coordinator.chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
 
         # After reset with auto_approve_pending, points should be awarded
-        zoe_points_after = coordinator.assignees_data[zoe_id].get(
-            DATA_ASSIGNEE_POINTS, 0
-        )
+        zoe_points_after = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
         assert zoe_points_after == zoe_points_before + chore_points, (
             "auto_approve_pending should award points at reset"
         )
@@ -2986,11 +2977,10 @@ class TestDueWindowClaimLockBehavior:
 
         # Phase 5 contract: waiting is display-only (derived), not persisted
         assignee_chore_data = scheduling_scenario.coordinator.assignees_data[zoe_id][
-            DATA_ASSIGNEE_CHORE_DATA
+            DATA_USER_CHORE_DATA
         ][chore_id]
         assert (
-            assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_STATE)
-            == CHORE_STATE_PENDING
+            assignee_chore_data.get(DATA_USER_CHORE_DATA_STATE) == CHORE_STATE_PENDING
         )
 
         blocked_claim = await claim_chore(

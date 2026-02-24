@@ -437,7 +437,7 @@
       "invalid_end_date": "Neplatný dátum ukončenia.",
       "invalid_assignee_count": "Neplatný počet detí",
       "invalid_assignee_name": "Neplatné meno dieťaťa",
-      "invalid_approver_count": "Neplatný počet rodičovských položiek",
+      "invalid_user_count": "Neplatný počet rodičovských položiek",
       "invalid_approver_name": "Neplatné meno rodiča",
       "no_assignees_assigned": "Aspoň jedno dieťa musí byť pridelené k úlohe",
       "invalid_penalty": "Neplatný trest",

@@ -195,7 +195,7 @@ class NotificationManager(BaseManager):
         # DELETED events - clear ghost notifications (Phase 7.3.7)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DELETED, self._handle_chore_deleted)
         self.listen(const.SIGNAL_SUFFIX_REWARD_DELETED, self._handle_reward_deleted)
-        self.listen(const.SIGNAL_SUFFIX_ASSIGNEE_DELETED, self._handle_assignee_deleted)
+        self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._handle_assignee_deleted)
 
         const.LOGGER.debug(
             "NotificationManager initialized with 17 event subscriptions for entry %s",
@@ -648,7 +648,7 @@ class NotificationManager(BaseManager):
         Returns:
             Dictionary with relevant context keys. Only includes non-None values.
         """
-        data: dict[str, str] = {const.DATA_ASSIGNEE_ID: assignee_id}
+        data: dict[str, str] = {const.DATA_USER_ID: assignee_id}
 
         if chore_id:
             data[const.DATA_CHORE_ID] = chore_id
@@ -933,7 +933,7 @@ class NotificationManager(BaseManager):
             const.DATA_USER_MOBILE_NOTIFY_SERVICE, const.SENTINEL_EMPTY
         )
         persistent_enabled = assignee_info.get(
-            const.DATA_ASSIGNEE_USE_PERSISTENT_NOTIFICATIONS, True
+            const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS, True
         )
 
         if mobile_notify_service:
@@ -994,7 +994,7 @@ class NotificationManager(BaseManager):
             "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
         )
         language = assignee_info.get(
-            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE,
+            const.DATA_USER_DASHBOARD_LANGUAGE,
             self.hass.config.language,
         )
         const.LOGGER.debug(
@@ -1178,7 +1178,7 @@ class NotificationManager(BaseManager):
                 approver_info.get(const.DATA_APPROVER_DASHBOARD_LANGUAGE)
                 or cast(
                     "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
-                ).get(const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE)
+                ).get(const.DATA_USER_DASHBOARD_LANGUAGE)
                 or self.hass.config.language
             )
 
@@ -1627,9 +1627,7 @@ class NotificationManager(BaseManager):
             assignee_chore_data = ChoreEngine.get_chore_data_for_assignee(
                 assignee_info, chore_id
             )
-            current_state = assignee_chore_data.get(
-                const.DATA_ASSIGNEE_CHORE_DATA_STATE
-            )
+            current_state = assignee_chore_data.get(const.DATA_USER_CHORE_DATA_STATE)
 
             # Only resend if still pending/overdue
             if current_state not in [
@@ -1656,7 +1654,7 @@ class NotificationManager(BaseManager):
                         const.DATA_CHORE_NAME, const.DISPLAY_UNNAMED_CHORE
                     ),
                     "assignee_name": assignee_info.get(
-                        const.DATA_USER_NAME, const.DISPLAY_UNNAMED_ASSIGNEE
+                        const.DATA_USER_NAME, const.DISPLAY_UNNAMED_USER
                     ),
                 },
                 actions=actions,
@@ -1672,11 +1670,11 @@ class NotificationManager(BaseManager):
 
         elif reward_id:
             # Check if the reward is still pending
-            reward_data = assignee_info.get(const.DATA_ASSIGNEE_REWARD_DATA, {}).get(
+            reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {}).get(
                 reward_id, {}
             )
             pending_count = reward_data.get(
-                const.DATA_ASSIGNEE_REWARD_DATA_PENDING_COUNT, 0
+                const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0
             )
             if pending_count <= 0:
                 const.LOGGER.info(
@@ -1748,7 +1746,7 @@ class NotificationManager(BaseManager):
             if not assignee_name:
                 return
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_BADGE_ID: badge_id,
         }
 
@@ -1802,7 +1800,7 @@ class NotificationManager(BaseManager):
             if not assignee_name:
                 return
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_ACHIEVEMENT_ID: achievement_id,
         }
 
@@ -1859,7 +1857,7 @@ class NotificationManager(BaseManager):
             if not assignee_name:
                 return
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_CHALLENGE_ID: challenge_id,
         }
 
@@ -2128,7 +2126,7 @@ class NotificationManager(BaseManager):
             return
 
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_REWARD_ID: reward_id,
         }
 
@@ -2168,7 +2166,7 @@ class NotificationManager(BaseManager):
             return
 
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_REWARD_ID: reward_id,
         }
 
@@ -2208,7 +2206,7 @@ class NotificationManager(BaseManager):
             return
 
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_CHORE_ID: chore_id,
         }
 
@@ -2314,7 +2312,7 @@ class NotificationManager(BaseManager):
             return
 
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_BONUS_ID: bonus_id,
         }
 
@@ -2348,7 +2346,7 @@ class NotificationManager(BaseManager):
             return
 
         extra_data = {
-            const.DATA_ASSIGNEE_ID: assignee_id,
+            const.DATA_USER_ID: assignee_id,
             const.DATA_PENALTY_ID: penalty_id,
         }
 
@@ -2606,7 +2604,7 @@ class NotificationManager(BaseManager):
         # For rotation chores, notify ALL assigned assignees (steal mechanic)
         # For regular chores, notify only the original assignee
         if chore_info and ChoreEngine.is_rotation_mode(chore_info):
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_ASSIGNEES, [])
+            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             const.LOGGER.debug(
                 "NotificationManager: Rotation chore overdue - notifying all %d assigned assignees",
                 len(assigned_assignees),
@@ -2649,7 +2647,7 @@ class NotificationManager(BaseManager):
             "AssigneeData", self.coordinator.assignees_data.get(target_assignee_id, {})
         )
         assignee_language = assignee_info.get(
-            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, self.hass.config.language
+            const.DATA_USER_DASHBOARD_LANGUAGE, self.hass.config.language
         )
 
         # Convert UTC ISO string to local datetime for display
@@ -2788,7 +2786,7 @@ class NotificationManager(BaseManager):
             "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
         )
         assignee_language = assignee_info.get(
-            const.DATA_ASSIGNEE_DASHBOARD_LANGUAGE, self.hass.config.language
+            const.DATA_USER_DASHBOARD_LANGUAGE, self.hass.config.language
         )
 
         # Convert UTC ISO string to local datetime for display
@@ -2875,11 +2873,11 @@ class NotificationManager(BaseManager):
 
         Args:
             payload: Event data containing chore_id, chore_name, and optionally
-                     assigned_assignees (list of assignee IDs that had this chore assigned)
+                     assigned_user_ids (list of user IDs that had this chore assigned)
         """
         chore_id = payload.get("chore_id", "")
         chore_name = payload.get("chore_name", "Unknown")
-        assigned_assignees = payload.get("assigned_assignees", [])
+        assigned_assignees = payload.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         if not chore_id:
             const.LOGGER.warning(
@@ -2888,7 +2886,7 @@ class NotificationManager(BaseManager):
             return
 
         const.LOGGER.debug(
-            "Clearing notifications for deleted chore '%s' (id=%s), assigned_assignees=%s",
+            "Clearing notifications for deleted chore '%s' (id=%s), assigned_user_ids=%s",
             chore_name,
             chore_id,
             assigned_assignees,
@@ -2956,8 +2954,11 @@ class NotificationManager(BaseManager):
         Args:
             payload: Event data containing assignee_id, assignee_name, was_shadow
         """
-        assignee_id = payload.get("assignee_id", "")
-        assignee_name = payload.get("assignee_name", "Unknown")
+        if payload.get("user_role") != const.ROLE_ASSIGNEE:
+            return
+
+        assignee_id = payload.get("user_id", "")
+        assignee_name = payload.get("user_name", "Unknown")
         was_shadow = payload.get("was_shadow", False)
 
         if not assignee_id:

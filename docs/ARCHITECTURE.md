@@ -731,24 +731,21 @@ The ChoreOps integration utilizes a **Direct-to-Storage** architecture that deco
 
 - **Unified Logic via `flow_helpers.py`**: Both Config and Options flows leverage a shared utility layer to provide consistent validation and schema building. This centralization simplifies ongoing maintenance and ensures a uniform user experience across setup and configuration.
 - **Single Source of Truth via `data_builders.py`**: All entity validation and building logic is centralized in `data_builders.py`, which serves **three entry points**: Config Flow, Options Flow, and Services. This architectural decision eliminates duplicate validation code and ensures consistent business rules across UI forms and programmatic CRUD operations.
-- **User-first role model contract (Phase 4B)**: Runtime lifecycle records are users. Assignee and approver are role capabilities on user records, and derived views (`assignees_data`, `approvers_data`) are filtered projections only.
-- **Method naming contract (Phase 4B)**: Methods that create or mutate lifecycle records use user-centric naming. Assignee terminology is reserved for role-filter/projection logic. For assignment lists, prefer `assigned_assignees` naming in local variables/parameters.
+- **User-first role model contract**: Runtime lifecycle records are users. Assignee and approver are role capabilities on user records.
+- **Method naming contract**: Methods that create or mutate lifecycle records use user-centric naming. Assignee terminology is reserved for role-filter/projection logic. For assignment lists, prefer `assigned_assignees` naming in local variables/parameters.
 - **Entity gating source of truth**: `ENTITY_REGISTRY` in `custom_components/choreops/const.py` is the authoritative requirements registry for entity creation and cleanup. Runtime modules must consume centralized gating helpers and must not introduce duplicated per-platform requirement maps.
 
-    **Role-gating truth table (user-first contract):**
+  **Role-gating truth table (user-first contract):**
 
-    | User capability state | `ALWAYS` | `WORKFLOW` | `GAMIFICATION` | `EXTRA` |
-    | --- | --- | --- | --- | --- |
-    | `can_be_assigned = false` | Not created | Not created | Not created | Not created |
-    | `can_be_assigned = true` and not feature-gated | Created | Created | Created | Requires `show_legacy_entities = true` |
-    | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = false`, `enable_gamification = false` | Created | Not created | Not created | Not created |
-    | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = true`, `enable_gamification = false` | Created | Created | Not created | Not created |
-    | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = true`, `enable_gamification = true` | Created | Created | Created | Requires `show_legacy_entities = true` |
+  | User capability state                                                                                                 | `ALWAYS`    | `WORKFLOW`  | `GAMIFICATION` | `EXTRA`                                |
+  | --------------------------------------------------------------------------------------------------------------------- | ----------- | ----------- | -------------- | -------------------------------------- |
+  | `can_be_assigned = false`                                                                                             | Not created | Not created | Not created    | Not created                            |
+  | `can_be_assigned = true` and not feature-gated                                                                        | Created     | Created     | Created        | Requires `show_legacy_entities = true` |
+  | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = false`, `enable_gamification = false` | Created     | Not created | Not created    | Not created                            |
+  | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = true`, `enable_gamification = false`  | Created     | Created     | Not created    | Not created                            |
+  | Feature-gated user (`allow_chore_assignment = true`) + `enable_chore_workflow = true`, `enable_gamification = true`   | Created     | Created     | Created        | Requires `show_legacy_entities = true` |
 
-    Runtime note: platform/managers must use centralized gating helpers and must not re-derive these outcomes with local ad-hoc conditionals.
-- **CFOF Key Alignment (v0.5.0)**: Form field keys (`CFOF_*`) align with storage keys (`DATA_*`) where possible, allowing `user_input` to pass directly to `data_builders.build_*()` without mapping. Complex entities (chores, badges) still use transform functions.
-- **Direct Storage Writing**: User input is written directly to persistent storage at `.storage/choreops/choreops_data` using **Schema 42**. This approach treats storage as the immediate source of truth, bypassing intermediate configuration entry merging.
-- **Lightweight System Settings**: The `config_entry.options` object is reserved exclusively for system-level settings and feature flags, such as `points_label`, `update_interval`, and `kiosk_mode`. This keeps the core configuration entry lightweight and easy to validate.
+  Runtime note: platform/managers must use centralized gating helpers and must not re-derive these outcomes with local ad-hoc conditionals.
 
 ### Operational Workflows
 

@@ -30,26 +30,26 @@ import pytest
 # Additional constants not in tests.helpers yet - import directly
 # fmt: off
 from custom_components.choreops.const import (
-    DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED,
-    DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK,
-    DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME,
-    DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY,
     DATA_CHORE_APPLICABLE_DAYS,
     DATA_CHORE_CUSTOM_INTERVAL,
     DATA_CHORE_CUSTOM_INTERVAL_UNIT,
+    DATA_USER_CHORE_DATA_CURRENT_STREAK,
+    DATA_USER_CHORE_DATA_LAST_COMPLETED,
+    DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK,
+    DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY,
+    DATA_USER_CHORE_DATA_PERIODS,
+    DATA_USER_CHORE_DATA_PERIODS_ALL_TIME,
+    DATA_USER_CHORE_DATA_PERIODS_DAILY,
     FREQUENCY_CUSTOM,
     HELPER_RETURN_DATETIME_LOCAL,
     TIME_UNIT_DAYS,
 )
 from custom_components.choreops.utils.dt_utils import dt_parse, dt_today_local
 from tests.helpers import (
-    DATA_ASSIGNEE_CHORE_DATA,
-    DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED,
     DATA_CHORE_DUE_DATE,
     DATA_CHORE_RECURRING_FREQUENCY,
+    DATA_USER_CHORE_DATA,
+    DATA_USER_CHORE_DATA_LAST_APPROVED,
     FREQUENCY_DAILY,
     FREQUENCY_NONE,
     FREQUENCY_WEEKLY,
@@ -98,7 +98,7 @@ def get_assignee_chore_data(
         Dict of per-assignee chore data (state, last_approved, periods, etc.)
     """
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.get(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.get(DATA_USER_CHORE_DATA, {})
     return chore_data.get(chore_id, {})
 
 
@@ -120,10 +120,10 @@ def get_daily_streak(
         Streak count for that day, or 0 if not found
     """
     chore_data = get_assignee_chore_data(coordinator, assignee_id, chore_id)
-    periods = chore_data.get(DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
-    daily = periods.get(DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {})
+    periods = chore_data.get(DATA_USER_CHORE_DATA_PERIODS, {})
+    daily = periods.get(DATA_USER_CHORE_DATA_PERIODS_DAILY, {})
     day_data = daily.get(date_iso, {})
-    return day_data.get(DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY, 0)
+    return day_data.get(DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY, 0)
 
 
 def get_all_time_streak(
@@ -142,9 +142,9 @@ def get_all_time_streak(
         All-time longest streak, or 0 if not found
     """
     chore_data = get_assignee_chore_data(coordinator, assignee_id, chore_id)
-    periods = chore_data.get(DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
-    all_time = periods.get(DATA_ASSIGNEE_CHORE_DATA_PERIODS_ALL_TIME, {})
-    return all_time.get(DATA_ASSIGNEE_CHORE_DATA_PERIOD_LONGEST_STREAK, 0)
+    periods = chore_data.get(DATA_USER_CHORE_DATA_PERIODS, {})
+    all_time = periods.get(DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {})
+    return all_time.get(DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK, 0)
 
 
 def set_chore_frequency(
@@ -184,9 +184,9 @@ def set_last_completed(
     as streak tests use INDEPENDENT chores via Reset Upon Completion).
     """
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.setdefault(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.setdefault(chore_id, {})
-    per_chore[DATA_ASSIGNEE_CHORE_DATA_LAST_COMPLETED] = last_completed_dt.isoformat()
+    per_chore[DATA_USER_CHORE_DATA_LAST_COMPLETED] = last_completed_dt.isoformat()
 
 
 def set_yesterday_streak(
@@ -201,15 +201,15 @@ def set_yesterday_streak(
     DATA INJECTION: Setting streak for continuation testing - approved per Rule 2.1
     """
     assignee_data = coordinator.assignees_data.get(assignee_id, {})
-    chore_data = assignee_data.setdefault(DATA_ASSIGNEE_CHORE_DATA, {})
+    chore_data = assignee_data.setdefault(DATA_USER_CHORE_DATA, {})
     per_chore = chore_data.setdefault(chore_id, {})
-    periods = per_chore.setdefault(DATA_ASSIGNEE_CHORE_DATA_PERIODS, {})
-    daily = periods.setdefault(DATA_ASSIGNEE_CHORE_DATA_PERIODS_DAILY, {})
+    periods = per_chore.setdefault(DATA_USER_CHORE_DATA_PERIODS, {})
+    daily = periods.setdefault(DATA_USER_CHORE_DATA_PERIODS_DAILY, {})
     day_data = daily.setdefault(yesterday_iso, {})
-    day_data[DATA_ASSIGNEE_CHORE_DATA_PERIOD_STREAK_TALLY] = streak
+    day_data[DATA_USER_CHORE_DATA_PERIOD_STREAK_TALLY] = streak
 
     # Phase 5 fix: Also set persistent current_streak that workflow expects
-    per_chore[DATA_ASSIGNEE_CHORE_DATA_CURRENT_STREAK] = streak
+    per_chore[DATA_USER_CHORE_DATA_CURRENT_STREAK] = streak
 
 
 # =============================================================================
@@ -236,7 +236,7 @@ class TestStreakCalculation:
         assignee_chore_data = get_assignee_chore_data(
             coordinator, assignee_id, chore_id
         )
-        assert assignee_chore_data.get(DATA_ASSIGNEE_CHORE_DATA_LAST_APPROVED) is None
+        assert assignee_chore_data.get(DATA_USER_CHORE_DATA_LAST_APPROVED) is None
 
         # Approve chore
         with patch.object(

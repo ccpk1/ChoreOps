@@ -437,7 +437,7 @@
       "invalid_end_date": "Virheellinen päättymispäivämäärä.",
       "invalid_assignee_count": "Virheellinen lasten määrä",
       "invalid_assignee_name": "Virheellinen lapsen nimi",
-      "invalid_approver_count": "Virheellinen ylätason määrä",
+      "invalid_user_count": "Virheellinen ylätason määrä",
       "invalid_approver_name": "Virheellinen ylätason nimi",
       "no_assignees_assigned": "Ainakin yksi lapsi on määrättävä tehtävään",
       "invalid_penalty": "Virheellinen rangaistus",

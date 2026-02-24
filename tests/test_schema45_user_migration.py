@@ -11,6 +11,8 @@ from custom_components.choreops.migration_pre_v50 import (
 )
 from custom_components.choreops.store import ChoreOpsStore
 
+LEGACY_ASSIGNEES_BUCKET = "assignees"
+
 
 @dataclass
 class _DummyCoordinator:
@@ -27,7 +29,7 @@ async def test_schema45_migration_moves_assignees_to_users_and_sets_defaults() -
                 const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
                 const.DATA_META_MIGRATIONS_APPLIED: [],
             },
-            const.DATA_ASSIGNEES: {
+            LEGACY_ASSIGNEES_BUCKET: {
                 "assignee-1": {
                     const.DATA_USER_NAME: "Alex",
                     const.DATA_USER_HA_USER_ID: "ha-assignee-1",
@@ -40,7 +42,7 @@ async def test_schema45_migration_moves_assignees_to_users_and_sets_defaults() -
     summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
 
     assert const.DATA_USERS in coordinator._data
-    assert const.DATA_ASSIGNEES not in coordinator._data
+    assert LEGACY_ASSIGNEES_BUCKET not in coordinator._data
     assert summary["users_migrated"] == 1
     assert summary["linked_approver_merges"] == 0
     assert summary["standalone_approver_creations"] == 0
@@ -66,7 +68,7 @@ async def test_schema45_migration_merges_linked_approver_into_existing_user() ->
                 const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
                 const.DATA_META_MIGRATIONS_APPLIED: [],
             },
-            const.DATA_ASSIGNEES: {
+            const.DATA_USERS: {
                 "assignee-1": {
                     const.DATA_USER_NAME: "Alex",
                     const.DATA_USER_HA_USER_ID: "ha-assignee-1",
@@ -101,7 +103,7 @@ async def test_schema45_migration_handles_collision_and_is_idempotent() -> None:
                 const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
                 const.DATA_META_MIGRATIONS_APPLIED: [],
             },
-            const.DATA_ASSIGNEES: {
+            const.DATA_USERS: {
                 "shared-id": {
                     const.DATA_USER_NAME: "Assignee",
                     const.DATA_USER_HA_USER_ID: "ha-assignee",
@@ -141,7 +143,7 @@ async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
                 const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
                 const.DATA_META_MIGRATIONS_APPLIED: [],
             },
-            const.DATA_ASSIGNEES: {
+            const.DATA_USERS: {
                 "assignee-1": {
                     const.DATA_USER_NAME: "Alex",
                 }
@@ -176,7 +178,7 @@ async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
     summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
 
     chore = coordinator._data[const.DATA_CHORES]["chore-1"]
-    assert chore[const.DATA_CHORE_ASSIGNED_ASSIGNEES] == ["assignee-1"]
+    assert chore[const.DATA_CHORE_ASSIGNED_USER_IDS] == ["assignee-1"]
     assert chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] == {
         "assignee-1": "2026-02-22T12:00:00+00:00"
     }
@@ -196,8 +198,8 @@ async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
 
     achievement = coordinator._data[const.DATA_ACHIEVEMENTS]["achievement-1"]
     challenge = coordinator._data[const.DATA_CHALLENGES]["challenge-1"]
-    assert achievement[const.DATA_ACHIEVEMENT_ASSIGNED_ASSIGNEES] == ["assignee-1"]
-    assert challenge[const.DATA_CHALLENGE_ASSIGNED_ASSIGNEES] == ["assignee-1"]
+    assert achievement[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] == ["assignee-1"]
+    assert challenge[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] == ["assignee-1"]
     assert const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY not in achievement
     assert const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY not in challenge
 
@@ -209,7 +211,7 @@ def test_store_default_structure_uses_users_bucket() -> None:
     default_structure = ChoreOpsStore.get_default_structure()
 
     assert const.DATA_USERS in default_structure
-    assert const.DATA_ASSIGNEES not in default_structure
+    assert LEGACY_ASSIGNEES_BUCKET not in default_structure
     assert const.DATA_APPROVERS not in default_structure
     assert (
         default_structure[const.DATA_META][const.DATA_META_SCHEMA_VERSION]
