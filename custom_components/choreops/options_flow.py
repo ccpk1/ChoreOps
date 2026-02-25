@@ -1269,16 +1269,16 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         per_assignee_applicable_days = chore_data.get(
             const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}
         )
-        assigned_assignees_ids = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+        assigned_user_ids = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         if (
             completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            and assigned_assignees_ids
+            and assigned_user_ids
         ):
             # Get all date values for assigned assignees (including None)
             # Use a set to check uniqueness, treating None as a distinct value
             all_assignee_dates = set()
-            for assignee_id in assigned_assignees_ids:
+            for assignee_id in assigned_user_ids:
                 assignee_date = per_assignee_due_dates.get(assignee_id)
                 all_assignee_dates.add(assignee_date)
 
@@ -1341,12 +1341,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         existing_applicable_days_display = None
         if (
             completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            and assigned_assignees_ids
+            and assigned_user_ids
         ):
             # Get all applicable_days for assigned assignees
             # Convert to frozenset for hashability (lists aren't hashable)
             all_assignee_days: set[frozenset[int] | None] = set()
-            for assignee_id in assigned_assignees_ids:
+            for assignee_id in assigned_user_ids:
                 assignee_days = per_assignee_applicable_days.get(assignee_id)
                 # Convert to frozenset to make it hashable for set operations
                 if assignee_days is not None:
@@ -1394,11 +1394,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 if isinstance(day, int) and 0 <= day <= 6
             ]
 
-        # Convert assigned_assignees from internal_ids to names for display
-        # (assigned_assignees_ids already set above for per-assignee date check)
-        assigned_assignees_names = [
+        # Convert assigned user IDs to names for display.
+        # (assigned_user_ids already set above for per-assignee date check)
+        assigned_user_names = [
             id_to_name.get(assignee_id, assignee_id)
-            for assignee_id in assigned_assignees_ids
+            for assignee_id in assigned_user_ids
         ]
 
         # Prepare suggested values for form (current chore data)
@@ -1413,7 +1413,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: chore_data.get(
                 const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS
             ),
-            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_user_names,
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_data.get(
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
@@ -3488,15 +3488,15 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             for assignee_id, assignee_data in coordinator.assignees_data.items()
         }
 
-        # Convert assigned_assignees from internal_ids to names for display
-        assigned_assignees_ids = achievement_data.get(
+        # Convert assigned user IDs to names for display
+        assigned_user_ids = achievement_data.get(
             const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
         )
         valid_assignee_names = set(assignees_dict.keys())
         valid_chore_ids = set(chores_dict.keys())
-        assigned_assignees_names = [
+        assigned_user_names = [
             assignee_name
-            for assignee_id in assigned_assignees_ids
+            for assignee_id in assigned_user_ids
             if isinstance(assignee_id, str)
             if (assignee_name := id_to_name.get(assignee_id))
             if assignee_name in valid_assignee_names
@@ -3516,7 +3516,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_ACHIEVEMENTS_INPUT_ICON: achievement_data.get(
                 const.DATA_ACHIEVEMENT_ICON
             ),
-            const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: assigned_user_names,
             const.CFOF_ACHIEVEMENTS_INPUT_TYPE: achievement_data.get(
                 const.DATA_ACHIEVEMENT_TYPE, const.ACHIEVEMENT_TYPE_STREAK
             ),
@@ -3874,13 +3874,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             for assignee_id, data in coordinator.assignees_data.items()
         }
 
-        # Convert assigned_assignees from IDs to names for display (schema uses names)
-        assigned_assignees_ids = challenge_data.get(
+        # Convert assigned user IDs to names for display (schema uses names)
+        assigned_user_ids = challenge_data.get(
             const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
         )
-        assigned_assignees_names = [
+        assigned_user_names = [
             assignee_name
-            for assignee_id in assigned_assignees_ids
+            for assignee_id in assigned_user_ids
             if isinstance(assignee_id, str)
             if (assignee_name := id_to_name.get(assignee_id))
             if isinstance(assignee_name, str)
@@ -3922,7 +3922,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
         # Build suggested values from existing data (using CFOF keys for form)
-        # Note: assigned_assignees uses names (schema SelectSelector uses names like chores)
+        # Note: this form field stores selected names in the UI schema.
         suggested_values: dict[str, Any] = {
             const.CFOF_CHALLENGES_INPUT_NAME: challenge_data.get(
                 const.DATA_CHALLENGE_NAME, ""
@@ -3936,7 +3936,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHALLENGES_INPUT_ICON: challenge_data.get(
                 const.DATA_CHALLENGE_ICON
             ),
-            const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS: assigned_assignees_names,
+            const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS: assigned_user_names,
             const.CFOF_CHALLENGES_INPUT_TYPE: challenge_data.get(
                 const.DATA_CHALLENGE_TYPE, const.CHALLENGE_TYPE_DAILY_MIN
             ),

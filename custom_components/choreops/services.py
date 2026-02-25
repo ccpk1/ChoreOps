@@ -263,7 +263,7 @@ DELETE_REWARD_SCHEMA = vol.Schema(
 #
 # Field validation:
 # - name: required for create, optional for update
-# - assigned_assignees: required for create (list of assignee names resolved to UUIDs)
+# - assigned_user_names: required for create (list of assignee names resolved to UUIDs)
 # - completion_criteria: allowed for create and update (validated in Manager)
 # - Other fields use defaults from const.DEFAULT_*
 
@@ -320,7 +320,14 @@ _DAY_OF_WEEK_VALUES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 CREATE_CHORE_SCHEMA = vol.Schema(
     {
         vol.Required(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-        vol.Required(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
+        # Canonical public contract: callers provide assignee display names.
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
+            cv.ensure_list, [cv.string]
+        ),
+        # Compatibility exception: legacy automations still send name lists under
+        # assigned_user_ids. We accept this field during transition and normalize
+        # to real UUIDs in the handler before any storage/update operations.
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
             cv.ensure_list, [cv.string]
         ),
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
@@ -372,6 +379,12 @@ UPDATE_CHORE_SCHEMA = vol.Schema(
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
             _COMPLETION_CRITERIA_VALUES
         ),
+        # Canonical input key (names in payload).
+        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
+            cv.ensure_list, [cv.string]
+        ),
+        # Compatibility exception: keep accepting legacy key in updates so
+        # existing automations do not break. Handler normalizes values to UUIDs.
         vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
             cv.ensure_list, [cv.string]
         ),
@@ -427,6 +440,9 @@ _SERVICE_TO_CHORE_DATA_MAPPING: dict[str, str] = {
     const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION: const.DATA_CHORE_DESCRIPTION,
     const.SERVICE_FIELD_CHORE_CRUD_ICON: const.DATA_CHORE_ICON,
     const.SERVICE_FIELD_CHORE_CRUD_LABELS: const.DATA_CHORE_LABELS,
+    # Internal canonical assignment storage is always UUIDs in
+    # DATA_CHORE_ASSIGNED_USER_IDS. Handler normalization ensures this mapping
+    # only receives IDs, even when legacy callers provide name lists.
     const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS: const.DATA_CHORE_ASSIGNED_USER_IDS,
     const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY: const.DATA_CHORE_RECURRING_FREQUENCY,
     const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: const.DATA_CHORE_APPLICABLE_DAYS,
@@ -547,10 +563,29 @@ def async_setup_services(hass: HomeAssistant):
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
 
-        # Resolve assignee names to UUIDs
+        # Resolve assignee names to UUIDs.
+        # Exception by design: during contract migration we accept legacy payloads
+        # that still put names under assigned_user_ids.
         assignee_names = call.data.get(
-            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS, []
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES
         )
+        if assignee_names is None:
+            assignee_names = call.data.get(
+                const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
+            )
+        if not assignee_names:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_MISSING_FIELD,
+                translation_placeholders={
+                    "field": (
+                        f"{const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES}"
+                        f"/{const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS}"
+                    ),
+                    "entity": const.LABEL_CHORE,
+                },
+            )
+
         assignee_ids = []
         for assignee_name in assignee_names:
             try:
@@ -704,11 +739,20 @@ def async_setup_services(hass: HomeAssistant):
             # name was used for lookup, not for renaming
             service_data.pop(const.SERVICE_FIELD_CHORE_CRUD_NAME, None)
 
-        # Resolve assignee names to UUIDs if assignees are being updated
-        if const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS in service_data:
+        # Resolve assignee names to UUIDs if assignees are being updated.
+        # Exception by design: keep reading legacy assigned_user_ids payloads as
+        # name lists for backward compatibility with existing automations.
+        assignee_names = service_data.get(
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES
+        )
+        if assignee_names is None and (
+            const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS in service_data
+        ):
             assignee_names = service_data[
                 const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
             ]
+
+        if assignee_names is not None:
             assignee_ids = []
             for assignee_name in assignee_names:
                 try:
@@ -741,7 +785,7 @@ def async_setup_services(hass: HomeAssistant):
             data_input[const.DATA_CHORE_DUE_DATE] = due_date_input
 
         # For update: merge with existing data for accurate validation
-        # (assigned_assignees may not be in data_input if not being updated)
+        # (assigned_user_ids may not be in data_input if not being updated)
         validation_data = dict(data_input)
         if const.DATA_CHORE_ASSIGNED_USER_IDS not in validation_data:
             validation_data[const.DATA_CHORE_ASSIGNED_USER_IDS] = existing_chore.get(
@@ -1174,8 +1218,8 @@ def async_setup_services(hass: HomeAssistant):
                     translation_placeholders={"chore_name": str(chore_name)},
                 )
 
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-            if assignee_id not in assigned_assignees:
+            assigned_user_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if assignee_id not in assigned_user_ids:
                 const.LOGGER.warning(
                     "Set Chore Due Date: Assignee '%s' not assigned to chore '%s'",
                     assignee_id,
@@ -1320,8 +1364,8 @@ def async_setup_services(hass: HomeAssistant):
                     translation_placeholders={"chore_name": str(chore_name)},
                 )
 
-            assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
-            if assignee_id not in assigned_assignees:
+            assigned_user_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+            if assignee_id not in assigned_user_ids:
                 const.LOGGER.warning(
                     "Skip Chore Due Date: Assignee '%s' not assigned to chore '%s'",
                     assignee_id,
@@ -1347,10 +1391,10 @@ def async_setup_services(hass: HomeAssistant):
                 chore_info = cast(
                     "ChoreData", coordinator.chores_data.get(chore_id, {})
                 )
-                assigned_assignees = chore_info.get(
+                assigned_user_ids = chore_info.get(
                     const.DATA_CHORE_ASSIGNED_USER_IDS, []
                 )
-                for assigned_assignee_id in assigned_assignees:
+                for assigned_assignee_id in assigned_user_ids:
                     coordinator.chore_manager._record_chore_missed(
                         assigned_assignee_id, chore_id
                     )

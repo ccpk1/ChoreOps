@@ -1008,13 +1008,11 @@ def validate_chores_inputs(
     errors: dict[str, str] = {}
 
     # === Transform CFOF_* keys to DATA_* keys for shared validation ===
-    # Resolve assigned assignees from names to IDs
-    assigned_assignees_names = user_input.get(
-        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []
-    )
-    assigned_assignees_ids = [
+    # Form field key uses *_IDS for legacy compatibility, but selector values are names.
+    assigned_user_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, [])
+    assigned_user_ids = [
         assignees_dict[assignee_name]
-        for assignee_name in assigned_assignees_names
+        for assignee_name in assigned_user_names
         if assignee_name in assignees_dict
     ]
 
@@ -1059,7 +1057,7 @@ def validate_chores_inputs(
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
         const.DATA_CHORE_NAME: user_input.get(const.CFOF_CHORES_INPUT_NAME, ""),
-        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_assignees_ids,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
         const.DATA_CHORE_RECURRING_FREQUENCY: user_input.get(
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         ),
@@ -1132,13 +1130,11 @@ def transform_chore_cfof_to_data(
     Returns:
         Dictionary with DATA_* keys ready for data_builders.build_chore().
     """
-    # Convert assigned assignee names to UUIDs
-    assigned_assignees_names = user_input.get(
-        const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []
-    )
-    assigned_assignees_ids = [
+    # Form field key uses *_IDS for legacy compatibility, but selector values are names.
+    assigned_user_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, [])
+    assigned_user_ids = [
         assignees_dict[assignee_name]
-        for assignee_name in assigned_assignees_names
+        for assignee_name in assigned_user_names
         if assignee_name in assignees_dict
     ]
 
@@ -1153,7 +1149,7 @@ def transform_chore_cfof_to_data(
 
     # Build per_assignee_due_dates for ALL chores (SHARED + INDEPENDENT)
     per_assignee_due_dates: dict[str, str | None] = {}
-    for assignee_id in assigned_assignees_ids:
+    for assignee_id in assigned_user_ids:
         if (
             existing_per_assignee_due_dates
             and completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
@@ -1203,7 +1199,7 @@ def transform_chore_cfof_to_data(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
             const.DEFAULT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
         ),
-        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_assignees_ids,
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
         const.DATA_CHORE_DESCRIPTION: user_input.get(
             const.CFOF_CHORES_INPUT_DESCRIPTION, const.SENTINEL_EMPTY
         ),

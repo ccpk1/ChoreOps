@@ -8,9 +8,9 @@ claim_chore:
   name: "Claim Chore"
   description: "An assignee claims a chore, marking it as 'claimed' for approver review."
   fields:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The name of the assignee claiming the chore."
+    user_name:
+      name: "User Name"
+      description: "The name of the user claiming the chore."
       example: "Alice"
       required: true
       selector:
@@ -34,9 +34,9 @@ approve_chore:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The name of the assignee who performed the chore."
+    user_name:
+      name: "User Name"
+      description: "The name of the user who performed the chore."
       example: "Alice"
       required: true
       selector:
@@ -70,9 +70,9 @@ disapprove_chore:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The name of the assignee whose chore is being disapproved."
+    user_name:
+      name: "User Name"
+      description: "The name of the user whose chore is being disapproved."
       example: "Bob"
       required: true
       selector:
@@ -96,9 +96,9 @@ redeem_reward:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The assignee redeeming the reward."
+    user_name:
+      name: "User Name"
+      description: "The user redeeming the reward."
       example: "Alice"
       required: true
       selector:
@@ -122,9 +122,9 @@ approve_reward:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The assignee who is redeeming the reward."
+    user_name:
+      name: "User Name"
+      description: "The user who is redeeming the reward."
       example: "Alice"
       required: true
       selector:
@@ -158,9 +158,9 @@ disapprove_reward:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The assignee whose reward redemption is being disapproved."
+    user_name:
+      name: "User Name"
+      description: "The user whose reward redemption is being disapproved."
       example: "Bob"
       required: true
       selector:
@@ -184,9 +184,9 @@ apply_penalty:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The assignee receiving the penalty."
+    user_name:
+      name: "User Name"
+      description: "The user receiving the penalty."
       example: "Bob"
       required: true
       selector:
@@ -210,9 +210,9 @@ apply_bonus:
       required: true
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The assignee receiving the bonus."
+    user_name:
+      name: "User Name"
+      description: "The user receiving the bonus."
       example: "Bob"
       required: true
       selector:
@@ -228,20 +228,20 @@ apply_bonus:
 generate_activity_report:
   name: "Generate Activity Report"
   description: >
-    Build a 7-day activity report from assignee ledger data. This service is
+    Build a 7-day activity report from user ledger data. This service is
     response-first and returns markdown, with optional HTML conversion for
     email-oriented workflows, when called with return_response: true.
   fields:
-    assignee_name:
-      name: "Assignee Name"
-      description: "Optional filter. If omitted, includes all assignees in one aggregate report."
+    user_name:
+      name: "User Name"
+      description: "Optional filter. If omitted, includes all users in one aggregate report."
       required: false
       example: "Alice"
       selector:
         text:
     report_language:
       name: "Report Language"
-      description: "Optional language code for report text (for example en, es, de). If omitted, uses selected assignee language when assignee_name is provided, otherwise English."
+      description: "Optional language code for report text (for example en, es, de). If omitted, uses selected user language when user_name is provided, otherwise English."
       required: false
       example: "en"
       selector:
@@ -300,7 +300,7 @@ reset_transactional_data:
         boolean:
     scope:
       name: "Scope"
-      description: "Reset scope: 'global' resets all data, 'assignee' resets data for a specific assignee only."
+      description: "Reset scope: 'global' resets all data, 'user' resets data for a specific user only."
       required: false
       default: "global"
       example: "global"
@@ -308,10 +308,10 @@ reset_transactional_data:
         select:
           options:
             - "global"
-            - "assignee"
-    assignee_name:
-      name: "Assignee Name"
-      description: "Required if scope is 'assignee'. The name of the assignee whose data should be reset."
+            - "user"
+    user_name:
+      name: "User Name"
+      description: "Required if scope is 'user'. The name of the user whose data should be reset."
       required: false
       example: "Alice"
       selector:
@@ -345,8 +345,8 @@ reset_overdue_chores:
   description: >
     Reset overdue chore(s) back to the Pending state and reschedule them based on
     their recurring frequency and previous due date. You may optionally provide a
-    chore_id (or chore_name) to reset a specific chore and optionally an assignee_name
-    to reset the chore only for that assignee.
+    chore_id (or chore_name) to reset a specific chore and optionally a user_name
+    to reset the chore only for that user.
   fields:
     chore_id:
       name: "Chore ID"
@@ -362,9 +362,9 @@ reset_overdue_chores:
       required: false
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "If provided, reset the chore only for this assignee."
+    user_name:
+      name: "User Name"
+      description: "If provided, reset the chore only for this user."
       example: "Alice"
       required: false
       selector:
@@ -376,7 +376,7 @@ set_chore_due_date:
     Set (or clear) the due date for a chore. Provide the chore name and, if desired,
     a new due date. If no due date is provided the existing due date will be cleared.
     The service will reject due dates set in the past. For independent chores, optionally
-    provide an assignee_name to set the due date only for that assignee.
+    provide a user_name to set the due date only for that user.
   fields:
     chore_name:
       name: "Chore Name"
@@ -394,19 +394,19 @@ set_chore_due_date:
       required: false
       selector:
         datetime: {}
-    assignee_name:
-      name: "Assignee Name"
+    user_name:
+      name: "User Name"
       description: >
-        For shared chores, specify the assignee to set the due date for.
+        For shared chores, specify the user to set the due date for.
         If omitted, sets the due date for all assignees assigned to this chore.
       example: "Alice"
       required: false
       selector:
         text:
-    assignee_id:
-      name: "Assignee ID"
+    user_id:
+      name: "User ID"
       description: >
-        The internal ID of the assignee. Advanced users only - use assignee_name instead.
+        The internal ID of the user. Advanced users only - use user_name instead.
       example: "abc123-def456"
       required: false
       advanced: true
@@ -419,7 +419,7 @@ skip_chore_due_date:
     Skip the current due date of a recurring chore. This service immediately
     reschedules the chore's due date based on its recurring frequency and resets
     its state to pending. Any pending claims or approvals will be removed.
-    For independent chores, optionally provide an assignee_name to skip only for that assignee.
+    For independent chores, optionally provide a user_name to skip only for that user.
   fields:
     chore_id:
       name: "Chore ID"
@@ -437,19 +437,19 @@ skip_chore_due_date:
       required: false
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
+    user_name:
+      name: "User Name"
       description: >
-        For shared chores, specify the assignee to skip the due date for.
+        For shared chores, specify the user to skip the due date for.
         If omitted, skips the due date for all assignees assigned to this chore.
       example: "Alice"
       required: false
       selector:
         text:
-    assignee_id:
-      name: "Assignee ID"
+    user_id:
+      name: "User ID"
       description: >
-        The internal ID of the assignee. Advanced users only - use assignee_name instead.
+        The internal ID of the user. Advanced users only - use user_name instead.
       example: "abc123-def456"
       required: false
       advanced: true
@@ -469,12 +469,12 @@ remove_awarded_badges:
   name: "Remove Awarded Badges"
   description: >
     Remove all awarded badges for all assignees. Optionally, provide badge_name to reset a
-    specific badge across all assignees. Use assignee_name to reset all badges for a specific assignee.
-    Combine both to reset a specific badge for a specific assignee.
+    specific badge across all assignees. Use user_name to reset all badges for a specific user.
+    Combine both to reset a specific badge for a specific user.
   fields:
-    assignee_name:
-      name: "Assignee Name"
-      description: "The assignee awarded badges will be removed from."
+    user_name:
+      name: "User Name"
+      description: "The user awarded badges will be removed from."
       example: "Bob"
       required: false
       selector:
@@ -614,7 +614,7 @@ create_chore:
       required: true
       selector:
         text:
-    assigned_assignees:
+    assigned_user_names:
       name: "Assigned to"
       description: "List of assignee names to assign to this chore."
       example: "['Emma', 'Jack']"
@@ -793,7 +793,7 @@ update_chore:
       required: false
       selector:
         text:
-    assigned_assignees:
+    assigned_user_names:
       name: "Assigned to"
       description: "New list of assignee names to assign to this chore."
       example: "['Emma', 'Jack', 'Sophia']"
@@ -980,16 +980,16 @@ set_rotation_turn:
       required: false
       selector:
         text:
-    assignee_id:
-      name: "Assignee ID"
-      description: "Internal ID of the assignee to assign the turn to. Must be assigned to this chore. Optional if assignee_name is provided."
+    user_id:
+      name: "User ID"
+      description: "Internal ID of the user to assign the turn to. Must be assigned to this chore. Optional if user_name is provided."
       example: "xyz789-abc123-456..."
       required: false
       selector:
         text:
-    assignee_name:
-      name: "Assignee Name"
-      description: "Name of the assignee to assign the turn to. Must be assigned to this chore. Optional if assignee_id is provided."
+    user_name:
+      name: "User Name"
+      description: "Name of the user to assign the turn to. Must be assigned to this chore. Optional if user_id is provided."
       example: "Alice"
       required: false
       selector:

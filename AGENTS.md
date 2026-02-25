@@ -14,15 +14,24 @@ Read **only** what you need for your task:
 - **[CODE_REVIEW_GUIDE.md](../docs/CODE_REVIEW_GUIDE.md)** - Phase 0 audit framework for reviewing code
 - **[AGENT_TESTING_USAGE_GUIDE.md](../tests/AGENT_TESTING_USAGE_GUIDE.md)** - Test validation & debugging
 
+## 🧭 Terminology Quick Map
+
+- Kid → User
+- Parent → Approver role on User
+- Assignee/Approver → Role capabilities, not separate lifecycle records
+- Item/Record → Storage JSON object with UUID
+- Entity → Home Assistant platform object
+
 ## � Lexicon Warning (Critical)
 
 **STOP using "Entity" for data records!** This causes catastrophic confusion.
 
-| ❌ NEVER Say   | ✅ ALWAYS Say                 | Example                            |
-| -------------- | ----------------------------- | ---------------------------------- |
-| "Chore Entity" | "Chore Item" / "Chore Record" | "Update the Chore Item in storage" |
-| "Kid Entity"   | "Kid Item" / "Kid Record"     | "Fetch Kid Item by UUID"           |
-| "Badge Entity" | "Badge Item" / "Badge Record" | "Create new Badge Item"            |
+| ❌ NEVER Say    | ✅ ALWAYS Say                 | Example                            |
+| --------------- | ----------------------------- | ---------------------------------- |
+| "Chore Entity"  | "Chore Item" / "Chore Record" | "Update the Chore Item in storage" |
+| "Kid Entity"    | "User Item" / "User Record"   | "Fetch User Item by UUID"          |
+| "Parent Entity" | "User role" / "Approver role" | "Check User approver role"         |
+| "Badge Entity"  | "Badge Item" / "Badge Record" | "Create new Badge Item"            |
 
 **Remember**:
 
@@ -67,7 +76,7 @@ Use `internal_id` (UUID) for logic. **NEVER** use entity names for lookups.
 ### 3. Storage-Only Model
 
 Entity data → `.storage/choreops/choreops_data` (schema v42+)
-Config entry → **9 system settings only** (points theme, intervals, retention)
+Config entry → system settings only (points theme, intervals, retention, display toggles)
 
 **Details**: See [ARCHITECTURE.md § Data Architecture](../docs/ARCHITECTURE.md#data-architecture) for storage structure, system settings breakdown, and reload performance comparisons.
 
@@ -130,15 +139,18 @@ const.LOGGER.debug(f"Value: {var}")   # ❌ NEVER f-strings in logs
 | Task                          | Location                      | Reason                     |
 | ----------------------------- | ----------------------------- | -------------------------- |
 | Calculate next chore due date | `engines/schedule_engine.py`  | Pure math, no HA, no state |
-| Update kid points             | `managers/economy_manager.py` | Writes to storage          |
+| Update user points            | `managers/economy_manager.py` | Writes to storage          |
 | Format points display         | `utils/math_utils.py`         | Pure function, no HA       |
-| Get kid by user_id            | `helpers/entity_helpers.py`   | Needs HA registry access   |
+| Get user by user_id           | `helpers/entity_helpers.py`   | Needs HA registry access   |
 | Parse datetime string         | `utils/dt_utils.py`           | Pure datetime parsing      |
 | Build chore data dict         | `data_builders.py`            | Sanitization, no HA        |
 
 ### 6. CRUD Ownership Rules
 
-**Non-Negotiable**: Only Manager methods can call `coordinator._persist()`.
+**Non-Negotiable**: Only Manager methods can call persistence methods.
+
+- `_persist_and_update()` = default for user-visible state changes
+- `_persist()` = internal bookkeeping only
 
 **Forbidden**:
 
@@ -157,7 +169,7 @@ async def handle_claim_chore(call: ServiceCall) -> None:
 # managers/chore_manager.py - Manager owns the write
 async def claim_chore(self, chore_id: str) -> None:
     self._data[DATA_CHORES][chore_id]["state"] = CHORE_STATE_CLAIMED
-    self.coordinator._persist()  # ✅ Only Managers do this
+    self.coordinator._persist_and_update()  # ✅ Default for user-visible changes
     async_dispatcher_send(self.hass, SIGNAL_SUFFIX_CHORE_UPDATED)
 ```
 
@@ -176,10 +188,10 @@ async def claim_chore(self, chore_id: str) -> None:
 
 ```python
 # ❌ WRONG: Direct manager coupling
-await self.coordinator.economy_manager.deposit(kid_id, 50)
+await self.coordinator.economy_manager.deposit(user_id, 50)
 
 # ✅ CORRECT: Signal-based communication
-self.emit(const.SIGNAL_SUFFIX_BADGE_EARNED, kid_id=kid_id, points=50)
+self.emit(const.SIGNAL_SUFFIX_BADGE_EARNED, user_id=user_id, points=50)
 # EconomyManager listens for BADGE_EARNED and deposits automatically
 ```
 
@@ -195,7 +207,7 @@ async def create_chore(self, user_input: dict[str, Any]) -> dict[str, Any]:
     self._data[DATA_CHORES][internal_id] = dict(chore_dict)
 
     # 3. Persist
-    self.coordinator._persist()
+    self.coordinator._persist_and_update()
 
     # 4. ONLY emit signal after successful write ⚠️
     self.emit(const.SIGNAL_SUFFIX_CHORE_CREATED, chore_id=internal_id)
@@ -203,7 +215,7 @@ async def create_chore(self, user_input: dict[str, Any]) -> dict[str, Any]:
     return chore_dict
 ```
 
-**Rule**: Emit signals ONLY after `_persist()` succeeds. Never emit in a `try` block before persistence.
+**Rule**: Emit signals ONLY after persistence succeeds. Never emit in a `try` block before persistence.
 
 **Reference**: [DEVELOPMENT_STANDARDS.md § 5.3](../docs/DEVELOPMENT_STANDARDS.md#53-event-architecture-manager-communication)
 
@@ -220,8 +232,8 @@ async def create_chore(self, user_input: dict[str, Any]) -> dict[str, Any]:
 - Copy patterns from existing files (don't invent new patterns)
 - **Consolidate duplicates**: If code appears 2+ times, extract to helper function
 - **Verify coordinator methods**: When editing `coordinator.py`, search file FIRST to verify method exists. Never assume methods exist by name.
-- Use `conftest.py` helpers: `get_kid_by_name()`, `construct_entity_id()`
-- Mock notifications: `patch.object(coordinator, "_notify_kid", new=AsyncMock())`
+- Use `conftest.py` helpers: `get_user_by_name()` (or legacy helper wrappers), `construct_entity_id()`
+- Mock notifications through current user-role notifier method names (avoid introducing kid-specific names)
 
 ### After Writing Code
 
@@ -239,7 +251,7 @@ Run quality gates (**in this order**):
 ❌ F-strings in logs → ✅ Use lazy logging `%s`
 ❌ Entity names for lookups → ✅ Use `internal_id` (UUID)
 ❌ Touching `config_entry.data` → ✅ Use `.storage/choreops/choreops_data`
-❌ Direct storage writes → ✅ Use Manager method that calls `coordinator._persist()`
+❌ Direct storage writes → ✅ Use Manager method that calls the correct persistence method
 ❌ Importing `homeassistant` in `utils/` → ✅ Keep utils pure (no HA imports)
 ❌ Writing to `_data` outside Managers → ✅ Delegate to Manager methods
 
@@ -256,9 +268,9 @@ Run quality gates (**in this order**):
 
 **Constant Naming Patterns** (See [DEVELOPMENT_STANDARDS.md § 3. Constant Naming Standards](../docs/DEVELOPMENT_STANDARDS.md#3-constant-naming-standards)):
 
-- `DATA_*` = Storage keys for Domain Items (singular names: `DATA_KID_*`, `DATA_CHORE_*`)
+- `DATA_*` = Storage keys for Domain Items (singular names: `DATA_USER_*`, `DATA_CHORE_*`)
 - `CFOF_*` = Config/Options flow input fields (plural with `_INPUT_`)
-- `CONF_*` = System settings in config_entry.options (9 settings only)
+- `CONF_*` = System settings in config_entry.options (system settings only)
 - `TRANS_KEY_*` = Translation identifiers
 - `ATTR_*` = Entity state attributes (for HA Entities, not Items)
 - `SERVICE_*` / `SERVICE_FIELD_*` = Service actions and parameters

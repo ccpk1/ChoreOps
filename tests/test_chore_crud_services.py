@@ -22,6 +22,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
+from homeassistant.exceptions import HomeAssistantError
 import pytest
 import voluptuous as vol
 
@@ -135,7 +136,7 @@ class TestCreateChoreSchemaValidation:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Test Chore Schema",
-                    "assigned_user_ids": ["Zoë", "Max!"],
+                    "assigned_user_names": ["Zoë", "Max!"],
                     "points": 15,
                     "description": "Testing schema validation",
                     "icon": "mdi:test-tube",
@@ -155,26 +156,26 @@ class TestCreateChoreSchemaValidation:
         assert isinstance(chore_id, str)
 
     @pytest.mark.asyncio
-    async def test_requires_name_and_assigned_user_ids(
+    async def test_requires_name_and_assigned_user_names(
         self,
         hass: HomeAssistant,
         scenario_full: SetupResult,
     ) -> None:
-        """Test create_chore requires name and assigned_user_ids fields."""
+        """Test create_chore requires name and assigned_user_names fields."""
         # Missing name
         with pytest.raises(vol.Invalid):
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CREATE_CHORE,
                 {
-                    "assigned_user_ids": ["Zoë"],
+                    "assigned_user_names": ["Zoë"],
                     "points": 10,
                 },
                 blocking=True,
             )
 
-        # Missing assigned_user_ids
-        with pytest.raises(vol.Invalid):
+        # Missing assigned_user_names
+        with pytest.raises(HomeAssistantError):
             await hass.services.async_call(
                 DOMAIN,
                 SERVICE_CREATE_CHORE,
@@ -198,7 +199,7 @@ class TestCreateChoreSchemaValidation:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Test Chore",
-                    "assigned_user_ids": ["Zoë"],
+                    "assigned_user_names": ["Zoë"],
                     "points": 10,
                     "invalid_field": "should fail",  # ❌ Not in schema
                 },
@@ -235,7 +236,7 @@ class TestCreateChoreEndToEnd:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Service Test Chore",
-                    "assigned_user_ids": ["Zoë", "Max!"],
+                    "assigned_user_names": ["Zoë", "Max!"],
                     "points": 15,
                 },
                 blocking=True,
@@ -280,7 +281,7 @@ class TestCreateChoreEndToEnd:
         """Test created chore dashboard helper attributes match service input.
 
         E2E Pattern: Service call → Dashboard helper attributes validation
-        Validates: points, description, labels, assigned_user_ids, completion_criteria
+        Validates: points, description, labels, assigned_user_names, completion_criteria
         """
         with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
             await hass.services.async_call(
@@ -288,7 +289,7 @@ class TestCreateChoreEndToEnd:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Attribute Test Chore",
-                    "assigned_user_ids": ["Zoë", "Max!", "Lila"],
+                    "assigned_user_names": ["Zoë", "Max!", "Lila"],
                     "points": 25,
                     "description": "Verifying all attributes",
                     "labels": ["test", "e2e"],
@@ -296,7 +297,6 @@ class TestCreateChoreEndToEnd:
                     "frequency": "weekly",
                 },
                 blocking=True,
-                return_response=True,
             )
 
             await hass.async_block_till_done()
@@ -452,7 +452,7 @@ class TestDeleteChoreEndToEnd:
                 SERVICE_CREATE_CHORE,
                 {
                     "name": "Delete Test Chore",
-                    "assigned_user_ids": ["Zoë", "Max!"],
+                    "assigned_user_names": ["Zoë", "Max!"],
                     "points": 10,
                 },
                 blocking=True,

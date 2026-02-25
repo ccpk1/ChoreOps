@@ -2156,9 +2156,9 @@
       "name": "Claim Chore",
       "description": "An assignee claims a chore, marking it as 'claimed' for approver review.",
       "fields": {
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The name of the assignee claiming the chore.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The name of the user claiming the chore.",
           "example": "Alice"
         },
         "chore_name": {
@@ -2177,9 +2177,9 @@
           "description": "The approver approving the chore.",
           "example": "Mom"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The name of the assignee who performed the chore.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The name of the user who performed the chore.",
           "example": "Alice"
         },
         "chore_name": {
@@ -2203,9 +2203,9 @@
           "description": "The approver disapproving the chore.",
           "example": "Mom"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The name of the assignee whose chore is being disapproved.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The name of the user whose chore is being disapproved.",
           "example": "Alice"
         },
         "chore_name": {
@@ -2224,9 +2224,9 @@
           "description": "The approver authorizing the reward redemption.",
           "example": "Mom"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee redeeming the reward.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user redeeming the reward.",
           "example": "Alice"
         },
         "reward_name": {
@@ -2245,9 +2245,9 @@
           "description": "The approver approving the reward.",
           "example": "Mom"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee who is redeeming the reward.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user who is redeeming the reward.",
           "example": "Alice"
         },
         "reward_name": {
@@ -2270,9 +2270,9 @@
           "description": "The approver disapproving the reward.",
           "example": "Dad"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee whose reward redemption is being disapproved.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user whose reward redemption is being disapproved.",
           "example": "Alice"
         },
         "reward_name": {
@@ -2291,9 +2291,9 @@
           "description": "The approver applying the penalty.",
           "example": "Dad"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee receiving the penalty.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user receiving the penalty.",
           "example": "Alice"
         },
         "penalty_name": {
@@ -2312,9 +2312,9 @@
           "description": "The approver applying the bonus.",
           "example": "Mom"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee receiving the bonus.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user receiving the bonus.",
           "example": "Alice"
         },
         "bonus_name": {
@@ -2416,7 +2416,7 @@
           "description": "The name of the chore to create.",
           "example": "Clean Room"
         },
-        "assigned_user_ids": {
+        "assigned_user_names": {
           "name": "Assigned to",
           "description": "List of assignee names to assign this chore to.",
           "example": "['Emma', 'Jack']"
@@ -2512,7 +2512,7 @@
           "description": "The name of the chore to update (alternative to id). More user-friendly than id.",
           "example": "Clean Room"
         },
-        "assigned_user_ids": {
+        "assigned_user_names": {
           "name": "Assigned to",
           "description": "New list of assignee names to assign this chore to.",
           "example": "['Emma', 'Jack']"
@@ -2619,14 +2619,14 @@
           "description": "Name of the rotation chore. Optional if chore_id is provided.",
           "example": "Clean Bedroom"
         },
-        "assignee_id": {
-          "name": "Assignee ID",
-          "description": "Internal ID of the assignee to assign the turn to. Must be assigned to this chore. Optional if assignee_name is provided.",
+        "user_id": {
+          "name": "User ID",
+          "description": "Internal ID of the user to assign the turn to. Must be assigned to this chore. Optional if user_name is provided.",
           "example": "xyz789-abc123-456..."
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "Name of the assignee to assign the turn to. Must be assigned to this chore. Optional if assignee_id is provided.",
+        "user_name": {
+          "name": "User Name",
+          "description": "Name of the user to assign the turn to. Must be assigned to this chore. Optional if user_id is provided.",
           "example": "Alice"
         }
       }
@@ -2665,15 +2665,15 @@
     },
     "generate_activity_report": {
       "name": "Generate Activity Report",
-      "description": "Generate a 7-day activity report from ledger history. Supports optional assignee filtering, optional notify delivery, and optional HTML conversion while still returning a structured response payload.",
+      "description": "Generate a 7-day activity report from ledger history. Supports optional user filtering, optional notify delivery, and optional HTML conversion while still returning a structured response payload.",
       "fields": {
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "Optional filter to generate the report for one assignee only."
+        "user_name": {
+          "name": "User Name",
+          "description": "Optional filter to generate the report for one user only."
         },
         "report_language": {
           "name": "Report Language",
-          "description": "Optional language code for report text. Falls back to selected assignee language (when assignee_name is set) and then English."
+          "description": "Optional language code for report text. Falls back to selected user language (when user_name is set) and then English."
         },
         "report_title": {
           "name": "Report Title",
@@ -2703,11 +2703,11 @@
         },
         "scope": {
           "name": "Scope",
-          "description": "Reset scope: 'global' resets all data, 'assignee' resets data for a specific assignee only."
+          "description": "Reset scope: 'global' resets all data, 'user' resets data for a specific user only."
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "Required if scope is 'assignee'. The name of the assignee whose data should be reset."
+        "user_name": {
+          "name": "User Name",
+          "description": "Required if scope is 'user'. The name of the user whose data should be reset."
         },
         "item_type": {
           "name": "Item Type",
@@ -2721,7 +2721,7 @@
     },
     "reset_overdue_chores": {
       "name": "Reset Overdue Chores",
-      "description": "Reset overdue chore(s) back to the Pending state and reschedule them based on their recurring frequency and previous due date. You may optionally provide a chore_id (or chore_name) to reset a specific chore and optionally an assignee_name to reset the chore only for that assignee.",
+      "description": "Reset overdue chore(s) back to the Pending state and reschedule them based on their recurring frequency and previous due date. You may optionally provide a chore_id (or chore_name) to reset a specific chore and optionally a user_name to reset the chore only for that user.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -2733,16 +2733,16 @@
           "description": "The name of the chore to reset (optional if chore_id is provided).",
           "example": "Wash Dishes"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee to target for the reset.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user to target for the reset.",
           "example": "Alice"
         }
       }
     },
     "set_chore_due_date": {
       "name": "Set/Reset Chore Due Date",
-      "description": "Set (or clear) the due date for a chore. Provide the chore name and, if desired, a new due date. If no due date is provided the existing due date will be cleared. The service will reject due dates set in the past. For independent chores, optionally provide an assignee_name to set the due date only for that assignee.",
+      "description": "Set (or clear) the due date for a chore. Provide the chore name and, if desired, a new due date. If no due date is provided the existing due date will be cleared. The service will reject due dates set in the past. For independent chores, optionally provide a user_name to set the due date only for that user.",
       "fields": {
         "chore_name": {
           "name": "Chore Name",
@@ -2754,21 +2754,21 @@
           "description": "The new due date for the chore. Use the date/time selector to choose a valid date and time (in your local timezone). Leave empty to clear the due date.",
           "example": "2025-03-01T23:59:00Z"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "For independent chores, specify the assignee to set the due date for. If omitted, sets the due date for all assignees assigned to this chore.",
+        "user_name": {
+          "name": "User Name",
+          "description": "For independent chores, specify the user to set the due date for. If omitted, sets the due date for all assignees assigned to this chore.",
           "example": "Alice"
         },
-        "assignee_id": {
-          "name": "Assignee ID",
-          "description": "The internal ID of the assignee. Advanced users only - use assignee_name instead.",
+        "user_id": {
+          "name": "User ID",
+          "description": "The internal ID of the user. Advanced users only - use user_name instead.",
           "example": "abc123-def456"
         }
       }
     },
     "skip_chore_due_date": {
       "name": "Skip Chore Due Date",
-      "description": "Skip the current due date of a recurring chore. This service immediately reschedules the chore's due date based on its recurring frequency and resets its state to pending. Any pending claims or approvals will be removed. For independent chores, optionally provide an assignee_name to skip only for that assignee.",
+      "description": "Skip the current due date of a recurring chore. This service immediately reschedules the chore's due date based on its recurring frequency and resets its state to pending. Any pending claims or approvals will be removed. For independent chores, optionally provide a user_name to skip only for that user.",
       "fields": {
         "chore_id": {
           "name": "Chore ID",
@@ -2780,14 +2780,14 @@
           "description": "The name of the chore to reset (optional if chore_id is provided).",
           "example": "Wash Dishes"
         },
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "For independent chores, specify the assignee to skip the due date for. If omitted, skips the due date for all assignees assigned to this chore.",
+        "user_name": {
+          "name": "User Name",
+          "description": "For independent chores, specify the user to skip the due date for. If omitted, skips the due date for all assignees assigned to this chore.",
           "example": "Alice"
         },
-        "assignee_id": {
-          "name": "Assignee ID",
-          "description": "The internal ID of the assignee. Advanced users only - use assignee_name instead.",
+        "user_id": {
+          "name": "User ID",
+          "description": "The internal ID of the user. Advanced users only - use user_name instead.",
           "example": "abc123-def456"
         },
         "mark_as_missed": {
@@ -2798,11 +2798,11 @@
     },
     "remove_awarded_badges": {
       "name": "Remove Awarded Badges",
-      "description": "Remove all awarded badges for all assignees. Optionally, provide badge name to reset a specific badge across all assignees. Use assignee name to reset all badges for a specific assignee. Combine both to reset a specific badge for a specific assignee.",
+      "description": "Remove all awarded badges for all assignees. Optionally, provide badge name to reset a specific badge across all assignees. Use user_name to reset all badges for a specific user. Combine both to reset a specific badge for a specific user.",
       "fields": {
-        "assignee_name": {
-          "name": "Assignee Name",
-          "description": "The assignee awarded badges will be removed from.",
+        "user_name": {
+          "name": "User Name",
+          "description": "The user awarded badges will be removed from.",
           "example": "Bob"
         },
         "badge_name": {

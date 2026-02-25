@@ -80,18 +80,12 @@ DOC_URL_GENERAL_OPTIONS: Final = (
 DOC_URL_DASHBOARD_GENERATION: Final = (
     "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Dashboard-Generation"
 )
-DOC_URL_CARD_MUSHROOM: Final = (
-    "https://github.com/piitaya/lovelace-mushroom"
-)
+DOC_URL_CARD_MUSHROOM: Final = "https://github.com/piitaya/lovelace-mushroom"
 DOC_URL_CARD_AUTO_ENTITIES: Final = (
     "https://github.com/thomasloven/lovelace-auto-entities"
 )
-DOC_URL_CARD_MINI_GRAPH: Final = (
-    "https://github.com/kalkih/mini-graph-card"
-)
-DOC_URL_CARD_BUTTON: Final = (
-    "https://github.com/custom-cards/button-card"
-)
+DOC_URL_CARD_MINI_GRAPH: Final = "https://github.com/kalkih/mini-graph-card"
+DOC_URL_CARD_BUTTON: Final = "https://github.com/custom-cards/button-card"
 DOC_URL_BADGES_OVERVIEW: Final = (
     "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Overview"
 )
@@ -124,9 +118,7 @@ DOC_URL_MAIN_WIKI: Final = "https://github.com/ccpk1/choreops/wiki"
 # Description Placeholder Keys (for hassfest compliance)
 PLACEHOLDER_DOCUMENTATION_URL: Final = "documentation_url"
 PLACEHOLDER_DASHBOARD_CARD_MUSHROOM_URL: Final = "dashboard_card_mushroom_url"
-PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: Final = (
-    "dashboard_card_auto_entities_url"
-)
+PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: Final = "dashboard_card_auto_entities_url"
 PLACEHOLDER_DASHBOARD_CARD_MINI_GRAPH_URL: Final = "dashboard_card_mini_graph_url"
 PLACEHOLDER_DASHBOARD_CARD_BUTTON_URL: Final = "dashboard_card_button_url"
 
@@ -2654,6 +2646,7 @@ SERVICE_FIELD_CHORE_CRUD_POINTS: Final = "points"
 SERVICE_FIELD_CHORE_CRUD_DESCRIPTION: Final = "description"
 SERVICE_FIELD_CHORE_CRUD_ICON: Final = "icon"
 SERVICE_FIELD_CHORE_CRUD_LABELS: Final = "labels"
+SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES: Final = "assigned_user_names"
 SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS: Final = "assigned_user_ids"
 SERVICE_FIELD_CHORE_CRUD_FREQUENCY: Final = "frequency"
 SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS: Final = "applicable_days"
@@ -2669,6 +2662,9 @@ SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: Final = "due_reminder_offset"
 
 # ==== Test aliases for convenience (used in Phase 1 tests) ====
 SERVICE_FIELD_NAME: Final = "name"  # Alias for SERVICE_FIELD_CHORE_CRUD_NAME
+SERVICE_FIELD_ASSIGNED_USER_NAMES: Final = (
+    "assigned_user_names"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES
+)
 SERVICE_FIELD_ASSIGNED_USER_IDS: Final = (
     "assigned_user_ids"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS
 )
