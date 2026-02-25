@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.exceptions import HomeAssistantError
 import pytest
 import voluptuous as vol
 
@@ -179,6 +180,65 @@ async def test_dashboard_update_step_shows_release_controls(
     assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION in fields
     assert const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES in fields
     assert const.CFOF_DASHBOARD_INPUT_ADMIN_VIEW_VISIBILITY in fields
+
+
+@pytest.mark.asyncio
+async def test_dashboard_update_step_gracefully_handles_release_discovery_error(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Update path continues when release discovery is unavailable."""
+    config_entry = scenario_minimal.config_entry
+
+    update_select_schema = vol.Schema(
+        {
+            vol.Required(const.CFOF_DASHBOARD_INPUT_UPDATE_SELECTION): vol.In(
+                ["kcd-chores"]
+            )
+        }
+    )
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            return_value=update_select_schema,
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_choreops_dashboards",
+            return_value={},
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            side_effect=HomeAssistantError("HTTP 404 fetching releases"),
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+                const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
+            },
+        )
+        assert result.get("step_id") == "dashboard_update_select"
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: "kcd-chores"},
+        )
+
+    assert result.get("type") == FlowResultType.FORM
+    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
 
 
 @pytest.mark.asyncio

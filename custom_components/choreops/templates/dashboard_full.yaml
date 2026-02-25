@@ -61,7 +61,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.assignee_name', 'eq', name)
+                      | selectattr('attributes.user_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -194,7 +194,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.assignee_name', 'eq', name)
+                      | selectattr('attributes.user_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -585,7 +585,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.assignee_name', 'eq', name)
+                      | selectattr('attributes.user_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -868,7 +868,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.assignee_name', 'eq', name)
+                      | selectattr('attributes.user_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -1104,7 +1104,7 @@
                   | expand
                   | selectattr('attributes.purpose', 'defined')
                   | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                  | selectattr('attributes.assignee_name', 'eq', name)
+                  | selectattr('attributes.user_name', 'eq', name)
                   | map(attribute='entity_id')
                   | first
                   | default("err-dashboard_helper_missing", true) -%}
@@ -1399,7 +1399,7 @@
                   | expand
                   | selectattr('attributes.purpose', 'defined')
                   | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                  | selectattr('attributes.assignee_name', 'eq', name)
+                  | selectattr('attributes.user_name', 'eq', name)
                   | map(attribute='entity_id')
                   | first
                   | default("err-dashboard_helper_missing", true) -%}
@@ -1558,7 +1558,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.assignee_name', 'eq', name)
+                      | selectattr('attributes.user_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -1700,7 +1700,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.assignee_name', 'eq', name)
+                      | selectattr('attributes.user_name', 'eq', name)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}

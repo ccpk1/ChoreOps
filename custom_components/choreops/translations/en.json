@@ -1527,7 +1527,7 @@
       },
       "dashboard_generator": {
         "title": "Dashboard Actions",
-        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\nStatus: {status}\n\n**Required Custom Cards** (install via HACS Frontend):\n- Mushroom Cards (custom:mushroom-template-card)\n- Auto-Entities (custom:auto-entities)\n- Mini Graph Card (custom:mini-graph-card)\n\nWithout these cards, dashboards will show errors. Install them first from HACS before generating dashboards.",
+        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\n[Dashboard configuration guide]({documentation_url})\n\n**Required Custom Cards** (install via HACS Frontend):\n- [Mushroom Cards]({dashboard_card_mushroom_url}) (`custom:mushroom-template-card`)\n- [Auto-Entities]({dashboard_card_auto_entities_url}) (`custom:auto-entities`)\n- [Mini Graph Card]({dashboard_card_mini_graph_url}) (`custom:mini-graph-card`)\n- [Button Card]({dashboard_card_button_url}) (`custom:button-card`)\n\nWithout these cards, dashboards will show errors. Install them first from HACS before generating dashboards.",
         "data": {
           "dashboard_action": "Action",
           "dashboard_check_cards": "Check Card Installation"

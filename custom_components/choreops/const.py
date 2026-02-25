@@ -80,6 +80,18 @@ DOC_URL_GENERAL_OPTIONS: Final = (
 DOC_URL_DASHBOARD_GENERATION: Final = (
     "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Dashboard-Generation"
 )
+DOC_URL_CARD_MUSHROOM: Final = (
+    "https://github.com/piitaya/lovelace-mushroom"
+)
+DOC_URL_CARD_AUTO_ENTITIES: Final = (
+    "https://github.com/thomasloven/lovelace-auto-entities"
+)
+DOC_URL_CARD_MINI_GRAPH: Final = (
+    "https://github.com/kalkih/mini-graph-card"
+)
+DOC_URL_CARD_BUTTON: Final = (
+    "https://github.com/custom-cards/button-card"
+)
 DOC_URL_BADGES_OVERVIEW: Final = (
     "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Overview"
 )
@@ -111,6 +123,12 @@ DOC_URL_MAIN_WIKI: Final = "https://github.com/ccpk1/choreops/wiki"
 
 # Description Placeholder Keys (for hassfest compliance)
 PLACEHOLDER_DOCUMENTATION_URL: Final = "documentation_url"
+PLACEHOLDER_DASHBOARD_CARD_MUSHROOM_URL: Final = "dashboard_card_mushroom_url"
+PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: Final = (
+    "dashboard_card_auto_entities_url"
+)
+PLACEHOLDER_DASHBOARD_CARD_MINI_GRAPH_URL: Final = "dashboard_card_mini_graph_url"
+PLACEHOLDER_DASHBOARD_CARD_BUTTON_URL: Final = "dashboard_card_button_url"
 
 # ==============================================================================
 # Dashboard Template Configuration (v0.5.0-beta3, Schema 43)

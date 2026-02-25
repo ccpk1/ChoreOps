@@ -13,6 +13,7 @@ import uuid
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
@@ -4057,6 +4058,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         "mushroom": "Mushroom Cards",
                         "auto_entities": "Auto-Entities",
                         "mini_graph": "Mini Graph Card",
+                        "button_card": "Button Card",
                     }.get(card_name, card_name)
 
                     status_lines.append(f"{status_icon} {card_display}")
@@ -4101,16 +4103,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Show action selection
         schema = dh.build_dashboard_action_schema()
-        status_message = (
-            self._dashboard_status_message or "No recent dashboard actions."
-        )
         self._dashboard_status_message = ""
 
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR,
             data_schema=schema,
             errors=errors,
-            description_placeholders={"status": status_message},
+            description_placeholders={
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+                const.PLACEHOLDER_DASHBOARD_CARD_MUSHROOM_URL: const.DOC_URL_CARD_MUSHROOM,
+                const.PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: const.DOC_URL_CARD_AUTO_ENTITIES,
+                const.PLACEHOLDER_DASHBOARD_CARD_MINI_GRAPH_URL: const.DOC_URL_CARD_MINI_GRAPH,
+                const.PLACEHOLDER_DASHBOARD_CARD_BUTTON_URL: const.DOC_URL_CARD_BUTTON,
+            },
         )
 
     async def async_step_dashboard_create(
@@ -4208,7 +4213,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 available_release_tags = (
                     await builder.discover_compatible_dashboard_release_tags(self.hass)
                 )
-            except (TimeoutError, ValueError) as err:
+            except (TimeoutError, HomeAssistantError, ValueError) as err:
                 const.LOGGER.debug(
                     "Release tags unavailable while building dashboard update schema: %s",
                     err,

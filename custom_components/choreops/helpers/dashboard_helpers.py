@@ -654,6 +654,7 @@ async def check_custom_cards_installed(hass: Any) -> dict[str, bool]:
         "mushroom": "mushroom",
         "auto_entities": "auto-entities",
         "mini_graph": "mini-graph-card",
+        "button_card": "button-card",
     }
 
     # Initialize all as not installed
