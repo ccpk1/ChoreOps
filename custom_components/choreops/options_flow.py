@@ -1011,7 +1011,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
             # Validate chore input
             errors, due_date_str = fh.validate_chores_inputs(
-                user_input, assignees_dict, chores_for_validation
+                user_input,
+                assignees_dict,
+                chores_for_validation,
+                existing_chore=chore_data,
             )
             errors = fh.map_chore_form_errors(errors)
 
@@ -1039,6 +1042,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 assignees_dict,
                 due_date_str,
                 existing_per_assignee_due_dates,
+                existing_chore=chore_data,
             )
 
             # Check if assigned assignees changed (for reload decision)

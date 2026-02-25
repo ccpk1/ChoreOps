@@ -16,10 +16,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
+from custom_components.choreops import const
 from tests.helpers import (
     APPROVAL_RESET_UPON_COMPLETION,
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
     CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+    CFOF_CHORES_INPUT_AUTO_APPROVE,
+    CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DAILY_MULTI_TIMES,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
@@ -30,13 +33,17 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
     COMPLETION_CRITERIA_SHARED,
     DATA_CHORE_DAILY_MULTI_TIMES,
+    FREQUENCY_DAILY,
     FREQUENCY_DAILY_MULTI,
     OPTIONS_FLOW_ACTIONS_ADD,
+    OPTIONS_FLOW_ACTIONS_EDIT,
     OPTIONS_FLOW_CHORES,
+    OPTIONS_FLOW_INPUT_ENTITY_NAME,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
     OPTIONS_FLOW_STEP_ADD_CHORE,
     OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI,
+    OPTIONS_FLOW_STEP_EDIT_CHORE,
     OPTIONS_FLOW_STEP_INIT,
     OPTIONS_FLOW_STEP_MANAGE_ENTITY,
 )
@@ -313,6 +320,96 @@ class TestDailyMultiOptionsFlow:
         errors = result.get("errors")
         assert errors is not None
         assert CFOF_CHORES_INPUT_DAILY_MULTI_TIMES in errors
+
+    @pytest.mark.asyncio
+    async def test_of_07_edit_to_daily_multi_helper_preserves_lock_settings(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+    ) -> None:
+        """Editing to DAILY_MULTI should preserve omitted schedule lock fields."""
+        config_entry = scenario_minimal.config_entry
+        coordinator = scenario_minimal.coordinator
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result.get("flow_id")
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_CHORES},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_ADD},
+        )
+
+        due_date = datetime.now(UTC) + timedelta(hours=2)
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "OF07 Preserve Lock On DailyMulti Edit",
+                CFOF_CHORES_INPUT_DEFAULT_POINTS: 9,
+                CFOF_CHORES_INPUT_ICON: "mdi:clock-check",
+                CFOF_CHORES_INPUT_DESCRIPTION: "",
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assignee_names[:1],
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
+                CFOF_CHORES_INPUT_DUE_DATE: due_date,
+                CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        # Re-open flow and edit chore
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result.get("flow_id")
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MENU_SELECTION: OPTIONS_FLOW_CHORES},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={OPTIONS_FLOW_INPUT_MANAGE_ACTION: OPTIONS_FLOW_ACTIONS_EDIT},
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={
+                OPTIONS_FLOW_INPUT_ENTITY_NAME: "OF07 Preserve Lock On DailyMulti Edit"
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
+
+        # Switch to DAILY_MULTI but intentionally omit lock/auto-approve fields
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "OF07 Preserve Lock On DailyMulti Edit",
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY_MULTI,
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,  # type: ignore[arg-type]
+            user_input={CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: "07:00|19:00"},
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        chore = next(
+            (
+                c
+                for c in coordinator.chores_data.values()
+                if c["name"] == "OF07 Preserve Lock On DailyMulti Edit"
+            ),
+            None,
+        )
+        assert chore is not None
+        assert chore.get(DATA_CHORE_DAILY_MULTI_TIMES) == "07:00|19:00"
+        assert chore.get(const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW) is True
+        assert chore.get(const.DATA_CHORE_AUTO_APPROVE) is True
 
     @pytest.mark.asyncio
     async def test_of_04c_helper_form_validates_too_many_times(

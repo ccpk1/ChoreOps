@@ -1263,3 +1263,202 @@ class TestSchemaEdgeCases:
             suggested_values.get(const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET) == "30m"
         )
         assert suggested_values.get(const.CFOF_CHORES_INPUT_AUTO_APPROVE) is True
+
+    async def test_esv06_edit_partial_section_payload_preserves_schedule_fields(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Editing with only root-form section should preserve schedule values."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        coordinator = scenario_shared.coordinator
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+
+        result = await navigate_to_add_chore(hass, config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "ESV06 Preserve Partial Payload",
+                CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+                CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+                CFOF_CHORES_INPUT_DESCRIPTION: "before",
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                CFOF_CHORES_INPUT_DUE_DATE: datetime.now(UTC) + timedelta(days=3),
+                const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: "3h",
+                const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: "20m",
+                const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                const.CFOF_CHORES_INPUT_NOTIFICATIONS: [
+                    const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                    const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+                ],
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        result = await navigate_to_edit_chore(
+            hass, config_entry.entry_id, "ESV06 Preserve Partial Payload"
+        )
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                fh.CHORE_SECTION_ROOT_FORM: {
+                    CFOF_CHORES_INPUT_NAME: "ESV06 Preserve Partial Payload",
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 12.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:shield-lock",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "after",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                },
+                fh.CHORE_SECTION_SCHEDULE: {
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                },
+                fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                    const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                    const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+                    const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+                },
+                # intentionally omitted: due_window_offset, due_reminder_offset,
+                # notifications list (preserve from existing)
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        edited = next(
+            c
+            for c in coordinator.chores_data.values()
+            if c.get("name") == "ESV06 Preserve Partial Payload"
+        )
+        assert edited.get(const.DATA_CHORE_DUE_WINDOW_OFFSET) == "3h"
+        assert edited.get(const.DATA_CHORE_DUE_REMINDER_OFFSET) == "20m"
+        assert edited.get(const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW) is True
+        assert edited.get(const.DATA_CHORE_AUTO_APPROVE) is True
+        assert edited.get(const.DATA_CHORE_NOTIFY_ON_CLAIM) is True
+        assert edited.get(const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW) is True
+
+    async def test_esv07_transform_clear_due_date_explicitly_clears_due_date(
+        self,
+    ) -> None:
+        """Explicit clear_due_date should clear due date in transform contract."""
+        assignees_dict = {"Kid": "kid-1"}
+        existing_chore = {
+            const.DATA_CHORE_NAME: "ESV07 Clear Due Date",
+            const.DATA_CHORE_DUE_DATE: "2026-03-01T00:00:00+00:00",
+            const.DATA_CHORE_ASSIGNED_USER_IDS: ["kid-1"],
+            const.DATA_CHORE_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+            const.DATA_CHORE_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+            const.DATA_CHORE_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+            const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: const.DEFAULT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
+        }
+        transformed = fh.transform_chore_cfof_to_data(
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "ESV07 Clear Due Date",
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Kid"],
+                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE: True,
+            },
+            assignees_dict=assignees_dict,
+            due_date_str=None,
+            existing_per_assignee_due_dates={"kid-1": "2026-03-01T00:00:00+00:00"},
+            existing_chore=existing_chore,
+        )
+        assert transformed.get(const.DATA_CHORE_DUE_DATE) is None
+
+    async def test_esv08_independent_helper_edit_preserves_lock_after_helper_submit(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """INDEPENDENT helper submit should not reset schedule lock fields."""
+        from datetime import datetime, timedelta
+
+        config_entry = scenario_shared.config_entry
+        coordinator = scenario_shared.coordinator
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+        assigned_assignees = assignee_names[:2]
+
+        result = await navigate_to_add_chore(hass, config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "ESV08 Independent Preserve",
+                CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
+                CFOF_CHORES_INPUT_ICON: "mdi:account-multiple-check",
+                CFOF_CHORES_INPUT_DESCRIPTION: "",
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
+                CFOF_CHORES_INPUT_DUE_DATE: datetime.now(UTC) + timedelta(days=4),
+                CFOF_CHORES_INPUT_APPLICABLE_DAYS: ["mon", "wed"],
+                const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                f"applicable_days_{assigned_assignees[0]}": ["mon", "wed"],
+                f"applicable_days_{assigned_assignees[1]}": ["mon", "wed"],
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        result = await navigate_to_edit_chore(
+            hass, config_entry.entry_id, "ESV08 Independent Preserve"
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                fh.CHORE_SECTION_ROOT_FORM: {
+                    CFOF_CHORES_INPUT_NAME: "ESV08 Independent Preserve",
+                    CFOF_CHORES_INPUT_DEFAULT_POINTS: 10.0,
+                    CFOF_CHORES_INPUT_ICON: "mdi:account-multiple-check",
+                    CFOF_CHORES_INPUT_DESCRIPTION: "edited",
+                    CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
+                    CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
+                },
+                fh.CHORE_SECTION_SCHEDULE: {
+                    CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                    const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                },
+                fh.CHORE_SECTION_ADVANCED_CONFIGURATIONS: {
+                    const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.DEFAULT_APPROVAL_RESET_TYPE,
+                    const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    const.CFOF_CHORES_INPUT_AUTO_APPROVE: False,
+                    const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: True,
+                },
+                # intentionally omitted: due window offsets
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                f"applicable_days_{assigned_assignees[0]}": ["mon", "wed"],
+                f"applicable_days_{assigned_assignees[1]}": ["mon", "wed"],
+            },
+        )
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        edited = next(
+            c
+            for c in coordinator.chores_data.values()
+            if c.get("name") == "ESV08 Independent Preserve"
+        )
+        assert edited.get(const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW) is True
+        assert isinstance(edited.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}), dict)
+
+    def test_esv09_chore_schedule_field_contract_includes_daily_multi(self) -> None:
+        """Schedule section tuple must include daily_multi_times contract key."""
+        assert const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES in fh.CHORE_SCHEDULE_FIELDS

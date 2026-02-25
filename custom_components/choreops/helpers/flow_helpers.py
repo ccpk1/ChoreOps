@@ -610,6 +610,7 @@ CHORE_SCHEDULE_FIELDS = (
     const.CFOF_CHORES_INPUT_DUE_DATE,
     const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE,
     const.CFOF_CHORES_INPUT_APPLICABLE_DAYS,
+    const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES,
     const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET,
     const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW,
     const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL,
@@ -980,6 +981,7 @@ def validate_chores_inputs(
     existing_chores: dict[str, Any] | None = None,
     *,
     current_chore_id: str | None = None,
+    existing_chore: dict[str, Any] | None = None,
 ) -> tuple[dict[str, str], str | None]:
     """Validate chore configuration inputs for Options Flow.
 
@@ -1008,13 +1010,35 @@ def validate_chores_inputs(
     errors: dict[str, str] = {}
 
     # === Transform CFOF_* keys to DATA_* keys for shared validation ===
+    def _resolve_form_or_existing(
+        cfof_key: str,
+        data_key: str,
+        default: Any,
+    ) -> Any:
+        if cfof_key in user_input:
+            return user_input[cfof_key]
+        if existing_chore is not None:
+            return existing_chore.get(data_key, default)
+        return default
+
     # Form field key uses *_IDS for legacy compatibility, but selector values are names.
-    assigned_user_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, [])
-    assigned_user_ids = [
-        assignees_dict[assignee_name]
-        for assignee_name in assigned_user_names
-        if assignee_name in assignees_dict
-    ]
+    if const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS in user_input:
+        assigned_user_names = user_input.get(
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []
+        )
+        assigned_user_ids = [
+            assignees_dict[assignee_name]
+            for assignee_name in assigned_user_names
+            if assignee_name in assignees_dict
+        ]
+    else:
+        assigned_user_ids = list(
+            _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+                const.DATA_CHORE_ASSIGNED_USER_IDS,
+                [],
+            )
+        )
 
     # Handle due date (UI-specific: clear_due_date checkbox)
     clear_due_date = user_input.get(const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE, False)
@@ -1053,24 +1077,36 @@ def validate_chores_inputs(
             )
             errors[const.CFOP_ERROR_DUE_DATE] = const.TRANS_KEY_CFOF_INVALID_DUE_DATE
             return errors, None
+    elif existing_chore is not None:
+        existing_due = existing_chore.get(const.DATA_CHORE_DUE_DATE)
+        due_date_str = str(existing_due) if existing_due else None
 
     # Build DATA_* dict for shared validation
     data_dict: dict[str, Any] = {
-        const.DATA_CHORE_NAME: user_input.get(const.CFOF_CHORES_INPUT_NAME, ""),
-        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
-        const.DATA_CHORE_RECURRING_FREQUENCY: user_input.get(
-            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY, const.FREQUENCY_NONE
+        const.DATA_CHORE_NAME: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_NAME,
+            const.DATA_CHORE_NAME,
+            "",
         ),
-        const.DATA_CHORE_APPROVAL_RESET_TYPE: user_input.get(
+        const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
+        const.DATA_CHORE_RECURRING_FREQUENCY: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
+            const.DATA_CHORE_RECURRING_FREQUENCY,
+            const.FREQUENCY_NONE,
+        ),
+        const.DATA_CHORE_APPROVAL_RESET_TYPE: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
+            const.DATA_CHORE_APPROVAL_RESET_TYPE,
             const.DEFAULT_APPROVAL_RESET_TYPE,
         ),
-        const.DATA_CHORE_OVERDUE_HANDLING_TYPE: user_input.get(
+        const.DATA_CHORE_OVERDUE_HANDLING_TYPE: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE,
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
             const.DEFAULT_OVERDUE_HANDLING_TYPE,
         ),
-        const.DATA_CHORE_COMPLETION_CRITERIA: user_input.get(
+        const.DATA_CHORE_COMPLETION_CRITERIA: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
+            const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         ),
     }
@@ -1105,6 +1141,7 @@ def transform_chore_cfof_to_data(
     assignees_dict: dict[str, Any],
     due_date_str: str | None,
     existing_per_assignee_due_dates: dict[str, str | None] | None = None,
+    existing_chore: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Transform chore form input to storage format for complex fields only.
 
@@ -1130,22 +1167,47 @@ def transform_chore_cfof_to_data(
     Returns:
         Dictionary with DATA_* keys ready for data_builders.build_chore().
     """
+
+    def _resolve_form_or_existing(
+        cfof_key: str,
+        data_key: str,
+        default: Any,
+    ) -> Any:
+        if cfof_key in user_input:
+            return user_input[cfof_key]
+        if existing_chore is not None:
+            return existing_chore.get(data_key, default)
+        return default
+
     # Form field key uses *_IDS for legacy compatibility, but selector values are names.
-    assigned_user_names = user_input.get(const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, [])
-    assigned_user_ids = [
-        assignees_dict[assignee_name]
-        for assignee_name in assigned_user_names
-        if assignee_name in assignees_dict
-    ]
+    if const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS in user_input:
+        assigned_user_names = user_input.get(
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS, []
+        )
+        assigned_user_ids = [
+            assignees_dict[assignee_name]
+            for assignee_name in assigned_user_names
+            if assignee_name in assignees_dict
+        ]
+    else:
+        assigned_user_ids = list(
+            _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
+                const.DATA_CHORE_ASSIGNED_USER_IDS,
+                [],
+            )
+        )
 
     # Get completion criteria
-    completion_criteria = user_input.get(
+    completion_criteria = _resolve_form_or_existing(
         const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
+        const.DATA_CHORE_COMPLETION_CRITERIA,
         const.COMPLETION_CRITERIA_INDEPENDENT,
     )
 
     # Check if user explicitly wants to clear the date
     clear_due_date = user_input.get(const.CFOF_CHORES_INPUT_CLEAR_DUE_DATE, False)
+    due_date_was_submitted = const.CFOF_CHORES_INPUT_DUE_DATE in user_input
 
     # Build per_assignee_due_dates for ALL chores (SHARED + INDEPENDENT)
     per_assignee_due_dates: dict[str, str | None] = {}
@@ -1155,6 +1217,12 @@ def transform_chore_cfof_to_data(
             and completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
             and assignee_id in existing_per_assignee_due_dates
             and not clear_due_date
+        ) or (
+            completion_criteria != const.COMPLETION_CRITERIA_INDEPENDENT
+            and not clear_due_date
+            and not due_date_was_submitted
+            and existing_per_assignee_due_dates
+            and assignee_id in existing_per_assignee_due_dates
         ):
             per_assignee_due_dates[assignee_id] = existing_per_assignee_due_dates[
                 assignee_id
@@ -1163,7 +1231,11 @@ def transform_chore_cfof_to_data(
             per_assignee_due_dates[assignee_id] = due_date_str
 
     # Clean up custom interval fields if not using custom frequency
-    recurring_freq = user_input.get(const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY)
+    recurring_freq = _resolve_form_or_existing(
+        const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY,
+        const.DATA_CHORE_RECURRING_FREQUENCY,
+        const.FREQUENCY_NONE,
+    )
     if recurring_freq not in (
         const.FREQUENCY_CUSTOM,
         const.FREQUENCY_CUSTOM_FROM_COMPLETE,
@@ -1171,105 +1243,187 @@ def transform_chore_cfof_to_data(
         custom_interval = None
         custom_interval_unit = None
     else:
-        custom_interval = user_input.get(const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL)
-        custom_interval_unit = user_input.get(
-            const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT
+        custom_interval = _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL,
+            const.DATA_CHORE_CUSTOM_INTERVAL,
+            None,
+        )
+        custom_interval_unit = _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_CUSTOM_INTERVAL_UNIT,
+            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT,
+            None,
         )
 
     # Extract notification selections from consolidated field
+    notifications_present = const.CFOF_CHORES_INPUT_NOTIFICATIONS in user_input
     notifications = user_input.get(const.CFOF_CHORES_INPUT_NOTIFICATIONS, [])
+
+    if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT or clear_due_date:
+        transformed_due_date = None
+    elif due_date_was_submitted:
+        transformed_due_date = due_date_str
+    else:
+        transformed_due_date = _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_DUE_DATE,
+            const.DATA_CHORE_DUE_DATE,
+            None,
+        )
 
     # Build DATA_* keyed dict
     return {
-        const.DATA_CHORE_NAME: user_input.get(const.CFOF_CHORES_INPUT_NAME, "").strip(),
-        const.DATA_CHORE_DEFAULT_POINTS: user_input.get(
-            const.CFOF_CHORES_INPUT_DEFAULT_POINTS, const.DEFAULT_POINTS
+        const.DATA_CHORE_NAME: str(
+            _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NAME,
+                const.DATA_CHORE_NAME,
+                "",
+            )
+        ).strip(),
+        const.DATA_CHORE_DEFAULT_POINTS: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
+            const.DATA_CHORE_DEFAULT_POINTS,
+            const.DEFAULT_POINTS,
         ),
         const.DATA_CHORE_COMPLETION_CRITERIA: completion_criteria,
         const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: per_assignee_due_dates,
-        const.DATA_CHORE_APPROVAL_RESET_TYPE: user_input.get(
+        const.DATA_CHORE_APPROVAL_RESET_TYPE: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
+            const.DATA_CHORE_APPROVAL_RESET_TYPE,
             const.DEFAULT_APPROVAL_RESET_TYPE,
         ),
-        const.DATA_CHORE_OVERDUE_HANDLING_TYPE: user_input.get(
+        const.DATA_CHORE_OVERDUE_HANDLING_TYPE: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE,
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
             const.DEFAULT_OVERDUE_HANDLING_TYPE,
         ),
-        const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: user_input.get(
+        const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
+            const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION,
             const.DEFAULT_APPROVAL_RESET_PENDING_CLAIM_ACTION,
         ),
         const.DATA_CHORE_ASSIGNED_USER_IDS: assigned_user_ids,
-        const.DATA_CHORE_DESCRIPTION: user_input.get(
-            const.CFOF_CHORES_INPUT_DESCRIPTION, const.SENTINEL_EMPTY
+        const.DATA_CHORE_DESCRIPTION: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_DESCRIPTION,
+            const.DATA_CHORE_DESCRIPTION,
+            const.SENTINEL_EMPTY,
         ),
-        const.DATA_CHORE_LABELS: user_input.get(const.CFOF_CHORES_INPUT_LABELS, []),
-        const.DATA_CHORE_ICON: user_input.get(
-            const.CFOF_CHORES_INPUT_ICON, const.SENTINEL_EMPTY
+        const.DATA_CHORE_LABELS: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_LABELS,
+            const.DATA_CHORE_LABELS,
+            [],
         ),
-        const.DATA_CHORE_RECURRING_FREQUENCY: user_input.get(
-            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY, const.SENTINEL_EMPTY
+        const.DATA_CHORE_ICON: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_ICON,
+            const.DATA_CHORE_ICON,
+            const.SENTINEL_EMPTY,
         ),
+        const.DATA_CHORE_RECURRING_FREQUENCY: recurring_freq,
         const.DATA_CHORE_CUSTOM_INTERVAL: custom_interval,
         const.DATA_CHORE_CUSTOM_INTERVAL_UNIT: custom_interval_unit,
         # For INDEPENDENT chores, chore-level due_date is cleared
-        const.DATA_CHORE_DUE_DATE: (
-            None
-            if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-            else due_date_str
-        ),
+        const.DATA_CHORE_DUE_DATE: transformed_due_date,
         # Convert weekday strings ("mon", "tue") to integers (0, 1, ...)
-        const.DATA_CHORE_APPLICABLE_DAYS: [
-            const.WEEKDAY_NAME_TO_INT[day]
-            for day in user_input.get(
+        const.DATA_CHORE_APPLICABLE_DAYS: (
+            [
+                const.WEEKDAY_NAME_TO_INT[day]
+                for day in user_input.get(
+                    const.CFOF_CHORES_INPUT_APPLICABLE_DAYS,
+                    const.DEFAULT_APPLICABLE_DAYS,
+                )
+                if day in const.WEEKDAY_NAME_TO_INT
+            ]
+            if const.CFOF_CHORES_INPUT_APPLICABLE_DAYS in user_input
+            else _resolve_form_or_existing(
                 const.CFOF_CHORES_INPUT_APPLICABLE_DAYS,
+                const.DATA_CHORE_APPLICABLE_DAYS,
                 const.DEFAULT_APPLICABLE_DAYS,
             )
-            if day in const.WEEKDAY_NAME_TO_INT
-        ],
-        const.DATA_CHORE_DAILY_MULTI_TIMES: user_input.get(
-            const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES
+        ),
+        const.DATA_CHORE_DAILY_MULTI_TIMES: _resolve_form_or_existing(
+            const.CFOF_CHORES_INPUT_DAILY_MULTI_TIMES,
+            const.DATA_CHORE_DAILY_MULTI_TIMES,
+            None,
         ),
         # Notification fields from consolidated selector
         const.DATA_CHORE_NOTIFY_ON_CLAIM: (
             const.DATA_CHORE_NOTIFY_ON_CLAIM in notifications
+            if notifications_present
+            else _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NOTIFY_ON_CLAIM,
+                const.DATA_CHORE_NOTIFY_ON_CLAIM,
+                const.DEFAULT_NOTIFY_ON_CLAIM,
+            )
         ),
         const.DATA_CHORE_NOTIFY_ON_APPROVAL: (
             const.DATA_CHORE_NOTIFY_ON_APPROVAL in notifications
+            if notifications_present
+            else _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NOTIFY_ON_APPROVAL,
+                const.DATA_CHORE_NOTIFY_ON_APPROVAL,
+                const.DEFAULT_NOTIFY_ON_APPROVAL,
+            )
         ),
         const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL: (
             const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL in notifications
+            if notifications_present
+            else _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NOTIFY_ON_DISAPPROVAL,
+                const.DATA_CHORE_NOTIFY_ON_DISAPPROVAL,
+                const.DEFAULT_NOTIFY_ON_DISAPPROVAL,
+            )
         ),
         const.DATA_CHORE_NOTIFY_ON_OVERDUE: (
             const.DATA_CHORE_NOTIFY_ON_OVERDUE in notifications
+            if notifications_present
+            else _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NOTIFY_ON_OVERDUE,
+                const.DATA_CHORE_NOTIFY_ON_OVERDUE,
+                const.DEFAULT_NOTIFY_ON_OVERDUE,
+            )
         ),
-        const.DATA_CHORE_SHOW_ON_CALENDAR: user_input.get(
+        const.DATA_CHORE_SHOW_ON_CALENDAR: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_SHOW_ON_CALENDAR,
+            const.DATA_CHORE_SHOW_ON_CALENDAR,
             const.DEFAULT_CHORE_SHOW_ON_CALENDAR,
         ),
-        const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: user_input.get(
+        const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW,
+            const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW,
             const.DEFAULT_CHORE_CLAIM_LOCK_UNTIL_WINDOW,
         ),
-        const.DATA_CHORE_AUTO_APPROVE: user_input.get(
+        const.DATA_CHORE_AUTO_APPROVE: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_AUTO_APPROVE,
+            const.DATA_CHORE_AUTO_APPROVE,
             const.DEFAULT_CHORE_AUTO_APPROVE,
         ),
         # Due window fields (Phase 2 - due window feature)
-        const.DATA_CHORE_DUE_WINDOW_OFFSET: user_input.get(
+        const.DATA_CHORE_DUE_WINDOW_OFFSET: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET,
+            const.DATA_CHORE_DUE_WINDOW_OFFSET,
             const.DEFAULT_DUE_WINDOW_OFFSET,
         ),
-        const.DATA_CHORE_DUE_REMINDER_OFFSET: user_input.get(
+        const.DATA_CHORE_DUE_REMINDER_OFFSET: _resolve_form_or_existing(
             const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET,
+            const.DATA_CHORE_DUE_REMINDER_OFFSET,
             const.DEFAULT_DUE_REMINDER_OFFSET,
         ),
         # Due window notification fields from consolidated selector
         const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW: (
             const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW in notifications
+            if notifications_present
+            else _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NOTIFY_ON_DUE_WINDOW,
+                const.DATA_CHORE_NOTIFY_ON_DUE_WINDOW,
+                const.DEFAULT_NOTIFY_ON_DUE_WINDOW,
+            )
         ),
         const.DATA_CHORE_NOTIFY_DUE_REMINDER: (
             const.DATA_CHORE_NOTIFY_DUE_REMINDER in notifications
+            if notifications_present
+            else _resolve_form_or_existing(
+                const.CFOF_CHORES_INPUT_NOTIFY_DUE_REMINDER,
+                const.DATA_CHORE_NOTIFY_DUE_REMINDER,
+                const.DEFAULT_NOTIFY_DUE_REMINDER,
+            )
         ),
     }
 
