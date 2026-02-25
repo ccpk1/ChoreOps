@@ -366,22 +366,6 @@ def remove_entities_by_item_id(
 # ==============================================================================
 
 
-def get_first_choreops_entry(hass: HomeAssistant) -> str | None:
-    """Get the entry_id of the first loaded ChoreOps config entry.
-
-    Args:
-        hass: HomeAssistant instance
-
-    Returns:
-        Config entry ID string, or None if no loaded entries
-    """
-    entries = hass.config_entries.async_entries(const.DOMAIN)
-    for entry in entries:
-        if entry.state.name == "LOADED":
-            return entry.entry_id
-    return None
-
-
 def get_entity_id_from_unique_id(
     hass: HomeAssistant,
     unique_id: str,

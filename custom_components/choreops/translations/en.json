@@ -2156,6 +2156,16 @@
       "name": "Claim Chore",
       "description": "An assignee claims a chore, marking it as 'claimed' for approver review.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "user_name": {
           "name": "User Name",
           "description": "The name of the user claiming the chore.",
@@ -2172,6 +2182,16 @@
       "name": "Approve Chore",
       "description": "Approver approves the chore, awarding points.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver approving the chore.",
@@ -2198,6 +2218,16 @@
       "name": "Disapprove Chore",
       "description": "Approver disapproves a chore for an assignee, reverting its status.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver disapproving the chore.",
@@ -2219,6 +2249,16 @@
       "name": "Redeem Reward",
       "description": "An approver redeems a reward for an assignee, deducting points.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver authorizing the reward redemption.",
@@ -2240,6 +2280,16 @@
       "name": "Approve Reward",
       "description": "Approver approves a reward claimed by an assignee.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver approving the reward.",
@@ -2265,6 +2315,16 @@
       "name": "Disapprove Reward",
       "description": "Approver disapproves a reward redemption for an assignee.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver disapproving the reward.",
@@ -2286,6 +2346,16 @@
       "name": "Apply Penalty",
       "description": "An approver applies a penalty to deduct points.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver applying the penalty.",
@@ -2307,6 +2377,16 @@
       "name": "Apply Bonus",
       "description": "An approver applies a bonus to an assignee, awarding points.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "approver_name": {
           "name": "Approver Name",
           "description": "The approver applying the bonus.",
@@ -2328,6 +2408,16 @@
       "name": "Create reward",
       "description": "Create a new reward programmatically.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "name": {
           "name": "Name",
           "description": "The name of the reward.",
@@ -2359,6 +2449,16 @@
       "name": "Update Reward",
       "description": "Update an existing reward (partial updates supported).",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "id": {
           "name": "Reward ID",
           "description": "Internal ID of the reward to update. Use either id OR name.",
@@ -2395,6 +2495,16 @@
       "name": "Delete Reward",
       "description": "Delete a reward by ID or name.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "id": {
           "name": "Reward ID",
           "description": "Internal ID of the reward to delete. Use either id OR name.",
@@ -2411,6 +2521,16 @@
       "name": "Create Chore",
       "description": "Create a new chore that assignees can complete to earn points.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "name": {
           "name": "Chore Name",
           "description": "The name of the chore to create.",
@@ -2502,6 +2622,16 @@
       "name": "Update Chore",
       "description": "Update an existing chore's properties. Provide either id OR name to identify the chore. Only provided fields will be updated.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "id": {
           "name": "Chore ID",
           "description": "The internal ID of the chore to update (alternative to name).",
@@ -2593,6 +2723,16 @@
       "name": "Delete Chore",
       "description": "Delete a chore by ID or name. All assignee-specific statuses and history will be removed.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "id": {
           "name": "Chore ID",
           "description": "Internal ID of the chore to delete. Use either id OR name.",
@@ -2609,6 +2749,16 @@
       "name": "Set Rotation Turn",
       "description": "Manually assign the current turn to a specific assignee in a rotation chore. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "chore_id": {
           "name": "Chore ID",
           "description": "Internal ID of the rotation chore. Optional if chore_name is provided.",
@@ -2635,6 +2785,16 @@
       "name": "Reset Rotation",
       "description": "Reset rotation turn to the first assigned assignee. Only works for rotation chores (rotation_simple or rotation_smart). Use either ID or name for identification.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "chore_id": {
           "name": "Chore ID",
           "description": "Internal ID of the rotation chore to reset. Optional if chore_name is provided.",
@@ -2651,6 +2811,16 @@
       "name": "Open Rotation Cycle",
       "description": "Enable rotation cycle override for one cycle, allowing any assigned assignee to claim regardless of turn. Override clears after next approval. Use either ID or name for identification.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "chore_id": {
           "name": "Chore ID",
           "description": "Internal ID of the rotation chore to open. Optional if chore_name is provided.",
@@ -2667,6 +2837,16 @@
       "name": "Generate Activity Report",
       "description": "Generate a 7-day activity report from ledger history. Supports optional user filtering, optional notify delivery, and optional HTML conversion while still returning a structured response payload.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "user_name": {
           "name": "User Name",
           "description": "Optional filter to generate the report for one user only."
@@ -2691,12 +2871,34 @@
     },
     "reset_chores_to_pending_state": {
       "name": "Reset Chores To Pending State",
-      "description": "Manually reset all chores to pending state, removing claims and approvals."
+      "description": "Manually reset all chores to pending state, removing claims and approvals.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        }
+      }
     },
     "reset_transactional_data": {
       "name": "Reset Transactional Data",
       "description": "Reset runtime/transactional data while preserving configuration (assignees, chores, rewards, etc.). An automatic backup is created before reset as choreops_data_timestamp_reset in the .storage directory. Use scope to target specific assignees or domains. Requires confirm_destructive parameter set to true as a safety mechanism.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "confirm_destructive": {
           "name": "Confirm Destructive",
           "description": "Must be set to true to confirm you want to proceed with the reset. This is a safety mechanism."
@@ -2723,6 +2925,16 @@
       "name": "Reset Overdue Chores",
       "description": "Reset overdue chore(s) back to the Pending state and reschedule them based on their recurring frequency and previous due date. You may optionally provide a chore_id (or chore_name) to reset a specific chore and optionally a user_name to reset the chore only for that user.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "chore_id": {
           "name": "Chore ID",
           "description": "The internal ID of the chore to reset (optional if chore_name is provided).",
@@ -2744,6 +2956,16 @@
       "name": "Set/Reset Chore Due Date",
       "description": "Set (or clear) the due date for a chore. Provide the chore name and, if desired, a new due date. If no due date is provided the existing due date will be cleared. The service will reject due dates set in the past. For independent chores, optionally provide a user_name to set the due date only for that user.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "chore_name": {
           "name": "Chore Name",
           "description": "The name of the chore to update",
@@ -2770,6 +2992,16 @@
       "name": "Skip Chore Due Date",
       "description": "Skip the current due date of a recurring chore. This service immediately reschedules the chore's due date based on its recurring frequency and resets its state to pending. Any pending claims or approvals will be removed. For independent chores, optionally provide a user_name to skip only for that user.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "chore_id": {
           "name": "Chore ID",
           "description": "The internal ID of the chore to reset (optional if chore_name is provided).",
@@ -2800,6 +3032,16 @@
       "name": "Remove Awarded Badges",
       "description": "Remove all awarded badges for all assignees. Optionally, provide badge name to reset a specific badge across all assignees. Use user_name to reset all badges for a specific user. Combine both to reset a specific badge for a specific user.",
       "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
         "user_name": {
           "name": "User Name",
           "description": "The user awarded badges will be removed from.",
@@ -4614,6 +4856,12 @@
     },
     "error_msg_no_entry_found": {
       "message": "No matching entry found in configuration."
+    },
+    "service_target_ambiguous": {
+      "message": "Multiple ChoreOps entries are loaded. Provide config_entry_id. Available entries: {available_entries}"
+    },
+    "service_target_title_not_found": {
+      "message": "No unique loaded ChoreOps entry found for title {title}. Use config_entry_id instead."
     },
     "not_authorized_action": {
       "message": "You are not authorized to {action} for this assignee."

@@ -8,6 +8,7 @@ Includes UI editor support with selectors for dropdowns and text inputs.
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, cast
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
@@ -22,7 +23,7 @@ from .helpers.auth_helpers import (
     AUTH_ACTION_PARTICIPATION,
     is_user_authorized_for_action,
 )
-from .helpers.entity_helpers import get_first_choreops_entry, get_item_id_or_raise
+from .helpers.entity_helpers import get_item_id_or_raise
 from .utils.dt_utils import dt_parse
 
 if TYPE_CHECKING:
@@ -46,12 +47,79 @@ def _get_coordinator_by_entry_id(
         HomeAssistantError: If entry not found or not loaded
     """
     entry = hass.config_entries.async_get_entry(entry_id)
-    if not entry:
+    if not entry or entry.state is not ConfigEntryState.LOADED:
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
+        )
+    if entry.runtime_data is None:
         raise HomeAssistantError(
             translation_domain=const.DOMAIN,
             translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
         )
     return cast("ChoreOpsDataCoordinator", entry.runtime_data)
+
+
+def _get_loaded_choreops_entries(hass: HomeAssistant) -> list[Any]:
+    """Return loaded ChoreOps config entries."""
+    return [
+        entry
+        for entry in hass.config_entries.async_entries(const.DOMAIN)
+        if entry.state is ConfigEntryState.LOADED
+    ]
+
+
+def _resolve_target_entry_id(
+    hass: HomeAssistant, call_data: dict[str, Any]
+) -> str | None:
+    """Resolve target config entry ID using hybrid service targeting policy."""
+    if entry_id := call_data.get(const.SERVICE_FIELD_CONFIG_ENTRY_ID):
+        entry = hass.config_entries.async_get_entry(str(entry_id))
+        if entry and entry.state is ConfigEntryState.LOADED:
+            return str(entry_id)
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
+        )
+
+    if entry_title := call_data.get(const.SERVICE_FIELD_CONFIG_ENTRY_TITLE):
+        matching_entries = [
+            entry
+            for entry in _get_loaded_choreops_entries(hass)
+            if entry.title == str(entry_title)
+        ]
+        if len(matching_entries) == 1:
+            return matching_entries[0].entry_id
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_SERVICE_TARGET_TITLE_NOT_FOUND,
+            translation_placeholders={"title": str(entry_title)},
+        )
+
+    loaded_entries = _get_loaded_choreops_entries(hass)
+    if len(loaded_entries) == 1:
+        return loaded_entries[0].entry_id
+    if len(loaded_entries) > 1:
+        available_entries = ", ".join(
+            f"{entry.title} ({entry.entry_id})" for entry in loaded_entries
+        )
+        raise HomeAssistantError(
+            translation_domain=const.DOMAIN,
+            translation_key=const.TRANS_KEY_ERROR_SERVICE_TARGET_AMBIGUOUS,
+            translation_placeholders={"available_entries": available_entries},
+        )
+    return None
+
+
+def _with_service_target_fields(
+    schema_data: dict[Any, Any],
+) -> dict[Any, Any]:
+    """Add optional service target fields to a service schema."""
+    return {
+        **schema_data,
+        vol.Optional(const.SERVICE_FIELD_CONFIG_ENTRY_ID): cv.string,
+        vol.Optional(const.SERVICE_FIELD_CONFIG_ENTRY_TITLE): cv.string,
+    }
 
 
 # --- Service Schemas ---
@@ -87,31 +155,45 @@ _APPROVER_ASSIGNEE_BONUS_BASE = {
 }
 
 # Service schemas using base patterns
-CLAIM_CHORE_SCHEMA = vol.Schema(_ASSIGNEE_CHORE_BASE)
+CLAIM_CHORE_SCHEMA = vol.Schema(_with_service_target_fields(_ASSIGNEE_CHORE_BASE))
 
 APPROVE_CHORE_SCHEMA = vol.Schema(
-    {
-        **_APPROVER_ASSIGNEE_CHORE_BASE,  # type: ignore[misc]
-        vol.Optional(const.SERVICE_FIELD_CHORE_POINTS_AWARDED): vol.Coerce(float),
-    }
+    _with_service_target_fields(
+        {
+            **_APPROVER_ASSIGNEE_CHORE_BASE,
+            vol.Optional(const.SERVICE_FIELD_CHORE_POINTS_AWARDED): vol.Coerce(float),
+        }
+    )
 )
 
-DISAPPROVE_CHORE_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_CHORE_BASE)
+DISAPPROVE_CHORE_SCHEMA = vol.Schema(
+    _with_service_target_fields(_APPROVER_ASSIGNEE_CHORE_BASE)
+)
 
-REDEEM_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
+REDEEM_REWARD_SCHEMA = vol.Schema(
+    _with_service_target_fields(_APPROVER_ASSIGNEE_REWARD_BASE)
+)
 
 APPROVE_REWARD_SCHEMA = vol.Schema(
-    {
-        **_APPROVER_ASSIGNEE_REWARD_BASE,  # type: ignore[misc]
-        vol.Optional(const.SERVICE_FIELD_REWARD_COST_OVERRIDE): vol.Coerce(float),
-    }
+    _with_service_target_fields(
+        {
+            **_APPROVER_ASSIGNEE_REWARD_BASE,
+            vol.Optional(const.SERVICE_FIELD_REWARD_COST_OVERRIDE): vol.Coerce(float),
+        }
+    )
 )
 
-DISAPPROVE_REWARD_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_REWARD_BASE)
+DISAPPROVE_REWARD_SCHEMA = vol.Schema(
+    _with_service_target_fields(_APPROVER_ASSIGNEE_REWARD_BASE)
+)
 
-APPLY_PENALTY_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_PENALTY_BASE)
+APPLY_PENALTY_SCHEMA = vol.Schema(
+    _with_service_target_fields(_APPROVER_ASSIGNEE_PENALTY_BASE)
+)
 
-APPLY_BONUS_SCHEMA = vol.Schema(_APPROVER_ASSIGNEE_BONUS_BASE)
+APPLY_BONUS_SCHEMA = vol.Schema(
+    _with_service_target_fields(_APPROVER_ASSIGNEE_BONUS_BASE)
+)
 
 # Optional filter base patterns for reset operations
 _OPTIONAL_ASSIGNEE_FILTER = {vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string}
@@ -132,84 +214,96 @@ _OPTIONAL_ASSIGNEE_REWARD_FILTER = {
 }
 
 RESET_OVERDUE_CHORES_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+        }
+    )
 )
 
 REMOVE_AWARDED_BADGES_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): vol.Any(cv.string, None),
-        vol.Optional(const.SERVICE_FIELD_BADGE_NAME): vol.Any(cv.string, None),
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): vol.Any(cv.string, None),
+            vol.Optional(const.SERVICE_FIELD_BADGE_NAME): vol.Any(cv.string, None),
+        }
+    )
 )
 
 RESET_CHORES_TO_PENDING_STATE_SCHEMA = vol.Schema(
-    {}
+    _with_service_target_fields({})
 )  # Renamed from RESET_ALL_CHORES_SCHEMA
 
 # Unified Data Reset Service V2 (replaces reset_rewards, reset_penalties, reset_bonuses)
 RESET_TRANSACTIONAL_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.SERVICE_FIELD_CONFIRM_DESTRUCTIVE): cv.boolean,
-        vol.Optional(const.SERVICE_FIELD_SCOPE): vol.In(
-            [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_USER]
-        ),
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_ITEM_TYPE): vol.In(
-            [
-                const.DATA_RESET_ITEM_TYPE_POINTS,
-                const.DATA_RESET_ITEM_TYPE_CHORES,
-                const.DATA_RESET_ITEM_TYPE_REWARDS,
-                const.DATA_RESET_ITEM_TYPE_BADGES,
-                const.DATA_RESET_ITEM_TYPE_ACHIEVEMENTS,
-                const.DATA_RESET_ITEM_TYPE_CHALLENGES,
-                const.DATA_RESET_ITEM_TYPE_PENALTIES,
-                const.DATA_RESET_ITEM_TYPE_BONUSES,
-            ]
-        ),
-        vol.Optional(const.SERVICE_FIELD_ITEM_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            vol.Required(const.SERVICE_FIELD_CONFIRM_DESTRUCTIVE): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_SCOPE): vol.In(
+                [const.DATA_RESET_SCOPE_GLOBAL, const.DATA_RESET_SCOPE_USER]
+            ),
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_ITEM_TYPE): vol.In(
+                [
+                    const.DATA_RESET_ITEM_TYPE_POINTS,
+                    const.DATA_RESET_ITEM_TYPE_CHORES,
+                    const.DATA_RESET_ITEM_TYPE_REWARDS,
+                    const.DATA_RESET_ITEM_TYPE_BADGES,
+                    const.DATA_RESET_ITEM_TYPE_ACHIEVEMENTS,
+                    const.DATA_RESET_ITEM_TYPE_CHALLENGES,
+                    const.DATA_RESET_ITEM_TYPE_PENALTIES,
+                    const.DATA_RESET_ITEM_TYPE_BONUSES,
+                ]
+            ),
+            vol.Optional(const.SERVICE_FIELD_ITEM_NAME): cv.string,
+        }
+    )
 )
 
 SET_CHORE_DUE_DATE_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_DUE_DATE): vol.Any(cv.string, None),
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            vol.Required(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_DUE_DATE): vol.Any(cv.string, None),
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+        }
+    )
 )
 
 SKIP_CHORE_DUE_DATE_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_MARK_AS_MISSED, default=False): cv.boolean,
+        }
+    )
 )
 
 GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REPORT_LANGUAGE): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REPORT_NOTIFY_SERVICE): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REPORT_TITLE): cv.string,
-        vol.Optional(
-            const.SERVICE_FIELD_REPORT_OUTPUT_FORMAT,
-            default=const.REPORT_OUTPUT_FORMAT_MARKDOWN,
-        ): vol.In(
-            [
-                const.REPORT_OUTPUT_FORMAT_MARKDOWN,
-                const.REPORT_OUTPUT_FORMAT_HTML,
-                const.REPORT_OUTPUT_FORMAT_BOTH,
-            ]
-        ),
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REPORT_LANGUAGE): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REPORT_NOTIFY_SERVICE): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REPORT_TITLE): cv.string,
+            vol.Optional(
+                const.SERVICE_FIELD_REPORT_OUTPUT_FORMAT,
+                default=const.REPORT_OUTPUT_FORMAT_MARKDOWN,
+            ): vol.In(
+                [
+                    const.REPORT_OUTPUT_FORMAT_MARKDOWN,
+                    const.REPORT_OUTPUT_FORMAT_HTML,
+                    const.REPORT_OUTPUT_FORMAT_BOTH,
+                ]
+            ),
+        }
+    )
 )
 
 # ==============================================================================
@@ -218,41 +312,49 @@ GENERATE_ACTIVITY_REPORT_SCHEMA = vol.Schema(
 
 # NOTE: cost is REQUIRED for create_reward - no invisible defaults for automations
 CREATE_REWARD_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.SERVICE_FIELD_REWARD_CRUD_NAME): cv.string,
-        vol.Required(const.SERVICE_FIELD_REWARD_CRUD_COST): vol.Coerce(float),
-        vol.Optional(
-            const.SERVICE_FIELD_REWARD_CRUD_DESCRIPTION, default=""
-        ): cv.string,
-        vol.Optional(
-            const.SERVICE_FIELD_REWARD_CRUD_ICON, default=const.SENTINEL_EMPTY
-        ): vol.Any(None, "", cv.icon),
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_LABELS, default=[]): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-    }
+    _with_service_target_fields(
+        {
+            vol.Required(const.SERVICE_FIELD_REWARD_CRUD_NAME): cv.string,
+            vol.Required(const.SERVICE_FIELD_REWARD_CRUD_COST): vol.Coerce(float),
+            vol.Optional(
+                const.SERVICE_FIELD_REWARD_CRUD_DESCRIPTION, default=""
+            ): cv.string,
+            vol.Optional(
+                const.SERVICE_FIELD_REWARD_CRUD_ICON, default=const.SENTINEL_EMPTY
+            ): vol.Any(None, "", cv.icon),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_LABELS, default=[]): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+        }
+    )
 )
 
 # NOTE: Either reward_id OR name must be provided (resolved in handler)
 UPDATE_REWARD_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_COST): vol.Coerce(float),
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_DESCRIPTION): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ICON): vol.Any(None, "", cv.icon),
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_LABELS): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_COST): vol.Coerce(float),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_DESCRIPTION): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ICON): vol.Any(
+                None, "", cv.icon
+            ),
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_LABELS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+        }
+    )
 )
 
 # NOTE: Either reward_id OR name must be provided (resolved in handler)
 DELETE_REWARD_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_REWARD_CRUD_NAME): cv.string,
+        }
+    )
 )
 
 # ============================================================================
@@ -318,117 +420,127 @@ _OVERDUE_HANDLING_VALUES = [
 _DAY_OF_WEEK_VALUES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 CREATE_CHORE_SCHEMA = vol.Schema(
-    {
-        vol.Required(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-        # Canonical public contract: callers provide assignee display names.
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-        # Compatibility exception: legacy automations still send name lists under
-        # assigned_user_ids. We accept this field during transition and normalize
-        # to real UUIDs in the handler before any storage/update operations.
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION, default=""): cv.string,
-        vol.Optional(
-            const.SERVICE_FIELD_CHORE_CRUD_ICON, default=const.SENTINEL_EMPTY
-        ): vol.Any(None, "", cv.icon),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_LABELS, default=[]): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY): vol.In(
-            _CHORE_FREQUENCY_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS): vol.All(
-            cv.ensure_list, [vol.In(_DAY_OF_WEEK_VALUES)]
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
-            _COMPLETION_CRITERIA_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET): vol.In(
-            _APPROVAL_RESET_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_PENDING_CLAIMS): vol.In(
-            _PENDING_CLAIMS_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING): vol.In(
-            _OVERDUE_HANDLING_VALUES
-        ),
-        vol.Optional(
-            const.SERVICE_FIELD_CHORE_CRUD_CLAIM_LOCK_UNTIL_WINDOW
-        ): cv.boolean,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE): cv.boolean,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE): cv.datetime,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET): vol.All(
-            cv.string, flow_helpers.validate_duration_string
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
-            cv.string, flow_helpers.validate_duration_string
-        ),
-    }
+    _with_service_target_fields(
+        {
+            vol.Required(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
+            # Canonical public contract: callers provide assignee display names.
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            # Compatibility exception: legacy automations still send name lists under
+            # assigned_user_ids. We accept this field during transition and normalize
+            # to real UUIDs in the handler before any storage/update operations.
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION, default=""
+            ): cv.string,
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_ICON, default=const.SENTINEL_EMPTY
+            ): vol.Any(None, "", cv.icon),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_LABELS, default=[]): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY): vol.In(
+                _CHORE_FREQUENCY_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS): vol.All(
+                cv.ensure_list, [vol.In(_DAY_OF_WEEK_VALUES)]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
+                _COMPLETION_CRITERIA_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET): vol.In(
+                _APPROVAL_RESET_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_PENDING_CLAIMS): vol.In(
+                _PENDING_CLAIMS_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING): vol.In(
+                _OVERDUE_HANDLING_VALUES
+            ),
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_CLAIM_LOCK_UNTIL_WINDOW
+            ): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE): cv.datetime,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET): vol.All(
+                cv.string, flow_helpers.validate_duration_string
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
+                cv.string, flow_helpers.validate_duration_string
+            ),
+        }
+    )
 )
 
 # NOTE: Either chore_id OR name must be provided (resolved in handler)
 # completion_criteria IS allowed in update (mutable, with transition handling in Manager)
 UPDATE_CHORE_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
-            _COMPLETION_CRITERIA_VALUES
-        ),
-        # Canonical input key (names in payload).
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-        # Compatibility exception: keep accepting legacy key in updates so
-        # existing automations do not break. Handler normalizes values to UUIDs.
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ICON): vol.Any(None, "", cv.icon),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_LABELS): vol.All(
-            cv.ensure_list, [cv.string]
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY): vol.In(
-            _CHORE_FREQUENCY_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS): vol.All(
-            cv.ensure_list, [vol.In(_DAY_OF_WEEK_VALUES)]
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET): vol.In(
-            _APPROVAL_RESET_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_PENDING_CLAIMS): vol.In(
-            _PENDING_CLAIMS_VALUES
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING): vol.In(
-            _OVERDUE_HANDLING_VALUES
-        ),
-        vol.Optional(
-            const.SERVICE_FIELD_CHORE_CRUD_CLAIM_LOCK_UNTIL_WINDOW
-        ): cv.boolean,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE): cv.boolean,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE): cv.datetime,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET): vol.All(
-            cv.string, flow_helpers.validate_duration_string
-        ),
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
-            cv.string, flow_helpers.validate_duration_string
-        ),
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
+                _COMPLETION_CRITERIA_VALUES
+            ),
+            # Canonical input key (names in payload).
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            # Compatibility exception: keep accepting legacy key in updates so
+            # existing automations do not break. Handler normalizes values to UUIDs.
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_IDS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_POINTS): vol.Coerce(float),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DESCRIPTION): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ICON): vol.Any(
+                None, "", cv.icon
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_LABELS): vol.All(
+                cv.ensure_list, [cv.string]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_FREQUENCY): vol.In(
+                _CHORE_FREQUENCY_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPLICABLE_DAYS): vol.All(
+                cv.ensure_list, [vol.In(_DAY_OF_WEEK_VALUES)]
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_APPROVAL_RESET): vol.In(
+                _APPROVAL_RESET_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_PENDING_CLAIMS): vol.In(
+                _PENDING_CLAIMS_VALUES
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_OVERDUE_HANDLING): vol.In(
+                _OVERDUE_HANDLING_VALUES
+            ),
+            vol.Optional(
+                const.SERVICE_FIELD_CHORE_CRUD_CLAIM_LOCK_UNTIL_WINDOW
+            ): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_AUTO_APPROVE): cv.boolean,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_DATE): cv.datetime,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET): vol.All(
+                cv.string, flow_helpers.validate_duration_string
+            ),
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET): vol.All(
+                cv.string, flow_helpers.validate_duration_string
+            ),
+        }
+    )
 )
 
 # NOTE: Either chore_id OR name must be provided (resolved in handler)
 DELETE_CHORE_SCHEMA = vol.Schema(
-    {
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
+        }
+    )
 )
 
 # Map service fields to DATA_* storage keys
@@ -474,32 +586,38 @@ _SERVICE_TO_REWARD_DATA_MAPPING: dict[str, str] = {
 
 # Set rotation turn to specific assignee
 SET_ROTATION_TURN_SCHEMA = vol.Schema(
-    {
-        # Either chore_id OR chore_name required
-        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-        # Either assignee_id OR assignee_name required
-        vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            # Either chore_id OR chore_name required
+            vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+            # Either assignee_id OR assignee_name required
+            vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+        }
+    )
 )
 
 # Reset rotation to first assigned assignee
 RESET_ROTATION_SCHEMA = vol.Schema(
-    {
-        # Either chore_id OR chore_name required
-        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            # Either chore_id OR chore_name required
+            vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        }
+    )
 )
 
 # Open rotation cycle (allow any assignee to claim once)
 OPEN_ROTATION_CYCLE_SCHEMA = vol.Schema(
-    {
-        # Either chore_id OR chore_name required
-        vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
-        vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
-    }
+    _with_service_target_fields(
+        {
+            # Either chore_id OR chore_name required
+            vol.Optional(const.SERVICE_FIELD_CHORE_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_CHORE_NAME): cv.string,
+        }
+    )
 )
 
 
@@ -525,9 +643,14 @@ def _map_service_to_data_keys(
 def async_setup_services(hass: HomeAssistant):
     """Register ChoreOps services."""
 
-    # ==========================================================================
-    # RESET SERVICE HANDLERS
-    # ==========================================================================
+    registration_count = int(
+        hass.data.get(const.RUNTIME_KEY_SERVICE_REGISTRATION_COUNT, 0)
+    )
+    if registration_count > 0:
+        hass.data[const.RUNTIME_KEY_SERVICE_REGISTRATION_COUNT] = registration_count + 1
+        return
+
+    hass.data[const.RUNTIME_KEY_SERVICE_REGISTRATION_COUNT] = 1
 
     # ========================================================================
     # CHORE SERVICE HANDLERS
@@ -551,7 +674,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Create Chore: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -694,7 +817,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -868,7 +991,7 @@ def async_setup_services(hass: HomeAssistant):
             HomeAssistantError: If chore not found or neither
                 chore_id nor name provided
         """
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -915,7 +1038,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_claim_chore(call: ServiceCall):
         """Handle claiming a chore."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Claim Chore: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -982,7 +1105,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_approve_chore(call: ServiceCall):
         """Handle approving a claimed chore."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
 
         if not entry_id:
             const.LOGGER.warning(
@@ -1082,7 +1205,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_disapprove_chore(call: ServiceCall):
         """Handle disapproving a chore."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Disapprove Chore: %s",
@@ -1156,7 +1279,7 @@ def async_setup_services(hass: HomeAssistant):
         For INDEPENDENT chores, optionally specify assignee_id or assignee_name.
         For SHARED chores, assignee_id is ignored (single due date for all assignees).
         """
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Set Chore Due Date: %s",
@@ -1296,7 +1419,7 @@ def async_setup_services(hass: HomeAssistant):
         For INDEPENDENT chores, you can optionally specify assignee_name or assignee_id.
         For SHARED chores, you must not specify a assignee.
         """
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Skip Chore Due Date: %s",
@@ -1440,7 +1563,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Create Reward: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1523,7 +1646,7 @@ def async_setup_services(hass: HomeAssistant):
         from . import data_builders as db
         from .data_builders import EntityValidationError
 
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -1634,7 +1757,7 @@ def async_setup_services(hass: HomeAssistant):
             HomeAssistantError: If reward not found or neither
                 id nor name provided
         """
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -1681,7 +1804,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_redeem_reward(call: ServiceCall):
         """Handle redeeming a reward (claiming without deduction)."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Redeem Reward: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1790,7 +1913,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_approve_reward(call: ServiceCall):
         """Handle approving a reward claimed by a assignee."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Approve Reward: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -1867,7 +1990,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_disapprove_reward(call: ServiceCall):
         """Handle disapproving a reward."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Disapprove Reward: %s",
@@ -1944,7 +2067,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_apply_penalty(call: ServiceCall):
         """Handle applying a penalty."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Apply Penalty: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -2020,7 +2143,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_apply_bonus(call: ServiceCall):
         """Handle applying a bonus."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Apply Bonus: %s", const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND
@@ -2092,7 +2215,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_remove_awarded_badges(call: ServiceCall):
         """Handle removing awarded badges."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Remove Awarded Badges: %s",
@@ -2151,7 +2274,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_set_rotation_turn(call: ServiceCall) -> None:
         """Set rotation turn to a specific assignee."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning("Set Rotation Turn: No ChoreOps entry found")
             return
@@ -2209,7 +2332,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_reset_rotation(call: ServiceCall) -> None:
         """Reset rotation to first assigned assignee."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning("Reset Rotation: No ChoreOps entry found")
             return
@@ -2243,7 +2366,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_open_rotation_cycle(call: ServiceCall) -> None:
         """Open rotation cycle - allow any assignee to claim once."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning("Open Rotation Cycle: No ChoreOps entry found")
             return
@@ -2300,7 +2423,7 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_generate_activity_report(call: ServiceCall) -> dict[str, Any]:
         """Handle assigneeschores.generate_activity_report service call."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -2508,9 +2631,9 @@ def async_setup_services(hass: HomeAssistant):
     # RESET SERVICE HANDLERS
     # ==========================================================================
 
-    async def handle_reset_chores_to_pending_state(_call: ServiceCall):
+    async def handle_reset_chores_to_pending_state(call: ServiceCall):
         """Handle manually resetting all chores to pending, clearing claims/approvals."""
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Reset Chores To Pending State: No ChoreOps entry found"
@@ -2532,7 +2655,7 @@ def async_setup_services(hass: HomeAssistant):
     async def handle_reset_overdue_chores(call: ServiceCall) -> None:
         """Handle resetting overdue chores."""
 
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning(
                 "Reset Overdue Chores: %s",
@@ -2601,7 +2724,7 @@ def async_setup_services(hass: HomeAssistant):
             call: Service call with confirm_destructive, scope, assignee_name,
                   item_type, item_name fields
         """
-        entry_id = get_first_choreops_entry(hass)
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
         if not entry_id:
             const.LOGGER.warning("Reset Transactional Data: No ChoreOps entry found")
             return
@@ -2624,6 +2747,15 @@ def async_setup_services(hass: HomeAssistant):
 
 async def async_unload_services(hass: HomeAssistant) -> None:
     """Unregister ChoreOps services when unloading the integration."""
+    registration_count = int(
+        hass.data.get(const.RUNTIME_KEY_SERVICE_REGISTRATION_COUNT, 0)
+    )
+    if registration_count > 1:
+        hass.data[const.RUNTIME_KEY_SERVICE_REGISTRATION_COUNT] = registration_count - 1
+        return
+
+    hass.data.pop(const.RUNTIME_KEY_SERVICE_REGISTRATION_COUNT, None)
+
     services = [
         const.SERVICE_CLAIM_CHORE,
         const.SERVICE_APPROVE_CHORE,

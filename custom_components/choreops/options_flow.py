@@ -21,6 +21,7 @@ import voluptuous as vol
 from . import const, data_builders as db
 from .data_builders import EntityValidationError
 from .helpers import backup_helpers as bh, entity_helpers as eh, flow_helpers as fh
+from .helpers.storage_helpers import get_entry_storage_key_from_entry
 from .utils.dt_utils import dt_now_utc, dt_parse, validate_daily_multi_times
 from .utils.math_utils import parse_points_adjust_values
 
@@ -64,6 +65,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._backup_to_delete: str | None = None  # Track backup file path to delete
         self._backup_to_restore: str | None = None  # Track backup filename to restore
         self._backup_delete_selection_map: dict[str, str] = {}
+        self._backup_restore_selection_map: dict[str, str] = {}
         self._chore_being_edited: dict[str, Any] | None = (
             None  # For per-assignee date editing
         )
@@ -1449,6 +1451,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHORES_INPUT_DUE_DATE: existing_due_date,
             const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: chore_data.get(
                 const.DATA_CHORE_DUE_WINDOW_OFFSET, const.DEFAULT_DUE_WINDOW_OFFSET
+            ),
+            const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: chore_data.get(
+                const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW,
+                const.DEFAULT_CHORE_CLAIM_LOCK_UNTIL_WINDOW,
             ),
             const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: chore_data.get(
                 const.DATA_CHORE_DUE_REMINDER_OFFSET, const.DEFAULT_DUE_REMINDER_OFFSET
@@ -4713,7 +4719,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_restore_from_options(self, user_input=None):
         """Handle restore options from general options menu (same as config flow)."""
-        from pathlib import Path
 
         errors: dict[str, str] = {}
 
@@ -4729,20 +4734,28 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self._handle_use_current_from_options()
             if selection == "paste_json":
                 return await self.async_step_restore_paste_json_options()
-            # Otherwise it's a backup filename - restore it
+            if selection in self._backup_restore_selection_map:
+                selected_path = self._backup_restore_selection_map[selection]
+                return await self._handle_restore_backup_from_options(selected_path)
+
+            # Otherwise treat as raw filename for backwards compatibility
             if selection:
                 return await self._handle_restore_backup_from_options(selection)
 
             errors[const.CFOP_ERROR_BASE] = const.TRANS_KEY_CFOF_INVALID_SELECTION
 
         # Build selection menu
-        storage_path = Path(self.hass.config.path(".storage", const.STORAGE_KEY))
+        storage_path = self._get_scoped_storage_path()
         storage_file_exists = await self.hass.async_add_executor_job(
             storage_path.exists
         )
 
-        # Discover backups (pass None for store - not needed for discovery)
-        backups = await bh.discover_backups(self.hass, None)
+        backups = await bh.discover_backups(
+            self.hass,
+            None,
+            storage_key=self._get_storage_key(),
+            include_importable=True,
+        )
         if not isinstance(backups, list):
             backups = []  # Handle any unexpected return type
 
@@ -4759,21 +4772,22 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         options.append("start_fresh")
 
-        # Add discovered backups (these use dynamic labels)
+        # Add discovered backups (human-readable labels mapped to absolute paths)
+        self._backup_restore_selection_map = {}
         for backup in backups:
-            options.append(backup["filename"])
+            label = self._format_backup_selector_label(backup, prefix="📄")
+            deduped_label = label
+            suffix = 2
+            while deduped_label in self._backup_restore_selection_map:
+                deduped_label = f"{label} • #{suffix}"
+                suffix += 1
 
-        # Add paste JSON option
-        options.append("paste_json")
-
-        # Build description placeholders for dynamic backup labels
-        backup_labels = {}
-        for backup in backups:
-            age_str = bh.format_backup_age(backup["age_hours"])
-            tag_display = backup["tag"].replace("-", " ").title()
-            backup_labels[backup["filename"]] = (
-                f"[{tag_display}] {backup['filename']} ({age_str})"
+            options.append(deduped_label)
+            self._backup_restore_selection_map[deduped_label] = str(
+                backup.get("full_path", backup.get("filename", ""))
             )
+
+        options.append("paste_json")
 
         # Build schema using SelectSelector with translation_key
         data_schema = vol.Schema(
@@ -4806,10 +4820,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         import os
         from pathlib import Path
 
-        from .store import ChoreOpsStore
-
         try:
-            store = ChoreOpsStore(self.hass)
+            store = self._create_scoped_store()
             storage_path = Path(store.get_storage_path())
 
             # Create safety backup if file exists
@@ -4818,7 +4830,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             if storage_file_exists:
                 backup_name = await bh.create_timestamped_backup(
-                    self.hass, store, const.BACKUP_TAG_RECOVERY
+                    self.hass,
+                    store,
+                    const.BACKUP_TAG_RECOVERY,
+                    config_entry=self.config_entry,
+                    storage_key=store.storage_key,
                 )
                 if backup_name:
                     const.LOGGER.info(
@@ -4840,11 +4856,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     async def _handle_use_current_from_options(self):
         """Handle 'Use Current Active' from options - validate and reload."""
         import json
-        from pathlib import Path
 
         try:
             # Get storage path without creating storage manager yet
-            storage_path = Path(self.hass.config.path(".storage", const.STORAGE_KEY))
+            storage_path = self._get_scoped_storage_path()
 
             storage_file_exists = await self.hass.async_add_executor_job(
                 storage_path.exists
@@ -4877,7 +4892,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_restore_paste_json_options(self, user_input=None):
         """Allow user to paste JSON data from diagnostics in options flow."""
         import json
-        from pathlib import Path
 
         errors: dict[str, str] = {}
 
@@ -4917,14 +4931,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         wrapped_data = {
                             "version": 1,
                             "minor_version": 1,
-                            "key": const.STORAGE_KEY,
+                            "key": self._get_storage_key(),
                             "data": storage_data,
                         }
 
                         # Write to storage file
-                        storage_path = Path(
-                            self.hass.config.path(".storage", const.STORAGE_KEY)
-                        )
+                        storage_path = self._get_scoped_storage_path()
 
                         # Write wrapped data to storage (directory created by HA/test fixtures)
                         await self.hass.async_add_executor_job(
@@ -4966,24 +4978,27 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle paste_json_restore step - delegate to paste_json_options."""
         return await self.async_step_restore_paste_json_options(user_input)
 
-    async def _handle_restore_backup_from_options(self, backup_filename: str):
+    async def _handle_restore_backup_from_options(self, backup_reference: str):
         """Handle restoring from a specific backup file in options flow."""
         import json
         from pathlib import Path
         import shutil
 
-        from .store import ChoreOpsStore
-
         try:
-            # Get storage path directly without creating storage manager yet
-            storage_path = Path(self.hass.config.path(".storage", const.STORAGE_KEY))
-            backup_path = storage_path.parent / backup_filename
+            # Get current entry storage path
+            storage_path = self._get_scoped_storage_path()
+
+            candidate_path = Path(backup_reference)
+            if candidate_path.is_absolute():
+                backup_path = candidate_path
+            else:
+                backup_path = storage_path.parent / backup_reference
 
             backup_file_exists = await self.hass.async_add_executor_job(
                 backup_path.exists
             )
             if not backup_file_exists:
-                const.LOGGER.error("Backup file not found: %s", backup_filename)
+                const.LOGGER.error("Backup file not found: %s", backup_reference)
                 return self.async_abort(reason="file_not_found")
 
             # Read and validate backup
@@ -4994,13 +5009,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             try:
                 json.loads(backup_data_str)  # Validate parseable JSON
             except json.JSONDecodeError:
-                const.LOGGER.error("Backup file has invalid JSON: %s", backup_filename)
+                const.LOGGER.error("Backup file has invalid JSON: %s", backup_reference)
                 return self.async_abort(reason="corrupt_file")
 
             # Validate structure
             if not bh.validate_backup_json(backup_data_str):
                 const.LOGGER.error(
-                    "Backup file missing required keys: %s", backup_filename
+                    "Backup file missing required keys: %s", backup_reference
                 )
                 return self.async_abort(reason="invalid_structure")
 
@@ -5010,9 +5025,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             if storage_file_exists:
                 # Create storage manager only for safety backup creation
-                store = ChoreOpsStore(self.hass)
+                store = self._create_scoped_store()
                 safety_backup = await bh.create_timestamped_backup(
-                    self.hass, store, const.BACKUP_TAG_RECOVERY
+                    self.hass,
+                    store,
+                    const.BACKUP_TAG_RECOVERY,
+                    config_entry=self.config_entry,
+                    storage_key=store.storage_key,
                 )
                 if safety_backup:
                     const.LOGGER.info(
@@ -5028,14 +5047,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 await self.hass.async_add_executor_job(
                     shutil.copy2, str(backup_path), str(storage_path)
                 )
+            elif backup_path.name in {const.STORAGE_KEY, "kidschores_data"}:
+                # Legacy active-store payloads copied directly into current scoped path.
+                await self.hass.async_add_executor_job(
+                    shutil.copy2, str(backup_path), str(storage_path)
+                )
             else:
                 # Raw data format (like v30, v31, v40beta1 samples)
                 # Load through storage manager to add proper wrapper
-                store = ChoreOpsStore(self.hass)
+                store = self._create_scoped_store()
                 store.set_data(backup_data)
                 await store.async_save()
 
-            const.LOGGER.info("Restored backup: %s", backup_filename)
+            const.LOGGER.info("Restored backup: %s", backup_path.name)
 
             # Reload and return to init
             self._mark_reload_needed()
@@ -5047,7 +5071,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_backup_actions_menu(self, user_input=None):
         """Show backup management actions menu."""
-        from .store import ChoreOpsStore
 
         if user_input is not None:
             action = user_input[const.CFOF_BACKUP_ACTION_SELECTION]
@@ -5062,8 +5085,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_init()
 
         # Discover backups to show count
-        store = ChoreOpsStore(self.hass)
-        backups = await bh.discover_backups(self.hass, store)
+        store = self._create_scoped_store()
+        backups = await bh.discover_backups(
+            self.hass,
+            store,
+            storage_key=store.storage_key,
+            include_importable=False,
+        )
         backup_count = len(backups)
 
         # Calculate total storage usage
@@ -5103,9 +5131,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         from pathlib import Path
 
         from . import migration_pre_v50 as mp50
-        from .store import ChoreOpsStore
 
-        store = ChoreOpsStore(self.hass)
+        store = self._create_scoped_store()
 
         if user_input is not None:
             selection = user_input.get(const.CFOF_BACKUP_SELECTION)
@@ -5129,7 +5156,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_backup_actions_menu()
 
         # Discover all backups
-        backups = await bh.discover_backups(self.hass, store)
+        backups = await bh.discover_backups(
+            self.hass,
+            store,
+            storage_key=store.storage_key,
+            include_importable=False,
+        )
         storage_path = Path(store.get_storage_path())
         scoped_storage_dir = storage_path.parent
         root_storage_dir = scoped_storage_dir.parent
@@ -5224,15 +5256,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_select_backup_to_restore(self, user_input=None):
         """Select a backup file to restore."""
-        from .store import ChoreOpsStore
 
-        store = ChoreOpsStore(self.hass)
+        store = self._create_scoped_store()
 
         if user_input is not None:
             selection = user_input.get(const.CFOF_BACKUP_SELECTION)
 
             if selection == "cancel":
                 return await self.async_step_backup_actions_menu()
+
+            selected_path = self._backup_restore_selection_map.get(selection or "")
+            if selected_path:
+                self._backup_to_restore = selected_path
+                return await self.async_step_restore_backup_confirm()
 
             # Extract backup filename from emoji-prefixed selection
             if selection and selection.startswith("🔄"):
@@ -5245,7 +5281,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_backup_actions_menu()
 
         # Discover all backups
-        backups = await bh.discover_backups(self.hass, store)
+        backups = await bh.discover_backups(
+            self.hass,
+            store,
+            storage_key=store.storage_key,
+            include_importable=True,
+        )
 
         if not backups:
             # No backups available - return to menu
@@ -5253,17 +5294,20 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Build backup options - EMOJI ONLY for files (no hardcoded action text)
         backup_options = []
+        self._backup_restore_selection_map = {}
 
         for backup in backups:
-            age_str = bh.format_backup_age(backup["age_hours"])
-            size_kb = backup["size_bytes"] / 1024
-            tag_display = backup["tag"].replace("-", " ").title()
+            option = self._format_backup_selector_label(backup, prefix="🔄")
+            deduped_option = option
+            suffix = 2
+            while deduped_option in self._backup_restore_selection_map:
+                deduped_option = f"{option} • #{suffix}"
+                suffix += 1
 
-            # Emoji-only prefix - NO hardcoded English text
-            option = (
-                f"🔄 [{tag_display}] {backup['filename']} ({age_str}, {size_kb:.1f} KB)"
+            backup_options.append(deduped_option)
+            self._backup_restore_selection_map[deduped_option] = str(
+                backup.get("full_path", backup.get("filename", ""))
             )
-            backup_options.append(option)
 
         # Add cancel option (translated via translation_key)
         backup_options.append("cancel")
@@ -5307,9 +5351,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_create_manual_backup(self, user_input=None):
         """Create a manual backup."""
-        from .store import ChoreOpsStore
 
-        store = ChoreOpsStore(self.hass)
+        store = self._create_scoped_store()
 
         if user_input is not None:
             if user_input.get("confirm"):
@@ -5319,6 +5362,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     store,
                     const.BACKUP_TAG_MANUAL,
                     self.config_entry,
+                    storage_key=store.storage_key,
                 )
 
                 if backup_filename:
@@ -5334,7 +5378,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_backup_actions_menu()
 
         # Get backup count and retention for placeholders
-        available_backups = await bh.discover_backups(self.hass, store)
+        available_backups = await bh.discover_backups(
+            self.hass,
+            store,
+            storage_key=store.storage_key,
+            include_importable=False,
+        )
         backup_count = len(available_backups)
         retention = self._entry_options.get(
             const.CONF_BACKUPS_MAX_RETAINED,
@@ -5358,14 +5407,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         """Confirm backup deletion."""
         from pathlib import Path
 
-        from .store import ChoreOpsStore
-
         # Get backup target path from context (set by select_backup_to_delete step)
         backup_target = getattr(self, "_backup_to_delete", None)
 
         if user_input is not None:
             if user_input.get("confirm"):
-                store = ChoreOpsStore(self.hass)
+                store = self._create_scoped_store()
                 storage_path = Path(store.get_storage_path())
                 # Type guard: ensure backup_target is a string before using in Path operation
                 if isinstance(backup_target, str):
@@ -5428,14 +5475,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         from pathlib import Path
         import shutil
 
-        from .store import ChoreOpsStore
-
         # Get backup filename from context (set by select_backup_to_restore step)
         backup_filename = getattr(self, "_backup_to_restore", None)
 
         if user_input is not None:
             if user_input.get("confirm"):
-                store = ChoreOpsStore(self.hass)
+                store = self._create_scoped_store()
                 storage_path = Path(store.get_storage_path())
                 # Type guard: ensure backup_filename is a string before using in Path operation
                 if not isinstance(backup_filename, str):
@@ -5443,7 +5488,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     self._backup_to_restore = None
                     return await self.async_step_backup_actions_menu()
 
-                backup_path = storage_path.parent / backup_filename
+                candidate_path = Path(backup_filename)
+                if candidate_path.is_absolute():
+                    backup_path = candidate_path
+                else:
+                    backup_path = storage_path.parent / backup_filename
 
                 if not backup_path.exists():
                     const.LOGGER.error("Backup file not found: %s", backup_filename)
@@ -5476,6 +5525,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         store,
                         const.BACKUP_TAG_RECOVERY,
                         self.config_entry,
+                        storage_key=store.storage_key,
                     )
                     const.LOGGER.info("Created safety backup: %s", safety_backup)
 
@@ -5551,6 +5601,47 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     # ----------------------------------------------------------------------------------
     # HELPER METHODS
     # ----------------------------------------------------------------------------------
+
+    def _get_storage_key(self) -> str:
+        """Return scoped storage key for current config entry."""
+        return get_entry_storage_key_from_entry(self.config_entry)
+
+    def _create_scoped_store(self):
+        """Return a scoped store bound to current config entry."""
+        from .store import ChoreOpsStore
+
+        return ChoreOpsStore(self.hass, self._get_storage_key())
+
+    def _get_scoped_storage_path(self):
+        """Return scoped storage path for current config entry."""
+        from pathlib import Path
+
+        return Path(
+            self.hass.config.path(
+                ".storage",
+                const.STORAGE_DIRECTORY,
+                self._get_storage_key(),
+            )
+        )
+
+    def _format_backup_selector_label(
+        self,
+        backup: dict[str, Any],
+        *,
+        prefix: str,
+    ) -> str:
+        """Create date-first human-readable selector label for a backup."""
+        timestamp = cast("datetime", backup["timestamp"])
+        local_ts = dt_util.as_local(timestamp).strftime("%Y-%m-%d %H:%M")
+        tag_display = str(backup.get("tag", "backup")).replace("-", " ").title()
+        scope = str(backup.get("scope", "other"))
+        if scope == "current":
+            scope_display = "Current Entry"
+        elif scope == "legacy":
+            scope_display = "Legacy Import"
+        else:
+            scope_display = "Other Entry"
+        return f"{prefix} {local_ts} • {tag_display} • {scope_display}"
 
     def _get_coordinator(self):
         """Get the coordinator from config entry runtime_data."""

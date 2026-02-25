@@ -12,6 +12,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 
 from .. import const, data_builders as db
+from ..helpers.device_helpers import get_assignee_device_identifier
 from ..helpers.entity_helpers import remove_entities_by_item_id
 from .base_manager import BaseManager
 
@@ -293,7 +294,14 @@ class UserManager(BaseManager):
 
             device_registry = dr.async_get(self.hass)
             device = device_registry.async_get_device(
-                identifiers={(const.DOMAIN, user_id)}
+                identifiers={
+                    (
+                        const.DOMAIN,
+                        get_assignee_device_identifier(
+                            self.coordinator.config_entry, user_id
+                        ),
+                    )
+                }
             )
             if device:
                 device_registry.async_remove_device(device.id)

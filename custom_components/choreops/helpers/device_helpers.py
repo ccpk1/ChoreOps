@@ -24,6 +24,11 @@ if TYPE_CHECKING:
 # ==============================================================================
 
 
+def get_assignee_device_identifier(config_entry: ConfigEntry, assignee_id: str) -> str:
+    """Build a config-entry-scoped assignee device identifier."""
+    return f"{config_entry.entry_id}_{assignee_id}"
+
+
 def create_assignee_device_info(
     assignee_id: str,
     assignee_name: str,
@@ -47,7 +52,9 @@ def create_assignee_device_info(
     _ = is_feature_gated_profile
 
     return DeviceInfo(
-        identifiers={(const.DOMAIN, assignee_id)},
+        identifiers={
+            (const.DOMAIN, get_assignee_device_identifier(config_entry, assignee_id))
+        },
         name=f"{assignee_name} ({config_entry.title})",
         manufacturer=const.DEVICE_MANUFACTURER,
         model=const.DEVICE_MODEL_USER_PROFILE,

@@ -171,6 +171,144 @@ class TestSchemaStampFix:
         assert alice[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
         assert alice[const.DATA_USER_ENABLE_GAMIFICATION] is True
 
+    async def test_pre_v50_pipeline_canonicalizes_kids_before_cleanup(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Legacy `kids` records are normalized before legacy-field cleanup runs."""
+        coordinator = MagicMock()
+        coordinator.hass = hass
+        coordinator._data = {
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_TRANSITIONAL,
+                const.DATA_META_MIGRATIONS_APPLIED: [],
+            },
+            const.CONF_ASSIGNEES_LEGACY: {
+                "kid-1": {
+                    const.DATA_USER_INTERNAL_ID: "kid-1",
+                    const.DATA_USER_NAME: "Kid One",
+                    const.DATA_ASSIGNEE_CLAIMED_CHORES_LEGACY: ["chore-1"],
+                    const.DATA_ASSIGNEE_APPROVED_CHORES_LEGACY: ["chore-1"],
+                    const.DATA_ASSIGNEE_COMPLETED_CHORES_TODAY_LEGACY: 1,
+                    const.DATA_ASSIGNEE_CHORE_CLAIMS_LEGACY: {"chore-1": 2},
+                }
+            },
+            const.DATA_CHORES: {},
+            const.DATA_REWARDS: {},
+            const.DATA_BADGES: {},
+            const.DATA_PENALTIES: {},
+            const.DATA_BONUSES: {},
+            const.DATA_ACHIEVEMENTS: {},
+            const.DATA_CHALLENGES: {},
+            const.DATA_APPROVERS: {},
+        }
+        coordinator.config_entry = MockConfigEntry(
+            domain=const.DOMAIN,
+            title="ChoreOps",
+            data={},
+            options={},
+        )
+        coordinator.config_entry.add_to_hass(hass)
+        coordinator.store = MagicMock(spec=ChoreOpsStore)
+
+        migrator = mp50.PreV50Migrator(coordinator)
+
+        for method_name in [
+            "_migrate_datetime_wrapper",
+            "_migrate_stored_datetimes",
+            "_migrate_chore_data",
+            "_migrate_assignee_data",
+            "_migrate_legacy_assignee_chore_data_and_streaks",
+            "_migrate_badges",
+            "_migrate_assignee_legacy_badges_to_cumulative_progress",
+            "_migrate_assignee_legacy_badges_to_badges_earned",
+            "_migrate_legacy_point_stats",
+            "_migrate_independent_chores",
+            "_migrate_per_assignee_applicable_days",
+            "_migrate_approval_reset_type",
+            "_migrate_reward_data_to_periods",
+            "_initialize_data_from_config",
+            "_add_chore_optional_fields",
+            "_consolidate_point_stats",
+            "_round_float_precision",
+            "_cleanup_assignee_chore_data_due_dates_v50",
+            "_simplify_notification_config_v50",
+            "remove_deprecated_button_entities",
+            "remove_deprecated_sensor_entities",
+            "_strip_temporal_stats",
+            "_migrate_completed_metric",
+            "_migrate_badge_award_count_to_periods",
+            "_migrate_point_periods_v43",
+            "_migrate_chore_periods_v43",
+            "_migrate_reward_periods_v43",
+            "_migrate_bonus_penalty_periods_v43",
+        ]:
+            setattr(migrator, method_name, MagicMock())
+
+        await migrator.run_all_migrations()
+
+        users = coordinator._data.get(const.DATA_USERS, {})
+        assert "kid-1" in users
+        assert const.CONF_ASSIGNEES_LEGACY not in coordinator._data
+
+        migrated_user = users["kid-1"]
+        assert const.DATA_ASSIGNEE_CLAIMED_CHORES_LEGACY not in migrated_user
+        assert const.DATA_ASSIGNEE_APPROVED_CHORES_LEGACY not in migrated_user
+        assert const.DATA_ASSIGNEE_COMPLETED_CHORES_TODAY_LEGACY not in migrated_user
+        assert const.DATA_ASSIGNEE_CHORE_CLAIMS_LEGACY not in migrated_user
+
+    def test_remove_deprecated_sensor_entities_is_entry_scoped(self, migrator) -> None:
+        """Cleanup must not remove entities from other config entries."""
+        migrator.coordinator._data[const.DATA_USERS] = {
+            "user-a": {const.DATA_USER_NAME: "User A"}
+        }
+        migrator.coordinator._data[const.DATA_CHORES] = {
+            "chore-a": {
+                const.DATA_CHORE_NAME: "Chore A",
+                const.DATA_CHORE_ASSIGNED_USER_IDS: ["user-a"],
+                const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
+            }
+        }
+        migrator.coordinator._data[const.DATA_REWARDS] = {}
+        migrator.coordinator._data[const.DATA_PENALTIES] = {}
+        migrator.coordinator._data[const.DATA_BONUSES] = {}
+        migrator.coordinator._data[const.DATA_BADGES] = {}
+        migrator.coordinator._data[const.DATA_ACHIEVEMENTS] = {}
+        migrator.coordinator._data[const.DATA_CHALLENGES] = {}
+
+        own_stale = SimpleNamespace(
+            platform=const.DOMAIN,
+            domain="sensor",
+            entity_id="sensor.own_stale",
+            unique_id="entry-a_stale_sensor_uid",
+        )
+        other_entry_sensor = SimpleNamespace(
+            platform=const.DOMAIN,
+            domain="sensor",
+            entity_id="sensor.other_entry",
+            unique_id="entry-b_other_sensor_uid",
+        )
+
+        entity_registry = MagicMock()
+
+        with (
+            patch(
+                "custom_components.choreops.migration_pre_v50.er.async_get",
+                return_value=entity_registry,
+            ),
+            patch(
+                "custom_components.choreops.migration_pre_v50.er.async_entries_for_config_entry",
+                return_value=[own_stale],
+            ),
+        ):
+            migrator.remove_deprecated_sensor_entities()
+
+        removed_entity_ids = [
+            call.args[0] for call in entity_registry.async_remove.call_args_list
+        ]
+        assert "sensor.own_stale" in removed_entity_ids
+        assert "sensor.other_entry" not in removed_entity_ids
+        assert other_entry_sensor.entity_id not in removed_entity_ids
+
 
 # =============================================================================
 # PHASE 2: Atomic Rollback

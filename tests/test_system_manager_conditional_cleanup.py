@@ -9,6 +9,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from custom_components.choreops import const
+from custom_components.choreops.helpers.device_helpers import (
+    get_assignee_device_identifier,
+)
 from custom_components.choreops.managers.system_manager import SystemManager
 
 if TYPE_CHECKING:
@@ -125,7 +128,12 @@ async def test_remove_conditional_entities_removes_empty_non_assignment_device(
         await manager.remove_conditional_entities(user_ids=[user_id])
 
     fake_device_registry.async_get_device.assert_called_once_with(
-        identifiers={(const.DOMAIN, user_id)}
+        identifiers={
+            (
+                const.DOMAIN,
+                get_assignee_device_identifier(coordinator.config_entry, user_id),
+            )
+        }
     )
     fake_device_registry.async_remove_device.assert_called_once_with("device-1")
 

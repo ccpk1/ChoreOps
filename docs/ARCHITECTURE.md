@@ -77,6 +77,20 @@ For ongoing reference and to maintain Platinum certification, consult:
 
 **Automatic Metadata**: All data builders must set `updated_at` timestamps. Managers never manually set timestamps.
 
+**Entry-Only Scope Contract (Critical)**
+
+- All runtime reads/writes must be scoped to one config entry context.
+- Storage access must use entry-scoped keys (`choreops_data_<entry_id>` pattern) and must never fall back to cross-entry active-data behavior.
+- Backup discovery and cleanup must operate on the current entry scope by default; cross-entry import is allowed only as an explicit restore action.
+- Service and workflow routing must use explicit target resolution (`config_entry_id` preferred) or current flow context; "first loaded entry" routing is prohibited.
+- Entry removal and restore operations must only mutate the owning/current entry scope.
+
+**Architecture review checks for this contract**
+
+- New code introduces no helper that infers target scope from load order.
+- New backup/storage code paths preserve entry isolation in default behavior.
+- New restore/import code paths end by writing into current entry-scoped storage.
+
 ### Infrastructure Coordinator Pattern
 
 The Coordinator is a **pure infrastructure hub** with zero domain knowledge:
@@ -757,6 +771,12 @@ The configuration process follows a streamlined four-step path:
 2. **System Settings**: Configuration of global labels, icons, and polling intervals.
 3. **Entity Setup**: Direct creation of assignees, approvers, chores, badges, rewards, and other entities.
 4. **Summary**: A final review before the storage data is committed and the entry is created.
+
+**Multi-instance activation notes**
+
+- Config Flow no longer aborts when another ChoreOps entry already exists.
+- Data recovery remains the first step so each new entry can start fresh, import, or restore.
+- Restore writes to the current entry-scoped storage key, even when importing backup data from other entries or legacy files.
 
 #### Options Flow (Management)
 

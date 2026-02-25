@@ -53,6 +53,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         self._challenge_index: int = 0
         self._penalty_index: int = 0
         self._bonus_index: int = 0
+        self._backup_restore_selection_map: dict[str, str] = {}
 
     # --------------------------------------------------------------------------
     # INTRO
@@ -61,13 +62,35 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None):
         """Start the config flow with an intro step."""
 
-        # Check if there's an existing ChoreOps entry
-        if any(self._async_current_entries()):
-            return self.async_abort(reason=const.TRANS_KEY_ERROR_SINGLE_INSTANCE)
-
         # Always show data recovery options first (even if no file exists)
         # This allows users to restore from backup, paste JSON, or start fresh
         return await self.async_step_data_recovery()
+
+    def _get_default_entry_title(self) -> str:
+        """Return a unique default title for a new config entry."""
+        base_title = const.CHOREOPS_TITLE
+        existing_titles = {
+            entry.title
+            for entry in self.hass.config_entries.async_entries(const.DOMAIN)
+        }
+
+        if base_title not in existing_titles:
+            return base_title
+
+        index = 2
+        while f"{base_title} {index}" in existing_titles:
+            index += 1
+
+        return f"{base_title} {index}"
+
+    def _get_flow_storage_key(self) -> str:
+        """Return deterministic pending storage key for this flow."""
+        flow_id = str(getattr(self, "flow_id", "pending"))
+        return f"{const.STORAGE_KEY}_pending_{flow_id}"
+
+    def _build_pending_entry_data(self) -> dict[str, Any]:
+        """Return one-time setup metadata for pending flow storage handoff."""
+        return {const.ENTRY_DATA_PENDING_STORAGE_KEY: self._get_flow_storage_key()}
 
     async def async_step_intro(self, user_input: dict[str, Any] | None = None):
         """Intro / welcome step. Press Next to continue."""
@@ -112,30 +135,18 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 return await self._handle_migrate_from_kidschores()
             elif selection == "paste_json":
                 return await self._handle_paste_json()
+            elif (
+                isinstance(selection, str)
+                and selection in self._backup_restore_selection_map
+            ):
+                return await self._handle_restore_backup(
+                    self._backup_restore_selection_map[selection]
+                )
             else:
-                # It's a backup selection with emoji prefix - extract the actual filename
-                # Selection format: "📄 [Tag] filename.json (age)"
-                # Using emoji prefix because backup files are dynamic and can't use SelectSelector translation
-                emoji_prefix = "📄 "
-
-                # Extract filename from the prefixed selection
-                if selection.startswith(emoji_prefix):
-                    # Remove the emoji prefix
-                    display_part = selection[len(emoji_prefix) :].strip()
-                    # Extract filename from format "[Tag] filename.json (age)"
-                    if "] " in display_part and " (" in display_part:
-                        # Get the part between "] " and " ("
-                        start_idx = display_part.find("] ") + 2
-                        end_idx = display_part.rfind(" (")
-                        if start_idx < end_idx:
-                            filename = display_part[start_idx:end_idx]
-                            return await self._handle_restore_backup(filename)
-
-                # Fallback: treat as raw filename (shouldn't happen with new format)
-                return await self._handle_restore_backup(selection)
+                return await self._handle_restore_backup(str(selection))
 
         # Build selection menu
-        store = ChoreOpsStore(self.hass)
+        store = ChoreOpsStore(self.hass, self._get_flow_storage_key())
         storage_path = Path(store.get_storage_path())
         recovery_capabilities = await mp50.async_get_data_recovery_capabilities(
             self.hass
@@ -143,8 +154,12 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         has_current_data_file = recovery_capabilities["has_current_active_file"]
         has_legacy_candidates = recovery_capabilities["has_legacy_candidates"]
 
-        # Discover backups (pass None for store - not needed for discovery)
-        backups = await bh.discover_backups(self.hass, None)
+        backups = await bh.discover_backups(
+            self.hass,
+            None,
+            storage_key=self._get_flow_storage_key(),
+            include_importable=True,
+        )
 
         # Build options list for SelectSelector (keeping original approach for fixed options)
         # Start with fixed options that get translated via translation_key
@@ -159,17 +174,31 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         options.append("start_fresh")
 
-        # Add discovered backups with emoji prefix
-        # Note: Using emoji (📄) instead of translated text because:
-        # 1. Backup files are dynamically generated and can't use SelectSelector translation
-        # 2. Static options (start_fresh, etc.) use SelectSelector translation system
-        # 3. Emoji provides visual distinction without requiring translation API
+        # Add discovered backups with date-first labels for readability.
+        self._backup_restore_selection_map = {}
         for backup in backups:
-            age_str = bh.format_backup_age(backup["age_hours"])
+            timestamp = dt_util.as_local(backup["timestamp"])
+            ts_display = timestamp.strftime("%Y-%m-%d %H:%M")
             tag_display = backup["tag"].replace("-", " ").title()
-            backup_display = f"[{tag_display}] {backup['filename']} ({age_str})"
-            emoji_option = f"📄 {backup_display}"
-            options.append(emoji_option)
+            scope = backup.get("scope", "other")
+            if scope == "current":
+                scope_display = "Current Entry"
+            elif scope == "legacy":
+                scope_display = "Legacy Import"
+            else:
+                scope_display = "Other Entry"
+            label = f"📄 {ts_display} • {tag_display} • {scope_display}"
+
+            deduped_label = label
+            suffix = 2
+            while deduped_label in self._backup_restore_selection_map:
+                deduped_label = f"{label} • #{suffix}"
+                suffix += 1
+
+            options.append(deduped_label)
+            self._backup_restore_selection_map[deduped_label] = str(
+                backup.get("full_path", backup.get("filename", ""))
+            )
 
         # Add paste JSON option
         options.append("paste_json")
@@ -211,7 +240,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         from .store import ChoreOpsStore
 
         try:
-            store = ChoreOpsStore(self.hass)
+            store = ChoreOpsStore(self.hass, self._get_flow_storage_key())
             storage_path = Path(store.get_storage_path())
 
             # Create safety backup if file exists
@@ -220,7 +249,10 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             )
             if storage_file_exists:
                 backup_name = await bh.create_timestamped_backup(
-                    self.hass, store, const.BACKUP_TAG_RECOVERY
+                    self.hass,
+                    store,
+                    const.BACKUP_TAG_RECOVERY,
+                    storage_key=store.storage_key,
                 )
                 if backup_name:
                     const.LOGGER.info(
@@ -240,7 +272,10 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
     async def _handle_use_current(self):
         """Handle 'Use Current Active' - validate and continue setup."""
-        result = await mp50.async_prepare_current_active_storage(self.hass)
+        result = await mp50.async_prepare_current_active_storage(
+            self.hass,
+            destination_storage_key=self._get_flow_storage_key(),
+        )
         if not result.get("prepared"):
             error_key = result.get("error")
             if error_key == "file_not_found":
@@ -258,14 +293,17 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         # File is valid - create config entry immediately with existing data
         # No need to collect assignees/chores/points since they're already defined
         return self.async_create_entry(
-            title=const.CHOREOPS_TITLE,
-            data={},  # Empty - integration will load from storage file
+            title=self._get_default_entry_title(),
+            data=self._build_pending_entry_data(),
         )
 
     async def _handle_migrate_from_kidschores(self):
         """Handle one-time migration from legacy ChoreOps artifacts."""
         try:
-            result = await mp50.async_migrate_from_legacy_choreops_storage(self.hass)
+            result = await mp50.async_migrate_from_legacy_choreops_storage(
+                self.hass,
+                destination_storage_key=self._get_flow_storage_key(),
+            )
             if not result.get("migrated"):
                 error_key = result.get("error")
                 if error_key == "no_legacy_source":
@@ -283,15 +321,15 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 options = {}
 
             return self.async_create_entry(
-                title=const.CHOREOPS_TITLE,
-                data={},
+                title=self._get_default_entry_title(),
+                data=self._build_pending_entry_data(),
                 options=options,
             )
         except Exception as err:
             const.LOGGER.error("Legacy migration failed: %s", err)
             return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_UNKNOWN)
 
-    async def _handle_restore_backup(self, backup_filename: str):
+    async def _handle_restore_backup(self, backup_reference: str):
         """Handle restoring from a specific backup file."""
         import json
         from pathlib import Path
@@ -301,15 +339,19 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         try:
             # Get storage path directly without creating storage manager yet
-            store = ChoreOpsStore(self.hass)
+            store = ChoreOpsStore(self.hass, self._get_flow_storage_key())
             storage_path = Path(store.get_storage_path())
-            backup_path = storage_path.parent / backup_filename
+            candidate_path = Path(backup_reference)
+            if candidate_path.is_absolute():
+                backup_path = candidate_path
+            else:
+                backup_path = storage_path.parent / backup_reference
 
             backup_file_exists = await self.hass.async_add_executor_job(
                 backup_path.exists
             )
             if not backup_file_exists:
-                const.LOGGER.error("Backup file not found: %s", backup_filename)
+                const.LOGGER.error("Backup file not found: %s", backup_reference)
                 return self.async_abort(
                     reason=const.TRANS_KEY_CFOP_ERROR_FILE_NOT_FOUND
                 )
@@ -322,13 +364,13 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             try:
                 json.loads(backup_data_str)  # Validate parseable JSON
             except json.JSONDecodeError:
-                const.LOGGER.error("Backup file has invalid JSON: %s", backup_filename)
+                const.LOGGER.error("Backup file has invalid JSON: %s", backup_reference)
                 return self.async_abort(reason=const.TRANS_KEY_CFOP_ERROR_CORRUPT_FILE)
 
             # Validate structure
             if not bh.validate_backup_json(backup_data_str):
                 const.LOGGER.error(
-                    "Backup file missing required keys: %s", backup_filename
+                    "Backup file missing required keys: %s", backup_reference
                 )
                 return self.async_abort(
                     reason=const.TRANS_KEY_CFOP_ERROR_INVALID_STRUCTURE
@@ -342,7 +384,11 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                 # Create storage manager only for safety backup creation
                 # Note: config_entry not available yet in config flow, settings will be defaults
                 safety_backup = await bh.create_timestamped_backup(
-                    self.hass, store, const.BACKUP_TAG_RECOVERY, None
+                    self.hass,
+                    store,
+                    const.BACKUP_TAG_RECOVERY,
+                    None,
+                    storage_key=store.storage_key,
                 )
                 if safety_backup:
                     const.LOGGER.info(
@@ -361,11 +407,11 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             else:
                 # Raw data format (like v30, v31, v40beta1 samples)
                 # Load through storage manager to add proper wrapper
-                store = ChoreOpsStore(self.hass)
+                store = ChoreOpsStore(self.hass, self._get_flow_storage_key())
                 store.set_data(backup_data)
                 await store.async_save()
 
-            const.LOGGER.info("Restored backup: %s", backup_filename)
+            const.LOGGER.info("Restored backup: %s", backup_path.name)
 
             # Extract and validate config_entry_settings if present
             options = {}
@@ -394,8 +440,8 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             # Backup successfully restored - create config entry with settings
             # No need to collect assignees/chores/points since they were in the backup
             return self.async_create_entry(
-                title=const.CHOREOPS_TITLE,
-                data={},  # Empty - integration will load from restored storage file
+                title=self._get_default_entry_title(),
+                data=self._build_pending_entry_data(),
                 options=options,  # Apply restored settings (or defaults)
             )
 
@@ -456,16 +502,30 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                             const.LOGGER.info("Processing raw storage format")
                             storage_data = pasted_data
 
+                        normalization_summary = (
+                            mp50.normalize_bonus_penalty_apply_shapes(storage_data)
+                        )
+                        if (
+                            normalization_summary["bonus_entries_transformed"]
+                            or normalization_summary["penalty_entries_transformed"]
+                        ):
+                            const.LOGGER.info(
+                                "Normalized pasted apply counters: bonus=%d penalty=%d",
+                                normalization_summary["bonus_entries_transformed"],
+                                normalization_summary["penalty_entries_transformed"],
+                            )
+
                         # Always wrap in HA Store format for storage file
                         wrapped_data = {
                             const.DATA_KEY_VERSION: 1,
                             "minor_version": 1,
-                            const.DATA_KEY_KEY: const.STORAGE_KEY,
+                            const.DATA_KEY_KEY: self._get_flow_storage_key(),
                             const.DATA_KEY_DATA: storage_data,
                         }
 
                         # Write to storage file
-                        storage_path = Path(ChoreOpsStore(self.hass).get_storage_path())
+                        store = ChoreOpsStore(self.hass, self._get_flow_storage_key())
+                        storage_path = Path(store.get_storage_path())
 
                         await self.hass.async_add_executor_job(
                             lambda: storage_path.parent.mkdir(
@@ -484,8 +544,8 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
                         # Create config entry - integration will load from storage
                         return self.async_create_entry(
-                            title=const.CHOREOPS_TITLE,
-                            data={},
+                            title=self._get_default_entry_title(),
+                            data=self._build_pending_entry_data(),
                         )
 
                 except json.JSONDecodeError as err:
@@ -1547,7 +1607,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         storage_data[const.DATA_CHALLENGES] = self._challenges_temp
 
         # Initialize storage manager and save entity data
-        store = ChoreOpsStore(self.hass)
+        store = ChoreOpsStore(self.hass, self._get_flow_storage_key())
         store.set_data(storage_data)
         await store.async_save()
 
@@ -1570,8 +1630,8 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             },
         )
 
-        # Config entry contains ONLY system settings (no entity data)
-        entry_data: dict[str, Any] = {}  # Keep empty - standard HA pattern
+        # Config entry stores one-time pending storage handoff metadata for setup.
+        entry_data: dict[str, Any] = self._build_pending_entry_data()
 
         # Build all 9 system settings using consolidated helper function
         entry_options = fh.build_all_system_settings_data(self._data)
@@ -1581,7 +1641,9 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             entry_options,
         )
         return self.async_create_entry(
-            title=const.CHOREOPS_TITLE, data=entry_data, options=entry_options
+            title=self._get_default_entry_title(),
+            data=entry_data,
+            options=entry_options,
         )
 
     async def async_step_reconfigure(

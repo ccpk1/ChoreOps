@@ -36,6 +36,7 @@ from homeassistant.util import dt as dt_util
 
 from .. import const
 from ..helpers import backup_helpers as bh
+from ..helpers.device_helpers import get_assignee_device_identifier
 from ..helpers.entity_helpers import (
     extract_user_id_from_entity_unique_id,
     get_item_id_or_raise,
@@ -617,7 +618,14 @@ class SystemManager(BaseManager):
                 continue
 
             device = device_registry.async_get_device(
-                identifiers={(const.DOMAIN, user_id)}
+                identifiers={
+                    (
+                        const.DOMAIN,
+                        get_assignee_device_identifier(
+                            self.coordinator.config_entry, user_id
+                        ),
+                    )
+                }
             )
             if not device:
                 continue

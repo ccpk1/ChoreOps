@@ -9,6 +9,7 @@ import datetime
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 from typing import TYPE_CHECKING, Any, cast
 
@@ -96,6 +97,8 @@ async def create_timestamped_backup(
     store,
     tag: str,
     config_entry: ConfigEntry | None = None,
+    *,
+    storage_key: str | None = None,
 ) -> str | None:
     """Create a timestamped backup file with specified tag.
 
@@ -131,7 +134,11 @@ async def create_timestamped_backup(
     try:
         # Get current UTC timestamp in filesystem-safe ISO 8601 format
         timestamp = dt_util.utcnow().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"{const.STORAGE_KEY}_{timestamp}_{tag}"
+        resolved_storage_key = storage_key or getattr(store, "storage_key", None)
+        if not isinstance(resolved_storage_key, str) or not resolved_storage_key:
+            resolved_storage_key = const.STORAGE_KEY
+
+        filename = f"{resolved_storage_key}_{timestamp}_{tag}"
 
         # Get storage file path
         storage_path = store.get_storage_path()
@@ -164,6 +171,11 @@ async def create_timestamped_backup(
                 augmented = augment_backup_with_settings(
                     backup_data, dict(config_entry.options)
                 )
+
+                # Include lightweight source metadata for portability/debugging.
+                augmented["source_entry_id"] = str(config_entry.entry_id)
+                augmented["source_storage_key"] = resolved_storage_key
+                augmented["source_entry_title"] = str(config_entry.title)
 
                 # Write augmented version back
                 await hass.async_add_executor_job(
@@ -198,6 +210,8 @@ async def cleanup_old_backups(
     store,
     config_entry: ConfigEntry,
     max_backups: int | None = None,
+    *,
+    storage_key: str | None = None,
 ) -> None:
     """Delete old backups beyond max_backups limit per tag.
 
@@ -225,7 +239,16 @@ async def cleanup_old_backups(
 
     try:
         # Discover all backups
-        backups_list = await discover_backups(hass, store)
+        resolved_storage_key = storage_key or getattr(store, "storage_key", None)
+        if not isinstance(resolved_storage_key, str) or not resolved_storage_key:
+            resolved_storage_key = const.STORAGE_KEY
+
+        backups_list = await discover_backups(
+            hass,
+            store,
+            storage_key=resolved_storage_key,
+            include_importable=False,
+        )
 
         if max_backups == 0:
             const.LOGGER.info(
@@ -289,7 +312,41 @@ async def cleanup_old_backups(
         const.LOGGER.error("Failed during backup cleanup: %s", ex)
 
 
-async def discover_backups(hass: HomeAssistant, store) -> list[dict]:
+def _parse_backup_filename(filename: str) -> dict[str, str] | None:
+    """Parse backup filename into metadata components.
+
+    Expected format: <storage_key>_YYYY-MM-DD_HH-MM-SS_<tag>
+    """
+    pattern = re.compile(
+        r"^(?P<storage_key>.+)_(?P<date>\d{4}-\d{2}-\d{2})_(?P<time>\d{2}-\d{2}-\d{2})_(?P<tag>[^_]+)$"
+    )
+    if not (match := pattern.match(filename)):
+        return None
+
+    return {
+        "storage_key": match.group("storage_key"),
+        "date": match.group("date"),
+        "time": match.group("time"),
+        "tag": match.group("tag"),
+    }
+
+
+def _scope_label_for_storage_key(storage_key: str, current_storage_key: str) -> str:
+    """Return normalized scope label for selector/readability logic."""
+    if storage_key == current_storage_key:
+        return "current"
+    if storage_key.startswith("kidschores_data"):
+        return "legacy"
+    return "other"
+
+
+async def discover_backups(
+    hass: HomeAssistant,
+    store,
+    *,
+    storage_key: str | None = None,
+    include_importable: bool = False,
+) -> list[dict]:
     """Scan .storage/ directory for backup files and return metadata list.
 
     Args:
@@ -308,7 +365,13 @@ async def discover_backups(hass: HomeAssistant, store) -> list[dict]:
     Invalid filenames are skipped with debug log.
     """
     backups_list: list[dict[str, Any]] = []
+
+    resolved_storage_key = storage_key or getattr(store, "storage_key", None)
+    if not isinstance(resolved_storage_key, str) or not resolved_storage_key:
+        resolved_storage_key = const.STORAGE_KEY
+
     storage_dir = hass.config.path(".storage", const.STORAGE_DIRECTORY)
+    root_storage_dir = hass.config.path(".storage")
 
     try:
         # Check if storage directory exists (non-blocking)
@@ -318,44 +381,28 @@ async def discover_backups(hass: HomeAssistant, store) -> list[dict]:
 
         # Get directory listing (non-blocking)
         filenames = await hass.async_add_executor_job(os.listdir, storage_dir)
-        storage_prefix = f"{const.STORAGE_KEY}_"
         for filename in filenames:
-            # Match format: choreops_data_YYYY-MM-DD_HH-MM-SS_<tag>
-            if not filename.startswith(storage_prefix):
+            parsed = _parse_backup_filename(filename)
+            if not parsed:
                 continue
 
-            # Skip active file (no timestamp/tag suffix)
-            if filename == const.STORAGE_KEY:
-                continue
-
-            # Parse filename: choreops_data_YYYY-MM-DD_HH-MM-SS_<tag>
-            try:
-                # Remove '{storage_key}_' prefix
-                suffix = filename[len(storage_prefix) :]
-
-                # Split into timestamp and tag parts
-                # Format: YYYY-MM-DD_HH-MM-SS_<tag>
-                parts = suffix.rsplit("_", 1)  # Split from right to get tag
-                if len(parts) != 2:
-                    const.LOGGER.debug("Skipping invalid backup filename: %s", filename)
+            file_storage_key = parsed["storage_key"]
+            if include_importable:
+                if not file_storage_key.startswith(
+                    (const.STORAGE_KEY, "kidschores_data")
+                ):
                     continue
+            elif file_storage_key != resolved_storage_key:
+                continue
 
-                timestamp_str, tag = parts
-
-                # Parse timestamp (format: YYYY-MM-DD_HH-MM-SS)
-                # Split date and time parts, convert time hyphens to colons
-                # YYYY-MM-DD_HH-MM-SS -> YYYY-MM-DD HH:MM:SS
-                date_part, time_part = timestamp_str.split("_", 1)
-                time_part_clean = time_part.replace("-", ":")
-                timestamp_str_clean = f"{date_part} {time_part_clean}"
+            try:
+                timestamp_str_clean = (
+                    f"{parsed['date']} {parsed['time'].replace('-', ':')}"
+                )
                 timestamp = datetime.datetime.strptime(
                     timestamp_str_clean, "%Y-%m-%d %H:%M:%S"
                 ).replace(tzinfo=datetime.UTC)
-
-                # Calculate age
                 age_hours = (dt_util.utcnow() - timestamp).total_seconds() / 3600
-
-                # Get file size (non-blocking)
                 file_path = os.path.join(storage_dir, filename)
                 size_bytes = await hass.async_add_executor_job(
                     os.path.getsize, file_path
@@ -364,16 +411,55 @@ async def discover_backups(hass: HomeAssistant, store) -> list[dict]:
                 backups_list.append(
                     {
                         "filename": filename,
-                        "tag": tag,
+                        "full_path": file_path,
+                        "tag": parsed["tag"],
                         "timestamp": timestamp,
                         "age_hours": age_hours,
                         "size_bytes": size_bytes,
+                        "storage_key": file_storage_key,
+                        "scope": _scope_label_for_storage_key(
+                            file_storage_key, resolved_storage_key
+                        ),
                     }
                 )
-
             except (ValueError, OSError) as ex:
                 const.LOGGER.debug("Skipping invalid backup file %s: %s", filename, ex)
                 continue
+
+        if include_importable:
+            root_filenames = await hass.async_add_executor_job(
+                os.listdir, root_storage_dir
+            )
+            for filename in root_filenames:
+                if filename in {const.STORAGE_KEY, "kidschores_data"}:
+                    try:
+                        file_path = os.path.join(root_storage_dir, filename)
+                        size_bytes = await hass.async_add_executor_job(
+                            os.path.getsize, file_path
+                        )
+                        modified_ts = await hass.async_add_executor_job(
+                            os.path.getmtime, file_path
+                        )
+                        timestamp = datetime.datetime.fromtimestamp(
+                            modified_ts, tz=datetime.UTC
+                        )
+                        age_hours = (
+                            dt_util.utcnow() - timestamp
+                        ).total_seconds() / 3600
+                        backups_list.append(
+                            {
+                                "filename": filename,
+                                "full_path": file_path,
+                                "tag": "legacy-active",
+                                "timestamp": timestamp,
+                                "age_hours": age_hours,
+                                "size_bytes": size_bytes,
+                                "storage_key": filename,
+                                "scope": "legacy",
+                            }
+                        )
+                    except OSError:
+                        continue
 
     except OSError as ex:
         const.LOGGER.error("Failed to scan storage directory: %s", ex)

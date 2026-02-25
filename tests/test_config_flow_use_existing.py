@@ -13,6 +13,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.choreops import const, migration_pre_v50 as mp50
 from tests.helpers import (
@@ -95,7 +96,7 @@ async def test_config_flow_use_existing_v40beta1(
     # Should create entry successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == const.CHOREOPS_TITLE
-    assert result["data"] == {}
+    assert const.ENTRY_DATA_PENDING_STORAGE_KEY in result["data"]
 
     # Verify setup was called
     assert len(mock_setup_entry.mock_calls) == 1
@@ -159,7 +160,7 @@ async def test_config_flow_use_existing_v30(
     # Should create entry successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == const.CHOREOPS_TITLE
-    assert result["data"] == {}
+    assert const.ENTRY_DATA_PENDING_STORAGE_KEY in result["data"]
 
     # Verify setup was called
     assert len(mock_setup_entry.mock_calls) == 1
@@ -225,7 +226,7 @@ async def test_config_flow_use_existing_already_wrapped(
     # Should create entry successfully
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == const.CHOREOPS_TITLE
-    assert result["data"] == {}
+    assert const.ENTRY_DATA_PENDING_STORAGE_KEY in result["data"]
 
     # Verify setup was called
     assert len(mock_setup_entry.mock_calls) == 1
@@ -241,3 +242,130 @@ async def test_config_flow_use_existing_already_wrapped(
     # Verify wrapped legacy payload still migrates cleanly to users contract
     migrated_data = await migrate_legacy_payload_to_users(stored_data)
     assert const.DATA_USERS in migrated_data
+
+
+async def test_config_flow_second_entry_gets_indexed_default_title(
+    hass: HomeAssistant,
+    mock_setup_entry: AsyncMock,
+) -> None:
+    """Second config entry should use an indexed default title."""
+    existing_entry = MockConfigEntry(
+        domain=DOMAIN,
+        title=const.CHOREOPS_TITLE,
+        data={},
+        options={},
+    )
+    existing_entry.add_to_hass(hass)
+
+    storage_path = Path(hass.config.path(".storage", "choreops_data"))
+    storage_path.parent.mkdir(parents=True, exist_ok=True)
+    sample_path = (
+        Path(__file__).parent / "migration_samples" / "kidschores_data_40beta1"
+    )
+    wrapped_data = json.loads(sample_path.read_text())
+    await hass.async_add_executor_job(
+        storage_path.write_text,
+        json.dumps(wrapped_data, indent=2),
+        "utf-8",
+    )
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == CONFIG_FLOW_STEP_DATA_RECOVERY
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CFOF_DATA_RECOVERY_INPUT_SELECTION: "current_active",
+        },
+    )
+
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["title"] == f"{const.CHOREOPS_TITLE} 2"
+    assert const.ENTRY_DATA_PENDING_STORAGE_KEY in result["data"]
+    assert len(mock_setup_entry.mock_calls) >= 1
+
+
+async def test_use_current_normalizes_integer_bonus_penalty_applies(
+    hass: HomeAssistant,
+    mock_setup_entry: AsyncMock,
+) -> None:
+    """Use-current import should normalize integer apply counters."""
+    storage_path = Path(hass.config.path(".storage", "choreops_data"))
+    storage_path.parent.mkdir(parents=True, exist_ok=True)
+
+    sample_path = (
+        Path(__file__).parent / "migration_samples" / "kidschores_data_40beta1"
+    )
+    wrapped_data = json.loads(sample_path.read_text())
+
+    wrapped_data["data"]["users"] = {
+        "user_1": {
+            "name": "User 1",
+            "bonus_applies": {"bonus_1": 1},
+            "penalty_applies": {"penalty_1": 2},
+        }
+    }
+    wrapped_data["data"]["bonuses"] = {"bonus_1": {"name": "Bonus 1", "points": 4.0}}
+    wrapped_data["data"]["penalties"] = {
+        "penalty_1": {"name": "Penalty 1", "points": 3.0}
+    }
+
+    await hass.async_add_executor_job(
+        storage_path.write_text,
+        json.dumps(wrapped_data, indent=2),
+        "utf-8",
+    )
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={"source": config_entries.SOURCE_USER},
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={
+            CFOF_DATA_RECOVERY_INPUT_SELECTION: "current_active",
+        },
+    )
+
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    pending_key = result["data"].get(const.ENTRY_DATA_PENDING_STORAGE_KEY)
+    assert isinstance(pending_key, str)
+
+    pending_path = Path(
+        hass.config.path(".storage", const.STORAGE_DIRECTORY, pending_key)
+    )
+    pending_data_str = await hass.async_add_executor_job(
+        pending_path.read_text,
+        "utf-8",
+    )
+    pending_data = json.loads(pending_data_str)
+    payload = pending_data["data"]
+    users_bucket = payload.get("users")
+    if not isinstance(users_bucket, dict):
+        users_bucket = payload.get("kids", {})
+
+    invalid_entries: list[tuple[str, str, str]] = []
+    for user_info in users_bucket.values():
+        if not isinstance(user_info, dict):
+            continue
+        bonus_applies = user_info.get("bonus_applies", {})
+        penalty_applies = user_info.get("penalty_applies", {})
+        if isinstance(bonus_applies, dict):
+            for bonus_id, entry in bonus_applies.items():
+                if not isinstance(entry, dict):
+                    invalid_entries.append(
+                        ("bonus_applies", bonus_id, type(entry).__name__)
+                    )
+        if isinstance(penalty_applies, dict):
+            for penalty_id, entry in penalty_applies.items():
+                if not isinstance(entry, dict):
+                    invalid_entries.append(
+                        ("penalty_applies", penalty_id, type(entry).__name__)
+                    )
+
+    assert invalid_entries == []
+    assert len(mock_setup_entry.mock_calls) >= 1

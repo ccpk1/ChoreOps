@@ -12,6 +12,7 @@ from homeassistant.helpers.device_registry import DeviceEntry
 
 from . import const
 from .coordinator import ChoreOpsConfigEntry
+from .helpers.storage_helpers import get_entry_storage_key_from_entry
 
 
 async def async_get_config_entry_diagnostics(
@@ -40,6 +41,12 @@ async def async_get_config_entry_diagnostics(
         for key, default in const.DEFAULT_SYSTEM_SETTINGS.items()
     }
 
+    diagnostics_data["storage_context"] = {
+        "entry_id": entry.entry_id,
+        "storage_key": get_entry_storage_key_from_entry(entry),
+        "storage_path": coordinator.store.get_storage_path(),
+    }
+
     return diagnostics_data
 
 
@@ -54,9 +61,14 @@ async def async_get_device_diagnostics(
 
     # Extract assignee_id from device identifiers
     assignee_id = None
+    scoped_prefix = f"{entry.entry_id}_"
     for identifier in device.identifiers:
         if identifier[0] == const.DOMAIN:
-            assignee_id = identifier[1]
+            identifier_value = identifier[1]
+            if identifier_value.startswith(scoped_prefix):
+                assignee_id = identifier_value[len(scoped_prefix) :]
+            else:
+                assignee_id = identifier_value
             break
 
     if not assignee_id:

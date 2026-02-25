@@ -641,11 +641,11 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             is_assignee = (
                 user_id and assignee_ha_user_id and user_id == assignee_ha_user_id
             )
-            is_kiosk_anonymous_undo = user_id is None and is_kiosk_mode_enabled(
-                self.hass
-            )
+            is_kiosk_mode = is_kiosk_mode_enabled(self.hass)
+            is_kiosk_anonymous_undo = user_id is None and is_kiosk_mode
+            is_kiosk_authenticated_undo = user_id is not None and is_kiosk_mode
 
-            if is_assignee or is_kiosk_anonymous_undo:
+            if is_assignee or is_kiosk_anonymous_undo or is_kiosk_authenticated_undo:
                 # Assignee undo: Remove own claim without stat tracking
                 await self.coordinator.chore_manager.undo_claim(
                     assignee_id=self._assignee_id,
@@ -1095,8 +1095,9 @@ class ApproverRewardDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
             is_assignee = (
                 user_id and assignee_ha_user_id and user_id == assignee_ha_user_id
             )
+            is_kiosk_undo = user_id is not None and is_kiosk_mode_enabled(self.hass)
 
-            if is_assignee:
+            if is_assignee or is_kiosk_undo:
                 # Assignee undo: Remove own reward claim without stat tracking
                 await self.coordinator.reward_manager.undo_claim(
                     assignee_id=self._assignee_id,

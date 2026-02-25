@@ -62,10 +62,12 @@ STORE: Final = "store"
 STORAGE_DIRECTORY: Final = "choreops"
 STORAGE_KEY: Final = "choreops_data"
 STORAGE_VERSION: Final = 1
+ENTRY_DATA_PENDING_STORAGE_KEY: Final = "pending_storage_key"
 
 # Runtime flag keys (stored in hass.data, not persisted)
 RUNTIME_KEY_STARTUP_BACKUP_CREATED: Final = "_startup_backup_created_"
 RUNTIME_KEY_ENTITY_CLEANUP_DONE: Final = "_entity_cleanup_done_"
+RUNTIME_KEY_SERVICE_REGISTRATION_COUNT: Final = "_service_registration_count_"
 
 # Documentation URLs (injected via description_placeholders to satisfy hassfest)
 DOC_URL_QUICK_START: Final = (
@@ -2628,6 +2630,8 @@ DATA_RESET_ITEM_TYPE_BONUSES: Final = "bonuses"
 # ------------------------------------------------------------------------------------------------
 
 # Cross-entity service fields (used by multiple services)
+SERVICE_FIELD_CONFIG_ENTRY_ID: Final = "config_entry_id"
+SERVICE_FIELD_CONFIG_ENTRY_TITLE: Final = "config_entry_title"
 SERVICE_FIELD_USER_NAME: Final = "user_name"
 SERVICE_FIELD_USER_ID: Final = "user_id"
 SERVICE_FIELD_APPROVER_NAME: Final = "approver_name"
@@ -3004,6 +3008,8 @@ ERROR_ACTION_ADJUST_POINTS: Final = "adjust_points"
 ERROR_ACTION_REMOVE_BADGES: Final = "remove_badges"
 
 TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND: Final = "error_msg_no_entry_found"
+TRANS_KEY_ERROR_SERVICE_TARGET_AMBIGUOUS: Final = "service_target_ambiguous"
+TRANS_KEY_ERROR_SERVICE_TARGET_TITLE_NOT_FOUND: Final = "service_target_title_not_found"
 
 # Config Flow & Options Flow Translation Keys (Phase 2b)
 # Generic templates for validation errors across config/options flows

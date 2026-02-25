@@ -256,3 +256,43 @@ async def test_kiosk_enabled_anonymous_chore_disapprove_uses_undo_path(
     assert result.success is True
     mock_undo_claim.assert_awaited_once()
     mock_disapprove_chore.assert_not_awaited()
+
+
+async def test_kiosk_enabled_logged_in_unlinked_user_chore_disapprove_uses_undo_path(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Logged-in unlinked user disapprove uses assignee undo path in kiosk mode."""
+    coordinator = scenario_minimal.coordinator
+
+    assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+    claim_result = await claim_chore(hass, "zoe", "Make bed", assignee_context)
+    assert claim_result.success is True
+    assert claim_result.state_after == CHORE_STATE_CLAIMED
+
+    unlinked_context = Context(user_id=mock_hass_users["assignee2"].id)
+
+    with (
+        patch(
+            "custom_components.choreops.button.is_kiosk_mode_enabled",
+            return_value=True,
+        ),
+        patch.object(
+            coordinator.chore_manager,
+            "undo_claim",
+            new=AsyncMock(return_value=None),
+        ) as mock_undo_claim,
+        patch.object(
+            coordinator.chore_manager,
+            "disapprove_chore",
+            new=AsyncMock(return_value=None),
+        ) as mock_disapprove_chore,
+    ):
+        result = await disapprove_chore(
+            hass, "zoe", "Make bed", context=unlinked_context
+        )
+
+    assert result.success is True
+    mock_undo_claim.assert_awaited_once()
+    mock_disapprove_chore.assert_not_awaited()

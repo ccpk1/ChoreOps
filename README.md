@@ -98,6 +98,7 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 - **Rich sensor data**: granular attributes for dashboards and analytics
 - **Service-level control**: automate create/claim/approve/redeem/adjust actions
 - **Automation-first architecture**: integrate with scripts, automations, dashboards, voice, and Node-RED
+- **Multi-instance support**: run multiple ChoreOps entries in the same Home Assistant instance
 
 ## Reference Documentation
 

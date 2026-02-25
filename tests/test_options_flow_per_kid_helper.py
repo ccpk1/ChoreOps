@@ -15,12 +15,15 @@ actually do: go through the UI flow.
 
 from datetime import UTC
 from typing import Any
+from unittest.mock import patch
 
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
 
+from custom_components.choreops import const
+from custom_components.choreops.helpers import flow_helpers as fh
 from tests.helpers import (
     APPROVAL_RESET_UPON_COMPLETION,
     CFOF_CHORES_INPUT_APPLICABLE_DAYS,
@@ -1204,3 +1207,59 @@ class TestSchemaEdgeCases:
             c.get("name") == "Minimal Chore" for c in coordinator.chores_data.values()
         )
         assert chore_created, "Minimal chore should have been created"
+
+    async def test_esv05_edit_chore_reuses_stored_schedule_defaults(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Edit form should preserve stored schedule/lock values as suggested defaults."""
+        config_entry = scenario_shared.config_entry
+        coordinator = scenario_shared.coordinator
+
+        assignee_names = [k["name"] for k in coordinator.assignees_data.values()]
+
+        result = await navigate_to_add_chore(hass, config_entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                CFOF_CHORES_INPUT_NAME: "ESV05 Lock Default Chore",
+                CFOF_CHORES_INPUT_DEFAULT_POINTS: 11.0,
+                CFOF_CHORES_INPUT_ICON: "mdi:lock-clock",
+                CFOF_CHORES_INPUT_DESCRIPTION: "",
+                CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: [assignee_names[0]],
+                CFOF_CHORES_INPUT_RECURRING_FREQUENCY: FREQUENCY_DAILY,
+                CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
+                const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: "2h",
+                const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: "30m",
+                const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                const.CFOF_CHORES_INPUT_AUTO_APPROVE: True,
+            },
+        )
+
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        with patch(
+            "custom_components.choreops.options_flow.fh.build_chore_section_suggested_values",
+            wraps=fh.build_chore_section_suggested_values,
+        ) as mock_section_suggested:
+            result = await navigate_to_edit_chore(
+                hass,
+                config_entry.entry_id,
+                "ESV05 Lock Default Chore",
+            )
+
+        assert result.get("type") == FlowResultType.FORM
+        assert result.get("step_id") == OPTIONS_FLOW_STEP_EDIT_CHORE
+        assert mock_section_suggested.called
+
+        suggested_values = mock_section_suggested.call_args.args[0]
+        assert (
+            suggested_values.get(const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW)
+            is True
+        )
+        assert suggested_values.get(const.CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET) == "2h"
+        assert (
+            suggested_values.get(const.CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET) == "30m"
+        )
+        assert suggested_values.get(const.CFOF_CHORES_INPUT_AUTO_APPROVE) is True

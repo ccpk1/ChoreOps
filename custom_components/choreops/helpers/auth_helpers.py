@@ -288,8 +288,6 @@ async def _has_participation_authority_for_target(
             can_be_assigned = target_data.get(const.DATA_USER_CAN_BE_ASSIGNED, True)
             if _ha_user_ref_matches(user, linked_ha_id) and can_be_assigned:
                 return True
-            if can_be_assigned and linked_ha_id in (None, ""):
-                return True
 
         for user_key, user_data in users.items():
             if not isinstance(user_data, dict):
@@ -308,8 +306,6 @@ async def _has_participation_authority_for_target(
             linked_ha_id = assignee_info.get(const.DATA_USER_HA_USER_ID)
             if _ha_user_ref_matches(user, linked_ha_id):
                 return True
-            if linked_ha_id in (None, ""):
-                return True
         return False
 
     # Legacy fallback during migration
@@ -325,8 +321,6 @@ async def _has_participation_authority_for_target(
 
     linked_ha_id = assignee_info.get(const.DATA_USER_HA_USER_ID)
     if _ha_user_ref_matches(user, linked_ha_id):
-        return True
-    if linked_ha_id in (None, ""):
         return True
 
     return False

@@ -21,6 +21,7 @@ from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from . import const
 from .coordinator import ChoreOpsConfigEntry, ChoreOpsDataCoordinator
 from .helpers import backup_helpers as bh
+from .helpers.storage_helpers import get_entry_storage_key_from_entry
 from .notification_action_handler import async_handle_notification_action
 from .services import async_setup_services, async_unload_services
 from .store import ChoreOpsStore
@@ -45,6 +46,8 @@ async def _update_all_assignee_device_names(
     """
     from homeassistant.helpers import device_registry as dr
 
+    from .helpers.device_helpers import get_assignee_device_identifier
+
     # Get coordinator from runtime_data (modern HA pattern)
     coordinator = entry.runtime_data
     if not coordinator:
@@ -61,7 +64,9 @@ async def _update_all_assignee_device_names(
     for assignee_id, assignee_data in coordinator.assignees_data.items():
         assignee_name = assignee_data.get(const.DATA_USER_NAME, "Unknown")
         device = device_registry.async_get_device(
-            identifiers={(const.DOMAIN, assignee_id)}
+            identifiers={
+                (const.DOMAIN, get_assignee_device_identifier(entry, assignee_id))
+            }
         )
 
         if device:
@@ -93,10 +98,48 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
     # Must be done early before any components that use datetime helpers
     const.set_default_timezone(hass)
 
-    # Initialize the storage manager to handle persistent data.
-    store = ChoreOpsStore(hass, const.STORAGE_KEY)
-    # Initialize new file.
-    await store.async_initialize()
+    # Initialize entry-scoped storage manager to ensure multi-entry isolation.
+    scoped_storage_key = get_entry_storage_key_from_entry(entry)
+    store = ChoreOpsStore(hass, scoped_storage_key)
+
+    # Config flow stages data into a pending flow-scoped storage key before entry_id exists.
+    # Move that staged payload into this entry's scoped storage on first setup.
+    pending_storage_key = entry.data.get(const.ENTRY_DATA_PENDING_STORAGE_KEY)
+    if not pending_storage_key:
+        pending_storage_key = entry.options.get(const.ENTRY_DATA_PENDING_STORAGE_KEY)
+
+    if not isinstance(pending_storage_key, str) or not pending_storage_key:
+        pending_storage_key = await store.async_find_latest_pending_storage_key()
+        if pending_storage_key:
+            const.LOGGER.warning(
+                "Recovered pending flow storage key from disk scan: %s",
+                pending_storage_key,
+            )
+
+    if isinstance(pending_storage_key, str) and pending_storage_key:
+        pending_store = ChoreOpsStore(hass, pending_storage_key)
+        await pending_store.async_initialize(allow_legacy_fallback=False)
+        pending_data = dict(pending_store.data)
+
+        await store.async_initialize(allow_legacy_fallback=False)
+        if await store.async_adopt_data_if_empty(pending_data):
+            const.LOGGER.info(
+                "Moved pending flow storage %s into scoped key %s",
+                pending_storage_key,
+                scoped_storage_key,
+            )
+
+        await pending_store.async_delete_storage()
+
+        # Clear one-time pending marker from config entry data.
+        cleaned_data = dict(entry.data)
+        cleaned_data.pop(const.ENTRY_DATA_PENDING_STORAGE_KEY, None)
+        hass.config_entries.async_update_entry(entry, data=cleaned_data)
+
+    # Allow legacy root-key fallback only for first integration instance.
+    # Additional entries must stay isolated and start empty unless explicitly restored.
+    allow_legacy_fallback = len(hass.config_entries.async_entries(const.DOMAIN)) <= 1
+    await store.async_initialize(allow_legacy_fallback=allow_legacy_fallback)
 
     # DEBUG: Check what was loaded from storage
     loaded_data = store.data
@@ -114,9 +157,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
     from .migration_pre_v50 import (
         async_migrate_uid_suffixes_v0_5_0,
         migrate_config_to_storage,
+        normalize_bonus_penalty_apply_shapes,
     )
 
     await migrate_config_to_storage(hass, entry, store)
+
+    normalization_summary = normalize_bonus_penalty_apply_shapes(store.data)
+    if (
+        normalization_summary["bonus_entries_transformed"]
+        or normalization_summary["penalty_entries_transformed"]
+    ):
+        await store.async_save()
+        const.LOGGER.info(
+            "Normalized apply counters during setup: bonus=%d penalty=%d",
+            normalization_summary["bonus_entries_transformed"],
+            normalization_summary["penalty_entries_transformed"],
+        )
 
     # PHASE 3: Migrate entity unique_ids from generic to explicit suffixes
     # Only needed for upgrades from < schema 43 (0.5.0b3). Fresh installs and already-upgraded
@@ -377,36 +433,27 @@ async def async_remove_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) ->
     """
     const.LOGGER.info("INFO: Removing ChoreOps entry: %s", entry.entry_id)
 
-    # Access store via coordinator.store (modern HA pattern)
-    # runtime_data may not exist if setup failed or entry was never loaded
-    if not hasattr(entry, "runtime_data"):
+    # Always derive owned store from config entry so remove works even if runtime_data is missing.
+    store = ChoreOpsStore(hass, get_entry_storage_key_from_entry(entry))
+
+    # Create backup before deletion (allows data recovery on re-add)
+    backup_name = await bh.create_timestamped_backup(
+        hass,
+        store,
+        const.BACKUP_TAG_REMOVAL,
+        config_entry=entry,
+        storage_key=store.storage_key,
+    )
+    if backup_name:
         const.LOGGER.info(
-            "Entry %s has no runtime_data - nothing to remove", entry.entry_id
+            "Created removal backup: %s (integration can be re-added to restore data)",
+            backup_name,
         )
-        return
-
-    coordinator = entry.runtime_data
-    if coordinator and coordinator.store:
-        store = coordinator.store
-
-        # Create backup before deletion (allows data recovery on re-add)
-        backup_name = await bh.create_timestamped_backup(
-            hass, store, const.BACKUP_TAG_REMOVAL
-        )
-        if backup_name:
-            const.LOGGER.info(
-                "Created removal backup: %s (integration can be re-added to restore data)",
-                backup_name,
-            )
-        else:
-            const.LOGGER.warning(
-                "Failed to create removal backup - data will be permanently deleted"
-            )
-
-        # Delete active storage file
-        await store.async_delete_storage()
-        const.LOGGER.info("ChoreOps storage file deleted for entry: %s", entry.entry_id)
     else:
-        const.LOGGER.info(
-            "No storage data found for entry %s - nothing to remove", entry.entry_id
+        const.LOGGER.warning(
+            "Failed to create removal backup - data will be permanently deleted"
         )
+
+    # Delete only this entry-owned active storage file.
+    await store.async_delete_storage()
+    const.LOGGER.info("ChoreOps storage file deleted for entry: %s", entry.entry_id)

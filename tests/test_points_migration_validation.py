@@ -24,6 +24,9 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.choreops import const
+from custom_components.choreops.helpers.storage_helpers import (
+    get_entry_storage_key_from_entry,
+)
 from tests.helpers import (
     CONF_POINTS_ICON,
     CONF_POINTS_LABEL,
@@ -35,7 +38,11 @@ from tests.helpers import (
 )
 from tests.helpers.setup import setup_from_yaml
 
-STORAGE_KEY_SCOPED = "choreops/choreops_data"
+
+def _get_storage_key_for_entry(config_entry: MockConfigEntry) -> str:
+    """Return hass_storage key for this config entry's scoped store."""
+    return f"choreops/{get_entry_storage_key_from_entry(config_entry)}"
+
 
 # =============================================================================
 # FIXTURES
@@ -257,7 +264,7 @@ class TestPointsMigrationFromV40:
         await hass.async_block_till_done()
 
         # Verify migration transformed structure
-        migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
+        migrated_data = hass_storage[_get_storage_key_for_entry(config_entry)]["data"]
         assignees = get_assignable_users(migrated_data)
 
         for assignee_id, assignee_data in assignees.items():
@@ -356,7 +363,7 @@ class TestPointsMigrationFromV40:
         await hass.async_block_till_done()
 
         # Verify historical periods preserved
-        migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
+        migrated_data = hass_storage[_get_storage_key_for_entry(config_entry)]["data"]
         migrated_assignees = get_assignable_users(migrated_data)
         migrated_monthly_count = sum(
             len(
@@ -425,7 +432,7 @@ class TestPointsMigrationFromV40:
         await hass.async_block_till_done()
 
         # Verify all_time calculation invariants for each assignable user
-        migrated_data = hass_storage[STORAGE_KEY_SCOPED]["data"]
+        migrated_data = hass_storage[_get_storage_key_for_entry(config_entry)]["data"]
         migrated_assignees = get_assignable_users(migrated_data)
         assert migrated_assignees, (
             "Expected at least one assignable user after migration"

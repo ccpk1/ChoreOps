@@ -13,7 +13,9 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.choreops import const
 from custom_components.choreops.const import CHOREOPS_TITLE
 from tests.helpers import DOMAIN
 
@@ -306,3 +308,116 @@ async def test_diagnostic_format_handling(
         )
         assert result.get("type") == FlowResultType.CREATE_ENTRY
         assert result.get("title") == CHOREOPS_TITLE
+
+
+async def test_paste_json_second_entry_uses_pending_scoped_storage(
+    hass: HomeAssistant, mock_storage_dir: Path
+) -> None:
+    """Second-entry paste JSON should stage data in flow-scoped storage, not root key."""
+    existing_entry = MockConfigEntry(
+        domain=const.DOMAIN,
+        title=const.CHOREOPS_TITLE,
+        data={},
+        options={},
+    )
+    existing_entry.add_to_hass(hass)
+
+    valid_data = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "choreops_data",
+        "data": {
+            "meta": {"schema_version": 42},
+            "assignees": {"test_assignee": {"name": "Test Assignee", "points": 100}},
+            "approvers": {},
+            "chores": {},
+            "badges": {},
+            "rewards": {},
+            "penalties": {},
+            "bonuses": {},
+            "achievements": {},
+            "challenges": {},
+        },
+    }
+
+    with patch.object(
+        hass.config,
+        "path",
+        side_effect=lambda *args: str(mock_storage_dir.parent / Path(*args)),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            const.DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"backup_selection": "paste_json"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"json_data": json.dumps(valid_data)}
+        )
+
+    assert result.get("type") == FlowResultType.CREATE_ENTRY
+    pending_key = result.get("data", {}).get(const.ENTRY_DATA_PENDING_STORAGE_KEY)
+    assert isinstance(pending_key, str)
+    assert pending_key.startswith(f"{const.STORAGE_KEY}_pending_")
+
+    pending_path = mock_storage_dir / const.STORAGE_DIRECTORY / pending_key
+    assert pending_path.exists()
+
+
+async def test_paste_json_normalizes_integer_bonus_penalty_applies(
+    hass: HomeAssistant, mock_storage_dir: Path
+) -> None:
+    """Pasted schema45-style payload should normalize int apply counters to dicts."""
+    payload = {
+        "version": 1,
+        "minor_version": 1,
+        "key": "choreops_data",
+        "data": {
+            "meta": {"schema_version": 45},
+            "users": {
+                "user_1": {
+                    "name": "User 1",
+                    "bonus_applies": {"bonus_1": 2},
+                    "penalty_applies": {"penalty_1": 3},
+                }
+            },
+            "bonuses": {"bonus_1": {"name": "Bonus 1", "points": 5.0}},
+            "penalties": {"penalty_1": {"name": "Penalty 1", "points": 2.0}},
+            "chores": {},
+            "badges": {},
+            "rewards": {},
+            "achievements": {},
+            "challenges": {},
+        },
+    }
+
+    with patch.object(
+        hass.config,
+        "path",
+        side_effect=lambda *args: str(mock_storage_dir.parent / Path(*args)),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            const.DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"backup_selection": "paste_json"}
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], user_input={"json_data": json.dumps(payload)}
+        )
+
+    assert result.get("type") == FlowResultType.CREATE_ENTRY
+    pending_key = result.get("data", {}).get(const.ENTRY_DATA_PENDING_STORAGE_KEY)
+    assert isinstance(pending_key, str)
+
+    pending_path = mock_storage_dir / const.STORAGE_DIRECTORY / pending_key
+    stored = json.loads(pending_path.read_text())
+    user_1 = stored["data"]["users"]["user_1"]
+
+    bonus_entry = user_1["bonus_applies"]["bonus_1"]
+    penalty_entry = user_1["penalty_applies"]["penalty_1"]
+
+    assert isinstance(bonus_entry, dict)
+    assert isinstance(penalty_entry, dict)
+    assert "periods" in bonus_entry
+    assert "periods" in penalty_entry

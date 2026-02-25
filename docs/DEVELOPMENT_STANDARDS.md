@@ -338,6 +338,25 @@ class RewardManager(BaseManager):
         self.coordinator.stats.record_transaction(periods, {"approved": 1})  # ❌ Violates boundary
 ```
 
+### 4d. Entry-only scope contract (non-negotiable)
+
+This is an integration-wide scope contract, not an event-only rule.
+
+- Applies to: storage, backups, config/options flows, services, event dispatch, and config entry lifecycle operations.
+- Never route by "first loaded entry" assumptions.
+- Service and workflow operations must resolve one explicit entry context (`config_entry_id` preferred) or use current entry-scoped flow context.
+- Import/restore operations must always write into the current entry-scoped storage key.
+- Unload/remove/reload paths must mutate only the owning/current entry scope.
+
+Enforcement checklist (required for all new changes):
+
+- Storage pathing uses entry-scoped key helpers, never shared active-key assumptions.
+- Backup discovery/cleanup default remains entry-scoped; broader import visibility is explicit and user-invoked.
+- Flow restore/recovery operations mutate only current entry scope.
+- Service handlers reject ambiguous multi-entry target resolution.
+- Event listeners and downstream writes do not cause cross-entry mutations.
+- Any intentional cross-entry behavior includes tests proving no out-of-scope data mutation.
+
 ---
 
 ### 5. Utils vs Helpers Boundary
@@ -797,6 +816,8 @@ signal = entity_helpers.get_event_signal(entry_id, const.SIGNAL_SUFFIX_POINTS_CH
 # Instance A: "choreops_abc123_points_changed"
 # Instance B: "choreops_xyz789_points_changed"
 ```
+
+Scope note: Full entry-only scope requirements live in **§4d Entry-only scope contract**.
 
 ##### BaseManager Pattern
 

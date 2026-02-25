@@ -69,6 +69,45 @@ async def test_async_initialize_loads_existing_data(
     assert store.data[const.DATA_CHORES] == {"chore_1": {"name": "Clean room"}}
 
 
+async def test_async_initialize_skips_legacy_fallback_when_disabled(
+    hass: HomeAssistant,
+    store: ChoreOpsStore,
+) -> None:
+    """Store should not import legacy root data when fallback is disabled."""
+    with (
+        patch.object(store._store, "async_load", return_value=None),
+        patch("custom_components.choreops.store.Store") as mock_store_cls,
+    ):
+        await store.async_initialize(allow_legacy_fallback=False)
+
+    assert mock_store_cls.call_count == 0
+    assert store.data[const.DATA_USERS] == {}
+    assert store.data[const.DATA_CHORES] == {}
+
+
+async def test_async_initialize_uses_legacy_fallback_when_enabled(
+    hass: HomeAssistant,
+    store: ChoreOpsStore,
+) -> None:
+    """Store should import legacy root data when fallback is enabled."""
+    legacy_payload = {
+        const.DATA_USERS: {"legacy_user": {"name": "Legacy"}},
+        const.DATA_CHORES: {"legacy_chore": {"name": "Legacy chore"}},
+    }
+    legacy_store = AsyncMock()
+    legacy_store.async_load = AsyncMock(return_value=legacy_payload)
+
+    with (
+        patch.object(store._store, "async_load", return_value=None),
+        patch.object(store._store, "async_save", new=AsyncMock()) as scoped_save,
+        patch("custom_components.choreops.store.Store", return_value=legacy_store),
+    ):
+        await store.async_initialize(allow_legacy_fallback=True)
+
+    assert store.data == legacy_payload
+    scoped_save.assert_called_once_with(legacy_payload)
+
+
 async def test_getter_methods_return_correct_data(
     hass: HomeAssistant,
     store: ChoreOpsStore,

@@ -352,6 +352,56 @@ class TestAuthorizationHelpers:
 
         assert is_authorized is True
 
+    async def test_unlinked_target_denies_unrelated_participation_when_not_kiosk(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Unlinked target user should not auto-authorize unrelated participation."""
+        target_assignee_id = scenario_minimal.assignee_ids["Zoë"]
+        users = scenario_minimal.coordinator._data.get(const.DATA_USERS, {})
+        assert isinstance(users, dict)
+
+        target_user_data = users.get(target_assignee_id)
+        assert isinstance(target_user_data, dict)
+        target_user_data[const.DATA_USER_HA_USER_ID] = ""
+
+        unrelated_assignee_user = mock_hass_users["assignee2"]
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            unrelated_assignee_user.id,
+            AUTH_ACTION_PARTICIPATION,
+            target_user_id=target_assignee_id,
+        )
+
+        assert is_authorized is False
+
+    async def test_admin_bypass_still_applies_for_unlinked_participation_target(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """Admin user should still bypass participation checks for unlinked targets."""
+        target_assignee_id = scenario_minimal.assignee_ids["Zoë"]
+        users = scenario_minimal.coordinator._data.get(const.DATA_USERS, {})
+        assert isinstance(users, dict)
+
+        target_user_data = users.get(target_assignee_id)
+        assert isinstance(target_user_data, dict)
+        target_user_data[const.DATA_USER_HA_USER_ID] = ""
+
+        admin_user = mock_hass_users["admin"]
+        is_authorized = await is_user_authorized_for_action(
+            hass,
+            admin_user.id,
+            AUTH_ACTION_PARTICIPATION,
+            target_user_id=target_assignee_id,
+        )
+
+        assert is_authorized is True
+
     async def test_unrelated_assignee_denied_assignee_scope(
         self,
         hass: HomeAssistant,
