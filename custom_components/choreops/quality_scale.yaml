@@ -11,7 +11,7 @@ rules:
 
   brands:
     status: exempt
-    comment: Custom integration branding is managed outside Home Assistant core brands.
+    comment: Custom integration branding is managed in integration per 2026.3.
 
   common-modules:
     status: done
