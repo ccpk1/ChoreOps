@@ -29,6 +29,17 @@ def set_default_timezone(hass):
 
 
 # ================================================================================================
+# Section index (major groups)
+# ================================================================================================
+# 1. General integration constants and runtime bootstrap
+# 2. Dashboard template and event signal constants
+# 3. Core primitives, flow keys, and storage/data keys
+# 4. Defaults, states, scanner API, and notification/action keys
+# 5. Entity attributes, entity IDs, services, labels, and registries
+# 6. Error/translation catalogs, list options, and legacy constants
+
+
+# ================================================================================================
 # General / Integration Information
 # ================================================================================================
 
@@ -124,13 +135,13 @@ PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: Final = "dashboard_card_auto_entit
 PLACEHOLDER_DASHBOARD_CARD_MINI_GRAPH_URL: Final = "dashboard_card_mini_graph_url"
 PLACEHOLDER_DASHBOARD_CARD_BUTTON_URL: Final = "dashboard_card_button_url"
 
-# ==============================================================================
-# Dashboard Template Configuration (v0.5.0-beta3, Schema 43)
-# ==============================================================================
+# ================================================================================================
+# Dashboard Template Configuration
+# ================================================================================================
 # Templates use style-based naming (not version-suffixed).
 # Schema version is bumped ONLY for breaking Python context changes.
-# Phase 1 release policy adds explicit release-source, compatibility-floor,
-# and prerelease defaults for deterministic template resolution.
+# Uses explicit release source, compatibility floor, and prerelease defaults
+# for deterministic template resolution.
 
 # Schema version for template context structure (bump when context dict changes)
 
@@ -154,7 +165,7 @@ DASHBOARD_STYLES: Final = [
 # Release-aware remote template URL pattern (resolved by tag/ref)
 DASHBOARD_RELEASE_TEMPLATE_URL_PATTERN: Final = "https://raw.githubusercontent.com/{owner}/{repo}/{ref}/templates/dashboard_{style}.yaml"
 
-# Release source for remote dashboard template catalogs (Phase 1 policy)
+# Release source for remote dashboard template catalogs
 DASHBOARD_RELEASE_REPO_OWNER: Final = "ccpk1"
 DASHBOARD_RELEASE_REPO_NAME: Final = "choreops-ha-dashboard"
 DASHBOARD_RELEASES_API_URL: Final = (
@@ -188,11 +199,11 @@ DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {
     "KCD_v0.5.4": "0.5.0"
 }
 
-# ==============================================================================
-# Event Infrastructure (Phase 0: Layered Architecture Foundation)
-# ==============================================================================
+# ================================================================================================
+# Event Infrastructure
+# ================================================================================================
 # Event Signal Suffixes (Manager-to-Manager Communication)
-# ==============================================================================
+# ================================================================================================
 # Used with helpers.entity_helpers.get_event_signal(entry_id, suffix) to create instance-scoped signals
 # Pattern: get_event_signal(entry_id, "points_changed") → "choreops_{entry_id}_points_changed"
 #
@@ -201,11 +212,11 @@ DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {
 # - Instance 2 (entry_id=xyz789): "choreops_xyz789_points_changed"
 #
 # NOTE: This is a comprehensive list based on current coordinator operations.
-# Not all signals need to be implemented immediately - add as needed per phase.
+# Implement signals as they are needed.
 
-# ==============================================================================
+# ================================================================================================
 # Lifecycle Events (Boot Cascade & System Timers)
-# ==============================================================================
+# ================================================================================================
 # Boot Cascade Order (strict sequence - each signal triggers the next):
 #   1. Coordinator loads data from storage
 #   2. await system_manager.ensure_data_integrity() [BLOCKING]
@@ -247,12 +258,12 @@ SIGNAL_SUFFIX_CHORE_DISAPPROVED: Final = "chore_disapproved"
 SIGNAL_SUFFIX_CHORE_UNDONE: Final = "chore_undone"
 SIGNAL_SUFFIX_CHORE_CLAIM_UNDONE: Final = "chore_claim_undone"
 SIGNAL_SUFFIX_CHORE_OVERDUE: Final = "chore_overdue"
-SIGNAL_SUFFIX_CHORE_MISSED: Final = "chore_missed"  # Phase 5: Missed tracking
+SIGNAL_SUFFIX_CHORE_MISSED: Final = "chore_missed"
 SIGNAL_SUFFIX_CHORE_DUE_REMINDER: Final = "chore_due_reminder"
 SIGNAL_SUFFIX_CHORE_DUE_WINDOW: Final = "chore_due_window"
 SIGNAL_SUFFIX_CHORE_STATUS_RESET: Final = "chore_status_reset"
 SIGNAL_SUFFIX_CHORE_RESCHEDULED: Final = "chore_rescheduled"
-SIGNAL_SUFFIX_CHORE_ROTATION_ADVANCED: Final = "chore_rotation_advanced"  # v0.5.0
+SIGNAL_SUFFIX_CHORE_ROTATION_ADVANCED: Final = "chore_rotation_advanced"
 
 # Reward Events (RewardManager)
 SIGNAL_SUFFIX_REWARD_CLAIMED: Final = "reward_claimed"
@@ -339,24 +350,20 @@ DATA_SCHEMA_VERSION: Final = "schema_version"
 SCHEMA_VERSION_TRANSITIONAL: Final = (
     42  # Set by migrate_config_to_storage(); signals "data in storage, structural
     # migration not yet run." Upgraded to SCHEMA_VERSION_STORAGE_ONLY by
-    # _finalize_migration_meta() after all pre-v50 phases succeed.
+    # _finalize_migration_meta() after migration completion.
 )
 SCHEMA_VERSION_STORAGE_ONLY: Final = (
-    43  # v50: Storage-only mode aligns with v0.5.0-beta3 (schema 43)
-    # Frozen: All pre-v50 migrations are hardcoded to produce this version.
+    43  # Storage-only mode baseline.
+    # Pre-storage-only migrations are hardcoded to produce this version.
 )
-SCHEMA_VERSION_BETA4: Final = (
-    44  # v0.5.0-beta4: Post-migration tweaks, only runs after schema 43 confirmed.
-)
-SCHEMA_VERSION_BETA5: Final = (
-    45  # v0.5.0-beta5: Unified users capability-model contract checkpoint.
-)
+SCHEMA_VERSION_BETA4: Final = 44  # Post-migration schema checkpoint.
+SCHEMA_VERSION_BETA5: Final = 45  # Users capability-model schema checkpoint.
 
 # Float precision for stored numeric values (points, chore stats, etc.)
 # Prevents Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
 DATA_FLOAT_PRECISION: Final = 2
 
-# Storage metadata section (for future v43+)
+# Storage metadata section
 DATA_META: Final = "meta"
 DATA_META_SCHEMA_VERSION: Final = "schema_version"
 DATA_META_LAST_MIGRATION_DATE: Final = "last_migration_date"
@@ -364,11 +371,11 @@ DATA_META_MIGRATIONS_APPLIED: Final = "migrations_applied"
 DATA_META_PENDING_EVALUATIONS: Final = "pending_evaluations"
 DATA_META_LAST_MIDNIGHT_PROCESSED: Final = "last_midnight_processed"
 
-# Storage Data Keys (Phase 2b)
+# Storage data keys
 # Top-level keys in .storage/choreops_data (not entity-specific DATA_ASSIGNEE_*, DATA_CHORE_*, etc.)
 DATA_CONFIG_ENTRY_SETTINGS: Final = "config_entry_settings"  # Backup/restore key
 
-# Item Type Identifiers (Phase 1 hard-fork user-first contract)
+# Item type identifiers
 # Used in generic item lookup functions to identify item class.
 ITEM_TYPE_USER: Final = "user"
 ITEM_TYPE_CHORE: Final = "chore"
@@ -383,17 +390,17 @@ ITEM_TYPE_CHALLENGE: Final = "challenge"
 ROLE_ASSIGNEE: Final = "assignee"
 ROLE_APPROVER: Final = "approver"
 
-# Storage Structure Keys (Phase 3 - config_flow remediation)
+# Storage structure keys
 # Common keys used in storage file structure validation and diagnostics
 DATA_KEY_VERSION: Final = "version"  # Schema version key
 DATA_KEY_DATA: Final = "data"  # Main data container key
 DATA_KEY_KEY: Final = "key"  # Storage manager key parameter
 DATA_KEY_HOME_ASSISTANT: Final = "home_assistant"  # Diagnostic format detection
 
-# Storage Path Segment (Phase 3)
+# Storage path segment
 STORAGE_PATH_SEGMENT: Final = ".storage"  # Storage directory name
 
-# Format Strings (Phase 2b)
+# Format strings
 # Date/time format patterns used across the integration
 
 # Update interval (seconds)
@@ -427,9 +434,9 @@ FREQUENCY_CUSTOM_1_MONTH: Final = "custom_1_month"
 FREQUENCY_CUSTOM_1_QUARTER: Final = "custom_1_quarter"
 FREQUENCY_CUSTOM_1_WEEK: Final = "custom_1_week"
 FREQUENCY_CUSTOM_1_YEAR: Final = "custom_1_year"
-FREQUENCY_CUSTOM_FROM_COMPLETE: Final = "custom_from_complete"  # CFE-2026-001 F1
+FREQUENCY_CUSTOM_FROM_COMPLETE: Final = "custom_from_complete"
 FREQUENCY_DAILY: Final = "daily"
-FREQUENCY_DAILY_MULTI: Final = "daily_multi"  # CFE-2026-001 F2
+FREQUENCY_DAILY_MULTI: Final = "daily_multi"
 FREQUENCY_MONTHLY: Final = "monthly"
 FREQUENCY_NONE: Final = "none"
 FREQUENCY_QUARTERLY: Final = "quarterly"
@@ -503,7 +510,7 @@ CONFIG_FLOW_STEP_RECONFIGURE: Final = "reconfigure"
 CONFIG_FLOW_STEP_REWARD_COUNT: Final = "reward_count"
 CONFIG_FLOW_STEP_REWARDS: Final = "rewards"
 
-# Config Flow Abort Reasons (Phase 3b)
+# Config flow abort reasons
 CONFIG_FLOW_ABORT_RECONFIGURE_FAILED: Final = "reconfigure_failed"
 CONFIG_FLOW_ABORT_RECONFIGURE_SUCCESSFUL: Final = "reconfigure_successful"
 
@@ -581,9 +588,7 @@ OPTIONS_FLOW_STEP_EDIT_BONUS: Final = "edit_bonus"
 OPTIONS_FLOW_STEP_EDIT_CHALLENGE: Final = "edit_challenge"
 OPTIONS_FLOW_STEP_EDIT_CHORE: Final = "edit_chore"
 OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DATES: Final = "edit_chore_per_user_dates"
-OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS: Final = (
-    "edit_chore_per_user_details"  # PKAD-2026-001
-)
+OPTIONS_FLOW_STEP_EDIT_CHORE_PER_USER_DETAILS: Final = "edit_chore_per_user_details"
 OPTIONS_FLOW_STEP_EDIT_BADGE_ACHIEVEMENT: Final = "edit_badge_achievement"
 OPTIONS_FLOW_STEP_EDIT_BADGE_CHALLENGE: Final = "edit_badge_challenge"
 OPTIONS_FLOW_STEP_EDIT_BADGE_CUMULATIVE: Final = "edit_badge_cumulative"
@@ -603,7 +608,7 @@ OPTIONS_FLOW_STEP_DELETE_USER: Final = "delete_user"
 OPTIONS_FLOW_STEP_DELETE_PENALTY: Final = "delete_penalty"
 OPTIONS_FLOW_STEP_DELETE_REWARD: Final = "delete_reward"
 
-# CFE-2026-001: Daily Multi Times Helper Step
+# Daily multi times helper step
 OPTIONS_FLOW_STEP_CHORES_DAILY_MULTI: Final = "chores_daily_multi"
 
 # ConfigFlow & OptionsFlow User Input Fields
@@ -644,7 +649,6 @@ CFOF_CHORES_INPUT_DUE_DATE: Final = "due_date"
 CFOF_CHORES_INPUT_ICON: Final = "icon"
 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: Final = "completion_criteria"
 CFOF_CHORES_INPUT_LABELS: Final = "chore_labels"
-# Phase 6: Aligned with DATA_CHORE_NAME = "name"
 CFOF_CHORES_INPUT_NAME: Final = "name"
 CFOF_CHORES_INPUT_NOTIFY_ON_APPROVAL: Final = "notify_on_approval"
 CFOF_CHORES_INPUT_NOTIFY_ON_CLAIM: Final = "notify_on_claim"
@@ -656,14 +660,14 @@ CFOF_CHORES_INPUT_DUE_WINDOW_OFFSET: Final = "chore_due_window_offset"
 CFOF_CHORES_INPUT_DUE_REMINDER_OFFSET: Final = "chore_due_reminder_offset"
 CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: Final = "chore_claim_lock_until_window"
 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: Final = "recurring_frequency"
-CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: Final = "daily_multi_times"  # CFE-2026-001 F2
+CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: Final = "daily_multi_times"
 CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
 CFOF_CHORES_INPUT_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
     "approval_reset_pending_claim_action"
 )
 CFOF_CHORES_INPUT_APPLY_TEMPLATE_TO_ALL: Final = "apply_template_to_all"
-CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL: Final = "apply_days_to_all"  # PKAD-2026-001
-CFOF_CHORES_INPUT_APPLY_TIMES_TO_ALL: Final = "apply_times_to_all"  # PKAD-2026-001
+CFOF_CHORES_INPUT_APPLY_DAYS_TO_ALL: Final = "apply_days_to_all"
+CFOF_CHORES_INPUT_APPLY_TIMES_TO_ALL: Final = "apply_times_to_all"
 CFOF_CHORES_INPUT_AUTO_APPROVE: Final = "auto_approve"
 CFOF_CHORES_INPUT_SHOW_ON_CALENDAR: Final = "show_on_calendar"
 CFOF_CHORES_INPUT_NOTIFICATIONS: Final = "chore_notifications"
@@ -700,7 +704,7 @@ CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: Final = "threshold_value"
 CFOF_BADGES_INPUT_TYPE: Final = "badge_type"
 
 # REWARDS
-# Note: Values aligned with DATA_REWARD_* constants (Phase 6 CFOF Key Alignment)
+# Values aligned with DATA_REWARD_* constants
 CFOF_REWARDS_INPUT_COST: Final = "cost"  # Aligned with DATA_REWARD_COST
 CFOF_REWARDS_INPUT_DESCRIPTION: Final = (
     "description"  # Aligned with DATA_REWARD_DESCRIPTION
@@ -715,14 +719,14 @@ CFOF_BONUSES_INPUT_BONUS_COUNT: Final = "bonus_count"
 CFOF_BONUSES_INPUT_DESCRIPTION: Final = "bonus_description"
 CFOF_BONUSES_INPUT_ICON: Final = "icon"
 CFOF_BONUSES_INPUT_LABELS: Final = "bonus_labels"
-CFOF_BONUSES_INPUT_NAME: Final = "name"  # Phase 6: Aligned with DATA_BONUS_NAME
+CFOF_BONUSES_INPUT_NAME: Final = "name"
 CFOF_BONUSES_INPUT_POINTS: Final = "bonus_points"
 
 # PENALTIES
 CFOF_PENALTIES_INPUT_DESCRIPTION: Final = "penalty_description"
 CFOF_PENALTIES_INPUT_ICON: Final = "icon"
 CFOF_PENALTIES_INPUT_LABELS: Final = "penalty_labels"
-CFOF_PENALTIES_INPUT_NAME: Final = "name"  # Phase 6: Aligned with DATA_PENALTY_NAME
+CFOF_PENALTIES_INPUT_NAME: Final = "name"
 CFOF_PENALTIES_INPUT_PENALTY_COUNT: Final = "penalty_count"
 CFOF_PENALTIES_INPUT_POINTS: Final = "penalty_points"
 
@@ -814,7 +818,7 @@ BACKUP_TAG_PRE_MIGRATION: Final = (
 )
 BACKUP_TAG_MANUAL: Final = "manual"  # User-initiated (never deleted)
 
-# System Settings (ConfigFlow & OptionsFlow)  Phase 3c: Consolidation
+# System settings (ConfigFlow & OptionsFlow)
 CFOF_SYSTEM_INPUT_POINTS_LABEL: Final = "points_label"
 CFOF_SYSTEM_INPUT_POINTS_ICON: Final = "points_icon"
 CFOF_SYSTEM_INPUT_UPDATE_INTERVAL: Final = "update_interval"
@@ -863,7 +867,7 @@ DASHBOARD_ACTION_UPDATE: Final = "update"
 DASHBOARD_ACTION_DELETE: Final = "delete"
 DASHBOARD_ACTION_EXIT: Final = "exit"
 
-# Dashboard admin-mode options (Phase 3)
+# Dashboard admin-mode options
 DASHBOARD_ADMIN_MODE_NONE: Final = "none"
 DASHBOARD_ADMIN_MODE_GLOBAL: Final = "global"
 DASHBOARD_ADMIN_MODE_PER_ASSIGNEE: Final = "per_assignee"
@@ -871,25 +875,24 @@ DASHBOARD_ADMIN_MODE_BOTH: Final = "both"
 DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL: Final = "all_users"
 DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS: Final = "linked_approvers"
 
-# Dashboard release-mode options (Phase 3)
+# Dashboard release-mode options
 DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE: Final = "latest_compatible"
 
 # Chore Custom Interval Reset Periods
 CUSTOM_INTERVAL_UNIT_OPTIONS: Final = [
     SENTINEL_EMPTY,
-    TIME_UNIT_HOURS,  # CFE-2026-001 F3
+    TIME_UNIT_HOURS,
     TIME_UNIT_DAYS,
     TIME_UNIT_WEEKS,
     TIME_UNIT_MONTHS,
 ]
 
-# Entity-Specific Configuration
-# (No legacy constants - all moved to _LEGACY section at end of file)
+# Entity-specific configuration
 
 # Notifications
 NOTIFICATION_EVENT: Final = "mobile_app_notification_action"
 
-# Legacy / Extra Entity Settings
+# Extra entity settings
 CONF_SHOW_LEGACY_ENTITIES: Final = "show_legacy_entities"
 CONF_KIOSK_MODE: Final = "kiosk_mode"
 
@@ -954,7 +957,7 @@ DATA_PENALTIES: Final = "penalties"
 DATA_PROGRESS: Final = "progress"
 DATA_REWARDS: Final = "rewards"
 
-# NOTIFICATIONS (v0.5.0+ Platinum Pattern - Owned by NotificationManager)
+# Notifications (owned by NotificationManager)
 # Separate bucket for notification history to maintain domain ownership.
 # ChoreManager owns chore_data, NotificationManager owns notifications.
 # Structure: notifications[assignee_id][chore_id] = {last_due_start, last_due_reminder, last_overdue}
@@ -963,7 +966,7 @@ DATA_NOTIF_LAST_DUE_START: Final = "last_due_start"
 DATA_NOTIF_LAST_DUE_REMINDER: Final = "last_due_reminder"
 DATA_NOTIF_LAST_OVERDUE: Final = "last_overdue"
 
-# ASSIGNEE / USER (legacy-key backed during hard-fork transition)
+# USER data keys
 DATA_USER_BADGES_EARNED_NAME: Final = "badge_name"
 DATA_USER_BADGES_EARNED_LAST_AWARDED: Final = "last_awarded_date"
 DATA_USER_BADGES_EARNED_AWARD_COUNT: Final = "award_count"
@@ -999,7 +1002,6 @@ DATA_USER_BADGE_PROGRESS_TYPE: Final = "badge_type"
 # Note: Shared fields already defined above in Common Badge Progress Fields section
 
 DATA_USER_BONUS_APPLIES: Final = "bonus_applies"
-# Legacy completed-by-other assignee list removed in v0.5.0+ (Phase 2)
 # SHARED_FIRST blocking now computed dynamically, not tracked in assignee lists
 
 # Assignee Chore Data Structure Constants
@@ -1013,7 +1015,7 @@ DATA_USER_CHORE_DATA_LAST_CLAIMED: Final = "last_claimed"
 DATA_USER_CHORE_DATA_LAST_COMPLETED: Final = "last_completed"
 DATA_USER_CHORE_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
 DATA_USER_CHORE_DATA_LAST_OVERDUE: Final = "last_overdue"
-DATA_USER_CHORE_DATA_LAST_MISSED: Final = "last_missed"  # Phase 5: Last miss timestamp
+DATA_USER_CHORE_DATA_LAST_MISSED: Final = "last_missed"
 DATA_USER_CHORE_DATA_LAST_LONGEST_STREAK_ALL_TIME: Final = (
     "last_longest_streak_all_time"
 )
@@ -1039,38 +1041,34 @@ DATA_USER_CHORE_DATA_PERIOD_LONGEST_STREAK: Final = (
     "longest_streak"  # All-time: high water mark (HWM)
 )
 DATA_USER_CHORE_DATA_PERIOD_OVERDUE: Final = "overdue"
-DATA_USER_CHORE_DATA_PERIOD_MISSED: Final = "missed"  # Phase 5: Period miss counter
+DATA_USER_CHORE_DATA_PERIOD_MISSED: Final = "missed"
 DATA_USER_CHORE_DATA_PERIOD_MISSED_STREAK_TALLY: Final = (
-    "missed_streak_tally"  # Phase 5: Daily consecutive misses
+    "missed_streak_tally"  # Daily consecutive misses
 )
 DATA_USER_CHORE_DATA_PERIOD_MISSED_LONGEST_STREAK: Final = (
-    "missed_longest_streak"  # Phase 5: All-time missed streak HWM
+    "missed_longest_streak"  # All-time missed streak HWM
 )
 DATA_USER_CHORE_DATA_PERIOD_POINTS: Final = "points"
 DATA_USER_CHORE_DATA_BADGE_REFS: Final = "badge_refs"
 
-# Current Streak Values (Chore Data Level - Never Pruned)
-# Phase 5: Store current streak values at chore data level to survive retention pruning
+# Current streak values (chore data level; never pruned)
 DATA_USER_CHORE_DATA_CURRENT_STREAK: Final = "current_streak"  # Completion streak
 DATA_USER_CHORE_DATA_CURRENT_MISSED_STREAK: Final = (
     "current_missed_streak"  # Consecutive misses
 )
 
-# Chore Periods (Global Bucket) - v44+ (Phase 2)
+# Chore periods (global bucket)
 DATA_USER_CHORE_PERIODS: Final = "chore_periods"
 # Chore periods use the same bucket keys as chore_data periods
 # (daily, weekly, monthly, yearly, all_time) - see assignee chore data period keys
 
-# NOTE: Legacy chore stats keys and sub-keys have been
-# DELETED as of v0.5.0-beta3 (schema v43). The chore_stats storage bucket was
-# removed - all stats are now derived from chore_periods.all_time and
-# chore_data[uuid].periods buckets. See _LEGACY constants at end of file.
+# Chore stats are derived from chore_periods.all_time and chore_data[uuid].periods.
 
-# --- Last Completion Date (lives in chore_data, NOT in deleted chore_stats) ---
+# --- Last completion date (lives in chore_data) ---
 # --- Badge Progress Tracking ---
 DATA_USER_CUMULATIVE_BADGE_PROGRESS: Final = "cumulative_badge_progress"
 
-# Phase 3A: Only state fields stored - derived fields computed on-read
+# Only state fields are stored; derived fields are computed on read.
 # Maintenance tracking (state fields)
 DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: Final = "cycle_points"
 DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS: Final = "status"
@@ -1079,7 +1077,7 @@ DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE = (
     "maintenance_grace_end_date"
 )
 
-# Cumulative Badge Progress Computed Fields (Phase 3A)
+# Cumulative badge progress computed fields
 # Dict keys for get_cumulative_badge_progress() return values
 CUMULATIVE_BADGE_PROGRESS_STATUS: Final = "status"
 CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: Final = "cycle_points"
@@ -1107,11 +1105,10 @@ DATA_USER_LEDGER: Final = "ledger"
 
 DATA_USER_CURRENT_STREAK: Final = "current_streak"
 DATA_USER_LAST_STREAK_DATE: Final = "last_date"
-# NOTE: Legacy overdue chore list removed - dead code (see legacy section)
 DATA_USER_PENALTY_APPLIES: Final = "penalty_applies"
 
 # ——————————————————————————————————————————————
-# Ledger Entry Structure Constants (Phase 3 - Economy Stack)
+# Ledger entry structure constants
 # Used by EconomyEngine for transaction history
 # ——————————————————————————————————————————————
 DATA_LEDGER_TIMESTAMP: Final = "timestamp"  # ISO datetime string
@@ -1125,7 +1122,7 @@ DATA_LEDGER_REFERENCE_ID: Final = "reference_id"  # Related entity ID (optional)
 DEFAULT_LEDGER_MAX_ENTRIES: Final = 1000
 
 # ——————————————————————————————————————————————
-# Assignee Reward Data Structure Constants (Modern - v0.5.0+)
+# Assignee reward data structure constants
 # Supports multi-claim: assignee can claim same reward multiple times before approval
 # ——————————————————————————————————————————————
 DATA_USER_REWARD_DATA: Final = "reward_data"
@@ -1135,20 +1132,12 @@ DATA_USER_REWARD_DATA_LAST_CLAIMED: Final = "last_claimed"
 DATA_USER_REWARD_DATA_LAST_APPROVED: Final = "last_approved"
 DATA_USER_REWARD_DATA_LAST_DISAPPROVED: Final = "last_disapproved"
 
-# LEGACY v43: Removed - use periods.all_time.* instead
-DATA_USER_REWARD_DATA_TOTAL_CLAIMS: Final = (
-    "total_claims"  # LEGACY v43: Use periods.all_time.claimed
-)
-DATA_USER_REWARD_DATA_TOTAL_APPROVED: Final = (
-    "total_approved"  # LEGACY v43: Use periods.all_time.approved
-)
-DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED: Final = (
-    "total_disapproved"  # LEGACY v43: Use periods.all_time.disapproved
-)
-DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT: Final = (
-    "total_points_spent"  # LEGACY v43: Use periods.all_time.points
-)
-DATA_USER_REWARD_DATA_NOTIFICATION_IDS: Final = "notification_ids"  # LEGACY v43: NotificationManager owns lifecycle (embeds in action buttons)
+# Legacy counters retained for compatibility; use periods.all_time.* for current logic.
+DATA_USER_REWARD_DATA_TOTAL_CLAIMS: Final = "total_claims"
+DATA_USER_REWARD_DATA_TOTAL_APPROVED: Final = "total_approved"
+DATA_USER_REWARD_DATA_TOTAL_DISAPPROVED: Final = "total_disapproved"
+DATA_USER_REWARD_DATA_TOTAL_POINTS_SPENT: Final = "total_points_spent"
+DATA_USER_REWARD_DATA_NOTIFICATION_IDS: Final = "notification_ids"
 
 # Period-based reward tracking (aligned with chore_data and point_data patterns)
 DATA_USER_REWARD_DATA_PERIODS: Final = "periods"
@@ -1162,15 +1151,12 @@ DATA_USER_REWARD_DATA_PERIOD_APPROVED: Final = "approved"
 DATA_USER_REWARD_DATA_PERIOD_DISAPPROVED: Final = "disapproved"
 DATA_USER_REWARD_DATA_PERIOD_POINTS: Final = "points"
 
-# Reward Periods (Global Bucket) - v43+ (Phase 3)
+# Reward periods (global bucket)
 DATA_USER_REWARD_PERIODS: Final = "reward_periods"
 # Reward periods use the same bucket keys as reward_data periods
 # (daily, weekly, monthly, yearly, all_time) - see assignee reward data period keys
 
-# NOTE: Legacy reward stats keys and sub-keys will be
-# DELETED in v0.5.0-beta3 (schema v43). The reward_stats storage bucket will be
-# removed - all stats will be derived from reward_periods.all_time and
-# reward_data[uuid].periods buckets. See _LEGACY constants at end of file.
+# Reward stats are derived from reward_periods.all_time and reward_data[uuid].periods.
 
 # Reward Stats Keys (aggregated stats across all rewards for an assignee)
 DATA_USER_REWARD_STATS: Final = "reward_stats"
@@ -1180,7 +1166,7 @@ DATA_USER_REWARD_STATS: Final = "reward_stats"
 DATA_USER_USE_PERSISTENT_NOTIFICATIONS: Final = "use_persistent_notifications"
 DATA_USER_DASHBOARD_LANGUAGE: Final = "dashboard_language"
 
-# USERS (schema 45+ capability model)
+# USERS (capability model)
 DATA_USER_ID: Final = "user_id"
 DATA_USER_INTERNAL_ID: Final = "internal_id"
 DATA_USER_NAME: Final = "name"
@@ -1197,7 +1183,7 @@ DATA_USER_ENABLE_GAMIFICATION: Final = "enable_gamification"
 DEFAULT_USER_ENABLE_CHORE_WORKFLOW: Final = False
 DEFAULT_USER_ENABLE_GAMIFICATION: Final = False
 
-# Legacy payload compatibility window (Phase 1 contract)
+# Legacy payload compatibility window
 
 # ——————————————————————————————————————————————
 # Custom Translation Settings (Dashboard & Notifications)
@@ -1215,7 +1201,7 @@ REPORT_TRANSLATIONS_SUFFIX: Final = "_report"  # File naming: en_report.json
 # Assignee Point History Data Structure
 # ——————————————————————————————————————————————
 
-# Top‑level key for storing period‑by‑period point history (v43+)
+# Top-level key for storing period-by-period point history
 DATA_USER_POINT_PERIODS: Final = "point_periods"
 
 # Individual period buckets
@@ -1226,11 +1212,10 @@ DATA_USER_POINT_PERIODS_YEARLY: Final = "yearly"
 DATA_USER_POINT_PERIODS_ALL_TIME: Final = "all_time"
 
 # Within each period entry:
-#   – points_earned: sum of positive deltas (v44+)
-#   – points_spent: sum of negative deltas (v44+)
+#   – points_earned: sum of positive deltas
+#   – points_spent: sum of negative deltas
 #   – by_source: breakdown of delta by source type
-#   – highest_balance: cumulative peak (all_time bucket only, v44+)
-# DEPRECATED (v44): points_total will be deleted after migration
+#   – highest_balance: cumulative peak (all_time bucket only)
 DATA_USER_POINT_PERIOD_POINTS_EARNED: Final = "points_earned"
 DATA_USER_POINT_PERIOD_POINTS_SPENT: Final = "points_spent"
 DATA_USER_POINT_PERIOD_HIGHEST_BALANCE: Final = "highest_balance"
@@ -1253,16 +1238,16 @@ POINTS_SOURCE_OTHER: Final = "other"
 
 
 # --- Averages ---
-# NOTE: avg_*_week/month keys are NOT persisted (Phase 7.5). avg_per_chore is persisted.
+# NOTE: avg_*_week/month keys are not persisted. avg_per_chore is persisted.
 # LEGACY constants moved to `migration_pre_v50_constants.py`
 
-# =============================================================================
+# ================================================================================================
 # PRESENTATION CONSTANTS (assignee scoped) - Memory-only cache keys (NOT in storage)
-# =============================================================================
+# ================================================================================================
 # These constants are used ONLY in StatisticsManager._stats_cache.
 # They represent ephemeral, derived data that can be regenerated from buckets.
 # Directive: Derivative Data is Ephemeral - these MUST NOT be persisted.
-# See Phase 7.5: Statistics Presenter & Data Sanitization
+# See statistics presenter and data sanitization guidance.
 # Naming: PRES_USER_* follows DATA_ASSIGNEE_* pattern for assignee-specific values.
 
 # --- Presentation: Point Stats (derived from period buckets) ---
@@ -1379,24 +1364,20 @@ CHORE_CLAIM_LOCK_UNTIL_WINDOW: Final = "chore_claim_lock_until_window"
 DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW: Final = CHORE_CLAIM_LOCK_UNTIL_WINDOW
 DATA_CHORE_AUTO_APPROVE: Final = "auto_approve"
 DATA_CHORE_RECURRING_FREQUENCY: Final = "recurring_frequency"
-DATA_CHORE_DAILY_MULTI_TIMES: Final = "daily_multi_times"  # CFE-2026-001 F2
+DATA_CHORE_DAILY_MULTI_TIMES: Final = "daily_multi_times"
 DATA_CHORE_SHOW_ON_CALENDAR: Final = "show_on_calendar"
 # Completion criteria
 DATA_CHORE_COMPLETION_CRITERIA: Final = "completion_criteria"
 
-# Rotation tracking (v0.5.0 Chore Logic)
+# Rotation tracking
 DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID: Final = (
     "rotation_current_assignee_id"  # UUID of current turn holder
 )
 DATA_CHORE_ROTATION_CYCLE_OVERRIDE: Final = "rotation_cycle_override"  # Boolean: temp allow any assignee to claim (cleared on advancement)
 
 DATA_CHORE_PER_ASSIGNEE_DUE_DATES: Final = "per_assignee_due_dates"
-DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS: Final = (
-    "per_assignee_applicable_days"  # PKAD-2026-001
-)
-DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES: Final = (
-    "per_assignee_daily_multi_times"  # PKAD-2026-001
-)
+DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS: Final = "per_assignee_applicable_days"
+DATA_CHORE_PER_ASSIGNEE_DAILY_MULTI_TIMES: Final = "per_assignee_daily_multi_times"
 DATA_CHORE_OVERDUE_HANDLING_TYPE: Final = "overdue_handling_type"
 DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
     "approval_reset_pending_claim_action"
@@ -1406,7 +1387,7 @@ DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: Final = (
 COMPLETION_CRITERIA_SHARED: Final = "shared_all"
 COMPLETION_CRITERIA_INDEPENDENT: Final = "independent"
 COMPLETION_CRITERIA_SHARED_FIRST: Final = "shared_first"
-# Rotation modes (v0.5.0 Chore Logic - Design v2: 2 types only)
+# Rotation modes
 COMPLETION_CRITERIA_ROTATION_SIMPLE: Final = "rotation_simple"
 COMPLETION_CRITERIA_ROTATION_SMART: Final = "rotation_smart"
 COMPLETION_CRITERIA_OPTIONS: Final = [
@@ -1417,7 +1398,7 @@ COMPLETION_CRITERIA_OPTIONS: Final = [
     {"value": COMPLETION_CRITERIA_ROTATION_SMART, "label": "rotation_smart"},
 ]
 
-# Approval Reset Type Values (Phase 4)
+# Approval reset type values
 # Controls when a chore can be claimed/approved again after completion
 APPROVAL_RESET_AT_MIDNIGHT_ONCE: Final = "at_midnight_once"
 APPROVAL_RESET_AT_MIDNIGHT_MULTI: Final = "at_midnight_multi"
@@ -1435,7 +1416,7 @@ APPROVAL_RESET_TYPE_OPTIONS: Final = [
 ]
 DEFAULT_APPROVAL_RESET_TYPE: Final = APPROVAL_RESET_AT_MIDNIGHT_ONCE
 
-# Overdue Handling Type Values (Phase 5)
+# Overdue handling type values
 # Controls when/if a chore shows as overdue
 OVERDUE_HANDLING_AT_DUE_DATE: Final = "at_due_date"
 OVERDUE_HANDLING_NEVER_OVERDUE: Final = "never_overdue"
@@ -1446,14 +1427,12 @@ OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE: Final = (
     "at_due_date_clear_immediate_on_late"
 )
 OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED: Final = (
-    "at_due_date_clear_and_mark_missed"  # Phase 5: Reset + record miss stats
+    "at_due_date_clear_and_mark_missed"
 )
 OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK: Final = (
-    "at_due_date_mark_missed_and_lock"  # v0.5.0: Lock chore on miss
+    "at_due_date_mark_missed_and_lock"
 )
-OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL: Final = (
-    "at_due_date_allow_steal"  # v0.5.0: Rotation steal window (7th type, D-06 revised)
-)
+OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL: Final = "at_due_date_allow_steal"
 OVERDUE_HANDLING_TYPE_OPTIONS: Final = [
     {"value": OVERDUE_HANDLING_NEVER_OVERDUE, "label": "never_overdue"},
     {"value": OVERDUE_HANDLING_AT_DUE_DATE, "label": "at_due_date"},
@@ -1482,7 +1461,7 @@ DEFAULT_OVERDUE_HANDLING_TYPE: Final = (
     OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE
 )
 
-# Approval Reset Pending Claim Action Values (Phase 5)
+# Approval reset pending-claim action values
 # Controls what happens to pending (unapproved) claims at approval reset
 APPROVAL_RESET_PENDING_CLAIM_HOLD: Final = "hold_pending"
 APPROVAL_RESET_PENDING_CLAIM_CLEAR: Final = "clear_pending"
@@ -1630,8 +1609,7 @@ DATA_CHALLENGE_TYPE: Final = "type"
 # ================================================================================================
 # Default Icons
 # ================================================================================================
-# System Icon Defaults (user-configurable in system settings)
-# ================================================================================================
+# System icon defaults (user-configurable in system settings)
 DEFAULT_POINTS_ICON: Final = "mdi:star-outline"
 
 # ================================================================================================
@@ -1790,7 +1768,7 @@ CHORE_STATE_DUE = "due"
 CHORE_STATE_WAITING = "waiting"
 CHORE_STATE_NOT_MY_TURN = "not_my_turn"
 
-# State source-of-truth contracts (Phase 5)
+# State source-of-truth contracts
 # - Assignee-level persisted state: workflow checkpoints stored in assignee_chore_data
 # - Assignee-level derived state: display/claimability states resolved at runtime
 # - Chore-level persisted state: aggregate snapshot stored on chore record
@@ -1835,7 +1813,7 @@ CHORE_CTX_LAST_COMPLETED: Final = "last_completed"
 CHORE_SCAN_TRIGGER_MIDNIGHT: Final = "midnight"  # AT_MIDNIGHT_* chore processing
 CHORE_SCAN_TRIGGER_DUE_DATE: Final = "due_date"  # AT_DUE_DATE_* chore processing
 
-# Reset policy trigger + decision constants (Phase 1 unification)
+# Reset policy trigger and decision constants
 CHORE_RESET_TRIGGER_APPROVAL: Final = "approval"
 
 CHORE_RESET_BOUNDARY_CATEGORY_HOLD: Final = "hold"
@@ -1879,9 +1857,9 @@ CUMULATIVE_BADGE_STATE_ACTIVE = "active"
 CUMULATIVE_BADGE_STATE_GRACE = "grace"
 CUMULATIVE_BADGE_STATE_DEMOTED = "demoted"
 
-# ------------------------------------------------------------------------------------------------
+# ================================================================================================
 # Actions
-# ------------------------------------------------------------------------------------------------
+# ================================================================================================
 
 # Action titles for notifications (translation keys)
 TRANS_KEY_NOTIF_ACTION_APPROVE: Final = "notif_action_approve"
@@ -1899,7 +1877,6 @@ TRANS_KEY_NOTIF_ACTION_SKIP: Final = "notif_action_skip"
 #   - Approver notifications: Informative, third-person, actionable content
 #   - Grouped by category (chores, rewards, gamification) within each audience
 #
-# Note: This is a cosmetic organization only - no functional changes.
 # All keys maintain exact same string values for translation system compatibility.
 #
 
@@ -1928,10 +1905,10 @@ TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE: Final = (
 )
 
 TRANS_KEY_NOTIF_TITLE_CHORE_MISSED_ASSIGNEE: Final = (
-    "notification_title_chore_missed_assignee"  # Phase 5
+    "notification_title_chore_missed_assignee"
 )
 TRANS_KEY_NOTIF_MESSAGE_CHORE_MISSED_ASSIGNEE: Final = (
-    "notification_message_chore_missed_assignee"  # Phase 5
+    "notification_message_chore_missed_assignee"
 )
 
 
@@ -2202,10 +2179,10 @@ ATTR_CHORE_CLAIMS_COUNT: Final = "chore_claims_count"
 ATTR_CHORE_COMPLETED_COUNT: Final = "chore_completed_count"
 ATTR_CHORE_CURRENT_STREAK: Final = "chore_current_streak"
 ATTR_CHORE_LONGEST_STREAK: Final = "chore_longest_streak"
-ATTR_CHORE_CURRENT_MISSED_STREAK: Final = "chore_current_missed_streak"  # Phase 5
-ATTR_CHORE_LONGEST_MISSED_STREAK: Final = "chore_longest_missed_streak"  # Phase 5
-ATTR_CHORE_MISSED_COUNT: Final = "chore_missed_count"  # Phase 5
-ATTR_CHORE_LAST_MISSED: Final = "chore_last_missed"  # Phase 5
+ATTR_CHORE_CURRENT_MISSED_STREAK: Final = "chore_current_missed_streak"
+ATTR_CHORE_LONGEST_MISSED_STREAK: Final = "chore_longest_missed_streak"
+ATTR_CHORE_MISSED_COUNT: Final = "chore_missed_count"
+ATTR_CHORE_LAST_MISSED: Final = "chore_last_missed"
 ATTR_CHORE_POINTS_EARNED: Final = "chore_points_earned"
 ATTR_CHORE_OVERDUE_COUNT: Final = "chore_overdue_count"
 ATTR_CHORE_DISAPPROVED_COUNT: Final = "chore_disapproved_count"
@@ -2371,7 +2348,7 @@ ATTR_CHORE_IS_TODAY_AM: Final = "is_today_am"
 ATTR_CHORE_LABELS: Final = "labels"
 ATTR_CHORE_PRIMARY_GROUP: Final = "primary_group"
 
-# Phase 4: Rotation and availability dashboard attributes
+# Rotation and availability dashboard attributes
 ATTR_CHORE_LOCK_REASON: Final = "lock_reason"
 ATTR_CHORE_TURN_USER_NAME: Final = "turn_user_name"
 ATTR_CHORE_AVAILABLE_AT: Final = "available_at"
@@ -2576,14 +2553,12 @@ SERVICE_REMOVE_AWARDED_BADGES: Final = "remove_awarded_badges"
 SERVICE_RESET_CHORES_TO_PENDING_STATE: Final = (
     "reset_chores_to_pending_state"  # Renamed from reset_all_chores
 )
-# NOTE: SERVICE_RESET_ALL_DATA, SERVICE_RESET_ALL_CHORES renamed in v0.6.0 to factory_reset, reset_chores_to_pending_state
-# NOTE: SERVICE_RESET_BONUSES, SERVICE_RESET_PENALTIES, SERVICE_RESET_REWARDS removed in v0.6.0
 # Superseded by SERVICE_RESET_TRANSACTIONAL_DATA with scope="assignee" or "global" and item_type filter
 SERVICE_RESET_OVERDUE_CHORES: Final = "reset_overdue_chores"
 SERVICE_RESET_TRANSACTIONAL_DATA: Final = "reset_transactional_data"
 SERVICE_SET_CHORE_DUE_DATE: Final = "set_chore_due_date"
 SERVICE_SKIP_CHORE_DUE_DATE: Final = "skip_chore_due_date"
-# Phase 3 Step 7 - Rotation management services (v0.5.0)
+# Rotation management services
 SERVICE_SET_ROTATION_TURN: Final = "set_rotation_turn"
 SERVICE_RESET_ROTATION: Final = "reset_rotation"
 SERVICE_OPEN_ROTATION_CYCLE: Final = "open_rotation_cycle"
@@ -2640,9 +2615,7 @@ SERVICE_FIELD_APPROVER_NAME: Final = "approver_name"
 # Chore service fields (workflow)
 SERVICE_FIELD_CHORE_NAME: Final = "chore_name"
 SERVICE_FIELD_CHORE_ID: Final = "chore_id"
-SERVICE_FIELD_MARK_AS_MISSED: Final = (
-    "mark_as_missed"  # Phase 5: Skip service parameter
-)
+SERVICE_FIELD_MARK_AS_MISSED: Final = "mark_as_missed"
 
 # Chore service fields (CRUD) - user-friendly names for service calls
 SERVICE_FIELD_CHORE_CRUD_ID: Final = "id"
@@ -2665,7 +2638,7 @@ SERVICE_FIELD_CHORE_CRUD_DUE_DATE: Final = "due_date"
 SERVICE_FIELD_CHORE_CRUD_DUE_WINDOW_OFFSET: Final = "due_window_offset"
 SERVICE_FIELD_CHORE_CRUD_DUE_REMINDER_OFFSET: Final = "due_reminder_offset"
 
-# ==== Test aliases for convenience (used in Phase 1 tests) ====
+# ==== Test aliases for convenience ====
 SERVICE_FIELD_NAME: Final = "name"  # Alias for SERVICE_FIELD_CHORE_CRUD_NAME
 SERVICE_FIELD_ASSIGNED_USER_NAMES: Final = (
     "assigned_user_names"  # Alias for SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES
@@ -2778,7 +2751,6 @@ DEFAULT_MIGRATIONS_APPLIED: Final = [
 # ------------------------------------------------------------------------------------------------
 # These PREFIX patterns are deprecated. New entities use SUFFIX pattern.
 # Kept only for _extract_assignee_id_from_unique_id() and migration scripts.
-# TODO: Remove after v1.0 when all users have migrated
 BUTTON_BONUS_PREFIX: Final = "bonus_button_"  # DEPRECATED
 BUTTON_PENALTY_PREFIX: Final = "penalty_button_"  # DEPRECATED
 BUTTON_REWARD_PREFIX: Final = "reward_button_"  # DEPRECATED
@@ -2904,7 +2876,7 @@ ENTITY_REGISTRY: Final[dict[str, EntityRequirement]] = {
 # Errors and Warnings
 # ------------------------------------------------------------------------------------------------
 
-# Translation Keys for Phase 2b: Generic Error Templates (coordinator.py remediation)
+# Generic error templates (coordinator.py)
 # These 12 templates replace 41 hardcoded f-strings in coordinator.py using placeholders
 # Format: TRANS_KEY_ERROR_{CATEGORY} with translation_placeholders for dynamic values
 TRANS_KEY_ERROR_NOT_FOUND: Final = "not_found"  # {entity_type} '{name}' not found
@@ -2958,11 +2930,11 @@ TRANS_KEY_ERROR_CHORE_NOT_FOUND: Final = (
 TRANS_KEY_ERROR_MISSING_CHORE_IDENTIFIER: Final = (
     "missing_chore_identifier"  # Must provide chore_id or chore_name
 )
-# v0.5.0 Chore Logic: Rotation & claim restriction translations
+# Rotation and claim restriction translations
 TRANS_KEY_ERROR_ROTATION_MIN_ASSIGNEES: Final = (
     "rotation_min_assignees"  # Rotation chores require at least 2 assigned assignees
 )
-# Phase 3 Step 7 - Rotation management service error keys (v0.5.0)
+# Rotation management service error keys
 TRANS_KEY_ERROR_NOT_ROTATION: Final = "not_rotation"  # Chore is not in rotation mode
 TRANS_KEY_ERROR_ASSIGNEE_NOT_ASSIGNED: Final = (
     "assignee_not_assigned"  # Assignee not assigned to this chore
@@ -2987,7 +2959,7 @@ TRANS_KEY_ERROR_DATA_RESET_ITEM_NOT_FOUND: Final = (
 TRANS_KEY_ERROR_DATA_RESET_INVALID_SCOPE: Final = "data_reset_invalid_scope"  # Invalid scope '{scope}'. Must be: global, user, item_type, or item
 TRANS_KEY_ERROR_DATA_RESET_INVALID_ITEM_TYPE: Final = "data_reset_invalid_item_type"  # Invalid item_type '{item_type}'. Must be: assignees, chores, etc.
 
-# Translation Keys for Phase 2-4 Error Migration (Action Templating)
+# Error action templating keys
 # These map to templated exceptions in translations/en.json using action labels
 TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION: Final = "not_authorized_action"
 TRANS_KEY_ERROR_NOT_AUTHORIZED_ACTION_GLOBAL: Final = "not_authorized_action_global"
@@ -3012,7 +2984,7 @@ TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND: Final = "error_msg_no_entry_found"
 TRANS_KEY_ERROR_SERVICE_TARGET_AMBIGUOUS: Final = "service_target_ambiguous"
 TRANS_KEY_ERROR_SERVICE_TARGET_TITLE_NOT_FOUND: Final = "service_target_title_not_found"
 
-# Config Flow & Options Flow Translation Keys (Phase 2b)
+# Config flow and options flow translation keys
 # Generic templates for validation errors across config/options flows
 TRANS_KEY_CFOF_DUPLICATE_NAME: Final = "duplicate_name"  # Name already exists
 TRANS_KEY_CFOF_CHORE_OPTIONS_REQUIRE_ASSIGNMENT: Final = (
@@ -3043,18 +3015,14 @@ CFOP_ERROR_BASE: Final = "base"
 CFOP_ERROR_CORRUPT_FILE: Final = "corrupt_file"
 CFOP_ERROR_FILE_NOT_FOUND: Final = "file_not_found"
 CFOP_ERROR_INVALID_JSON: Final = "invalid_json"
-# Phase 6: Aligned with CFOF_BONUSES_INPUT_NAME = "name"
 CFOP_ERROR_BONUS_NAME: Final = "name"
-# Phase 6: Aligned with CFOF_CHORES_INPUT_NAME = "name"
 CFOP_ERROR_CHORE_NAME: Final = "name"
 CFOP_ERROR_USER_NAME: Final = "name"
 CFOP_ERROR_DUE_DATE: Final = "due_date"
 CFOP_ERROR_END_DATE: Final = "end_date"
-# Phase 6: Aligned with CFOF_PENALTIES_INPUT_NAME = "name"
 CFOP_ERROR_PENALTY_NAME: Final = "name"
-# Phase 6: Aligned with CFOF_REWARDS_INPUT_NAME = "name"
 CFOP_ERROR_REWARD_NAME: Final = "name"
-CFOP_ERROR_REWARD_COST: Final = "cost"  # Phase 6: Aligned with CFOF_REWARDS_INPUT_COST
+CFOP_ERROR_REWARD_COST: Final = "cost"
 CFOP_ERROR_SELECT_CHORE_ID: Final = "selected_chore_id"
 CFOP_ERROR_START_DATE: Final = "start_date"
 CFOP_ERROR_CHORE_OPTIONS: Final = (
@@ -3063,11 +3031,11 @@ CFOP_ERROR_CHORE_OPTIONS: Final = (
 # Additional error keys used by config_flow.py abort() calls
 CFOP_ERROR_INVALID_STRUCTURE: Final = "invalid_structure"
 CFOP_ERROR_UNKNOWN: Final = "unknown"
-# Phase 3 additions for config_flow remediation
+# Additional error keys used by config_flow.py abort() calls
 CFOP_ERROR_EMPTY_JSON: Final = "empty_json"  # Empty JSON data provided
 CFOP_ERROR_INVALID_SELECTION: Final = "invalid_selection"  # Invalid menu selection
 CFOP_ERROR_OVERDUE_RESET_COMBO: Final = "overdue_handling_type"  # Invalid combination
-# Phase 3c: System Settings Consolidation
+# System settings consolidation
 CFOP_ERROR_UPDATE_INTERVAL: Final = "update_interval"
 CFOP_ERROR_CALENDAR_SHOW_PERIOD: Final = "calendar_show_period"
 CFOP_ERROR_RETENTION_DAILY: Final = "retention_daily"
@@ -3076,7 +3044,7 @@ CFOP_ERROR_RETENTION_MONTHLY: Final = "retention_monthly"
 CFOP_ERROR_RETENTION_YEARLY: Final = "retention_yearly"
 CFOP_ERROR_POINTS_ADJUST_VALUES: Final = "points_adjust_values"
 CFOP_ERROR_CHORE_POINTS: Final = "points"  # Invalid chore points value
-# CFE-2026-001: Daily Multi validation error keys
+# Daily multi validation error keys
 CFOP_ERROR_DAILY_MULTI_RESET: Final = "recurring_frequency"  # Uses frequency field
 CFOP_ERROR_DAILY_MULTI_USER_IDS: Final = (
     "assigned_user_ids"  # Uses assigned_user_ids field
@@ -3087,7 +3055,7 @@ CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
 )
 
 # ------------------------------------------------------------------------------------------------
-# Dashboard Helper Sensor Attributes (Phase 2b)
+# Dashboard helper sensor attributes
 # JSON keys exposed in sensor.kc_<assignee>_ui_dashboard_helper attributes for dashboard consumption
 # ------------------------------------------------------------------------------------------------
 ATTR_DASHBOARD_CHORES: Final = "chores"
@@ -3166,7 +3134,7 @@ TRANS_KEY_CFOF_ERROR_BADGE_OCCASION_TYPE_REQUIRED: Final = (
     "error_badge_occasion_type_required"
 )
 TRANS_KEY_CFOF_BADGE_REQUIRES_ASSIGNMENT: Final = "badge_requires_assignment"
-# CFE-2026-001 Error Keys
+# Daily multi error keys
 TRANS_KEY_CFOF_ERROR_DAILY_MULTI_REQUIRES_COMPATIBLE_RESET: Final = (
     "error_daily_multi_requires_compatible_reset"
 )
@@ -3185,15 +3153,15 @@ TRANS_KEY_CFOF_ERROR_DAILY_MULTI_TIMES_TOO_FEW: Final = (
 TRANS_KEY_CFOF_ERROR_DAILY_MULTI_TIMES_TOO_MANY: Final = (
     "error_daily_multi_times_too_many"
 )
-# v0.5.0: V-05 validation error - steal mechanic compatibility
-TRANS_KEY_CFOF_ERROR_ALLOW_STEAL_INCOMPATIBLE: Final = "error_allow_steal_incompatible"  # V-05: steal requires rotation + at_midnight_once + due_date
+# Validation key for steal mechanic compatibility
+TRANS_KEY_CFOF_ERROR_ALLOW_STEAL_INCOMPATIBLE: Final = "error_allow_steal_incompatible"
 TRANS_KEY_CFOF_ERROR_DAILY_MULTI_DUE_DATE_REQUIRED: Final = (
     "error_daily_multi_due_date_required"
 )
 TRANS_KEY_CFOF_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE: Final = (
     "error_at_due_date_reset_requires_due_date"
 )
-# PKAD-2026-001 Error Keys
+# Per-assignee schedule error keys
 TRANS_KEY_CFOF_ERROR_PER_ASSIGNEE_APPLICABLE_DAYS_INVALID: Final = (
     "error_per_assignee_applicable_days_invalid"
 )
@@ -3281,13 +3249,13 @@ SUMMARY_LABEL_APPROVAL_CAPABLE_USERS: Final = "Approval-capable users: "
 SUMMARY_LABEL_PENALTIES: Final = "Penalties: "
 SUMMARY_LABEL_REWARDS: Final = "Rewards: "
 
-# Phase 3c: System Settings Translation Keys
+# System settings translation keys
 TRANS_KEY_CFOF_INVALID_UPDATE_INTERVAL: Final = "invalid_update_interval"
 TRANS_KEY_CFOF_INVALID_CALENDAR_SHOW_PERIOD: Final = "invalid_calendar_show_period"
 TRANS_KEY_CFOF_INVALID_RETENTION_PERIOD: Final = "invalid_retention_period"
 TRANS_KEY_CFOF_INVALID_POINTS_ADJUST_VALUES: Final = "invalid_points_adjust_values"
 
-# Dashboard Generator Translation Keys (Phase 4)
+# Dashboard generator translation keys
 TRANS_KEY_CFOF_DASHBOARD_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 TRANS_KEY_CFOF_DASHBOARD_EXISTS: Final = "dashboard_exists"
 TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_ERROR: Final = "dashboard_template_error"
@@ -3463,7 +3431,7 @@ NOTIFY_APPROVER_NAME = "approver_name"
 NOTIFY_PERSISTENT_NOTIFICATION = "persistent_notification"
 NOTIFY_TITLE = "title"
 
-# Notification Tag System (v0.5.0+)
+# Notification tag system
 # Tags enable smart notification replacement: same tag = replace in-place, no stacking
 NOTIFY_TAG = "tag"
 NOTIFY_TAG_PREFIX = "choreops"
@@ -3758,21 +3726,12 @@ CHALLENGE_TYPE_OPTIONS = [
 
 
 # ================================================================================================
-# DEPRECATED CONSTANTS (Currently active in existing version, planned for future refactoring)
-# These reference CONSTANTS that are actively used in production code.
-# They are marked for eventual replacement when underlying features are refactored.
-# Must be named as _DEPRECATED and organized in the dedicates section at the bottom of const.py.
-# DO NOT DELETE - would break installations without migration.
+# Deprecated constants (compatibility)
 # ================================================================================================
 
 # Not in use at this time
 
 # ================================================================================================
-# LEGACY CONSTANTS for one-time data conversion only (migration support)
-# These reference constants that are replaced during migration.
-# After migration completes, these keys NO LONGER EXIST in storage.
-# Remove in KC-vNext after migration support is dropped.
-# Must be named as _LEGACY and organized in the dedicates section at the bottom of const.py.
-# DO NOT DELETE - would break migrations for upgrading users.
+# Legacy constants (one-time migration support)
 # ================================================================================================
 # Legacy constants are defined in `migration_pre_v50_constants.py` and re-exported here.

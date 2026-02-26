@@ -1864,6 +1864,12 @@ class ChoreManager(BaseManager):
                     str(chore_info.get(const.DATA_CHORE_NAME, chore_id))
                 )
                 continue
+            if current_state == const.CHORE_STATE_MISSED:
+                skipped_already_overdue += 1
+                skipped_already_overdue_chore_names.add(
+                    str(chore_info.get(const.DATA_CHORE_NAME, chore_id))
+                )
+                continue
 
             # Validate assignee and chore exist
             try:
@@ -2189,6 +2195,8 @@ class ChoreManager(BaseManager):
 
         if explicit_state == const.CHORE_STATE_OVERDUE:
             return const.CHORE_STATE_OVERDUE
+        if explicit_state == const.CHORE_STATE_MISSED:
+            return const.CHORE_STATE_MISSED
         if explicit_state == const.CHORE_STATE_CLAIMED:
             return const.CHORE_STATE_CLAIMED
         if explicit_state in (
@@ -3108,6 +3116,12 @@ class ChoreManager(BaseManager):
         if self.chore_has_pending_claim(assignee_id, chore_id):
             return False
         if self.chore_is_approved_in_period(assignee_id, chore_id):
+            return False
+        assignee_state = self._get_assignee_chore_data(assignee_id, chore_id).get(
+            const.DATA_USER_CHORE_DATA_STATE,
+            const.CHORE_STATE_PENDING,
+        )
+        if assignee_state == const.CHORE_STATE_MISSED:
             return False
         return True
 
@@ -4652,7 +4666,7 @@ class ChoreManager(BaseManager):
             )
             if turn_assignee_id in assigned_assignees:
                 turn_assignee_chore_data = self._get_assignee_chore_data(
-                    cast("str", turn_assignee_id),
+                    turn_assignee_id,
                     chore_id,
                 )
                 turn_state = turn_assignee_chore_data.get(
@@ -4661,6 +4675,11 @@ class ChoreManager(BaseManager):
                 )
                 if turn_state == const.CHORE_STATE_NOT_MY_TURN:
                     turn_state = const.CHORE_STATE_PENDING
+                elif turn_state == const.CHORE_STATE_CLAIMED:
+                    # Closed rotation with an active claim is a mixed assignee-state
+                    # condition (claimer + non-turn holders), so expose independent
+                    # at chore level while per-assignee sensors keep claimant state.
+                    turn_state = const.CHORE_STATE_INDEPENDENT
                 chore_data[const.DATA_CHORE_STATE] = turn_state
                 return
 

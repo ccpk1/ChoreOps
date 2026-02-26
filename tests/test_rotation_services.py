@@ -352,7 +352,6 @@ async def test_open_rotation_cycle_allows_one_claim_then_blocks_others(
     """
     from homeassistant.core import Context
 
-    scenario_shared
     await hass.async_block_till_done()
 
     config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]

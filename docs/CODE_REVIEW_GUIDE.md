@@ -44,7 +44,7 @@ Pass criteria:
 #### B. Lexicon check (items vs entities)
 
 ```bash
-grep -rn "Chore Entity\|Kid Entity\|Parent Entity\|Badge Entity\|Reward Entity\|User Entity" custom_components/choreops/
+grep -rn "Chore Entity\|User Entity\|Badge Entity\|Reward Entity\|User Entity" custom_components/choreops/
 grep -rn "entity data\|Entity data" custom_components/choreops/ | grep -v "Entity ID"
 ```
 

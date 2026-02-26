@@ -1412,6 +1412,17 @@ class ChoreEngine:
             if overdue_handling == const.OVERDUE_HANDLING_NEVER_OVERDUE:
                 return "skip"
 
+        # MISSED state = strict-overdue lock mode only
+        # For mark_missed_and_lock, boundary processing should clear/reset the locked
+        # missed state for the next cycle.
+        if current_state == const.CHORE_STATE_MISSED:
+            if (
+                overdue_handling
+                == const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK
+            ):
+                return "reset_and_reschedule" if has_due_date else "reset_only"
+            return "skip"
+
         # Default: skip unknown states
         return "skip"
 
