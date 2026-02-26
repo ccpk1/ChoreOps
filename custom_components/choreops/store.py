@@ -175,7 +175,13 @@ class ChoreOpsStore:
                     )
                     legacy_data = await legacy_store.async_load()
                     if legacy_data is not None:
-                        self._data = legacy_data
+                        if not self.set_data(legacy_data):
+                            const.LOGGER.error(
+                                "ERROR: Legacy storage payload from %s is invalid; initializing defaults",
+                                legacy_key,
+                            )
+                            self._data = ChoreOpsStore.get_default_structure()
+                            return
                         await self._store.async_save(self._data)
                         const.LOGGER.info(
                             "INFO: Migrated legacy storage key %s into %s",
@@ -193,7 +199,11 @@ class ChoreOpsStore:
             )
         else:
             # Load existing data into memory.
-            self._data = existing_data
+            if not self.set_data(existing_data):
+                const.LOGGER.error(
+                    "ERROR: Existing storage payload is invalid; resetting to default structure"
+                )
+                self._data = ChoreOpsStore.get_default_structure()
             const.LOGGER.debug(
                 "DEBUG: Loaded existing data from storage: %s entities",
                 {
@@ -241,23 +251,172 @@ class ChoreOpsStore:
         """
         return self._store.path
 
-    def set_data(self, new_data: dict[str, Any]) -> None:
-        """Replace the entire in-memory data structure."""
+    @staticmethod
+    def _get_entity_internal_id_map() -> dict[str, str]:
+        """Return entity bucket to required internal id field mapping."""
+        return {
+            const.DATA_USERS: const.DATA_USER_INTERNAL_ID,
+            const.DATA_CHORES: const.DATA_CHORE_INTERNAL_ID,
+            const.DATA_BADGES: const.DATA_BADGE_INTERNAL_ID,
+            const.DATA_REWARDS: const.DATA_REWARD_INTERNAL_ID,
+            const.DATA_PENALTIES: const.DATA_PENALTY_INTERNAL_ID,
+            const.DATA_BONUSES: const.DATA_BONUS_INTERNAL_ID,
+            const.DATA_ACHIEVEMENTS: const.DATA_ACHIEVEMENT_INTERNAL_ID,
+            const.DATA_CHALLENGES: const.DATA_CHALLENGE_INTERNAL_ID,
+        }
+
+    @staticmethod
+    def _extract_schema_version(data: dict[str, Any]) -> int | None:
+        """Extract schema version from modern or legacy metadata fields."""
+        meta_section = data.get(const.DATA_META)
+        if isinstance(meta_section, dict):
+            schema_value = meta_section.get(const.DATA_META_SCHEMA_VERSION)
+            if isinstance(schema_value, int):
+                return schema_value
+
+        schema_value = data.get(const.DATA_SCHEMA_VERSION)
+        if isinstance(schema_value, int):
+            return schema_value
+
+        return None
+
+    @staticmethod
+    def _normalize_and_validate_data(
+        new_data: dict[str, Any],
+    ) -> tuple[bool, dict[str, Any], str | None]:
+        """Normalize and validate payload before replacing in-memory store data."""
+        default_structure = ChoreOpsStore.get_default_structure()
+        normalized_data = dict(new_data)
+
+        # Ensure canonical top-level keys always exist.
+        for key, default_value in default_structure.items():
+            if key not in normalized_data:
+                normalized_data[key] = (
+                    dict(default_value)
+                    if isinstance(default_value, dict)
+                    else list(default_value)
+                )
+
+        # Validate canonical top-level key types.
+        for key, default_value in default_structure.items():
+            value = normalized_data.get(key)
+            if not isinstance(value, type(default_value)):
+                return (
+                    False,
+                    normalized_data,
+                    (
+                        f"Top-level key '{key}' has invalid type "
+                        f"{type(value).__name__}; expected {type(default_value).__name__}"
+                    ),
+                )
+
+        # Ensure required meta keys exist with defaults.
+        meta = normalized_data[const.DATA_META]
+        assert isinstance(meta, dict)
+        default_meta = default_structure[const.DATA_META]
+        assert isinstance(default_meta, dict)
+        for meta_key, default_value in default_meta.items():
+            meta.setdefault(meta_key, default_value)
+
+        # Legacy payloads (pre-storage-only) are accepted and normalized.
+        schema_version = ChoreOpsStore._extract_schema_version(normalized_data)
+        if (
+            schema_version is not None
+            and schema_version < const.SCHEMA_VERSION_STORAGE_ONLY
+        ):
+            return True, normalized_data, None
+
+        # Validate canonical entity buckets for obvious corruption.
+        for (
+            bucket_key,
+            internal_id_key,
+        ) in ChoreOpsStore._get_entity_internal_id_map().items():
+            bucket_value = normalized_data.get(bucket_key)
+            if not isinstance(bucket_value, dict):
+                return (
+                    False,
+                    normalized_data,
+                    (
+                        f"Entity bucket '{bucket_key}' has invalid type "
+                        f"{type(bucket_value).__name__}; expected dict"
+                    ),
+                )
+
+            for item_key, item_value in bucket_value.items():
+                if not isinstance(item_value, dict):
+                    return (
+                        False,
+                        normalized_data,
+                        (
+                            f"Entity bucket '{bucket_key}' item '{item_key}' "
+                            "must be a dict"
+                        ),
+                    )
+
+                internal_id_value = item_value.get(internal_id_key)
+                if not isinstance(internal_id_value, str) or not internal_id_value:
+                    return (
+                        False,
+                        normalized_data,
+                        (
+                            f"Entity bucket '{bucket_key}' item '{item_key}' "
+                            f"is missing required '{internal_id_key}'"
+                        ),
+                    )
+
+                if internal_id_value != item_key:
+                    return (
+                        False,
+                        normalized_data,
+                        (
+                            f"Entity bucket '{bucket_key}' item key '{item_key}' "
+                            f"does not match '{internal_id_key}' value '{internal_id_value}'"
+                        ),
+                    )
+
+        return True, normalized_data, None
+
+    def set_data(self, new_data: dict[str, Any]) -> bool:
+        """Replace the in-memory data structure when payload is valid.
+
+        Returns:
+            True when payload is accepted and applied, False when rejected.
+        """
+        valid, normalized_data, validation_error = self._normalize_and_validate_data(
+            new_data
+        )
+        if not valid:
+            const.LOGGER.error(
+                "ERROR: Rejected invalid storage payload in set_data: %s",
+                validation_error,
+            )
+            return False
+
+        missing_keys = [
+            key for key in ChoreOpsStore.get_default_structure() if key not in new_data
+        ]
+        if missing_keys:
+            const.LOGGER.warning(
+                "WARNING: set_data normalized missing top-level keys: %s",
+                ", ".join(missing_keys),
+            )
+
         const.LOGGER.debug(
             "DEBUG: Storage manager set_data called with: %s entities",
             {
-                "users": len(new_data.get(const.DATA_USERS, {})),
-                "chores": len(new_data.get(const.DATA_CHORES, {})),
-                "badges": len(new_data.get(const.DATA_BADGES, {})),
-                "rewards": len(new_data.get(const.DATA_REWARDS, {})),
-                "penalties": len(new_data.get(const.DATA_PENALTIES, {})),
-                "bonuses": len(new_data.get(const.DATA_BONUSES, {})),
-                "achievements": len(new_data.get(const.DATA_ACHIEVEMENTS, {})),
-                "challenges": len(new_data.get(const.DATA_CHALLENGES, {})),
-                "total_keys": len(new_data.keys()),
+                "users": len(normalized_data.get(const.DATA_USERS, {})),
+                "chores": len(normalized_data.get(const.DATA_CHORES, {})),
+                "badges": len(normalized_data.get(const.DATA_BADGES, {})),
+                "rewards": len(normalized_data.get(const.DATA_REWARDS, {})),
+                "penalties": len(normalized_data.get(const.DATA_PENALTIES, {})),
+                "bonuses": len(normalized_data.get(const.DATA_BONUSES, {})),
+                "achievements": len(normalized_data.get(const.DATA_ACHIEVEMENTS, {})),
+                "challenges": len(normalized_data.get(const.DATA_CHALLENGES, {})),
+                "total_keys": len(normalized_data.keys()),
             },
         )
-        self._data = new_data
+        self._data = normalized_data
+        return True
 
     async def async_save(self) -> None:
         """Save the current data structure to storage asynchronously.

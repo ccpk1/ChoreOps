@@ -433,17 +433,82 @@ async def test_set_data_replaces_entire_structure(
     store: ChoreOpsStore,
 ) -> None:
     """Test set_data completely replaces the data structure."""
-    original_data = {const.DATA_USERS: {"assignee_1": {}}}
+    original_data = ChoreOpsStore.get_default_structure()
     store.set_data(original_data)
 
-    new_data = {
-        const.DATA_USERS: {"assignee_2": {}},
-        const.DATA_CHORES: {"chore_1": {}},
+    new_data = ChoreOpsStore.get_default_structure()
+    new_data[const.DATA_USERS] = {
+        "assignee_2": {const.DATA_USER_INTERNAL_ID: "assignee_2"}
     }
-    store.set_data(new_data)
+    new_data[const.DATA_CHORES] = {"chore_1": {const.DATA_CHORE_INTERNAL_ID: "chore_1"}}
+    assert store.set_data(new_data)
 
     assert store.data == new_data
     assert store.data is not original_data
+
+
+async def test_set_data_normalizes_missing_top_level_keys(
+    hass: HomeAssistant,
+    store: ChoreOpsStore,
+) -> None:
+    """Test set_data fills missing canonical top-level buckets."""
+    assert store.set_data({const.DATA_USERS: {}})
+
+    assert const.DATA_META in store.data
+    assert const.DATA_CHORES in store.data
+    assert const.DATA_NOTIFICATIONS in store.data
+
+
+async def test_set_data_rejects_mismatched_internal_id(
+    hass: HomeAssistant,
+    store: ChoreOpsStore,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test set_data rejects records whose internal_id does not match key."""
+    baseline = ChoreOpsStore.get_default_structure()
+    assert store.set_data(baseline)
+
+    invalid_data = ChoreOpsStore.get_default_structure()
+    invalid_data[const.DATA_USERS] = {
+        "user_a": {const.DATA_USER_INTERNAL_ID: "wrong_key"}
+    }
+
+    assert not store.set_data(invalid_data)
+    assert store.data == baseline
+    assert "Rejected invalid storage payload in set_data" in caplog.text
+
+
+async def test_set_data_rejects_invalid_bucket_type(
+    hass: HomeAssistant,
+    store: ChoreOpsStore,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test set_data rejects invalid canonical bucket types."""
+    baseline = ChoreOpsStore.get_default_structure()
+    assert store.set_data(baseline)
+
+    invalid_data = ChoreOpsStore.get_default_structure()
+    invalid_data[const.DATA_USERS] = []
+
+    assert not store.set_data(invalid_data)
+    assert store.data == baseline
+    assert "Rejected invalid storage payload in set_data" in caplog.text
+
+
+async def test_async_initialize_resets_to_default_on_invalid_payload(
+    hass: HomeAssistant,
+    store: ChoreOpsStore,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test async_initialize resets to default when stored payload is invalid."""
+    invalid_data = ChoreOpsStore.get_default_structure()
+    invalid_data[const.DATA_USERS] = {"user_a": {const.DATA_USER_INTERNAL_ID: "bad"}}
+
+    with patch.object(store._store, "async_load", return_value=invalid_data):
+        await store.async_initialize()
+
+    assert store.data == ChoreOpsStore.get_default_structure()
+    assert "Existing storage payload is invalid" in caplog.text
 
 
 async def test_custom_storage_key(hass: HomeAssistant) -> None:

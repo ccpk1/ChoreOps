@@ -400,6 +400,8 @@ The **`meta.schema_version`** field in storage data determines the integration's
 
 **Pattern**: Managers create empty period containers (Landlord role), StatisticsEngine populates counter data (Tenant role).
 
+**Temporal coupling invariant (critical)**: Landlord managers must create/verify required containers synchronously **immediately before** emitting related workflow signals. In practice, call the relevant `_ensure_*_structures(...)` method in the same manager method and event-loop turn before `emit(...)`. Tenant listeners assume containers already exist.
+
 ### Ownership Division
 
 **Domain Managers (Landlords)** responsible for ownership, creation, and deletion top-level period containers:
@@ -439,6 +441,25 @@ The **`meta.schema_version`** field in storage data determines the integration's
 | **EconomyManager** | `assignee["point_stats"]["transaction_history"]`       | deposits, withdrawals (via StatisticsEngine) |
 
 **Analogy**: Manager builds the empty apartment building (landlord), StatisticsManager rents it and furnishes every room (tenant). No landlord should be doing interior decorating.
+
+---
+
+## Chore state resolution contract (FSM)
+
+Assignee display state uses first-match-wins priority in `ChoreEngine.resolve_assignee_chore_state(...)`. Any new state must be inserted deliberately into this order.
+
+| Priority | State         | Meaning / Effect                                             |
+| -------- | ------------- | ------------------------------------------------------------ |
+| P1       | `approved`    | Completed and approved in current period; highest precedence |
+| P2       | `claimed`     | Pending approver action                                      |
+| P3       | `not_my_turn` | Rotation lock (unless steal window opens)                    |
+| P4       | `missed`      | Strict missed lock (non-claimable)                           |
+| P5       | `overdue`     | Relaxed overdue (claimable)                                  |
+| P6       | `waiting`     | Claim window not open yet                                    |
+| P7       | `due`         | In claim window                                              |
+| P8       | `pending`     | Default fallback                                             |
+
+**Rotation steal exception**: For `at_due_date_allow_steal`, once past due the P3 lock lifts and resolves to overdue (implemented as a dedicated branch between P4 and P5).
 
 ---
 
@@ -543,6 +564,12 @@ The `engines/schedule.py` module provides a unified scheduling system for chores
 - **rrule (RFC 5545)**: Standard patterns (DAILY, WEEKLY, BIWEEKLY, MONTHLY, YEARLY) generate RFC 5545 RRULE strings for iCal export
 - **relativedelta**: Period-end clamping (Jan 31 + 1 month = Feb 28) and DST-aware calculations
 - **Why both?** rrule lacks month-end semantics; relativedelta lacks iCal compliance
+
+**Non-negotiable time semantics**:
+
+- Do not replace month/year recurrence math with fixed-day arithmetic (for example, `timedelta(days=30)`).
+- Keep `relativedelta` for clamp-safe period ends and `rrule` for standards-compliant recurrence/export.
+- Treat these as paired primitives: changing one side requires validating period-end and calendar-export behavior together.
 
 ### RecurrenceEngine Class
 
