@@ -131,6 +131,10 @@ def migrate_payload_to_schema45_users() -> Any:
 class TestSchemaStampFix:
     """Test transitional version stamp prevents premature schema=43."""
 
+    def test_legacy_baseline_version_constant(self) -> None:
+        """Verify legacy baseline schema constant is 31."""
+        assert const.SCHEMA_VERSION_LEGACY_BASELINE == 31
+
     def test_transitional_version_constant(self) -> None:
         """Verify SCHEMA_VERSION_TRANSITIONAL is 42."""
         assert const.SCHEMA_VERSION_TRANSITIONAL == 42
@@ -146,10 +150,82 @@ class TestSchemaStampFix:
     def test_version_ordering(self) -> None:
         """Verify version constants are in correct order."""
         assert (
-            const.SCHEMA_VERSION_TRANSITIONAL
+            const.SCHEMA_VERSION_LEGACY_BASELINE
+            < const.SCHEMA_VERSION_TRANSITIONAL
             < const.SCHEMA_VERSION_STORAGE_ONLY
             < const.SCHEMA_VERSION_BETA4
         )
+
+    def test_missing_schema_is_stamped_to_legacy_baseline(self) -> None:
+        """Unstamped non-empty payload is stamped to schema 31."""
+        payload: dict[str, Any] = {
+            const.DATA_USERS: {
+                "user-1": {
+                    const.DATA_USER_INTERNAL_ID: "user-1",
+                    const.DATA_USER_NAME: "Alice",
+                }
+            }
+        }
+
+        detected = mp50._detect_or_stamp_legacy_schema_version(payload)
+
+        assert detected == const.SCHEMA_VERSION_LEGACY_BASELINE
+        assert payload[const.DATA_META][const.DATA_META_SCHEMA_VERSION] == detected
+
+    def test_missing_schema_empty_payload_remains_zero(self) -> None:
+        """Empty payload remains schema 0 and is not baseline-stamped."""
+        payload: dict[str, Any] = {}
+
+        detected = mp50._detect_or_stamp_legacy_schema_version(payload)
+
+        assert detected == const.DEFAULT_ZERO
+        assert const.DATA_META not in payload
+
+    def test_existing_top_level_schema_is_preserved(self) -> None:
+        """Legacy top-level schema is respected without stamping."""
+        payload: dict[str, Any] = {
+            const.DATA_SCHEMA_VERSION: 41,
+            const.DATA_USERS: {},
+        }
+
+        detected = mp50._detect_or_stamp_legacy_schema_version(payload)
+
+        assert detected == 41
+        assert const.DATA_META not in payload
+
+    async def test_cascade_stamps_missing_schema_before_migration(
+        self, hass: HomeAssistant, migrator
+    ) -> None:
+        """Cascade entry stamps schema 31 when version markers are missing."""
+        migrator.coordinator._data = {
+            const.DATA_USERS: {
+                "user-1": {
+                    const.DATA_USER_INTERNAL_ID: "user-1",
+                    const.DATA_USER_NAME: "Alice",
+                }
+            },
+            const.DATA_CHORES: {},
+            const.DATA_REWARDS: {},
+            const.DATA_BADGES: {},
+            const.DATA_PENALTIES: {},
+            const.DATA_BONUSES: {},
+            const.DATA_ACHIEVEMENTS: {},
+            const.DATA_CHALLENGES: {},
+            const.DATA_APPROVERS: {},
+        }
+
+        with patch.object(
+            migrator,
+            "_run_migration_with_fallback",
+            new_callable=AsyncMock,
+        ) as mock_fallback:
+            await migrator.run_full_pre_v50_cascade(current_version=0)
+
+        stamped = migrator.coordinator._data[const.DATA_META][
+            const.DATA_META_SCHEMA_VERSION
+        ]
+        assert stamped == const.SCHEMA_VERSION_LEGACY_BASELINE
+        mock_fallback.assert_called_once_with(const.SCHEMA_VERSION_LEGACY_BASELINE)
 
     async def test_schema45_wrapper_promotes_legacy_assignees_to_users(
         self,

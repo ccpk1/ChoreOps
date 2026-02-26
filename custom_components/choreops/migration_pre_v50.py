@@ -56,6 +56,43 @@ def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
     return LEGACY_MIGRATION_PERFORMED_KEY in data
 
 
+def _detect_or_stamp_legacy_schema_version(data: dict[str, Any]) -> int:
+    """Return schema version and stamp unstamped legacy payloads to baseline.
+
+    Migration code paths should always operate on payloads with an explicit
+    schema marker. Legacy payloads occasionally omit both top-level and
+    `meta.schema_version`; when detected, stamp baseline schema 31 so the
+    pre-v50 migration cascade can run deterministically.
+
+    Args:
+        data: Storage payload dictionary.
+
+    Returns:
+        Detected or stamped schema version.
+    """
+    meta_raw = data.get(const.DATA_META)
+    if isinstance(meta_raw, dict):
+        meta_version = meta_raw.get(const.DATA_META_SCHEMA_VERSION)
+        if isinstance(meta_version, int):
+            return meta_version
+
+    top_level_version = data.get(const.DATA_SCHEMA_VERSION)
+    if isinstance(top_level_version, int):
+        return top_level_version
+
+    if not data:
+        return const.DEFAULT_ZERO
+
+    meta: dict[str, Any] = meta_raw if isinstance(meta_raw, dict) else {}
+    meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_LEGACY_BASELINE
+    data[const.DATA_META] = meta
+    const.LOGGER.warning(
+        "Missing schema version detected; stamped legacy baseline schema %s",
+        const.SCHEMA_VERSION_LEGACY_BASELINE,
+    )
+    return const.SCHEMA_VERSION_LEGACY_BASELINE
+
+
 def _remap_legacy_key_in_record(
     record: dict[str, Any],
     legacy_key: str,
@@ -992,11 +1029,8 @@ async def migrate_config_to_storage(
     # Check schema version - support both v41 (top-level) and v42+ (meta section)
     # v41 format: {"schema_version": 41, "assignees": {...}}
     # v42+ format: {"meta": {"schema_version": 42}, "assignees": {...}}
-    meta_section = storage_data.get(const.DATA_META, {})
-    storage_version = meta_section.get(
-        const.DATA_META_SCHEMA_VERSION,
-        storage_data.get(const.DATA_SCHEMA_VERSION, const.DEFAULT_ZERO),
-    )
+    # If schema marker is missing, stamp legacy baseline version 31.
+    storage_version = _detect_or_stamp_legacy_schema_version(storage_data)
 
     # Check if migration is needed
     # Skip if version is at or past the transitional stamp (42+)
@@ -1483,6 +1517,12 @@ class PreV50Migrator:
         Args:
             current_version: Schema version detected by Coordinator
         """
+        detected_version = _detect_or_stamp_legacy_schema_version(
+            self.coordinator._data
+        )
+        if detected_version != const.DEFAULT_ZERO:
+            current_version = detected_version
+
         # Step 0: Detect premature stamp from v0.5.0b3 bug
         current_version = self._detect_premature_stamp(current_version)
 
@@ -4476,7 +4516,10 @@ class PreV50Migrator:
                 if field in badge_info:
                     del badge_info[field]
 
-        self.coordinator._persist(immediate=True)  # Migration must be immediate
+        self.coordinator._persist(
+            immediate=True,
+            enforce_schema=False,
+        )  # Migration must be immediate
         self.coordinator.async_set_updated_data(self.coordinator._data)
 
         const.LOGGER.info(
@@ -4593,7 +4636,10 @@ class PreV50Migrator:
             if const.DATA_ASSIGNEE_BADGES_LEGACY in assignee_info:
                 del assignee_info[const.DATA_ASSIGNEE_BADGES_LEGACY]  # type: ignore[typeddict-item]
 
-        self.coordinator._persist(immediate=True)  # Migration must be immediate
+        self.coordinator._persist(
+            immediate=True,
+            enforce_schema=False,
+        )  # Migration must be immediate
         self.coordinator.async_set_updated_data(self.coordinator._data)
 
     def _migrate_legacy_point_stats(self) -> None:

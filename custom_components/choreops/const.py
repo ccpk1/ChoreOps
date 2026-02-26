@@ -347,6 +347,9 @@ DEFAULT_TIME_ZONE: ZoneInfo | None = None
 
 # Schema version for config→storage migration
 DATA_SCHEMA_VERSION: Final = "schema_version"
+SCHEMA_VERSION_LEGACY_BASELINE: Final = (
+    31  # Canonical baseline for unstamped pre-v42 legacy payloads.
+)
 SCHEMA_VERSION_TRANSITIONAL: Final = (
     42  # Set by migrate_config_to_storage(); signals "data in storage, structural
     # migration not yet run." Upgraded to SCHEMA_VERSION_STORAGE_ONLY by

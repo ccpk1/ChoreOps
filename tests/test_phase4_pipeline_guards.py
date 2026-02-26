@@ -119,6 +119,43 @@ async def test_idempotency_overdue_already_overdue(
     assert chore[const.DATA_CHORE_STATE] == const.CHORE_STATE_OVERDUE
 
 
+@pytest.mark.asyncio
+async def test_persist_enforces_canonical_schema_on_runtime_writes(
+    hass: HomeAssistant,
+    minimal_scenario: Any,
+) -> None:
+    """Runtime persist enforces canonical schema metadata."""
+    coordinator = minimal_scenario.coordinator
+
+    coordinator._data.pop(const.DATA_META, None)
+    coordinator._data[const.DATA_SCHEMA_VERSION] = 31
+
+    coordinator._persist(immediate=True)
+    await hass.async_block_till_done()
+
+    meta = coordinator._data.get(const.DATA_META, {})
+    assert meta.get(const.DATA_META_SCHEMA_VERSION) == const.SCHEMA_VERSION_BETA5
+    assert const.DATA_SCHEMA_VERSION not in coordinator._data
+
+
+@pytest.mark.asyncio
+async def test_persist_schema_enforcement_can_be_bypassed_for_migration(
+    hass: HomeAssistant,
+    minimal_scenario: Any,
+) -> None:
+    """Migration persist path can opt out of runtime schema enforcement."""
+    coordinator = minimal_scenario.coordinator
+
+    coordinator._data.pop(const.DATA_META, None)
+    coordinator._data[const.DATA_SCHEMA_VERSION] = 31
+
+    coordinator._persist(immediate=True, enforce_schema=False)
+    await hass.async_block_till_done()
+
+    assert const.DATA_META not in coordinator._data
+    assert coordinator._data.get(const.DATA_SCHEMA_VERSION) == 31
+
+
 # =============================================================================
 # TEST: GREMLIN PREVENTION
 # =============================================================================

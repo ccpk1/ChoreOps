@@ -268,15 +268,15 @@ class ChoreOpsStore:
     @staticmethod
     def _extract_schema_version(data: dict[str, Any]) -> int | None:
         """Extract schema version from modern or legacy metadata fields."""
+        schema_value = data.get(const.DATA_SCHEMA_VERSION)
+        if isinstance(schema_value, int):
+            return schema_value
+
         meta_section = data.get(const.DATA_META)
         if isinstance(meta_section, dict):
             schema_value = meta_section.get(const.DATA_META_SCHEMA_VERSION)
             if isinstance(schema_value, int):
                 return schema_value
-
-        schema_value = data.get(const.DATA_SCHEMA_VERSION)
-        if isinstance(schema_value, int):
-            return schema_value
 
         return None
 
@@ -288,17 +288,11 @@ class ChoreOpsStore:
         default_structure = ChoreOpsStore.get_default_structure()
         normalized_data = dict(new_data)
 
-        # Ensure canonical top-level keys always exist.
-        for key, default_value in default_structure.items():
-            if key not in normalized_data:
-                normalized_data[key] = (
-                    dict(default_value)
-                    if isinstance(default_value, dict)
-                    else list(default_value)
-                )
-
         # Validate canonical top-level key types.
         for key, default_value in default_structure.items():
+            if key not in normalized_data:
+                continue
+
             value = normalized_data.get(key)
             if not isinstance(value, type(default_value)):
                 return (
@@ -310,15 +304,7 @@ class ChoreOpsStore:
                     ),
                 )
 
-        # Ensure required meta keys exist with defaults.
-        meta = normalized_data[const.DATA_META]
-        assert isinstance(meta, dict)
-        default_meta = default_structure[const.DATA_META]
-        assert isinstance(default_meta, dict)
-        for meta_key, default_value in default_meta.items():
-            meta.setdefault(meta_key, default_value)
-
-        # Legacy payloads (pre-storage-only) are accepted and normalized.
+        # Legacy payloads (pre-storage-only) are accepted.
         schema_version = ChoreOpsStore._extract_schema_version(normalized_data)
         if (
             schema_version is not None
@@ -326,11 +312,18 @@ class ChoreOpsStore:
         ):
             return True, normalized_data, None
 
+        # Unknown schema payloads are accepted for backward compatibility.
+        if schema_version is None:
+            return True, normalized_data, None
+
         # Validate canonical entity buckets for obvious corruption.
         for (
             bucket_key,
             internal_id_key,
         ) in ChoreOpsStore._get_entity_internal_id_map().items():
+            if bucket_key not in normalized_data:
+                continue
+
             bucket_value = normalized_data.get(bucket_key)
             if not isinstance(bucket_value, dict):
                 return (
@@ -355,24 +348,11 @@ class ChoreOpsStore:
 
                 internal_id_value = item_value.get(internal_id_key)
                 if not isinstance(internal_id_value, str) or not internal_id_value:
-                    return (
-                        False,
-                        normalized_data,
-                        (
-                            f"Entity bucket '{bucket_key}' item '{item_key}' "
-                            f"is missing required '{internal_id_key}'"
-                        ),
-                    )
+                    item_value[internal_id_key] = item_key
+                    continue
 
                 if internal_id_value != item_key:
-                    return (
-                        False,
-                        normalized_data,
-                        (
-                            f"Entity bucket '{bucket_key}' item key '{item_key}' "
-                            f"does not match '{internal_id_key}' value '{internal_id_value}'"
-                        ),
-                    )
+                    item_value[internal_id_key] = item_key
 
         return True, normalized_data, None
 
@@ -391,15 +371,6 @@ class ChoreOpsStore:
                 validation_error,
             )
             return False
-
-        missing_keys = [
-            key for key in ChoreOpsStore.get_default_structure() if key not in new_data
-        ]
-        if missing_keys:
-            const.LOGGER.warning(
-                "WARNING: set_data normalized missing top-level keys: %s",
-                ", ".join(missing_keys),
-            )
 
         const.LOGGER.debug(
             "DEBUG: Storage manager set_data called with: %s entities",

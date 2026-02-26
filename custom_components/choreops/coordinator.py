@@ -230,7 +230,7 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
     # Storage
     # -------------------------------------------------------------------------------------
 
-    def _persist(self, immediate: bool = False):
+    def _persist(self, immediate: bool = False, enforce_schema: bool = True):
         """Save coordinator data to persistent storage.
 
         Default behavior is debounced persistence (5-10 second delay) to batch multiple
@@ -261,12 +261,16 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
 
         if loop is None or loop != self.hass.loop:
             # Not in event loop thread - schedule to run in event loop
-            self.hass.loop.call_soon_threadsafe(self._persist_impl, immediate)
+            self.hass.loop.call_soon_threadsafe(
+                self._persist_impl, immediate, enforce_schema
+            )
             return
 
-        self._persist_impl(immediate)
+        self._persist_impl(immediate, enforce_schema)
 
-    def _persist_impl(self, immediate: bool = False) -> None:
+    def _persist_impl(
+        self, immediate: bool = False, enforce_schema: bool = True
+    ) -> None:
         """Implementation of _persist - must be called from event loop thread."""
         # Treat 0 debounce (test mode) as immediate to avoid task overhead
         effective_immediate = immediate or self._persist_debounce_seconds == 0
@@ -279,6 +283,8 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
 
             # Immediate synchronous save
             perf_start = time.perf_counter()
+            if enforce_schema:
+                self._enforce_runtime_schema_on_persist()
             self.store.set_data(self._data)
             self.hass.add_job(self.store.async_save)
             perf_duration = time.perf_counter() - perf_start
@@ -292,10 +298,10 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
                 self._persist_task.cancel()
 
             self._persist_task = self.hass.async_create_task(
-                self._persist_debounced_impl()
+                self._persist_debounced_impl(enforce_schema=enforce_schema)
             )
 
-    async def _persist_debounced_impl(self):
+    async def _persist_debounced_impl(self, *, enforce_schema: bool = True):
         """Implementation of debounced persist with delay."""
         try:
             # Wait for debounce period
@@ -304,6 +310,8 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
             # PERF: Track storage write frequency
             perf_start = time.perf_counter()
 
+            if enforce_schema:
+                self._enforce_runtime_schema_on_persist()
             self.store.set_data(self._data)
             await self.store.async_save()
 
@@ -316,6 +324,31 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
             # Task was cancelled, new save scheduled
             const.LOGGER.debug("Debounced persist cancelled (replaced by new save)")
             raise
+
+    def _enforce_runtime_schema_on_persist(self) -> None:
+        """Ensure runtime persistence uses canonical schema metadata.
+
+        This guard runs on normal coordinator persistence paths. Migration flows
+        can bypass it by calling `_persist(..., enforce_schema=False)` to avoid
+        premature schema stamping while transitional migration phases are active.
+        """
+        from .migration_pre_v50 import has_legacy_migration_performed_marker
+
+        if has_legacy_migration_performed_marker(self._data):
+            return
+
+        meta_raw = self._data.get(const.DATA_META)
+        meta: dict[str, Any] = meta_raw if isinstance(meta_raw, dict) else {}
+
+        schema_version = meta.get(const.DATA_META_SCHEMA_VERSION)
+        if (
+            not isinstance(schema_version, int)
+            or schema_version < const.SCHEMA_VERSION_BETA5
+        ):
+            meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_BETA5
+
+        self._data[const.DATA_META] = meta
+        self._data.pop(const.DATA_SCHEMA_VERSION, None)
 
     def _persist_and_update(self, immediate: bool = False) -> None:
         """Persist data AND update entity listeners to reflect state changes.
