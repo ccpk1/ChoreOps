@@ -2163,7 +2163,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "user_name": {
@@ -2189,7 +2189,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2225,7 +2225,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2256,7 +2256,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2287,7 +2287,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2322,7 +2322,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2353,7 +2353,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2384,7 +2384,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "approver_name": {
@@ -2415,7 +2415,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "name": {
@@ -2456,7 +2456,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "id": {
@@ -2502,7 +2502,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "id": {
@@ -2528,7 +2528,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "name": {
@@ -2629,7 +2629,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "id": {
@@ -2730,7 +2730,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "id": {
@@ -2756,7 +2756,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "chore_id": {
@@ -2792,7 +2792,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "chore_id": {
@@ -2818,7 +2818,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "chore_id": {
@@ -2844,7 +2844,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "user_name": {
@@ -2880,7 +2880,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         }
       }
@@ -2896,7 +2896,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "confirm_destructive": {
@@ -2932,7 +2932,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "chore_id": {
@@ -2963,7 +2963,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "chore_name": {
@@ -2999,7 +2999,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "chore_id": {
@@ -3039,7 +3039,7 @@
         },
         "config_entry_title": {
           "name": "Config Entry Name (Optional)",
-          "description": "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID.",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
           "example": "Family Chores"
         },
         "user_name": {

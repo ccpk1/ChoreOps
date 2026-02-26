@@ -1049,26 +1049,44 @@ class ChoreApprovedEvent(TypedDict, total=False):
     Emitted by: ChoreManager.approve()
     Consumed by: EconomyManager (point deposit), StatisticsManager (approval count)
 
-    Phase 5 additions: chore_labels, multiplier_applied, previous_state, update_stats.
+    Phase 5 additions: chore_labels, previous_state, update_stats.
     Phase 6 additions: effective_date (when assignee did work, for approver-lag proof stats).
     Phase 8 change: Removed streak_tally (moved to ChoreCompletedEvent).
+    Phase 9 change: Moved multiplier application and awarded points calculation
+        ownership to EconomyManager.
     """
 
     user_id: str  # Required
     chore_id: str  # Required
     approver_name: str  # Required
-    points_awarded: float  # Required
+    base_points: float  # Required
     is_shared: bool  # Required
     is_multi_claim: bool  # Required
     chore_name: str  # For notification/display
     chore_labels: list[str]  # For badge criteria (e.g., "Clean 5 Kitchen chores")
-    multiplier_applied: float  # For point calculation verification
     previous_state: str  # To detect re-approvals vs new approvals
     update_stats: bool  # Whether to update statistics (False for corrections)
     effective_date: (
         str  # ISO timestamp when assignee did work (last_claimed with fallbacks)
     )
     approval_origin: str  # Optional origin hint (manual, auto_approve, auto_reset)
+    notify_assignee: (
+        bool  # Whether assignee-facing approval notification should be sent
+    )
+
+
+class ChorePointsAwardedEvent(TypedDict, total=False):
+    """Event payload for SIGNAL_SUFFIX_CHORE_POINTS_AWARDED.
+
+    Emitted by: EconomyManager._on_chore_approved() after deposit
+    Consumed by: StatisticsManager (per-chore points), NotificationManager (approval points)
+    """
+
+    user_id: str  # Required
+    chore_id: str  # Required
+    points_awarded: float  # Required
+    chore_name: str  # Optional display name
+    effective_date: str  # Optional ISO timestamp for approver-lag-proof bucketing
     notify_assignee: (
         bool  # Whether assignee-facing approval notification should be sent
     )

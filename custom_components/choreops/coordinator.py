@@ -342,6 +342,19 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         self._persist(immediate=immediate)
         self.hass.loop.call_soon_threadsafe(self.async_update_listeners)
 
+    async def async_sync_entities_after_service_create(self) -> None:
+        """Synchronize entity graph after service-driven dynamic creates.
+
+        Runtime policy:
+        - Test mode: request refresh for deterministic in-process tests.
+        - Production: reload config entry to fully rebuild helper entity links.
+        """
+        if self._test_mode:
+            await self.async_request_refresh()
+            return
+
+        await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+
     # -------------------------------------------------------------------------------------
     # Properties for Easy Access
     # -------------------------------------------------------------------------------------

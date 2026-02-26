@@ -2297,11 +2297,12 @@ class TestEnhancedFrequencyWorkflows:
         assert chore.get(DATA_CHORE_CUSTOM_INTERVAL_UNIT) == TIME_UNIT_HOURS
         assert chore.get(DATA_CHORE_CUSTOM_INTERVAL) == 8
 
-        # Initial state should be PENDING
-        assert (
-            get_chore_state_from_sensor(hass, "zoe", "Custom Hours 8h Cross Midnight")
-            == CHORE_STATE_PENDING
-        )
+        # Initial state can be PENDING or DUE depending on current local time.
+        # Scenario sets due_date to +0d22:00 and default due-window is 1 hour,
+        # so runs near that window may start in DUE.
+        assert get_chore_state_from_sensor(
+            hass, "zoe", "Custom Hours 8h Cross Midnight"
+        ) in [CHORE_STATE_PENDING, "due"]
 
         assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
         approver_ctx = Context(user_id=mock_hass_users["approver1"].id)

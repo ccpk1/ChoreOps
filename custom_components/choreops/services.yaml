@@ -21,7 +21,7 @@ claim_chore:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -54,7 +54,7 @@ approve_chore:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -104,7 +104,7 @@ disapprove_chore:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -144,7 +144,7 @@ redeem_reward:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -184,7 +184,7 @@ approve_reward:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -234,7 +234,7 @@ disapprove_reward:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -274,7 +274,7 @@ apply_penalty:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -314,7 +314,7 @@ apply_bonus:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -357,7 +357,7 @@ generate_activity_report:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -419,7 +419,7 @@ reset_chores_to_pending_state:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -442,7 +442,7 @@ reset_transactional_data:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -513,7 +513,7 @@ reset_overdue_chores:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -557,7 +557,7 @@ set_chore_due_date:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -614,7 +614,7 @@ skip_chore_due_date:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -679,7 +679,7 @@ remove_awarded_badges:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -712,7 +712,7 @@ create_reward:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -770,7 +770,7 @@ update_reward:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -835,7 +835,7 @@ delete_reward:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -870,7 +870,7 @@ create_chore:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -962,15 +962,17 @@ create_chore:
             - "sun"
     completion_criteria:
       name: "Completion Criteria"
-      description: "How the chore is completed when multiple assignees are assigned: independent (each assignee completes separately), shared_first (first assignee to complete earns points), or shared_all (all assignees must complete)."
+      description: "How the chore is completed when multiple assignees are assigned: independent, shared_first, shared_all, rotation_simple, or rotation_smart."
       example: "independent"
       required: false
       selector:
         select:
           options:
             - "independent"
-            - "shared_first"
             - "shared_all"
+            - "shared_first"
+            - "rotation_simple"
+            - "rotation_smart"
     approval_reset_type:
       name: "Approval Reset Type"
       description: "When the chore resets for re-completion."
@@ -984,6 +986,7 @@ create_chore:
             - "at_due_date_once"
             - "at_due_date_multi"
             - "upon_completion"
+            - "manual"
     pending_claims:
       name: "Pending Claims Action"
       description: "What to do with pending claims when the approval reset occurs."
@@ -1003,10 +1006,13 @@ create_chore:
       selector:
         select:
           options:
-            - "at_due_date"
             - "never_overdue"
-            - "at_due_date_clear_at_approval_reset"
+            - "at_due_date"
             - "at_due_date_clear_immediate_on_late"
+            - "at_due_date_clear_at_approval_reset"
+            - "at_due_date_clear_and_mark_missed"
+            - "at_due_date_mark_missed_and_lock"
+            - "at_due_date_allow_steal"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
       description: "If enabled, assignees cannot claim this chore before the due window begins."
@@ -1056,7 +1062,7 @@ update_chore:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -1166,6 +1172,7 @@ update_chore:
             - "at_due_date_once"
             - "at_due_date_multi"
             - "upon_completion"
+            - "manual"
     pending_claims:
       name: "Pending Claims Action"
       description: "New pending claims action."
@@ -1185,10 +1192,13 @@ update_chore:
       selector:
         select:
           options:
-            - "at_due_date"
             - "never_overdue"
-            - "at_due_date_clear_at_approval_reset"
+            - "at_due_date"
             - "at_due_date_clear_immediate_on_late"
+            - "at_due_date_clear_at_approval_reset"
+            - "at_due_date_clear_and_mark_missed"
+            - "at_due_date_mark_missed_and_lock"
+            - "at_due_date_allow_steal"
     chore_claim_lock_until_window:
       name: "Lock Claim Until Window Opens"
       description: "If enabled, assignees cannot claim this chore before the due window begins."
@@ -1238,7 +1248,7 @@ delete_chore:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -1271,7 +1281,7 @@ set_rotation_turn:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -1318,7 +1328,7 @@ reset_rotation:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:
@@ -1351,7 +1361,7 @@ open_rotation_cycle:
         text:
     config_entry_title:
       name: "Config Entry Name (Optional)"
-      description: "Use this if each ChoreOps setup has a unique name. If names repeat, use Config Entry ID."
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
       required: false
       example: "Family Chores"
       selector:

@@ -300,15 +300,26 @@ class EconomyManager(BaseManager):
                 - assignee_id: The assignee's internal UUID
                 - chore_id: The chore's internal UUID
                 - base_points: Raw points before multiplier
-                - apply_multiplier: Whether to apply assignee's multiplier
         """
         assignee_id = payload.get("user_id")
         chore_id = payload.get("chore_id")
         base_points = payload.get("base_points", 0.0)
-        apply_multiplier = payload.get("apply_multiplier", True)
         chore_name = payload.get("chore_name")
+        effective_date = payload.get("effective_date")
+        notify_assignee = bool(payload.get("notify_assignee", True))
 
         if base_points > 0 and assignee_id:
+            apply_multiplier = True
+            multiplier_applied = 1.0
+            if apply_multiplier and (assignee := self._get_assignee(assignee_id)):
+                multiplier_applied = float(
+                    assignee.get(const.DATA_USER_POINTS_MULTIPLIER, 1.0)
+                )
+            points_awarded = EconomyEngine.calculate_with_multiplier(
+                base_points,
+                multiplier_applied,
+            )
+
             await self.deposit(
                 assignee_id=assignee_id,
                 amount=base_points,
@@ -316,6 +327,16 @@ class EconomyManager(BaseManager):
                 reference_id=chore_id,
                 item_name=chore_name,
                 apply_multiplier=apply_multiplier,
+            )
+
+            self.emit(
+                const.SIGNAL_SUFFIX_CHORE_POINTS_AWARDED,
+                user_id=assignee_id,
+                chore_id=chore_id,
+                points_awarded=points_awarded,
+                chore_name=chore_name,
+                effective_date=effective_date,
+                notify_assignee=notify_assignee,
             )
 
     async def _on_reward_approved(self, payload: dict[str, Any]) -> None:

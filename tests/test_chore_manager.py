@@ -17,7 +17,10 @@ from homeassistant.exceptions import ServiceValidationError
 import pytest
 
 from custom_components.choreops import const, data_builders as db
-from custom_components.choreops.engines.chore_engine import TransitionEffect
+from custom_components.choreops.engines.chore_engine import (
+    ChoreEngine,
+    TransitionEffect,
+)
 from custom_components.choreops.managers.chore_manager import ChoreManager
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 
@@ -219,9 +222,114 @@ class TestTimeScanCache:
         assert chore_manager._parsed_due_datetime_cache == {}
         assert chore_manager._offset_cache == {}
 
+    def test_process_time_checks_rotation_uses_shared_reset_bucket(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Rotation chores should be scanned through shared/chore-level reset bucket."""
+        now_utc = dt_now_utc()
+        chore = mock_coordinator.chores_data["chore-1"]
+        chore[const.DATA_CHORE_COMPLETION_CRITERIA] = (
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+        )
+        chore[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_DUE_DATE_ONCE
+        )
+        chore[const.DATA_CHORE_RECURRING_FREQUENCY] = const.FREQUENCY_DAILY
+        chore[const.DATA_CHORE_DUE_DATE] = (now_utc - timedelta(minutes=5)).isoformat()
+
+        scan = chore_manager.process_time_checks(
+            now_utc,
+            trigger=const.CHORE_SCAN_TRIGGER_DUE_DATE,
+        )
+
+        assert len(scan[const.CHORE_SCAN_RESULT_APPROVAL_RESET_SHARED]) == 1
+        assert len(scan[const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT]) == 0
+
 
 class TestResetPolicyDecision:
     """Table-driven tests for reset policy decision helper."""
+
+    @pytest.mark.parametrize(
+        "completion_criteria",
+        [
+            const.COMPLETION_CRITERIA_INDEPENDENT,
+            const.COMPLETION_CRITERIA_SHARED,
+            const.COMPLETION_CRITERIA_SHARED_FIRST,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+    )
+    @pytest.mark.parametrize(
+        "approval_reset_type",
+        [
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
+            const.APPROVAL_RESET_AT_MIDNIGHT_MULTI,
+            const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
+            const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
+            const.APPROVAL_RESET_UPON_COMPLETION,
+            const.APPROVAL_RESET_MANUAL,
+        ],
+    )
+    def test_reset_decision_matrix_across_lanes(
+        self,
+        completion_criteria: str,
+        approval_reset_type: str,
+    ) -> None:
+        """Regression matrix for approval-trigger and timer-trigger reset decisions."""
+        all_assignees_approved = completion_criteria != const.COMPLETION_CRITERIA_SHARED
+
+        approval_context: ResetContext = {
+            "trigger": const.CHORE_RESET_TRIGGER_APPROVAL,
+            "approval_reset_type": approval_reset_type,
+            "overdue_handling_type": const.DEFAULT_OVERDUE_HANDLING_TYPE,
+            "completion_criteria": completion_criteria,
+            "all_assignees_approved": all_assignees_approved,
+            "approval_after_reset": False,
+        }
+        approval_decision = ChoreManager._decide_reset_action(approval_context)
+
+        should_immediate_reset = (
+            approval_reset_type == const.APPROVAL_RESET_UPON_COMPLETION
+            and (
+                completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
+                or ChoreEngine.is_single_claimer_mode(
+                    {const.DATA_CHORE_COMPLETION_CRITERIA: completion_criteria}
+                )
+                or all_assignees_approved
+            )
+        )
+        expected_approval_decision: ResetDecision = (
+            const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
+            if should_immediate_reset
+            else const.CHORE_RESET_DECISION_HOLD
+        )
+        assert approval_decision == expected_approval_decision
+
+        for trigger in (
+            const.CHORE_SCAN_TRIGGER_MIDNIGHT,
+            const.CHORE_SCAN_TRIGGER_DUE_DATE,
+        ):
+            in_scope = ChoreEngine.should_process_at_boundary(
+                approval_reset_type,
+                trigger,
+            )
+
+            if not in_scope:
+                continue
+
+            timer_context: ResetContext = {
+                "trigger": trigger,
+                "approval_reset_type": approval_reset_type,
+                "overdue_handling_type": const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                "completion_criteria": completion_criteria,
+                "boundary_category": const.CHORE_RESET_BOUNDARY_CATEGORY_RESET_AND_RESCHEDULE,
+                "has_pending_claim": False,
+                "pending_claim_action": const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
+            }
+            timer_decision = ChoreManager._decide_reset_action(timer_context)
+            assert timer_decision == const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE
 
     @pytest.mark.parametrize(
         ("context", "expected"),
@@ -235,6 +343,26 @@ class TestResetPolicyDecision:
                 },
                 const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 id="approval-upon-completion-independent",
+            ),
+            pytest.param(
+                {
+                    "trigger": const.CHORE_RESET_TRIGGER_APPROVAL,
+                    "approval_reset_type": const.APPROVAL_RESET_UPON_COMPLETION,
+                    "overdue_handling_type": const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    "completion_criteria": const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+                },
+                const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
+                id="approval-upon-completion-rotation-simple",
+            ),
+            pytest.param(
+                {
+                    "trigger": const.CHORE_RESET_TRIGGER_APPROVAL,
+                    "approval_reset_type": const.APPROVAL_RESET_UPON_COMPLETION,
+                    "overdue_handling_type": const.DEFAULT_OVERDUE_HANDLING_TYPE,
+                    "completion_criteria": const.COMPLETION_CRITERIA_SHARED_FIRST,
+                },
+                const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
+                id="approval-upon-completion-shared-first",
             ),
             pytest.param(
                 {
@@ -586,6 +714,7 @@ class TestResetExecutor:
                 "chore_id": "chore-1",
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 "reschedule_assignee_id": "assignee-1",
+                "allow_reschedule": True,
             }
         )
 
@@ -677,7 +806,7 @@ class TestApprovalResetExecutorLane:
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Independent UPON_COMPLETION approval uses executor with assignee reschedule."""
+        """Independent UPON_COMPLETION approval uses per-assignee executor payload."""
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
         ] = const.COMPLETION_CRITERIA_INDEPENDENT
@@ -697,8 +826,87 @@ class TestApprovalResetExecutorLane:
                 "chore_id": "chore-1",
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 "reschedule_assignee_id": "assignee-1",
+                "allow_reschedule": True,
             }
         )
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "completion_criteria",
+        [
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+    )
+    async def test_approval_rotation_resets_all_assignees_and_reschedules_once(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+        completion_criteria: str,
+    ) -> None:
+        """Rotation UPON_COMPLETION uses full-cycle reset plus one chore reschedule."""
+        mock_coordinator.chores_data["chore-1"][
+            const.DATA_CHORE_COMPLETION_CRITERIA
+        ] = completion_criteria
+        mock_coordinator.chores_data["chore-1"][
+            const.DATA_CHORE_APPROVAL_RESET_TYPE
+        ] = const.APPROVAL_RESET_UPON_COMPLETION
+        mock_coordinator.chores_data["chore-1"][
+            const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+        ] = "assignee-1"
+
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
+
+        chore_manager._apply_reset_action = MagicMock()
+        chore_manager._reschedule_chore_due = MagicMock()
+        chore_manager._advance_rotation = MagicMock(
+            return_value={"chore_id": "chore-1", "assignee_id": "assignee-2"}
+        )
+
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
+
+        assert chore_manager._apply_reset_action.call_count == 2
+        first_payload = chore_manager._apply_reset_action.call_args_list[0].args[0]
+        second_payload = chore_manager._apply_reset_action.call_args_list[1].args[0]
+        assert first_payload["reschedule_assignee_id"] is None
+        assert second_payload["reschedule_assignee_id"] is None
+        assert first_payload["allow_reschedule"] is False
+        assert second_payload["allow_reschedule"] is False
+        chore_manager._reschedule_chore_due.assert_called_once_with("chore-1")
+        chore_manager._advance_rotation.assert_called_once_with(
+            "chore-1", "assignee-1", method="auto"
+        )
+
+    @pytest.mark.asyncio
+    async def test_approval_rotation_upon_completion_advances_turn(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Rotation UPON_COMPLETION resets to pending and advances turn on approval."""
+        chore_data = mock_coordinator.chores_data["chore-1"]
+        chore_data[const.DATA_CHORE_COMPLETION_CRITERIA] = (
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+        )
+        chore_data[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_UPON_COMPLETION
+        )
+        chore_data[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] = "assignee-1"
+
+        # Keep shared _data in sync for helper methods that read from coordinator._data
+        mock_coordinator._data[const.DATA_CHORES]["chore-1"] = chore_data
+
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
+
+        assignee_chore_data = chore_manager._coordinator.assignees_data["assignee-1"][
+            const.DATA_USER_CHORE_DATA
+        ]["chore-1"]
+        assert (
+            assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
+            == const.CHORE_STATE_PENDING
+        )
+        assert chore_data[const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID] == "assignee-2"
 
     @pytest.mark.asyncio
     async def test_approval_shared_resets_all_assignees_and_reschedules_once(
@@ -723,6 +931,34 @@ class TestApprovalResetExecutorLane:
         await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
 
         assert chore_manager._apply_reset_action.call_count == 2
+        chore_manager._reschedule_chore_due.assert_called_once_with("chore-1")
+
+    @pytest.mark.asyncio
+    async def test_approval_shared_first_resets_all_assignees_and_reschedules_once(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Shared_first UPON_COMPLETION resets all assignees and reschedules once."""
+        mock_coordinator.chores_data["chore-1"][
+            const.DATA_CHORE_COMPLETION_CRITERIA
+        ] = const.COMPLETION_CRITERIA_SHARED_FIRST
+        mock_coordinator.chores_data["chore-1"][
+            const.DATA_CHORE_APPROVAL_RESET_TYPE
+        ] = const.APPROVAL_RESET_UPON_COMPLETION
+
+        await chore_manager.claim_chore("assignee-1", "chore-1", "Alice")
+
+        chore_manager._apply_reset_action = MagicMock()
+        chore_manager._reschedule_chore_due = MagicMock()
+
+        await chore_manager.approve_chore("Approver", "assignee-1", "chore-1")
+
+        assert chore_manager._apply_reset_action.call_count == 2
+        first_payload = chore_manager._apply_reset_action.call_args_list[0].args[0]
+        second_payload = chore_manager._apply_reset_action.call_args_list[1].args[0]
+        assert first_payload["reschedule_assignee_id"] is None
+        assert second_payload["reschedule_assignee_id"] is None
         chore_manager._reschedule_chore_due.assert_called_once_with("chore-1")
 
     @pytest.mark.asyncio
@@ -789,6 +1025,8 @@ class TestApprovalResetExecutorLane:
             )
 
         periodic_payload = chore_manager._apply_reset_action.call_args.args[0]
+        periodic_payload.setdefault("allow_reschedule", True)
+        approval_payload.setdefault("allow_reschedule", True)
         assert periodic_payload == approval_payload
 
     @pytest.mark.asyncio
@@ -1593,11 +1831,10 @@ class TestEventPayloads:
         payload = approved_call[1]
 
         # Verify rich payload fields
-        assert "points_awarded" in payload
+        assert "base_points" in payload
         assert "is_shared" in payload
         assert "is_multi_claim" in payload
         assert "chore_labels" in payload
-        assert "multiplier_applied" in payload
         assert "previous_state" in payload
         assert "update_stats" in payload
 

@@ -22,7 +22,6 @@ from tests.helpers import (
     CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE,
     CFOF_CHORES_INPUT_ASSIGNED_USER_IDS,
     CFOF_CHORES_INPUT_AUTO_APPROVE,
-    CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW,
     CFOF_CHORES_INPUT_COMPLETION_CRITERIA,
     CFOF_CHORES_INPUT_DAILY_MULTI_TIMES,
     CFOF_CHORES_INPUT_DEFAULT_POINTS,
@@ -357,7 +356,7 @@ class TestDailyMultiOptionsFlow:
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_SHARED,
                 CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: APPROVAL_RESET_UPON_COMPLETION,
                 CFOF_CHORES_INPUT_DUE_DATE: due_date,
-                CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
+                const.CFOF_CHORES_INPUT_CLAIM_LOCK_UNTIL_WINDOW: True,
                 CFOF_CHORES_INPUT_AUTO_APPROVE: True,
             },
         )
@@ -397,6 +396,9 @@ class TestDailyMultiOptionsFlow:
             user_input={CFOF_CHORES_INPUT_DAILY_MULTI_TIMES: "07:00|19:00"},
         )
         assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
+
+        await hass.async_block_till_done()
+        coordinator = config_entry.runtime_data
 
         chore = next(
             (

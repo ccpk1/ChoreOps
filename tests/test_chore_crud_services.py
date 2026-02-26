@@ -206,6 +206,33 @@ class TestCreateChoreSchemaValidation:
                 blocking=True,
             )
 
+    @pytest.mark.asyncio
+    async def test_accepts_advanced_overdue_handling_option(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test create_chore accepts advanced overdue handling values exposed by contracts."""
+        with patch.object(scenario_full.coordinator, "_persist", new=MagicMock()):
+            response = await hass.services.async_call(
+                DOMAIN,
+                SERVICE_CREATE_CHORE,
+                {
+                    "name": "Overdue Handling Contract Test",
+                    "assigned_user_names": ["Zoë", "Max!"],
+                    "points": 10,
+                    "frequency": "daily",
+                    "approval_reset_type": "at_midnight_once",
+                    "overdue_handling": "at_due_date_mark_missed_and_lock",
+                    "due_date": "2099-01-01T09:00:00",
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+        assert response is not None
+        assert "id" in response
+
 
 # ============================================================================
 # CREATE CHORE - E2E TESTS
@@ -356,6 +383,26 @@ class TestUpdateChoreSchemaValidation:
 
         assert response is not None
         assert "id" in response
+
+    @pytest.mark.asyncio
+    async def test_rejects_completion_criteria_in_update(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test update_chore rejects completion_criteria while excluded from update contract."""
+        chore_id = scenario_full.chore_ids["Täke Öut Trash"]
+
+        with pytest.raises(vol.Invalid):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_UPDATE_CHORE,
+                {
+                    "id": chore_id,
+                    "completion_criteria": "rotation_simple",
+                },
+                blocking=True,
+            )
 
     @pytest.mark.asyncio
     async def test_accepts_name_as_identifier(

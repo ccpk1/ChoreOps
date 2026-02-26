@@ -123,6 +123,10 @@ class StatisticsManager(BaseManager):
 
         # Subscribe to chore events
         self.listen(const.SIGNAL_SUFFIX_CHORE_APPROVED, self._on_chore_approved)
+        self.listen(
+            const.SIGNAL_SUFFIX_CHORE_POINTS_AWARDED,
+            self._on_chore_points_awarded,
+        )
         self.listen(const.SIGNAL_SUFFIX_CHORE_COMPLETED, self._on_chore_completed)
         self.listen(const.SIGNAL_SUFFIX_CHORE_CLAIMED, self._on_chore_claimed)
         self.listen(const.SIGNAL_SUFFIX_CHORE_DISAPPROVED, self._on_chore_disapproved)
@@ -384,19 +388,17 @@ class StatisticsManager(BaseManager):
     async def _on_chore_approved(self, payload: dict[str, Any]) -> None:
         """Handle CHORE_APPROVED event - update approval statistics.
 
-        Records approved count and points to period buckets.
-        Note: Completion and streaks are tracked separately via CHORE_COMPLETED signal.
+        Records approved count to period buckets.
+        Note: Awarded points are tracked via CHORE_POINTS_AWARDED.
+        Completion and streaks are tracked separately via CHORE_COMPLETED signal.
         """
         assignee_id = payload.get("user_id", "")
         chore_id = payload.get("chore_id", "")
-        points_awarded = payload.get("points_awarded", 0.0)
         effective_date = payload.get("effective_date")
 
         increments: dict[str, int | float] = {
             const.DATA_USER_CHORE_DATA_PERIOD_APPROVED: 1,
         }
-        if points_awarded > 0:
-            increments[const.DATA_USER_CHORE_DATA_PERIOD_POINTS] = points_awarded
 
         if self._record_chore_transaction(
             assignee_id, chore_id, increments, effective_date
@@ -405,7 +407,34 @@ class StatisticsManager(BaseManager):
             # now notify sensors that data has changed
             self._coordinator.async_set_updated_data(self._coordinator._data)
             const.LOGGER.debug(
-                "StatisticsManager._on_chore_approved: assignee=%s, chore=%s, points=%.2f",
+                "StatisticsManager._on_chore_approved: assignee=%s, chore=%s",
+                assignee_id,
+                chore_id,
+            )
+
+    async def _on_chore_points_awarded(self, payload: dict[str, Any]) -> None:
+        """Handle CHORE_POINTS_AWARDED event - record awarded chore points.
+
+        Awarded points are emitted by EconomyManager after multiplier application.
+        """
+        assignee_id = payload.get("user_id", "")
+        chore_id = payload.get("chore_id", "")
+        points_awarded = payload.get("points_awarded", 0.0)
+        effective_date = payload.get("effective_date")
+
+        if points_awarded <= 0:
+            return
+
+        increments: dict[str, int | float] = {
+            const.DATA_USER_CHORE_DATA_PERIOD_POINTS: points_awarded,
+        }
+
+        if self._record_chore_transaction(
+            assignee_id, chore_id, increments, effective_date
+        ):
+            self._coordinator.async_set_updated_data(self._coordinator._data)
+            const.LOGGER.debug(
+                "StatisticsManager._on_chore_points_awarded: assignee=%s, chore=%s, points=%.2f",
                 assignee_id,
                 chore_id,
                 points_awarded,

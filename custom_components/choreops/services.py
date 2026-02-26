@@ -16,6 +16,7 @@ from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
 from . import const
+from .engines.chore_engine import ChoreEngine
 from .helpers import flow_helpers, report_helpers, translation_helpers
 from .helpers.auth_helpers import (
     AUTH_ACTION_APPROVAL,
@@ -366,7 +367,7 @@ DELETE_REWARD_SCHEMA = vol.Schema(
 # Field validation:
 # - name: required for create, optional for update
 # - assigned_user_names: required for create (list of assignee names resolved to UUIDs)
-# - completion_criteria: allowed for create and update (validated in Manager)
+# - completion_criteria: allowed for create only (update intentionally excluded)
 # - Other fields use defaults from const.DEFAULT_*
 
 # Enum validators for select fields
@@ -389,8 +390,8 @@ _CHORE_FREQUENCY_VALUES = [
 
 _COMPLETION_CRITERIA_VALUES = [
     const.COMPLETION_CRITERIA_INDEPENDENT,
-    const.COMPLETION_CRITERIA_SHARED_FIRST,
     const.COMPLETION_CRITERIA_SHARED,
+    const.COMPLETION_CRITERIA_SHARED_FIRST,
     const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
     const.COMPLETION_CRITERIA_ROTATION_SMART,
 ]
@@ -401,6 +402,7 @@ _APPROVAL_RESET_VALUES = [
     const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
     const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
     const.APPROVAL_RESET_UPON_COMPLETION,
+    const.APPROVAL_RESET_MANUAL,
 ]
 
 _PENDING_CLAIMS_VALUES = [
@@ -410,10 +412,13 @@ _PENDING_CLAIMS_VALUES = [
 ]
 
 _OVERDUE_HANDLING_VALUES = [
-    const.OVERDUE_HANDLING_AT_DUE_DATE,
     const.OVERDUE_HANDLING_NEVER_OVERDUE,
-    const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET,
+    const.OVERDUE_HANDLING_AT_DUE_DATE,
     const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_IMMEDIATE_ON_LATE,
+    const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET,
+    const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED,
+    const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK,
+    const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL,
 ]
 
 # Days of week - using raw values since there are no individual DAY_* constants
@@ -477,15 +482,11 @@ CREATE_CHORE_SCHEMA = vol.Schema(
 )
 
 # NOTE: Either chore_id OR name must be provided (resolved in handler)
-# completion_criteria IS allowed in update (mutable, with transition handling in Manager)
 UPDATE_CHORE_SCHEMA = vol.Schema(
     _with_service_target_fields(
         {
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ID): cv.string,
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_NAME): cv.string,
-            vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_COMPLETION_CRITERIA): vol.In(
-                _COMPLETION_CRITERIA_VALUES
-            ),
             # Canonical input key (names in payload).
             vol.Optional(const.SERVICE_FIELD_CHORE_CRUD_ASSIGNED_USER_NAMES): vol.All(
                 cv.ensure_list, [cv.string]
@@ -765,9 +766,12 @@ def async_setup_services(hass: HomeAssistant):
                 )
 
             # Create chore status sensor entities for all assigned assignees
-            from .sensor import create_chore_entities
+            if coordinator._test_mode:
+                from .sensor import create_chore_entities
 
-            create_chore_entities(coordinator, internal_id)
+                create_chore_entities(coordinator, internal_id)
+
+            await coordinator.async_sync_entities_after_service_create()
 
             const.LOGGER.info(
                 "Service created chore '%s' with ID: %s",
@@ -1324,12 +1328,8 @@ def async_setup_services(hass: HomeAssistant):
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             )
-            # Reject assignee_id for SHARED and SHARED_FIRST chores
-            # (they use chore-level due dates, not per-assignee)
-            if completion_criteria in (
-                const.COMPLETION_CRITERIA_SHARED,
-                const.COMPLETION_CRITERIA_SHARED_FIRST,
-            ):
+            # Reject assignee_id for chore-level due-date criteria
+            if ChoreEngine.uses_chore_level_due_date(chore_info):
                 const.LOGGER.warning(
                     "Set Chore Due Date: Cannot specify assignee_id for %s chore '%s'",
                     completion_criteria,
@@ -1470,12 +1470,8 @@ def async_setup_services(hass: HomeAssistant):
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_INDEPENDENT,
             )
-            # Reject assignee_id for SHARED and SHARED_FIRST chores
-            # (they use chore-level due dates, not per-assignee)
-            if completion_criteria in (
-                const.COMPLETION_CRITERIA_SHARED,
-                const.COMPLETION_CRITERIA_SHARED_FIRST,
-            ):
+            # Reject assignee_id for chore-level due-date criteria
+            if ChoreEngine.uses_chore_level_due_date(chore_info):
                 const.LOGGER.warning(
                     "Skip Chore Due Date: Cannot specify assignee_id for %s chore '%s'",
                     completion_criteria,
@@ -1599,6 +1595,15 @@ def async_setup_services(hass: HomeAssistant):
             # Create reward via RewardManager (handles build, persist, signal)
             reward_dict = coordinator.reward_manager.create_reward(data_input)
             internal_id = str(reward_dict[const.DATA_REWARD_INTERNAL_ID])
+
+            # Create reward status sensor entities for all assignees with
+            # gamification enabled.
+            if coordinator._test_mode:
+                from .sensor import create_reward_entities
+
+                create_reward_entities(coordinator, internal_id)
+
+            await coordinator.async_sync_entities_after_service_create()
 
             const.LOGGER.info(
                 "Service created reward '%s' with ID: %s",

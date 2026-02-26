@@ -241,6 +241,7 @@ SIGNAL_SUFFIX_POINTS_MULTIPLIER_CHANGE_REQUESTED: Final = (
 # Chore Events (ChoreManager)
 SIGNAL_SUFFIX_CHORE_CLAIMED: Final = "chore_claimed"
 SIGNAL_SUFFIX_CHORE_APPROVED: Final = "chore_approved"
+SIGNAL_SUFFIX_CHORE_POINTS_AWARDED: Final = "chore_points_awarded"
 SIGNAL_SUFFIX_CHORE_COMPLETED: Final = "chore_completed"
 SIGNAL_SUFFIX_CHORE_DISAPPROVED: Final = "chore_disapproved"
 SIGNAL_SUFFIX_CHORE_UNDONE: Final = "chore_undone"

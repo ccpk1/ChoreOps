@@ -490,11 +490,7 @@ async def async_setup_entry(
 
     # For each shared chore, add a global state sensor
     for chore_id, chore_info in coordinator.chores_data.items():
-        completion_criteria = chore_info.get(const.DATA_CHORE_COMPLETION_CRITERIA)
-        if completion_criteria in (
-            const.COMPLETION_CRITERIA_SHARED,
-            const.COMPLETION_CRITERIA_SHARED_FIRST,
-        ):
+        if ChoreEngine.is_shared_chore(chore_info):
             chore_name = get_item_name_or_log_error(
                 "chore", chore_id, chore_info, const.DATA_CHORE_NAME
             )

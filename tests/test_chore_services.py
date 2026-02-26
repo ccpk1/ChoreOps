@@ -1154,6 +1154,45 @@ class TestSetDueDateDataStructureConsistency:
         assert chore_info[DATA_CHORE_DUE_DATE] == expected_iso
 
     @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "rotation_criteria",
+        [
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ],
+        ids=["rotation_simple", "rotation_smart"],
+    )
+    async def test_set_due_date_rotation_modes_add_chore_level_due_date(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+        rotation_criteria: str,
+    ) -> None:
+        """Test set_chore_due_date uses chore-level due_date for rotation criteria."""
+        coordinator = setup_chore_services_scenario.coordinator
+        zoe_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Shared First Daily Task"]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        chore_info[DATA_CHORE_COMPLETION_CRITERIA] = rotation_criteria
+        chore_info.pop(DATA_CHORE_DUE_DATE, None)
+        chore_info.pop(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, None)
+
+        new_due_date = datetime.now(UTC) + timedelta(days=2)
+        new_due_date = new_due_date.replace(hour=15, minute=0, second=0, microsecond=0)
+        await coordinator.chore_manager.set_due_date(
+            chore_id,
+            new_due_date,
+            assignee_id=zoe_id,
+        )
+
+        expected_iso = dt_util.as_utc(new_due_date).isoformat()
+        assert chore_info.get(DATA_CHORE_DUE_DATE) == expected_iso
+
+        per_assignee_due_dates = chore_info.get(DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {})
+        assert zoe_id not in per_assignee_due_dates
+
+    @pytest.mark.asyncio
     async def test_set_due_date_independent_avoids_chore_level_due_date(
         self,
         hass: HomeAssistant,

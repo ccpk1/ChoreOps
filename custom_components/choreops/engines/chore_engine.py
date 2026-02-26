@@ -565,6 +565,24 @@ class ChoreEngine:
         )
 
     @staticmethod
+    def uses_chore_level_due_date(chore_data: ChoreData | dict[str, Any]) -> bool:
+        """Check if chore uses a single chore-level due date.
+
+        Returns True for completion criteria where due dates are shared across
+        all assigned assignees.
+        """
+        criteria = chore_data.get(
+            const.DATA_CHORE_COMPLETION_CRITERIA,
+            const.COMPLETION_CRITERIA_INDEPENDENT,
+        )
+        return criteria in (
+            const.COMPLETION_CRITERIA_SHARED,
+            const.COMPLETION_CRITERIA_SHARED_FIRST,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        )
+
+    @staticmethod
     def is_rotation_mode(chore_data: ChoreData | dict[str, Any]) -> bool:
         """Check if chore uses rotation completion criteria.
 
