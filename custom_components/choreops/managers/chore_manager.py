@@ -615,24 +615,26 @@ class ChoreManager(BaseManager):
             now=dt_util.now(),
         )
 
-        # For SHARED_FIRST, collect other assignees' states for blocking check
+        # For single-claimer modes (SHARED_FIRST + ROTATION_*), collect
+        # other assignees' states for blocking check.
         completion_criteria = chore_data.get(
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
         other_assignee_states = None
-        if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
+        if completion_criteria in (
+            const.COMPLETION_CRITERIA_SHARED_FIRST,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ):
             assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
-                    other_assignee_chore_data = self._get_assignee_chore_data(
-                        other_assignee_id, chore_id
-                    )
                     other_assignee_states[other_assignee_id] = (
-                        other_assignee_chore_data.get(
-                            const.DATA_USER_CHORE_DATA_STATE,
-                            const.CHORE_STATE_PENDING,
+                        self._derive_boundary_assignee_state(
+                            other_assignee_id,
+                            chore_id,
                         )
                     )
 
@@ -2078,23 +2080,23 @@ class ChoreManager(BaseManager):
             chore_info = entry["chore_info"]
             should_reschedule_shared = False
 
-            # Get chore-level state
-            current_state = chore_info.get(
-                const.DATA_CHORE_STATE, const.CHORE_STATE_PENDING
-            )
-
-            # Use engine to determine action
-            category = ChoreEngine.get_boundary_category(
-                chore_data=chore_info,
-                assignee_state=current_state,
-                trigger=trigger,
-            )
-
             # Reset all assigned assignees
             assigned_assignees = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             for assignee_id in assigned_assignees:
                 if not assignee_id:
                     continue
+
+                assignee_state = self._derive_boundary_assignee_state(
+                    assignee_id,
+                    chore_id,
+                )
+
+                # Use engine to determine action per-assignee state
+                category = ChoreEngine.get_boundary_category(
+                    chore_data=chore_info,
+                    assignee_state=assignee_state,
+                    trigger=trigger,
+                )
 
                 (
                     reset_applied,
@@ -2103,7 +2105,7 @@ class ChoreManager(BaseManager):
                     assignee_id=assignee_id,
                     chore_id=chore_id,
                     chore_info=cast("ChoreData", chore_info),
-                    assignee_state=current_state,
+                    assignee_state=assignee_state,
                     trigger=trigger,
                     category=cast("ResetBoundaryCategory | None", category),
                     reschedule_assignee_id=None,
@@ -2179,6 +2181,22 @@ class ChoreManager(BaseManager):
 
     def _derive_boundary_assignee_state(self, assignee_id: str, chore_id: str) -> str:
         """Derive assignee state used by boundary reset processing."""
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+        explicit_state = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_STATE,
+            const.CHORE_STATE_PENDING,
+        )
+
+        if explicit_state == const.CHORE_STATE_OVERDUE:
+            return const.CHORE_STATE_OVERDUE
+        if explicit_state == const.CHORE_STATE_CLAIMED:
+            return const.CHORE_STATE_CLAIMED
+        if explicit_state in (
+            const.CHORE_STATE_APPROVED,
+            const.CHORE_STATE_APPROVED_IN_PART,
+        ):
+            return const.CHORE_STATE_APPROVED
+
         if self.chore_is_overdue(assignee_id, chore_id):
             return const.CHORE_STATE_OVERDUE
         if self.chore_has_pending_claim(assignee_id, chore_id):
@@ -3311,11 +3329,12 @@ class ChoreManager(BaseManager):
         This helper is dual-purpose: used for claim validation AND for providing
         status information to the dashboard helper sensor.
 
-        Phase 2: SHARED_FIRST blocking is computed from other assignees' states
-        instead of checking a stored completed_by_other state.
+        Phase 2+: Single-claimer blocking (SHARED_FIRST + ROTATION_*) is computed
+        from other assignees' states instead of checking a stored
+        completed_by_other state.
 
         Checks (in order):
-        1. SHARED_FIRST blocking - Another assignee is claimed/approved
+        1. Single-claimer blocking - Another assignee is claimed/approved
         2. pending_claim - Already has a claim awaiting approval
         3. already_approved - Already approved in current period (if not multi-claim)
 
@@ -3333,24 +3352,26 @@ class ChoreManager(BaseManager):
         # Determine if this is a multi-claim mode
         allow_multiple_claims = self._chore_allows_multiple_claims(chore_id)
 
-        # For SHARED_FIRST, collect other assignees' states for blocking check
+        # For single-claimer modes (SHARED_FIRST + ROTATION_*), collect
+        # other assignees' states for blocking check.
         completion_criteria = chore_data.get(
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
         other_assignee_states = None
-        if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
+        if completion_criteria in (
+            const.COMPLETION_CRITERIA_SHARED_FIRST,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ):
             assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
-                    other_assignee_chore_data = self._get_assignee_chore_data(
-                        other_assignee_id, chore_id
-                    )
                     other_assignee_states[other_assignee_id] = (
-                        other_assignee_chore_data.get(
-                            const.DATA_USER_CHORE_DATA_STATE,
-                            const.CHORE_STATE_PENDING,
+                        self._derive_boundary_assignee_state(
+                            other_assignee_id,
+                            chore_id,
                         )
                     )
 
@@ -3367,7 +3388,7 @@ class ChoreManager(BaseManager):
         ):
             return (False, const.TRANS_KEY_ERROR_CHORE_ALREADY_APPROVED)
 
-        # Check 3: Delegate to Engine for SHARED_FIRST blocking and FSM-based locking
+        # Check 3: Delegate to Engine for single-claimer blocking and FSM-based locking
         # v0.5.0: Calculate resolved_state to enable rotation/waiting/missed blocking
         has_pending = ChoreEngine.chore_has_pending_claim(assignee_chore_data)
         is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
@@ -3486,7 +3507,7 @@ class ChoreManager(BaseManager):
         # These require Manager context (approval_period_start lookup)
         is_approved = self.chore_is_approved_in_period(assignee_id, chore_id)
 
-        # Compute shared-first context and use one FSM resolution for both
+        # Compute single-claimer context and use one FSM resolution for both
         # display state and claimability checks.
         chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
             chore_id, {}
@@ -3510,29 +3531,23 @@ class ChoreManager(BaseManager):
         )
         other_assignee_states = None
         is_completed_by_other = False
-        if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
+        if completion_criteria in (
+            const.COMPLETION_CRITERIA_SHARED_FIRST,
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
+            const.COMPLETION_CRITERIA_ROTATION_SMART,
+        ):
             assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
-                    other_assignee_chore_data = self._get_assignee_chore_data(
-                        other_assignee_id, chore_id
-                    )
-                    other_state = other_assignee_chore_data.get(
-                        const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
+                    other_state = self._derive_boundary_assignee_state(
+                        other_assignee_id,
+                        chore_id,
                     )
                     other_assignee_states[other_assignee_id] = other_state
-                    other_claimed_by = other_assignee_chore_data.get(
-                        const.DATA_CHORE_CLAIMED_BY
-                    )
-                    other_completed_by = other_assignee_chore_data.get(
-                        const.DATA_CHORE_COMPLETED_BY
-                    )
-                    if (
-                        other_state
-                        in (const.CHORE_STATE_CLAIMED, const.CHORE_STATE_APPROVED)
-                        or bool(other_claimed_by)
-                        or bool(other_completed_by)
+                    if other_state in (
+                        const.CHORE_STATE_CLAIMED,
+                        const.CHORE_STATE_APPROVED,
                     ):
                         is_completed_by_other = True
                         break
@@ -3558,9 +3573,9 @@ class ChoreManager(BaseManager):
             const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
         )
 
-        # Apply completed_by_other display state for SHARED_FIRST if another assignee
-        # is active. This display-only state should take precedence over
-        # due/overdue/pending for blocked assignees.
+        # Apply completed_by_other display state for single-claimer modes when
+        # another assignee is already active. This display-only state should
+        # take precedence over due/overdue/pending for blocked assignees.
         if is_completed_by_other and display_state in (
             const.CHORE_STATE_PENDING,
             const.CHORE_STATE_DUE,
@@ -4615,6 +4630,79 @@ class ChoreManager(BaseManager):
         # INDEPENDENT: multiple assignees with different states
         else:
             chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_INDEPENDENT
+
+        # ROTATION override: authoritative global state contract
+        # - Closed rotation cycle: follow current turn-holder state
+        # - Open cycle (manual override or steal window): behave as shared_first
+        #   and follow first active claimant progression
+        if ChoreEngine.is_rotation_mode(chore_data):
+            if self._is_rotation_open_claim_cycle(chore_id, chore_data):
+                if count_approved > 0:
+                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED
+                elif count_claimed > 0:
+                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED
+                elif count_overdue > 0:
+                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
+                else:
+                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
+                return
+
+            turn_assignee_id = chore_data.get(
+                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+            )
+            if turn_assignee_id in assigned_assignees:
+                turn_assignee_chore_data = self._get_assignee_chore_data(
+                    cast("str", turn_assignee_id),
+                    chore_id,
+                )
+                turn_state = turn_assignee_chore_data.get(
+                    const.DATA_USER_CHORE_DATA_STATE,
+                    const.CHORE_STATE_PENDING,
+                )
+                if turn_state == const.CHORE_STATE_NOT_MY_TURN:
+                    turn_state = const.CHORE_STATE_PENDING
+                chore_data[const.DATA_CHORE_STATE] = turn_state
+                return
+
+            # Defensive fallback if rotation turn holder metadata is invalid
+            if count_approved > 0:
+                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED
+            elif count_claimed > 0:
+                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED
+            elif count_overdue > 0:
+                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
+            else:
+                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
+
+    def _is_rotation_open_claim_cycle(
+        self,
+        chore_id: str,
+        chore_data: ChoreData | dict[str, Any],
+    ) -> bool:
+        """Return True when rotation claim lock is intentionally opened.
+
+        Open cycle conditions:
+        - Manual cycle override is enabled, or
+        - Steal window is active (allow_steal and now is past due date)
+        """
+        if not ChoreEngine.is_rotation_mode(chore_data):
+            return False
+
+        if chore_data.get(const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE, False):
+            return True
+
+        overdue_handling = chore_data.get(
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE,
+            const.DEFAULT_OVERDUE_HANDLING_TYPE,
+        )
+        if overdue_handling != const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL:
+            return False
+
+        due_date = self.get_due_date(chore_id)
+        if due_date is None:
+            return False
+
+        return dt_util.now() > due_date
 
     def _set_approval_period_start(
         self,

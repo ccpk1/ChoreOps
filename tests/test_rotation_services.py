@@ -23,7 +23,7 @@ from tests.helpers.constants import (
     SERVICE_FIELD_USER_ID,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
-from tests.helpers.workflows import find_chore, get_dashboard_helper
+from tests.helpers.workflows import claim_chore, find_chore, get_dashboard_helper
 from tests.test_badge_helpers import get_assignee_by_name, get_chore_by_name
 
 # =============================================================================
@@ -336,6 +336,96 @@ async def test_open_rotation_cycle_service(
     assert chore_data.get("rotation_cycle_override") is True, (
         "rotation_cycle_override should be set to True"
     )
+
+
+@pytest.mark.asyncio
+async def test_open_rotation_cycle_allows_one_claim_then_blocks_others(
+    hass: HomeAssistant,
+    scenario_shared: SetupResult,
+    mock_hass_users: dict[str, Any],
+) -> None:
+    """Open rotation cycle behaves like shared_first after first claim.
+
+    Validates:
+    - Non-turn assignee can claim when override is open
+    - Once first claim exists, other assignees are blocked from claiming
+    """
+    from homeassistant.core import Context
+
+    scenario_shared
+    await hass.async_block_till_done()
+
+    config_entry = hass.config_entries.async_entries(const.DOMAIN)[0]
+    coordinator = config_entry.runtime_data
+
+    chore_id = get_chore_by_name(coordinator, "Dishes Rotation")
+    assert chore_id is not None
+
+    assignee_rows: list[tuple[str, str, str]] = [
+        ("zoe", "Zoë", mock_hass_users["assignee1"].id),
+        ("max", "Max!", mock_hass_users["assignee2"].id),
+        ("lila", "Lila", mock_hass_users["assignee3"].id),
+    ]
+
+    # Identify current turn holder and available non-turn claimers before opening.
+    turn_slug = ""
+    non_turn_slugs: list[str] = []
+    for slug, _name, _user_id in assignee_rows:
+        chore = find_chore(get_dashboard_helper(hass, slug), "Dishes Rotation")
+        assert chore is not None
+        if chore["status"] == CHORE_STATE_PENDING:
+            turn_slug = slug
+        else:
+            non_turn_slugs.append(slug)
+
+    assert turn_slug
+    assert len(non_turn_slugs) == 2
+
+    # Open override window: anyone can claim once.
+    await hass.services.async_call(
+        const.DOMAIN,
+        "open_rotation_cycle",
+        {SERVICE_FIELD_CHORE_ID: chore_id},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    chore_data = coordinator._data["chores"][chore_id]
+    assert chore_data.get(const.DATA_CHORE_ROTATION_CYCLE_OVERRIDE) is True
+
+    first_claimer_slug = non_turn_slugs[0]
+    first_claimer_user_id = next(
+        user_id for slug, _name, user_id in assignee_rows if slug == first_claimer_slug
+    )
+    first_claim = await claim_chore(
+        hass,
+        first_claimer_slug,
+        "Dishes Rotation",
+        context=Context(user_id=first_claimer_user_id),
+    )
+    assert first_claim.success, f"First claim should succeed: {first_claim.error}"
+
+    second_claimer_slug = non_turn_slugs[1]
+    second_claimer_user_id = next(
+        user_id for slug, _name, user_id in assignee_rows if slug == second_claimer_slug
+    )
+    second_claim = await claim_chore(
+        hass,
+        second_claimer_slug,
+        "Dishes Rotation",
+        context=Context(user_id=second_claimer_user_id),
+    )
+    assert second_claim.state_before == second_claim.state_after
+    assert second_claim.global_state_before == second_claim.global_state_after
+
+    second_chore = find_chore(
+        get_dashboard_helper(hass, second_claimer_slug),
+        "Dishes Rotation",
+    )
+    assert second_chore is not None
+    second_sensor = hass.states.get(second_chore["eid"])
+    assert second_sensor is not None
+    assert second_sensor.attributes.get("can_claim") is False
 
 
 # =============================================================================

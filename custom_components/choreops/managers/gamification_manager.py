@@ -2205,6 +2205,8 @@ class GamificationManager(BaseManager):
             self.emit(
                 const.SIGNAL_SUFFIX_ACHIEVEMENT_EARNED,
                 user_id=assignee_id,
+                user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+                or "",
                 achievement_id=achievement_id,
                 achievement_name=achievement_data.get(
                     const.DATA_ACHIEVEMENT_NAME, "Unknown"
@@ -2451,6 +2453,8 @@ class GamificationManager(BaseManager):
             self.emit(
                 const.SIGNAL_SUFFIX_CHALLENGE_COMPLETED,
                 user_id=assignee_id,
+                user_name=eh.get_assignee_name_by_id(self.coordinator, assignee_id)
+                or "",
                 challenge_id=challenge_id,
                 challenge_name=challenge_data.get(const.DATA_CHALLENGE_NAME, "Unknown"),
                 result=result,

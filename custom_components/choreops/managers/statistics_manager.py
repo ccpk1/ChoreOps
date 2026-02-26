@@ -227,7 +227,6 @@ class StatisticsManager(BaseManager):
         Args:
             payload: Event data containing:
                 - user_id: The assignee's internal ID (canonical)
-                - assignee_id: Legacy alias for backward compatibility
                 - old_balance: Balance before transaction
                 - new_balance: Balance after transaction
                 - delta: The point change (positive or negative)
@@ -235,7 +234,7 @@ class StatisticsManager(BaseManager):
                 - reference_id: Optional related entity ID
         """
         # Extract payload values
-        assignee_id = payload.get("user_id") or payload.get("assignee_id", "")
+        assignee_id = payload.get("user_id", "")
         old_balance = payload.get("old_balance", 0.0)  # noqa: F841 - future use
         new_balance = payload.get("new_balance", 0.0)
         delta = payload.get("delta", 0.0)

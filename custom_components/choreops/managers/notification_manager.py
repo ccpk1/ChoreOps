@@ -1749,7 +1749,7 @@ class NotificationManager(BaseManager):
 
         if not assignee_name:
             const.LOGGER.warning(
-                "BADGE_EARNED notification missing assignee_name in payload for assignee_id=%s",
+                "BADGE_EARNED notification missing user_name in payload for user_id=%s",
                 assignee_id,
             )
             # Fallback to lookup
@@ -1803,7 +1803,7 @@ class NotificationManager(BaseManager):
 
         if not assignee_name:
             const.LOGGER.warning(
-                "ACHIEVEMENT_EARNED notification missing assignee_name in payload for assignee_id=%s",
+                "ACHIEVEMENT_EARNED notification missing user_name in payload for user_id=%s",
                 assignee_id,
             )
             # Fallback to lookup
@@ -1860,7 +1860,7 @@ class NotificationManager(BaseManager):
 
         if not assignee_name:
             const.LOGGER.warning(
-                "CHALLENGE_COMPLETED notification missing assignee_name in payload for assignee_id=%s",
+                "CHALLENGE_COMPLETED notification missing user_name in payload for user_id=%s",
                 assignee_id,
             )
             # Fallback to lookup
@@ -1941,7 +1941,7 @@ class NotificationManager(BaseManager):
         assignee_name = payload.get("user_name", "")
         if not assignee_name:
             const.LOGGER.warning(
-                "CHORE_CLAIMED notification missing assignee_name in payload for assignee_id=%s",
+                "CHORE_CLAIMED notification missing user_name in payload for user_id=%s",
                 assignee_id,
             )
             # Fallback to lookup
@@ -2037,7 +2037,7 @@ class NotificationManager(BaseManager):
 
         if not assignee_name:
             const.LOGGER.warning(
-                "REWARD_CLAIMED notification missing assignee_name in payload for assignee_id=%s",
+                "REWARD_CLAIMED notification missing user_name in payload for user_id=%s",
                 assignee_id,
             )
             # Fallback to lookup
@@ -2716,7 +2716,7 @@ class NotificationManager(BaseManager):
         original_assignee_name = payload.get("user_name", "")
         if not original_assignee_name:
             const.LOGGER.error(
-                "CHORE_OVERDUE notification missing assignee_name in payload for target_assignee=%s, chore_id=%s",
+                "CHORE_OVERDUE notification missing user_name in payload for target_user=%s, chore_id=%s",
                 target_assignee_id,
                 chore_id,
             )
@@ -2843,7 +2843,7 @@ class NotificationManager(BaseManager):
         assignee_name_payload = payload.get("user_name", "")
         if not assignee_name_payload:
             const.LOGGER.error(
-                "CHORE_MISSED notification missing assignee_name in payload for assignee_id=%s, chore_id=%s",
+                "CHORE_MISSED notification missing user_name in payload for user_id=%s, chore_id=%s",
                 assignee_id,
                 chore_id,
             )
