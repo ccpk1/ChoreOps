@@ -48,7 +48,7 @@
         "data_description": {
           "points_label": "Label displayed for points (e.g., 'Points', 'Stars', 'Coins')",
           "points_icon": "MDI icon for points (e.g., 'mdi:star', 'mdi:coin', 'mdi:trophy')",
-          "update_interval": "How often to update data (minimum 1 minute)",
+          "update_interval": "How often to update data (minimum: 1 minute)",
           "calendar_show_period": "Days of history to show in calendar (minimum 1)",
           "retention_daily": "Days to keep daily aggregates",
           "retention_weekly": "Weeks to keep weekly aggregates",
