@@ -40,7 +40,7 @@ jobs:
       - name: Brand regression guard
         run: |
           set -euo pipefail
-          if grep -RInE "ad-ha/kidschores-ha|kidschores-ha-dashboard" \
+          if grep -RInE --exclude="lint-validation.yaml" "ad-ha/kidschores-ha|kidschores-ha-dashboard" \
             .github README.md pyproject.toml hacs.json custom_components/choreops/manifest.json; then
             echo "❌ Deprecated KidsChores branding string found in active project files"
             exit 1
