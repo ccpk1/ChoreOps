@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-import json
 from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any
@@ -41,7 +40,6 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import slugify
 import jinja2
-from packaging.version import InvalidVersion, Version
 import yaml
 
 from .. import const
@@ -77,8 +75,9 @@ class DashboardReleaseTag:
     """Normalized representation of a supported dashboard release tag.
 
     Supported formats:
-            - `vX.Y.Z`
-            - `vX.Y.Z_betaN` / `vX.Y.Z-betaN`
+            - `X.Y.Z`
+        - `X.Y.Z-beta.N`
+        - `X.Y.Z-rc.N`
     """
 
     raw_tag: str
@@ -90,22 +89,26 @@ class DashboardReleaseTag:
 
     @property
     def is_prerelease(self) -> bool:
-        """Return True when this tag is a prerelease (currently beta tags)."""
+        """Return True when this tag is a prerelease (beta/rc)."""
         return self.prerelease_label is not None
 
     @property
-    def sort_key(self) -> tuple[int, int, int, int, int]:
+    def sort_key(self) -> tuple[int, int, int, int, int, int]:
         """Return deterministic key for newest-first release selection.
 
         Stable tags sort after prereleases for the same semantic version.
         """
         stability_rank = 0 if self.is_prerelease else 1
+        prerelease_label_rank = 0
+        if self.prerelease_label == "rc":
+            prerelease_label_rank = 1
         prerelease_number = self.prerelease_number or 0
         return (
             self.major,
             self.minor,
             self.patch,
             stability_rank,
+            prerelease_label_rank,
             prerelease_number,
         )
 
@@ -179,63 +182,6 @@ def _build_release_template_url(source_path: str, release_ref: str) -> str:
     )
 
 
-def _release_meets_floor(tag: str) -> bool:
-    """Return True when release tag is >= configured compatibility floor."""
-    parsed_tag = parse_dashboard_release_tag(tag)
-    floor_tag = parse_dashboard_release_tag(const.DASHBOARD_RELEASE_MIN_COMPAT_TAG)
-    if parsed_tag is None or floor_tag is None:
-        return False
-    return parsed_tag.sort_key >= floor_tag.sort_key
-
-
-def _is_release_integration_compatible(tag: str, integration_version: Version) -> bool:
-    """Return True when integration version satisfies per-tag minimum version map."""
-    min_required = const.DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG.get(tag)
-    if min_required is None:
-        return True
-    try:
-        min_required_version = Version(min_required)
-    except InvalidVersion:
-        const.LOGGER.debug(
-            "Invalid minimum integration version mapping for tag %s: %s",
-            tag,
-            min_required,
-        )
-        return False
-    return integration_version >= min_required_version
-
-
-def _read_manifest_version() -> str | None:
-    """Read integration version from manifest.json."""
-    manifest_path = Path(__file__).parent.parent / "manifest.json"
-    try:
-        raw_manifest = manifest_path.read_text(encoding="utf-8")
-    except OSError:
-        return None
-
-    try:
-        manifest_data = json.loads(raw_manifest)
-    except json.JSONDecodeError:
-        return None
-
-    version_value = manifest_data.get("version")
-    return version_value if isinstance(version_value, str) else None
-
-
-async def _get_installed_integration_version(hass: HomeAssistant) -> Version | None:
-    """Return installed integration version parsed as Version or None."""
-    raw_version = await hass.async_add_executor_job(_read_manifest_version)
-    if raw_version is None:
-        return None
-    try:
-        return Version(raw_version)
-    except InvalidVersion:
-        const.LOGGER.debug(
-            "Could not parse integration version from manifest: %s", raw_version
-        )
-        return None
-
-
 async def _fetch_dashboard_releases(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Fetch release payloads from GitHub Releases API."""
     session = async_get_clientsession(hass)
@@ -262,7 +208,6 @@ async def discover_compatible_dashboard_release_tags(
     include_prereleases: bool = const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT,
 ) -> list[str]:
     """Return compatible dashboard release tags, sorted newest-first."""
-    integration_version = await _get_installed_integration_version(hass)
     releases_payload = await _fetch_dashboard_releases(hass)
 
     compatible_tags: list[DashboardReleaseTag] = []
@@ -283,24 +228,6 @@ async def discover_compatible_dashboard_release_tags(
             tag_name,
             include_prereleases=include_prereleases,
         ):
-            continue
-
-        if not _release_meets_floor(tag_name):
-            const.LOGGER.debug(
-                "Filtered dashboard release below floor: %s (floor=%s)",
-                tag_name,
-                const.DASHBOARD_RELEASE_MIN_COMPAT_TAG,
-            )
-            continue
-
-        if integration_version is not None and not _is_release_integration_compatible(
-            tag_name, integration_version
-        ):
-            const.LOGGER.debug(
-                "Filtered dashboard release by integration compatibility: tag=%s version=%s",
-                tag_name,
-                integration_version,
-            )
             continue
 
         compatible_tags.append(parsed)

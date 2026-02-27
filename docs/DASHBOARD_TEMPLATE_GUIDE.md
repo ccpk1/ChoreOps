@@ -1,6 +1,6 @@
 # Dashboard Template Guide
 
-**Version**: v0.5.0-beta5 | **Last Updated**: 2026-02-27
+**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-02-27
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
@@ -124,9 +124,9 @@ A template is selectable only when:
 
 The dashboard registry repository uses SemVer-style release channels:
 
-- Stable: `vX.Y.Z`
-- Beta: `vX.Y.Z-beta.N`
-- Dev snapshot: `vX.Y.Z-dev.YYYYMMDD+<shortsha>`
+- Stable: `X.Y.Z`
+- Beta: `X.Y.Z-beta.N`
+- RC: `X.Y.Z-rc.N`
 
 ### Recovery safety net
 
@@ -297,7 +297,7 @@ Every template MUST start with this header block:
 <#-- ============================================= --#>
 <#-- ChoreOps Dashboard Template - [STYLE] Style --#>
 <#-- Template Schema Version: 1                    --#>
-<#-- Integration: v0.5.0-beta3 (Schema 43)         --#>
+<#-- Integration: 0.5.0-beta.5 (Schema 43)         --#>
 <#-- ============================================= --#>
 <#--                                               --#>
 <#-- [Brief description of this template]          --#>

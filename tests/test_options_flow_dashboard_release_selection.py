@@ -170,7 +170,7 @@ async def test_dashboard_update_step_shows_release_controls(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Update path Step 2 includes release controls while create path does not."""
+    """Update path Step 2 includes release controls."""
     config_entry = scenario_minimal.config_entry
 
     update_select_schema = vol.Schema(
@@ -192,7 +192,7 @@ async def test_dashboard_update_step_shows_release_controls(
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
     ):
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -789,7 +789,7 @@ async def test_dashboard_create_uses_sectioned_configure_schema(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Create path uses the unified sectioned configure form (no legacy flat schema)."""
+    """Create path uses the unified sectioned configure form with release controls."""
     config_entry = scenario_minimal.config_entry
 
     with patch(
@@ -827,13 +827,62 @@ async def test_dashboard_create_uses_sectioned_configure_schema(
         const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS,
         const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS,
         const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR,
+        const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION,
     ]
 
     fields = _schema_field_names(result["data_schema"])
     assert const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE in fields
     assert const.CFOF_DASHBOARD_INPUT_ADMIN_MODE in fields
     assert const.CFOF_DASHBOARD_INPUT_ICON in fields
-    assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION not in fields
+    assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION in fields
+    assert const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES in fields
+
+
+@pytest.mark.asyncio
+async def test_dashboard_create_fetches_release_tags_for_selector(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Create flow fetches compatible release tags for template version selector."""
+    config_entry = scenario_minimal.config_entry
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_check_dashboard_exists",
+            return_value=False,
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            return_value=["0.0.1-beta.1"],
+        ) as mock_discover_releases,
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
+            },
+        )
+        assert result.get("step_id") == "dashboard_create"
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_NAME: "Chores"},
+        )
+
+    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
+    assert mock_discover_releases.call_count >= 1
 
 
 @pytest.mark.asyncio
@@ -908,7 +957,7 @@ async def test_dashboard_update_accepts_sectioned_configure_payload(
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.update_choreops_dashboard_views",
@@ -960,7 +1009,7 @@ async def test_dashboard_update_accepts_sectioned_configure_payload(
                 },
                 const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
                     const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "v0.5.3",
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1001,7 +1050,7 @@ async def test_dashboard_update_per_assignee_mode_submits_without_rerender_stall
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.update_choreops_dashboard_views",
@@ -1052,7 +1101,7 @@ async def test_dashboard_update_per_assignee_mode_submits_without_rerender_stall
                 },
                 const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
                     const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "v0.5.3",
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1090,7 +1139,7 @@ async def test_dashboard_update_schema_uses_expected_section_and_access_field_or
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
     ):
         result = await hass.config_entries.options.async_init(config_entry.entry_id)
@@ -1167,7 +1216,7 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.update_choreops_dashboard_views",
@@ -1219,7 +1268,7 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
                 },
                 const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
                     const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "v0.5.3",
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1227,7 +1276,7 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs
-    assert kwargs["pinned_release_tag"] == "v0.5.3"
+    assert kwargs["pinned_release_tag"] == "0.5.3"
 
 
 @pytest.mark.asyncio
@@ -1258,7 +1307,7 @@ async def test_dashboard_update_passes_per_assignee_admin_mode_to_builder(
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.update_choreops_dashboard_views",
@@ -1309,7 +1358,7 @@ async def test_dashboard_update_passes_per_assignee_admin_mode_to_builder(
                 },
                 const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
                     const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "v0.5.3",
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1360,7 +1409,7 @@ async def test_dashboard_update_passes_icon_and_access_metadata_to_builder(
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.update_choreops_dashboard_views",
@@ -1409,7 +1458,7 @@ async def test_dashboard_update_passes_icon_and_access_metadata_to_builder(
                 },
                 const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
                     const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "v0.5.3",
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1450,7 +1499,7 @@ async def test_dashboard_update_linked_approvers_visibility_submits(
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
-            return_value=["v0.5.4", "v0.5.3"],
+            return_value=["0.5.4", "0.5.3"],
         ),
         patch(
             "custom_components.choreops.helpers.dashboard_builder.update_choreops_dashboard_views",
@@ -1499,7 +1548,7 @@ async def test_dashboard_update_linked_approvers_visibility_submits(
                 },
                 const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
                     const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "v0.5.3",
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )

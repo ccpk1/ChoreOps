@@ -137,7 +137,7 @@ PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS: Final = "dashboard_template_details"
 # ================================================================================================
 # Templates use style-based naming (not version-suffixed).
 # Schema version is bumped ONLY for breaking Python context changes.
-# Uses explicit release source, compatibility floor, and prerelease defaults
+# Uses explicit release source and prerelease defaults
 # for deterministic template resolution.
 
 # Schema version for template context structure (bump when context dict changes)
@@ -167,23 +167,16 @@ DASHBOARD_RELEASES_API_URL: Final = (
 
 # Supported release-tag grammar (parser contract)
 # Accepted examples:
-#   - v0.5.0-beta3
-#   - v0.5.4
+#   - 0.5.0-beta.3
+#   - 0.5.0-rc.2
+#   - 0.5.4
 DASHBOARD_RELEASE_TAG_PATTERN: Final = (
-    r"^v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
-    r"(?:(?:_|-)?(?P<pre_label>beta|b)(?P<pre_num>\d+))?$"
+    r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    r"(?:-(?P<pre_label>beta|rc)\.(?P<pre_num>\d+))?$"
 )
 
 # Default prerelease policy while integration is in beta cycle
 DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT: Final = True
-
-# Minimum remote dashboard release we consider compatible by default.
-# Older releases are excluded from user selection in the release picker.
-DASHBOARD_RELEASE_MIN_COMPAT_TAG: Final = "v0.5.0-beta1"
-
-# MVP compatibility map fallback (used until release metadata manifest is available)
-# Structure: dashboard release tag -> minimum ChoreOps integration version required.
-DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {"v0.5.4": "0.5.0"}
 
 # ================================================================================================
 # Event Infrastructure

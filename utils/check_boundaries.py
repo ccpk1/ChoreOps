@@ -18,6 +18,7 @@ Checks:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 import sys
@@ -33,6 +34,8 @@ CONTRACT_LINT_BASELINE = (
     / "in-process"
     / "CHOREOPS_DATA_MODEL_UNIFICATION_SUP_CONTRACT_LINT_BASELINE.txt"
 )
+MANIFEST_PATH = HARDFORK_COMPONENT_PATH / "manifest.json"
+MANIFEST_VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+(?:-(?:beta|rc)\.\d+)?$")
 
 # Pure modules that must not import homeassistant
 PURE_MODULE_PATHS = [
@@ -733,6 +736,77 @@ def find_hardfork_wrapper_reintroduction() -> list[Violation]:
     return violations
 
 
+def find_manifest_version_pattern_violations() -> list[Violation]:
+    """Check integration manifest version follows allowed release patterns.
+
+    Allowed patterns:
+    - X.Y.Z
+    - X.Y.Z-beta.N
+    - X.Y.Z-rc.N
+    """
+    violations: list[Violation] = []
+
+    if not MANIFEST_PATH.exists():
+        violations.append(
+            Violation(
+                category="MANIFEST_VERSION",
+                file_path=MANIFEST_PATH,
+                line_number=1,
+                line_content="",
+                message="manifest.json not found",
+                doc_reference="DEVELOPMENT_STANDARDS.md § 1.0 Release tag versioning standard",
+            )
+        )
+        return violations
+
+    try:
+        with open(MANIFEST_PATH, encoding="utf-8") as manifest_file:
+            manifest_data = json.load(manifest_file)
+    except (OSError, json.JSONDecodeError) as err:
+        violations.append(
+            Violation(
+                category="MANIFEST_VERSION",
+                file_path=MANIFEST_PATH,
+                line_number=1,
+                line_content="",
+                message=f"Could not parse manifest.json: {err}",
+                doc_reference="DEVELOPMENT_STANDARDS.md § 1.0 Release tag versioning standard",
+            )
+        )
+        return violations
+
+    raw_version = manifest_data.get("version")
+    if not isinstance(raw_version, str):
+        violations.append(
+            Violation(
+                category="MANIFEST_VERSION",
+                file_path=MANIFEST_PATH,
+                line_number=1,
+                line_content=str(raw_version),
+                message="manifest.json version must be a string",
+                doc_reference="DEVELOPMENT_STANDARDS.md § 1.0 Release tag versioning standard",
+            )
+        )
+        return violations
+
+    if MANIFEST_VERSION_PATTERN.match(raw_version) is None:
+        violations.append(
+            Violation(
+                category="MANIFEST_VERSION",
+                file_path=MANIFEST_PATH,
+                line_number=1,
+                line_content=f'"version": "{raw_version}"',
+                message=(
+                    "manifest.json version must match X.Y.Z, X.Y.Z-beta.N, "
+                    "or X.Y.Z-rc.N"
+                ),
+                doc_reference="ARCHITECTURE.md § Versioning Architecture",
+            )
+        )
+
+    return violations
+
+
 def format_violations(violations: list[Violation]) -> str:
     """Format violations for display."""
     if not violations:
@@ -772,6 +846,7 @@ def main() -> int:
         ("Lexicon Standards", find_ambiguous_entity_terminology),
         ("CRUD Ownership", find_storage_writes_in_ui_layer),
         ("Direct Store Access", find_direct_store_access),
+        ("Manifest Version Pattern", find_manifest_version_pattern_violations),
         ("Cross-Manager Writes", find_cross_manager_writes),
         ("Emit Before Persist", find_emit_before_persist),
         ("Translation Constants", find_hardcoded_translation_keys),

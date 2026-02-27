@@ -930,6 +930,7 @@ def build_dashboard_configure_schema(
     coordinator: ChoreOpsDataCoordinator,
     *,
     include_release_controls: bool,
+    show_release_controls: bool | None = None,
     release_tags: list[str] | None = None,
     selected_assignees_default: list[str] | None = None,
     template_profile_default: str | None = None,
@@ -947,6 +948,9 @@ def build_dashboard_configure_schema(
     template_details_review_default: bool = True,
 ) -> vol.Schema:
     """Build unified Step 2 dashboard configuration schema."""
+    if show_release_controls is None:
+        show_release_controls = include_release_controls
+
     if template_profile_default is None:
         template_profile_default = get_default_assignee_template_id()
 
@@ -1078,7 +1082,7 @@ def build_dashboard_configure_schema(
     }
 
     template_version_fields: dict[vol.Marker, Any] = {}
-    if include_release_controls:
+    if show_release_controls:
         template_version_fields[
             vol.Optional(
                 const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES,
@@ -1112,7 +1116,7 @@ def build_dashboard_configure_schema(
         ),
     }
 
-    if include_release_controls:
+    if show_release_controls:
         sectioned_schema_fields[
             vol.Optional(const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION)
         ] = section(

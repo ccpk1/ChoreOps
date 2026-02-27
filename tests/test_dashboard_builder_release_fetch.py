@@ -23,13 +23,13 @@ async def test_fetch_template_uses_fallback_release_candidate(
     ) -> builder.DashboardReleaseSelection:
         _ = pinned_release_tag, include_prereleases
         return builder.DashboardReleaseSelection(
-            selected_tag="v0.5.4",
-            fallback_tag="v0.5.3",
+            selected_tag="0.5.4",
+            fallback_tag="0.5.3",
             reason="pinned_release",
         )
 
     async def _mock_remote_fetch(_hass: Any, url: str) -> str:
-        if "v0.5.4" in url:
+        if "0.5.4" in url:
             raise builder.HomeAssistantError("404")
         return "remote-fallback-template"
 
@@ -97,7 +97,7 @@ async def test_fetch_template_raises_when_remote_and_local_missing(
     ) -> builder.DashboardReleaseSelection:
         _ = pinned_release_tag, include_prereleases
         return builder.DashboardReleaseSelection(
-            selected_tag="v0.5.4",
+            selected_tag="0.5.4",
             fallback_tag=None,
             reason="latest_compatible",
         )

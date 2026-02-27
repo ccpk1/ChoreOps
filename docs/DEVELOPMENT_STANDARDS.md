@@ -27,10 +27,10 @@ To maintain a clean history and stable environment use a **Traffic Controller** 
 
 ### 1.0 Release tag versioning standard (all repos)
 
-Use SemVer-style Git tags with a required `v` prefix for all ChoreOps repositories.
+Use SemVer-style release versions without a `v` prefix for all ChoreOps repositories.
 
-- **Stable tags**: `vX.Y.Z` (example: `v1.5.0`)
-- **Prerelease tags**: `vX.Y.Z-beta.N`, `vX.Y.Z-rc.N` (examples: `v1.5.0-beta.1`, `v1.5.0-rc.1`)
+- **Stable versions**: `X.Y.Z` (example: `1.5.0`)
+- **Prerelease versions**: `X.Y.Z-beta.N`, `X.Y.Z-rc.N` (examples: `1.5.0-beta.1`, `1.5.0-rc.1`)
 - **Tag immutability**: Published tags are immutable; never retag an existing version.
 - **Consistency rule**: The same format applies to both the integration repo and the dashboard registry repo.
 

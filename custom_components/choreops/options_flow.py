@@ -4278,16 +4278,15 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             return await self.async_step_dashboard_update_select()
 
         available_release_tags: list[str] = []
-        if is_update_flow:
-            try:
-                available_release_tags = (
-                    await builder.discover_compatible_dashboard_release_tags(self.hass)
-                )
-            except (TimeoutError, HomeAssistantError, ValueError, Exception) as err:
-                const.LOGGER.debug(
-                    "Release tags unavailable while building dashboard update schema: %s",
-                    err,
-                )
+        try:
+            available_release_tags = (
+                await builder.discover_compatible_dashboard_release_tags(self.hass)
+            )
+        except (TimeoutError, HomeAssistantError, ValueError, Exception) as err:
+            const.LOGGER.debug(
+                "Release tags unavailable while building dashboard configure schema: %s",
+                err,
+            )
 
         if user_input is not None:
             user_input = dh.normalize_dashboard_configure_input(user_input)
@@ -4735,6 +4734,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         schema = dh.build_dashboard_configure_schema(
             coordinator,
             include_release_controls=is_update_flow,
+            show_release_controls=True,
             release_tags=available_release_tags,
             selected_assignees_default=self._dashboard_selected_assignees,
             template_profile_default=self._dashboard_template_profile,

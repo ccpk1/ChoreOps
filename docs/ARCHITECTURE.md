@@ -398,9 +398,15 @@ The **`meta.schema_version`** field in storage data determines the integration's
 
 In addition to storage and schema versioning, repository releases use a Git tag contract:
 
-- Stable release tags: `vX.Y.Z`
-- Prerelease tags: `vX.Y.Z-beta.N`, `vX.Y.Z-rc.N`
+- Stable release versions: `X.Y.Z`
+- Prerelease versions: `X.Y.Z-beta.N`, `X.Y.Z-rc.N`
 - Tags are immutable after publication.
+
+Integration manifest version contract (`custom_components/choreops/manifest.json`):
+
+- Stable manifest version: `X.Y.Z`
+- Prerelease manifest version: `X.Y.Z-beta.N`, `X.Y.Z-rc.N`
+- Manifest versions use the same release format and do not use compact forms like `bN`.
 
 #### Integration vs dashboard registry version streams
 
