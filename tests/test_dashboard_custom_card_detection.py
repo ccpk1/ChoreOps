@@ -29,22 +29,6 @@ class _DummyHass:
 
 
 @pytest.mark.asyncio
-async def test_check_custom_cards_installed_uses_filesystem_fallback(
-    tmp_path: Path,
-) -> None:
-    """Filesystem fallback detects cards when lovelace resources are empty."""
-    card_dir = tmp_path / "www" / "community" / "lovelace-mushroom"
-    card_dir.mkdir(parents=True)
-    (card_dir / "mushroom.js").write_text("// test", encoding="utf-8")
-
-    hass = _DummyHass(tmp_path, data={})
-
-    status = await dh.check_custom_cards_installed(hass)
-
-    assert status["mushroom"] is True
-
-
-@pytest.mark.asyncio
 async def test_dependency_id_check_uses_filesystem_fallback(
     tmp_path: Path,
 ) -> None:

@@ -10,11 +10,10 @@ All functions here require a `hass` object or interact with HA APIs.
 from __future__ import annotations
 
 import asyncio
-from functools import lru_cache
 import json
 from pathlib import Path
 import re
-from typing import TYPE_CHECKING, Any, NotRequired, TypedDict
+from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector
@@ -52,6 +51,17 @@ class DashboardTemplateDefinition(TypedDict):
     display_name: NotRequired[str]
     dependencies_required: NotRequired[list[str]]
     dependencies_recommended: NotRequired[list[str]]
+    dependencies_required_metadata: NotRequired[dict[str, DashboardDependencyMetadata]]
+    dependencies_recommended_metadata: NotRequired[
+        dict[str, DashboardDependencyMetadata]
+    ]
+
+
+class DashboardDependencyMetadata(TypedDict):
+    """Manifest-provided metadata for a dependency id."""
+
+    name: NotRequired[str]
+    url: NotRequired[str]
 
 
 _VALID_TEMPLATE_ID_RE = re.compile(r"^[a-z0-9]+-[a-z0-9-]+-v[0-9]+$")
@@ -60,6 +70,12 @@ _SELECTABLE_LIFECYCLE_STATES = frozenset({"active", "deprecated"})
 _VALID_AUDIENCES = frozenset({"user", "approver", "mixed"})
 _VALID_SOURCE_TYPES = frozenset({"vendored", "remote"})
 _VALID_DEPENDENCY_ID_RE = re.compile(r"^ha-card:[a-z0-9][a-z0-9_-]*$")
+
+_manifest_template_definitions_state: dict[str, Any] = {
+    "cache": (),
+    "loaded": False,
+    "warned": False,
+}
 
 
 def _validate_and_normalize_template_definition(
@@ -137,6 +153,8 @@ def _validate_and_normalize_template_definition(
 
     dependencies_required: list[str] = []
     dependencies_recommended: list[str] = []
+    dependencies_required_metadata: dict[str, DashboardDependencyMetadata] = {}
+    dependencies_recommended_metadata: dict[str, DashboardDependencyMetadata] = {}
     dependencies_obj = template.get("dependencies")
     if not isinstance(dependencies_obj, dict):
         return None
@@ -158,10 +176,33 @@ def _validate_and_normalize_template_definition(
         dependency_id = dependency_id.strip()
         if not dependency_id or not _VALID_DEPENDENCY_ID_RE.match(dependency_id):
             return None
+
+        dependency_name = dependency.get("name")
+        if dependency_name is not None:
+            if not isinstance(dependency_name, str) or not dependency_name.strip():
+                return None
+            dependency_name = dependency_name.strip()
+
+        dependency_url = dependency.get("url")
+        if dependency_url is not None:
+            if not isinstance(dependency_url, str) or not dependency_url.strip():
+                return None
+            dependency_url = dependency_url.strip()
+            if not dependency_url.startswith(("https://", "http://")):
+                return None
+
         if dependency_id in seen_required:
             return None
         seen_required.add(dependency_id)
         dependencies_required.append(dependency_id)
+
+        metadata: DashboardDependencyMetadata = {}
+        if isinstance(dependency_name, str):
+            metadata["name"] = dependency_name
+        if isinstance(dependency_url, str):
+            metadata["url"] = dependency_url
+        if metadata:
+            dependencies_required_metadata[dependency_id] = metadata
 
     seen_recommended: set[str] = set()
     for dependency in recommended_list:
@@ -173,10 +214,33 @@ def _validate_and_normalize_template_definition(
         dependency_id = dependency_id.strip()
         if not dependency_id or not _VALID_DEPENDENCY_ID_RE.match(dependency_id):
             return None
+
+        dependency_name = dependency.get("name")
+        if dependency_name is not None:
+            if not isinstance(dependency_name, str) or not dependency_name.strip():
+                return None
+            dependency_name = dependency_name.strip()
+
+        dependency_url = dependency.get("url")
+        if dependency_url is not None:
+            if not isinstance(dependency_url, str) or not dependency_url.strip():
+                return None
+            dependency_url = dependency_url.strip()
+            if not dependency_url.startswith(("https://", "http://")):
+                return None
+
         if dependency_id in seen_recommended:
             return None
         seen_recommended.add(dependency_id)
         dependencies_recommended.append(dependency_id)
+
+        metadata = {}
+        if isinstance(dependency_name, str):
+            metadata["name"] = dependency_name
+        if isinstance(dependency_url, str):
+            metadata["url"] = dependency_url
+        if metadata:
+            dependencies_recommended_metadata[dependency_id] = metadata
 
     seen_template_ids.add(template_id)
     return DashboardTemplateDefinition(
@@ -192,6 +256,8 @@ def _validate_and_normalize_template_definition(
         display_name=display_name.strip() if isinstance(display_name, str) else "",
         dependencies_required=dependencies_required,
         dependencies_recommended=dependencies_recommended,
+        dependencies_required_metadata=dependencies_required_metadata,
+        dependencies_recommended_metadata=dependencies_recommended_metadata,
     )
 
 
@@ -228,12 +294,45 @@ def _is_template_selectable(definition: DashboardTemplateDefinition) -> bool:
     return definition.get("lifecycle_state", "") in _SELECTABLE_LIFECYCLE_STATES
 
 
-@lru_cache(maxsize=1)
 def _load_manifest_template_definitions() -> tuple[DashboardTemplateDefinition, ...]:
     """Load dashboard template definitions from bundled manifest.
 
     Manifest is the authoritative source for template identity and file paths.
     """
+    if bool(_manifest_template_definitions_state["loaded"]):
+        return cast(
+            "tuple[DashboardTemplateDefinition, ...]",
+            _manifest_template_definitions_state["cache"],
+        )
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        _manifest_template_definitions_state["cache"] = (
+            _read_manifest_template_definitions_from_disk()
+        )
+        _manifest_template_definitions_state["loaded"] = True
+        _manifest_template_definitions_state["warned"] = False
+        return cast(
+            "tuple[DashboardTemplateDefinition, ...]",
+            _manifest_template_definitions_state["cache"],
+        )
+
+    if not bool(_manifest_template_definitions_state["warned"]):
+        const.LOGGER.warning(
+            "Dashboard manifest cache not loaded yet; returning empty definitions"
+        )
+        _manifest_template_definitions_state["warned"] = True
+    return cast(
+        "tuple[DashboardTemplateDefinition, ...]",
+        _manifest_template_definitions_state["cache"],
+    )
+
+
+def _read_manifest_template_definitions_from_disk() -> tuple[
+    DashboardTemplateDefinition, ...
+]:
+    """Read and parse bundled dashboard manifest from disk."""
     manifest_path = Path(__file__).parent.parent / const.DASHBOARD_MANIFEST_PATH
     try:
         raw_manifest = manifest_path.read_text(encoding="utf-8")
@@ -243,6 +342,18 @@ def _load_manifest_template_definitions() -> tuple[DashboardTemplateDefinition, 
         return ()
 
     return _parse_manifest_template_definitions(manifest_data)
+
+
+async def async_prime_manifest_template_definitions(hass: Any) -> None:
+    """Load and cache dashboard template definitions without blocking the loop."""
+    if bool(_manifest_template_definitions_state["loaded"]):
+        return
+
+    _manifest_template_definitions_state["cache"] = await hass.async_add_executor_job(
+        _read_manifest_template_definitions_from_disk
+    )
+    _manifest_template_definitions_state["loaded"] = True
+    _manifest_template_definitions_state["warned"] = False
 
 
 def get_dashboard_template_definitions() -> list[DashboardTemplateDefinition]:
@@ -338,6 +449,51 @@ def get_dependency_ids_for_templates_from_definitions(
     return required, recommended
 
 
+def get_dependency_metadata_for_templates_from_definitions(
+    template_ids: list[str],
+    definitions: list[DashboardTemplateDefinition],
+) -> dict[str, DashboardDependencyMetadata]:
+    """Return merged dependency metadata for selected template IDs."""
+    definition_by_template_id = {
+        definition["template_id"]: definition for definition in definitions
+    }
+
+    merged: dict[str, DashboardDependencyMetadata] = {}
+    for template_id in template_ids:
+        definition = definition_by_template_id.get(template_id)
+        if definition is None:
+            continue
+
+        for metadata_map_key in (
+            "dependencies_required_metadata",
+            "dependencies_recommended_metadata",
+        ):
+            metadata_map = definition.get(metadata_map_key, {})
+            if not isinstance(metadata_map, dict):
+                continue
+
+            for dependency_id, metadata in metadata_map.items():
+                if dependency_id not in merged:
+                    merged[dependency_id] = {}
+
+                dependency_metadata = merged[dependency_id]
+                if (
+                    "name" not in dependency_metadata
+                    and isinstance(metadata.get("name"), str)
+                    and metadata["name"].strip()
+                ):
+                    dependency_metadata["name"] = metadata["name"].strip()
+
+                if (
+                    "url" not in dependency_metadata
+                    and isinstance(metadata.get("url"), str)
+                    and metadata["url"].strip()
+                ):
+                    dependency_metadata["url"] = metadata["url"].strip()
+
+    return merged
+
+
 def get_nonselectable_template_ids_from_definitions(
     template_ids: list[str],
     definitions: list[DashboardTemplateDefinition],
@@ -375,7 +531,7 @@ async def fetch_remote_manifest_template_definitions(
                 if response.status != 200:
                     return []
                 payload = await response.json(content_type=None)
-    except (TimeoutError, TypeError, ValueError):
+    except (TimeoutError, TypeError, ValueError, Exception):
         return []
 
     if not isinstance(payload, dict):
@@ -438,8 +594,7 @@ def get_default_admin_template_id() -> str:
     admin_template_ids = get_admin_template_ids()
     if admin_template_ids:
         return admin_template_ids[0]
-
-    return get_default_assignee_template_id()
+    return ""
 
 
 def normalize_template_id(template_id: str, *, admin_template: bool) -> str:
@@ -451,7 +606,7 @@ def normalize_template_id(template_id: str, *, admin_template: bool) -> str:
         return template_id
     if candidates:
         return candidates[0]
-    return template_id
+    return ""
 
 
 def _humanize_template_key(style_key: str) -> str:
@@ -1020,13 +1175,8 @@ def get_existing_choreops_dashboards(
     return dashboards
 
 
-def build_dashboard_action_schema(
-    check_cards_default: bool = True,
-) -> vol.Schema:
+def build_dashboard_action_schema() -> vol.Schema:
     """Build schema for dashboard action selection.
-
-    Args:
-        check_cards_default: Default value for the check cards checkbox.
 
     Returns:
         Voluptuous schema for action selection.
@@ -1062,11 +1212,8 @@ def build_dashboard_action_schema(
                     translation_key=const.TRANS_KEY_CFOF_DASHBOARD_ACTION,
                 )
             ),
-            vol.Optional(
-                const.CFOF_DASHBOARD_INPUT_CHECK_CARDS,
-                default=check_cards_default,
-            ): selector.BooleanSelector(),
-        }
+        },
+        extra=vol.ALLOW_EXTRA,
     )
 
 
@@ -1100,52 +1247,18 @@ def build_dashboard_update_selection_schema(
     )
 
 
-async def check_custom_cards_installed(hass: Any) -> dict[str, bool]:
-    """Check if required custom Lovelace cards are installed.
-
-    Args:
-        hass: Home Assistant instance.
-
-    Returns:
-        Dict mapping card type to installation status.
-        Example: {"mushroom": True, "auto_entities": False, "mini_graph": True}
-    """
-    # Card URL patterns to detect
-    card_patterns = {
-        "mushroom": "mushroom",
-        "auto_entities": "auto-entities",
-        "mini_graph": "mini-graph-card",
-        "button_card": "button-card",
-    }
-
-    # Initialize all as not installed
-    installed = dict.fromkeys(card_patterns, False)
-
-    # Try to check lovelace resources
-    try:
-        resource_urls = _get_lovelace_resource_urls(hass)
-        const.LOGGER.debug(
-            "Checking %d lovelace resources for custom cards", len(resource_urls)
-        )
-
-        for card_type, pattern in card_patterns.items():
-            aliases = _card_pattern_aliases(pattern)
-            found_in_resources = any(
-                alias in resource_url
-                for resource_url in resource_urls
-                for alias in aliases
-            )
-            if found_in_resources:
-                installed[card_type] = True
-                continue
-
-            installed[card_type] = await _is_card_present_in_filesystem(hass, aliases)
-
-    except (AttributeError, KeyError, TypeError) as ex:
-        const.LOGGER.warning("Unable to check custom card installation: %s", ex)
-
-    const.LOGGER.debug("Custom card status: %s", installed)
-    return installed
+def build_dashboard_missing_dependencies_schema(
+    continue_default: bool = False,
+) -> vol.Schema:
+    """Build schema for missing dashboard dependency confirmation step."""
+    return vol.Schema(
+        {
+            vol.Optional(
+                const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS,
+                default=continue_default,
+            ): selector.BooleanSelector(),
+        }
+    )
 
 
 def _get_lovelace_resource_urls(hass: Any) -> list[str]:
@@ -1190,16 +1303,6 @@ def _dependency_aliases(dependency_id: str) -> set[str]:
     aliases = {package_name}
     if package_name.startswith("mushroom-"):
         aliases.add("mushroom")
-    return aliases
-
-
-def _card_pattern_aliases(pattern: str) -> set[str]:
-    """Return normalized aliases for card pattern matching."""
-    aliases = {pattern.lower()}
-    aliases.add(pattern.replace("_", "-").lower())
-    aliases.add(pattern.replace("-", "_").lower())
-    if pattern.endswith("-card"):
-        aliases.add(pattern[: -len("-card")].lower())
     return aliases
 
 

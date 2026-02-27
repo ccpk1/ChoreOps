@@ -93,12 +93,6 @@ DOC_URL_GENERAL_OPTIONS: Final = (
 DOC_URL_DASHBOARD_GENERATION: Final = (
     "https://github.com/ccpk1/choreops/wiki/Getting-Started:-Dashboard-Generation"
 )
-DOC_URL_CARD_MUSHROOM: Final = "https://github.com/piitaya/lovelace-mushroom"
-DOC_URL_CARD_AUTO_ENTITIES: Final = (
-    "https://github.com/thomasloven/lovelace-auto-entities"
-)
-DOC_URL_CARD_MINI_GRAPH: Final = "https://github.com/kalkih/mini-graph-card"
-DOC_URL_CARD_BUTTON: Final = "https://github.com/custom-cards/button-card"
 DOC_URL_BADGES_OVERVIEW: Final = (
     "https://github.com/ccpk1/choreops/wiki/Configuration%3A-Badges-Overview"
 )
@@ -130,10 +124,12 @@ DOC_URL_MAIN_WIKI: Final = "https://github.com/ccpk1/choreops/wiki"
 
 # Description Placeholder Keys (for hassfest compliance)
 PLACEHOLDER_DOCUMENTATION_URL: Final = "documentation_url"
-PLACEHOLDER_DASHBOARD_CARD_MUSHROOM_URL: Final = "dashboard_card_mushroom_url"
-PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: Final = "dashboard_card_auto_entities_url"
-PLACEHOLDER_DASHBOARD_CARD_MINI_GRAPH_URL: Final = "dashboard_card_mini_graph_url"
-PLACEHOLDER_DASHBOARD_CARD_BUTTON_URL: Final = "dashboard_card_button_url"
+PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES: Final = (
+    "dashboard_missing_required_dependencies"
+)
+PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: Final = (
+    "dashboard_missing_recommended_dependencies"
+)
 
 # ================================================================================================
 # Dashboard Template Configuration
@@ -557,6 +553,9 @@ OPTIONS_FLOW_STEP_PASTE_JSON_RESTORE: Final = "paste_json_restore"
 # OptionsFlow Dashboard Generator Steps
 OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR: Final = "dashboard_generator"
 OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE: Final = "dashboard_configure"
+OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES: Final = (
+    "dashboard_missing_dependencies"
+)
 OPTIONS_FLOW_STEP_DASHBOARD_DELETE: Final = "dashboard_delete"
 OPTIONS_FLOW_STEP_DASHBOARD_DELETE_CONFIRM: Final = "dashboard_delete_confirm"
 
@@ -832,7 +831,7 @@ CFOF_DASHBOARD_INPUT_NAME: Final = "dashboard_name"
 CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 CFOF_DASHBOARD_INPUT_ACTION: Final = "dashboard_action"
 CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: Final = "dashboard_update_selection"
-CFOF_DASHBOARD_INPUT_CHECK_CARDS: Final = "dashboard_check_cards"
+CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: Final = "dashboard_dependency_bypass"
 CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 CFOF_DASHBOARD_INPUT_ADMIN_MODE: Final = "dashboard_admin_mode"
 CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_GLOBAL: Final = "dashboard_admin_template_global"
@@ -3296,6 +3295,9 @@ TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_TEMPLATE_REQUIRED: Final = (
 )
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES: Final = (
     "dashboard_admin_per_assignee_needs_assignees"
+)
+TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED: Final = (
+    "dashboard_dependency_ack_required"
 )
 
 # Flow Helpers Translation Keys

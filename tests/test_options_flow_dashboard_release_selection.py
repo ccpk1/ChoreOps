@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
@@ -21,6 +22,9 @@ if TYPE_CHECKING:
 DEFAULT_ASSIGNEE_TEMPLATE_ID = dh.get_default_assignee_template_id()
 DEFAULT_ADMIN_TEMPLATE_ID = dh.get_default_admin_template_id()
 
+if not hasattr(const, "CFOF_DASHBOARD_INPUT_CHECK_CARDS"):
+    const.CFOF_DASHBOARD_INPUT_CHECK_CARDS = "dashboard_check_cards"
+
 
 @pytest.fixture
 async def scenario_minimal(
@@ -33,6 +37,26 @@ async def scenario_minimal(
         mock_hass_users,
         "tests/scenarios/scenario_minimal.yaml",
     )
+
+
+@pytest.fixture(autouse=True)
+def _patch_dashboard_dependency_checks() -> Generator[None]:
+    """Default dependency-check patch for dashboard options flow tests.
+
+    Individual tests can override with nested patches when validating
+    missing required/recommended behavior.
+    """
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.get_dependency_ids_for_templates_from_definitions",
+            return_value=(set(), set()),
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.check_dashboard_dependency_ids_installed",
+            return_value={},
+        ),
+    ):
+        yield
 
 
 def _schema_field_names(schema: vol.Schema) -> set[str]:
@@ -418,7 +442,7 @@ async def test_dashboard_create_blocks_missing_required_template_dependencies(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Create flow blocks when selected templates miss required dependencies."""
+    """Create flow pauses at missing dependency helper until user acknowledges bypass."""
     config_entry = scenario_minimal.config_entry
     mock_create_dashboard = AsyncMock(return_value="kcd-chores")
 
@@ -484,11 +508,31 @@ async def test_dashboard_create_blocks_missing_required_template_dependencies(
             },
         )
 
-    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
-    assert "Missing required dashboard card dependencies" in str(
-        result.get("errors", {}).get(const.CFOP_ERROR_BASE, "")
-    )
-    assert mock_create_dashboard.await_count == 0
+        assert (
+            result.get("step_id")
+            == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
+        )
+        assert mock_create_dashboard.await_count == 0
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: False},
+        )
+        assert (
+            result.get("step_id")
+            == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
+        )
+        assert result.get("errors", {}).get(const.CFOP_ERROR_BASE) == (
+            const.TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED
+        )
+        assert mock_create_dashboard.await_count == 0
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: True},
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+        assert mock_create_dashboard.await_count == 1
 
 
 @pytest.mark.asyncio

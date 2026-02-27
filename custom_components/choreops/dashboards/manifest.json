@@ -20,10 +20,14 @@
       "dependencies": {
         "required": [
           {
-            "id": "ha-card:auto-entities"
+            "id": "ha-card:auto-entities",
+            "name": "Auto-Entities",
+            "url": "https://github.com/thomasloven/lovelace-auto-entities"
           },
           {
-            "id": "ha-card:mushroom-template-card"
+            "id": "ha-card:mushroom-template-card",
+            "name": "Mushroom Cards",
+            "url": "https://github.com/piitaya/lovelace-mushroom"
           }
         ],
         "recommended": []
@@ -48,10 +52,14 @@
       "dependencies": {
         "required": [
           {
-            "id": "ha-card:auto-entities"
+            "id": "ha-card:auto-entities",
+            "name": "Auto-Entities",
+            "url": "https://github.com/thomasloven/lovelace-auto-entities"
           },
           {
-            "id": "ha-card:mushroom-template-card"
+            "id": "ha-card:mushroom-template-card",
+            "name": "Mushroom Cards",
+            "url": "https://github.com/piitaya/lovelace-mushroom"
           }
         ],
         "recommended": []
@@ -76,16 +84,24 @@
       "dependencies": {
         "required": [
           {
-            "id": "ha-card:auto-entities"
+            "id": "ha-card:auto-entities",
+            "name": "Auto-Entities",
+            "url": "https://github.com/thomasloven/lovelace-auto-entities"
           },
           {
-            "id": "ha-card:mini-graph-card"
+            "id": "ha-card:mini-graph-card",
+            "name": "Mini Graph Card",
+            "url": "https://github.com/kalkih/mini-graph-card"
           },
           {
-            "id": "ha-card:mushroom-select-card"
+            "id": "ha-card:mushroom-select-card",
+            "name": "Mushroom Cards",
+            "url": "https://github.com/piitaya/lovelace-mushroom"
           },
           {
-            "id": "ha-card:mushroom-template-card"
+            "id": "ha-card:mushroom-template-card",
+            "name": "Mushroom Cards",
+            "url": "https://github.com/piitaya/lovelace-mushroom"
           }
         ],
         "recommended": []
@@ -110,16 +126,24 @@
       "dependencies": {
         "required": [
           {
-            "id": "ha-card:auto-entities"
+            "id": "ha-card:auto-entities",
+            "name": "Auto-Entities",
+            "url": "https://github.com/thomasloven/lovelace-auto-entities"
           },
           {
-            "id": "ha-card:mini-graph-card"
+            "id": "ha-card:mini-graph-card",
+            "name": "Mini Graph Card",
+            "url": "https://github.com/kalkih/mini-graph-card"
           },
           {
-            "id": "ha-card:mushroom-select-card"
+            "id": "ha-card:mushroom-select-card",
+            "name": "Mushroom Cards",
+            "url": "https://github.com/piitaya/lovelace-mushroom"
           },
           {
-            "id": "ha-card:mushroom-template-card"
+            "id": "ha-card:mushroom-template-card",
+            "name": "Mushroom Cards",
+            "url": "https://github.com/piitaya/lovelace-mushroom"
           }
         ],
         "recommended": []

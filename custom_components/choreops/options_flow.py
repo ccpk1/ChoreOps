@@ -56,11 +56,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, _config_entry: config_entries.ConfigEntry):
         """Initialize the options flow."""
-        from .helpers import dashboard_helpers as dh
-
-        default_assignee_template = dh.get_default_assignee_template_id()
-        default_admin_template = dh.get_default_admin_template_id()
-
         self._entry_options: dict[str, Any] = {}
         self._action: str | None = None
         self._entity_type: str | None = None
@@ -80,10 +75,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         # Dashboard generator state
         self._dashboard_name: str = const.DASHBOARD_DEFAULT_NAME
         self._dashboard_selected_assignees: list[str] = []
-        self._dashboard_template_profile: str = default_assignee_template
+        self._dashboard_template_profile: str = ""
         self._dashboard_admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL
-        self._dashboard_admin_template_global: str = default_admin_template
-        self._dashboard_admin_template_per_assignee: str = default_admin_template
+        self._dashboard_admin_template_global: str = ""
+        self._dashboard_admin_template_per_assignee: str = ""
         self._dashboard_admin_view_visibility: str = (
             const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL
         )
@@ -101,7 +96,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._dashboard_update_url_path: str | None = None
         self._dashboard_delete_selection: list[str] = []
         self._dashboard_dedupe_removed: dict[str, int] = {}
-        self._dashboard_check_cards: bool = False
+        self._dashboard_skip_dependency_validation_once: bool = False
+        self._dashboard_pending_configure_input: dict[str, Any] | None = None
+        self._dashboard_missing_required_dependencies: list[str] = []
+        self._dashboard_missing_recommended_dependencies: list[str] = []
+        self._dashboard_missing_dependency_metadata: dict[str, dict[str, str]] = {}
 
     @staticmethod
     def _normalize_dashboard_admin_mode(admin_mode: str) -> str:
@@ -119,12 +118,65 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         }
         return alias_map.get(normalized, const.DASHBOARD_ADMIN_MODE_GLOBAL)
 
+    @staticmethod
+    def _format_dashboard_dependency_line(
+        dependency_id: str,
+        dependency_metadata: dict[str, str] | None,
+    ) -> str:
+        """Format one dependency line for translated markdown placeholders."""
+        dependency_key = (
+            dependency_id.split(":", 1)[1] if ":" in dependency_id else dependency_id
+        )
+        card_id = f"custom:{dependency_key}"
+
+        display_name = dependency_id
+        dependency_url: str | None = None
+        if dependency_metadata:
+            metadata_name = dependency_metadata.get("name")
+            metadata_url = dependency_metadata.get("url")
+            if isinstance(metadata_name, str) and metadata_name.strip():
+                display_name = metadata_name.strip()
+            if isinstance(metadata_url, str) and metadata_url.strip():
+                dependency_url = metadata_url.strip()
+
+        if dependency_url:
+            return f"- [{display_name}]({dependency_url}) (`{card_id}`)"
+        return f"- {display_name} (`{card_id}`)"
+
+    def _build_dashboard_dependency_markdown_lines(
+        self,
+        dependency_ids: list[str],
+    ) -> str:
+        """Build markdown list for dependency placeholders."""
+        if not dependency_ids:
+            return "- None"
+
+        return "\n".join(
+            self._format_dashboard_dependency_line(
+                dependency_id,
+                self._dashboard_missing_dependency_metadata.get(dependency_id),
+            )
+            for dependency_id in dependency_ids
+        )
+
     # ----------------------------------------------------------------------------------
     # MAIN MENU
     # ----------------------------------------------------------------------------------
 
     async def async_step_init(self, user_input=None):
         """Display the main menu for the Options Flow."""
+        from .helpers import dashboard_helpers as dh
+
+        await dh.async_prime_manifest_template_definitions(self.hass)
+        if not self._dashboard_template_profile:
+            self._dashboard_template_profile = dh.get_default_assignee_template_id()
+        if not self._dashboard_admin_template_global:
+            self._dashboard_admin_template_global = dh.get_default_admin_template_id()
+        if not self._dashboard_admin_template_per_assignee:
+            self._dashboard_admin_template_per_assignee = (
+                dh.get_default_admin_template_id()
+            )
+
         # Check if reload is needed from previous entity add/edit operations
         if self._reload_needed and user_input is None:
             const.LOGGER.debug("Performing deferred reload after entity changes")
@@ -4061,50 +4113,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            # Check if user wants to verify card installation
-            check_cards = user_input.get(const.CFOF_DASHBOARD_INPUT_CHECK_CARDS, False)
-            self._dashboard_check_cards = bool(check_cards)
-
-            if check_cards:
-                # Run detection and show results
-                card_status = await dh.check_custom_cards_installed(self.hass)
-
-                # Build status message
-                status_lines = ["Custom Card Installation Status:"]
-                all_installed = True
-                for card_name, installed in card_status.items():
-                    status_icon = "✅" if installed else "❌"
-                    card_display = {
-                        "mushroom": "Mushroom Cards",
-                        "auto_entities": "Auto-Entities",
-                        "mini_graph": "Mini Graph Card",
-                        "button_card": "Button Card",
-                    }.get(card_name, card_name)
-
-                    status_lines.append(f"{status_icon} {card_display}")
-                    if not installed:
-                        all_installed = False
-
-                # Only show error and re-display form if cards are missing
-                if not all_installed:
-                    status_lines.append("")
-                    status_lines.append(
-                        "⚠️ Missing cards detected. Install via HACS → Frontend."
-                    )
-
-                    # Show results as an error and block progression
-                    errors["base"] = "\n".join(status_lines)
-
-                    # Re-show form with status - keep checkbox checked
-                    schema = dh.build_dashboard_action_schema(check_cards_default=True)
-                    return self.async_show_form(
-                        step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR,
-                        data_schema=schema,
-                        errors=errors,
-                    )
-
-                # All cards installed - proceed normally (fall through to action handling)
-
             # Proceed with selected action
             action = str(
                 user_input.get(
@@ -4131,10 +4139,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
             description_placeholders={
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
-                const.PLACEHOLDER_DASHBOARD_CARD_MUSHROOM_URL: const.DOC_URL_CARD_MUSHROOM,
-                const.PLACEHOLDER_DASHBOARD_CARD_AUTO_ENTITIES_URL: const.DOC_URL_CARD_AUTO_ENTITIES,
-                const.PLACEHOLDER_DASHBOARD_CARD_MINI_GRAPH_URL: const.DOC_URL_CARD_MINI_GRAPH,
-                const.PLACEHOLDER_DASHBOARD_CARD_BUTTON_URL: const.DOC_URL_CARD_BUTTON,
             },
         )
 
@@ -4233,7 +4237,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 available_release_tags = (
                     await builder.discover_compatible_dashboard_release_tags(self.hass)
                 )
-            except (TimeoutError, HomeAssistantError, ValueError) as err:
+            except (TimeoutError, HomeAssistantError, ValueError, Exception) as err:
                 const.LOGGER.debug(
                     "Release tags unavailable while building dashboard update schema: %s",
                     err,
@@ -4241,6 +4245,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             user_input = dh.normalize_dashboard_configure_input(user_input)
+            skip_dependency_validation = self._dashboard_skip_dependency_validation_once
+            self._dashboard_skip_dependency_validation_once = False
             self._dashboard_dedupe_removed = {}
             selected_assignees_input = user_input.get(
                 const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION,
@@ -4416,9 +4422,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             if not errors:
-                should_validate_dependencies = (
-                    not is_update_flow or self._dashboard_check_cards
-                )
+                should_validate_dependencies = not skip_dependency_validation
                 if should_validate_dependencies:
                     pinned_release_tag = (
                         release_selection
@@ -4488,6 +4492,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             template_definitions,
                         )
 
+                        dependency_metadata = (
+                            dh.get_dependency_metadata_for_templates_from_definitions(
+                                list(selected_template_ids),
+                                template_definitions,
+                            )
+                        )
+
                         dependency_status = (
                             await dh.check_dashboard_dependency_ids_installed(
                                 self.hass,
@@ -4507,15 +4518,30 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         )
 
                         if missing_required:
-                            errors[const.CFOP_ERROR_BASE] = (
-                                "Missing required dashboard card dependencies:\n"
-                                + "\n".join(
-                                    f"- {dependency_id}"
-                                    for dependency_id in missing_required
-                                )
-                                + "\n\nInstall missing cards via HACS Frontend and try again."
+                            self._dashboard_pending_configure_input = user_input
+                            self._dashboard_missing_required_dependencies = (
+                                missing_required
                             )
-                        elif missing_recommended:
+                            self._dashboard_missing_recommended_dependencies = (
+                                missing_recommended
+                            )
+                            self._dashboard_missing_dependency_metadata = {
+                                dependency_id: {
+                                    key: value
+                                    for key, value in dependency_metadata.get(
+                                        dependency_id,
+                                        {},
+                                    ).items()
+                                    if isinstance(value, str)
+                                }
+                                for dependency_id in (
+                                    missing_required + missing_recommended
+                                )
+                            }
+                            return (
+                                await self.async_step_dashboard_missing_dependencies()
+                            )
+                        if missing_recommended:
                             const.LOGGER.warning(
                                 "Missing recommended dashboard card dependencies: %s",
                                 ", ".join(missing_recommended),
@@ -4667,6 +4693,53 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 "mode": self._dashboard_flow_mode,
                 "dashboard": self._dashboard_update_url_path or self._dashboard_name,
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+            },
+        )
+
+    async def async_step_dashboard_missing_dependencies(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle missing dashboard dependency confirmation with dynamic details."""
+        from .helpers import dashboard_helpers as dh
+
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            continue_anyway = bool(
+                user_input.get(const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS, False)
+            )
+            if not continue_anyway:
+                errors[const.CFOP_ERROR_BASE] = (
+                    const.TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED
+                )
+            elif self._dashboard_pending_configure_input is None:
+                return await self.async_step_dashboard_configure()
+            else:
+                pending_input = self._dashboard_pending_configure_input
+                self._dashboard_pending_configure_input = None
+                self._dashboard_skip_dependency_validation_once = True
+                self._dashboard_status_message = (
+                    "Missing required dependencies bypassed by user"
+                )
+                return await self.async_step_dashboard_configure(pending_input)
+
+        schema = dh.build_dashboard_missing_dependencies_schema()
+        return self.async_show_form(
+            step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES,
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+                const.PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES: (
+                    self._build_dashboard_dependency_markdown_lines(
+                        self._dashboard_missing_required_dependencies
+                    )
+                ),
+                const.PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: (
+                    self._build_dashboard_dependency_markdown_lines(
+                        self._dashboard_missing_recommended_dependencies
+                    )
+                ),
             },
         )
 

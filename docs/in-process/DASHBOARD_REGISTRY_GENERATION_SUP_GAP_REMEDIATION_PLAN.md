@@ -15,6 +15,14 @@ It defines:
 
 ## Execution updates
 
+- 2026-02-27: Implemented template-aware missing dependency helper flow (UX refinement).
+  - Replaced static first-screen card list with a dedicated post-template-selection helper step for missing required dependencies.
+  - Added manifest dependency metadata support (`name`, `url`) so helper output can show dynamic dependency labels and links per selected user/admin templates.
+  - Added explicit bypass acknowledgement path in options flow before continuing generation when required dependencies are missing.
+  - Validation evidence:
+    - `./utils/quick_lint.sh --fix` → passed
+    - `python -m pytest tests/test_options_flow_dashboard_release_selection.py tests/test_dashboard_manifest_runtime_policy.py tests/test_dashboard_manifest_dependencies_contract.py tests/test_dashboard_custom_card_detection.py -v --tb=line` → passed (27/27)
+
 - 2026-02-27: Completed Phase R4 sync automation and CI parity slice.
   - Added deterministic canonical-to-vendored sync and parity utility:
     - `utils/sync_dashboard_assets.py`

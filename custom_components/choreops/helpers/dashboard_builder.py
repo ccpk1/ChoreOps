@@ -47,6 +47,7 @@ import yaml
 from .. import const
 from ..utils.dt_utils import dt_now_iso
 from .dashboard_helpers import (
+    async_prime_manifest_template_definitions,
     build_dashboard_context,
     get_default_admin_template_id,
     get_default_assignee_template_id,
@@ -391,6 +392,8 @@ async def fetch_dashboard_template(
     style: str | None = None,
     pinned_release_tag: str | None = None,
     include_prereleases: bool = const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT,
+    *,
+    admin_template: bool = False,
 ) -> str:
     """Fetch dashboard template, trying remote first then local fallback.
 
@@ -404,12 +407,27 @@ async def fetch_dashboard_template(
     Raises:
         DashboardTemplateError: If both remote and local fetch fail.
     """
-    requested_style = style or get_default_assignee_template_id()
-    normalized_style = normalize_template_id(requested_style, admin_template=False)
+    await async_prime_manifest_template_definitions(hass)
+
+    requested_style = style
+    if requested_style is None:
+        requested_style = (
+            get_default_admin_template_id()
+            if admin_template
+            else get_default_assignee_template_id()
+        )
+
+    normalized_style = normalize_template_id(
+        requested_style,
+        admin_template=admin_template,
+    )
+    if not normalized_style:
+        template_kind = "admin" if admin_template else "assignee"
+        raise DashboardTemplateError(
+            f"No {template_kind} dashboard template is available"
+        )
+
     source_path = get_template_source_path(normalized_style)
-    if source_path is None:
-        normalized_style = normalize_template_id(requested_style, admin_template=True)
-        source_path = get_template_source_path(normalized_style)
 
     if source_path is None:
         raise DashboardTemplateError(f"Unknown dashboard template '{requested_style}'")
@@ -529,8 +547,10 @@ async def _fetch_local_template(
     Raises:
         FileNotFoundError: If local template file doesn't exist.
     """
-    # Path relative to component root from manifest source path
-    template_path = Path(__file__).parent.parent / source_path
+    # Source paths in manifest are relative to the dashboard manifest directory.
+    component_root = Path(__file__).parent.parent
+    manifest_dir = component_root / Path(const.DASHBOARD_MANIFEST_PATH).parent
+    template_path = manifest_dir / source_path
 
     def read_template() -> str:
         return template_path.read_text(encoding="utf-8")
@@ -564,6 +584,17 @@ def render_dashboard_template(
     Raises:
         DashboardRenderError: If template rendering or YAML parsing fails.
     """
+    render_context = dict(context)
+
+    if "<< user." in template_str and not isinstance(render_context.get("user"), dict):
+        raise DashboardRenderError("Template requires 'user' context")
+
+    if "<< assignee." in template_str and not isinstance(
+        render_context.get("assignee"),
+        dict,
+    ):
+        raise DashboardRenderError("Template requires 'assignee' context")
+
     # Create Jinja2 environment with custom delimiters
     # This allows << assignee.name >> for our injection while preserving
     # {{ states('sensor.x') }} for HA runtime evaluation
@@ -583,7 +614,7 @@ def render_dashboard_template(
 
     try:
         template = env.from_string(template_str)
-        rendered = template.render(**context)
+        rendered = template.render(**render_context)
     except jinja2.TemplateError as err:
         const.LOGGER.error("Template rendering failed: %s", err)
         raise DashboardRenderError(f"Template rendering failed: {err}") from err
@@ -875,6 +906,7 @@ async def create_choreops_dashboard(
                 target_style,
                 pinned_release_tag=pinned_release_tag,
                 include_prereleases=include_prereleases,
+                admin_template=False,
             )
         return template_cache[target_style]
 
@@ -921,11 +953,21 @@ async def create_choreops_dashboard(
 
     # Add admin view if requested
     if include_admin:
+        admin_template_id = normalize_template_id(
+            get_default_admin_template_id(),
+            admin_template=True,
+        )
+        if not admin_template_id:
+            raise DashboardTemplateError(
+                "No admin dashboard template is available in manifest"
+            )
+
         admin_template_str = await fetch_dashboard_template(
             hass,
-            get_default_admin_template_id(),
+            admin_template_id,
             pinned_release_tag=pinned_release_tag,
             include_prereleases=include_prereleases,
+            admin_template=True,
         )
         # Admin template still needs comment stripping via Jinja2 render
         # Pass empty context since admin doesn't need assignee injection
@@ -1136,6 +1178,7 @@ async def update_choreops_dashboard_views(
                 target_style,
                 pinned_release_tag=pinned_release_tag,
                 include_prereleases=include_prereleases,
+                admin_template=False,
             )
         return template_cache[target_style]
 
@@ -1187,11 +1230,21 @@ async def update_choreops_dashboard_views(
             merged_views.append(view)
 
     if include_admin:
+        admin_template_id = normalize_template_id(
+            get_default_admin_template_id(),
+            admin_template=True,
+        )
+        if not admin_template_id:
+            raise DashboardTemplateError(
+                "No admin dashboard template is available in manifest"
+            )
+
         admin_template = await fetch_dashboard_template(
             hass,
-            get_default_admin_template_id(),
+            admin_template_id,
             pinned_release_tag=pinned_release_tag,
             include_prereleases=include_prereleases,
+            admin_template=True,
         )
         admin_view = render_dashboard_template(
             admin_template,
