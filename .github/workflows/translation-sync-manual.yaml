@@ -4,7 +4,7 @@ name: Translation Sync
 # Source file mappings are defined in crowdin.yml (root directory).
 # Crowdin configuration:
 #   - Source: custom_components/choreops/translations/en.json
-#   - Source: custom_components/choreops/translations_custom/en_dashboard.json
+#   - Source: custom_components/choreops/translations_custom/en_report.json
 #   - Source: custom_components/choreops/translations_custom/en_notifications.json
 #
 # The workflow runs automatically when English source files are modified,
