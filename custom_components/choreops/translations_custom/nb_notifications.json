@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "═════════════════════════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "BARNVARSLER: Spillbasert, andrepersons, oppmuntrende tone med emojier. INGEN prefiks for «BarnGjørninger:».",
+  "_comment_assignee_desc": "VARSLER TIL TILORDNERE: Spillbasert, andrepersons, oppmuntrende tone med emojier. INGEN «ChoreOps:»-prefiks.",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Godkjent husarbeid!",
@@ -59,7 +59,7 @@
     "message": "Poengmultiplikatoren din ble endret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "FORELDREVARSLER: Informativ, tredjeperson, handlingsrettet. Format: '{assignee_name}: Handling'. INGEN 'Barneoppgaver:' prefiks.",
+  "_comment_approver_desc": "GODKJENNERVARSLER: Informativ, tredjeperson, handlingsrettet. Format: '{assignee_name}: Handling'. INGEN 'ChoreOps:' prefiks.",
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Gjøremål gjort krav på",
@@ -105,23 +105,23 @@
   "_comment_system_desc": "SYSTEM-/ADMIN-VARSLER: Databehandlingsoperasjoner",
   "_comment_system_footer": "═════════════════════════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 Barneoppgaver: Tilbakestilling av data",
+    "title": "🔄 ChoreOps: Tilbakestilling av data",
     "message": "Systemdataene er tilbakestilt"
   },
   "data_reset_global": {
-    "title": "🔄 Barneoppgaver: Full tilbakestilling",
+    "title": "🔄 ChoreOps: Full tilbakestilling",
     "message": "Alle systemdata er tilbakestilt til standardinnstillinger"
   },
   "data_reset_assignee": {
-    "title": "🔄 Barneoppgaver: Tilbakestilling av barn",
+    "title": "🔄 ChoreOps: Tildelt tilbakestilling",
     "message": "Datatilbakestilling for {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Barneoppgaver: {item_type} Tilbakestill",
+    "title": "🔄 ChoreOps: {item_type} Tilbakestill",
     "message": "Alle {item_type} data er tilbakestilt"
   },
   "data_reset_item": {
-    "title": "🔄 Barneoppgaver: Tilbakestilling av elementer",
+    "title": "🔄 ChoreOps: Tilbakestilling av gjenstander",
     "message": "{item_type} '{item_name}' har blitt tilbakestilt"
   },
   "_comment_actions_section": "═════════════════════════════════════════════════════════════════════════════════════",

@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "NOTIFICACIONES PARA NIÑOS: Tono gamificado, en segunda persona, alentador y con emojis. SIN prefijo \"ChoreOps:\".",
+  "_comment_assignee_desc": "NOTIFICACIONES A LOS ASIGNADOS: Tono gamificado, en segunda persona, alentador y con emojis. SIN prefijo \"ChoreOps:\".",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "¡Tarea aprobada!",
@@ -36,7 +36,7 @@
   },
   "badge_earned_assignee": {
     "title": "¡Insignia ganada!",
-    "message": "¡Has ganado la insignia {badge_name} !"
+    "message": "¡Has ganado la insignia {badge_name}!"
   },
   "achievement_earned_assignee": {
     "title": "¡Logro obtenido!",
@@ -59,7 +59,7 @@
     "message": "Tu multiplicador de puntos cambió de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "NOTIFICACIONES PARA PADRES: Informativas, en tercera persona, con instrucciones. Formato: '{assignee_name}: Acción'. Sin prefijo 'ChoreOps:'.",
+  "_comment_approver_desc": "NOTIFICACIONES DEL APROBADOR: Informativas, en tercera persona, con instrucciones. Formato: '{assignee_name}: Acción'. Sin prefijo 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tarea reclamada",
@@ -75,7 +75,7 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Pendiente",
-    "message": "{count} tareas pendientes de revisión. Último: {latest_chore} (+{points} pts)"
+    "message": "{count} tareas pendientes de revisión. Últimas: {latest_chore} (+{points} pts)"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Solicitud de recompensa",
@@ -87,7 +87,7 @@
   },
   "badge_earned_approver": {
     "title": "🥇 {assignee_name}: Insignia obtenida",
-    "message": "¡{assignee_name} obtuvo la insignia {badge_name} !"
+    "message": "¡{assignee_name} obtuvo la insignia {badge_name}!"
   },
   "achievement_earned_approver": {
     "title": "🏆 {assignee_name}: Logro",
@@ -105,7 +105,7 @@
   "_comment_system_desc": "NOTIFICACIONES DE SISTEMA/ADMINISTRADOR: Operaciones de gestión de datos",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "ChoreOps: Restablecimiento de datos",
+    "title": "🔄 ChoreOps: Restablecimiento de datos",
     "message": "Los datos del sistema se han restablecido"
   },
   "data_reset_global": {
@@ -113,7 +113,7 @@
     "message": "Todos los datos del sistema se han restablecido a los valores predeterminados."
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps: Reinicio infantil",
+    "title": "ChoreOps: Restablecimiento de asignado",
     "message": "Restablecimiento de datos para {assignee_name}"
   },
   "data_reset_item_type": {
@@ -121,7 +121,7 @@
     "message": "Se han restablecido todos los datos de {item_type}"
   },
   "data_reset_item": {
-    "title": "ChoreOps: Restablecimiento de elementos",
+    "title": "🔄 ChoreOps: Reinicio de objetos",
     "message": "{item_type} '{item_name}' se ha restablecido"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════════",

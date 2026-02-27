@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "════════════════════════════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "LASTEN ILMOITUKSET: Pelillinen, toisen persoonan, kannustava sävy emojeilla. EI etuliitettä 'ChoreOps:'.",
+  "_comment_assignee_desc": "TEKIJÄN ILMOITUKSET: Pelillinen, toisen persoonan, kannustava sävy emojeilla. EI 'ChoreOps:'-etuliitettä.",
   "_comment_assignee_footer": "════════════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Kotityöt hyväksytty!",
@@ -59,7 +59,7 @@
     "message": "Pistekerroin muuttui arvosta {old_multiplier}x arvoon {new_multiplier}x"
   },
   "_comment_approver_section": "════════════════════════════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "VANHEMPIEN ILMOITUKSET: Informatiivisia, kolmannen persoonan, toiminnallisia. Muoto: '{assignee_name}: Toiminta'. EI 'ChoreOps:'-etuliitettä.",
+  "_comment_approver_desc": "HYVÄKSYJÄN ILMOITUKSET: Informatiiviset, kolmannen persoonan, toiminnalliset. Muoto: '{assignee_name}: Toiminta'. EI 'ChoreOps:'-etuliitettä.",
   "_comment_approver_footer": "════════════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Kotitehtävä lunastettu",
@@ -109,19 +109,19 @@
     "message": "Järjestelmätiedot on nollattu"
   },
   "data_reset_global": {
-    "title": "🔄 Lastenkotitehtävät: Täysi nollaus",
+    "title": "🔄 ChoreOps: Täysi nollaus",
     "message": "Kaikki järjestelmätiedot on palautettu oletusasetuksiin"
   },
   "data_reset_assignee": {
-    "title": "🔄 LastenAskareita: Lasten nollaus",
+    "title": "🔄 ChoreOps: Vastuuhenkilön nollaus",
     "message": "Tietojen nollaus kohteelle {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Lasten askareita: {item_type} Tyhjennä",
+    "title": "🔄 Korjaustyöt: {item_type} Palauta",
     "message": "Kaikki {item_type} tiedot on nollattu"
   },
   "data_reset_item": {
-    "title": "🔄 Lastenkodit: Kohteen nollaus",
+    "title": "🔄 ChoreOps: Esineen nollaus",
     "message": "{item_type} '{item_name}' on nollattu"
   },
   "_comment_actions_section": "════════════════════════════════════════════════════════════════════════════════════════",

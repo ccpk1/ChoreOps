@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "═════════════════════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "BARNAVISERINGAR: Gamifierad, andrapersons, uppmuntrande ton med emojis. INGET prefix 'Barnsysslor:'.",
+  "_comment_assignee_desc": "MEDDELANDEN TILL TILLDELAD: Spelifierad, andrapersons, uppmuntrande ton med emojis. INGET prefix 'ChoreOps:'.",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Godkänt för sysslor!",
@@ -36,7 +36,7 @@
   },
   "badge_earned_assignee": {
     "title": "🥇 Märke intjänat!",
-    "message": "Du har förtjänat märket {badge_name} !"
+    "message": "Du har förtjänat märket {badge_name}!"
   },
   "achievement_earned_assignee": {
     "title": "🏆 Prestation uppnådd!",
@@ -59,7 +59,7 @@
     "message": "Din poängmultiplikator har ändrats från {old_multiplier}x till {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "FÖRÄLDRAMEDDELANDEN: Informativ, tredjepersons, handlingsbar. Format: '{assignee_name}: Åtgärd'. INGET prefix 'Barnsysslor:'.",
+  "_comment_approver_desc": "GODKÄNNANDENUMMER: Informativa, tredjepersons, handlingsbara. Format: '{assignee_name}: Åtgärd'. INGET prefix 'ChoreOps:'.",
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Syssla begärd",
@@ -87,7 +87,7 @@
   },
   "badge_earned_approver": {
     "title": "🥇 {assignee_name}: Märke intjänat",
-    "message": "{assignee_name} fick märket {badge_name} !"
+    "message": "{assignee_name} fick märket {badge_name}!"
   },
   "achievement_earned_approver": {
     "title": "🏆 {assignee_name}: Prestation",
@@ -105,23 +105,23 @@
   "_comment_system_desc": "SYSTEM-/ADMINISTRATIONSMEDDELANDEN: Datahanteringsåtgärder",
   "_comment_system_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 Barnsysslor: Dataåterställning",
+    "title": "🔄 ChoreOps: Dataåterställning",
     "message": "Systemdata har återställts"
   },
   "data_reset_global": {
-    "title": "🔄 Barnsysslor: Fullständig återställning",
+    "title": "🔄 ChoreOps: Fullständig återställning",
     "message": "All systemdata har återställts till standardinställningarna"
   },
   "data_reset_assignee": {
-    "title": "🔄 Barnsysslor: Återställning av barn",
+    "title": "🔄 ChoreOps: Återställning av tilldelad person",
     "message": "Dataåterställning för {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Barnsysslor: {item_type} Återställ",
+    "title": "🔄 ChoreOps: {item_type} Återställ",
     "message": "All {item_type} data har återställts"
   },
   "data_reset_item": {
-    "title": "🔄 Barnsysslor: Återställning av föremål",
+    "title": "🔄 ChoreOps: Återställning av föremål",
     "message": "{item_type} '{item_name}' har återställts"
   },
   "_comment_actions_section": "═════════════════════════════════════════════════════════════════════════════════",
