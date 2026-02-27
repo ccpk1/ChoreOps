@@ -15,8 +15,16 @@ files:
 
   # 2. Dashboard Translations (custom translations directory)
   # Maps: /translations_custom/en_dashboard.json -> /translations_custom/fr_dashboard.json
-  - source: /custom_components/choreops/translations_custom/en_dashboard.json
-    translation: /custom_components/choreops/translations_custom/%two_letters_code%_dashboard.json
+  - source: /custom_components/choreops/dashboards/translations/en_dashboard.json
+    translation: /custom_components/choreops/dashboards/translations/%two_letters_code%_dashboard.json
+    languages_mapping:
+      two_letters_code:
+        "no": nb
+
+  # 2. Report Translations (custom translations directory)
+  # Maps: /translations_custom/en_report.json -> /translations_custom/fr_report.json
+  - source: /custom_components/choreops/translations_custom/en_report.json
+    translation: /custom_components/choreops/translations_custom/%two_letters_code%_report.json
     languages_mapping:
       two_letters_code:
         "no": nb
