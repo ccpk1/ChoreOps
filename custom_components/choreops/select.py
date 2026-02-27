@@ -428,6 +428,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         if not current_value or current_value == const.SENTINEL_NONE_TEXT:
             return {
                 const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER,
+                const.ATTR_INTEGRATION_ENTRY_ID: self.coordinator.config_entry.entry_id,
             }
 
         # Find assignee_id by name
@@ -445,6 +446,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
         if not selected_assignee_id:
             return {
                 const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER,
+                const.ATTR_INTEGRATION_ENTRY_ID: self.coordinator.config_entry.entry_id,
             }
 
         # Look up the actual dashboard helper entity from registry
@@ -463,6 +465,7 @@ class SystemDashboardAdminAssigneeSelect(ChoreOpsSelectBase):
 
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_ADMIN_USER,
+            const.ATTR_INTEGRATION_ENTRY_ID: self.coordinator.config_entry.entry_id,
             const.ATTR_DASHBOARD_HELPER_EID: dashboard_helper_entity,
             const.ATTR_SELECTED_USER_SLUG: assignee_slug,
             const.ATTR_SELECTED_USER_NAME: current_value,

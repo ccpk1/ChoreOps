@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "repo": "ccpk1/ChoreOps-Dashboards",
+  "title": "ChoreOps Dashboard Registry",
+  "description": "Registry manifest for ChoreOps dashboard templates",
+  "templates": [
+    {
+      "template_id": "user-gamification-v1",
+      "display_name": "Gamification (User)",
+      "description": "Full user dashboard with gamification cards and advanced sections",
+      "audience": "user",
+      "category": "full",
+      "lifecycle_state": "active",
+      "min_integration_version": "0.5.0",
+      "maintainer": "ccpk1",
+      "source": {
+        "type": "vendored",
+        "path": "templates/user-gamification-v1.yaml"
+      },
+      "dependencies": {
+        "required": [
+          {
+            "id": "ha-card:auto-entities"
+          },
+          {
+            "id": "ha-card:mushroom-template-card"
+          }
+        ],
+        "recommended": []
+      },
+      "preferences": {
+        "doc_asset_path": "preferences/user-gamification-v1.md"
+      }
+    },
+    {
+      "template_id": "user-minimal-v1",
+      "display_name": "Minimal (User)",
+      "description": "Minimal user dashboard with core cards only",
+      "audience": "user",
+      "category": "minimal",
+      "lifecycle_state": "active",
+      "min_integration_version": "0.5.0",
+      "maintainer": "ccpk1",
+      "source": {
+        "type": "vendored",
+        "path": "templates/user-minimal-v1.yaml"
+      },
+      "dependencies": {
+        "required": [
+          {
+            "id": "ha-card:auto-entities"
+          },
+          {
+            "id": "ha-card:mushroom-template-card"
+          }
+        ],
+        "recommended": []
+      },
+      "preferences": {
+        "doc_asset_path": "preferences/user-minimal-v1.md"
+      }
+    },
+    {
+      "template_id": "admin-shared-v1",
+      "display_name": "Admin (Shared)",
+      "description": "Admin dashboard with shared selector workflow",
+      "audience": "approver",
+      "category": "admin",
+      "lifecycle_state": "active",
+      "min_integration_version": "0.5.0",
+      "maintainer": "ccpk1",
+      "source": {
+        "type": "vendored",
+        "path": "templates/admin-shared-v1.yaml"
+      },
+      "dependencies": {
+        "required": [
+          {
+            "id": "ha-card:auto-entities"
+          },
+          {
+            "id": "ha-card:mini-graph-card"
+          },
+          {
+            "id": "ha-card:mushroom-select-card"
+          },
+          {
+            "id": "ha-card:mushroom-template-card"
+          }
+        ],
+        "recommended": []
+      },
+      "preferences": {
+        "doc_asset_path": "preferences/admin-shared-v1.md"
+      }
+    },
+    {
+      "template_id": "admin-peruser-v1",
+      "display_name": "Admin (Per User)",
+      "description": "Admin dashboard with per-user tab workflow",
+      "audience": "approver",
+      "category": "admin",
+      "lifecycle_state": "active",
+      "min_integration_version": "0.5.0",
+      "maintainer": "ccpk1",
+      "source": {
+        "type": "vendored",
+        "path": "templates/admin-peruser-v1.yaml"
+      },
+      "dependencies": {
+        "required": [
+          {
+            "id": "ha-card:auto-entities"
+          },
+          {
+            "id": "ha-card:mini-graph-card"
+          },
+          {
+            "id": "ha-card:mushroom-select-card"
+          },
+          {
+            "id": "ha-card:mushroom-template-card"
+          }
+        ],
+        "recommended": []
+      },
+      "preferences": {
+        "doc_asset_path": "preferences/admin-peruser-v1.md"
+      }
+    }
+  ]
+}

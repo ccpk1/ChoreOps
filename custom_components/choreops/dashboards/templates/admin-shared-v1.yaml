@@ -1,0 +1,1409 @@
+<#-- ============================================= --#>
+<#-- ChoreOps Dashboard Template - ADMIN      --#>
+<#-- Template Schema Version: 1                  --#>
+<#-- ============================================= --#>
+<#--                                             --#>
+<#-- Admin dashboard: System management         --#>
+<#-- Uses SystemDashboardAdminAssigneeSelect entity  --#>
+<#--                                             --#>
+<#-- Uses integration.entry_id injection for instance-safe selector lookup --#>
+<#--                                             --#>
+<#-- All HA Jinja2 {{ }} syntax preserved       --#>
+<#-- ============================================= --#>
+
+- title: ChoreOps Admin
+  path: admin
+  sections:
+    - type: grid
+      cards:
+        - type: custom:auto-entities
+          card:
+            square: false
+            type: grid
+            columns: 1
+          card_param: cards
+          filter:
+            template: >-
+              {#-- ===== ADMIN HEADER ===== --#}
+
+              {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                {%- set entry_id = '<< integration.entry_id >>' -%}
+
+              {%- set admin_selector_eid = integration_entities('choreops')
+                  | select('match', '^select\\.')
+                  | list
+                  | expand
+                  | selectattr('attributes.purpose', 'defined')
+                  | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                  | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                  | map(attribute='entity_id')
+                  | first
+                  | default('', true) -%}
+
+              {{
+                {
+                  'type': 'markdown',
+                  'content': '# ChoreOps System Administration\n\n**Select a child to manage their chores, rewards, and activity.**'
+                }
+              }},
+
+              {%- if admin_selector_eid -%}
+                {{
+                  {
+                    'type': 'custom:mushroom-template-card',
+                    'entity': admin_selector_eid,
+                    'primary': 'Manage: ' ~ states(admin_selector_eid),
+                    'secondary': state_attr(admin_selector_eid, 'dashboard_helper_eid') | default('Select a child'),
+                    'icon': 'mdi:account-child',
+                    'icon_color': 'blue',
+                    'tap_action': {'action': 'more-info'}
+                  }
+                }},
+              {%- endif -%}
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== APPROVAL ACTIONS CARD ===== --#}
+
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- set pref_column_count = 2 -%}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_column_count = pref_column_count | int(default=2) -%}
+
+
+                  {#-- 2. Validate Admin Selector Exists --#}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Admin Selector Not Found**\n\nThe admin assignee selector entity could not be found.\n\nThe integration may need to be restarted or reloaded.\nCheck Settings → Integrations → ChoreOps."
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+
+                    {#-- 3. Validate Assignee Selected --#}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {{
+                        {
+                          'type': 'markdown',
+                          'content': "ℹ️ **No Assignee Selected**\n\nSelect a assignee from the dropdown above to view pending approvals."
+                        }
+                      }},
+                      {%- set skip_render = true -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+
+                      {#-- 4. Initialize Variables --#}
+
+                        {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                          | default("err-dashboard_helper_missing", true) -%}
+
+                      {%- set ns = namespace(
+                        approve_chore_buttons=[],
+                        approve_reward_buttons=[],
+                        group_cards=[],
+                        has_approvals='false'
+                      ) -%}
+
+                      {#-- 5. Validate Dashboard Helper --#}
+                      {%- if states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                        {{
+                          {
+                            'type': 'markdown',
+                            'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find dashboard helper for: `" ~ name ~ "`\n\nThe integration may not have initialized properly.\nCheck Settings → Integrations → ChoreOps."
+                          }
+                        }},
+                        {%- set skip_render = true -%}
+                      {%- else -%}
+                        {%- set skip_render = false -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 6. Collect Data --#}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set helper_attrs = states[dashboard_helper].attributes -%}
+                    {%- set pending_approvals = helper_attrs.pending_approvals | default({}, true) -%}
+                    {%- set pending_chore_data = pending_approvals.get('chores', []) | default([], true) -%}
+                    {%- set pending_reward_data = pending_approvals.get('rewards', []) | default([], true) -%}
+
+                    {#-- 7. Build Display --#}
+                    {%- if pending_chore_data | count > 0 -%}
+                      {%- for entry in pending_chore_data -%}
+                        {%- set ap = (entry.approve_button_eid if entry.approve_button_eid not in [None, 'None', ''] else '') | default('') -%}
+                        {%- set dis = (entry.disapprove_button_eid if entry.disapprove_button_eid not in [None, 'None', ''] else '') | default('') -%}
+                        {%- set cname = entry.chore_name | default('') -%}
+
+                        {%- if ap != '' -%}
+                          {%- if ap not in (ns.approve_chore_buttons | map(attribute='eid') | list) -%}
+                            {%- set ns.approve_chore_buttons = ns.approve_chore_buttons + [{'eid': ap, 'primary': ui.get('ok', 'err-ok') ~ ': ' ~ cname, 'icon': 'mdi:thumb-up', 'icon_color': 'green'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+
+                        {%- if dis != '' -%}
+                          {%- if dis not in (ns.approve_chore_buttons | map(attribute='eid') | list) -%}
+                            {%- set ns.approve_chore_buttons = ns.approve_chore_buttons + [{'eid': dis, 'primary': ui.get('no', 'err-no') ~ ': ' ~ cname, 'icon': 'mdi:thumb-down', 'icon_color': 'red'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {%- if pending_reward_data | count > 0 -%}
+                      {%- for entry in pending_reward_data -%}
+                        {%- set ap = (entry.approve_button_eid if entry.approve_button_eid not in [None, 'None', ''] else '') | default('') -%}
+                        {%- set dis = (entry.disapprove_button_eid if entry.disapprove_button_eid not in [None, 'None', ''] else '') | default('') -%}
+                        {%- set rname = entry.reward_name | default('') -%}
+
+                        {%- if ap != '' -%}
+                          {%- if ap not in (ns.approve_reward_buttons | map(attribute='eid') | list) -%}
+                            {%- set ns.approve_reward_buttons = ns.approve_reward_buttons + [{'eid': ap, 'primary': ui.get('ok', 'err-ok') ~ ': ' ~ rname, 'icon': 'mdi:thumb-up', 'icon_color': 'green'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+
+                        {%- if dis != '' -%}
+                          {%- if dis not in (ns.approve_reward_buttons | map(attribute='eid') | list) -%}
+                            {%- set ns.approve_reward_buttons = ns.approve_reward_buttons + [{'eid': dis, 'primary': ui.get('no', 'err-no') ~ ': ' ~ rname, 'icon': 'mdi:thumb-down', 'icon_color': 'red'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {%- set button_groups = [
+                        {'name': ui.get('chore_approvals', 'err-chore_approvals'), 'buttons': ns.approve_chore_buttons, 'icon': 'mdi:thumb-up-outline'},
+                        {'name': ui.get('reward_approvals', 'err-reward_approvals'), 'buttons': ns.approve_reward_buttons, 'icon': 'mdi:thumb-up-outline'}
+                    ] -%}
+
+                    {#-- 8. Render --#}
+                    {%- for group in button_groups -%}
+                    {%- set ns.group_cards = [] -%}
+
+                    {%- if group.buttons | length > 0 -%}
+                      {%- set heading_card = {
+                        'type': 'heading',
+                        'icon': group.icon,
+                        'heading': group.name,
+                        'heading_style': 'title'
+                      } -%}
+
+                      {%- for button in group.buttons -%}
+                        {%- if button is mapping -%}
+                          {%- set eid = button.eid -%}
+                          {%- set primary = button.primary -%}
+                          {%- set icon = button.icon -%}
+                          {%- set icon_color = button.icon_color -%}
+                        {%- endif -%}
+
+                        {%- set ns.group_cards = ns.group_cards + [{
+                          'type': 'custom:mushroom-template-card',
+                          'entity': eid,
+                          'primary': primary,
+                          'icon': icon,
+                          'layout': '',
+                          'icon_color': icon_color,
+                          'tap_action': {
+                            'action': 'call-service',
+                            'service': 'button.press',
+                            'target': {
+                              'entity_id': eid
+                            }
+                          },
+                          'hold_action': {
+                            'action': 'more-info'
+                          }
+                        }] -%}
+                      {%- endfor -%}
+
+                      {{- heading_card -}}, {{
+                        {
+                          'type': 'grid',
+                          'columns': pref_column_count,
+                          'square': false,
+                          'cards': ns.group_cards
+                        }
+                      }},
+                    {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== PARENT DASHBOARD ===== --#}
+
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- set selected_assignee_name = states(admin_selector_eid) -%}
+
+
+                  {#-- 2. Handle Selection State --#}
+
+                  {%- if selected_assignee_name in ['None', 'unknown', 'unavailable', ''] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child's dashboard to display.\n\n📊 **Available Options:**\n- Select from dropdown\n- Dashboard will load automatically\n- All stats and controls will appear"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set name = selected_assignee_name -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Get Dashboard Helper for Selected Assignee --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                    {%- if states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                      {{
+                        {
+                          'type': 'markdown',
+                          'content': "⚠️ **Dashboard Helper Not Found**\n\nCannot find dashboard helper for: **" ~ name ~ "**\n\nThe ChoreOps integration may not have this child\nor the helper sensor is unavailable.\n\n🔧 **Troubleshooting:**\n- Check Settings → Integrations → ChoreOps\n- Verify child name matches exactly\n- Wait a moment and try again"
+                        }
+                      }},
+                      {%- set skip_render = true -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+
+                  {#-- 4. Collect Data --#}
+
+                  {%- if not skip_render -%}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set total_chores_sensor = core_sensors.get('chores_eid') -%}
+                    {%- set highest_badge_sensor = core_sensors.get('badges_eid') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+
+                    {%- set points = states(points_sensor) | int(default=0) -%}
+                    {%- set points_attrs = states[points_sensor].attributes | default({}, true) -%}
+                    {%- set points_label = points_attrs.get('unit_of_measurement') | default('Pts') -%}
+                    {%- set points_icon = points_attrs.get('icon') -%}
+
+                    {#-- Points Stats from assignee_points --#}
+                    {%- set points_earned_week = points_attrs.get('point_stat_points_earned_week', 0) | int(default=0) -%}
+                    {%- set points_spent_week = points_attrs.get('point_stat_points_spent_week', 0) | int(default=0) -%}
+
+                    {#-- Chore Stats from assignee_chores_completed_total --#}
+                    {%- set chores_attrs = states[total_chores_sensor].attributes | default({}, true) -%}
+                    {%- set weekly_completed = chores_attrs.get('chore_stat_approved_week', 0) | int(default=0) -%}
+                    {%- set chore_longest_streak = chores_attrs.get('chore_stat_longest_streak_week', 0) | int(default=0) -%}
+                    {%- set most_completed_chore = chores_attrs.get('chore_stat_most_completed_chore_week', 'N/A') | default('N/A') -%}
+                    {%- set avg_chores_per_day_week = chores_attrs.get('chore_stat_avg_per_day_week', 0) | float(default=0) -%}
+                    {%- set current_claimed = chores_attrs.get('chore_stat_current_claimed', 0) | int(default=0) -%}
+                    {%- set current_overdue = chores_attrs.get('chore_stat_current_overdue', 0) | int(default=0) -%}
+                    {%- set weekly_overdue = chores_attrs.get('chore_stat_overdue_week', 0) | int(default=0) -%}
+
+                    {#-- Badge Stats from highest_badge --#}
+                    {%- set highest_badge = states(highest_badge_sensor) or 'None' -%}
+                    {%- set highest_badge_icon = state_attr(highest_badge_sensor, 'icon') or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(default=1) -%}
+
+                    {#-- 4. Build Display --#}
+                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
+                      {%- if points_multiplier > 1 -%}
+                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ " (x" ~ points_multiplier|string ~ ")  \n" -%}
+                      {%- else -%}
+                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ "  \n" -%}
+                      {%- endif -%}
+                    {%- else -%}
+                      {%- set badge_display = "" -%}
+                    {%- endif -%}
+
+
+                    {%- set content =
+                      "## 👨‍👩‍👧 " ~ ui.get('approver_dashboard_for', 'err-approver_dashboard_for') ~ ": " ~ name ~ " \n"
+                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n\n" -%}
+
+                    {#-- STATUS TABLE: Pending Approvals and Overdue --#}
+                    {%- set status_table = "<table width=100% border=0 cellspacing=0 cellpadding=0>" -%}
+                    {%- set status_table = status_table ~ "<tbody>" -%}
+                    {%- set status_table = status_table ~ "<tr><td style='padding: 8px;'>" -%}
+                    {%- if current_claimed > 0 -%}
+                      {%- set status_table = status_table ~ "🚨 " ~ current_claimed ~ " " ~ ui.get('pending_approvals', 'err-pending_approvals') -%}
+                    {%- else -%}
+                      {%- set status_table = status_table ~ "✅ " ~ ui.get('no_pending_approvals', 'err-no_pending_approvals') -%}
+                    {%- endif -%}
+                    {%- set status_table = status_table ~ "</td><td style='padding: 8px; text-align: right;'>" -%}
+                    {%- if current_overdue > 0 -%}
+                      {%- set status_table = status_table ~ "⚠️ <strong style='color: #d32f2f;'>" ~ current_overdue ~ " " ~ ui.get('overdue_chores', 'err-overdue_chores') ~ "</strong>" -%}
+                    {%- else -%}
+                      {%- set status_table = status_table ~ "✅ " ~ ui.get('no_overdue_chores', 'err-no_overdue_chores') -%}
+                    {%- endif -%}
+                    {%- set status_table = status_table ~ "</td></tr>" -%}
+                    {%- set status_table = status_table ~ "</tbody></table>" -%}
+                    {%- set content = content ~ status_table ~ "\n\n---\n\n" -%}
+
+                    {#-- HTML TABLE FOR WEEKLY PERFORMANCE --#}
+                    {%- set html_table = "<table width=100% border=0 cellspacing=0 cellpadding=0 style='margin-top: 12px;'>" -%}
+                    {%- set html_table = html_table ~ "<thead><tr><th style='padding: 8px; text-align: left;'>" ~ ui.get('weekly_performance', 'err-weekly_performance') ~ "</th><th style='padding: 8px; text-align: center;'></th></tr></thead>" -%}
+                    {%- set html_table = html_table ~ "<tbody>" -%}
+
+                    {#-- Row 1: Points Earned --#}
+                    {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>💰 " ~ points_label ~ " " ~ ui.get('earned', 'err-earned') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>" ~ points_earned_week ~ "</td></tr>" -%}
+
+                    {#-- Row 1b: Average Points per Day --#}
+                    {%- set avg_points_per_day_week = (points_earned_week / 7) | float(default=0) -%}
+                    {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>📊 " ~ ui.get('points_per_day', 'err-points_per_day') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>" ~ avg_points_per_day_week | round(2) ~ "</td></tr>" -%}
+
+                    {#-- Row 2: Chores Completed --#}
+                    {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>🧹 " ~ ui.get('chores_completed', 'err-chores_completed') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>" ~ weekly_completed ~ "</td></tr>" -%}
+
+                    {#-- Row 3: Average per Day --#}
+                    {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>📊 " ~ ui.get('chores_per_day', 'err-chores_per_day') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>" ~ avg_chores_per_day_week | round(2) ~ "</td></tr>" -%}
+
+                    {#-- Row 4: Most Completed Chore --#}
+                    {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>🏆 " ~ ui.get('most_completions', 'err-most_completions') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>" ~ most_completed_chore ~ "</td></tr>" -%}
+
+                    {#-- Row 5: Longest Streak --#}
+                    {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>🔥 " ~ ui.get('longest_streak', 'err-longest_streak') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>" ~ chore_longest_streak ~ " days</td></tr>" -%}
+
+                    {#-- Row 6: Weekly Overdue --#}
+                    {%- if weekly_overdue > 0 -%}
+                      {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>⚠️ " ~ ui.get('went_overdue', 'err-went_overdue') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold; color: #d32f2f;'>" ~ weekly_overdue ~ "</td></tr>" -%}
+                    {%- else -%}
+                      {%- set html_table = html_table ~ "<tr><td style='padding: 8px;'>✅ " ~ ui.get('went_overdue', 'err-went_overdue') ~ "</td><td style='padding: 8px; text-align: center; font-weight: bold;'>0</td></tr>" -%}
+                    {%- endif -%}
+
+                    {%- set html_table = html_table ~ "</tbody></table>" -%}
+
+                    {%- set content = content ~ html_table -%}
+
+                    {#-- 5. Render Markdown Summary --#}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': content
+                      }
+                    }},
+
+                    {#-- DETAIL BUTTONS GRID --#}
+                    {{
+                      {
+                        'type': 'grid',
+                        'columns': 2,
+                        'square': false,
+                        'cards': [
+                          {
+                            'type': 'button',
+                            'entity': points_sensor,
+                            'name': ui.get('points_details', 'err-points_details'),
+                            'icon': 'mdi:chart-box-outline',
+                            'icon_height': '24px'
+                          },
+                          {
+                            'type': 'button',
+                            'entity': total_chores_sensor,
+                            'name': ui.get('chores_details', 'err-chores_details'),
+                            'icon': 'mdi:clipboard-text-outline',
+                            'icon_height': '24px'
+                          }
+                        ]
+                      }
+                    }},
+                  {%- endif -%}
+    - type: grid
+      cards:
+        - square: false
+          type: grid
+          columns: 1
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== ADMIN ACTIONS CARD ===== --#}
+
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {#-- 2. Validate Admin Selector & Get Assignee Name --#}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {%- set name = '' -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {%- set name = '' -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+
+                  {#-- 3. Initialize Variables --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {%- set ns = namespace(
+                    chore_selected='',
+                    selected_chore_data=None,
+                    current_status='',
+                    global_status='',
+                    shared_chore='',
+                    chore_allow_multiple='',
+                    recurrence='',
+                    chore_value=0,
+                    chore_icon='',
+                    chore_description='',
+                    chore_days=[],
+                    chore_custom_freq_unit='',
+                    chore_custom_freq_int='',
+                    due_date_formatted='',
+                    completion_criteria='',
+                    select_new_date_and_time_secondary='',
+                    content=''
+                  ) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child to manage.\n\n🎛️ **Admin Actions:**\n- Select from dropdown\n- Admin controls will appear\n- Manage points and settings"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data (Step 1: Use dashboard helper lookups) --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set dashboard_helpers = state_attr(dashboard_helper, 'dashboard_helpers') or {} -%}
+                    {%- set dashboard_date_helper = dashboard_helpers.get('date_helper_eid') -%}
+                    {%- set chore_select_entity = dashboard_helpers.get('chore_select_eid') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
+                    {%- set ns.chore_selected = states(chore_select_entity) | default('') -%}
+                    {%- set overdue_count = chore_list | selectattr('status', 'eq', 'overdue') | list | length -%}
+
+                    {#-- Step 1: Find selected chore in dashboard helper list instead of querying sensor directly --#}
+                    {%- if ns.chore_selected | lower not in ['none', 'unknown', 'unavailable', ''] -%}
+                      {#-- Lookup chore by name in pre-fetched list --#}
+                      {%- set selected_chore_list = chore_list | selectattr('name', 'eq', ns.chore_selected) | list -%}
+                      {%- set selected_chore_match = selected_chore_list[0] if selected_chore_list | length > 0 else None -%}
+
+                      {%- if selected_chore_match -%}
+                        {%- set ns.selected_chore_data = selected_chore_match -%}
+                      {%- endif -%}
+                    {%- endif -%}
+
+                    {#-- Initialize all display variables with defaults from dashboard helper or fallback values --#}
+                    {%- set state_map = {
+                        'pending': ui.get('pending', 'err-pending'),
+                        'claimed': ui.get('claimed', 'err-claimed'),
+                        'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
+                        'approved': ui.get('approved', 'err-approved'),
+                        'approved_in_part': ui.get('approved_in_part', 'err-approved_in_part'),
+                        'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                        'overdue': ui.get('overdue', 'err-overdue'),
+                        'independent': ui.get('independent', 'err-independent'),
+                        'shared_all': ui.get('shared_all', 'err-shared_all'),
+                        'shared_first': ui.get('shared_first', 'err-shared_first')
+                    } -%}
+
+                    {%- set global_status_map = {
+                        'pending': ui.get('pending', 'err-pending'),
+                        'claimed': ui.get('claimed', 'err-claimed'),
+                        'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
+                        'approved': ui.get('approved', 'err-approved'),
+                        'approved_in_part': ui.get('approved_in_part', 'err-approved_in_part'),
+                        'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                        'overdue': ui.get('overdue', 'err-overdue')
+                    } -%}
+
+                    {%- set approval_reset_map = {
+                        'at_midnight_once': ui.get('at_midnight_once', 'err-at_midnight_once'),
+                        'at_midnight_multi': ui.get('at_midnight_multi', 'err-at_midnight_multi'),
+                        'at_due_date_once': ui.get('at_due_date_once', 'err-at_due_date_once'),
+                        'at_due_date_multi': ui.get('at_due_date_multi', 'err-at_due_date_multi'),
+                        'upon_completion': ui.get('upon_completion', 'err-upon_completion')
+                    } -%}
+
+                    {%- set recurrence_map = {
+                        'none': ui.get('none', 'err-none'),
+                        'daily': ui.get('daily', 'err-daily'),
+                        'daily_multi': ui.get('daily_multi', 'err-daily_multi'),
+                        'weekly': ui.get('weekly', 'err-weekly'),
+                        'biweekly': ui.get('biweekly', 'err-biweekly'),
+                        'monthly': ui.get('monthly', 'err-monthly'),
+                        'quarterly': ui.get('quarterly', 'err-quarterly'),
+                        'yearly': ui.get('yearly', 'err-yearly'),
+                        'custom': ui.get('custom', 'err-custom'),
+                        'custom_from_complete': ui.get('custom_from_complete', 'err-custom_from_complete'),
+                        'custom_1_week': ui.get('custom_1_week', 'err-custom_1_week'),
+                        'custom_1_month': ui.get('custom_1_month', 'err-custom_1_month'),
+                        'custom_1_quarter': ui.get('custom_1_quarter', 'err-custom_1_quarter'),
+                        'custom_1_year': ui.get('custom_1_year', 'err-custom_1_year'),
+                        'week_end': ui.get('week_end', 'err-week_end'),
+                        'month_end': ui.get('month_end', 'err-month_end'),
+                        'quarter_end': ui.get('quarter_end', 'err-quarter_end'),
+                        'year_end': ui.get('year_end', 'err-year_end')
+                    } -%}
+
+                    {%- set state_map_tf = {
+                        'False': ui.get('false', 'err-false'),
+                        'True': ui.get('true', 'err-true')
+                    } -%}
+
+                    {#-- Step 2: Fetch chore data from sensor state (dashboard helper only provides eid, name, status, labels, primary_group, is_today_am) --#}
+                    {%- set chore_state = none -%}
+                    {%- if ns.selected_chore_data -%}
+                      {%- set chore_sensor_eid = ns.selected_chore_data.get('eid') -%}
+                      {%- set chore_state = states[chore_sensor_eid] if chore_sensor_eid else none -%}
+
+                      {#-- Gracefully handle missing/unavailable chore entity --#}
+                      {%- if chore_state and chore_state.state not in ['unknown', 'unavailable'] -%}
+                        {#-- Get data from helper (lightweight fields) and sensor attributes (detailed fields) --#}
+                        {%- set ns.current_status = ns.selected_chore_data.get('status', 'Unknown') -%}
+                        {%- set ns.global_status = chore_state.attributes.get('global_state', 'Unknown') -%}
+                        {%- set ns.shared_chore = chore_state.attributes.get('completion_criteria', 'shared_all') -%}
+                        {%- set ns.chore_allow_multiple = chore_state.attributes.get('approval_reset_type', 'at_midnight_once') -%}
+                        {%- set ns.recurrence = chore_state.attributes.get('recurring_frequency', 'none') -%}
+                        {%- if ns.recurrence and ns.recurrence != 'none' -%}
+                          {%- set ns.recurrence = recurrence_map.get(ns.recurrence, ns.recurrence) -%}
+                        {%- else -%}
+                          {%- set ns.recurrence = ui.get('none', 'err-none') -%}
+                        {%- endif -%}
+                        {%- set ns.chore_value = chore_state.attributes.get('default_points', 0) | int(default=0) -%}
+                        {%- set ns.chore_icon = chore_state.attributes.get('chore_icon', 'mdi:clipboard-check') -%}
+                        {%- set ns.chore_description = chore_state.attributes.get('description', '') -%}
+                        {%- set ns.chore_days = chore_state.attributes.get('applicable_days', []) -%}
+                        {%- set ns.chore_custom_freq_unit = chore_state.attributes.get('custom_frequency_unit', '') -%}
+                        {%- set ns.chore_custom_freq_int = chore_state.attributes.get('custom_frequency_interval', '') -%}
+
+                        {#-- Pre-compute assignee_name based on completion_criteria (independent vs shared) --#}
+                        {%- set ns.assignee_name_for_service = name if ns.shared_chore == 'independent' else '' -%}
+                      {%- else -%}
+                        {#-- Chore entity not found or unavailable - use safe defaults --#}
+                        {%- set ns.current_status = 'Unknown' -%}
+                        {%- set ns.global_status = 'Unknown' -%}
+                        {%- set ns.shared_chore = 'shared_all' -%}
+                        {%- set ns.chore_allow_multiple = 'at_midnight_once' -%}
+                        {%- set ns.recurrence = ui.get('none', 'err-none') -%}
+                        {%- set ns.chore_value = 0 -%}
+                        {%- set ns.chore_icon = 'mdi:clipboard-check' -%}
+                        {%- set ns.chore_description = '' -%}
+                        {%- set ns.chore_days = [] -%}
+                        {%- set ns.chore_custom_freq_unit = '' -%}
+                        {%- set ns.chore_custom_freq_int = '' -%}
+                        {%- set ns.assignee_name_for_service = '' -%}
+                      {%- endif -%}
+                    {%- else -%}
+                      {#-- No chore selected - use safe defaults --#}
+                      {%- set ns.current_status = 'Unknown' -%}
+                      {%- set ns.global_status = 'Unknown' -%}
+                      {%- set ns.shared_chore = 'shared_all' -%}
+                      {%- set ns.chore_allow_multiple = 'at_midnight_once' -%}
+                      {%- set ns.recurrence = ui.get('none', 'err-none') -%}
+                      {%- set ns.chore_value = 0 -%}
+                      {%- set ns.chore_icon = 'mdi:clipboard-check' -%}
+                      {%- set ns.chore_description = '' -%}
+                      {%- set ns.chore_days = [] -%}
+                      {%- set ns.chore_custom_freq_unit = '' -%}
+                      {%- set ns.chore_custom_freq_int = '' -%}
+                      {%- set ns.assignee_name_for_service = '' -%}
+                    {%- endif -%}
+
+                    {#-- Map display values using translation lookups --#}
+                    {%- set current_status_display = state_map[ns.current_status] if ns.current_status in state_map else ns.current_status -%}
+                    {%- set global_status_display = global_status_map.get(ns.global_status, ns.global_status) -%}
+                    {%- set completion_criteria_display = state_map.get(ns.shared_chore, ns.shared_chore) if ns.shared_chore else ui.get('unknown', 'err-unknown') -%}
+                    {%- set approval_reset_display = approval_reset_map.get(ns.chore_allow_multiple, ns.chore_allow_multiple) if ns.chore_allow_multiple else ui.get('unknown', 'err-unknown') -%}
+
+                    {#-- Convert and Format Due Date from chore sensor attributes --#}
+                    {%- if chore_state -%}
+                      {%- set due_date_str = chore_state.attributes.get('due_date', '') | string -%}
+                      {%- set ns.due_date = as_datetime(due_date_str) if due_date_str and due_date_str not in ['None', 'unknown', 'unavailable', ''] else None -%}
+                      {%- set ns.due_date_formatted = as_timestamp(ns.due_date) | timestamp_custom('%a, %b %d, %Y %I:%M %p', true) if ns.due_date else ui.get('none', 'err-none') -%}
+                    {%- else -%}
+                      {%- set ns.due_date = None -%}
+                      {%- set ns.due_date_formatted = ui.get('none', 'err-none') -%}
+                    {%- endif -%}
+
+                    {%- set ns.datetime_helper = dashboard_date_helper -%}
+                    {%- set ns.select_new_date_and_time_secondary = ui.get('tap_to_change', 'err-tap_to_change') ~ "\n \n" ~ as_timestamp(states(ns.datetime_helper)) | timestamp_custom('%a, %b %d, %Y %I:%M %p', true) if states(ns.datetime_helper) != 'unknown' else ui.get('no_date_set', 'err-no_date_set') -%}
+
+                    {#-- 4. Build Display --#}
+                    {%- if ns.chore_selected | lower not in ['none', 'unknown', 'unavailable', ''] and ns.selected_chore_data -%}
+                      {%- set ns.content = "### <ha-icon icon='" ~ ns.chore_icon ~ "'></ha-icon> " ~ ui.get('chore_detail', 'err-chore_detail') ~ ": " ~ (ns.chore_selected | title) ~ "  \n" -%}
+                      {%- set ns.content = ns.content ~ "#### 📖 &nbsp;&nbsp;" ~ ns.chore_description ~ "  \n" if ns.chore_description else ns.content -%}
+                      {%- set ns.content = ns.content ~
+                        "**📌 " ~ ui.get('current_status', 'err-current_status') ~ ":** &nbsp;" ~ current_status_display ~ "  \n"
+                        "**🌍 " ~ ui.get('global_status', 'err-global_status') ~ ":** &nbsp;" ~ global_status_display ~ "  \n"
+                        "**👥 " ~ ui.get('completion_criteria', 'err-completion_criteria') ~ ":** &nbsp;" ~ completion_criteria_display ~ "  \n"
+                        "**📥 " ~ ui.get('approval_reset_type', 'err-approval_reset_type') ~ ":** &nbsp;" ~ approval_reset_display ~ "  \n"
+                        "**💎 " ~ ui.get('value', 'err-value') ~ ":** &nbsp;" ~ ns.chore_value ~ " " ~ points_label ~ "  \n\n"
+                        "**📅 " ~ ui.get('due_date', 'err-due_date') ~ ":** &nbsp;" ~ ns.due_date_formatted ~ "  \n"
+                        "**🔁 " ~ ui.get('recurrence', 'err-recurrence') ~ ":** &nbsp;" ~ (ns.recurrence if ns.recurrence != ui.get('none', 'err-none') else ns.recurrence | lower) ~ "  \n" -%}
+                      {%- set ns.content = ns.content ~ (("**🔵 " ~ ui.get('applicable_days', 'err-applicable_days') ~ ":** &nbsp;" ~ ns.chore_days | join(', ') | title)
+                        if ns.chore_days is iterable and ns.chore_days | length > 0 else "") -%}
+                      {%- set ns.content = ns.content ~ (" **🔵 " ~ ui.get('interval', 'err-interval') ~ ":** &nbsp;" ~ ns.chore_custom_freq_int | int(default=0) ~ " " ~ ns.chore_custom_freq_unit | title
+                        if ns.recurrence != ui.get('none', 'err-none') and ns.chore_custom_freq_int else "") -%}
+                    {%- else -%}
+                      {%- set ns.content = "**🚫 " ~ ui.get('no_chore_selected', 'err-no_chore_selected') ~ "**" -%}
+                    {%- endif -%}
+
+                    {#-- 5. Render (Step 2: Conditional assignee_name based on completion_criteria) --#}
+                    {{- {
+                    'type': 'heading',
+                    'icon': 'mdi:rocket-launch',
+                    'heading': ui.get('chore_admin_actions', 'err-chore_admin_actions'),
+                    'heading_style': 'title'
+                    } -}},
+                    {%- if overdue_count > 0 -%}
+                      {{- {
+                        'type': 'grid',
+                        'title': '',
+                        'columns': 1,
+                        'square': false,
+                        'cards': [
+                          {
+                            'type': 'custom:mushroom-template-card',
+                            'primary': ui.get('reset_all', 'err-reset_all') ~ ' ' ~ name ~ '\'s ' ~ ui.get('overdue_chores', 'err-overdue_chores'),
+                            'icon': 'mdi:restore-alert',
+                            'icon_color': 'orange',
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.reset_overdue_chores',
+                              'data': {
+                                'assignee_name': ns.assignee_name_for_service if ns.assignee_name_for_service else name
+                              }
+                            }
+                          }
+                        ]
+                      } -}},
+                    {%- endif -%}
+                    {{- {
+                      'type': 'custom:mushroom-select-card',
+                      'entity': chore_select_entity,
+                      'name': ui.get('select_chore_edit', 'err-select_chore_edit'),
+                      'icon': 'mdi:clipboard-edit',
+                      'icon_color': 'blue',
+                      'secondary_info': 'none'
+                    } -}},
+                    {%- if ns.chore_selected | lower not in ['none', 'unknown', 'unavailable', ''] -%}
+                      {{- {
+                        'type': 'markdown',
+                        'content': ns.content
+                      } -}},
+                      {#-- Step 2: Check status from dashboard helper instead of sensor state --#}
+                      {%- if ns.current_status | lower in ['overdue'] -%}
+                        {{- {
+                          'type': 'grid',
+                          'title': '',
+                          'columns': 1,
+                          'square': false,
+                          'cards': [
+                            {
+                              'type': 'custom:mushroom-template-card',
+                              'primary': ui.get('reset_overdue_status', 'err-reset_overdue_status'),
+                              'icon': 'mdi:restore',
+                              'icon_color': 'orange',
+                              'tap_action': {
+                                'action': 'call-service',
+                                'service': 'choreops.reset_overdue_chores',
+                                'data': {
+                                  'chore_name': ns.chore_selected,
+                                  'assignee_name': ns.assignee_name_for_service
+                                }
+                              }
+                            }
+                          ]
+                        } -}},
+                      {%- endif -%}
+                      {{- {
+                        'type': 'grid',
+                        'title': '',
+                        'columns': 4,
+                        'square': false,
+                        'cards': [
+                          {
+                            'type': 'custom:mushroom-template-card',
+                            'primary': ui.get('plus_next_due', 'err-plus_next_due'),
+                            'icon': 'mdi:calendar-refresh',
+                            'icon_color': 'blue',
+                            'layout': 'vertical',
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.skip_chore_due_date',
+                              'data': {
+                                'chore_name': ns.chore_selected,
+                                'assignee_name': ns.assignee_name_for_service
+                              }
+                            }
+                          },
+                          {
+                            'type': 'custom:mushroom-template-card',
+                            'primary': ui.get('plus_1_day', 'err-plus_1_day'),
+                            'icon': 'mdi:calendar-plus',
+                            'icon_color': 'blue',
+                            'layout': 'vertical',
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.set_chore_due_date',
+                              'data': {
+                                'chore_name': ns.chore_selected,
+                                'assignee_name': ns.assignee_name_for_service,
+                                'due_date': (ns.due_date + timedelta(days=1)).isoformat() if ns.due_date else ''
+                              }
+                            }
+                          },
+                          {
+                            'type': 'custom:mushroom-template-card',
+                            'primary': ui.get('plus_1_week', 'err-plus_1_week'),
+                            'icon': 'mdi:calendar-arrow-right',
+                            'icon_color': 'blue',
+                            'layout': 'vertical',
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.set_chore_due_date',
+                              'data': {
+                                'chore_name': ns.chore_selected,
+                                'assignee_name': ns.assignee_name_for_service,
+                                'due_date': (ns.due_date + timedelta(weeks=1)).isoformat() if ns.due_date else ''
+                              }
+                            }
+                          },
+                          {
+                            'type': 'custom:mushroom-template-card',
+                            'primary': ui.get('clear_date', 'err-clear_date'),
+                            'icon': 'mdi:calendar-remove',
+                            'icon_color': 'blue',
+                            'layout': 'vertical',
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.set_chore_due_date',
+                              'data': {
+                                'chore_name': ns.chore_selected,
+                                'assignee_name': ns.assignee_name_for_service,
+                                'due_date': ''
+                              }
+                            }
+                          }
+                        ]
+                      } -}},
+                      {{- {
+                        'type': 'grid',
+                        'columns': 1,
+                        'square': false,
+                        'cards': [
+                          {
+                            'type': 'custom:mushroom-template-card',
+                            'entity': ns.datetime_helper,
+                            'primary': ui.get('select_new_date', 'err-select_new_date'),
+                            'secondary': ns.select_new_date_and_time_secondary,
+                            'multiline_secondary': 'true',
+                            'fill_container': 'true',
+                            'icon': 'mdi:calendar-edit',
+                            'icon_color': 'blue',
+                            'tap_action': {
+                              'action': 'more-info'
+                            },
+                            'hold_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.set_chore_due_date',
+                              'data': {
+                                'chore_name': ns.chore_selected,
+                                'assignee_name': ns.assignee_name_for_service,
+                                'due_date': states(ns.datetime_helper)
+                              }
+                            }
+                          }
+                        ]
+                      } -}},
+                    {%- endif -%}
+                    {{- {
+                      'type': 'grid',
+                      'columns': 1,
+                      'square': false,
+                      'cards': [
+                        {
+                          'type': 'custom:mushroom-template-card',
+                          'primary': ui.get('configure', 'err-configure'),
+                          'fill_container': 'true',
+                          'icon': 'mdi:cog',
+                          'icon_color': 'blue',
+                          'hold_action': {
+                            'action': 'more-info'
+                          },
+                          'tap_action': {
+                            'action': 'url',
+                            'url_path': '/config/integrations/integration/choreops'
+                          }
+                        }
+                      ]
+                    } -}}
+                  {%- endif -%}
+    - type: grid
+      cards:
+        - type: grid
+          square: false
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: |-
+                  {#-- ===== PLUSES AND MINUSES - POINTS ===== --#}
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {%- set name = '' -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {%- set name = '' -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- *** Section 2: Initialize Variables *** --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child to manage.\n\n💰 **Points Management:**\n- Select from dropdown\n- Point controls will appear\n- Award or deduct points"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- *** Section 3: Collect Data *** --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+
+                    {#-- *** Section 4: Build Display *** --#}
+                    {#-- No intermediate variables needed for inline translations --#}
+
+                    {#-- *** Section 5: Render *** --#}
+                    {{- {
+                      'type': 'heading',
+                      'icon': 'mdi:plus-circle-multiple',
+                      'heading': ui.get('pluses_and_minuses', 'err-pluses_and_minuses'),
+                      'heading_style': 'title',
+                      } -}},{{- {
+                      'type': 'custom:mini-graph-card',
+                      'hours_to_show': '168',
+                      'unit': ' ',
+                      'entities': [
+                        {
+                        'entity': core_sensors.get('points_eid')
+                        },
+                      ]
+                    } -}},
+                  {%- endif -%}
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 2
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== PLUSES AND MINUSES - BONUS ===== --#}
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {%- set name = '' -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {%- set name = '' -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- *** Section 2: Initialize Variables *** --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- *** Section 3: Collect Data *** --#}
+                    {%- set ns = namespace( points_sensor='', points_label='' ) -%}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ns.points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set ns.points_label = state_attr(ns.points_sensor, 'unit_of_measurement') -%}
+                    {%- set bonus_list = state_attr(dashboard_helper, 'bonuses') | default([], true) -%}
+
+                    {#-- *** Section 4: Build Display *** --#}
+                    {#-- No intermediate variables needed, inline translations directly --#}
+
+                    {#-- *** Section 5: Render *** --#}
+                    {%- for bonus in bonus_list -%}
+                    {%- set bonus_name = (bonus.name | default('Unknown Bonus')) if bonus is mapping else 'Unknown Bonus' -%}
+                    {%- set bonus_button_eid = (bonus.eid | default('')) if bonus is mapping else '' -%}
+                    {%- set bonus_icon = state_attr(bonus_button_eid, 'icon') | default('mdi:gift') -%}
+                    {%- set bonus_points = (bonus.points | default(0)) if bonus is mapping else 0 -%}
+                    {%- set bonuses_applied = (bonus.applied | default(0)) if bonus is mapping else 0 -%}
+
+                    {%- set icon_color =
+                      '#00FF00' if bonus_points >= 20 else
+                      '#20C997' if bonus_points >= 10 else
+                      '#7FFFD4'
+                    -%}
+
+                    {{- {
+                      'type': 'custom:mushroom-template-card',
+                      'entity': bonus_button_eid,
+                      'primary': ui.get('bonus', 'err-bonus') ~ ": " ~ bonus_name,
+                      'secondary': '⭐ ' ~ ui.get('bonus', 'err-bonus') ~ ':  ' ~ (bonus_points | string) ~ ' ' ~ ns.points_label ~ '\n' ~ '📊 ' ~ ui.get('applied', 'err-applied') ~ ':  ' ~ (bonuses_applied | string) ~ ' ' ~ ui.get('times', 'err-times'),
+                      'multiline_secondary': 'true',
+                      'layout': 'vertical',
+                      'icon': bonus_icon,
+                      'icon_color': icon_color,
+                      'tap_action': {
+                        'action': 'call-service',
+                        'service': 'button.press',
+                        'target': {
+                          'entity_id': bonus_button_eid
+                        }
+                      },
+                      'hold_action': {
+                        'action': 'more-info'
+                      }
+                    } -}},
+                    {%- endfor -%}
+                  {%- endif -%}
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 6
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== PLUSES AND MINUSES - POINTS BUTTONS ===== --#}
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {%- set name = '' -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {%- set name = '' -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- *** Section 2: Initialize Variables *** --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- *** Section 3: Collect Data *** --#}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set point_buttons = state_attr(dashboard_helper, 'points_buttons') | default([], true) -%}
+
+                    {#-- *** Section 4: Build Display *** --#}
+                    {#-- No intermediate variables needed, render directly --#}
+
+                    {#-- *** Section 5: Render *** --#}
+                    {%- for button_data in point_buttons -%}
+                      {%- set button_eid = button_data.eid if button_data is mapping else button_data -%}
+                      {%- set button_name = button_data.name if button_data is mapping else '' -%}
+                      {%- set button_icon = state_attr(button_eid, 'icon') or '' -%}
+                      {%- set primary = button_name | regex_replace('^Points ', '') -%}
+                      {%- set is_positive = 'minus' not in button_icon -%}
+                      {%- set icon = button_icon -%}
+                      {%- set icon_color = 'green' if is_positive else 'red' -%}
+                      {{- {
+                        'type': 'custom:mushroom-template-card',
+                        'entity': button_eid,
+                        'primary': primary,
+                        'icon': icon,
+                        'icon_color': icon_color,
+                        'layout': 'vertical',
+                        'tap_action': {
+                          'action': 'call-service',
+                          'service': 'button.press',
+                          'target': {
+                            'entity_id': button_eid
+                          }
+                        },
+                        'hold_action': {
+                          'action': 'more-info'
+                        }
+                      } -}},
+                    {%- endfor -%}
+                  {%- endif -%}
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 2
+              card_param: cards
+              filter:
+                template: >-
+                  {#-- ===== PLUSES AND MINUSES - PENALTY ===== --#}
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {%- set name = '' -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {%- set name = '' -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- *** Section 2: Initialize Variables *** --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {% if not skip_render %}
+
+                    {#-- *** Section 3: Collect Data *** --#}
+                    {%- set ns = namespace(points_sensor='', points_label='') -%}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ns.points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set ns.points_label = state_attr(ns.points_sensor, 'unit_of_measurement') -%}
+                    {%- set penalty_list = state_attr(dashboard_helper, 'penalties') | default([], true) -%}
+
+
+                    {#-- *** Section 4: Build Display *** --#}
+                    {#-- No intermediate variables needed, inline translations directly --#}
+
+                    {#-- *** Section 5: Render *** --#}
+                    {%- for penalty in penalty_list -%}
+                    {%- set penalty_name = (penalty.name | default('Unknown Penalty')) if penalty is mapping else 'Unknown Penalty' -%}
+                    {%- set penalty_button_eid = (penalty.eid | default('')) if penalty is mapping else '' -%}
+                    {%- set penalty_icon = state_attr(penalty_button_eid, 'icon') | default('mdi:alert-octagon') -%}
+                    {%- set penalty_points = (penalty.points | default(0)) if penalty is mapping else 0 -%}
+                    {%- set penalties_applied = (penalty.applied | default(0)) if penalty is mapping else 0 -%}
+
+                    {%- set icon_color =
+                      '#FF4500' if penalty_points >= 20 else
+                      '#FFA54F' if penalty_points >= 10 else
+                      '#FFD27F'
+                    -%}
+
+                    {{- {
+                      'type': 'custom:mushroom-template-card',
+                      'entity': penalty_button_eid,
+                      'primary': ui.get('penalty', 'err-penalty') ~ ": " ~ penalty_name,
+                      'secondary': '💥 ' ~ ui.get('penalty', 'err-penalty') ~ ':  ' ~ (penalty_points | string) ~ ' ' ~ ns.points_label ~ '\n' ~ '📊 ' ~ ui.get('applied', 'err-applied') ~ ':  ' ~ (penalties_applied | string) ~ ' ' ~ ui.get('times', 'err-times'),
+                      'multiline_secondary': 'true',
+                      'layout': 'vertical',
+                      'icon': penalty_icon,
+                      'icon_color': icon_color,
+                      'tap_action': {
+                        'action': 'call-service',
+                        'service': 'button.press',
+                        'target': {
+                          'entity_id': penalty_button_eid
+                        }
+                      },
+                      'hold_action': {
+                        'action': 'more-info'
+                      }
+                    } -}},
+                    {%- endfor -%}
+                  {%- endif -%}
+                method: friendly_name
+    - type: grid
+      cards:
+        - square: false
+          type: grid
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: |-
+                  {#-- ===== 7 DAY ACTIVITY LOG ===== --#}
+
+                  {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
+
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
+                  {%- set admin_selector_eid = integration_entities('choreops')
+                      | select('match', '^select\\.')
+                      | list
+                      | expand
+                      | selectattr('attributes.purpose', 'defined')
+                      | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
+                      | map(attribute='entity_id')
+                      | first
+                      | default('', true) -%}
+
+                  {%- if admin_selector_eid == '' -%}
+                    {%- set name = '' -%}
+                  {%- else -%}
+                    {%- set selected_assignee_name = states(admin_selector_eid) -%}
+                    {%- if selected_assignee_name in ['None', '', 'unknown', 'unavailable'] -%}
+                      {%- set name = '' -%}
+                    {%- else -%}
+                      {%- set name = selected_assignee_name -%}
+                    {%- endif -%}
+                  {%- endif -%}
+
+                  {#-- *** Section 2: Initialize Variables *** --#}
+
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
+
+                  {#-- Validation: Check if name is configured --#}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Select a Assignee First**\n\nUse the **Assignee Selector** above to choose\nwhich child's activity to view.\n\n📊 **Activity Log:**\n- Select from dropdown\n- 7-day history will appear\n- Track all recent actions"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- elif states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                    {{
+                      {
+                        'type': 'markdown',
+                        'content': "⚠️ **Dashboard Configuration Error**\n\nCannot find: `" ~ dashboard_helper ~ "`\n\nThe ChoreOps integration may not have a child\nnamed \'" ~ name ~ "\'. Check Settings → Integrations →\nChoreOps to verify the name matches exactly.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                      }
+                    }},
+                    {%- set skip_render = true -%}
+                  {%- else -%}
+                    {%- set skip_render = false -%}
+                  {%- endif -%}
+
+                  {%- if not skip_render -%}
+
+                    {#-- *** Section 3: Collect Data *** --#}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set entity_list = device_entities(device_id(dashboard_helper))
+                      | reject('search', 'ui_dashboard')
+                      | reject('match', 'calendar')
+                      | reject('search', 'points_earned_')
+                      | reject('search', 'points_max_')
+                      | reject('search', 'chores_completed_')
+                      | sort -%}
+
+                    {#-- *** Section 4: Build Display *** --#}
+                    {#-- No intermediate variables needed --#}
+
+                    {#-- *** Section 5: Render *** --#}
+                    {{- {
+                      'type': 'heading',
+                      'icon': 'mdi:clipboard-text',
+                      'heading': ui.get('seven_day_activity_log', '7-Day Activity Log'),
+                      'heading_style': 'title',
+                    } -}},{{- {
+                      'type': 'logbook',
+                      'title': '',
+                      'hours_to_show': 168,
+                      'target': {
+                        'entity_id': entity_list
+                      },
+                    } -}},
+                  {%- endif -%}
+          columns: 1

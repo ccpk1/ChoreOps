@@ -1562,15 +1562,15 @@
         "description": "Configure dashboard sections for **{dashboard}** (mode: {mode}).\n\n[Configuration Guide]({documentation_url})",
         "sections": {
           "section_assignee_views": {
-            "name": "Assignee views",
-            "description": "Choose the assignee template style and which assignees to include.",
+            "name": "User views",
+            "description": "Choose the dashboard template and which users to include.",
             "data": {
-              "dashboard_template_profile": "Assignee Template Profile",
-              "dashboard_assignee_selection": "Assignees"
+              "dashboard_template_profile": "User Dashboard Template",
+              "dashboard_assignee_selection": "Users"
             },
             "data_description": {
-              "dashboard_template_profile": "Template profile applied to selected assignee views.",
-              "dashboard_assignee_selection": "Select assignees to include in this dashboard."
+              "dashboard_template_profile": "Manifest-defined template used for selected user views.",
+              "dashboard_assignee_selection": "Select users to include in this dashboard."
             }
           },
           "section_admin_views": {
@@ -1578,14 +1578,14 @@
             "description": "Choose which admin layout to generate and who can see it.",
             "data": {
               "dashboard_admin_mode": "Admin Layout",
-              "dashboard_admin_template_global": "Shared Admin Template",
-              "dashboard_admin_template_per_assignee": "Per-Assignee Admin Template",
+              "dashboard_admin_template_global": "Shared Admin Dashboard Template",
+              "dashboard_admin_template_per_assignee": "Per-User Admin Dashboard Template",
               "dashboard_admin_view_visibility": "Admin View Visibility"
             },
             "data_description": {
-              "dashboard_admin_mode": "Choose the admin layout: none, shared, per assignee, or both.",
-              "dashboard_admin_template_global": "Template used when Admin Layout includes Shared.",
-              "dashboard_admin_template_per_assignee": "Template used when Admin Layout includes Per Assignee.",
+              "dashboard_admin_mode": "Choose the admin layout: none, shared, per user, or both.",
+              "dashboard_admin_template_global": "Manifest-defined template used when Admin Layout includes Shared.",
+              "dashboard_admin_template_per_assignee": "Manifest-defined template used when Admin Layout includes Per user.",
               "dashboard_admin_view_visibility": "Control who can see admin views. Approver-linked visibility uses linked approver HA users."
             }
           },
@@ -1617,11 +1617,11 @@
           }
         },
         "data": {
-          "dashboard_template_profile": "Assignee Template Profile",
+          "dashboard_template_profile": "Assignee Dashboard Template",
           "dashboard_assignee_selection": "Assignees",
           "dashboard_admin_mode": "Admin Layout",
-          "dashboard_admin_template_global": "Shared Admin Template",
-          "dashboard_admin_template_per_assignee": "Per-Assignee Admin Template",
+          "dashboard_admin_template_global": "Shared Admin Dashboard Template",
+          "dashboard_admin_template_per_assignee": "Per-Assignee Admin Dashboard Template",
           "dashboard_admin_view_visibility": "Admin View Visibility",
           "dashboard_icon": "Dashboard Icon",
           "dashboard_require_admin": "Admin Only",
@@ -1630,11 +1630,11 @@
           "dashboard_release_selection": "Dashboard Template Version"
         },
         "data_description": {
-          "dashboard_template_profile": "Template profile applied to selected assignee views.",
+          "dashboard_template_profile": "Manifest-defined template used for selected assignee views.",
           "dashboard_assignee_selection": "Select assignees to include in this dashboard.",
           "dashboard_admin_mode": "Choose the admin layout: none, shared, per assignee, or both.",
-          "dashboard_admin_template_global": "Template used when Admin Layout includes Shared.",
-          "dashboard_admin_template_per_assignee": "Template used when Admin Layout includes Per Assignee.",
+          "dashboard_admin_template_global": "Manifest-defined template used when Admin Layout includes Shared.",
+          "dashboard_admin_template_per_assignee": "Manifest-defined template used when Admin Layout includes Per Assignee.",
           "dashboard_admin_view_visibility": "Control who can see admin views. Approver-linked visibility uses linked approver HA users.",
           "dashboard_icon": "Sidebar icon for this dashboard.",
           "dashboard_require_admin": "Restrict dashboard access to admin users.",
@@ -1927,11 +1927,7 @@
       "options": {}
     },
     "dashboard_template_profile": {
-      "options": {
-        "full": "Full (All features)",
-        "minimal": "Minimal (Essentials only)",
-        "compact": "Compact (Dense layout)"
-      }
+      "options": {}
     },
     "dashboard_admin_mode": {
       "options": {

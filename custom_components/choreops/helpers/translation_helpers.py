@@ -51,6 +51,16 @@ def _get_translations_path() -> str:
     )
 
 
+def _get_dashboard_translations_path() -> str:
+    """Get the absolute path to dashboard translation files.
+
+    Returns path relative to the component root (helpers/../dashboards/translations).
+    """
+    return os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), const.DASHBOARD_TRANSLATIONS_DIR
+    )
+
+
 # ==============================================================================
 # Dashboard Translation Helpers
 # ==============================================================================
@@ -71,7 +81,7 @@ async def get_available_dashboard_languages(
     """
     from homeassistant.generated.languages import LANGUAGES
 
-    translations_path = _get_translations_path()
+    translations_path = _get_dashboard_translations_path()
 
     if not await hass.async_add_executor_job(os.path.exists, translations_path):
         const.LOGGER.debug(
@@ -137,7 +147,7 @@ async def load_dashboard_translation(
         A dict with translation keys and values.
         If the requested language is not found, returns English translations.
     """
-    translations_path = _get_translations_path()
+    translations_path = _get_dashboard_translations_path()
 
     if not await hass.async_add_executor_job(os.path.exists, translations_path):
         const.LOGGER.error(

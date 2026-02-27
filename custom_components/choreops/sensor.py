@@ -4839,6 +4839,11 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "core_sensors": core_sensors,
             "dashboard_helpers": dashboard_helpers,
             const.ATTR_USER_NAME: self._assignee_name,
+            const.ATTR_USER_ID: self._assignee_id,
+            const.ATTR_INTEGRATION_ENTRY_ID: self._entry.entry_id,
+            const.ATTR_DASHBOARD_LOOKUP_KEY: (
+                f"{self._entry.entry_id}:{self._assignee_id}"
+            ),
             "language": dashboard_language,
             "gamification_enabled": gamification_enabled,
             "chore_workflow_enabled": chore_workflow_enabled,

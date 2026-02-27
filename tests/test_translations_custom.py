@@ -2,7 +2,7 @@
 
 Tests the custom translation file loading system used for:
 - Notification translations (translations_custom/*_notifications.json)
-- Dashboard translations (translations_custom/*_dashboard.json)
+- Dashboard translations (dashboards/translations/*_dashboard.json)
 
 These tests verify:
 1. Translation files exist and are valid JSON
@@ -35,13 +35,26 @@ from tests.helpers import (
 # =============================================================================
 
 
-def get_translations_dir() -> Path:
-    """Get path to custom translations directory."""
+def get_custom_translations_dir() -> Path:
+    """Get path to custom translations directory (notifications/reports)."""
     # Use absolute path based on this file's location
     # tests/test_translations_custom.py -> custom_components/choreops/translations_custom
     tests_dir = Path(__file__).parent
     workspace_root = tests_dir.parent
     return workspace_root / "custom_components" / "choreops" / "translations_custom"
+
+
+def get_dashboard_translations_dir() -> Path:
+    """Get path to dashboard translations directory."""
+    tests_dir = Path(__file__).parent
+    workspace_root = tests_dir.parent
+    return (
+        workspace_root
+        / "custom_components"
+        / "choreops"
+        / "dashboards"
+        / "translations"
+    )
 
 
 def load_notification_translations(language: str) -> dict[str, Any]:
@@ -56,7 +69,7 @@ def load_notification_translations(language: str) -> dict[str, Any]:
     Raises:
         FileNotFoundError: If translation file doesn't exist
     """
-    translations_path = get_translations_dir() / f"{language}_notifications.json"
+    translations_path = get_custom_translations_dir() / f"{language}_notifications.json"
 
     if not translations_path.exists():
         raise FileNotFoundError(f"Translation file not found: {translations_path}")
@@ -77,7 +90,7 @@ def load_dashboard_translations(language: str) -> dict[str, Any]:
     Raises:
         FileNotFoundError: If translation file doesn't exist
     """
-    translations_path = get_translations_dir() / f"{language}_dashboard.json"
+    translations_path = get_dashboard_translations_dir() / f"{language}_dashboard.json"
 
     if not translations_path.exists():
         raise FileNotFoundError(f"Translation file not found: {translations_path}")
@@ -98,7 +111,7 @@ def load_report_translations(language: str) -> dict[str, Any]:
     Raises:
         FileNotFoundError: If translation file doesn't exist
     """
-    translations_path = get_translations_dir() / f"{language}_report.json"
+    translations_path = get_custom_translations_dir() / f"{language}_report.json"
 
     if not translations_path.exists():
         raise FileNotFoundError(f"Translation file not found: {translations_path}")
@@ -113,7 +126,7 @@ def get_available_notification_languages() -> list[str]:
     Returns:
         List of language codes (e.g., ['en', 'nl', 'sk', ...])
     """
-    translations_dir = get_translations_dir()
+    translations_dir = get_custom_translations_dir()
     languages = []
 
     for file_path in translations_dir.glob("*_notifications.json"):
@@ -130,7 +143,7 @@ def get_available_dashboard_languages() -> list[str]:
     Returns:
         List of language codes (e.g., ['en', 'nl', 'sk', ...])
     """
-    translations_dir = get_translations_dir()
+    translations_dir = get_dashboard_translations_dir()
     languages = []
 
     for file_path in translations_dir.glob("*_dashboard.json"):

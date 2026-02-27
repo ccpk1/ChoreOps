@@ -56,6 +56,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, _config_entry: config_entries.ConfigEntry):
         """Initialize the options flow."""
+        from .helpers import dashboard_helpers as dh
+
+        default_assignee_template = dh.get_default_assignee_template_id()
+        default_admin_template = dh.get_default_admin_template_id()
+
         self._entry_options: dict[str, Any] = {}
         self._action: str | None = None
         self._entity_type: str | None = None
@@ -75,10 +80,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         # Dashboard generator state
         self._dashboard_name: str = const.DASHBOARD_DEFAULT_NAME
         self._dashboard_selected_assignees: list[str] = []
-        self._dashboard_template_profile: str = const.DASHBOARD_STYLE_FULL
+        self._dashboard_template_profile: str = default_assignee_template
         self._dashboard_admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL
-        self._dashboard_admin_template_global: str = const.DASHBOARD_STYLE_ADMIN
-        self._dashboard_admin_template_per_assignee: str = const.DASHBOARD_STYLE_ADMIN
+        self._dashboard_admin_template_global: str = default_admin_template
+        self._dashboard_admin_template_per_assignee: str = default_admin_template
         self._dashboard_admin_view_visibility: str = (
             const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL
         )
@@ -96,6 +101,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._dashboard_update_url_path: str | None = None
         self._dashboard_delete_selection: list[str] = []
         self._dashboard_dedupe_removed: dict[str, int] = {}
+        self._dashboard_check_cards: bool = False
 
     @staticmethod
     def _normalize_dashboard_admin_mode(admin_mode: str) -> str:
@@ -2063,7 +2069,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             ] = selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[
-                        {"value": key, "label": f"{assignee_name}: {label}"}
+                        selector.SelectOptionDict(
+                            value=key,
+                            label=f"{assignee_name}: {label}",
+                        )
                         for key, label in const.WEEKDAY_OPTIONS.items()
                     ],
                     multiple=True,
@@ -4054,6 +4063,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             # Check if user wants to verify card installation
             check_cards = user_input.get(const.CFOF_DASHBOARD_INPUT_CHECK_CARDS, False)
+            self._dashboard_check_cards = bool(check_cards)
 
             if check_cards:
                 # Run detection and show results
@@ -4246,6 +4256,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_template_profile,
                 )
             )
+            template_profile = dh.normalize_template_id(
+                template_profile,
+                admin_template=False,
+            )
             admin_mode = str(
                 user_input.get(
                     const.CFOF_DASHBOARD_INPUT_ADMIN_MODE,
@@ -4265,12 +4279,20 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_admin_template_global,
                 )
             ).strip()
+            admin_template_global = dh.normalize_template_id(
+                admin_template_global,
+                admin_template=True,
+            )
             admin_template_per_assignee = str(
                 user_input.get(
                     const.CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_PER_ASSIGNEE,
                     self._dashboard_admin_template_per_assignee,
                 )
             ).strip()
+            admin_template_per_assignee = dh.normalize_template_id(
+                admin_template_per_assignee,
+                admin_template=True,
+            )
             admin_view_visibility = str(
                 user_input.get(
                     const.CFOF_DASHBOARD_INPUT_ADMIN_VIEW_VISIBILITY,
@@ -4394,11 +4416,120 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             if not errors:
+                should_validate_dependencies = (
+                    not is_update_flow or self._dashboard_check_cards
+                )
+                if should_validate_dependencies:
+                    pinned_release_tag = (
+                        release_selection
+                        if release_selection
+                        != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
+                        else None
+                    )
+                    selected_template_ids: set[str] = {template_profile}
+                    if (
+                        admin_mode
+                        in (
+                            const.DASHBOARD_ADMIN_MODE_GLOBAL,
+                            const.DASHBOARD_ADMIN_MODE_BOTH,
+                        )
+                        and admin_template_global
+                    ):
+                        selected_template_ids.add(admin_template_global)
+                    if (
+                        admin_mode
+                        in (
+                            const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
+                            const.DASHBOARD_ADMIN_MODE_BOTH,
+                        )
+                        and admin_template_per_assignee
+                    ):
+                        selected_template_ids.add(admin_template_per_assignee)
+
+                    template_definitions = dh.get_dashboard_template_definitions()
+                    if pinned_release_tag is not None:
+                        remote_definitions = (
+                            await dh.fetch_remote_manifest_template_definitions(
+                                self.hass,
+                                pinned_release_tag,
+                            )
+                        )
+                        if remote_definitions:
+                            template_definitions = (
+                                dh.merge_manifest_template_definitions(
+                                    template_definitions,
+                                    remote_definitions,
+                                )
+                            )
+
+                    nonselectable_templates = (
+                        dh.get_nonselectable_template_ids_from_definitions(
+                            list(selected_template_ids),
+                            template_definitions,
+                        )
+                    )
+                    if nonselectable_templates:
+                        errors[const.CFOP_ERROR_BASE] = (
+                            "Selected templates are unavailable for generation:\n"
+                            + "\n".join(
+                                f"- {template_id}"
+                                for template_id in nonselectable_templates
+                            )
+                        )
+
+                    required_dependency_ids: set[str] = set()
+                    recommended_dependency_ids: set[str] = set()
+                    if not errors:
+                        (
+                            required_dependency_ids,
+                            recommended_dependency_ids,
+                        ) = dh.get_dependency_ids_for_templates_from_definitions(
+                            list(selected_template_ids),
+                            template_definitions,
+                        )
+
+                        dependency_status = (
+                            await dh.check_dashboard_dependency_ids_installed(
+                                self.hass,
+                                required_dependency_ids | recommended_dependency_ids,
+                            )
+                        )
+
+                        missing_required = sorted(
+                            dependency_id
+                            for dependency_id in required_dependency_ids
+                            if not dependency_status.get(dependency_id, False)
+                        )
+                        missing_recommended = sorted(
+                            dependency_id
+                            for dependency_id in recommended_dependency_ids
+                            if not dependency_status.get(dependency_id, False)
+                        )
+
+                        if missing_required:
+                            errors[const.CFOP_ERROR_BASE] = (
+                                "Missing required dashboard card dependencies:\n"
+                                + "\n".join(
+                                    f"- {dependency_id}"
+                                    for dependency_id in missing_required
+                                )
+                                + "\n\nInstall missing cards via HACS Frontend and try again."
+                            )
+                        elif missing_recommended:
+                            const.LOGGER.warning(
+                                "Missing recommended dashboard card dependencies: %s",
+                                ", ".join(missing_recommended),
+                            )
+                            self._dashboard_status_message = (
+                                "Missing recommended dependencies (generation will continue): "
+                                + ", ".join(missing_recommended)
+                            )
+
+            if not errors:
                 include_admin = admin_mode != const.DASHBOARD_ADMIN_MODE_NONE
                 pinned_release_tag = (
                     release_selection
-                    if is_update_flow
-                    and release_selection
+                    if release_selection
                     != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
                     else None
                 )
@@ -4422,6 +4553,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     == const.DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS
                     else None
                 )
+                selected_assignee_ids_by_name = {
+                    assignee_data.get(const.DATA_USER_NAME): assignee_id
+                    for assignee_id, assignee_data in self._get_coordinator().assignees_data.items()
+                    if isinstance(assignee_data.get(const.DATA_USER_NAME), str)
+                    and assignee_data.get(const.DATA_USER_NAME) in selected_assignees
+                }
 
                 try:
                     if is_update_flow:
@@ -4431,8 +4568,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
                         view_count = await builder.update_choreops_dashboard_views(
                             self.hass,
+                            integration_entry_id=self.config_entry.entry_id,
                             url_path=url_path,
                             assignee_names=selected_assignees,
+                            assignee_ids_by_name=selected_assignee_ids_by_name,
                             template_profile=template_profile,
                             include_admin=include_admin,
                             admin_mode=admin_mode,
@@ -4456,8 +4595,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
                         url_path = await builder.create_choreops_dashboard(
                             self.hass,
+                            integration_entry_id=self.config_entry.entry_id,
                             dashboard_name=self._dashboard_name,
                             assignee_names=selected_assignees,
+                            assignee_ids_by_name=selected_assignee_ids_by_name,
                             style=template_profile,
                             assignee_template_profiles=dict.fromkeys(
                                 selected_assignees, template_profile
@@ -4472,6 +4613,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             icon=self._dashboard_icon,
                             admin_view_visibility=admin_view_visibility,
                             admin_visible_user_ids=admin_visible_user_ids,
+                            pinned_release_tag=pinned_release_tag,
+                            include_prereleases=include_prereleases,
                         )
                         self._dashboard_status_message = f"Created {url_path} (assignees={len(selected_assignees)}, admin_mode={admin_mode})"
 

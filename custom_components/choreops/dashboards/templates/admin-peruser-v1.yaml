@@ -1,13 +1,12 @@
 <#-- ============================================= --#>
 <#-- ChoreOps Dashboard Template - ADMIN      --#>
 <#-- Template Schema Version: 1                  --#>
-<#-- Integration: v0.5.0-beta3 (Schema 43)      --#>
 <#-- ============================================= --#>
 <#--                                             --#>
 <#-- Admin dashboard: System management         --#>
 <#-- Uses SystemDashboardAdminAssigneeSelect entity  --#>
 <#--                                             --#>
-<#-- NO injection variables - system-level view --#>
+<#-- Uses integration.entry_id injection for instance-safe selector lookup --#>
 <#--                                             --#>
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
@@ -29,12 +28,15 @@
 
               {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                {%- set entry_id = '<< integration.entry_id >>' -%}
+
               {%- set admin_selector_eid = integration_entities('choreops')
                   | select('match', '^select\\.')
                   | list
                   | expand
                   | selectattr('attributes.purpose', 'defined')
                   | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                  | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                   | map(attribute='entity_id')
                   | first
                   | default('', true) -%}
@@ -76,12 +78,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -120,15 +125,7 @@
 
                       {#-- 4. Initialize Variables --#}
 
-                      {%- set dashboard_helper = integration_entities('choreops')
-                          | select('search', '^sensor\\.')
-                          | list
-                          | expand
-                          | selectattr('attributes.purpose', 'defined')
-                          | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                          | selectattr('attributes.user_name', 'eq', name)
-                          | map(attribute='entity_id')
-                          | first
+                        {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                           | default("err-dashboard_helper_missing", true) -%}
 
                       {%- set ns = namespace(
@@ -277,12 +274,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -309,16 +309,8 @@
 
                     {#-- 3. Get Dashboard Helper for Selected Assignee --#}
 
-                    {%- set dashboard_helper = integration_entities('choreops')
-                        | select('search', '^sensor\\.')
-                        | list
-                        | expand
-                        | selectattr('attributes.purpose', 'defined')
-                        | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                        | selectattr('attributes.user_name', 'eq', name)
-                        | map(attribute='entity_id')
-                        | first
-                        | default("err-dashboard_helper_missing", true) -%}
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
+                      | default("err-dashboard_helper_missing", true) -%}
 
                     {%- if states(dashboard_helper) in ['unknown', 'unavailable'] -%}
                       {{
@@ -488,12 +480,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -514,15 +509,7 @@
 
                   {#-- 3. Initialize Variables --#}
 
-                  {%- set dashboard_helper = integration_entities('choreops')
-                      | select('search', '^sensor\\.')
-                      | list
-                      | expand
-                      | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
-                      | map(attribute='entity_id')
-                      | first
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                       | default("err-dashboard_helper_missing", true) -%}
 
                   {%- set ns = namespace(
@@ -959,12 +946,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -982,15 +972,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('choreops')
-                      | select('search', '^sensor\\.')
-                      | list
-                      | expand
-                      | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
-                      | map(attribute='entity_id')
-                      | first
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                       | default("err-dashboard_helper_missing", true) -%}
 
                   {#-- Validation: Check if name is configured --#}
@@ -1053,12 +1035,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1076,15 +1061,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('choreops')
-                      | select('search', '^sensor\\.')
-                      | list
-                      | expand
-                      | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
-                      | map(attribute='entity_id')
-                      | first
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                       | default("err-dashboard_helper_missing", true) -%}
 
                   {#-- Validation: Check if name is configured --#}
@@ -1156,12 +1133,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1179,15 +1159,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('choreops')
-                      | select('search', '^sensor\\.')
-                      | list
-                      | expand
-                      | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
-                      | map(attribute='entity_id')
-                      | first
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                       | default("err-dashboard_helper_missing", true) -%}
 
                   {#-- Validation: Check if name is configured --#}
@@ -1248,12 +1220,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1271,15 +1246,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('choreops')
-                      | select('search', '^sensor\\.')
-                      | list
-                      | expand
-                      | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
-                      | map(attribute='entity_id')
-                      | first
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                       | default("err-dashboard_helper_missing", true) -%}
 
                   {#-- Validation: Check if name is configured --#}
@@ -1358,12 +1325,15 @@
 
                   {#-- 1. Find Admin Assignee Selector (dynamic lookup) --#}
 
+                    {%- set entry_id = '<< integration.entry_id >>' -%}
+
                   {%- set admin_selector_eid = integration_entities('choreops')
                       | select('match', '^select\\.')
                       | list
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_system_dashboard_admin_user')
+                      | selectattr('attributes.integration_entry_id', 'eq', entry_id)
                       | map(attribute='entity_id')
                       | first
                       | default('', true) -%}
@@ -1381,15 +1351,7 @@
 
                   {#-- *** Section 2: Initialize Variables *** --#}
 
-                  {%- set dashboard_helper = integration_entities('choreops')
-                      | select('search', '^sensor\\.')
-                      | list
-                      | expand
-                      | selectattr('attributes.purpose', 'defined')
-                      | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
-                      | map(attribute='entity_id')
-                      | first
+                    {%- set dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid')
                       | default("err-dashboard_helper_missing", true) -%}
 
                   {#-- Validation: Check if name is configured --#}

@@ -1163,7 +1163,7 @@ def async_setup_services(hass: HomeAssistant):
         if not assignee_id:
             raise HomeAssistantError("Could not resolve assignee_id")
         if not chore_id:
-            assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
+            raise HomeAssistantError("Could not resolve chore_id")
 
         # Check if user is authorized
         if user_id and not await is_user_authorized_for_action(

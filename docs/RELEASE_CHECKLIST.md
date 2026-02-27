@@ -7,6 +7,9 @@ The goal is predictable releases with safe migrations, stable translations, and 
 ## 1) Version and schema readiness
 
 - [ ] Update integration version metadata (`manifest.json`, release notes, docs as needed).
+- [ ] Use `v`-prefixed SemVer tags for release publication (`vX.Y.Z`).
+- [ ] If prerelease, use SemVer prerelease suffixes (`vX.Y.Z-beta.N`, `vX.Y.Z-rc.N`).
+- [ ] Keep integration and dashboard registry release versions explicit and traceable; do not assume they must match numerically.
 - [ ] If storage shape changed, increment schema constant in `const.py`.
 - [ ] Ensure migration logic exists for schema transitions.
 - [ ] Confirm migration paths are idempotent and safe across upgrade paths.
@@ -67,9 +70,47 @@ Checklist:
 ## 8) Release and post-release checks
 
 - [ ] Tag and publish release artifacts.
+- [ ] Verify published tag format matches policy (`vX.Y.Z`, or prerelease `vX.Y.Z-beta.N` / `vX.Y.Z-rc.N`).
+- [ ] If dashboard registry artifacts are part of the release, verify matching channel intent (dev/beta/stable) and compatibility notes.
 - [ ] Confirm integration loads in Home Assistant.
 - [ ] Confirm primary entities and services operate in a clean environment.
 - [ ] Monitor for migration or configuration regressions.
+
+## 9) Cross-repository compatibility record (integration + dashboards)
+
+Use this section whenever the release involves dashboard templates, manifest changes, or compatibility contract updates.
+
+- [ ] Record the compatibility matrix entry in release notes or release PR description.
+- [ ] Confirm integration compatibility range in dashboard manifest metadata is accurate.
+- [ ] Confirm dashboard channel used for validation matches release intent (dev/beta/stable).
+
+Compatibility matrix template:
+
+| Integration release | Dashboard registry release | Channel | Compatibility status | Notes                                    |
+| ------------------- | -------------------------- | ------- | -------------------- | ---------------------------------------- |
+| `v0.5.0-beta.5`     | `v0.1.0-beta.1`            | beta    | verified             | Initial dual-repo compatibility baseline |
+
+Minimum matrix fields for each new row:
+
+- Integration release tag (`vX.Y.Z` or prerelease)
+- Dashboard registry release tag (`vX.Y.Z` or prerelease)
+- Channel (`dev`, `beta`, `stable`)
+- Compatibility outcome (`verified`, `partial`, `blocked`)
+- Brief note on constraints or required minimum versions
+
+## 10) Dashboard registry sync and vendoring gates
+
+Use this section when releasing integration builds that consume dashboard
+registry artifacts.
+
+- [ ] Select dashboard channel intentionally (`dev`, `beta`, `stable`) for the release objective.
+- [ ] Record selected dashboard tag/commit in release evidence.
+- [ ] Vendor dashboard manifest/assets into integration fallback paths.
+- [ ] Validate vendored manifest contract before release cut.
+- [ ] Validate dashboard template asset references resolve in vendored copy.
+- [ ] Confirm dependency declarations still match approved machine-readable IDs.
+- [ ] If custom cards are referenced, confirm they point to dedicated frontend card repositories (not dashboard registry source).
+- [ ] Update compatibility matrix entry after vendoring validation passes.
 
 ## Rollback readiness
 

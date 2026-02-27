@@ -23,18 +23,22 @@ async def test_fetch_template_uses_fallback_release_candidate(
     ) -> builder.DashboardReleaseSelection:
         _ = pinned_release_tag, include_prereleases
         return builder.DashboardReleaseSelection(
-            selected_tag="KCD_v0.5.4",
-            fallback_tag="KCD_v0.5.3",
+            selected_tag="v0.5.4",
+            fallback_tag="v0.5.3",
             reason="pinned_release",
         )
 
     async def _mock_remote_fetch(_hass: Any, url: str) -> str:
-        if "KCD_v0.5.4" in url:
+        if "v0.5.4" in url:
             raise builder.HomeAssistantError("404")
         return "remote-fallback-template"
 
-    async def _mock_local_fetch(_hass: Any, style: str) -> str:
-        _ = style
+    async def _mock_local_fetch(
+        _hass: Any,
+        template_id: str,
+        source_path: str,
+    ) -> str:
+        _ = template_id, source_path
         return "local-template"
 
     monkeypatch.setattr(builder, "resolve_dashboard_release_selection", _mock_resolve)
@@ -64,8 +68,12 @@ async def test_fetch_template_falls_back_to_local_when_remote_unavailable(
             reason="release_service_unavailable",
         )
 
-    async def _mock_local_fetch(_hass: Any, style: str) -> str:
-        _ = style
+    async def _mock_local_fetch(
+        _hass: Any,
+        template_id: str,
+        source_path: str,
+    ) -> str:
+        _ = template_id, source_path
         return "local-template"
 
     monkeypatch.setattr(builder, "resolve_dashboard_release_selection", _mock_resolve)
@@ -89,7 +97,7 @@ async def test_fetch_template_raises_when_remote_and_local_missing(
     ) -> builder.DashboardReleaseSelection:
         _ = pinned_release_tag, include_prereleases
         return builder.DashboardReleaseSelection(
-            selected_tag="KCD_v0.5.4",
+            selected_tag="v0.5.4",
             fallback_tag=None,
             reason="latest_compatible",
         )
@@ -98,8 +106,12 @@ async def test_fetch_template_raises_when_remote_and_local_missing(
         _ = url
         raise builder.HomeAssistantError("404")
 
-    async def _mock_local_fetch(_hass: Any, style: str) -> str:
-        _ = style
+    async def _mock_local_fetch(
+        _hass: Any,
+        template_id: str,
+        source_path: str,
+    ) -> str:
+        _ = template_id, source_path
         raise FileNotFoundError
 
     monkeypatch.setattr(builder, "resolve_dashboard_release_selection", _mock_resolve)

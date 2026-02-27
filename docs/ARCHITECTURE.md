@@ -394,6 +394,24 @@ The **`meta.schema_version`** field in storage data determines the integration's
 
 3. **Migration Tracking**: The `meta` section can track migration history, dates, and applied transformations.
 
+### 3. Repository release versioning (Git tags)
+
+In addition to storage and schema versioning, repository releases use a Git tag contract:
+
+- Stable release tags: `vX.Y.Z`
+- Prerelease tags: `vX.Y.Z-beta.N`, `vX.Y.Z-rc.N`
+- Tags are immutable after publication.
+
+#### Integration vs dashboard registry version streams
+
+- The integration repository and dashboard registry repository are versioned independently.
+- Numeric version equality between repositories is not required.
+- Compatibility is defined by explicit contracts (manifest compatibility fields, schema versions, dependency declarations), not by shared version numbers.
+
+Practical implication:
+
+- It is valid for integration and dashboard registry to publish different release numbers on the same date, as long as compatibility contracts are satisfied.
+
 ---
 
 ## Landlord-Tenant Period Structure Data Ownership

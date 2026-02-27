@@ -150,39 +150,30 @@ DASHBOARD_URL_PATH_PREFIX: Final = "cod-"
 # Legacy URL prefix retained during compatibility window
 DASHBOARD_LEGACY_URL_PATH_PREFIX: Final = "kcd-"
 
-# Available dashboard styles
-DASHBOARD_STYLE_FULL: Final = "full"
-DASHBOARD_STYLE_MINIMAL: Final = "minimal"
-DASHBOARD_STYLE_COMPACT: Final = "compact"
-DASHBOARD_STYLE_ADMIN: Final = "admin"
-DASHBOARD_STYLES: Final = [
-    DASHBOARD_STYLE_FULL,
-    DASHBOARD_STYLE_MINIMAL,
-    DASHBOARD_STYLE_COMPACT,
-    DASHBOARD_STYLE_ADMIN,
-]
-
 # Release-aware remote template URL pattern (resolved by tag/ref)
-DASHBOARD_RELEASE_TEMPLATE_URL_PATTERN: Final = "https://raw.githubusercontent.com/{owner}/{repo}/{ref}/templates/dashboard_{style}.yaml"
+DASHBOARD_RELEASE_TEMPLATE_URL_PATTERN: Final = (
+    "https://raw.githubusercontent.com/{owner}/{repo}/{ref}/{source_path}"
+)
+
+# Canonical bundled dashboard manifest path
+DASHBOARD_MANIFEST_PATH: Final = "dashboards/manifest.json"
+
+# Template ID classification
+DASHBOARD_TEMPLATE_ID_ADMIN_PREFIX: Final = "admin"
 
 # Release source for remote dashboard template catalogs
 DASHBOARD_RELEASE_REPO_OWNER: Final = "ccpk1"
-DASHBOARD_RELEASE_REPO_NAME: Final = "choreops-ha-dashboard"
+DASHBOARD_RELEASE_REPO_NAME: Final = "ChoreOps-Dashboards"
 DASHBOARD_RELEASES_API_URL: Final = (
     "https://api.github.com/repos/{owner}/{repo}/releases"
 )
 
 # Supported release-tag grammar (parser contract)
 # Accepted examples:
-#   - COD_v0.5.0_beta3
-#   - COD_v0.5.0-beta3
-#   - KCD_v0.5.0_beta3
-#   - KCD_v0.5.0-beta3
 #   - v0.5.0-beta3
 #   - v0.5.4
-#   - 0.5.4
 DASHBOARD_RELEASE_TAG_PATTERN: Final = (
-    r"^(?:(?:KCD_|COD_)?v)?(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    r"^v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
     r"(?:(?:_|-)?(?P<pre_label>beta|b)(?P<pre_num>\d+))?$"
 )
 
@@ -191,13 +182,11 @@ DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT: Final = True
 
 # Minimum remote dashboard release we consider compatible by default.
 # Older releases are excluded from user selection in the release picker.
-DASHBOARD_RELEASE_MIN_COMPAT_TAG: Final = "KCD_v0.5.0_beta1"
+DASHBOARD_RELEASE_MIN_COMPAT_TAG: Final = "v0.5.0-beta1"
 
 # MVP compatibility map fallback (used until release metadata manifest is available)
 # Structure: dashboard release tag -> minimum ChoreOps integration version required.
-DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {
-    "KCD_v0.5.4": "0.5.0"
-}
+DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG: Final[dict[str, str]] = {"v0.5.4": "0.5.0"}
 
 # ================================================================================================
 # Event Infrastructure
@@ -881,6 +870,14 @@ DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS: Final = "linked_approvers"
 # Dashboard release-mode options
 DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE: Final = "latest_compatible"
 
+# Dashboard generated config metadata keys (not helper sensor attributes)
+DASHBOARD_CONFIG_KEY_PROVENANCE: Final = "dashboard_provenance"
+DASHBOARD_PROVENANCE_KEY_TEMPLATE_ID: Final = "template_id"
+DASHBOARD_PROVENANCE_KEY_SOURCE_TYPE: Final = "source_type"
+DASHBOARD_PROVENANCE_KEY_SELECTED_REF: Final = "selected_ref"
+DASHBOARD_PROVENANCE_KEY_GENERATED_AT: Final = "generated_at"
+DASHBOARD_PROVENANCE_KEY_INCLUDE_PRERELEASES: Final = "include_prereleases"
+
 # Chore Custom Interval Reset Periods
 CUSTOM_INTERVAL_UNIT_OPTIONS: Final = [
     SENTINEL_EMPTY,
@@ -1192,6 +1189,10 @@ DEFAULT_USER_ENABLE_GAMIFICATION: Final = False
 # Custom Translation Settings (Dashboard & Notifications)
 # ——————————————————————————————————————————————
 CUSTOM_TRANSLATIONS_DIR: Final = "translations_custom"
+CUSTOM_DASHBOARD_ASSETS_DIR: Final = "dashboards"
+DASHBOARD_TEMPLATES_DIR: Final = "dashboards/templates"
+DASHBOARD_TRANSLATIONS_DIR: Final = "dashboards/translations"
+PREFERENCES_DOCS_DIR: Final = "dashboards/preferences"
 DEFAULT_DASHBOARD_LANGUAGE: Final = "en"
 DEFAULT_REPORT_LANGUAGE: Final = "en"
 DASHBOARD_TRANSLATIONS_SUFFIX: Final = "_dashboard"  # File naming: en_dashboard.json
@@ -2281,6 +2282,7 @@ ATTR_LAST_COMPLETED: Final = "last_completed"
 ATTR_LAST_DISAPPROVED: Final = "last_disapproved"
 ATTR_LAST_OVERDUE: Final = "last_overdue"
 ATTR_DASHBOARD_HELPER_EID: Final = "dashboard_helper_eid"
+ATTR_INTEGRATION_ENTRY_ID: Final = "integration_entry_id"
 ATTR_SELECTED_USER_SLUG: Final = "selected_user_slug"
 ATTR_SELECTED_USER_NAME: Final = "selected_user_name"
 ATTR_NEXT_HIGHER_BADGE_NAME: Final = "next_higher_badge_name"
@@ -2702,7 +2704,7 @@ REPORT_RANGE_MODE_LAST_7_DAYS: Final = "last_7_days"
 REPORT_RANGE_MODE_LAST_30_DAYS: Final = "last_30_days"
 REPORT_RANGE_MODE_CUSTOM: Final = "custom"
 
-# Reporting style modes
+# Reporting styles
 REPORT_STYLE_ASSIGNEE: Final = "assignee"
 REPORT_STYLE_AUTOMATION: Final = "automation"
 REPORT_STYLE_BOTH: Final = "both"
@@ -3072,6 +3074,8 @@ ATTR_DASHBOARD_PENDING_APPROVALS: Final = "pending_approvals"
 ATTR_DASHBOARD_POINTS_BUTTONS: Final = "points_buttons"
 ATTR_DASHBOARD_USER_NAME: Final = "user_name"
 ATTR_DASHBOARD_UI_TRANSLATIONS: Final = "ui_translations"
+ATTR_DASHBOARD_LOOKUP_KEY: Final = "dashboard_lookup_key"
+ATTR_USER_ID: Final = "user_id"
 
 
 # ------------------------------------------------------------------------------------------------

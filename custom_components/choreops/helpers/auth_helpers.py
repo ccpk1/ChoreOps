@@ -132,7 +132,8 @@ def _ha_user_ref_matches(user: User, ha_user_ref: str | None) -> bool:
         return False
 
     normalized_ref = "".join(ch for ch in ha_user_ref.lower() if ch.isalnum())
-    normalized_name = "".join(ch for ch in user.name.lower() if ch.isalnum())
+    user_name = user.name if isinstance(user.name, str) else ""
+    normalized_name = "".join(ch for ch in user_name.lower() if ch.isalnum())
 
     return ha_user_ref == user.id or normalized_ref == normalized_name
 

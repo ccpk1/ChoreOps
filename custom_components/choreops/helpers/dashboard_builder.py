@@ -45,8 +45,13 @@ from packaging.version import InvalidVersion, Version
 import yaml
 
 from .. import const
+from ..utils.dt_utils import dt_now_iso
 from .dashboard_helpers import (
     build_dashboard_context,
+    get_default_admin_template_id,
+    get_default_assignee_template_id,
+    get_template_source_path,
+    normalize_template_id,
     resolve_assignee_template_profile,
 )
 
@@ -71,8 +76,8 @@ class DashboardReleaseTag:
     """Normalized representation of a supported dashboard release tag.
 
     Supported formats:
-            - `COD_vX.Y.Z` / `KCD_vX.Y.Z` / `vX.Y.Z` / `X.Y.Z`
-            - `COD_vX.Y.Z_betaN` / `COD_vX.Y.Z-betaN` / `vX.Y.Z-betaN`
+            - `vX.Y.Z`
+            - `vX.Y.Z_betaN` / `vX.Y.Z-betaN`
     """
 
     raw_tag: str
@@ -163,13 +168,13 @@ def release_tag_passes_prerelease_policy(
     return not parsed_tag.is_prerelease
 
 
-def _build_release_template_url(style: str, release_ref: str) -> str:
-    """Build release-aware remote template URL for style and release ref."""
+def _build_release_template_url(source_path: str, release_ref: str) -> str:
+    """Build release-aware remote template URL for manifest source path."""
     return const.DASHBOARD_RELEASE_TEMPLATE_URL_PATTERN.format(
         owner=const.DASHBOARD_RELEASE_REPO_OWNER,
         repo=const.DASHBOARD_RELEASE_REPO_NAME,
         ref=release_ref,
-        style=style,
+        source_path=source_path,
     )
 
 
@@ -383,7 +388,7 @@ class DashboardSaveError(HomeAssistantError):
 
 async def fetch_dashboard_template(
     hass: HomeAssistant,
-    style: str = const.DASHBOARD_STYLE_FULL,
+    style: str | None = None,
     pinned_release_tag: str | None = None,
     include_prereleases: bool = const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT,
 ) -> str:
@@ -391,7 +396,7 @@ async def fetch_dashboard_template(
 
     Args:
         hass: Home Assistant instance.
-        style: Dashboard style (full, minimal, compact, admin).
+        style: Dashboard template ID from manifest.
 
     Returns:
         Template content as string.
@@ -399,6 +404,16 @@ async def fetch_dashboard_template(
     Raises:
         DashboardTemplateError: If both remote and local fetch fail.
     """
+    requested_style = style or get_default_assignee_template_id()
+    normalized_style = normalize_template_id(requested_style, admin_template=False)
+    source_path = get_template_source_path(normalized_style)
+    if source_path is None:
+        normalized_style = normalize_template_id(requested_style, admin_template=True)
+        source_path = get_template_source_path(normalized_style)
+
+    if source_path is None:
+        raise DashboardTemplateError(f"Unknown dashboard template '{requested_style}'")
+
     release_selection = await resolve_dashboard_release_selection(
         hass,
         pinned_release_tag=pinned_release_tag,
@@ -415,12 +430,15 @@ async def fetch_dashboard_template(
         release_candidates.append(release_selection.fallback_tag)
 
     for index, candidate_tag in enumerate(release_candidates):
-        remote_url = _build_release_template_url(style=style, release_ref=candidate_tag)
+        remote_url = _build_release_template_url(
+            source_path=source_path,
+            release_ref=candidate_tag,
+        )
         try:
             template_content = await _fetch_remote_template(hass, remote_url)
             const.LOGGER.debug(
                 "Fetched dashboard template from remote release: style=%s tag=%s reason=%s",
-                style,
+                normalized_style,
                 candidate_tag,
                 release_selection.reason,
             )
@@ -429,33 +447,39 @@ async def fetch_dashboard_template(
             if index + 1 < len(release_candidates):
                 const.LOGGER.debug(
                     "Remote template candidate failed, trying fallback release: style=%s tag=%s err=%s",
-                    style,
+                    normalized_style,
                     candidate_tag,
                     err,
                 )
             else:
                 const.LOGGER.debug(
                     "Remote template fetch failed after release resolution: style=%s reason=%s err=%s",
-                    style,
+                    normalized_style,
                     release_selection.reason,
                     err,
                 )
 
     # Attempt 2: Local bundled fallback
     try:
-        template_content = await _fetch_local_template(hass, style)
+        template_content = await _fetch_local_template(
+            hass,
+            normalized_style,
+            source_path,
+        )
         const.LOGGER.debug(
             "Using bundled dashboard template for style=%s (resolution_reason=%s)",
-            style,
+            normalized_style,
             release_selection.reason,
         )
         return template_content
     except FileNotFoundError as err:
         const.LOGGER.error(
             "Dashboard template not found (remote and local failed): %s",
-            style,
+            normalized_style,
         )
-        raise DashboardTemplateError(f"Dashboard template '{style}' not found") from err
+        raise DashboardTemplateError(
+            f"Dashboard template '{normalized_style}' not found"
+        ) from err
 
 
 async def _fetch_remote_template(hass: HomeAssistant, url: str) -> str:
@@ -487,12 +511,17 @@ async def _fetch_remote_template(hass: HomeAssistant, url: str) -> str:
         raise HomeAssistantError(f"Failed to fetch template: {err}") from err
 
 
-async def _fetch_local_template(hass: HomeAssistant, style: str) -> str:
+async def _fetch_local_template(
+    hass: HomeAssistant,
+    template_id: str,
+    source_path: str,
+) -> str:
     """Fetch template from local bundled files.
 
     Args:
         hass: Home Assistant instance.
-        style: Dashboard style.
+        template_id: Dashboard template ID.
+        source_path: Manifest source path for the template.
 
     Returns:
         Template content as string.
@@ -500,10 +529,8 @@ async def _fetch_local_template(hass: HomeAssistant, style: str) -> str:
     Raises:
         FileNotFoundError: If local template file doesn't exist.
     """
-    # Path relative to this file: ../templates/dashboard_{style}.yaml
-    template_path = (
-        Path(__file__).parent.parent / "templates" / f"dashboard_{style}.yaml"
-    )
+    # Path relative to component root from manifest source path
+    template_path = Path(__file__).parent.parent / source_path
 
     def read_template() -> str:
         return template_path.read_text(encoding="utf-8")
@@ -580,6 +607,7 @@ def render_dashboard_template(
 
 def build_multi_view_dashboard(
     views: list[dict[str, Any]],
+    provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a complete dashboard config from multiple views.
 
@@ -589,7 +617,29 @@ def build_multi_view_dashboard(
     Returns:
         Complete Lovelace dashboard config with views array.
     """
-    return {"views": views}
+    dashboard_config: dict[str, Any] = {"views": views}
+    if provenance:
+        dashboard_config[const.DASHBOARD_CONFIG_KEY_PROVENANCE] = provenance
+    return dashboard_config
+
+
+def _build_dashboard_provenance(
+    *,
+    integration_entry_id: str,
+    template_id: str,
+    pinned_release_tag: str | None,
+    include_prereleases: bool,
+) -> dict[str, Any]:
+    """Build dashboard generation provenance metadata."""
+    source_type = "remote_release" if pinned_release_tag else "latest_compatible"
+    return {
+        const.ATTR_INTEGRATION_ENTRY_ID: integration_entry_id,
+        const.DASHBOARD_PROVENANCE_KEY_TEMPLATE_ID: template_id,
+        const.DASHBOARD_PROVENANCE_KEY_SOURCE_TYPE: source_type,
+        const.DASHBOARD_PROVENANCE_KEY_SELECTED_REF: pinned_release_tag,
+        const.DASHBOARD_PROVENANCE_KEY_INCLUDE_PRERELEASES: include_prereleases,
+        const.DASHBOARD_PROVENANCE_KEY_GENERATED_AT: dt_now_iso(),
+    }
 
 
 def get_multi_view_url_path(dashboard_name: str) -> str:
@@ -750,9 +800,11 @@ async def async_dedupe_choreops_dashboards(
 
 async def create_choreops_dashboard(
     hass: HomeAssistant,
+    integration_entry_id: str,
     dashboard_name: str,
     assignee_names: list[str],
-    style: str = const.DASHBOARD_STYLE_FULL,
+    assignee_ids_by_name: dict[str, str] | None = None,
+    style: str | None = None,
     assignee_template_profiles: dict[str, str] | None = None,
     include_admin: bool = True,
     admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
@@ -773,9 +825,12 @@ async def create_choreops_dashboard(
 
     Args:
         hass: Home Assistant instance.
+        integration_entry_id: Integration config entry ID for instance-scoped
+            admin selector lookup.
         dashboard_name: User-specified dashboard name (e.g., "Chores").
         assignee_names: List of assignee names to create views for.
-        style: Dashboard style (full, minimal, compact).
+        assignee_ids_by_name: Optional assignee name->internal ID mapping.
+        style: Assignee dashboard template ID from manifest.
         assignee_template_profiles: Optional per-assignee template profile map.
         include_admin: Whether to include an admin view tab.
         admin_mode: Admin layout mode (none, global, per_assignee, both).
@@ -824,12 +879,23 @@ async def create_choreops_dashboard(
         return template_cache[target_style]
 
     # Ensure default style template is available for fallback behavior
+    style = normalize_template_id(
+        style or get_default_assignee_template_id(),
+        admin_template=False,
+    )
     await _get_template(style)
 
     # Build views for each assignee
     views: list[dict[str, Any]] = []
 
     for assignee_name in assignee_names:
+        assignee_id = (
+            assignee_ids_by_name.get(assignee_name)
+            if assignee_ids_by_name is not None
+            else None
+        )
+        if assignee_id is None:
+            assignee_id = slugify(assignee_name)
         assignee_style = resolve_assignee_template_profile(
             assignee_name,
             style,
@@ -837,7 +903,10 @@ async def create_choreops_dashboard(
         )
         template_str = await _get_template(assignee_style)
         assignee_context = build_dashboard_context(
-            assignee_name, template_profile=assignee_style
+            assignee_name,
+            assignee_id=assignee_id,
+            integration_entry_id=integration_entry_id,
+            template_profile=assignee_style,
         )
         # Convert TypedDict to regular dict for generic render function
         assignee_view = render_dashboard_template(template_str, dict(assignee_context))
@@ -854,13 +923,16 @@ async def create_choreops_dashboard(
     if include_admin:
         admin_template_str = await fetch_dashboard_template(
             hass,
-            const.DASHBOARD_STYLE_ADMIN,
+            get_default_admin_template_id(),
             pinned_release_tag=pinned_release_tag,
             include_prereleases=include_prereleases,
         )
         # Admin template still needs comment stripping via Jinja2 render
         # Pass empty context since admin doesn't need assignee injection
-        admin_view = render_dashboard_template(admin_template_str, {})
+        admin_view = render_dashboard_template(
+            admin_template_str,
+            {"integration": {"entry_id": integration_entry_id}},
+        )
         if isinstance(admin_view, dict):
             include_global_admin = normalized_admin_mode in (
                 const.DASHBOARD_ADMIN_MODE_GLOBAL,
@@ -899,7 +971,15 @@ async def create_choreops_dashboard(
             )
 
     # Combine all views into dashboard config
-    dashboard_config = build_multi_view_dashboard(views)
+    dashboard_config = build_multi_view_dashboard(
+        views,
+        provenance=_build_dashboard_provenance(
+            integration_entry_id=integration_entry_id,
+            template_id=style,
+            pinned_release_tag=pinned_release_tag,
+            include_prereleases=include_prereleases,
+        ),
+    )
 
     if should_delete_existing:
         await _delete_dashboard(hass, url_path)
@@ -984,10 +1064,12 @@ def _normalize_admin_mode(admin_mode: str) -> str:
 
 async def update_choreops_dashboard_views(
     hass: HomeAssistant,
+    integration_entry_id: str,
     url_path: str,
     assignee_names: list[str],
     template_profile: str,
     include_admin: bool,
+    assignee_ids_by_name: dict[str, str] | None = None,
     admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
     admin_view_visibility: str = const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL,
     admin_visible_user_ids: list[str] | None = None,
@@ -1003,8 +1085,11 @@ async def update_choreops_dashboard_views(
 
     Args:
         hass: Home Assistant instance.
+        integration_entry_id: Integration config entry ID for instance-scoped
+            admin selector lookup.
         url_path: Existing dashboard url path.
         assignee_names: Assignees to update in-place.
+        assignee_ids_by_name: Optional assignee name->internal ID mapping.
         template_profile: Template profile to apply for updated assignee views.
         include_admin: Whether admin view should exist after update.
 
@@ -1017,6 +1102,7 @@ async def update_choreops_dashboard_views(
         DashboardRenderError: If template rendering fails.
     """
     normalized_admin_mode = _normalize_admin_mode(admin_mode)
+    template_profile = normalize_template_id(template_profile, admin_template=False)
 
     if LOVELACE_DATA not in hass.data:
         raise DashboardSaveError("Lovelace not initialized")
@@ -1055,9 +1141,19 @@ async def update_choreops_dashboard_views(
 
     updated_assignee_views_by_path: dict[str, dict[str, Any]] = {}
     for assignee_name in assignee_names:
+        assignee_id = (
+            assignee_ids_by_name.get(assignee_name)
+            if assignee_ids_by_name is not None
+            else None
+        )
+        if assignee_id is None:
+            assignee_id = slugify(assignee_name)
         assignee_template = await _get_template(template_profile)
         assignee_context = build_dashboard_context(
-            assignee_name, template_profile=template_profile
+            assignee_name,
+            assignee_id=assignee_id,
+            integration_entry_id=integration_entry_id,
+            template_profile=template_profile,
         )
         assignee_view = render_dashboard_template(
             assignee_template, dict(assignee_context)
@@ -1093,11 +1189,14 @@ async def update_choreops_dashboard_views(
     if include_admin:
         admin_template = await fetch_dashboard_template(
             hass,
-            const.DASHBOARD_STYLE_ADMIN,
+            get_default_admin_template_id(),
             pinned_release_tag=pinned_release_tag,
             include_prereleases=include_prereleases,
         )
-        admin_view = render_dashboard_template(admin_template, {})
+        admin_view = render_dashboard_template(
+            admin_template,
+            {"integration": {"entry_id": integration_entry_id}},
+        )
         if not isinstance(admin_view, dict):
             admin_view = {}
 
@@ -1136,6 +1235,12 @@ async def update_choreops_dashboard_views(
         const.LOGGER.debug("Removed admin view from dashboard: %s", url_path)
 
     new_config = dict(existing_config)
+    new_config[const.DASHBOARD_CONFIG_KEY_PROVENANCE] = _build_dashboard_provenance(
+        integration_entry_id=integration_entry_id,
+        template_id=template_profile,
+        pinned_release_tag=pinned_release_tag,
+        include_prereleases=include_prereleases,
+    )
     new_config["views"] = merged_views
 
     try:

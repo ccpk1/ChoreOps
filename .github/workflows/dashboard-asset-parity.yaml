@@ -1,0 +1,43 @@
+name: Dashboard Asset Parity
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - "custom_components/choreops/dashboards/**"
+      - "utils/sync_dashboard_assets.py"
+      - ".github/workflows/dashboard-asset-parity.yaml"
+      - "docs/DASHBOARD_TEMPLATE_GUIDE.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity-check:
+    name: Check canonical to vendored parity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout ChoreOps
+        uses: actions/checkout@v4
+
+      - name: Checkout canonical dashboard repo
+        uses: actions/checkout@v4
+        with:
+          repository: ccpk1/ChoreOps-Dashboards
+          path: choreops-dashboards
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Verify dashboard asset parity
+        run: |
+          python utils/sync_dashboard_assets.py \
+            --check \
+            --canonical-root "$GITHUB_WORKSPACE/choreops-dashboards" \
+            --vendored-root "$GITHUB_WORKSPACE/custom_components/choreops/dashboards"

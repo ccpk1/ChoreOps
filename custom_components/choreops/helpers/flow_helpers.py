@@ -816,7 +816,7 @@ def build_chore_schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"value": key, "label": label}
+                    selector.SelectOptionDict(value=key, label=label)
                     for key, label in const.WEEKDAY_OPTIONS.items()
                 ],
                 multiple=True,

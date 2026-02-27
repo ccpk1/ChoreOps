@@ -1,22 +1,20 @@
 <#-- ============================================= --#>
 <#-- ChoreOps Dashboard Template - MINIMAL  --#>
 <#-- Template Schema Version: 1                  --#>
-<#-- Integration: v0.5.0-beta3 (Schema 43)      --#>
 <#-- ============================================= --#>
 <#--                                             --#>
 <#-- Minimal dashboard: Welcome + Chores only  --#>
-<#-- Based on kc_dashboard_all.yaml v0.5.0b3    --#>
 <#--                                             --#>
 <#-- Injection variables (Python << >>):         --#>
-<#--   << assignee.name >> - Child's display name     --#>
-<#--   << assignee.slug >> - URL-safe slug            --#>
+<#--   << user.name >> - Child's display name     --#>
+<#--   << user.slug >> - URL-safe slug            --#>
 <#--                                             --#>
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
 
 - max_columns: 4
-  title: << assignee.name >> Chores
-  path: << assignee.slug >>
+  title: << user.name >> Chores
+  path: << user.slug >>
   sections:
     - type: grid
       column_span: 4
@@ -35,25 +33,15 @@
               card_param: cards
               filter:
                 template: >-
-                  {#-- ============================================= --#}
-
-                  {#-- ============ Version COD_v0.5.0b3 ============= --#}
-
-                  {#-- ============================================= --#}
-
-                  {#-- Requires ChoreOps Integration 0.5.0  --#}
-
-                  {#-- Language translation now managed by the integration --#}
-
-                  {#-- Select language by going to integration options and editing the assignee --#}
-
-
                   {#-- ===== WELCOME CARD ===== --#}
 
 
                   {#-- 1. User Configuration --#}
 
-                  {%- set name = '<< assignee.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+                  {%- set name = '<< user.name >>' -%}
+                  {%- set user_id = '<< user.user_id >>' -%}
+                  {%- set entry_id = '<< integration.entry_id >>' -%}
+                  {%- set lookup_key = entry_id ~ ':' ~ user_id -%}
 
 
                   {#-- 2. Initialize Variables --#}
@@ -64,7 +52,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
+                      | selectattr('attributes.dashboard_lookup_key', 'eq', lookup_key)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -74,7 +62,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< assignee.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< user.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
@@ -154,7 +142,10 @@
 
                   {#-- 1. User Configuration --#}
 
-                  {%- set name = '<< assignee.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
+                  {%- set name = '<< user.name >>' -%}
+                  {%- set user_id = '<< user.user_id >>' -%}
+                  {%- set entry_id = '<< integration.entry_id >>' -%}
+                  {%- set lookup_key = entry_id ~ ':' ~ user_id -%}
 
                   {%- set pref_column_count = 4 -%}
 
@@ -199,7 +190,7 @@
                       | expand
                       | selectattr('attributes.purpose', 'defined')
                       | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                      | selectattr('attributes.user_name', 'eq', name)
+                      | selectattr('attributes.dashboard_lookup_key', 'eq', lookup_key)
                       | map(attribute='entity_id')
                       | first
                       | default("err-dashboard_helper_missing", true) -%}
@@ -220,7 +211,7 @@
                     {{
                       {
                         'type': 'markdown',
-                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< assignee.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
+                        'content': "⚠️ **Dashboard Not Configured**\n\nDashboard variable `name=` not set.\n\n**Fix:** Change `'<< user.name >>'` to child's name in\nthe **User Configuration** section at top.\n\n**Tip:** Use Find & Replace (Ctrl+F) in edit\nmode to update all cards at once.\n\n📖 [Setup Instructions](https://github.com/ccpk1/choreops-ha-dashboard?tab=readme-ov-file#-how-to-implement-this-dashboard)"
                       }
                     }},
                     {%- set skip_render = true -%}
