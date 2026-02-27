@@ -111,7 +111,13 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 
 ## Quick installation
 
-### Via HACS (recommended)
+### One-click HACS install (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=ccpk1&repository=choreops&category=integration)
+
+Prefer the guided steps? See the full [Wiki installation guide](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Installation).
+
+### Manual HACS setup
 
 1. Ensure HACS is installed ([HACS setup guide](https://hacs.xyz/docs/installation/manual)).
 2. In Home Assistant, open **HACS → Integrations → Custom repositories**.
