@@ -48,7 +48,7 @@ jobs:
               path.includes("dashboard")
             );
 
-            const labelsToAdd = ["l10n", "automation: translations", "priority: low"];
+            const labelsToAdd = ["l10n", "automation: l10n", "priority: low"];
             if (touchesIntegration) labelsToAdd.push("area: integration");
             if (touchesDashboard) labelsToAdd.push("area: dashboard");
 
