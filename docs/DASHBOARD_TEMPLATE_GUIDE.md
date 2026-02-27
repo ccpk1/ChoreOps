@@ -1,8 +1,28 @@
 # Dashboard Template Guide
 
-**Version**: v0.5.0-beta4 | **Last Updated**: 2026-02-15
+**Version**: v0.5.0-beta5 | **Last Updated**: 2026-02-27
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
+
+## Authority and source-of-truth model
+
+Use this guide as the canonical architecture and runtime contract reference for dashboard template authoring.
+
+Repository ownership boundaries:
+
+- Canonical authoring source: `ccpk1/ChoreOps-Dashboards`
+- Vendored runtime mirror in integration: `custom_components/choreops/dashboards`
+
+Contribution rules:
+
+- Submit template, registry, preference, and translation source PRs in `ccpk1/ChoreOps-Dashboards`.
+- Do not submit manual source PRs against `custom_components/choreops/dashboards` in `ccpk1/ChoreOps`.
+- Mirror canonical updates via `utils/sync_dashboard_assets.py`.
+
+Decision/ratification references:
+
+- `docs/in-process/DASHBOARD_REGISTRY_GENERATION_IN-PROCESS.md`
+- `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
 
 ---
 
@@ -14,26 +34,33 @@ ChoreOps generates a **single dashboard** with **multiple views (tabs)**:
 
 ```
 kcd-chores (Dashboard)
-├── Assignee1 (View/Tab)    ← assignee template rendered with assignee context
-├── Assignee2 (View/Tab)    ← assignee template rendered with assignee context
+├── User1 (View/Tab)        ← user template rendered with user context
+├── User2 (View/Tab)        ← user template rendered with user context
 ├── Admin (Shared, optional)← path: admin
-└── Admin-<assignee> (optional)  ← path: admin-<assignee-slug>
+└── Admin-<user> (optional) ← path: admin-<user-slug>
 ```
 
 **Key Points**:
 
 - One dashboard per installation (user names it, e.g., "Chores")
 - URL path: `kcd-{slugified-name}` (e.g., `kcd-chores`)
-- Each assignee gets their own view/tab
-- Optional admin views based on admin layout mode (`none`, `global`, `per_kid`, `both`)
-- Style (full/minimal/compact) applies to all assignee views
+- Each user gets their own view/tab
+- Optional admin views based on admin layout mode (`none`, `global`, `per user`, `both`)
+- Style variants are selected by `template_id` from the registry manifest
 
 ### Admin layout modes
 
 - `none`: no admin views
 - `global`: one shared admin view (`path: admin`)
-- `per_kid`: one admin view per selected assignee (`path: admin-<assignee-slug>`)
-- `both`: includes shared plus per-assignee admin views
+- `per user`: one admin view per selected user (`path: admin-<user-slug>`)
+- `both`: includes shared plus per-user admin views
+
+### Legacy runtime key compatibility note
+
+The dashboard system uses user-facing terminology in docs and UX, but some runtime constants/keys remain legacy for compatibility:
+
+- Internal enum value: `per_assignee` (user-facing label: Per User)
+  When authoring templates, prefer user semantics in variable names and comments.
 
 ### Canonical and vendored asset workflow
 
@@ -64,92 +91,65 @@ if vendored assets drift from canonical content.
 
 ---
 
-## Release compatibility policy (Phase 1)
+## Release, registry, and compatibility policy
 
-Dashboard template release selection uses a strict compatibility gate to prevent
-installing incompatible dashboard templates for a given integration version.
+Dashboard selection is contract-first and registry-driven.
 
 ### Source of truth order
 
-1. **Dashboard release metadata manifest** (future target in dashboard repo)
-2. **Integration-side fallback map** in [custom_components/choreops/const.py](../custom_components/choreops/const.py):
+1. Canonical manifest in `ccpk1/ChoreOps-Dashboards/dashboard_registry.json`
+2. Vendored runtime manifest in `custom_components/choreops/dashboards/dashboard_registry.json`
+3. Runtime merge policy: local baseline + valid remote override by `template_id`
 
-- `DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG`
-- `DASHBOARD_RELEASE_MIN_COMPAT_TAG`
+### Compatibility source and rules
 
-### Compatibility evaluation
+Compatibility is defined per template record in `dashboard_registry.json` via manifest fields, not by legacy integration fallback maps.
 
-A dashboard release is selectable only if:
+Primary fields:
 
-- release tag matches supported parser contract (see accepted formats below)
-- release is not below minimum compatibility floor
-- installed integration version satisfies release minimum requirement
+- `template_id`
+- `lifecycle_state`
+- `min_integration_version`
+- optional `max_integration_version`
+- `dependencies.required[]` and `dependencies.recommended[]`
 
-### Accepted release tag formats (current)
+A template is selectable only when:
 
-The integration now accepts these release tag patterns:
+- manifest record is valid for supported `schema_version`
+- `lifecycle_state` is selectable for runtime policy
+- integration version satisfies manifest compatibility range
+- required dependencies are present
 
-- `KCD_vX.Y.Z`
-- `KCD_vX.Y.Z_betaN`
-- `KCD_vX.Y.Z-betaN`
-- `vX.Y.Z`
-- `vX.Y.Z-betaN`
-- `X.Y.Z`
+### Release naming conventions
 
-This allows currently published dashboard releases that use `v...` naming to be discovered without renaming historical tags.
+The dashboard registry repository uses SemVer-style release channels:
 
-### What is required for remote dashboard download
-
-For a remote release template to be downloaded and used, all of the following must be true:
-
-1. GitHub Releases API is reachable for `ccpk1/choreops-ha-dashboard`.
-2. The selected release tag matches one of the accepted tag formats above.
-3. The tag passes compatibility filtering:
-
-- not below `DASHBOARD_RELEASE_MIN_COMPAT_TAG`
-- satisfies `DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG` (if mapped)
-
-4. Template files exist in that tagged commit at:
-
-- `templates/dashboard_full.yaml`
-- `templates/dashboard_minimal.yaml`
-- `templates/dashboard_admin.yaml` (when admin views are enabled)
-
-If any requirement fails, generator behavior falls back to bundled local templates.
-
-### Where metadata can be added
-
-Current implementation supports compatibility metadata in integration constants:
-
-- File: `custom_components/choreops/const.py`
-- Keys:
-  - `DASHBOARD_RELEASE_MIN_COMPAT_TAG`
-  - `DASHBOARD_RELEASE_MIN_INTEGRATION_BY_TAG`
-
-Template-file metadata can be placed in template header comments for human documentation, but release selection/compatibility logic currently reads from release tags + integration constants (not template headers).
-
-### Example
-
-- `KCD_v0.5.4` requires integration `0.5.2+`
-- integration `0.5.1` → release excluded from selector
-- integration `0.5.2+` → release available and can be selected
+- Stable: `vX.Y.Z`
+- Beta: `vX.Y.Z-beta.N`
+- Dev snapshot: `vX.Y.Z-dev.YYYYMMDD+<shortsha>`
 
 ### Recovery safety net
 
-If release lookup or compatibility filtering fails, the generator must fall back
-to bundled local templates shipped with the integration package.
+If remote release/manifest lookup fails or returns invalid records, runtime behavior remains deterministic and falls back to vendored local registry/template assets.
 
 ---
 
 ## Template File Structure
 
-### Location
+### Canonical and vendored locations
 
 ```
-custom_components/choreops/templates/
-├── dashboard_full.yaml      # Full-featured kid dashboard
-├── dashboard_minimal.yaml   # Essential features only
-└── dashboard_admin.yaml     # Parent administration view
+choreops-dashboards/templates/
+├── user-gamification-v1.yaml
+├── user-minimal-v1.yaml
+├── admin-shared-v1.yaml
+└── admin-peruser-v1.yaml
+
+custom_components/choreops/dashboards/templates/
+├── user-gamification-v1.yaml
+├── user-minimal-v1.yaml
+├── admin-shared-v1.yaml
+└── admin-peruser-v1.yaml
 ```
 
 ### Output Format (CRITICAL)
@@ -159,8 +159,8 @@ custom_components/choreops/templates/
 ```yaml
 # ✅ CORRECT - Single view (list item)
 - max_columns: 4
-  title: << kid.name >> Chores
-  path: << kid.slug >>
+  title: << user.name >> Chores
+  path: << user.slug >>
   sections:
     - type: grid
       cards: [...]
@@ -168,7 +168,7 @@ custom_components/choreops/templates/
 # ❌ WRONG - Full dashboard with views wrapper
 views:
   - max_columns: 4
-    title: << kid.name >> Chores
+    title: << user.name >> Chores
     ...
 ```
 
@@ -184,45 +184,55 @@ Templates use **two different Jinja2 syntaxes** for different purposes:
 
 Processed by the integration when generating the dashboard.
 
-| Delimiter   | Purpose             | Example                            |
-| ----------- | ------------------- | ---------------------------------- |
-| `<< >>`     | Variable injection  | `<< kid.name >>`, `<< kid.slug >>` |
-| `<% %>`     | Block statements    | `<% if condition %>...<%endif%>`   |
-| `<#-- --#>` | Comments (stripped) | `<#-- This is removed --#>`        |
+| Delimiter   | Purpose             | Example                              |
+| ----------- | ------------------- | ------------------------------------ |
+| `<< >>`     | Variable injection  | `<< user.name >>`, `<< user.slug >>` |
+| `<% %>`     | Block statements    | `<% if condition %>...<%endif%>`     |
+| `<#-- --#>` | Comments (stripped) | `<#-- This is removed --#>`          |
 
-**Available Context Variables** (kid templates only):
+**Available Context Variables** (user templates):
 
 ```python
 {
-    "kid": {
-        "name": "Alice",     # Display name from storage
-        "slug": "alice"      # URL-safe slugified name
+    "user": {
+      "name": "Alice",               # Display name from storage
+      "slug": "alice",               # URL-safe slugified name
+      "user_id": "<uuid-string>"     # Stable identity for lookup scoping
+    },
+    "integration": {
+      "entry_id": "<config-entry-id>" # Required for multi-instance lookup scoping
     }
 }
 ```
 
-Admin templates receive empty context `{}`.
+Admin templates can be shared-selector or per-user-tab models, but all helper lookup logic must still use identity-scoped contracts (`integration.entry_id` + `user.user_id`).
 
 ### Runtime (Home Assistant Jinja2) - `{{ }}`
 
 Preserved in output, evaluated by HA when rendering the dashboard.
 
-| Delimiter | Purpose                   | Example                                  |
-| --------- | ------------------------- | ---------------------------------------- |
-| `{{ }}`   | HA state/attribute access | `{{ states('sensor.kc_alice_points') }}` |
-| `{% %}`   | HA template logic         | `{% for item in items %}...{% endfor %}` |
-| `{# #}`   | HA template comments      | `{# This stays in output #}`             |
+| Delimiter | Purpose                     | Example                                      |
+| --------- | --------------------------- | -------------------------------------------- |
+| `{{ }}`   | HA state/attribute access   | `{{ states('sensor.kc_alice_points') }}`     |
+| `{%- -%}` | HA template logic (trimmed) | `{%- for item in items -%}...{%- endfor -%}` |
+| `{# #}`   | HA template comments        | `{# This stays in output #}`                 |
+
+Use whitespace-trimmed HA Jinja tags by default in templates:
+
+- Prefer `{%- ... -%}` for control flow and `{%- set ... -%}` assignments.
+- Use plain `{% ... %}` only when intentional spacing/newlines are required in rendered output.
+- Keep `{{ ... }}` for expression output unless you specifically need trim behavior (`{{- ... -}}`).
 
 ### Example: Both Syntaxes Together
 
 ```yaml
 - type: custom:mushroom-template-card
-  primary: << kid.name >>'s Points
+  primary: << user.name >>'s Points
   secondary: >-
-    {{ states('sensor.kc_<< kid.slug >>_points') | int }} points
+    {{ states('sensor.kc_<< user.slug >>_points') | int }} points
 ```
 
-**After build-time render** (for kid "Alice"):
+**After build-time render** (for user "Alice"):
 
 ```yaml
 - type: custom:mushroom-template-card
@@ -294,8 +304,10 @@ Every template MUST start with this header block:
 <#-- OUTPUT: Single view object (combined by builder) --#>
 <#--                                               --#>
 <#-- Injection variables (Python Jinja2 << >>):    --#>
-<#--   << kid.name >> - Child's display name        --#>
-<#--   << kid.slug >> - URL-safe slug for path      --#>
+<#--   << user.name >> - User display name           --#>
+<#--   << user.slug >> - URL-safe slug for path      --#>
+<#--   << user.user_id >> - User identity UUID       --#>
+<#--   << integration.entry_id >> - Instance scope ID --#>
 <#--                                               --#>
 <#-- All HA Jinja2 {{ }} syntax is preserved as-is --#>
 <#-- ============================================= --#>
@@ -308,27 +320,52 @@ For admin templates, omit the injection variables section and note "No injection
 
 ---
 
-## Entity ID Pattern
+## Entity lookup contract (required)
 
-When referencing ChoreOps entities in templates, use the pattern below. Never hard code entity names:
+When referencing ChoreOps helper and related sensors in templates, use dynamic, instance-aware lookup patterns. Never hardcode entity IDs.
 
-```
-{#-- 1. User Configuration --#}
+```jinja
+{#-- 1. User and instance context --#}
+{%- set name = '<< user.name >>' -%}
+{%- set user_id = '<< user.user_id >>' -%}
+{%- set entry_id = '<< integration.entry_id >>' -%}
+{%- set lookup_key = entry_id ~ ':' ~ user_id -%}
 
-{%- set name = '<< kid.name >>' -%}  {#-- ⬅️ CHANGE THIS to your child's actual name #}
 
-
-{#-- 2. Initialize Variables --#}
+{#-- 2. Resolve dashboard helper dynamically --#}
 {%- set dashboard_helper = integration_entities('choreops')
-    | select('search', 'ui_dashboard_helper')
+    | select('search', '^sensor\\.')
     | list
     | expand
+    | selectattr('attributes.purpose', 'defined')
     | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-    | selectattr('attributes.kid_name', 'eq', name)
+    | selectattr('attributes.dashboard_lookup_key', 'eq', lookup_key)
     | map(attribute='entity_id')
     | first
-    | default("err-dashboard_helper_missing", true) -%}
+    | default('err-dashboard_helper_missing', true) -%}
+
+
+{#-- 3. Guard validation and graceful fallback --#}
+{%- if states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+  {{ {'type': 'markdown', 'content': '⚠️ Dashboard configuration error'} }},
+  {%- set skip_render = true -%}
+{%- else -%}
+  {%- set skip_render = false -%}
+{%- endif -%}
+
+
+{#-- 4. Normal rendering only when valid --#}
+{%- if not skip_render -%}
+  {{ {'type': 'markdown', 'content': '...normal content...'} }},
+{%- endif -%}
 ```
+
+### Graceful error-handling requirements
+
+- Validate required entities before normal rendering (dashboard helper, translation sensor, and required core sensors)
+- If validation fails, render actionable fallback guidance and set a guard flag (for example `skip_render = true`)
+- Skip normal card rendering when guard validation fails
+- Never hard-fail template rendering due to missing required entities
 
 ---
 
@@ -351,7 +388,7 @@ import jinja2
 import yaml
 from pathlib import Path
 
-template_path = Path("custom_components/choreops/templates/dashboard_full.yaml")
+template_path = Path("custom_components/choreops/dashboards/templates/user-gamification-v1.yaml")
 template_str = template_path.read_text()
 
 env = jinja2.Environment(
@@ -364,7 +401,10 @@ env = jinja2.Environment(
     autoescape=False,
 )
 
-context = {"kid": {"name": "TestKid", "slug": "testkid"}}
+context = {
+  "user": {"name": "Test User", "slug": "test-user", "user_id": "test-user-id"},
+  "integration": {"entry_id": "test-entry-id"},
+}
 template = env.from_string(template_str)
 rendered = template.render(**context)
 
@@ -388,28 +428,30 @@ Ensure output has required keys:
 
 ## v0.5.0 Chore Attributes Reference
 
-### Dashboard Helper Chore Fields
+### Dashboard helper chore fields
 
-The `sensor.kc_<kid>_ui_dashboard_helper` provides enriched chore data with these attributes:
+The dashboard helper resolved via `dashboard_lookup_key = <integration.entry_id>:<user.user_id>` provides enriched chore data with these attributes:
 
 #### Core Chore Fields (v0.4.x)
 
-| Field      | Type   | Description                                | Example                   |
-| ---------- | ------ | ------------------------------------------ | ------------------------- |
-| `eid`      | string | Entity ID of the chore's kid status sensor | `sensor.kc_alice_chore_1` |
-| `name`     | string | Human-readable chore name                  | `"Wash Dishes"`           |
-| `state`    | string | Current chore state                        | `"pending"`, `"claimed"`  |
-| `labels`   | list   | Categorization tags                        | `["kitchen", "daily"]`    |
-| `grouping` | string | UI grouping hint                           | `"morning"`, `"evening"`  |
-| `is_am_pm` | bool   | Whether chore uses 12-hour time format     | `true`, `false`           |
+| Field      | Type   | Description                            | Example                   |
+| ---------- | ------ | -------------------------------------- | ------------------------- |
+| `eid`      | string | Entity ID of the chore status sensor   | `sensor.kc_alice_chore_1` |
+| `name`     | string | Human-readable chore name              | `"Wash Dishes"`           |
+| `state`    | string | Current chore state                    | `"pending"`, `"claimed"`  |
+| `labels`   | list   | Categorization tags                    | `["kitchen", "daily"]`    |
+| `grouping` | string | UI grouping hint                       | `"morning"`, `"evening"`  |
+| `is_am_pm` | bool   | Whether chore uses 12-hour time format | `true`, `false`           |
 
-#### New v0.5.0 Rotation & Restriction Fields
+#### New v0.5.0 rotation and restriction fields
 
-| Field           | Type         | Description                                                | Example                                  |
-| --------------- | ------------ | ---------------------------------------------------------- | ---------------------------------------- |
-| `lock_reason`   | string\|null | Why chore is locked (null = not locked)                    | `"waiting"`, `"not_my_turn"`, `"missed"` |
-| `turn_kid_name` | string\|null | Current turn holder (rotation chores only)                 | `"Bob"`, `null`                          |
-| `available_at`  | string\|null | ISO timestamp when chore becomes available (waiting state) | `"2026-02-10T17:30:00Z"`, `null`         |
+Note: Some runtime payload keys still use legacy names for backward compatibility. In this guide, treat those fields as user-scoped semantics.
+
+| Field            | Type         | Description                                                | Example                                  |
+| ---------------- | ------------ | ---------------------------------------------------------- | ---------------------------------------- |
+| `lock_reason`    | string\|null | Why chore is locked (null = not locked)                    | `"waiting"`, `"not_my_turn"`, `"missed"` |
+| `turn_user_name` | string\|null | Current turn holder user name                              | `"Bob"`, `null`                          |
+| `available_at`   | string\|null | ISO timestamp when chore becomes available (waiting state) | `"2026-02-10T17:30:00Z"`, `null`         |
 
 ### Jinja2 Template Examples
 
@@ -419,18 +461,20 @@ The `sensor.kc_<kid>_ui_dashboard_helper` provides enriched chore data with thes
 - type: custom:mushroom-template-card
   primary: |
     {%- set chore = chores_list[0] -%}
+    {%- set turn_user_name = chore.turn_user_name -%}
     {{ chore.name }}
-    {%- if chore.turn_kid_name -%}
-    {%- if chore.turn_kid_name == name -%}
+    {%- if turn_user_name -%}
+    {%- if turn_user_name == name -%}
     🎯 (Your Turn)
     {%- else -%}
-    ⏳ ({{ chore.turn_kid_name }}'s Turn)
+    ⏳ ({{ turn_user_name }}'s Turn)
     {%- endif -%}
     {%- endif -%}
   secondary: |
     {%- set chore = chores_list[0] -%}
+    {%- set turn_user_name = chore.turn_user_name -%}
     {%- if chore.lock_reason == "not_my_turn" -%}
-    Wait for {{ chore.turn_kid_name }} to complete their turn
+    Wait for {{ turn_user_name }} to complete their turn
     {%- elif chore.lock_reason == "missed" -%}
     ⛔ Missed - wait for next reset
     {%- elif chore.available_at -%}
@@ -499,46 +543,34 @@ icon_color: |
     type: entities
   filter:
     include:
-      - entity_id: "sensor.kc_<< kid.slug >>_ui_dashboard_helper"
+      - entity_id: "{{ dashboard_helper }}"
         options:
           type: custom:mushroom-template-card
           primary: |
             {%- for chore in state_attr(config.entity, 'chores') -%}
-            {%- if chore.turn_kid_name -%}
+            {%- set turn_user_name = chore.turn_user_name -%}
+            {%- if turn_user_name -%}
             {{ chore.name }}:
-            {%- if chore.turn_kid_name == '<< kid.name >>' -%}
+            {%- if turn_user_name == '<< user.name >>' -%}
             🎯 Your turn
             {%- else -%}
-            {{ chore.turn_kid_name }}'s turn
+            {{ turn_user_name }}'s turn
             {%- endif -%}
             {%- if not loop.last %} • {% endif -%}
             {%- endif -%}
             {%- endfor -%}
 ```
 
-### State to Color Mapping
-
-Standard colors for chore states and lock reasons:
-
-| State/Lock    | Color    | Icon Suggestion       | Meaning                            |
-| ------------- | -------- | --------------------- | ---------------------------------- |
-| `pending`     | `blue`   | `mdi:clipboard-list`  | Ready to claim                     |
-| `claimed`     | `orange` | `mdi:hand-wave`       | Awaiting parent approval           |
-| `approved`    | `green`  | `mdi:check-circle`    | Completed and approved             |
-| `overdue`     | `red`    | `mdi:alert-circle`    | Past due date                      |
-| `waiting`     | `red`    | `mdi:clock-outline`   | Before due window opens            |
-| `not_my_turn` | `purple` | `mdi:account-clock`   | Rotation - not current turn holder |
-| `missed`      | `grey`   | `mdi:calendar-remove` | Terminal state - wait for reset    |
-
 ---
 
-## Adding a New Template Style
+## Adding a new template variant
 
-1. **Create template file**: `templates/dashboard_[style].yaml`
-2. **Add constant**: `const.py` → `DASHBOARD_STYLE_[STYLE]`
-3. **Add to style options**: `dashboard_helpers.py` → `build_dashboard_style_options()`
-4. **Add translation**: `translations/en.json` → style label
-5. **Test render**: Use validation script above
+1. **Create template file** in `choreops-dashboards/templates/` using immutable `template_id` naming (`<audience>-<intent>-v<major>.yaml`).
+2. **Add/update registry entry** in `choreops-dashboards/dashboard_registry.json`.
+3. **Add/update preference doc** in `choreops-dashboards/preferences/` and link it via `preferences.doc_asset_path`.
+4. **Add translation keys when required** in `choreops-dashboards/translations/en_dashboard.json`.
+5. **Run sync from integration repo**: `python utils/sync_dashboard_assets.py`.
+6. **Verify parity**: `python utils/sync_dashboard_assets.py --check`.
 
 ---
 
@@ -548,7 +580,7 @@ Templates are fetched in this order:
 
 1. **Selected compatible release tag** (or newest compatible when not explicitly selected)
 2. **Fallback compatible release** (when selected release is unavailable)
-3. **Local bundled template**: `custom_components/choreops/templates/dashboard_[style].yaml`
+3. **Local bundled template**: `custom_components/choreops/dashboards/templates/<template_id>.yaml`
 
 Release-based fetch keeps template selection deterministic; local fallback preserves offline/recovery safety.
 
@@ -556,13 +588,13 @@ Release-based fetch keeps template selection deterministic; local fallback prese
 
 ## Common Pitfalls
 
-| Issue                                 | Cause                           | Solution                                    |
-| ------------------------------------- | ------------------------------- | ------------------------------------------- |
-| `mapping values are not allowed here` | Malformed comment block         | Check all `<#-- --#>` pairs                 |
-| `Template did not produce valid view` | Output has `views:` wrapper     | Remove wrapper, start with `- max_columns:` |
-| Entity IDs not working                | Wrong slug format               | Use `<< kid.slug >>` not `<< kid.name >>`   |
-| HA Jinja2 stripped                    | Used `<< >>` instead of `{{ }}` | Use `{{ }}` for runtime evaluation          |
-| Build variables not replaced          | Used `{{ }}` instead of `<< >>` | Use `<< >>` for build-time injection        |
+| Issue                                 | Cause                           | Solution                                             |
+| ------------------------------------- | ------------------------------- | ---------------------------------------------------- |
+| `mapping values are not allowed here` | Malformed comment block         | Check all `<#-- --#>` pairs                          |
+| `Template did not produce valid view` | Output has `views:` wrapper     | Remove wrapper, start with `- max_columns:`          |
+| Entity IDs not working                | Hardcoded/manual entity IDs     | Use dynamic helper lookup via `dashboard_lookup_key` |
+| HA Jinja2 stripped                    | Used `<< >>` instead of `{{ }}` | Use `{{ }}` for runtime evaluation                   |
+| Build variables not replaced          | Used `{{ }}` instead of `<< >>` | Use `<< >>` for build-time injection                 |
 
 ---
 
@@ -573,10 +605,10 @@ Release-based fetch keeps template selection deterministic; local fallback prese
 │ BUILD-TIME (Python)          RUNTIME (Home Assistant)   │
 ├─────────────────────────────────────────────────────────┤
 │ << variable >>               {{ states('sensor.x') }}   │
-│ <% if cond %>...<% endif %>  {% if cond %}...{% endif %}│
+│ <% if cond %>...<% endif %>  {%- if cond -%}...{%- endif -%}│
 │ <#-- stripped comment --#>   {# preserved comment #}    │
 ├─────────────────────────────────────────────────────────┤
-│ Context: kid.name, kid.slug  Context: Full HA state     │
+│ Context: user + integration  Context: Full HA state     │
 │ When: Dashboard generation   When: Dashboard render     │
 └─────────────────────────────────────────────────────────┘
 ```

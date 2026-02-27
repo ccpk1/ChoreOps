@@ -37,6 +37,13 @@ If your change only affects a narrow area, you may run a targeted test suite, bu
 - Note documentation impact (README/wiki/docs)
 - Call out breaking changes and migration impact when relevant
 
+## Dashboard source of truth policy
+
+- Do not submit dashboard template source changes to this repository.
+- Any PR that changes files under `custom_components/choreops/dashboards/` will be closed and redirected.
+- Submit dashboard template, registry, and preference documentation changes to `ccpk1/ChoreOps-Dashboards`.
+- Dashboard assets in this repository are synchronized from `ccpk1/ChoreOps-Dashboards`.
+
 ## Discussions vs issues
 
 - Use GitHub Discussions for questions and early ideas

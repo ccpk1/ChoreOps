@@ -759,7 +759,7 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 
 - User selects a dashboard action (`create`, `update`, `delete`, `exit`) in a CRUD hub step
 - Create and update use a shared sectioned configure step (assignee views, admin views, access/sidebar, template version)
-- Admin layout supports `none`, `global` (shared), `per_assignee`, and `both`
+- Admin layout supports none, shared, per user, and both (internal enum key for per user is `per_assignee`)
 - Update path applies changes in place to the selected dashboard URL path
 - Build-time rendering: Python Jinja2 populates `user.*` + `integration.entry_id` context with `<< >>` delimiters
 - Runtime rendering: Home Assistant Jinja2 fetches live data with `{{ }}` delimiters

@@ -628,7 +628,7 @@
             },
             "data_description": {
               "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None. If you select 'Daily - Multiple times per day', an additional screen will appear to configure the specific times.",
-              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
+              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per user.",
               "clear_due_date": "Check this box to remove the due date from this chore.",
               "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
               "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
@@ -703,7 +703,7 @@
           "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
           "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency.",
           "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
-          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
+          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per user.",
           "clear_due_date": "Check this box to remove the due date from this chore.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
@@ -1087,7 +1087,7 @@
             },
             "data_description": {
               "recurring_frequency": "How often the chore recurs: Daily, Weekly, Monthly, Yearly, Custom, or None. If you select 'Daily - Multiple times per day', an additional screen will appear to configure the specific times.",
-              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
+              "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per user.",
               "clear_due_date": "Check this box to remove the due date from this chore.",
               "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
               "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
@@ -1163,7 +1163,7 @@
           "custom_interval": "Number of time units between repetitions (e.g., 3 for 'every 3 weeks'). Only used with Custom frequency.",
           "custom_interval_unit": "Time unit for custom interval (days, weeks, months). Only used with Custom frequency.",
           "applicable_days": "Leave blank for all days. ONLY Select specific days to restrict.",
-          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per assignee.",
+          "due_date": "Optional deadline. Can be combined with recurring schedules. For INDEPENDENT chores, this serves as a template—an additional screen will appear allowing individual dates per user.",
           "clear_due_date": "Check this box to remove the due date from this chore.",
           "chore_due_window_offset": "When the chore state changes from Pending to Due. Format: '1d 6h 30m' or just '30' for minutes. Enter '0' to disable. Example: '1d' means chore shows as 'Due' 1 day before deadline.",
           "chore_due_reminder_offset": "When to send the due reminder notification. Format: '1d 6h 30m' or just '30' for minutes. Default: 30m (30 minutes before due). Enter '0' to disable.",
@@ -1172,10 +1172,10 @@
         }
       },
       "edit_chore_per_user_dates": {
-        "title": "Edit Per-Assignee Due Dates: {chore_name}",
-        "description": "Set individual due dates for each assigned assignee. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all assignees via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {assignee_names}. Leave blank for no deadline.{template_date}\n\n📖 [Advanced Guide]({documentation_url})",
+        "title": "Edit Per-User Due Dates: {chore_name}",
+        "description": "Set individual due dates for each assigned user. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all users via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {assignee_names}. Leave blank for no deadline.{template_date}\n\n📖 [Advanced Guide]({documentation_url})",
         "data": {
-          "apply_template_to_all": "Apply template date to all assignees"
+          "apply_template_to_all": "Apply template date to all users"
         },
         "data_description": {
           "apply_template_to_all": "Check this box to apply the date set on the main chore edit page to all assigned assignees, overwriting their individual dates."
@@ -1652,9 +1652,9 @@
         "data_description": {
           "dashboard_template_profile": "Manifest-defined template used for selected assignee views.",
           "dashboard_assignee_selection": "Select assignees to include in this dashboard.",
-          "dashboard_admin_mode": "Choose the admin layout: none, shared, per assignee, or both.",
+          "dashboard_admin_mode": "Choose the admin layout: none, shared, per user, or both.",
           "dashboard_admin_template_global": "Manifest-defined template used when Admin Layout includes Shared.",
-          "dashboard_admin_template_per_assignee": "Manifest-defined template used when Admin Layout includes Per Assignee.",
+          "dashboard_admin_template_per_assignee": "Manifest-defined template used when Admin Layout includes Per User.",
           "dashboard_admin_view_visibility": "Control who can see admin views. Approver-linked visibility uses linked approver HA users.",
           "dashboard_icon": "Sidebar icon for this dashboard.",
           "dashboard_require_admin": "Restrict dashboard access to admin users.",
@@ -1884,8 +1884,8 @@
       "dashboard_no_dashboards": "Please select at least one dashboard to delete.",
       "dashboard_no_assignees_no_admin": "Select at least one assignee, or choose an Admin Layout other than 'none'.",
       "dashboard_admin_global_template_required": "Shared admin template is required when Admin Layout includes Shared.",
-      "dashboard_admin_per_assignee_template_required": "Per-assignee admin template is required when Admin Layout includes Per Assignee.",
-      "dashboard_admin_per_assignee_needs_assignees": "Per Assignee Admin Layout requires at least one selected assignee.",
+      "dashboard_admin_per_assignee_template_required": "Per-user admin template is required when Admin Layout includes Per User.",
+      "dashboard_admin_per_assignee_needs_assignees": "Per User Admin Layout requires at least one selected user.",
       "dashboard_dependency_ack_required": "Enable 'Continue anyway' to proceed, or go back and install missing required dependencies first.",
       "dashboard_template_details_ack_required": "Enable 'Continue with these templates' to proceed, or go back and adjust template selections."
     },
@@ -1955,7 +1955,7 @@
       "options": {
         "none": "None",
         "global": "Shared",
-        "per_assignee": "Per Assignee",
+        "per_assignee": "Per User",
         "both": "Both"
       }
     },

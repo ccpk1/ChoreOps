@@ -20,6 +20,11 @@
 - [ ] Services/automations
 - [ ] Documentation/wiki
 
+## Dashboard source boundary
+
+- [ ] This PR does not introduce manual source edits under `custom_components/choreops/dashboards/`
+- [ ] If dashboard source changes are needed, a corresponding PR is opened in `ccpk1/ChoreOps-Dashboards`
+
 ## Standards references
 
 - [Architecture](../docs/ARCHITECTURE.md)
