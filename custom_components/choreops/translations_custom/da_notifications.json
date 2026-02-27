@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "═════════════════════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "BØRNEMEDDELELSER: Spilbaseret, andenpersons, opmuntrende tone med emojis. INGEN præfiks 'ChoreOps:'.",
+  "_comment_assignee_desc": "NOTIFIKATIONER TIL MODTAGERE: Gamificeret, andenpersons, opmuntrende tone med emojis. INGEN 'ChoreOps:' præfiks.",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Godkendt pligt!",
@@ -59,7 +59,7 @@
     "message": "Din pointmultiplikator er ændret fra {old_multiplier}x til {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "FORÆLDREMEDDELELSER: Informativ, tredjepersons, handlingsrettet. Format: '{assignee_name}: Handling'. INGEN 'ChoreOps:' præfiks.",
+  "_comment_approver_desc": "GODKENDELSESMEDDELELSER: Informative, tredjepersons, handlingsrettede. Format: '{assignee_name}: Handling'. INGEN 'ChoreOps:' præfiks.",
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Opgave påtaget",
@@ -94,7 +94,7 @@
     "message": "{assignee_name} optjent {achievement_name}"
   },
   "challenge_completed_approver": {
-    "title": "🏁 {assignee_name}: Udfordring færdig",
+    "title": "🏁 {assignee_name}: Udfordringen er færdig",
     "message": "{assignee_name} fuldført {challenge_name}"
   },
   "multiplier_changed_approver": {
@@ -105,23 +105,23 @@
   "_comment_system_desc": "SYSTEM-/ADMIN-MEDDELELSER: Datahåndteringshandlinger",
   "_comment_system_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 Børneopgaver: Nulstilling af data",
+    "title": "🔄 ChoreOps: Datanulstilling",
     "message": "Systemdata er blevet nulstillet"
   },
   "data_reset_global": {
-    "title": "🔄 Børneopgaver: Fuld nulstilling",
+    "title": "🔄 ChoreOps: Fuld nulstilling",
     "message": "Alle systemdata er blevet nulstillet til standardindstillingerne"
   },
   "data_reset_assignee": {
-    "title": "🔄 Børneopgaver: Nulstilling af børn",
+    "title": "🔄 ChoreOps: Nulstilling af tildelt person",
     "message": "Data nulstillet for {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Børneopgaver: {item_type} Nulstil",
+    "title": "🔄 Opgaver: {item_type} Nulstil",
     "message": "Alle {item_type} data er blevet nulstillet"
   },
   "data_reset_item": {
-    "title": "🔄 Børneopgaver: Nulstilling af genstande",
+    "title": "🔄 ChoreOps: Genstandsnulstilling",
     "message": "{item_type} '{item_name}' er blevet nulstillet"
   },
   "_comment_actions_section": "═════════════════════════════════════════════════════════════════════════════════",

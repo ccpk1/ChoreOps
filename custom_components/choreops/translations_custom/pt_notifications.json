@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "═══════════════════════════════ ════════════════════════════════",
-  "_comment_assignee_desc": "NOTIFICAÇÕES PARA CRIANÇAS: Tom lúdico, na segunda pessoa, encorajador e com emojis. SEM o prefixo 'TarefasParaCrianças:'.",
+  "_comment_assignee_desc": "NOTIFICAÇÕES AO RESPONSÁVEL: Tom gamificado, na segunda pessoa, encorajador e com emojis. SEM o prefixo 'Tarefas:'.",
   "_comment_assignee_footer": "═══════════════════════════════ ════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Tarefa aprovada!",
@@ -36,7 +36,7 @@
   },
   "badge_earned_assignee": {
     "title": "🥇 Insígnia conquistada!",
-    "message": "Ganhou o crachá {badge_name} !"
+    "message": "Ganhou o crachá {badge_name}!"
   },
   "achievement_earned_assignee": {
     "title": "🏆 Conquista alcançada!",
@@ -59,7 +59,7 @@
     "message": "O seu multiplicador de pontos passou de {old_multiplier}x para {new_multiplier}x"
   },
   "_comment_approver_section": "═══════════════════════════════ ════════════════════════════════",
-  "_comment_approver_desc": "NOTIFICAÇÕES AOS PAIS: Informativas, na terceira pessoa, com instruções para a ação. Formato: '{assignee_name}: Acção'. SEM prefixo 'Tarefas da Criança:'.",
+  "_comment_approver_desc": "NOTIFICAÇÕES DO APROVADOR: Informativas, na terceira pessoa, passíveis de ação. Formato: '{assignee_name}: Acção'. SEM prefixo 'ChoreOps:'.",
   "_comment_approver_footer": "═══════════════════════════════ ════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tarefa atribuída",
@@ -71,7 +71,7 @@
   },
   "chore_overdue_approver": {
     "title": "⚠️ {assignee_name}: Tarefa atrasada",
-    "message": "{assignee_name}'s chore {chore_name} is overdue (due: {due_date})"
+    "message": "O chore de {assignee_name} {chore_name} está atrasado (devido: {due_date})"
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} Pendente",
@@ -87,7 +87,7 @@
   },
   "badge_earned_approver": {
     "title": "🥇 {assignee_name}: Insígnia Conquistada",
-    "message": "{assignee_name} ganhou o crachá {badge_name} !"
+    "message": "{assignee_name} ganhou o crachá {badge_name}!"
   },
   "achievement_earned_approver": {
     "title": "🏆 {assignee_name}: Conquista",
@@ -109,19 +109,19 @@
     "message": "Os dados do sistema foram repostos."
   },
   "data_reset_global": {
-    "title": "🔄 Tarefas para Crianças: Reinício Completo",
+    "title": "🔄 ChoreOps: Reinício completo",
     "message": "Todos os dados do sistema foram repostos nos valores padrão."
   },
   "data_reset_assignee": {
-    "title": "🔄 Tarefas para Crianças: Reiniciar a Rotina Infantil",
+    "title": "🔄 ChoreOps: Redefinição de Tarefas",
     "message": "Reinicialização de dados para {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Tarefas para Crianças: {item_type} Reiniciar",
+    "title": "🔄 ChoreOps: {item_type} Reiniciar",
     "message": "Todos os dados {item_type} foram repostos"
   },
   "data_reset_item": {
-    "title": "🔄 Tarefas Infantis: Redefinição de Itens",
+    "title": "🔄 ChoreOps: Redefinição de Itens",
     "message": "{item_type} '{item_name}' foi reposto"
   },
   "_comment_actions_section": "═══════════════════════════════ ════════════════════════════════",

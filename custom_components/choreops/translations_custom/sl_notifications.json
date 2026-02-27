@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "══════════════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "OBVESTILA ZA OTROKE: Igrificiran, drugoosebni, spodbuden ton z emojiji. BREZ predpone »ChoreOps:«.",
+  "_comment_assignee_desc": "OBVESTILA DODELJENIM PREJEMNIKOM: Gamificiran, drugoosebni, spodbuden ton z emojiji. BREZ predpone »ChoreOps:«.",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Opravilo odobreno!",
@@ -23,7 +23,7 @@
     "message": "{chore_name} je zapadlo čez {minutes} minut! Vredno {points} točk"
   },
   "chore_due_window_assignee": {
-    "title": "🎯 Rok za opravilo",
+    "title": "🎯 Opravilo čaka na izvedbo",
     "message": "Rok za oddajo {chore_name} je zdaj! Izpolnite v {hours} urah in zaslužite {points} točk"
   },
   "reward_approved_assignee": {
@@ -59,7 +59,7 @@
     "message": "Vaš množitelj točk se je spremenil iz {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "OBVESTILA ZA STARŠE: Informativna, v tretji osebi, z možnostjo ukrepanja. Oblika: '{assignee_name}: Dejanje'. BREZ predpone 'ChoreOps:'.",
+  "_comment_approver_desc": "OBVESTILA ODOBRITELJA: Informativna, v tretji osebi, uporabna. Oblika: '{assignee_name}: Dejanje'. BREZ predpone 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Opravilo prevzeto",
@@ -105,23 +105,23 @@
   "_comment_system_desc": "OBVESTILA SISTEMA/ADMINIRANJA: Postopki upravljanja podatkov",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 Otroška opravila: Ponastavitev podatkov",
+    "title": "🔄 Domača opravila: Ponastavitev podatkov",
     "message": "Sistemski podatki so bili ponastavljeni"
   },
   "data_reset_global": {
-    "title": "🔄 Otroška opravila: Popolna ponastavitev",
+    "title": "🔄 Domača opravila: Popolna ponastavitev",
     "message": "Vsi sistemski podatki so bili ponastavljeni na privzete vrednosti"
   },
   "data_reset_assignee": {
-    "title": "🔄 Otroška opravila: Ponastavitev otrok",
+    "title": "🔄 Domača opravila: Ponastavitev dodeljevalca",
     "message": "Ponastavitev podatkov za {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Otroška opravila: {item_type} Ponastavi",
+    "title": "🔄 Domača opravila: {item_type} Ponastavi",
     "message": "Vsi podatki {item_type} so bili ponastavljeni"
   },
   "data_reset_item": {
-    "title": "🔄 Otroška opravila: Ponastavitev predmeta",
+    "title": "🔄 Domača opravila: Ponastavitev predmeta",
     "message": "{item_type} '{item_name}' je bil ponastavljen"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════════════════",
@@ -131,7 +131,7 @@
     "approve": "✅ Odobritev",
     "claim": "✋ Uspelo mi je!",
     "complete": "✅ Dokončano",
-    "disapprove": "↩️ Ne odobravam",
+    "disapprove": "↩️ Ne odobri",
     "remind_30": "⏰ Opomni čez 30 minut",
     "skip": "⏭️ Preskoči"
   }

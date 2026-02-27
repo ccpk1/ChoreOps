@@ -1,10 +1,10 @@
 {
   "_comment_assignee_section": "══════════════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "OZNÁMENIA PRE DETÍ: Gamifikovaný, v druhej osobe, povzbudzujúci tón s emotikonmi. BEZ predpony „ChoreOps:“.",
+  "_comment_assignee_desc": "OZNÁMENIA PRE PRIDELENÉHO PRÍJEMCU: Gamifikovaný, v druhej osobe, povzbudzujúci tón s emotikonmi. BEZ predpony „ChoreOps:“.",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Domáca úloha schválená!",
-    "message": "{chore_name} approved! You earned {points} points"
+    "message": "{chore_name} schválená! Získali ste {points} bodov"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Vrátená práca",
@@ -12,7 +12,7 @@
   },
   "chore_overdue_assignee": {
     "title": "⏰ Domáca práca po termíne",
-    "message": "{chore_name} je oneskorený! Dokončite ho teraz a získajte {points} bodov"
+    "message": "{chore_name} je oneskorené! Dokončite ho teraz a získajte {points} bodov"
   },
   "chore_missed_assignee": {
     "title": "😔 Platnosť úlohy vypršala",
@@ -36,7 +36,7 @@
   },
   "badge_earned_assignee": {
     "title": "🥇 Odznak získaný!",
-    "message": "Získali ste odznak {badge_name} !"
+    "message": "Získali ste odznak {badge_name}!"
   },
   "achievement_earned_assignee": {
     "title": "🏆 Získaný úspech!",
@@ -44,7 +44,7 @@
   },
   "challenge_completed_assignee": {
     "title": "🏁 Výzva splnená!",
-    "message": "Dokončili ste {challenge_name}! Pokračujte v skvelej práci"
+    "message": "Dokončili ste {challenge_name}! Len tak ďalej!"
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Uplatnená pokuta",
@@ -59,11 +59,11 @@
     "message": "Váš násobiteľ bodov sa zmenil z {old_multiplier}x na {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "OZNÁMENIA PRE RODIČOV: Informatívne, v tretej osobe, akčné. Formát: '{assignee_name}: Akcia'. BEZ predpony 'ChoreOps:'.",
+  "_comment_approver_desc": "OZNÁMENIA SCHVÁĽOVATEĽA: Informatívne, v tretej osobe, akčné. Formát: '{assignee_name}: Akcia'. BEZ predpony 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Domáca práca nárokovaná",
-    "message": "{assignee_name} si nárokuje {chore_name} a teraz na tom pracuje"
+    "message": "{assignee_name} si nárokoval {chore_name} a teraz na tom pracuje"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Vyžaduje sa schválenie",
@@ -87,7 +87,7 @@
   },
   "badge_earned_approver": {
     "title": "🥇 {assignee_name}: Odznak získaný",
-    "message": "{assignee_name} získal odznak {badge_name} !"
+    "message": "{assignee_name} získal odznak {badge_name}!"
   },
   "achievement_earned_approver": {
     "title": "🏆 {assignee_name}: Úspech",
@@ -105,23 +105,23 @@
   "_comment_system_desc": "SYSTÉMOVÉ/ADMINISTRÁTORSKÉ OZNÁMENIA: Operácie správy údajov",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 Detské práce: Obnovenie údajov",
+    "title": "🔄 ChoreOps: Obnovenie údajov",
     "message": "Systémové údaje boli resetované"
   },
   "data_reset_global": {
-    "title": "🔄 Detské práce: Úplný reset",
+    "title": "🔄 Doprava: Úplný reset",
     "message": "Všetky systémové údaje boli obnovené na predvolené hodnoty"
   },
   "data_reset_assignee": {
-    "title": "🔄 Detské práce: Obnovenie detských úloh",
+    "title": "🔄 Údržba: Obnovenie poverenia",
     "message": "Obnovenie údajov pre {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Detské práce: {item_type} Obnoviť",
+    "title": "🔄 Údržba: {item_type} Obnoviť",
     "message": "Všetky údaje {item_type} boli resetované"
   },
   "data_reset_item": {
-    "title": "🔄 Detské práce: Obnovenie položky",
+    "title": "🔄 Domáce práce: Obnovenie položky",
     "message": "{item_type} '{item_name}' bolo resetované"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════════════════",

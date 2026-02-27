@@ -1,10 +1,10 @@
 {
   "_comment_assignee_section": "══════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "NOTIFICATIONS POUR ENFANTS : Ton ludique, à la deuxième personne et encourageant, avec des émojis. Sans le préfixe « Tâches des enfants ».",
+  "_comment_assignee_desc": "NOTIFICATIONS AUX PERSONNES ASSIGNÉES : Ton ludique, à la deuxième personne et encourageant, avec des émojis. Pas de préfixe « Tâches à accomplir ».",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Tâches approuvées !",
-    "message": "{chore_name} approved! You earned {points} points"
+    "message": "{chore_name} approuvé! Vous avez gagné des points {points}"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ La corvée est revenue",
@@ -59,7 +59,7 @@
     "message": "Votre multiplicateur de points est passé de {old_multiplier}x à {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "NOTIFICATIONS AUX PARENTS : Informatives, à la troisième personne, incitant à l’action. Format : « {assignee_name} : Action ». Ne pas utiliser le préfixe « Tâches des enfants : ».",
+  "_comment_approver_desc": "NOTIFICATIONS DES APPROUVEURS : Informatives, à la troisième personne, exploitables. Format : « {assignee_name} : Action ». Sans préfixe « ChoreOps : ».",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tâche prise",
@@ -75,7 +75,7 @@
   },
   "pending_chores_approver": {
     "title": "📋 {assignee_name}: {count} En attente",
-    "message": "{count} chores awaiting review. Latest: {latest_chore} (+{points} pts)"
+    "message": "{count} tâches en attente de révision. Dernière: {latest_chore} (+{points} pts)"
   },
   "reward_claimed_approver": {
     "title": "🎁 {assignee_name}: Demande de récompense",
@@ -105,7 +105,7 @@
   "_comment_system_desc": "NOTIFICATIONS SYSTÈME/ADMINISTRATEUR : Opérations de gestion des données",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 ChoreOps : Réinitialisation des données",
+    "title": "🔄 Tâches opératoires : Réinitialisation des données",
     "message": "Les données système ont été réinitialisées."
   },
   "data_reset_global": {
@@ -113,15 +113,15 @@
     "message": "Toutes les données système ont été réinitialisées aux valeurs par défaut."
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps : Réinitialisation des enfants",
+    "title": "🔄 ChoreOps : Réinitialisation de l’assigné",
     "message": "Réinitialisation des données pour {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Tâches des enfants : {item_type} Réinitialiser",
+    "title": "🔄 Tâches ménagères : {item_type} Réinitialiser",
     "message": "Toutes les données {item_type} ont été réinitialisées"
   },
   "data_reset_item": {
-    "title": "🔄 ChoreOps : Réinitialisation des objets",
+    "title": "🔄 ChoreOps : Réinitialisation des objets",
     "message": "{item_type} '{item_name}' a été réinitialisé"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════",

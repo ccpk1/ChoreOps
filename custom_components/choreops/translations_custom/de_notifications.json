@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "BENACHRICHTIGUNGEN FÜR KINDER: Spielerisch gestaltet, in der Du-Form, mit ermutigendem Ton und Emojis. Ohne das Präfix „Kinderaufgaben:“.",
+  "_comment_assignee_desc": "BENACHRICHTIGUNGEN AN DEN AUFTRAGNEHMER: Spielerisch gestaltet, in der Du-Form, mit motivierendem Ton und Emojis. Ohne das Präfix „ChoreOps:“.",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Erledigte Aufgabe!",
@@ -59,7 +59,7 @@
     "message": "Ihr Punktemultiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert."
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "ELTERNBENACHRICHTIGUNGEN: Informativ, in der dritten Person, mit Handlungsaufforderung. Format: '{assignee_name}: Aktion'. Ohne das Präfix 'ChoreOps:'.",
+  "_comment_approver_desc": "BENACHRICHTIGUNGEN FÜR GENEHMIGUNGSSTELLEN: Informativ, in der dritten Person, handlungsauffordernd. Format: '{assignee_name}: Aktion'. Ohne das Präfix 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Aufgabe übernommen",
@@ -109,15 +109,15 @@
     "message": "Systemdaten wurden zurückgesetzt"
   },
   "data_reset_global": {
-    "title": "🔄 ChoreOps: Kompletter Neustart",
+    "title": "🔄 ChoreOps: Kompletter Reset",
     "message": "Alle Systemdaten wurden auf die Standardeinstellungen zurückgesetzt."
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps: Assignee Reset",
-    "message": "Daten für {assignee_name}zurückgesetzt"
+    "title": "🔄 ChoreOps: Zuweisung zurücksetzen",
+    "message": "Daten für {assignee_name} zurückgesetzt"
   },
   "data_reset_item_type": {
-    "title": "🔄 Kinderaufgaben: {item_type} Zurücksetzen",
+    "title": "🔄 ChoreOps: {item_type} Zurücksetzen",
     "message": "Alle {item_type} Daten wurden zurückgesetzt"
   },
   "data_reset_item": {

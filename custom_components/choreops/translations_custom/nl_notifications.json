@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "═════════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "KINDERMELDINGEN: Speelse, in de tweede persoon geschreven, aanmoedigende toon met emoji's. GEEN voorvoegsel 'ChoreOps:'.",
+  "_comment_assignee_desc": "MELDINGEN AAN TOEGEWEZEN MEDEWERKER: Speels, in de tweede persoon, aanmoedigende toon met emoji's. GEEN 'ChoreOps:'-voorvoegsel.",
   "_comment_assignee_footer": "═════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Klusje goedgekeurd!",
@@ -59,7 +59,7 @@
     "message": "Je puntenvermenigvuldiger is veranderd van {old_multiplier}x naar {new_multiplier}x"
   },
   "_comment_approver_section": "═════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "OUDERMELDINGEN: Informatief, in de derde persoon, actiegericht. Formaat: '{assignee_name}: Actie'. GEEN voorvoegsel 'ChoreOps:'.",
+  "_comment_approver_desc": "MELDINGEN VAN GOEDKEURERS: Informatief, in de derde persoon, uitvoerbaar. Formaat: '{assignee_name}: Actie'. GEEN 'ChoreOps:'-voorvoegsel.",
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Taak opgeëist",
@@ -113,11 +113,11 @@
     "message": "Alle systeemgegevens zijn teruggezet naar de standaardinstellingen."
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps: Assignee Reset",
+    "title": "🔄 ChoreOps: Toegewezen persoon resetten",
     "message": "Gegevens gereset voor {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Kinderklusjes: {item_type} Reset",
+    "title": "🔄 ChoreOps: {item_type} Reset",
     "message": "Alle {item_type} -gegevens zijn gereset."
   },
   "data_reset_item": {

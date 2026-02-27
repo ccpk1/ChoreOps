@@ -1,6 +1,6 @@
 {
   "_comment_assignee_section": "══════════════════════════════════════════════════════════════",
-  "_comment_assignee_desc": "NOTIFICACIONS PER A NENS: To encoratjador, en segona persona i gamificat amb emojis. SENSE el prefix \"ChoreOps:\".",
+  "_comment_assignee_desc": "NOTIFICACIONS ALS ASSIGNATS: To encoratjador, en segona persona i amb emojis, amb un to gamificat. SENSE el prefix \"ChoreOps:\".",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
     "title": "🎉 Tasques aprovades!",
@@ -36,7 +36,7 @@
   },
   "badge_earned_assignee": {
     "title": "🥇 Insígnia guanyada!",
-    "message": "Has guanyat la insígnia {badge_name} !"
+    "message": "Has guanyat la insígnia {badge_name}!"
   },
   "achievement_earned_assignee": {
     "title": "🏆 Assoliment aconseguit!",
@@ -59,7 +59,7 @@
     "message": "El multiplicador de punts ha canviat de {old_multiplier}x a {new_multiplier}x"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "NOTIFICACIONS ALS PARES: Informatives, en tercera persona, accionables. Format: '{assignee_name}: Acció'. SENSE el prefix 'ChoreOps:'.",
+  "_comment_approver_desc": "NOTIFICACIONS DE L'APROVATOR: Informatives, en tercera persona, accionables. Format: '{assignee_name}: Acció'. NO hi ha el prefix 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tasca reclamada",
@@ -87,7 +87,7 @@
   },
   "badge_earned_approver": {
     "title": "🥇 {assignee_name}: Insígnia guanyada",
-    "message": "{assignee_name} ha guanyat la insígnia {badge_name} !"
+    "message": "{assignee_name} ha guanyat la insígnia {badge_name}!"
   },
   "achievement_earned_approver": {
     "title": "🏆 {assignee_name}: Assoliment",
@@ -109,19 +109,19 @@
     "message": "Les dades del sistema s'han restablert"
   },
   "data_reset_global": {
-    "title": "🔄 Tasques de la llar dels nens: Restabliment complet",
+    "title": "🔄 ChoreOps: Restabliment complet",
     "message": "Totes les dades del sistema s'han restablert als valors predeterminats"
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps: Restabliment infantil",
+    "title": "🔄 ChoreOps: Restabliment de l'assignat",
     "message": "Restabliment de dades per a {assignee_name}"
   },
   "data_reset_item_type": {
-    "title": "🔄 Tasques infantils: {item_type} Restablir",
+    "title": "🔄 ChoreOps: {item_type} Reinicia",
     "message": "Totes les dades de {item_type} s'han reiniciat."
   },
   "data_reset_item": {
-    "title": "🔄 Tasques infantils: Restablir ítems",
+    "title": "🔄 ChoreOps: Restabliment d'objectes",
     "message": "S'ha reiniciat {item_type} '{item_name}'"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════",
