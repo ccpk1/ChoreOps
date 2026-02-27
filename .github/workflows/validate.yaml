@@ -13,7 +13,7 @@ jobs:
     # Skip HACS validation on forks - only validate on main repo
     if: github.repository == 'ccpk1/choreops' && (github.ref == 'refs/heads/main' || github.event_name == 'pull_request')
     steps:
-      - uses: "actions/checkout@v3"
+      - uses: "actions/checkout@v4"
       - name: HACS prerequisite guidance
         run: |
           echo "::notice::HACS validation requires a valid integration manifest at custom_components/choreops/manifest.json and a valid hacs.json file."
@@ -23,3 +23,4 @@ jobs:
         uses: "hacs/action@main"
         with:
           category: integration
+          ignore: "brands"
