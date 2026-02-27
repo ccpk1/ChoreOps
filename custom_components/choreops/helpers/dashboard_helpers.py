@@ -49,6 +49,8 @@ class DashboardTemplateDefinition(TypedDict):
     max_integration_version: str | None
     maintainer: str
     display_name: NotRequired[str]
+    description: NotRequired[str]
+    preferences_doc_asset_path: NotRequired[str]
     dependencies_required: NotRequired[list[str]]
     dependencies_recommended: NotRequired[list[str]]
     dependencies_required_metadata: NotRequired[dict[str, DashboardDependencyMetadata]]
@@ -119,6 +121,14 @@ def _validate_and_normalize_template_definition(
     max_integration_version = template.get("max_integration_version")
     maintainer = template.get("maintainer")
     display_name = template.get("display_name", "")
+    description = template.get("description", "")
+
+    preferences_doc_asset_path: str | None = None
+    preferences = template.get("preferences")
+    if isinstance(preferences, dict):
+        raw_doc_asset_path = preferences.get("doc_asset_path")
+        if isinstance(raw_doc_asset_path, str) and raw_doc_asset_path.strip():
+            preferences_doc_asset_path = raw_doc_asset_path.strip()
 
     if not isinstance(audience, str):
         return None
@@ -243,7 +253,7 @@ def _validate_and_normalize_template_definition(
             dependencies_recommended_metadata[dependency_id] = metadata
 
     seen_template_ids.add(template_id)
-    return DashboardTemplateDefinition(
+    normalized_definition: DashboardTemplateDefinition = DashboardTemplateDefinition(
         template_id=template_id,
         source_path=source_path.strip(),
         source_type=source_type,
@@ -254,11 +264,15 @@ def _validate_and_normalize_template_definition(
         max_integration_version=max_integration_version,
         maintainer=maintainer,
         display_name=display_name.strip() if isinstance(display_name, str) else "",
+        description=description.strip() if isinstance(description, str) else "",
         dependencies_required=dependencies_required,
         dependencies_recommended=dependencies_recommended,
         dependencies_required_metadata=dependencies_required_metadata,
         dependencies_recommended_metadata=dependencies_recommended_metadata,
     )
+    if preferences_doc_asset_path is not None:
+        normalized_definition["preferences_doc_asset_path"] = preferences_doc_asset_path
+    return normalized_definition
 
 
 def _parse_manifest_template_definitions(
@@ -522,7 +536,7 @@ async def fetch_remote_manifest_template_definitions(
         owner=const.DASHBOARD_RELEASE_REPO_OWNER,
         repo=const.DASHBOARD_RELEASE_REPO_NAME,
         ref=release_ref,
-        source_path="manifest.json",
+        source_path=Path(const.DASHBOARD_MANIFEST_PATH).name,
     )
     session = async_get_clientsession(hass)
     try:
@@ -930,6 +944,7 @@ def build_dashboard_configure_schema(
         const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT
     ),
     release_selection_default: str = const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+    template_details_review_default: bool = True,
 ) -> vol.Schema:
     """Build unified Step 2 dashboard configuration schema."""
     if template_profile_default is None:
@@ -1055,6 +1070,10 @@ def build_dashboard_configure_schema(
         vol.Optional(
             const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR,
             default=show_in_sidebar_default,
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW,
+            default=template_details_review_default,
         ): selector.BooleanSelector(),
     }
 
@@ -1255,6 +1274,20 @@ def build_dashboard_missing_dependencies_schema(
         {
             vol.Optional(
                 const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS,
+                default=continue_default,
+            ): selector.BooleanSelector(),
+        }
+    )
+
+
+def build_dashboard_template_details_schema(
+    continue_default: bool = False,
+) -> vol.Schema:
+    """Build schema for dashboard template details review step."""
+    return vol.Schema(
+        {
+            vol.Optional(
+                const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK,
                 default=continue_default,
             ): selector.BooleanSelector(),
         }

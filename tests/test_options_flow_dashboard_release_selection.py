@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from typing import TYPE_CHECKING, Any
 from unittest.mock import AsyncMock, patch
 
@@ -16,6 +15,8 @@ from custom_components.choreops.helpers import dashboard_helpers as dh
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from homeassistant.core import HomeAssistant
 
 
@@ -128,6 +129,21 @@ def _section_field_order(schema: vol.Schema, section_key: str) -> list[str]:
                 )
             ]
     return []
+
+
+async def _ack_template_details_if_needed(
+    hass: HomeAssistant,
+    flow_id: str,
+    result: dict[str, Any],
+) -> dict[str, Any]:
+    """Continue through template details review when that step is shown."""
+    if result.get("step_id") != const.OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS:
+        return result
+
+    return await hass.config_entries.options.async_configure(
+        flow_id,
+        user_input={const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK: True},
+    )
 
 
 def test_dashboard_template_labels_are_human_friendly() -> None:
@@ -344,6 +360,7 @@ async def test_dashboard_create_approver_visibility_passes_linked_approver_users
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     assert mock_create_dashboard.await_count == 1
@@ -427,6 +444,7 @@ async def test_dashboard_create_passes_release_parity_args_to_builder(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_create_dashboard.await_args.kwargs
@@ -507,6 +525,7 @@ async def test_dashboard_create_blocks_missing_required_template_dependencies(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
         assert (
             result.get("step_id")
@@ -605,9 +624,89 @@ async def test_dashboard_create_continues_when_only_recommended_dependencies_mis
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     assert mock_create_dashboard.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_dashboard_create_template_details_review_step_default_on(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Create flow shows template details review by default."""
+    config_entry = scenario_minimal.config_entry
+    mock_create_dashboard = AsyncMock(return_value="kcd-chores")
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_choreops_dashboards",
+            return_value={},
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.create_choreops_dashboard",
+            mock_create_dashboard,
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
+            },
+        )
+        assert result.get("step_id") == "dashboard_create"
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_NAME: "Chores"},
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: DEFAULT_ASSIGNEE_TEMPLATE_ID,
+                    const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: ["Zoë"],
+                },
+                const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_ADMIN_MODE: const.DASHBOARD_ADMIN_MODE_NONE,
+                },
+                const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR: {
+                    const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
+                    const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
+                    const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: True,
+                },
+            },
+        )
+
+        assert (
+            result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS
+        )
+        placeholders = result.get("description_placeholders", {})
+        assert "Gamification (User)" in placeholders.get(
+            const.PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS, ""
+        )
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK: True},
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+        assert mock_create_dashboard.await_count == 1
 
 
 @pytest.mark.asyncio
@@ -676,6 +775,7 @@ async def test_dashboard_create_blocks_nonselectable_lifecycle_templates(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
     assert "Selected templates are unavailable for generation" in str(
@@ -864,6 +964,7 @@ async def test_dashboard_update_accepts_sectioned_configure_payload(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     assert mock_update_dashboard.await_count == 1
@@ -955,6 +1056,7 @@ async def test_dashboard_update_per_assignee_mode_submits_without_rerender_stall
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs
@@ -1033,6 +1135,7 @@ async def test_dashboard_update_schema_uses_expected_section_and_access_field_or
         const.CFOF_DASHBOARD_INPUT_ICON,
         const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN,
         const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR,
+        const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW,
     ]
 
 
@@ -1120,6 +1223,7 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs
@@ -1209,6 +1313,7 @@ async def test_dashboard_update_passes_per_assignee_admin_mode_to_builder(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs
@@ -1308,6 +1413,7 @@ async def test_dashboard_update_passes_icon_and_access_metadata_to_builder(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs
@@ -1397,6 +1503,7 @@ async def test_dashboard_update_linked_approvers_visibility_submits(
                 },
             },
         )
+        result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs

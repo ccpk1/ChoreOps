@@ -42,20 +42,20 @@ Dashboard assets use a single-source-of-truth model:
 - Canonical authoring repo: `choreops-dashboards`
 - Vendored runtime mirror: `custom_components/choreops/dashboards`
 
-When you update templates, translations, preferences, or dashboard `manifest.json`:
+When you update templates, translations, preferences, or dashboard `dashboard_registry.json`:
 
 1. Edit canonical files in `choreops-dashboards`.
 2. From `choreops`, run:
 
-  ```bash
-  python utils/sync_dashboard_assets.py
-  ```
+```bash
+python utils/sync_dashboard_assets.py
+```
 
 3. Verify drift-free parity:
 
-  ```bash
-  python utils/sync_dashboard_assets.py --check
-  ```
+```bash
+python utils/sync_dashboard_assets.py --check
+```
 
 4. Commit canonical changes and vendored mirror updates together.
 

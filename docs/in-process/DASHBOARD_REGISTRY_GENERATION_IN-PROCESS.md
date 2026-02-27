@@ -5,7 +5,7 @@
 - **Name / Code**: Dashboard registry architecture standards and operating model (`DASHBOARD_REGISTRY_GENERATION`)
 - **Target release / milestone**: Architecture ratification for 0.5.0-beta.5 delivery window
 - **Owner / driver(s)**: ChoreOps maintainers (Architecture, Integration, DX)
-- **Status**: Reopened (gap closure in progress before owner approval)
+- **Status**: Complete (execution tracking transitioned to `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`)
 
 ## Summary & immediate steps
 
@@ -19,14 +19,12 @@
 1. **Key objective** – Define an architecture-first dashboard ecosystem that scales across templates, contributors, and releases without inheriting proof-of-concept constraints.
 2. **Summary of recent work**
    - Established dual-repo direction (`ccpk1/choreops` + `ccpk1/choreops-dashboards`) and vendoring requirement for HACS-safe fallback.
-   - Created initial dashboards repository scaffold (`README.md`, `LICENSE`, `.gitignore`, baseline `manifest.json`).
+   - Created initial dashboards repository scaffold (`README.md`, `LICENSE`, `.gitignore`, baseline `dashboard_registry.json`).
    - Drafted initial implementation-biased plan and now pivoting to standards-first architecture and decision framework.
 3. **Next steps (short term)**
-   - Close template lookup migration: all templates must resolve dashboard helper targets via integration-instance-safe lookup contracts (no legacy name-only scans).
-   - Add and verify helper payload contract fields for lookup identity (including instance-scoped lookup keys/attributes) before template rollout.
-   - Ensure create + update generator flows both honor release selection and prerelease flags from options flow.
-   - Add generated dashboard provenance metadata contract (template ID, template source/ref, generation timestamp, integration entry ID) for troubleshooting.
-   - Define standardized dashboard metadata/header policy and test assertions for persistence and update behavior.
+   - Execution and remaining closeout validation moved to:
+     - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md` (Phase R1-R5 tracking)
+   - This parent initiative plan remains the architectural decision record and completion summary.
 4. **Risks / blockers**
    - Premature coding before standards ratification can cement poor contracts.
    - Contract drift risk between integration and registry repos without schema/version policy.
@@ -107,13 +105,13 @@
 - **Goal**: Define the manifest as a strict, evolvable contract and standardize naming/organization so templates remain discoverable and maintainable at scale.
 - **Steps / detailed work items**
   1.  [x] Define manifest schema v1 with required and optional fields.
-  - Files: `choreops-dashboards/manifest.json` (spec target), `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - Files: `choreops-dashboards/dashboard_registry.json` (spec target), `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - Define identity fields (`template_id`, `display_name`), semantics (`category`, `audience`), compatibility, dependencies, and lifecycle state.
   - Status note: Added explicit v1 optional fields and validation rules to standards, complementing required identity/compatibility/dependency/lifecycle contract definitions.
   2. [x] Define naming taxonomy and folder organization standards.
      - Files: `choreops-dashboards/README.md`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Establish canonical naming for template files, IDs, variants, and deprecation aliases.
-  - Status note: Runtime/options now resolve template IDs and source paths from `dashboards/manifest.json`; hardcoded profile lists, selector option labels, and legacy style constants removed from helper/build/translation paths.
+  - Status note: Runtime/options now resolve template IDs and source paths from `dashboards/dashboard_registry.json`; hardcoded profile lists, selector option labels, and legacy style constants removed from helper/build/translation paths.
   3.  [x] Define schema evolution and compatibility policy.
   - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - Include semver strategy for manifest schema and backward-compatibility guarantees.
@@ -123,7 +121,7 @@
   - Formalize `required` vs `recommended` dependencies and machine-readable dependency identifiers.
   - Status note: Ratified dependency behavior contract: `required` blocks selection/generation with explicit reason; `recommended` warns but continues; dependency IDs are stable machine-readable keys.
   5.  [x] Define template lifecycle states.
-  - Files: `choreops-dashboards/manifest.json`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - Files: `choreops-dashboards/dashboard_registry.json`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - States: `active`, `deprecated`, `archived`, with migration hints for replaced templates.
   - Status note: Lifecycle semantics are ratified in standards and manifest template entries now declare explicit `lifecycle_state` (currently `active`).
   6.  [x] Define dependency identifiers for future ChoreOps-specific cards.
@@ -291,9 +289,10 @@ Use this packet as the mandatory handoff bundle:
 ## Testing & validation
 
 - Tests executed (describe suites, commands, results).
-  - Planning-only pass: no implementation tests executed for this update.
+  - Implementation and closeout validation are tracked in:
+    - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`
 - Outstanding tests (not run and why).
-  - All architecture decisions require future contract and workflow tests after ratification.
+  - See remediation plan Phase R5 for final validation-gate status.
 - Links to failing logs or CI runs if relevant.
   - N/A at planning stage.
 

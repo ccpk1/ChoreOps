@@ -19,7 +19,8 @@ def _project_root() -> Path:
 
 def _load_dashboard_manifest() -> dict[str, Any]:
     manifest_path = (
-        _project_root() / "custom_components/choreops/dashboards/manifest.json"
+        _project_root()
+        / "custom_components/choreops/dashboards/dashboard_registry.json"
     )
     return json.loads(manifest_path.read_text(encoding="utf-8"))
 

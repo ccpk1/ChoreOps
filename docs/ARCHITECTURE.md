@@ -749,12 +749,11 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 
 ### Architecture Components
 
-**Dashboard Templates** (`templates/dashboard_*.yaml`):
+**Dashboard template registry** (`dashboards/dashboard_registry.json`):
 
-- Pre-built Jinja2 templates with runtime (`{{ }}`) and build-time (`<< >>`) variables
-- Three assignee dashboard styles: Minimal (essentials), Compact (dense), Full (all features)
-- One admin dashboard template with 7 management cards
-- Templates use Mushroom Cards, Auto-Entities, and Mini Graph Card
+- Manifest-driven template IDs and source paths are the runtime contract
+- Bundled fallback assets live in `custom_components/choreops/dashboards/`
+- Canonical authoring source is `choreops-dashboards`; vendored assets are synced via parity workflow
 
 **Generation Flow** (`options_flow.py` → `dashboard_helpers.py`):
 
@@ -762,9 +761,15 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 - Create and update use a shared sectioned configure step (assignee views, admin views, access/sidebar, template version)
 - Admin layout supports `none`, `global` (shared), `per_assignee`, and `both`
 - Update path applies changes in place to the selected dashboard URL path
-- Build-time rendering: Python Jinja2 populates assignee names/slugs with `<< >>` delimiters
+- Build-time rendering: Python Jinja2 populates `user.*` + `integration.entry_id` context with `<< >>` delimiters
 - Runtime rendering: Home Assistant Jinja2 fetches live data with `{{ }}` delimiters
 - Output: Lovelace storage dashboard config persisted through the dashboard builder helpers
+
+**Dependency behavior**:
+
+- Template dependencies are read from registry metadata
+- Missing `required` dependencies trigger a blocking helper step with explicit continue acknowledgement
+- Missing `recommended` dependencies are non-blocking warnings
 
 **System Dashboard Selector** (`SystemDashboardAdminKidSelect`):
 
@@ -772,13 +777,6 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 - Provides `dashboard_helper_eid` attribute for efficient assignee data access
 - Eliminates hardcoded assignee names and expensive `integration_entities()` queries
 - Purpose-based filtering (`purpose_system_dashboard_admin_assignee`) for entity ID stability
-
-**Custom Card Detection** (`dashboard_helpers.check_custom_cards_installed()`):
-
-- Validates Mushroom Cards, Auto-Entities, Mini Graph Card installation
-- Accesses `hass.data["lovelace"].resources` for lovelace resource collection
-- Warns users before generation if required frontend cards are missing
-- Blocks dashboard creation when cards unavailable to prevent error-filled dashboards
 
 ---
 

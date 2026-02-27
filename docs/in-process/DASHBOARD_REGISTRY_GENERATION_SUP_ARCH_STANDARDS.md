@@ -244,7 +244,7 @@ To avoid ambiguity in generator behavior and template authoring, admin views are
 
 - Contributor PR includes:
   - template YAML file under `templates/`
-  - one new/updated record in the single canonical `manifest.json`
+  - one new/updated record in the single canonical `dashboard_registry.json`
 - Maintainers review and merge both together so registry metadata and asset content remain synchronized.
 
 ## 5) Runtime resolution model standards

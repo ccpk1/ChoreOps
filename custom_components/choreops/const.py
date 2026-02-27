@@ -130,6 +130,7 @@ PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES: Final = (
 PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: Final = (
     "dashboard_missing_recommended_dependencies"
 )
+PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS: Final = "dashboard_template_details"
 
 # ================================================================================================
 # Dashboard Template Configuration
@@ -151,8 +152,8 @@ DASHBOARD_RELEASE_TEMPLATE_URL_PATTERN: Final = (
     "https://raw.githubusercontent.com/{owner}/{repo}/{ref}/{source_path}"
 )
 
-# Canonical bundled dashboard manifest path
-DASHBOARD_MANIFEST_PATH: Final = "dashboards/manifest.json"
+# Canonical bundled dashboard registry path
+DASHBOARD_MANIFEST_PATH: Final = "dashboards/dashboard_registry.json"
 
 # Template ID classification
 DASHBOARD_TEMPLATE_ID_ADMIN_PREFIX: Final = "admin"
@@ -553,6 +554,7 @@ OPTIONS_FLOW_STEP_PASTE_JSON_RESTORE: Final = "paste_json_restore"
 # OptionsFlow Dashboard Generator Steps
 OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR: Final = "dashboard_generator"
 OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE: Final = "dashboard_configure"
+OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS: Final = "dashboard_template_details"
 OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES: Final = (
     "dashboard_missing_dependencies"
 )
@@ -832,6 +834,10 @@ CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 CFOF_DASHBOARD_INPUT_ACTION: Final = "dashboard_action"
 CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: Final = "dashboard_update_selection"
 CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: Final = "dashboard_dependency_bypass"
+CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW: Final = (
+    "dashboard_template_details_review"
+)
+CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK: Final = "dashboard_template_details_ack"
 CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 CFOF_DASHBOARD_INPUT_ADMIN_MODE: Final = "dashboard_admin_mode"
 CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_GLOBAL: Final = "dashboard_admin_template_global"
@@ -3298,6 +3304,9 @@ TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES: Final = (
 )
 TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED: Final = (
     "dashboard_dependency_ack_required"
+)
+TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_DETAILS_ACK_REQUIRED: Final = (
+    "dashboard_template_details_ack_required"
 )
 
 # Flow Helpers Translation Keys

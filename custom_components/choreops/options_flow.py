@@ -26,6 +26,7 @@ from .utils.dt_utils import dt_now_utc, dt_parse, validate_daily_multi_times
 from .utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
+    from .helpers.dashboard_helpers import DashboardTemplateDefinition
     from .type_defs import BadgeData
 
 # ----------------------------------------------------------------------------------
@@ -96,6 +97,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._dashboard_update_url_path: str | None = None
         self._dashboard_delete_selection: list[str] = []
         self._dashboard_dedupe_removed: dict[str, int] = {}
+        self._dashboard_template_details_review: bool = True
+        self._dashboard_template_details_markdown: str = "- None"
+        self._dashboard_skip_template_details_once: bool = False
         self._dashboard_skip_dependency_validation_once: bool = False
         self._dashboard_pending_configure_input: dict[str, Any] | None = None
         self._dashboard_missing_required_dependencies: list[str] = []
@@ -158,6 +162,48 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             for dependency_id in dependency_ids
         )
+
+    def _build_dashboard_template_details_markdown_lines(
+        self,
+        template_ids: list[str],
+        template_definitions: list["DashboardTemplateDefinition"],
+    ) -> str:
+        """Build markdown summary for selected template details."""
+        definition_by_template_id = {
+            definition["template_id"]: definition for definition in template_definitions
+        }
+
+        lines: list[str] = []
+        for template_id in template_ids:
+            definition = definition_by_template_id.get(template_id)
+            if definition is None:
+                lines.append(f"- **{template_id}**")
+                lines.append("  - No manifest metadata available")
+                continue
+
+            display_name = definition.get("display_name") or template_id
+            description = definition.get("description") or "No description provided"
+            required_count = len(definition.get("dependencies_required", []))
+            recommended_count = len(definition.get("dependencies_recommended", []))
+            preferences_doc_asset_path = definition.get("preferences_doc_asset_path")
+
+            lines.append(f"- **{display_name}** (`{template_id}`)")
+            lines.append(f"  - {description}")
+            lines.append(
+                f"  - Dependencies: required={required_count}, recommended={recommended_count}"
+            )
+
+            if preferences_doc_asset_path:
+                preferences_url = (
+                    f"https://github.com/{const.DASHBOARD_RELEASE_REPO_OWNER}/"
+                    f"{const.DASHBOARD_RELEASE_REPO_NAME}/blob/main/"
+                    f"{preferences_doc_asset_path}"
+                )
+                lines.append(f"  - Preferences: [View guide]({preferences_url})")
+            else:
+                lines.append("  - Preferences: Not provided")
+
+        return "\n".join(lines) if lines else "- None"
 
     # ----------------------------------------------------------------------------------
     # MAIN MENU
@@ -4245,6 +4291,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             user_input = dh.normalize_dashboard_configure_input(user_input)
+            skip_template_details = self._dashboard_skip_template_details_once
+            self._dashboard_skip_template_details_once = False
             skip_dependency_validation = self._dashboard_skip_dependency_validation_once
             self._dashboard_skip_dependency_validation_once = False
             self._dashboard_dedupe_removed = {}
@@ -4333,6 +4381,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_include_prereleases,
                 )
             )
+            template_details_review = bool(
+                user_input.get(
+                    const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW,
+                    self._dashboard_template_details_review,
+                )
+            )
 
             # Update flow only: when admin layout changes, rerender with newly
             # relevant template selector fields before full validation.
@@ -4372,6 +4426,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_icon = icon or "mdi:clipboard-list"
                     self._dashboard_release_selection = release_selection
                     self._dashboard_include_prereleases = include_prereleases
+                    self._dashboard_template_details_review = template_details_review
                     return await self.async_step_dashboard_configure()
 
             if not selected_assignees and admin_mode == const.DASHBOARD_ADMIN_MODE_NONE:
@@ -4422,50 +4477,58 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 )
 
             if not errors:
+                pinned_release_tag = (
+                    release_selection
+                    if release_selection
+                    != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
+                    else None
+                )
+                selected_template_ids: set[str] = {template_profile}
+                if (
+                    admin_mode
+                    in (
+                        const.DASHBOARD_ADMIN_MODE_GLOBAL,
+                        const.DASHBOARD_ADMIN_MODE_BOTH,
+                    )
+                    and admin_template_global
+                ):
+                    selected_template_ids.add(admin_template_global)
+                if (
+                    admin_mode
+                    in (
+                        const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
+                        const.DASHBOARD_ADMIN_MODE_BOTH,
+                    )
+                    and admin_template_per_assignee
+                ):
+                    selected_template_ids.add(admin_template_per_assignee)
+
+                template_definitions = dh.get_dashboard_template_definitions()
+                if pinned_release_tag is not None:
+                    remote_definitions = (
+                        await dh.fetch_remote_manifest_template_definitions(
+                            self.hass,
+                            pinned_release_tag,
+                        )
+                    )
+                    if remote_definitions:
+                        template_definitions = dh.merge_manifest_template_definitions(
+                            template_definitions,
+                            remote_definitions,
+                        )
+
+                if template_details_review and not skip_template_details:
+                    self._dashboard_pending_configure_input = user_input
+                    self._dashboard_template_details_markdown = (
+                        self._build_dashboard_template_details_markdown_lines(
+                            sorted(selected_template_ids),
+                            template_definitions,
+                        )
+                    )
+                    return await self.async_step_dashboard_template_details()
+
                 should_validate_dependencies = not skip_dependency_validation
                 if should_validate_dependencies:
-                    pinned_release_tag = (
-                        release_selection
-                        if release_selection
-                        != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
-                        else None
-                    )
-                    selected_template_ids: set[str] = {template_profile}
-                    if (
-                        admin_mode
-                        in (
-                            const.DASHBOARD_ADMIN_MODE_GLOBAL,
-                            const.DASHBOARD_ADMIN_MODE_BOTH,
-                        )
-                        and admin_template_global
-                    ):
-                        selected_template_ids.add(admin_template_global)
-                    if (
-                        admin_mode
-                        in (
-                            const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
-                            const.DASHBOARD_ADMIN_MODE_BOTH,
-                        )
-                        and admin_template_per_assignee
-                    ):
-                        selected_template_ids.add(admin_template_per_assignee)
-
-                    template_definitions = dh.get_dashboard_template_definitions()
-                    if pinned_release_tag is not None:
-                        remote_definitions = (
-                            await dh.fetch_remote_manifest_template_definitions(
-                                self.hass,
-                                pinned_release_tag,
-                            )
-                        )
-                        if remote_definitions:
-                            template_definitions = (
-                                dh.merge_manifest_template_definitions(
-                                    template_definitions,
-                                    remote_definitions,
-                                )
-                            )
-
                     nonselectable_templates = (
                         dh.get_nonselectable_template_ids_from_definitions(
                             list(selected_template_ids),
@@ -4573,6 +4636,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 self._dashboard_admin_view_visibility = admin_view_visibility
                 self._dashboard_release_selection = release_selection
                 self._dashboard_include_prereleases = include_prereleases
+                self._dashboard_template_details_review = template_details_review
                 admin_visible_user_ids = (
                     self._get_user_ha_user_ids()
                     if admin_view_visibility
@@ -4683,6 +4747,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             icon_default=self._dashboard_icon,
             include_prereleases_default=self._dashboard_include_prereleases,
             release_selection_default=self._dashboard_release_selection,
+            template_details_review_default=self._dashboard_template_details_review,
         )
 
         return self.async_show_form(
@@ -4693,6 +4758,43 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 "mode": self._dashboard_flow_mode,
                 "dashboard": self._dashboard_update_url_path or self._dashboard_name,
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+            },
+        )
+
+    async def async_step_dashboard_template_details(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Review selected template metadata before generation/update."""
+        from .helpers import dashboard_helpers as dh
+
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            continue_anyway = bool(
+                user_input.get(const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK, False)
+            )
+            if not continue_anyway:
+                errors[const.CFOP_ERROR_BASE] = (
+                    const.TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_DETAILS_ACK_REQUIRED
+                )
+            elif self._dashboard_pending_configure_input is None:
+                return await self.async_step_dashboard_configure()
+            else:
+                pending_input = self._dashboard_pending_configure_input
+                self._dashboard_pending_configure_input = None
+                self._dashboard_skip_template_details_once = True
+                return await self.async_step_dashboard_configure(pending_input)
+
+        schema = dh.build_dashboard_template_details_schema()
+        return self.async_show_form(
+            step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS,
+            data_schema=schema,
+            errors=errors,
+            description_placeholders={
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+                const.PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS: (
+                    self._dashboard_template_details_markdown
+                ),
             },
         )
 
@@ -4717,6 +4819,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             else:
                 pending_input = self._dashboard_pending_configure_input
                 self._dashboard_pending_configure_input = None
+                self._dashboard_skip_template_details_once = True
                 self._dashboard_skip_dependency_validation_once = True
                 self._dashboard_status_message = (
                     "Missing required dependencies bypassed by user"

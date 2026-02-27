@@ -15,6 +15,15 @@ It defines:
 
 ## Execution updates
 
+- 2026-02-27: Began Phase R5 full regression and closeout validation.
+  - Validation gates executed:
+    - `./utils/quick_lint.sh --fix` → passed
+    - `mypy custom_components/choreops/` → passed (0 errors)
+    - full test suite (`runTests`) → passed (1524/1524)
+  - Immediate follow-up required before archival:
+    - Reconcile stale `Audit matrix`/`Full gap list` entries that still show previously remediated items as partial or missing.
+    - Confirm owner approval and completion/archive workflow.
+
 - 2026-02-27: Implemented template-aware missing dependency helper flow (UX refinement).
   - Replaced static first-screen card list with a dedicated post-template-selection helper step for missing required dependencies.
   - Added manifest dependency metadata support (`name`, `url`) so helper output can show dynamic dependency labels and links per selected user/admin templates.
@@ -96,8 +105,8 @@ It defines:
 
 - 2026-02-27: Implemented initial dependency declaration slice.
   - Added `dependencies.required[]` / `dependencies.recommended[]` to template records in:
-    - `choreops-dashboards/manifest.json`
-    - `custom_components/choreops/dashboards/manifest.json`
+    - `choreops-dashboards/dashboard_registry.json`
+    - `custom_components/choreops/dashboards/dashboard_registry.json`
   - Added contract tests in `tests/test_dashboard_manifest_dependencies_contract.py` to ensure:
     - dependency fields exist with valid `ha-card:*` IDs,
     - manifest required dependencies cover all `custom:*` cards used in template YAML.
@@ -144,7 +153,7 @@ It defines:
   - `/workspaces/choreops-dashboards/templates/`
   - `/workspaces/choreops-dashboards/translations/`
   - `/workspaces/choreops-dashboards/preferences/`
-  - `/workspaces/choreops-dashboards/manifest.json`
+  - `/workspaces/choreops-dashboards/dashboard_registry.json`
 
 ### Vendored runtime mirror
 
@@ -154,7 +163,7 @@ It defines:
 ### Allowed update flow
 
 1. Edit canonical files in `choreops-dashboards`.
-2. Validate canonical repo artifacts (`manifest.json`, template parsing, translation naming).
+2. Validate canonical repo artifacts (`dashboard_registry.json`, template parsing, translation naming).
 3. Run sync tooling from `choreops` to mirror canonical assets into vendored runtime path.
 4. Run parity check (file list + content hash/byte comparison) as a required gate.
 5. Run integration tests in `choreops`.
@@ -266,6 +275,8 @@ Exit criteria:
 
 ### Phase R5 — Full regression and closeout
 
+Status: In progress (validation gates complete on 2026-02-27)
+
 Scope:
 
 - Run full validation suite for touched areas.
@@ -281,6 +292,11 @@ Exit criteria:
 
 - All gap items marked complete with test evidence.
 - Plan ready for owner approval and archival.
+
+Current progress notes:
+
+- Validation gates are complete and passing.
+- Remaining closeout work is documentation reconciliation (`Audit matrix` and `Full gap list`) and owner approval/archive handoff.
 
 ## Deliverable ownership
 

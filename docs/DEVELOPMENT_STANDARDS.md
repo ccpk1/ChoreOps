@@ -67,6 +67,14 @@ To keep editor diagnostics stable across contributors, this repository uses a lo
 - **Test default behavior**: Pytest excludes `performance` and `stress` markers unless explicitly requested.
 - **Definition of done**: Lint gate + zero MyPy errors + relevant pytest pass.
 
+### 1.3 Dashboard asset governance (required)
+
+- **Single source of truth**: Dashboard authoring assets live in `choreops-dashboards`.
+- **Registry filename contract**: Use `dashboard_registry.json` for dashboard template metadata.
+- **Vendored runtime mirror**: Runtime assets in `custom_components/choreops/dashboards/` are sync outputs, not hand-edited sources.
+- **No hardcoded registry filename strings**: Use constants/path derivation in runtime code.
+- **Required update flow**: canonical edit → `python utils/sync_dashboard_assets.py` → `python utils/sync_dashboard_assets.py --check` → integration validation.
+
 ---
 
 ### 2. Localization & Translation Standards

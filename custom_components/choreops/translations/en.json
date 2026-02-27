@@ -1545,6 +1545,16 @@
           "dashboard_dependency_bypass": "Acknowledge missing required dependencies and continue generation anyway. Dashboard cards may fail to render until dependencies are installed."
         }
       },
+      "dashboard_template_details": {
+        "title": "Template details review",
+        "description": "Review details for selected templates before applying dashboard changes.\n\n[Dashboard configuration guide]({documentation_url})\n\n{dashboard_template_details}",
+        "data": {
+          "dashboard_template_details_ack": "Continue with these templates"
+        },
+        "data_description": {
+          "dashboard_template_details_ack": "Acknowledge the selected template details and continue to dependency checks and generation."
+        }
+      },
       "dashboard_create": {
         "title": "Create Dashboard",
         "description": "Enter a dashboard name, then continue to configuration.\n\n[Configuration Guide]({documentation_url})",
@@ -1603,12 +1613,14 @@
             "data": {
               "dashboard_icon": "Dashboard Icon",
               "dashboard_require_admin": "Admin Only",
-              "dashboard_show_in_sidebar": "Add to Sidebar"
+              "dashboard_show_in_sidebar": "Add to Sidebar",
+              "dashboard_template_details_review": "Review template details before apply"
             },
             "data_description": {
               "dashboard_icon": "Sidebar icon for this dashboard.",
               "dashboard_require_admin": "Restrict dashboard access to admin users.",
-              "dashboard_show_in_sidebar": "Show this dashboard in the Home Assistant sidebar."
+              "dashboard_show_in_sidebar": "Show this dashboard in the Home Assistant sidebar.",
+              "dashboard_template_details_review": "Show a review step with template descriptions, dependencies, and preference guide links before applying changes."
             }
           },
           "section_template_version": {
@@ -1874,7 +1886,8 @@
       "dashboard_admin_global_template_required": "Shared admin template is required when Admin Layout includes Shared.",
       "dashboard_admin_per_assignee_template_required": "Per-assignee admin template is required when Admin Layout includes Per Assignee.",
       "dashboard_admin_per_assignee_needs_assignees": "Per Assignee Admin Layout requires at least one selected assignee.",
-      "dashboard_dependency_ack_required": "Enable 'Continue anyway' to proceed, or go back and install missing required dependencies first."
+      "dashboard_dependency_ack_required": "Enable 'Continue anyway' to proceed, or go back and install missing required dependencies first.",
+      "dashboard_template_details_ack_required": "Enable 'Continue with these templates' to proceed, or go back and adjust template selections."
     },
     "abort": {
       "invalid_action": "Invalid Action",

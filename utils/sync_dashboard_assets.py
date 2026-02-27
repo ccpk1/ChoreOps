@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 CANONICAL_DIR_NAMES: tuple[str, ...] = ("templates", "translations", "preferences")
-CANONICAL_FILE_NAMES: tuple[str, ...] = ("manifest.json",)
+CANONICAL_FILE_NAMES: tuple[str, ...] = ("dashboard_registry.json",)
 
 
 def _repo_root() -> Path:

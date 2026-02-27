@@ -31,7 +31,7 @@ This plan is execution-oriented and assumes architecture decisions D1-D16 are al
   - canonical dashboard template source files,
   - canonical dashboard translation source files,
   - template authoring/release-operation documentation,
-  - canonical dashboard `manifest.json` records.
+  - canonical dashboard `dashboard_registry.json` records.
 - **Integration repo (`choreops`) owns:**
   - vendored runtime mirror of dashboard assets,
   - runtime loaders/resolution logic,
@@ -56,7 +56,7 @@ This option ensures preference guidance ships with each template PR, remains ava
 
 - Canonical preference docs live in dashboard source repo assets:
   - `choreops-dashboards/preferences/<template_id>.md`
-- Canonical preference summary metadata lives in `choreops-dashboards/manifest.json` per template.
+- Canonical preference summary metadata lives in `choreops-dashboards/dashboard_registry.json` per template.
 - Integration vendors/syncs those assets into runtime mirror:
   - `custom_components/choreops/dashboards/preferences/<template_id>.md`
 
@@ -594,7 +594,7 @@ Finalize preference documentation delivery and publishing workflow without block
 
 - `/workspaces/choreops-dashboards/README.md`
 - `/workspaces/choreops-dashboards/preferences/*`
-- `/workspaces/choreops-dashboards/manifest.json`
+- `/workspaces/choreops-dashboards/dashboard_registry.json`
 
 ## Phase 6 — Tests and validation (builder definition of done)
 
