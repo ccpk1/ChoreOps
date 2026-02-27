@@ -1,0 +1,39 @@
+name: Mark stale issues and PRs
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: >-
+            This issue has been inactive for a while.
+            If this is still relevant, comment with an update to keep it open.
+          stale-pr-message: >-
+            This pull request has been inactive for a while.
+            Please push updates or comment if it should remain open.
+          close-issue-message: >-
+            Closing due to inactivity.
+            You can reopen with updated details.
+          close-pr-message: >-
+            Closing due to inactivity.
+            Reopen when you're ready to continue.
+          days-before-stale: 90
+          days-before-close: 21
+          days-before-pr-stale: 90
+          days-before-pr-close: 21
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: >-
+            status: in-progress,status: blocked,enh: roadmap,enh: deferred,needs-info
+          exempt-pr-labels: >-
+            status: in-progress,status: blocked

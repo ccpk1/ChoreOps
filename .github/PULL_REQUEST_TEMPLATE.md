@@ -2,13 +2,47 @@
 
 - Describe what changed and why.
 
+## Linked issue
+
+- Closes #
+
+## Change type
+
+- [ ] Bug fix
+- [ ] Enhancement
+- [ ] Refactor
+- [ ] Documentation
+
+## Scope
+
+- [ ] Integration logic/state
+- [ ] Dashboard/template behavior
+- [ ] Services/automations
+- [ ] Documentation/wiki
+
+## Standards references
+
+- [Architecture](../docs/ARCHITECTURE.md)
+- [Development standards](../docs/DEVELOPMENT_STANDARDS.md)
+- [Quality reference](../docs/QUALITY_REFERENCE.md)
+- [Technical troubleshooting wiki](https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting)
+
 ## Validation
 
 - [ ] `./utils/quick_lint.sh --fix`
 - [ ] `python -m pytest tests/ -v --tb=line` (or targeted suite with rationale)
 
-## Rebrand guardrails (v0.5.0)
+## Documentation impact
 
-- [ ] No cosmetic internal variable renames in core data paths (`kid_id`, `parent_data`, etc.)
-- [ ] Legacy compatibility decisions are explicit (shim kept/removed with rationale)
-- [ ] If user-facing identifiers changed, migration and release notes were updated
+- [ ] No documentation updates needed
+- [ ] Documentation updated (README / wiki / inline docs)
+
+## Release notes
+
+- [ ] No release notes needed
+- [ ] Release notes needed (summarize user-visible changes below)
+
+## Breaking changes
+
+- [ ] No breaking changes
+- [ ] Breaking change (describe migration or compatibility impact below)

@@ -1,0 +1,76 @@
+name: Translation PR labels
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  label-translation-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label localization PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = (pr.title || "").toLowerCase();
+
+            const isL10nTitle = title.startsWith("chore(l10n): sync");
+            const isCrowdinBranch = (pr.head.ref || "").includes("l10n_crowdin_action");
+            const isCrowdinActor = (context.actor || "").toLowerCase().includes("crowdin");
+
+            if (!(isL10nTitle || isCrowdinBranch || isCrowdinActor)) {
+              core.info("PR does not match translation sync patterns");
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const paths = files.map((file) => file.filename);
+            const touchesIntegration = paths.some((path) =>
+              path.startsWith("custom_components/choreops/translations/") ||
+              path.startsWith("custom_components/choreops/translations_custom/")
+            );
+            const touchesDashboard = paths.some((path) =>
+              path.includes("dashboard")
+            );
+
+            const labelsToAdd = ["l10n", "automation: translations", "priority: low"];
+            if (touchesIntegration) labelsToAdd.push("area: integration");
+            if (touchesDashboard) labelsToAdd.push("area: dashboard");
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: labelsToAdd,
+            });
+
+            const labelsToRemove = ["documentation", "area: docs", "needs-triage"];
+            for (const name of labelsToRemove) {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  name,
+                });
+              } catch {
+                // Ignore if label is not present
+              }
+            }
+
+            core.info(`Applied translation labels: ${labelsToAdd.join(", ")}`);

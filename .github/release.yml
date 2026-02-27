@@ -1,0 +1,48 @@
+changelog:
+  categories:
+    - title: 🚨 Breaking changes
+      labels:
+        - "enh: breaking-change"
+
+    - title: 🐛 Fixes
+      labels:
+        - bug
+
+    - title: ✨ Enhancements
+      labels:
+        - enhancement
+        - "enh: feature"
+        - "enh: ux"
+        - "enh: performance"
+        - "enh: refactor"
+
+    - title: 🌐 Localization
+      labels:
+        - l10n
+        - "automation: translations"
+
+    - title: 🗺️ Roadmap and proposals
+      labels:
+        - "enh: proposal"
+        - "enh: roadmap"
+        - "enh: deferred"
+
+    - title: 📚 Documentation
+      labels:
+        - documentation
+        - "area: docs"
+
+    - title: 🧰 Maintenance
+      labels:
+        - invalid
+        - duplicate
+        - wontfix
+
+  exclude:
+    labels:
+      - needs-triage
+      - needs-info
+      - "status: blocked"
+      - "status: in-progress"
+      - "status: ready"
+      - "automation: translations"

@@ -728,7 +728,7 @@ The dashboard translation system uses **system-level translation sensors** to ef
 All translation files follow a unified, automated synchronization workflow.
 
 - **Master English Files**: Only English master files are maintained and edited directly in the repository.
-- **Automated Sync**: A GitHub Action triggers on pushes to the `l10n-staging` branch to upload English sources and download non-English translations from Crowdin.
+- **Automated Sync**: A GitHub Action triggers on pushes to `main` when English translation source files change, uploads sources to Crowdin, and opens a translation PR with downloaded localizations.
 - **Read-Only Localizations**: All non-English files are considered read-only artifacts sourced exclusively from the Crowdin project.
 
 ### 4. Language Selection Architecture

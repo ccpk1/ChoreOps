@@ -21,8 +21,8 @@
 To maintain a clean history and stable environment use a **Traffic Controller** workflow.
 
 - **Branching Strategy**: Use feature branches for all development.
-- **The L10n-Staging Bridge**: All feature branches must be merged into `l10n-staging` to trigger translation syncs. Note l10n is shorthand for localization / translations.
-- **Sync Protocol**: Regularly merge `l10n-staging` back into your active feature branches to receive the latest translations from Crowdin.
+- **Translation Sync Trigger**: Pushes to `main` that modify English translation sources trigger the Crowdin sync workflow. Note l10n is shorthand for localization / translations.
+- **Sync Protocol**: Use the workflow dispatch input to target a specific branch when needed, and regularly merge translation PR updates from `main` into active feature branches.
 - **Commit Style**: Use **Conventional Commits** (e.g., `feat:`, `fix:`, `refactor:`, `chore(l10n):`) to ensure a readable, professional history.
 
 ### 1.0 Release tag versioning standard (all repos)
@@ -79,12 +79,12 @@ To keep editor diagnostics stable across contributors, this repository uses a lo
 
 ### 2. Localization & Translation Standards
 
-We strictly separate English "source" files from "localized" output to avoid manual editing conflicts.
+We strictly separate English source files from localized output to avoid manual editing conflicts.
 
-- **Master Files**: Only the English master files (`en.json`, `en_notifications.json`, `en_dashboard.json`) are edited in the repository.
-- **Crowdin-Managed**: All non-English files are read-only and sourced exclusively via the Crowdin GitHub Action.
+- **Master Files Only**: Edit only English source files (`en*.json`) in the repository (for example, `en.json`, `en_notifications.json`, `en_dashboard.json`).
+- **Localized Files Are Generated Artifacts**: All non-English files are read-only and sourced exclusively via the Crowdin GitHub Action.
 - **Standard Integration Translations** (`en.json`): Must strictly nest under Home Assistant-approved keys (e.g., `exceptions`, `issues`, `entity`) for core integration features.
-- **Custom Translations** (`translations_custom/`): Flexible files (`en_notifications.json`, `en_dashboard.json`) for dashboards and notifications. These mimic the HA JSON structure but handle features not natively supported by Home Assistant.
+- **Custom Translations** (`translations_custom/`): Flexible files (`en_notifications.json`, `en_report.json`) for reports and notifications. These mimic the HA JSON structure but handle features not natively supported by Home Assistant.
 - **Template Pattern**: Use the **Template Translation System** for errors to reduce redundant work.
 - **Logic**: Use one template (e.g., `not_authorized_action`) and pass the specific action as a placeholder (e.g., `approve_chores`).
 

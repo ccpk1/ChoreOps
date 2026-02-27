@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Troubleshooting guide
+    url: https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting
+    about: Review common fixes and diagnostics before opening a bug report.
+  - name: Community discussions
+    url: https://github.com/ccpk1/choreops/discussions
+    about: Ask usage questions, share ideas, and discuss ChoreOps with the community.

@@ -1,22 +1,25 @@
 ---
 name: Issue Report
-description: Create an issue report to help us improve
+description: Report a bug in the ChoreOps integration
 title: "[ISSUE] "
-labels: bug
+labels: ["bug"]
 assignees: []
 
 body:
   - type: markdown
     attributes:
       value: |
-        **Please fill out this form to report a bug with the ChoreOps integration.**
+        Please complete this form to report a bug in ChoreOps.
+
+        Before filing, check the troubleshooting guide:
+        [ChoreOps troubleshooting wiki](https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting)
 
   - type: input
     id: home_assistant_version
     attributes:
-      label: Home Assistant Version
-      description: "What version of Home Assistant are you using?"
-      placeholder: "e.g., 2024.11.1"
+      label: Home Assistant version
+      description: "What version of Home Assistant are you running?"
+      placeholder: "e.g., 2026.2.4"
     validations:
       required: true
 
@@ -24,16 +27,16 @@ body:
     id: integration_version
     attributes:
       label: ChoreOps integration version
-      description: "What version of the integration are you using?"
-      placeholder: "e.g., 0.4.8"
+      description: "What ChoreOps version are you using?"
+      placeholder: "e.g., 0.5.0b5"
     validations:
       required: true
 
   - type: dropdown
     id: installation_method
     attributes:
-      label: Installation Method
-      description: "How did you install the integration?"
+      label: Installation method
+      description: "How did you install ChoreOps?"
       options:
         - HACS
         - Manual
@@ -41,39 +44,68 @@ body:
       required: true
 
   - type: checkboxes
-    id: prior_issue_check
+    id: prerequisites
     attributes:
-      label: Did you check for existing issues?
-      description: "You should check if there's a current or closed issue."
+      label: Prerequisites
+      description: "Confirm both items before submitting."
       options:
-        - label: Yes, I have checked for existing issues
+        - label: I checked for existing open and closed issues
           required: true
-        - label: No, I have not checked for existing issues
+        - label: I updated ChoreOps (or confirmed the issue still occurs on the latest version)
+          required: true
+        - label: I enabled debug logging and can share logs
+          required: true
 
-  - type: checkboxes
-    id: debug_enabled
+  - type: dropdown
+    id: issue_scope
     attributes:
-      label: Did you enable debug logging before and are ready to post logs?
+      label: Issue scope
+      description: "Where does this issue appear to occur?"
       options:
-        - label: Yes, I have enabled debug logging
-          required: true
-        - label: No, I have not enabled debug logging
+        - Integration logic/state
+        - Dashboard UI/template
+        - Both integration and dashboard
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to reproduce
+      description: "List the exact steps needed to reproduce this issue."
+      placeholder: |
+        1. Go to...
+        2. Configure...
+        3. Trigger...
+        4. Observe...
+    validations:
+      required: true
 
   - type: textarea
     id: issue_description
     attributes:
-      label: Describe the Issue
-      description: "A clear and concise description of what the bug is."
+      label: Issue description
+      description: "Describe what happened and what you expected to happen."
       placeholder: "Provide a detailed description..."
     validations:
       required: true
 
+  - type: input
+    id: relevant_entities
+    attributes:
+      label: Relevant entity IDs (optional)
+      description: "List related entities if known (for example: sensor.alex_choreops_chore_status_brush_teeth)."
+      placeholder: "sensor... , button..."
+
   - type: markdown
     attributes:
       value: |
-        ### **Logs**
+        ### Logs
 
-        Please add the following to your `configuration.yaml` on your Home Assistant and restart:
+        Preferred method: enable debug logging from **Settings → Devices & Services → Integrations → ChoreOps → Enable debug logging**.
+
+        Alternative method: add the following to `configuration.yaml`, then restart Home Assistant:
 
         ```yaml
         logger:
@@ -82,19 +114,19 @@ body:
             custom_components.choreops: debug
         ```
 
-        See [Home Assistant Logger Documentation](https://www.home-assistant.io/integrations/logger) for more information.
+        See [Home Assistant logger documentation](https://www.home-assistant.io/integrations/logger) for more details.
 
   - type: textarea
     id: logs
     attributes:
       label: Logs
-      description: "Paste your logs here."
-      render: yaml
+      description: "Paste relevant log lines here (remove tokens, passwords, and personal data)."
+      render: shell
 
   - type: textarea
     id: additional_context
     attributes:
-      label: Additional Context
-      description: "Add any other context about the problem here."
+      label: Additional context
+      description: "Add anything else that may help us diagnose the issue."
       placeholder: "Any additional information..."
 ---

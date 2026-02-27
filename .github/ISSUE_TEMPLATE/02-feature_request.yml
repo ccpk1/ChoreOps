@@ -1,0 +1,70 @@
+---
+name: Feature Request
+description: Propose an improvement for ChoreOps
+title: "[REQ] "
+labels: ["enhancement", "enh: feature"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use this form to suggest an improvement for ChoreOps.
+
+        For setup or troubleshooting help, use the troubleshooting guide first:
+        [ChoreOps troubleshooting wiki](https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting)
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Feature area
+      description: "Where would this feature apply?"
+      options:
+        - Integration logic/state
+        - Dashboard UI/template
+        - Services/automations
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: "What problem are you trying to solve?"
+      placeholder: "Example: I cannot quickly identify overdue chores across users."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: "What would you like to happen?"
+      placeholder: "Describe the behavior, UI, or service changes you want."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_outcome
+    attributes:
+      label: Expected outcome
+      description: "How would this improve your workflow?"
+      placeholder: "Example: reduces daily dashboard checks from 5 minutes to 1 minute."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: "What alternatives or workarounds have you tried?"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: "Add links, examples, screenshots, or mockups."
+
+---

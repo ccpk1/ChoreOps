@@ -10,14 +10,18 @@
 
 ## <br><br><br><br><br><br>
 
-TODO: All links need updated and confirmed, as well as consider any additional logos etc.
-
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![Quality Scale: Platinum](https://img.shields.io/badge/Quality%20Scale-Platinum-platinum.svg)](https://github.com/ccpk1/choreops)
-![GitHub Release](https://img.shields.io/github/v/release/ccpk1/choreops?include_prereleases)
-![GitHub Downloads (latest)](https://img.shields.io/github/downloads/ccpk1/choreops/latest/total)
-
+[![Crowdin](https://badges.crowdin.net/choreops-translations/localized.svg)](https://crowdin.com/project/choreops-translations)
+[![License](https://img.shields.io/github/license/ccpk1/choreops)](https://github.com/ccpk1/choreops/blob/main/LICENSE)<br>
+[![HACS Custom](https://img.shields.io/badge/HACS%20Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![Validate](https://github.com/ccpk1/choreops/actions/workflows/validate.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/validate.yaml)
+[![Hassfest](https://github.com/ccpk1/choreops/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/hassfest.yaml)
+[![Lint Validation](https://github.com/ccpk1/choreops/actions/workflows/lint-validation.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/lint-validation.yaml)<br>
+[![GitHub Release](https://img.shields.io/github/v/release/ccpk1/choreops?include_prereleases)](https://github.com/ccpk1/choreops/releases)
+[![Latest Release Downloads](https://img.shields.io/github/downloads/ccpk1/choreops/latest/total?label=Latest%20Release%20Downloads)](https://github.com/ccpk1/choreops/releases)
+[![All Release Downloads](https://img.shields.io/github/downloads/ccpk1/choreops/total?label=All%20Release%20Downloads)](https://github.com/ccpk1/choreops/releases)<br>
+[![GitHub Stars](https://img.shields.io/github/stars/ccpk1/choreops?style=social)](https://github.com/ccpk1/choreops/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/ccpk1/choreops)](https://github.com/ccpk1/choreops/issues)
 
 <p align="center">
   <img src="logo.png" alt="ChoreOps - Level Up your Household Tasks" width="640">
@@ -55,7 +59,7 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 
 > [!NOTE]
 > **Attribution & Legacy**<br>
-> ChoreOps is the official evolution of the **KidsChores** integration. While the original project is now deprecated, its concepts and features grew into this new system to better serve the entire Home Assistant community—expanding the scope beyond just "kids" to the whole household.
+> ChoreOps is the official evolution of the **KidsChores** integration. While the original project is now deprecated, its foundation lives on in ChoreOps, designed to serve the entire Home Assistant community by expanding the scope from just "kids" to the whole household.
 >
 > The original creator, **@ad-ha**, remains involved with this progression and continues to inspire the project's direction.<br>
 > 🔄 **Coming from KidsChores?** We have a direct migration path to move your data over. **[View the Migration Guide →](https://github.com/ccpk1/choreops/wiki/Migration)**
@@ -127,18 +131,25 @@ Prefer the guided steps? See the full [Wiki installation guide](https://github.c
 
 ## Community and contribution
 
-- 💬 Community discussion (legacy thread during transition): [Home Assistant forum thread](https://community.home-assistant.io/t/kidschores-family-chore-management-integration)
+- 💬 Community discussion: [GitHub Discussions](https://github.com/ccpk1/choreops/discussions)
 - 🛠️ Issues and feature requests: [GitHub Issues](https://github.com/ccpk1/choreops/issues)
 - 🔀 Contribute: [Pull requests](https://github.com/ccpk1/choreops/pulls)
+
+### Use issues vs discussions
+
+- Use **Issues** for confirmed bugs, actionable feature requests, and tracked implementation work.
+- Use **Discussions** for setup help, usage questions, idea exploration, and general feedback.
+- If a discussion identifies a reproducible bug or concrete feature request, open a linked issue.
 
 ## Credits & Contributors
 
 - [@ccpk1](https://github.com/ccpk1) — Project Lead & Developer
-- [@ad-ha](https://github.com/ad-ha) — Original Creator (KidsChores)
+- [@ad-ha](https://github.com/ad-ha) — Original Creator of KidsChores
 
 ## License
 
 This project is licensed under the [GPL-3.0 license](LICENSE).
+See [NOTICE](NOTICE) for project attribution and fork/modification notice.
 
 ## Disclaimer
 
