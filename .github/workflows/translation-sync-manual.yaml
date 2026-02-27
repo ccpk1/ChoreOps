@@ -99,6 +99,39 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
+      - name: Ensure translation PR labels
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
+          L10N_BRANCH: l10n_crowdin_action
+        run: |
+          pr_number="$(gh pr list \
+            --head "$L10N_BRANCH" \
+            --base "$BASE_BRANCH" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -z "$pr_number" ]; then
+            echo "No open translation PR found for labeling"
+            exit 0
+          fi
+
+          labels=("l10n" "automation: l10n" "priority: low")
+
+          if gh pr view "$pr_number" --json files --jq '.files[].path' | grep -q '^custom_components/choreops/translations/\|^custom_components/choreops/translations_custom/'; then
+            labels+=("area: integration")
+          fi
+
+          if gh pr view "$pr_number" --json files --jq '.files[].path' | grep -qi 'dashboard'; then
+            labels+=("area: dashboard")
+          fi
+
+          for label in "${labels[@]}"; do
+            gh pr edit "$pr_number" --add-label "$label"
+          done
+
       - name: Crowdin sync skipped
         if: steps.crowdin_preflight.outputs.run_crowdin != 'true'
         run: |
