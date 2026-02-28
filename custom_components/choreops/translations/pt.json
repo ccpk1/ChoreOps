@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Ações do painel de controlo",
-        "description": "Crie, atualize ou apague painéis do ChoreOps Lovelace.\n\n[Guia de configuração do painel]({documentation_url})",
+        "description": "Crie, atualize ou apague painéis do ChoreOps Lovelace.\n\n[Guia de configuração do painel]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Ação"
+          "dashboard_action": "Ação",
+          "dashboard_release_selection": "Versão de lançamento do painel de controlo"
         },
         "data_description": {
-          "dashboard_action": "Escolha uma ação: criar um novo painel, atualizar as vistas num painel existente ou eliminar painéis."
+          "dashboard_action": "Escolha uma ação: criar um novo painel, atualizar as vistas num painel existente ou eliminar painéis.",
+          "dashboard_release_selection": "Escolha a versão atualmente instalada, a versão estável mais recente ou uma etiqueta de versão compatível explícita."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Dependências do painel de controlo em falta",
-        "description": "Faltam algumas placas obrigatórias do painel para os modelos selecionados.\n\n[Guia de configuração do painel]({documentation_url})\n\n**Dependências obrigatórias em falta**\n{dashboard_missing_required_dependencies}\n\n**Dependências recomendadas em falta**\n{dashboard_missing_recommended_dependencies}\n\nInstale as placas necessárias através do frontend do HACS antes de continuar.",
+        "title": "Analise as alterações no painel de controlo.",
+        "description": "Reveja o estado das dependências e as preferências dos modelos selecionados antes de aplicar as alterações no painel.\n\n[Guia de configuração do painel]({documentation_url})\n\n**Personalizações disponíveis**\n{dashboard_template_preferences}\n\n**Dependências obrigatórias em falta**\n{dashboard_missing_required_dependencies}\n\n**Dependências recomendadas em falta**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Continue mesmo assim"
+          "dashboard_dependency_bypass": "🚫 Continue na mesma (requisitos não cumpridos)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Reconhecer a ausência de dependências necessárias e continuar a geração na mesma. Os cartões do painel podem não ser apresentados até que as dependências sejam instaladas."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Análise dos detalhes do modelo",
-        "description": "Reveja os detalhes dos modelos selecionados antes de aplicar as alterações no painel.\n\n[Guia de configuração do painel]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Continue com estes modelos"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Confirme os detalhes do modelo selecionado e prossiga para a verificação e geração de dependências."
+          "dashboard_dependency_bypass": "Reconheça que as dependências necessárias estão em falta e continue mesmo assim. O painel pode não ser apresentado corretamente ou apresentar um comportamento incorreto até que as dependências necessárias sejam instaladas."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Ícone do painel",
               "dashboard_require_admin": "Apenas para administradores",
-              "dashboard_show_in_sidebar": "Adicionar à barra lateral",
-              "dashboard_template_details_review": "Analise os detalhes do modelo antes de se candidatar."
+              "dashboard_show_in_sidebar": "Adicionar à barra lateral"
             },
             "data_description": {
               "dashboard_icon": "Ícone da barra lateral para este painel.",
               "dashboard_require_admin": "Restringir o acesso ao painel de controlo apenas aos utilizadores administradores.",
-              "dashboard_show_in_sidebar": "Exibir este painel na barra lateral do Home Assistant.",
-              "dashboard_template_details_review": "Apresente um passo de revisão com descrições de modelos, dependências e ligações para o guia de preferências antes de aplicar as alterações."
+              "dashboard_show_in_sidebar": "Exibir este painel na barra lateral do Home Assistant."
             }
           },
           "section_template_version": {
             "name": "Versão do modelo",
             "description": "Selecione a forma como o modo de atualização escolhe os modelos de painel compatíveis.",
             "data": {
-              "dashboard_include_prereleases": "Incluir versões prévias",
               "dashboard_release_selection": "Versão do modelo do painel de controlo"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Inclua as etiquetas de painel de pré-lançamento na descoberta de versões.",
-              "dashboard_release_selection": "Escolha a seleção automática da versão compatível mais recente ou selecione explicitamente uma etiqueta de versão compatível."
+              "dashboard_release_selection": "Escolha a versão atualmente instalada, a versão estável mais recente ou uma etiqueta de versão compatível explícita."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Ícone do painel",
           "dashboard_require_admin": "Apenas para administradores",
           "dashboard_show_in_sidebar": "Adicionar à barra lateral",
-          "dashboard_include_prereleases": "Incluir versões prévias",
           "dashboard_release_selection": "Versão do modelo do painel de controlo"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Ícone da barra lateral para este painel.",
           "dashboard_require_admin": "Restringir o acesso ao painel de controlo apenas aos utilizadores administradores.",
           "dashboard_show_in_sidebar": "Exibir este painel na barra lateral do Home Assistant.",
-          "dashboard_include_prereleases": "Inclua as etiquetas de painel de pré-lançamento na descoberta de versões.",
-          "dashboard_release_selection": "Escolha a seleção automática da versão compatível mais recente ou selecione explicitamente uma etiqueta de versão compatível."
+          "dashboard_release_selection": "Escolha a versão atualmente instalada, a versão estável mais recente ou uma etiqueta de versão compatível explícita."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Os tipos de reposição de aprovação \"Na Data de Vencimento\" (Uma vez ou Várias) exigem que seja definida uma data de vencimento. Sem data de vencimento, a reposição da aprovação nunca será acionada e a tarefa permanecerá aprovada indefinidamente.",
       "error_per_assignee_applicable_days_invalid": "Formato de dias aplicáveis inválido para um ou mais responsáveis. Os dias devem ser números inteiros de 0 a 6 (de segunda-feira a domingo), sem duplicados.",
       "error_per_assignee_daily_multi_times_invalid": "Formato de horário diário inválido para um ou mais responsáveis. Utilize o formato de 24 horas separado por | (ex.: 08h00|17h00).",
-      "dashboard_exists": "Já existe um painel com este caminho URL. Ative \"Forçar Recriação\" para sobrescrever.",
+      "dashboard_exists": "Já existe um painel com este caminho URL. Utilize a opção Atualizar painel.",
       "dashboard_template_error": "Não foi possível obter o modelo do painel de controlo. Verifique a sua ligação de rede ou tente novamente mais tarde.",
       "dashboard_render_error": "Falha ao renderizar o modelo do painel. Isto pode indicar um erro no modelo.",
       "dashboard_save_error": "Falha ao guardar o painel no Home Assistant. Verifique os registos do sistema para obter detalhes.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "É necessário um modelo de administração por utilizador quando o layout de administração inclui a opção \"Por Utilizador\".",
       "dashboard_admin_per_assignee_needs_assignees": "O layout de administração por utilizador requer pelo menos um utilizador selecionado.",
       "dashboard_dependency_ack_required": "Ative a opção \"Continuar mesmo assim\" para prosseguir ou volte atrás e instale primeiro as dependências necessárias que estão em falta.",
-      "dashboard_template_details_ack_required": "Ative a opção \"Continuar com estes modelos\" para prosseguir ou volte atrás e ajuste as seleções de modelo."
+      "dashboard_nonselectable_templates": "Um ou mais modelos selecionados não estão disponíveis para geração.",
+      "dashboard_release_strict_pin_failed": "A versão do painel selecionada deve estar fixada exatamente, mas não estava disponível nenhuma referência de versão efetiva no momento da execução. Selecione novamente a versão no Passo 1 e tente novamente.",
+      "dashboard_release_asset_prep_failed": "Não foi possível preparar as funcionalidades selecionadas do painel de controlo online. Escolha uma versão diferente ou utilize os modelos locais compatíveis/atuais mais recentes e tente novamente."
     },
     "abort": {
       "invalid_action": "Ação inválida",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Última versão compatível (recomendado)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Atualmente instalado",
+        "latest_stable": "Última versão estável",
+        "latest_compatible": "Última versão compatível (recomendado)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Não foi encontrada nenhuma entrada ChoreOps carregada exclusiva para o título {title}. Use config_entry_id em vez disso."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Preparação dos elementos selecionados do painel de controlo online."
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "A preparação de ativos online falhou. Escolha uma versão diferente ou utilize os modelos locais mais recentes compatíveis/atuais."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Applied release {release_ref} locally ({execution_source}). Reload integration or restart Home Assistant to refresh dashboard translation sensors."
+    },
+    "dashboard_status_updated": {
+      "message": "Atualizado {url_path} (visualizações={view_count}, seleção_de_lançamento={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Criado {url_path} (responsáveis={assignee_count}, modo_admin={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "As dependências necessárias do painel de controlo ainda estão em falta; voltando à configuração."
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Dependências necessárias em falta, ignoradas pelo utilizador"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Dependências recomendadas em falta (a geração continuará): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Os modelos selecionados não estão disponíveis para geração:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Eliminado {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Falha ao eliminar {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Nenhum"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Guia de preferências"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Guia de preferências não fornecido"
     },
     "not_authorized_action": {
       "message": "Não está autorizado a {action} para este responsável."

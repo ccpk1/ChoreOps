@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Dejanja na nadzorni plošči",
-        "description": "Ustvarjanje, posodabljanje ali brisanje nadzornih plošč ChoreOps Lovelace.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})",
+        "description": "Ustvarjanje, posodabljanje ali brisanje nadzornih plošč ChoreOps Lovelace.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Dejanje"
+          "dashboard_action": "Dejanje",
+          "dashboard_release_selection": "Različica izdaje nadzorne plošče"
         },
         "data_description": {
-          "dashboard_action": "Izberite eno dejanje: ustvarite novo nadzorno ploščo, posodobite poglede na obstoječi nadzorni plošči ali izbrišite nadzorne plošče."
+          "dashboard_action": "Izberite eno dejanje: ustvarite novo nadzorno ploščo, posodobite poglede na obstoječi nadzorni plošči ali izbrišite nadzorne plošče.",
+          "dashboard_release_selection": "Izberite trenutno nameščeno izdajo, najnovejšo stabilno izdajo ali izrecno združljivo oznako izdaje."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Manjkajoče odvisnosti nadzorne plošče",
-        "description": "Za izbrane predloge manjkajo nekatere obvezne kartice nadzorne plošče.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n**Manjkajoče obvezne odvisnosti**\n{dashboard_missing_required_dependencies}\n\n**Manjkajoče priporočene odvisnosti**\n{dashboard_missing_recommended_dependencies}\n\nPred nadaljevanjem namestite obvezne kartice prek HACS Frontend.",
+        "title": "Pregled sprememb nadzorne plošče",
+        "description": "Preden uporabite spremembe nadzorne plošče, preglejte stanje odvisnosti in nastavitve predlog za izbrane predloge.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n**Razpoložljive prilagoditve**\n{dashboard_template_preferences}\n\n**Manjkajoče zahtevane odvisnosti**\n{dashboard_missing_required_dependencies}\n\n**Manjkajoče priporočene odvisnosti**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Vseeno nadaljuj"
+          "dashboard_dependency_bypass": "🚫 Vseeno nadaljuj (zahteve manjkajo)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Potrdite manjkajoče zahtevane odvisnosti in vseeno nadaljujte z ustvarjanjem. Kartice nadzorne plošče se morda ne bodo upodobile, dokler odvisnosti niso nameščene."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Pregled podrobnosti predloge",
-        "description": "Pred uporabo sprememb nadzorne plošče preglejte podrobnosti izbranih predlog.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Nadaljujte s temi predlogami"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Potrdite izbrane podrobnosti predloge in nadaljujte s preverjanjem odvisnosti in generiranjem."
+          "dashboard_dependency_bypass": "Potrdite, da manjkajo zahtevane odvisnosti, in vseeno nadaljujte. Nadzorna plošča se morda ne bo prikazala ali pa se bo obnašala nepravilno, dokler ne bodo nameščene zahtevane odvisnosti."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Ikona nadzorne plošče",
               "dashboard_require_admin": "Samo za skrbnike",
-              "dashboard_show_in_sidebar": "Dodaj v stransko vrstico",
-              "dashboard_template_details_review": "Pred uporabo preglejte podrobnosti predloge"
+              "dashboard_show_in_sidebar": "Dodaj v stransko vrstico"
             },
             "data_description": {
               "dashboard_icon": "Ikona stranske vrstice za to nadzorno ploščo.",
               "dashboard_require_admin": "Dostop do nadzorne plošče omejite na skrbniške uporabnike.",
-              "dashboard_show_in_sidebar": "Prikaži to nadzorno ploščo v stranski vrstici Domačega pomočnika.",
-              "dashboard_template_details_review": "Pred uporabo sprememb prikažite korak pregleda z opisi predlog, odvisnostmi in povezavami do vodnika za nastavitve."
+              "dashboard_show_in_sidebar": "Prikaži to nadzorno ploščo v stranski vrstici Domačega pomočnika."
             }
           },
           "section_template_version": {
             "name": "Različica predloge",
             "description": "Izberite, kako način posodabljanja izbere združljive predloge nadzorne plošče.",
             "data": {
-              "dashboard_include_prereleases": "Vključi predizdaje",
               "dashboard_release_selection": "Različica predloge nadzorne plošče"
             },
             "data_description": {
-              "dashboard_include_prereleases": "V odkrivanje izdaj vključite oznake nadzorne plošče pred izdajo.",
-              "dashboard_release_selection": "Izberite samodejno izbiro najnovejše združljive različice ali izrecno izberite združljivo oznako izdaje."
+              "dashboard_release_selection": "Izberite trenutno nameščeno izdajo, najnovejšo stabilno izdajo ali izrecno združljivo oznako izdaje."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Ikona nadzorne plošče",
           "dashboard_require_admin": "Samo za skrbnike",
           "dashboard_show_in_sidebar": "Dodaj v stransko vrstico",
-          "dashboard_include_prereleases": "Vključi predizdaje",
           "dashboard_release_selection": "Različica predloge nadzorne plošče"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Ikona stranske vrstice za to nadzorno ploščo.",
           "dashboard_require_admin": "Dostop do nadzorne plošče omejite na skrbniške uporabnike.",
           "dashboard_show_in_sidebar": "Prikaži to nadzorno ploščo v stranski vrstici Domačega pomočnika.",
-          "dashboard_include_prereleases": "V odkrivanje izdaj vključite oznake nadzorne plošče pred izdajo.",
-          "dashboard_release_selection": "Izberite samodejno izbiro najnovejše združljive različice ali izrecno izberite združljivo oznako izdaje."
+          "dashboard_release_selection": "Izberite trenutno nameščeno izdajo, najnovejšo stabilno izdajo ali izrecno združljivo oznako izdaje."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Za vrste ponastavitve odobritve »Ob roku« (enkrat ali večkrat) je treba nastaviti rok. Brez roka se ponastavitev odobritve ne bo nikoli sprožila in opravilo bo ostalo odobreno za nedoločen čas.",
       "error_per_assignee_applicable_days_invalid": "Neveljavna veljavna oblika dni za enega ali več dodeljenih oseb. Dnevi morajo biti cela števila od 0 do 6 (ponedeljek–nedelja) brez dvojnikov.",
       "error_per_assignee_daily_multi_times_invalid": "Neveljavna oblika dnevnega časa za enega ali več dodeljenih oseb. Uporabite 24-urno obliko, ločeno z znakom | (npr. 08:00|17:00).",
-      "dashboard_exists": "Nadzorna plošča s to potjo URL-ja že obstaja. Omogočite »Vsilno obnovitev«, da prepišete.",
+      "dashboard_exists": "Nadzorna plošča s to potjo URL-ja že obstaja. Uporabite možnost Posodobi nadzorno ploščo.",
       "dashboard_template_error": "Predloge nadzorne plošče ni bilo mogoče pridobiti. Preverite omrežno povezavo ali poskusite znova pozneje.",
       "dashboard_render_error": "Predloge nadzorne plošče ni bilo mogoče upodobiti. To lahko kaže na napako v predlogi.",
       "dashboard_save_error": "Nadzorne plošče ni bilo mogoče shraniti v Home Assistant. Za podrobnosti preverite sistemske dnevnike.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Predloga skrbnika na uporabnika je obvezna, če skrbniška postavitev vključuje na uporabnika.",
       "dashboard_admin_per_assignee_needs_assignees": "Za postavitev skrbnika na uporabnika je potreben vsaj en izbran uporabnik.",
       "dashboard_dependency_ack_required": "Za nadaljevanje omogočite »Nadaljuj vseeno« ali se vrnite in najprej namestite manjkajoče zahtevane odvisnosti.",
-      "dashboard_template_details_ack_required": "Za nadaljevanje omogočite »Nadaljuj s temi predlogami« ali se vrnite in prilagodite izbor predlog."
+      "dashboard_nonselectable_templates": "Ena ali več izbranih predlog ni na voljo za generiranje.",
+      "dashboard_release_strict_pin_failed": "Izbrana izdaja na nadzorni plošči mora biti natančno pripeta, vendar v času izvajanja ni bila na voljo nobena veljavna referenca za izdajo. V 1. koraku ponovno izberite izdajo in poskusite znova.",
+      "dashboard_release_asset_prep_failed": "Izbranih spletnih elementov nadzorne plošče ni mogoče pripraviti. Izberite drugo izdajo ali uporabite najnovejše združljive/trenutne lokalne predloge in poskusite znova."
     },
     "abort": {
       "invalid_action": "Neveljavno dejanje",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Najnovejše združljivo (priporočeno)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Trenutno nameščeno",
+        "latest_stable": "Najnovejša stabilna",
+        "latest_compatible": "Najnovejše združljivo (priporočeno)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Za naslov {title}ni bil najden noben edinstven naložen vnos ChoreOps. Namesto tega uporabite config_entry_id."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Priprava izbranih sredstev spletne nadzorne plošče"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Priprava spletnega sredstva ni uspela. Izberite drugo izdajo ali uporabite najnovejše združljive/trenutne lokalne predloge."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Lokalno uporabljena različica {release_ref} ({execution_source}). Ponovno naložite integracijo ali znova zaženite Home Assistant, da osvežite senzorje prevajanja nadzorne plošče."
+    },
+    "dashboard_status_updated": {
+      "message": "Posodobljeno {url_path} (ogledi={view_count}, izbor_objave={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Ustvarjeno {url_path} (dodeljeni uporabniki ={assignee_count}, admin_mode ={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Zahtevane odvisnosti nadzorne plošče še vedno manjkajo; vrnitev na konfiguracijo"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Uporabnik je zaobšel manjkajoče obvezne odvisnosti"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Manjkajo priporočene odvisnosti (generiranje se bo nadaljevalo): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Izbrane predloge niso na voljo za generiranje:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Izbrisano {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Brisanje {url_path}: {error} ni uspelo"
+    },
+    "dashboard_label_none": {
+      "message": "- Nobena"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Vodnik po nastavitvah"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Vodnik po nastavitvah ni na voljo"
     },
     "not_authorized_action": {
       "message": "Niste pooblaščeni za {action} za tega prejemnika."

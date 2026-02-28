@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Dashboard-Aktionen",
-        "description": "Erstellen, aktualisieren oder löschen Sie ChoreOps Lovelace-Dashboards.\n\n[Anleitung zur Dashboard-Konfiguration]({documentation_url})",
+        "description": "ChoreOps Lovelace-Dashboards erstellen, aktualisieren oder löschen.\n\n[Anleitung zur Dashboard-Konfiguration]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Aktion"
+          "dashboard_action": "Aktion",
+          "dashboard_release_selection": "Dashboard-Version"
         },
         "data_description": {
-          "dashboard_action": "Wählen Sie eine Aktion: ein neues Dashboard erstellen, Ansichten in einem bestehenden Dashboard aktualisieren oder Dashboards löschen."
+          "dashboard_action": "Wählen Sie eine Aktion: ein neues Dashboard erstellen, Ansichten in einem bestehenden Dashboard aktualisieren oder Dashboards löschen.",
+          "dashboard_release_selection": "Wählen Sie die aktuell installierte Version, die neueste stabile Version oder ein explizites kompatibles Versionskennzeichen."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Fehlende Dashboard-Abhängigkeiten",
-        "description": "Für Ihre ausgewählten Vorlagen fehlen einige erforderliche Dashboard-Karten.\n\n[Dashboard-Konfigurationsanleitung]({documentation_url})\n\n**Fehlende erforderliche Abhängigkeiten**\n{dashboard_missing_required_dependencies}\n\n**Fehlende empfohlene Abhängigkeiten**\n{dashboard_missing_recommended_dependencies}\n\nInstallieren Sie die erforderlichen Karten über das HACS-Frontend, bevor Sie fortfahren.",
+        "title": "Änderungen im Dashboard überprüfen",
+        "description": "Überprüfen Sie den Abhängigkeitsstatus und die Vorlageneinstellungen Ihrer ausgewählten Vorlagen, bevor Sie die Dashboard-Änderungen anwenden.\n\n[Dashboard-Konfigurationsanleitung]({documentation_url})\n\n**Verfügbare Anpassungen**\n{dashboard_template_preferences}\n\n**Fehlende erforderliche Abhängigkeiten**\n{dashboard_missing_required_dependencies}\n\n**Fehlende empfohlene Abhängigkeiten**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Trotzdem fortfahren"
+          "dashboard_dependency_bypass": "🚫 Trotzdem fortfahren (Voraussetzungen fehlen)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Fehlende Abhängigkeiten bestätigen und die Generierung trotzdem fortsetzen. Dashboard-Karten werden möglicherweise erst nach der Installation der Abhängigkeiten angezeigt."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Details zur Vorlage prüfen",
-        "description": "Überprüfen Sie die Details der ausgewählten Vorlagen, bevor Sie die Dashboard-Änderungen anwenden.\n\n[Dashboard-Konfigurationsanleitung]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Fahren Sie mit diesen Vorlagen fort."
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Die ausgewählten Vorlagendetails bestätigen und mit den Abhängigkeitsprüfungen und der Generierung fortfahren."
+          "dashboard_dependency_bypass": "Beachten Sie, dass erforderliche Abhängigkeiten fehlen, und fahren Sie trotzdem fort. Das Dashboard wird möglicherweise nicht korrekt angezeigt oder verhält sich fehlerhaft, bis die erforderlichen Abhängigkeiten installiert sind."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Dashboard-Symbol",
               "dashboard_require_admin": "Nur für Administratoren",
-              "dashboard_show_in_sidebar": "Zur Seitenleiste hinzufügen",
-              "dashboard_template_details_review": "Bitte prüfen Sie die Vorlagendetails vor der Anwendung."
+              "dashboard_show_in_sidebar": "Zur Seitenleiste hinzufügen"
             },
             "data_description": {
               "dashboard_icon": "Seitenleistensymbol für dieses Dashboard.",
               "dashboard_require_admin": "Beschränken Sie den Zugriff auf das Dashboard auf Administratoren.",
-              "dashboard_show_in_sidebar": "Dieses Dashboard in der Home Assistant-Seitenleiste anzeigen.",
-              "dashboard_template_details_review": "Zeigen Sie vor der Anwendung von Änderungen einen Überprüfungsschritt mit Vorlagenbeschreibungen, Abhängigkeiten und Links zu Einstellungsrichtlinien an."
+              "dashboard_show_in_sidebar": "Dieses Dashboard in der Home Assistant-Seitenleiste anzeigen."
             }
           },
           "section_template_version": {
             "name": "Vorlagenversion",
             "description": "Wählen Sie aus, wie der Aktualisierungsmodus kompatible Dashboard-Vorlagen auswählt.",
             "data": {
-              "dashboard_include_prereleases": "Vorabversionen einschließen",
               "dashboard_release_selection": "Dashboard-Vorlagenversion"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Integrieren Sie Vorabversions-Dashboard-Tags in die Release-Erkennung.",
-              "dashboard_release_selection": "Wählen Sie entweder die automatische Auswahl der neuesten kompatiblen Version oder wählen Sie explizit ein kompatibles Release-Tag aus."
+              "dashboard_release_selection": "Wählen Sie die aktuell installierte Version, die neueste stabile Version oder ein explizites kompatibles Versionskennzeichen."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Dashboard-Symbol",
           "dashboard_require_admin": "Nur für Administratoren",
           "dashboard_show_in_sidebar": "Zur Seitenleiste hinzufügen",
-          "dashboard_include_prereleases": "Vorabversionen einschließen",
           "dashboard_release_selection": "Dashboard-Vorlagenversion"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Seitenleistensymbol für dieses Dashboard.",
           "dashboard_require_admin": "Beschränken Sie den Zugriff auf das Dashboard auf Administratoren.",
           "dashboard_show_in_sidebar": "Dieses Dashboard in der Home Assistant-Seitenleiste anzeigen.",
-          "dashboard_include_prereleases": "Integrieren Sie Vorabversions-Dashboard-Tags in die Release-Erkennung.",
-          "dashboard_release_selection": "Wählen Sie entweder die automatische Auswahl der neuesten kompatiblen Version oder wählen Sie explizit ein kompatibles Release-Tag aus."
+          "dashboard_release_selection": "Wählen Sie die aktuell installierte Version, die neueste stabile Version oder ein explizites kompatibles Versionskennzeichen."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Genehmigungszurücksetzungen vom Typ „Zum Fälligkeitsdatum“ (einmalig oder mehrfach) erfordern die Festlegung eines Fälligkeitsdatums. Ohne ein Fälligkeitsdatum wird die Genehmigungszurücksetzung nicht ausgelöst und die Aufgabe bleibt unbegrenzt genehmigt.",
       "error_per_assignee_applicable_days_invalid": "Ungültiges Format für die entsprechenden Tage bei einem oder mehreren Bearbeitern. Die Tage müssen ganze Zahlen von 0 bis 6 (Montag bis Sonntag) ohne Duplikate sein.",
       "error_per_assignee_daily_multi_times_invalid": "Ungültiges Format für die Tageszeiten eines oder mehrerer Bearbeiter. Bitte verwenden Sie das 24-Stunden-Format, getrennt durch | (z. B. 08:00|17:00).",
-      "dashboard_exists": "Für diesen URL-Pfad existiert bereits ein Dashboard. Aktivieren Sie „Neu erstellen erzwingen“, um es zu überschreiben.",
+      "dashboard_exists": "Für diesen URL-Pfad existiert bereits ein Dashboard. Verwenden Sie die Option „Dashboard aktualisieren“.",
       "dashboard_template_error": "Das Dashboard-Template konnte nicht abgerufen werden. Überprüfen Sie Ihre Netzwerkverbindung oder versuchen Sie es später erneut.",
       "dashboard_render_error": "Das Dashboard-Template konnte nicht gerendert werden. Dies deutet möglicherweise auf einen Template-Fehler hin.",
       "dashboard_save_error": "Das Dashboard konnte nicht in Home Assistant gespeichert werden. Weitere Informationen finden Sie in den Systemprotokollen.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Die Administratorvorlage pro Benutzer ist erforderlich, wenn das Administratorlayout die Option „Pro Benutzer“ enthält.",
       "dashboard_admin_per_assignee_needs_assignees": "Für das benutzerbasierte Admin-Layout ist mindestens ein ausgewählter Benutzer erforderlich.",
       "dashboard_dependency_ack_required": "Aktivieren Sie „Trotzdem fortfahren“, um fortzufahren, oder gehen Sie zurück und installieren Sie zuerst die fehlenden erforderlichen Abhängigkeiten.",
-      "dashboard_template_details_ack_required": "Aktivieren Sie „Mit diesen Vorlagen fortfahren“, um fortzufahren, oder gehen Sie zurück und passen Sie die Vorlagenauswahl an."
+      "dashboard_nonselectable_templates": "Eine oder mehrere ausgewählte Vorlagen können nicht generiert werden.",
+      "dashboard_release_strict_pin_failed": "Die ausgewählte Dashboard-Version muss exakt festgelegt werden, jedoch war zum Zeitpunkt der Ausführung keine gültige Versionsreferenz verfügbar. Wählen Sie die Version in Schritt 1 erneut aus und versuchen Sie es noch einmal.",
+      "dashboard_release_asset_prep_failed": "Die ausgewählten Online-Dashboard-Elemente konnten nicht vorbereitet werden. Wählen Sie eine andere Version oder verwenden Sie die neuesten kompatiblen/aktuellen lokalen Vorlagen und versuchen Sie es erneut."
     },
     "abort": {
       "invalid_action": "Ungültige Aktion",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Aktuellste kompatible Version (empfohlen)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Aktuell installiert",
+        "latest_stable": "Neueste stabile",
+        "latest_compatible": "Aktuellste kompatible Version (empfohlen)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Für den Titel {title}wurde kein eindeutiger geladener ChoreOps-Eintrag gefunden. Verwenden Sie stattdessen config_entry_id."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Vorbereitung ausgewählter Online-Dashboard-Elemente"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Die Online-Asset-Vorbereitung ist fehlgeschlagen. Wählen Sie eine andere Version oder verwenden Sie die neuesten kompatiblen/aktuellen lokalen Vorlagen."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Version {release_ref} lokal angewendet ({execution_source}). Integration neu laden oder Home Assistant neu starten, um die Übersetzungssensoren im Dashboard zu aktualisieren."
+    },
+    "dashboard_status_updated": {
+      "message": "Aktualisiert {url_path} (Ansichten={view_count}, Freigabeauswahl={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Erstellt {url_path} (Zugewiesene={assignee_count}, Admin-Modus={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Erforderliche Dashboard-Abhängigkeiten fehlen weiterhin; Rückkehr zur Konfiguration"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Fehlende erforderliche Abhängigkeiten wurden vom Benutzer umgangen."
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Fehlende empfohlene Abhängigkeiten (Generierung wird fortgesetzt): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Ausgewählte Vorlagen sind für die Generierung nicht verfügbar:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Gelöscht {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Fehler beim Löschen von {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Keine"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Leitfaden zu den Einstellungen"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Präferenzleitfaden nicht verfügbar"
     },
     "not_authorized_action": {
       "message": "Sie sind nicht berechtigt, für diesen Beauftragten {action} zu verwenden."

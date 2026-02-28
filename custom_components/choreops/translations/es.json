@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Acciones del panel de control",
-        "description": "Crear, actualizar o eliminar paneles de ChoreOps Lovelace.\n\n[Guía de configuración del panel]({documentation_url})",
+        "description": "Crear, actualizar o eliminar paneles de ChoreOps Lovelace.\n\n[Guía de configuración del panel]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Acción"
+          "dashboard_action": "Acción",
+          "dashboard_release_selection": "Versión de lanzamiento del panel de control"
         },
         "data_description": {
-          "dashboard_action": "Elija una acción: crear un nuevo panel, actualizar vistas en un panel existente o eliminar paneles."
+          "dashboard_action": "Elija una acción: crear un nuevo panel, actualizar vistas en un panel existente o eliminar paneles.",
+          "dashboard_release_selection": "Elija la versión instalada actualmente, la última versión estable o una etiqueta de versión compatible explícita."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Dependencias del panel de control faltantes",
-        "description": "Faltan algunas tarjetas del panel de control necesarias para las plantillas seleccionadas.\n\n[Guía de configuración del panel de control]({documentation_url})\n\n**Dependencias requeridas faltantes**\n{dashboard_missing_required_dependencies}\n\n**Dependencias recomendadas faltantes**\n{dashboard_missing_recommended_dependencies}\n\nInstale las tarjetas necesarias a través de HACS Frontend antes de continuar.",
+        "title": "Revisar los cambios en el panel",
+        "description": "Revise el estado de las dependencias y las preferencias de plantilla de las plantillas seleccionadas antes de aplicar los cambios en el panel.\n\n[Guía de configuración del panel]({documentation_url})\n\n**Personalizaciones disponibles**\n{dashboard_template_preferences}\n\n**Dependencias obligatorias faltantes**\n{dashboard_missing_required_dependencies}\n\n**Dependencias recomendadas faltantes**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Continuar de todos modos"
+          "dashboard_dependency_bypass": "🚫 Continuar de todos modos (faltan requisitos)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Reconozca las dependencias requeridas faltantes y continúe la generación de todos modos. Las tarjetas del panel podrían no renderizarse hasta que se instalen las dependencias."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Revisión de detalles de la plantilla",
-        "description": "Revise los detalles de las plantillas seleccionadas antes de aplicar los cambios en el panel.\n\n[Guía de configuración del panel]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Continúa con estas plantillas"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Reconozca los detalles de la plantilla seleccionada y continúe con las comprobaciones y la generación de dependencias."
+          "dashboard_dependency_bypass": "Reconozca que faltan las dependencias necesarias y continúe de todos modos. El panel podría no renderizarse o funcionar incorrectamente hasta que se instalen las dependencias necesarias."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Icono del tablero de instrumentos",
               "dashboard_require_admin": "Solo administrador",
-              "dashboard_show_in_sidebar": "Añadir a la barra lateral",
-              "dashboard_template_details_review": "Revise los detalles de la plantilla antes de aplicarla"
+              "dashboard_show_in_sidebar": "Añadir a la barra lateral"
             },
             "data_description": {
               "dashboard_icon": "Icono de la barra lateral para este panel.",
               "dashboard_require_admin": "Restringir el acceso al panel a los usuarios administradores.",
-              "dashboard_show_in_sidebar": "Mostrar este panel en la barra lateral de Home Assistant.",
-              "dashboard_template_details_review": "Muestra un paso de revisión con descripciones de plantillas, dependencias y enlaces a la guía de preferencias antes de aplicar los cambios."
+              "dashboard_show_in_sidebar": "Mostrar este panel en la barra lateral de Home Assistant."
             }
           },
           "section_template_version": {
             "name": "Versión de plantilla",
             "description": "Seleccione cómo el modo de actualización elige plantillas de panel compatibles.",
             "data": {
-              "dashboard_include_prereleases": "Incluir versiones preliminares",
               "dashboard_release_selection": "Versión de la plantilla del panel"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Incluir etiquetas de panel de versión preliminar en el descubrimiento de versiones.",
-              "dashboard_release_selection": "Elija la selección automática más reciente compatible o seleccione explícitamente una etiqueta de lanzamiento compatible."
+              "dashboard_release_selection": "Elija la versión instalada actualmente, la última versión estable o una etiqueta de versión compatible explícita."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Icono del tablero de instrumentos",
           "dashboard_require_admin": "Solo administrador",
           "dashboard_show_in_sidebar": "Añadir a la barra lateral",
-          "dashboard_include_prereleases": "Incluir versiones preliminares",
           "dashboard_release_selection": "Versión de la plantilla del panel"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Icono de la barra lateral para este panel.",
           "dashboard_require_admin": "Restringir el acceso al panel a los usuarios administradores.",
           "dashboard_show_in_sidebar": "Mostrar este panel en la barra lateral de Home Assistant.",
-          "dashboard_include_prereleases": "Incluir etiquetas de panel de versión preliminar en el descubrimiento de versiones.",
-          "dashboard_release_selection": "Elija la selección automática más reciente compatible o seleccione explícitamente una etiqueta de lanzamiento compatible."
+          "dashboard_release_selection": "Elija la versión instalada actualmente, la última versión estable o una etiqueta de versión compatible explícita."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Los tipos de restablecimiento de aprobación \"En fecha de vencimiento\" (Única o Múltiple) requieren que se establezca una fecha de vencimiento. Sin una fecha de vencimiento, el restablecimiento de aprobación nunca se activará y la tarea permanecerá aprobada indefinidamente.",
       "error_per_assignee_applicable_days_invalid": "Formato de días aplicable no válido para uno o más asignados. Los días deben ser enteros del 0 al 6 (de lunes a domingo) sin duplicados.",
       "error_per_assignee_daily_multi_times_invalid": "Formato de hora diaria no válido para uno o más asignados. Use el formato de 24 horas separado por | (p. ej., 08:00|17:00).",
-      "dashboard_exists": "Ya existe un panel con esta URL. Activa \"Forzar reconstrucción\" para sobrescribirla.",
+      "dashboard_exists": "Ya existe un panel con esta URL. Utilice la opción \"Actualizar panel\".",
       "dashboard_template_error": "No se pudo obtener la plantilla del panel. Verifique la conexión de red o inténtelo de nuevo más tarde.",
       "dashboard_render_error": "No se pudo renderizar la plantilla del panel. Esto podría indicar un error en la plantilla.",
       "dashboard_save_error": "No se pudo guardar el panel en Home Assistant. Consulta los registros del sistema para obtener más información.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Se requiere una plantilla de administración por usuario cuando el diseño de administración incluye Por usuario.",
       "dashboard_admin_per_assignee_needs_assignees": "El diseño de administrador por usuario requiere al menos un usuario seleccionado.",
       "dashboard_dependency_ack_required": "Habilite \"Continuar de todas formas\" para continuar o regrese e instale primero las dependencias requeridas que faltan.",
-      "dashboard_template_details_ack_required": "Habilite “Continuar con estas plantillas” para continuar o retroceda y ajuste las selecciones de plantillas."
+      "dashboard_nonselectable_templates": "Una o más plantillas seleccionadas no están disponibles para su generación.",
+      "dashboard_release_strict_pin_failed": "La versión del panel seleccionada debe estar fijada con precisión, pero no había ninguna referencia de versión efectiva disponible en el momento de la ejecución. Vuelva a seleccionar la versión en el paso 1 e inténtelo de nuevo.",
+      "dashboard_release_asset_prep_failed": "No se pueden preparar los recursos del panel en línea seleccionados. Elija una versión diferente o use las plantillas locales compatibles más recientes y vuelva a intentarlo."
     },
     "abort": {
       "invalid_action": "Acción no válida",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Último compatible (recomendado)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Actual instalado",
+        "latest_stable": "Último estable",
+        "latest_compatible": "Último compatible (recomendado)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "No se encontró ninguna entrada única de ChoreOps cargada para el título {title}. Use config_entry_id en su lugar."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Preparación de activos de panel de control en línea seleccionados"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Error en la preparación de recursos en línea. Elija una versión diferente o use las plantillas locales compatibles más recientes."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Se aplicó la versión {release_ref} localmente ({execution_source}). Recargue la integración o reinicie Home Assistant para actualizar los sensores de traducción del panel."
+    },
+    "dashboard_status_updated": {
+      "message": "Actualizado {url_path} (vistas={view_count}, selección_de_lanzamiento={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Creado {url_path} (asignados={assignee_count}, modo_administración={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Aún faltan las dependencias requeridas del panel; volviendo a la configuración"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Dependencias requeridas faltantes ignoradas por el usuario"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Dependencias recomendadas faltantes (la generación continuará): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Las plantillas seleccionadas no están disponibles para la generación:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Eliminado {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "No se pudo eliminar {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Ninguna"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Guía de preferencias"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Guía de preferencias no proporcionada"
     },
     "not_authorized_action": {
       "message": "No está autorizado a {action} para este cesionario."
