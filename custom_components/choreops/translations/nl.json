@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Dashboardacties",
-        "description": "ChoreOps Lovelace-dashboards maken, bijwerken of verwijderen.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})",
+        "description": "ChoreOps Lovelace-dashboards maken, bijwerken of verwijderen.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Actie"
+          "dashboard_action": "Actie",
+          "dashboard_release_selection": "Dashboard Release Versie"
         },
         "data_description": {
-          "dashboard_action": "Kies één actie: een nieuw dashboard maken, weergaven op een bestaand dashboard bijwerken of dashboards verwijderen."
+          "dashboard_action": "Kies één actie: een nieuw dashboard maken, weergaven op een bestaand dashboard bijwerken of dashboards verwijderen.",
+          "dashboard_release_selection": "Kies de momenteel geïnstalleerde versie, de meest recente stabiele versie of een expliciet compatibele versie-tag."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Ontbrekende dashboardafhankelijkheden",
-        "description": "Sommige vereiste dashboardkaarten ontbreken voor de door u geselecteerde sjablonen.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})\n\n**Vereiste afhankelijkheden ontbreken**\n{dashboard_missing_required_dependencies}\n\n**Aanbevolen afhankelijkheden ontbreken**\n{dashboard_missing_recommended_dependencies}\n\nInstalleer de vereiste kaarten via HACS Frontend voordat u verdergaat.",
+        "title": "Wijzigingen in het dashboard bekijken",
+        "description": "Controleer de afhankelijkheidsstatus en sjabloonvoorkeuren voor uw geselecteerde sjablonen voordat u wijzigingen in het dashboard toepast.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})\n\n**Beschikbare aanpassingen**\n{dashboard_template_preferences}\n\n**Ontbrekende vereiste afhankelijkheden**\n{dashboard_missing_required_dependencies}\n\n**Ontbrekende aanbevolen afhankelijkheden**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Ga toch door"
+          "dashboard_dependency_bypass": "🚫 Toch doorgaan (vereisten ontbreken)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Erken dat er ontbrekende, vereiste afhankelijkheden zijn en ga desondanks door met genereren. Dashboardkaarten worden mogelijk niet weergegeven totdat de afhankelijkheden zijn geïnstalleerd."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Sjabloondetails beoordeling",
-        "description": "Controleer de details van de geselecteerde sjablonen voordat u wijzigingen aan het dashboard aanbrengt.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Ga verder met deze sjablonen."
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Bevestig de details van de geselecteerde sjabloon en ga verder met de afhankelijkheidscontroles en de generatie."
+          "dashboard_dependency_bypass": "Erken dat de vereiste afhankelijkheden ontbreken en ga desondanks verder. Het dashboard kan mogelijk niet correct worden weergegeven of onjuist functioneren totdat de vereiste afhankelijkheden zijn geïnstalleerd."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Dashboard-pictogram",
               "dashboard_require_admin": "Alleen voor beheerders",
-              "dashboard_show_in_sidebar": "Toevoegen aan zijbalk",
-              "dashboard_template_details_review": "Bekijk de sjabloondetails voordat u deze aanmeldt."
+              "dashboard_show_in_sidebar": "Toevoegen aan zijbalk"
             },
             "data_description": {
               "dashboard_icon": "Zijbalkpictogram voor dit dashboard.",
               "dashboard_require_admin": "Beperk de toegang tot het dashboard tot beheerders.",
-              "dashboard_show_in_sidebar": "Toon dit dashboard in de zijbalk van Home Assistant.",
-              "dashboard_template_details_review": "Toon een beoordelingsstap met sjabloonbeschrijvingen, afhankelijkheden en links naar voorkeursgidsen voordat de wijzigingen worden toegepast."
+              "dashboard_show_in_sidebar": "Toon dit dashboard in de zijbalk van Home Assistant."
             }
           },
           "section_template_version": {
             "name": "Sjabloonversie",
             "description": "Selecteer hoe de updatemodus compatibele dashboardtemplates kiest.",
             "data": {
-              "dashboard_include_prereleases": "Inclusief pre-releases",
               "dashboard_release_selection": "Dashboard-sjabloonversie"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Neem dashboardtags van prereleases op in de release-ontdekking.",
-              "dashboard_release_selection": "Kies voor automatische selectie van de meest recente compatibele versie of selecteer expliciet een compatibele releasetag."
+              "dashboard_release_selection": "Kies de momenteel geïnstalleerde versie, de meest recente stabiele versie of een expliciet compatibele versie-tag."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Dashboard-pictogram",
           "dashboard_require_admin": "Alleen voor beheerders",
           "dashboard_show_in_sidebar": "Toevoegen aan zijbalk",
-          "dashboard_include_prereleases": "Inclusief pre-releases",
           "dashboard_release_selection": "Dashboard-sjabloonversie"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Zijbalkpictogram voor dit dashboard.",
           "dashboard_require_admin": "Beperk de toegang tot het dashboard tot beheerders.",
           "dashboard_show_in_sidebar": "Toon dit dashboard in de zijbalk van Home Assistant.",
-          "dashboard_include_prereleases": "Neem dashboardtags van prereleases op in de release-ontdekking.",
-          "dashboard_release_selection": "Kies voor automatische selectie van de meest recente compatibele versie of selecteer expliciet een compatibele releasetag."
+          "dashboard_release_selection": "Kies de momenteel geïnstalleerde versie, de meest recente stabiele versie of een expliciet compatibele versie-tag."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Voor goedkeuringsresettypen 'Op vervaldatum' (eenmalig of meervoudig) moet een vervaldatum worden ingesteld. Zonder vervaldatum wordt de goedkeuring nooit gereset en blijft de taak voor onbepaalde tijd goedgekeurd.",
       "error_per_assignee_applicable_days_invalid": "Ongeldig formaat voor de toepasselijke dagen voor een of meer toegewezen personen. Dagen moeten gehele getallen van 0-6 zijn (maandag-zondag) zonder duplicaten.",
       "error_per_assignee_daily_multi_times_invalid": "Ongeldig dagformaat voor een of meer toegewezen personen. Gebruik het 24-uursformaat, gescheiden door | (bijv. 08:00|17:00).",
-      "dashboard_exists": "Er bestaat al een dashboard met dit URL-pad. Schakel 'Forceer heropbouw' in om het bestaande dashboard te overschrijven.",
+      "dashboard_exists": "Er bestaat al een dashboard met dit URL-pad. Gebruik de optie 'Dashboard bijwerken'.",
       "dashboard_template_error": "Het ophalen van de dashboardtemplate is mislukt. Controleer uw netwerkverbinding of probeer het later opnieuw.",
       "dashboard_render_error": "Het is niet gelukt om de dashboardtemplate weer te geven. Dit kan duiden op een bug in de template.",
       "dashboard_save_error": "Het opslaan van het dashboard in Home Assistant is mislukt. Raadpleeg de systeemlogboeken voor meer informatie.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Een beheerdersjabloon per gebruiker is vereist wanneer de beheerdersindeling 'Per gebruiker' bevat.",
       "dashboard_admin_per_assignee_needs_assignees": "Voor de beheerderslay-out per gebruiker is minimaal één geselecteerde gebruiker vereist.",
       "dashboard_dependency_ack_required": "Schakel 'Toch doorgaan' in om verder te gaan, of ga terug en installeer eerst de ontbrekende vereiste afhankelijkheden.",
-      "dashboard_template_details_ack_required": "Schakel 'Doorgaan met deze sjablonen' in om verder te gaan, of ga terug en pas de sjabloonselecties aan."
+      "dashboard_nonselectable_templates": "Een of meer geselecteerde sjablonen kunnen niet worden gegenereerd.",
+      "dashboard_release_strict_pin_failed": "De geselecteerde dashboardversie moet exact worden vastgezet, maar er was geen geldige versiereferentie beschikbaar tijdens de uitvoering. Selecteer de versie in stap 1 opnieuw en probeer het nogmaals.",
+      "dashboard_release_asset_prep_failed": "Het lukt niet om de geselecteerde online dashboard-elementen voor te bereiden. Kies een andere versie of gebruik de nieuwste compatibele/actuele lokale sjablonen en probeer het opnieuw."
     },
     "abort": {
       "invalid_action": "Ongeldige actie",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Meest recente compatibele versie (aanbevolen)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Momenteel geïnstalleerd",
+        "latest_stable": "Laatste stabiele versie",
+        "latest_compatible": "Meest recente compatibele versie (aanbevolen)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Er is geen unieke geladen ChoreOps-vermelding gevonden voor de titel {title}. Gebruik in plaats daarvan config_entry_id."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Het voorbereiden van geselecteerde online dashboardelementen"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Online voorbereiding van assets is mislukt. Kies een andere versie of gebruik de nieuwste compatibele/actuele lokale sjablonen."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Toegepaste release {release_ref} lokaal ({execution_source}). Herlaad de integratie of herstart Home Assistant om de vertaalsensoren van het dashboard te vernieuwen."
+    },
+    "dashboard_status_updated": {
+      "message": "Bijgewerkt {url_path} (weergaven={view_count}, release_selection={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Aangemaakt {url_path} (toegewezenen={assignee_count}, admin_mode={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Vereiste dashboardafhankelijkheden ontbreken nog; terugkeren naar configuratie"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Ontbrekende vereiste afhankelijkheden zijn door de gebruiker omzeild."
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Ontbrekende aanbevolen afhankelijkheden (generatie gaat verder): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "De geselecteerde sjablonen kunnen niet worden gegenereerd:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Verwijderd {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Het verwijderen van {url_path}is mislukt: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Geen"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Voorkeurenhandleiding"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Voorkeurenhandleiding niet beschikbaar"
     },
     "not_authorized_action": {
       "message": "U bent niet gemachtigd om {action} namens deze toegewezen persoon uit te voeren."

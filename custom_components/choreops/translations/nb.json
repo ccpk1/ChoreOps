@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Handlinger på dashbordet",
-        "description": "Opprett, oppdater eller slett ChoreOps Lovelace-dashbord.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})",
+        "description": "Opprett, oppdater eller slett ChoreOps Lovelace-dashbord.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Handling"
+          "dashboard_action": "Handling",
+          "dashboard_release_selection": "Utgivelsesversjon av dashbordet"
         },
         "data_description": {
-          "dashboard_action": "Velg én handling: opprett et nytt dashbord, oppdater visninger på et eksisterende dashbord eller slett dashbord."
+          "dashboard_action": "Velg én handling: opprett et nytt dashbord, oppdater visninger på et eksisterende dashbord eller slett dashbord.",
+          "dashboard_release_selection": "Velg den gjeldende installerte utgivelsen, den nyeste stabile utgivelsen eller en eksplisitt kompatibel utgivelsestag."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Manglende dashbordavhengigheter",
-        "description": "Noen nødvendige dashbordkort mangler for de valgte malene.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n**Mangler nødvendige avhengigheter**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalte avhengigheter**\n{dashboard_missing_recommended_dependencies}\n\nInstaller nødvendige kort via HACS Frontend før du fortsetter.",
+        "title": "Se gjennom endringer i dashbordet",
+        "description": "Se gjennom avhengighetsstatus og malpreferanser for de valgte malene før du bruker endringer i dashbordet.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n**Tilgjengelige tilpasninger**\n{dashboard_template_preferences}\n\n**Mangler nødvendige avhengigheter**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalte avhengigheter**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Fortsett likevel"
+          "dashboard_dependency_bypass": "🚫 Fortsett likevel (krav mangler)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Bekreft manglende nødvendige avhengigheter og fortsett genereringen uansett. Dashbordkort kan mislykkes i gjengivelsen før avhengigheter er installert."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Gjennomgang av maldetaljer",
-        "description": "Se gjennom detaljene for valgte maler før du bruker endringer i dashbordet.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Fortsett med disse malene"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Bekreft de valgte maldetaljene og fortsett med avhengighetskontroller og generering."
+          "dashboard_dependency_bypass": "Bekreft at nødvendige avhengigheter mangler, og fortsett uansett. Dashbordet kan mislykkes med å gjengis eller oppføre seg feil før nødvendige avhengigheter er installert."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Dashbordikon",
               "dashboard_require_admin": "Kun administrator",
-              "dashboard_show_in_sidebar": "Legg til i sidefeltet",
-              "dashboard_template_details_review": "Se gjennom maldetaljene før du søker"
+              "dashboard_show_in_sidebar": "Legg til i sidefeltet"
             },
             "data_description": {
               "dashboard_icon": "Sidefeltikon for dette dashbordet.",
               "dashboard_require_admin": "Begrens tilgang til dashbordet til administratorbrukere.",
-              "dashboard_show_in_sidebar": "Vis dette dashbordet i Home Assistant-sidefeltet.",
-              "dashboard_template_details_review": "Vis et gjennomgangstrinn med malbeskrivelser, avhengigheter og lenker til preferanseguiden før du bruker endringene."
+              "dashboard_show_in_sidebar": "Vis dette dashbordet i Home Assistant-sidefeltet."
             }
           },
           "section_template_version": {
             "name": "Malversjon",
             "description": "Velg hvordan oppdateringsmodus velger kompatible dashbordmaler.",
             "data": {
-              "dashboard_include_prereleases": "Inkluder forhåndsutgivelser",
               "dashboard_release_selection": "Versjon av dashbordmal"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Inkluder tagger for forhåndsversjonsdashbord i utgivelsesoppdagelse.",
-              "dashboard_release_selection": "Velg automatisk siste kompatible valg eller velg eksplisitt en kompatibel utgivelsestag."
+              "dashboard_release_selection": "Velg den gjeldende installerte utgivelsen, den nyeste stabile utgivelsen eller en eksplisitt kompatibel utgivelsestag."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Dashbordikon",
           "dashboard_require_admin": "Kun administrator",
           "dashboard_show_in_sidebar": "Legg til i sidefeltet",
-          "dashboard_include_prereleases": "Inkluder forhåndsutgivelser",
           "dashboard_release_selection": "Versjon av dashbordmal"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Sidefeltikon for dette dashbordet.",
           "dashboard_require_admin": "Begrens tilgang til dashbordet til administratorbrukere.",
           "dashboard_show_in_sidebar": "Vis dette dashbordet i Home Assistant-sidefeltet.",
-          "dashboard_include_prereleases": "Inkluder tagger for forhåndsversjonsdashbord i utgivelsesoppdagelse.",
-          "dashboard_release_selection": "Velg automatisk siste kompatible valg eller velg eksplisitt en kompatibel utgivelsestag."
+          "dashboard_release_selection": "Velg den gjeldende installerte utgivelsen, den nyeste stabile utgivelsen eller en eksplisitt kompatibel utgivelsestag."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Godkjenningsnullstillingstypene «Ved forfallsdato» (én eller flere) krever at det angis en forfallsdato. Uten en forfallsdato vil tilbakestillingen av godkjenningen aldri utløses, og gjøremålet vil forbli godkjent på ubestemt tid.",
       "error_per_assignee_applicable_days_invalid": "Ugyldig dagsformat for én eller flere tildelere. Dager må være heltall 0–6 (mandag–søndag) uten duplikater.",
       "error_per_assignee_daily_multi_times_invalid": "Ugyldig daglig tidsformat for én eller flere tildelere. Bruk 24-timersformat atskilt med | (f.eks. 08:00|17:00).",
-      "dashboard_exists": "Et dashbord med denne URL-banen finnes allerede. Aktiver «Tving gjenoppbygging» for å overskrive.",
+      "dashboard_exists": "Et dashbord med denne URL-banen finnes allerede. Bruk alternativet for å oppdatere dashbord.",
       "dashboard_template_error": "Kunne ikke hente dashbordmalen. Sjekk nettverkstilkoblingen eller prøv på nytt senere.",
       "dashboard_render_error": "Kunne ikke gjengi dashbordmalen. Dette kan tyde på en malfeil.",
       "dashboard_save_error": "Kunne ikke lagre dashbordet i Home Assistant. Sjekk systemloggene for detaljer.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "En administratormal per bruker er nødvendig når administratoroppsettet inkluderer per bruker.",
       "dashboard_admin_per_assignee_needs_assignees": "Adminoppsett per bruker krever minst én valgt bruker.",
       "dashboard_dependency_ack_required": "Aktiver «Fortsett likevel» for å fortsette, eller gå tilbake og installer manglende nødvendige avhengigheter først.",
-      "dashboard_template_details_ack_required": "Aktiver «Fortsett med disse malene» for å fortsette, eller gå tilbake og juster malvalgene."
+      "dashboard_nonselectable_templates": "Én eller flere valgte maler er ikke tilgjengelige for generering.",
+      "dashboard_release_strict_pin_failed": "Den valgte dashbordutgivelsen må være nøyaktig festet, men ingen effektiv utgivelsesreferanse var tilgjengelig på utførelsestidspunktet. Velg utgivelsen på nytt i trinn 1 og prøv på nytt.",
+      "dashboard_release_asset_prep_failed": "Kan ikke forberede valgte nettbaserte dashbordressurser. Velg en annen versjon, eller bruk de nyeste kompatible/gjeldende lokale malene, og prøv på nytt."
     },
     "abort": {
       "invalid_action": "Ugyldig handling",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Siste kompatible (anbefales)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Nåværende installert",
+        "latest_stable": "Siste stabile",
+        "latest_compatible": "Siste kompatible (anbefales)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Ingen unik lastet ChoreOps-oppføring funnet for tittelen {title}. Bruk config_entry_id i stedet."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Forbereder valgte nettbaserte dashbordressurser"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Klargjøring av nettbaserte ressurser mislyktes. Velg en annen utgivelse, eller bruk de nyeste kompatible/gjeldende lokale malene."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Brukte utgivelsen {release_ref} lokalt ({execution_source}). Last inn integrasjonen på nytt eller start Home Assistant på nytt for å oppdatere oversettelsessensorene for dashbordet."
+    },
+    "dashboard_status_updated": {
+      "message": "Oppdatert {url_path} (visninger ={view_count}, utgivelsesvalg ={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Opprettet {url_path} (tildelte ={assignee_count}, admin_mode ={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Nødvendige dashbordavhengigheter mangler fortsatt; går tilbake til konfigurasjonen"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Manglende nødvendige avhengigheter omgått av brukeren"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Mangler anbefalte avhengigheter (genereringen vil fortsette): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Valgte maler er ikke tilgjengelige for generering:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Slettet {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Kunne ikke slette {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Ingen"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Innstillingsguide"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Preferanseguide ikke oppgitt"
     },
     "not_authorized_action": {
       "message": "Du er ikke autorisert til å {action} for denne rettighetshaveren."

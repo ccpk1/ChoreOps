@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Instrumentpanelsåtgärder",
-        "description": "Skapa, uppdatera eller ta bort ChoreOps Lovelace-instrumentpaneler.\n\n[Konfigurationsguide för instrumentpanel]({documentation_url})",
+        "description": "Skapa, uppdatera eller ta bort ChoreOps Lovelace-instrumentpaneler.\n\n[Konfigurationsguide för instrumentpanel]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Handling"
+          "dashboard_action": "Handling",
+          "dashboard_release_selection": "Version av instrumentpanelen"
         },
         "data_description": {
-          "dashboard_action": "Välj en åtgärd: skapa en ny instrumentpanel, uppdatera vyer på en befintlig instrumentpanel eller ta bort instrumentpaneler."
+          "dashboard_action": "Välj en åtgärd: skapa en ny instrumentpanel, uppdatera vyer på en befintlig instrumentpanel eller ta bort instrumentpaneler.",
+          "dashboard_release_selection": "Välj den för närvarande installerade versionen, den senaste stabila versionen eller en uttryckligen kompatibel versionstagg."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Saknade instrumentpanelsberoenden",
-        "description": "Vissa obligatoriska instrumentpanelskort saknas för dina valda mallar.\n\n[Konfigurationsguide för instrumentpanel]({documentation_url})\n\n**Obligatoriska beroenden saknas**\n{dashboard_missing_required_dependencies}\n\n**Rekommenderade beroenden saknas**\n{dashboard_missing_recommended_dependencies}\n\nInstallera nödvändiga kort via HACS Frontend innan du fortsätter.",
+        "title": "Granska ändringar i instrumentpanelen",
+        "description": "Granska beroendestatus och mallinställningar för dina valda mallar innan du tillämpar ändringar i instrumentpanelen.\n\n[Konfigurationsguide för instrumentpanel]({documentation_url})\n\n**Tillgängliga anpassningar**\n{dashboard_template_preferences}\n\n**Obligatoriska beroenden saknas**\n{dashboard_missing_required_dependencies}\n\n**Rekommenderade beroenden saknas**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Fortsätt ändå"
+          "dashboard_dependency_bypass": "🚫 Fortsätt ändå (krav saknas)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Bekräfta saknade beroenden och fortsätt genereringen ändå. Instrumentpanelskort kan misslyckas med att renderas förrän beroenden har installerats."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Granskning av malldetaljer",
-        "description": "Granska detaljerna för valda mallar innan du tillämpar ändringar i instrumentpanelen.\n\n[Konfigurationsguide för instrumentpanel]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Fortsätt med dessa mallar"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Bekräfta de valda malldetaljerna och fortsätt med beroendekontroller och generering."
+          "dashboard_dependency_bypass": "Bekräfta att nödvändiga beroenden saknas och fortsätt ändå. Instrumentpanelen kanske inte renderas eller beter sig felaktigt förrän nödvändiga beroenden har installerats."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Instrumentpanelsikon",
               "dashboard_require_admin": "Endast administratör",
-              "dashboard_show_in_sidebar": "Lägg till i sidofältet",
-              "dashboard_template_details_review": "Granska mallens detaljer innan du ansöker"
+              "dashboard_show_in_sidebar": "Lägg till i sidofältet"
             },
             "data_description": {
               "dashboard_icon": "Sidofältsikon för den här instrumentpanelen.",
               "dashboard_require_admin": "Begränsa åtkomst till instrumentpanelen till administratörsanvändare.",
-              "dashboard_show_in_sidebar": "Visa den här instrumentpanelen i Home Assistant-sidofältet.",
-              "dashboard_template_details_review": "Visa ett granskningssteg med mallbeskrivningar, beroenden och länkar till inställningsguider innan ändringarna tillämpas."
+              "dashboard_show_in_sidebar": "Visa den här instrumentpanelen i Home Assistant-sidofältet."
             }
           },
           "section_template_version": {
             "name": "Mallversion",
             "description": "Välj hur uppdateringsläget väljer kompatibla instrumentpanelsmallar.",
             "data": {
-              "dashboard_include_prereleases": "Inkludera förhandsversioner",
               "dashboard_release_selection": "Version av instrumentpanelsmall"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Inkludera taggar för förhandsversionsinstrumentpanelen i utgivningsidentifieringen.",
-              "dashboard_release_selection": "Välj automatiskt senast kompatibla val eller välj explicit en kompatibel versionstagg."
+              "dashboard_release_selection": "Välj den för närvarande installerade versionen, den senaste stabila versionen eller en uttryckligen kompatibel versionstagg."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Instrumentpanelsikon",
           "dashboard_require_admin": "Endast administratör",
           "dashboard_show_in_sidebar": "Lägg till i sidofältet",
-          "dashboard_include_prereleases": "Inkludera förhandsversioner",
           "dashboard_release_selection": "Version av instrumentpanelsmall"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Sidofältsikon för den här instrumentpanelen.",
           "dashboard_require_admin": "Begränsa åtkomst till instrumentpanelen till administratörsanvändare.",
           "dashboard_show_in_sidebar": "Visa den här instrumentpanelen i Home Assistant-sidofältet.",
-          "dashboard_include_prereleases": "Inkludera taggar för förhandsversionsinstrumentpanelen i utgivningsidentifieringen.",
-          "dashboard_release_selection": "Välj automatiskt senast kompatibla val eller välj explicit en kompatibel versionstagg."
+          "dashboard_release_selection": "Välj den för närvarande installerade versionen, den senaste stabila versionen eller en uttryckligen kompatibel versionstagg."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Godkännandeåterställningstyperna \"Vid förfallodatum\" (en gång eller flera gånger) kräver att ett förfallodatum anges. Utan ett förfallodatum kommer återställningen av godkännandet aldrig att utlösas och sysslan förblir godkänd på obestämd tid.",
       "error_per_assignee_applicable_days_invalid": "Ogiltigt tillämpligt dagsformat för en eller flera tilldelade. Dagarna måste vara heltal 0–6 (måndag–söndag) utan dubbletter.",
       "error_per_assignee_daily_multi_times_invalid": "Ogiltigt dagligt tidsformat för en eller flera tilldelade. Använd 24-timmarsformat avgränsat med | (t.ex. 08:00|17:00).",
-      "dashboard_exists": "En instrumentpanel med den här URL-sökvägen finns redan. Aktivera \"Tvinga ombyggnad\" för att skriva över.",
+      "dashboard_exists": "En instrumentpanel med den här URL-sökvägen finns redan. Använd alternativet Uppdatera instrumentpanel.",
       "dashboard_template_error": "Det gick inte att hämta instrumentpanelsmallen. Kontrollera nätverksanslutningen eller försök igen senare.",
       "dashboard_render_error": "Misslyckades med att rendera instrumentpanelsmallen. Detta kan tyda på ett mallfel.",
       "dashboard_save_error": "Det gick inte att spara instrumentpanelen i Home Assistant. Kontrollera systemloggarna för mer information.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "En administratörsmall per användare krävs när administratörslayouten inkluderar per användare.",
       "dashboard_admin_per_assignee_needs_assignees": "Administratörslayout per användare kräver minst en vald användare.",
       "dashboard_dependency_ack_required": "Aktivera \"Fortsätt ändå\" för att fortsätta, eller gå tillbaka och installera först saknade nödvändiga beroenden.",
-      "dashboard_template_details_ack_required": "Aktivera \"Fortsätt med dessa mallar\" för att fortsätta, eller gå tillbaka och justera mallvalen."
+      "dashboard_nonselectable_templates": "En eller flera valda mallar är inte tillgängliga för generering.",
+      "dashboard_release_strict_pin_failed": "Den valda dashboard-versionen måste vara exakt fäst, men ingen effektiv versionsreferens fanns tillgänglig vid körningstillfället. Välj versionen igen i steg 1 och försök igen.",
+      "dashboard_release_asset_prep_failed": "Det gick inte att förbereda valda online-instrumentpanelsresurser. Välj en annan version eller använd de senaste kompatibla/aktuella lokala mallarna och försök igen."
     },
     "abort": {
       "invalid_action": "Ogiltig åtgärd",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Senaste kompatibla (rekommenderas)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Nuvarande installerad",
+        "latest_stable": "Senaste stabila",
+        "latest_compatible": "Senaste kompatibla (rekommenderas)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Ingen unik inläst ChoreOps-post hittades för titeln {title}. Använd config_entry_id istället."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Förbereder valda online-instrumentpanelresurser"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Förberedelsen av online-resursen misslyckades. Välj en annan version eller använd de senaste kompatibla/aktuella lokala mallarna."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Tillämpad version {release_ref} lokalt ({execution_source}). Ladda om integrationen eller starta om Home Assistant för att uppdatera översättningssensorerna för instrumentpanelen."
+    },
+    "dashboard_status_updated": {
+      "message": "Uppdaterad {url_path} (visningar={view_count}, release_selection={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Skapad {url_path} (tilldelade ={assignee_count}, admin_mode ={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Obligatoriska instrumentpanelsberoenden saknas fortfarande; återgår till konfigurationen"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Saknade obligatoriska beroenden kringgådda av användaren"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Rekommenderade beroenden saknas (genereringen fortsätter): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Valda mallar är inte tillgängliga för generering:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Borttagen {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Misslyckades med att ta bort {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Ingen"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Inställningsguide"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Inställningsguide tillhandahålls inte"
     },
     "not_authorized_action": {
       "message": "Du har inte behörighet att {action} för denna tilldelade person."

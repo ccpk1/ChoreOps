@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Handlinger på dashboardet",
-        "description": "Opret, opdater eller slet ChoreOps Lovelace-dashboards.\n\n[Konfigurationsvejledning til dashboard]({documentation_url})",
+        "description": "Opret, opdater eller slet ChoreOps Lovelace-dashboards.\n\n[Konfigurationsvejledning til dashboard]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Handling"
+          "dashboard_action": "Handling",
+          "dashboard_release_selection": "Dashboard-udgivelsesversion"
         },
         "data_description": {
-          "dashboard_action": "Vælg én handling: Opret et nyt dashboard, opdater visninger på et eksisterende dashboard, eller slet dashboards."
+          "dashboard_action": "Vælg én handling: Opret et nyt dashboard, opdater visninger på et eksisterende dashboard, eller slet dashboards.",
+          "dashboard_release_selection": "Vælg den aktuelt installerede udgivelse, den seneste stabile udgivelse eller et eksplicit kompatibelt udgivelsestag."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Manglende dashboardafhængigheder",
-        "description": "Nogle nødvendige dashboardkort mangler for dine valgte skabeloner.\n\n[Konfigurationsvejledning til dashboard]({documentation_url})\n\n**Mangler nødvendige afhængigheder**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalede afhængigheder**\n{dashboard_missing_recommended_dependencies}\n\nInstaller nødvendige kort via HACS Frontend, før du fortsætter.",
+        "title": "Gennemgå ændringer i dashboardet",
+        "description": "Gennemgå afhængighedsstatus og skabelonpræferencer for dine valgte skabeloner, før du anvender ændringer af dashboardet.\n\n[Konfigurationsvejledning til dashboard]({documentation_url})\n\n**Tilgængelige tilpasninger**\n{dashboard_template_preferences}\n\n**Mangler nødvendige afhængigheder**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalede afhængigheder**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Fortsæt alligevel"
+          "dashboard_dependency_bypass": "🚫 Fortsæt alligevel (krav mangler)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Anerkend manglende nødvendige afhængigheder, og fortsæt genereringen alligevel. Dashboardkort gengives muligvis ikke, før afhængigheder er installeret."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Gennemgang af skabelondetaljer",
-        "description": "Gennemgå detaljerne for de valgte skabeloner, før du anvender ændringerne af dashboardet.\n\n[Vejledning til konfiguration af dashboard]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Fortsæt med disse skabeloner"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Bekræft de valgte skabelondetaljer, og fortsæt med afhængighedstjek og generering."
+          "dashboard_dependency_bypass": "Anerkend, at der mangler nødvendige afhængigheder, og fortsæt alligevel. Dashboardet gengives muligvis ikke eller fungerer muligvis forkert, før de nødvendige afhængigheder er installeret."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Dashboard-ikon",
               "dashboard_require_admin": "Kun administrator",
-              "dashboard_show_in_sidebar": "Føj til sidebjælke",
-              "dashboard_template_details_review": "Gennemgå skabelonoplysningerne før du ansøger"
+              "dashboard_show_in_sidebar": "Føj til sidebjælke"
             },
             "data_description": {
               "dashboard_icon": "Sidebjælkeikon for dette dashboard.",
               "dashboard_require_admin": "Begræns adgang til dashboardet til administratorbrugere.",
-              "dashboard_show_in_sidebar": "Vis dette dashboard i Home Assistant-sidebjælken.",
-              "dashboard_template_details_review": "Vis et gennemgangstrin med skabelonbeskrivelser, afhængigheder og links til præferencevejledninger, før ændringerne anvendes."
+              "dashboard_show_in_sidebar": "Vis dette dashboard i Home Assistant-sidebjælken."
             }
           },
           "section_template_version": {
             "name": "Skabelonversion",
             "description": "Vælg, hvordan opdateringstilstand vælger kompatible dashboardskabeloner.",
             "data": {
-              "dashboard_include_prereleases": "Inkluder forhåndsudgivelser",
               "dashboard_release_selection": "Version af dashboardskabelonen"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Inkluder tags til dashboards til forhåndsudgivelser i udgivelsesopdagelse.",
-              "dashboard_release_selection": "Vælg automatisk senest kompatible valg, eller vælg eksplicit et kompatibelt udgivelsestag."
+              "dashboard_release_selection": "Vælg den aktuelt installerede udgivelse, den seneste stabile udgivelse eller et eksplicit kompatibelt udgivelsestag."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Dashboard-ikon",
           "dashboard_require_admin": "Kun administrator",
           "dashboard_show_in_sidebar": "Føj til sidebjælke",
-          "dashboard_include_prereleases": "Inkluder forhåndsudgivelser",
           "dashboard_release_selection": "Version af dashboardskabelonen"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Sidebjælkeikon for dette dashboard.",
           "dashboard_require_admin": "Begræns adgang til dashboardet til administratorbrugere.",
           "dashboard_show_in_sidebar": "Vis dette dashboard i Home Assistant-sidebjælken.",
-          "dashboard_include_prereleases": "Inkluder tags til dashboards til forhåndsudgivelser i udgivelsesopdagelse.",
-          "dashboard_release_selection": "Vælg automatisk senest kompatible valg, eller vælg eksplicit et kompatibelt udgivelsestag."
+          "dashboard_release_selection": "Vælg den aktuelt installerede udgivelse, den seneste stabile udgivelse eller et eksplicit kompatibelt udgivelsestag."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Godkendelsesnulstillingstyperne 'Ved forfaldsdato' (Én gang eller Flere gange) kræver, at der angives en forfaldsdato. Uden en forfaldsdato udløses nulstillingen af godkendelsen aldrig, og opgaven forbliver godkendt på ubestemt tid.",
       "error_per_assignee_applicable_days_invalid": "Ugyldigt gældende dagsformat for en eller flere tildelte. Dage skal være heltal 0-6 (mandag-søndag) uden dubletter.",
       "error_per_assignee_daily_multi_times_invalid": "Ugyldigt dagligt tidsformat for en eller flere tildelte. Brug et 24-timers format adskilt af | (f.eks. 08:00|17:00).",
-      "dashboard_exists": "Et dashboard med denne URL-sti findes allerede. Aktivér 'Tving gendannelse' for at overskrive.",
+      "dashboard_exists": "Et dashboard med denne URL-sti findes allerede. Brug indstillingen Opdater dashboard.",
       "dashboard_template_error": "Dashboardskabelonen kunne ikke hentes. Kontroller netværksforbindelsen, eller prøv igen senere.",
       "dashboard_render_error": "Dashboardskabelonen kunne ikke gengives. Dette kan indikere en skabelonfejl.",
       "dashboard_save_error": "Dashboardet kunne ikke gemmes i Home Assistant. Tjek systemlogfilerne for at få flere oplysninger.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "En administratorskabelon pr. bruger er påkrævet, når administratorlayoutet inkluderer pr. bruger.",
       "dashboard_admin_per_assignee_needs_assignees": "Adminlayout pr. bruger kræver mindst én valgt bruger.",
       "dashboard_dependency_ack_required": "Aktivér 'Fortsæt alligevel' for at fortsætte, eller gå tilbage og installer manglende nødvendige afhængigheder først.",
-      "dashboard_template_details_ack_required": "Aktivér 'Fortsæt med disse skabeloner' for at fortsætte, eller gå tilbage og juster skabelonvalg."
+      "dashboard_nonselectable_templates": "En eller flere valgte skabeloner kan ikke genereres.",
+      "dashboard_release_strict_pin_failed": "Den valgte dashboard-udgivelse skal være præcist fastgjort, men der var ingen effektiv udgivelsesreference tilgængelig på udførelsestidspunktet. Vælg udgivelsen igen i trin 1, og prøv igen.",
+      "dashboard_release_asset_prep_failed": "De valgte online dashboard-aktiver kunne ikke forberedes. Vælg en anden udgivelse, eller brug de seneste kompatible/aktuelle lokale skabeloner, og prøv igen."
     },
     "abort": {
       "invalid_action": "Ugyldig handling",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Seneste kompatible (anbefales)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Aktuelt installeret",
+        "latest_stable": "Seneste stabile",
+        "latest_compatible": "Seneste kompatible (anbefales)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Ingen unik indlæst ChoreOps-post fundet for titlen {title}. Brug config_entry_id i stedet."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Forbereder udvalgte online dashboard-aktiver"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Online forberedelse af aktiv mislykkedes. Vælg en anden udgivelse, eller brug de seneste kompatible/aktuelle lokale skabeloner."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Anvendte udgivelse {release_ref} lokalt ({execution_source}). Genindlæs integrationen eller genstart Home Assistant for at opdatere oversættelsessensorerne på dashboardet."
+    },
+    "dashboard_status_updated": {
+      "message": "Opdateret {url_path} (visninger={view_count}, udgivelsesvalg={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Oprettet {url_path} (tildelere={assignee_count}, admin_mode={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Nødvendige dashboardafhængigheder mangler stadig; vender tilbage til konfigurationen"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Manglende nødvendige afhængigheder omgået af brugeren"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Manglende anbefalede afhængigheder (generering fortsætter): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "De valgte skabeloner kan ikke genereres:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Slettet {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Kunne ikke slette {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Ingen"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Præferencevejledning"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Præferencevejledning ikke medtaget"
     },
     "not_authorized_action": {
       "message": "Du er ikke autoriseret til at {action} for denne overdragelsesmodtager."

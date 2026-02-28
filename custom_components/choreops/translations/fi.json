@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Kojelaudan toiminnot",
-        "description": "Luo, päivitä tai poista ChoreOps Lovelace -koontinäyttöjä.\n\n[Koontinäytön määritysopas]({documentation_url})",
+        "description": "Luo, päivitä tai poista ChoreOps Lovelace -koontinäyttöjä.\n\n[Koontinäytön määritysopas]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Toiminta"
+          "dashboard_action": "Toiminta",
+          "dashboard_release_selection": "Kojelaudan julkaisuversio"
         },
         "data_description": {
-          "dashboard_action": "Valitse yksi toiminto: luo uusi koontinäyttö, päivitä näkymiä olemassa olevassa koontinäytössä tai poista koontinäyttöjä."
+          "dashboard_action": "Valitse yksi toiminto: luo uusi koontinäyttö, päivitä näkymiä olemassa olevassa koontinäytössä tai poista koontinäyttöjä.",
+          "dashboard_release_selection": "Valitse asennettuna oleva julkaisu, uusin vakaa julkaisu tai nimenomainen yhteensopiva julkaisutunniste."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Puuttuvat kojelaudan riippuvuudet",
-        "description": "Jotkin valituista malleista puuttuvat pakolliset kojelaudan kortit.\n\n[Kojelaudan määritysopas]({documentation_url})\n\n**Puuttuvat pakolliset riippuvuudet**\n{dashboard_missing_required_dependencies}\n\n**Puuttuvat suositellut riippuvuudet**\n{dashboard_missing_recommended_dependencies}\n\nAsenna tarvittavat kortit HACS-käyttöliittymän kautta ennen jatkamista.",
+        "title": "Tarkista kojelaudan muutokset",
+        "description": "Tarkista valittujen mallien riippuvuustila ja mallien asetukset ennen kuin otat kojelaudan muutokset käyttöön.\n\n[Kojelaudan määritysopas]({documentation_url})\n\n**Käytettävissä olevat mukautukset**\n{dashboard_template_preferences}\n\n**Puuttuvat pakolliset riippuvuudet**\n{dashboard_missing_required_dependencies}\n\n**Puuttuvat suositellut riippuvuudet**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Jatka joka tapauksessa"
+          "dashboard_dependency_bypass": "🚫 Jatka joka tapauksessa (vaatimukset puuttuvat)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Kuittaa puuttuvat pakolliset riippuvuudet ja jatka luomista joka tapauksessa. Kojelaudan korttien renderöinti ei välttämättä onnistu, ennen kuin riippuvuudet on asennettu."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Mallipohjan tietojen tarkistus",
-        "description": "Tarkista valittujen mallien tiedot ennen koontinäytön muutosten käyttöönottoa.\n\n[Kontrollinäytön määritysopas]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Jatka näillä malleilla"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Vahvista valitun mallin tiedot ja jatka riippuvuustarkistuksiin ja luontiin."
+          "dashboard_dependency_bypass": "Vahvista, että pakolliset riippuvuudet puuttuvat, ja jatka joka tapauksessa. Kojelauta ei välttämättä renderöidy tai toimii väärin, ennen kuin pakolliset riippuvuudet on asennettu."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Kojelaudan kuvake",
               "dashboard_require_admin": "Vain ylläpitäjille",
-              "dashboard_show_in_sidebar": "Lisää sivupalkkiin",
-              "dashboard_template_details_review": "Tarkista mallipohjan tiedot ennen käyttöä"
+              "dashboard_show_in_sidebar": "Lisää sivupalkkiin"
             },
             "data_description": {
               "dashboard_icon": "Tämän kojelaudan sivupalkin kuvake.",
               "dashboard_require_admin": "Rajoita kojelaudan käyttöoikeudet järjestelmänvalvojille.",
-              "dashboard_show_in_sidebar": "Näytä tämä kojelauta Home Assistantin sivupalkissa.",
-              "dashboard_template_details_review": "Näytä tarkistusvaihe, jossa on mallien kuvaukset, riippuvuudet ja asetusoppaan linkit ennen muutosten käyttöönottoa."
+              "dashboard_show_in_sidebar": "Näytä tämä kojelauta Home Assistantin sivupalkissa."
             }
           },
           "section_template_version": {
             "name": "Mallipohjan versio",
             "description": "Valitse, miten päivitystila valitsee yhteensopivat kojelaudan mallit.",
             "data": {
-              "dashboard_include_prereleases": "Sisällytä ennakkojulkaisut",
               "dashboard_release_selection": "Kojelaudan mallipohjan versio"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Sisällytä julkaisua edeltävän koontinäytön tunnisteet julkaisun etsintään.",
-              "dashboard_release_selection": "Valitse automaattisesti viimeisin yhteensopiva versio tai valitse erikseen yhteensopiva julkaisutunniste."
+              "dashboard_release_selection": "Valitse asennettuna oleva julkaisu, uusin vakaa julkaisu tai nimenomainen yhteensopiva julkaisutunniste."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Kojelaudan kuvake",
           "dashboard_require_admin": "Vain ylläpitäjille",
           "dashboard_show_in_sidebar": "Lisää sivupalkkiin",
-          "dashboard_include_prereleases": "Sisällytä ennakkojulkaisut",
           "dashboard_release_selection": "Kojelaudan mallipohjan versio"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Tämän kojelaudan sivupalkin kuvake.",
           "dashboard_require_admin": "Rajoita kojelaudan käyttöoikeudet järjestelmänvalvojille.",
           "dashboard_show_in_sidebar": "Näytä tämä kojelauta Home Assistantin sivupalkissa.",
-          "dashboard_include_prereleases": "Sisällytä julkaisua edeltävän koontinäytön tunnisteet julkaisun etsintään.",
-          "dashboard_release_selection": "Valitse automaattisesti viimeisin yhteensopiva versio tai valitse erikseen yhteensopiva julkaisutunniste."
+          "dashboard_release_selection": "Valitse asennettuna oleva julkaisu, uusin vakaa julkaisu tai nimenomainen yhteensopiva julkaisutunniste."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Eräpäivänä tapahtuvat hyväksynnän nollaustyypit (kerran tai useita kertoja) edellyttävät eräpäivän asettamista. Ilman eräpäivää hyväksynnän nollaus ei koskaan käynnisty ja työ pysyy hyväksyttynä toistaiseksi.",
       "error_per_assignee_applicable_days_invalid": "Yhdelle tai useammalle vastuuhenkilölle on määritetty virheellinen päivien muoto. Päivien on oltava kokonaislukuja 0–6 (maanantai–sunnuntai) ilman kaksoiskappaleita.",
       "error_per_assignee_daily_multi_times_invalid": "Yhden tai useamman vastuuhenkilön päivittäisen kellonajan muoto on virheellinen. Käytä 24-tunnin muotoa ja erota ne merkillä | (esim. 08:00|17:00).",
-      "dashboard_exists": "Tällä URL-polulla varustettu kojelauta on jo olemassa. Ota käyttöön 'Pakota uudelleenrakennus' korvataksesi sen.",
+      "dashboard_exists": "Tällä URL-polulla varustettu kojelauta on jo olemassa. Käytä Päivitä kojelauta -vaihtoehtoa.",
       "dashboard_template_error": "Kojelaudan mallin nouto epäonnistui. Tarkista verkkoyhteys tai yritä myöhemmin uudelleen.",
       "dashboard_render_error": "Kojelaudan mallin renderöinti epäonnistui. Tämä saattaa viitata mallin virheeseen.",
       "dashboard_save_error": "Kojelaudan tallentaminen Home Assistantiin epäonnistui. Tarkista lisätietoja järjestelmälokeista.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Käyttäjäkohtainen hallintamalli vaaditaan, kun hallintamalli sisältää käyttäjäkohtaisen mallin.",
       "dashboard_admin_per_assignee_needs_assignees": "Käyttäjäkohtainen hallinta-asettelu edellyttää vähintään yhden valitun käyttäjän.",
       "dashboard_dependency_ack_required": "Jatka ottamalla käyttöön 'Jatka joka tapauksessa' tai palaa takaisin ja asenna ensin puuttuvat pakolliset riippuvuudet.",
-      "dashboard_template_details_ack_required": "Jatka ottamalla käyttöön 'Jatka näillä malleilla' tai palaa takaisin ja muuta mallivalintoja."
+      "dashboard_nonselectable_templates": "Yksi tai useampi valittu mallipohja ei ole käytettävissä luomista varten.",
+      "dashboard_release_strict_pin_failed": "Valitun kojelaudan julkaisun on oltava kiinnitetty tarkasti, mutta suoritushetkellä ei ollut käytettävissä voimassa olevaa julkaisuviittausta. Valitse julkaisu uudelleen vaiheessa 1 ja yritä uudelleen.",
+      "dashboard_release_asset_prep_failed": "Valittujen verkkohallintapaneelin resurssien valmistelu epäonnistui. Valitse toinen versio tai käytä uusimpia yhteensopivia/nykyisiä paikallisia malleja ja yritä uudelleen."
     },
     "abort": {
       "invalid_action": "Virheellinen toiminto",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Uusin yhteensopiva (suositeltu)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Nykyinen asennettu",
+        "latest_stable": "Viimeisin vakaa",
+        "latest_compatible": "Uusin yhteensopiva (suositeltu)"
       }
     },
     "manage_actions": {
@@ -4882,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "Otsikolle {title}ei löytynyt yksilöllistä ladattua ChoreOps-merkintää. Käytä sen sijaan config_entry_id-tunnusta."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Valittujen verkkohallintapaneelin resurssien valmistelu"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Verkkomateriaalin valmistelu epäonnistui. Valitse toinen julkaisu tai käytä uusimpia yhteensopivia/nykyisiä paikallisia malleja."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Julkaisua {release_ref} käytettiin paikallisesti ({execution_source}). Lataa integraatio uudelleen tai käynnistä Home Assistant uudelleen päivittääksesi kojelaudan käännösanturit."
+    },
+    "dashboard_status_updated": {
+      "message": "Päivitetty {url_path} (näyttökerrat={view_count}, release_selection={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Luotu {url_path} (assigneers={assignee_count}, admin_mode={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Pakolliset kojelaudan riippuvuudet puuttuvat edelleen; palataan määritykseen"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Käyttäjä ohitti puuttuvat pakolliset riippuvuudet"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Puuttuvat suositellut riippuvuudet (luonti jatkuu): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Valitut mallit eivät ole käytettävissä luontiin:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Poistettu {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Poisto epäonnistui {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Ei mitään"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Asetusopas"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Asetusopasta ei toimitettu"
     },
     "not_authorized_action": {
       "message": "Sinulla ei ole oikeutta {action} tämän vastuuhenkilön puolesta."
