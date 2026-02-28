@@ -12,6 +12,7 @@ import voluptuous as vol
 
 from custom_components.choreops import const
 from custom_components.choreops.helpers import dashboard_helpers as dh
+from custom_components.choreops.options_flow import ChoreOpsOptionsFlowHandler
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
@@ -58,6 +59,159 @@ def _patch_dashboard_dependency_checks() -> Generator[None]:
         ),
     ):
         yield
+
+
+@pytest.fixture(autouse=True)
+def _patch_dashboard_release_asset_prepare() -> Generator[None]:
+    """Default release-asset prep patch for Step 1 submit tests."""
+    with patch(
+        "custom_components.choreops.helpers.dashboard_helpers.async_prepare_dashboard_release_assets",
+        return_value={
+            "release_ref": "0.5.4",
+            "manifest_asset": "{}",
+            "template_definitions": [],
+            "template_assets": {},
+            "translation_assets": {"translations/en_dashboard.json": "{}"},
+            "preference_assets": {},
+        },
+    ):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def _patch_dashboard_release_asset_apply() -> Generator[None]:
+    """Default patch for persisting prepared release assets locally."""
+    with patch(
+        "custom_components.choreops.helpers.dashboard_helpers.async_apply_prepared_dashboard_release_assets",
+        return_value=None,
+    ):
+        yield
+
+
+@pytest.mark.asyncio
+async def test_dashboard_release_asset_prep_cache_reuses_same_selection(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Flow-session release prep cache fetches once for same selection."""
+    flow = ChoreOpsOptionsFlowHandler(scenario_minimal.config_entry)
+    flow.hass = hass
+
+    prepare_mock = AsyncMock(
+        return_value={
+            "release_ref": "0.5.4",
+            "manifest_asset": "{}",
+            "template_definitions": [],
+            "template_assets": {},
+            "translation_assets": {"translations/en_dashboard.json": "{}"},
+            "preference_assets": {},
+        }
+    )
+
+    with patch(
+        "custom_components.choreops.helpers.dashboard_helpers.async_prepare_dashboard_release_assets",
+        prepare_mock,
+    ):
+        await flow._async_prepare_dashboard_release_assets(
+            const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+        )
+        await flow._async_prepare_dashboard_release_assets(
+            const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+        )
+
+    assert prepare_mock.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_dashboard_step1_applies_selected_release_assets_locally(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Step 1 applies prepared release assets to local dashboard files."""
+    config_entry = scenario_minimal.config_entry
+
+    prepared_assets = {
+        "release_ref": "0.5.4",
+        "manifest_asset": '{"release_version": "0.5.4"}',
+        "template_definitions": [],
+        "template_assets": {},
+        "translation_assets": {"translations/en_dashboard.json": "{}"},
+        "preference_assets": {},
+    }
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            return_value=["0.5.4", "0.5.3"],
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.async_prepare_dashboard_release_assets",
+            return_value=prepared_assets,
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.async_apply_prepared_dashboard_release_assets",
+            new=AsyncMock(),
+        ) as apply_mock,
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.4",
+            },
+        )
+
+    assert result.get("step_id") == "dashboard_create"
+    assert apply_mock.await_count == 1
+    assert apply_mock.await_args_list[0].args[1] == prepared_assets
+
+
+@pytest.mark.asyncio
+async def test_dashboard_step1_returns_with_actionable_error_when_asset_prep_fails(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Step 1 submit returns to dashboard generator when release prep fails."""
+    config_entry = scenario_minimal.config_entry
+
+    with patch(
+        "custom_components.choreops.helpers.dashboard_helpers.async_prepare_dashboard_release_assets",
+        side_effect=HomeAssistantError("release outage"),
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+            },
+        )
+
+    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+    assert result.get("errors", {}).get(const.CFOP_ERROR_BASE) == (
+        const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_ASSET_PREP_FAILED
+    )
 
 
 def _schema_field_names(schema: vol.Schema) -> set[str]:
@@ -131,19 +285,76 @@ def _section_field_order(schema: vol.Schema, section_key: str) -> list[str]:
     return []
 
 
+def _section_field_default(
+    schema: vol.Schema,
+    section_key: str,
+    field_key: str,
+) -> Any:
+    """Return default value for a nested section field in a voluptuous schema."""
+    for marker, section_obj in schema.schema.items():
+        marker_schema = getattr(marker, "schema", marker)
+        if marker_schema != section_key:
+            continue
+
+        nested_schema = getattr(section_obj, "schema", None)
+        if isinstance(nested_schema, vol.Schema):
+            nested_dict = nested_schema.schema
+        elif isinstance(nested_schema, dict):
+            nested_dict = nested_schema
+        else:
+            return None
+
+        for nested_marker in nested_dict:
+            nested_marker_schema = getattr(nested_marker, "schema", nested_marker)
+            if nested_marker_schema != field_key:
+                continue
+            default = getattr(nested_marker, "default", vol.UNDEFINED)
+            if default is vol.UNDEFINED:
+                return None
+            if callable(default):
+                return default()
+            return default
+
+    return None
+
+
 async def _ack_template_details_if_needed(
     hass: HomeAssistant,
     flow_id: str,
     result: dict[str, Any],
+    *,
+    auto_submit_dependency_step: bool = True,
 ) -> dict[str, Any]:
-    """Continue through template details review when that step is shown."""
-    if result.get("step_id") != const.OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS:
-        return result
+    """Advance through dependency review step when shown in the dashboard flow."""
 
-    return await hass.config_entries.options.async_configure(
-        flow_id,
-        user_input={const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK: True},
-    )
+    if (
+        auto_submit_dependency_step
+        and result.get("step_id")
+        == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
+    ):
+        schema_fields = _schema_field_names(result["data_schema"])
+        if const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS not in schema_fields:
+            return await hass.config_entries.options.async_configure(
+                flow_id,
+                user_input={},
+            )
+
+        placeholders = result.get("description_placeholders", {})
+        missing_required_markdown = str(
+            placeholders.get(
+                const.PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES,
+                "- None",
+            )
+        ).strip()
+        bypass_required = missing_required_markdown != "- None"
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: bypass_required,
+            },
+        )
+
+    return result
 
 
 def test_dashboard_template_labels_are_human_friendly() -> None:
@@ -165,12 +376,62 @@ def test_dashboard_template_labels_are_human_friendly() -> None:
         assert label == dh.resolve_template_display_label(value)
 
 
+def test_update_selection_labels_are_friendly_and_disambiguate_duplicates() -> None:
+    """Update selector shows title first and always appends cod-path suffix."""
+    options = [
+        {"value": "cod-family", "label": "Family Chores (cod-family)"},
+        {"value": "cod-family-2", "label": "Family Chores (cod-family-2)"},
+        {"value": "cod-kids", "label": "Kids Board (cod-kids)"},
+    ]
+
+    with patch(
+        "custom_components.choreops.helpers.dashboard_helpers.get_existing_choreops_dashboards",
+        return_value=options,
+    ):
+        schema = dh.build_dashboard_update_selection_schema(object())
+
+    assert schema is not None
+    marker = next(iter(schema.schema))
+    selector_value = schema.schema[marker]
+    selector_config = selector_value.config
+    rendered_options = selector_config.get("options", [])
+    options_by_value = {
+        str(option["value"]): str(option["label"]) for option in rendered_options
+    }
+    assert options_by_value["cod-kids"] == "Kids Board (cod-kids)"
+    assert options_by_value["cod-family"] == "Family Chores (cod-family)"
+    assert options_by_value["cod-family-2"] == "Family Chores (cod-family-2)"
+
+
+def test_get_existing_dashboards_prefers_config_title_over_url_path() -> None:
+    """Dashboard discovery uses dashboard config title for selector-friendly labels."""
+
+    class _FakeDashboard:
+        def __init__(self, config: dict[str, Any]) -> None:
+            self.config = config
+
+    class _FakeLovelaceData:
+        def __init__(self) -> None:
+            self.dashboards = {
+                "cod-chores": _FakeDashboard({"title": "Chores"}),
+            }
+
+    class _FakeHass:
+        def __init__(self) -> None:
+            self.data: dict[str, Any] = {
+                "lovelace": _FakeLovelaceData(),
+            }
+
+    options = dh.get_existing_choreops_dashboards(_FakeHass())
+    assert options == [{"value": "cod-chores", "label": "Chores (cod-chores)"}]
+
+
 @pytest.mark.asyncio
 async def test_dashboard_update_step_shows_release_controls(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Update path Step 2 includes release controls."""
+    """Step 1 shows release controls while Step 3 keeps shared schema."""
     config_entry = scenario_minimal.config_entry
 
     update_select_schema = vol.Schema(
@@ -205,11 +466,15 @@ async def test_dashboard_update_step_shows_release_controls(
             },
         )
         assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+        generator_fields = _schema_field_names(result["data_schema"])
+        assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION in generator_fields
 
         result = await hass.config_entries.options.async_configure(
             flow_id,
             user_input={
                 const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+                const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
             },
         )
@@ -224,9 +489,72 @@ async def test_dashboard_update_step_shows_release_controls(
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
 
     fields = _schema_field_names(result["data_schema"])
-    assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION in fields
-    assert const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES in fields
+    assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION not in fields
+    assert const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES not in fields
     assert const.CFOF_DASHBOARD_INPUT_ADMIN_VIEW_VISIBILITY in fields
+
+
+@pytest.mark.asyncio
+async def test_dashboard_update_selection_preloads_selected_dashboard_icon_default(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Selecting an update target preloads Step 3 icon default from dashboard metadata."""
+    config_entry = scenario_minimal.config_entry
+
+    update_select_schema = vol.Schema(
+        {
+            vol.Required(const.CFOF_DASHBOARD_INPUT_UPDATE_SELECTION): vol.In(
+                ["kcd-chores"]
+            )
+        }
+    )
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.build_dashboard_update_selection_schema",
+            return_value=update_select_schema,
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_choreops_dashboards",
+            return_value={},
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_get_dashboard_update_metadata",
+            return_value={
+                "url_path": "kcd-chores",
+                "title": "Chores",
+                "icon": "mdi:star-circle",
+            },
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+            },
+        )
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: "kcd-chores"},
+        )
+
+    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
+    icon_default = _section_field_default(
+        result["data_schema"],
+        const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR,
+        const.CFOF_DASHBOARD_INPUT_ICON,
+    )
+    assert icon_default == "mdi:star-circle"
 
 
 @pytest.mark.asyncio
@@ -274,6 +602,7 @@ async def test_dashboard_update_step_gracefully_handles_release_discovery_error(
             flow_id,
             user_input={
                 const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+                const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
                 const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
             },
         )
@@ -360,7 +689,11 @@ async def test_dashboard_create_approver_visibility_passes_linked_approver_users
                 },
             },
         )
-        result = await _ack_template_details_if_needed(hass, flow_id, result)
+        result = await _ack_template_details_if_needed(
+            hass,
+            flow_id,
+            result,
+        )
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     assert mock_create_dashboard.await_count == 1
@@ -444,15 +777,111 @@ async def test_dashboard_create_passes_release_parity_args_to_builder(
                 },
             },
         )
-        result = await _ack_template_details_if_needed(hass, flow_id, result)
+        result = await _ack_template_details_if_needed(
+            hass,
+            flow_id,
+            result,
+        )
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_create_dashboard.await_args.kwargs
     assert "include_prereleases" in kwargs
-    assert kwargs["include_prereleases"] is (
-        const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT
+    assert kwargs["include_prereleases"] is False
+    prepared_assets = kwargs.get("prepared_release_assets")
+    assert isinstance(prepared_assets, dict)
+    assert kwargs["requested_release_selection"] == (
+        const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED
     )
-    assert kwargs["pinned_release_tag"] is None
+    assert kwargs["pinned_release_tag"] == (
+        await dh.async_get_local_dashboard_release_version(hass)
+    )
+
+
+@pytest.mark.asyncio
+async def test_dashboard_create_latest_stable_uses_prepared_release_ref_as_pin(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Create flow execution pins to the Step 1 prepared release_ref for latest stable."""
+    config_entry = scenario_minimal.config_entry
+    mock_create_dashboard = AsyncMock(return_value="kcd-chores")
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.async_dedupe_choreops_dashboards",
+            return_value={},
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.get_dependency_ids_for_templates_from_definitions",
+            return_value=(set(), set()),
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.check_dashboard_dependency_ids_installed",
+            return_value={},
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.create_choreops_dashboard",
+            mock_create_dashboard,
+        ),
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+                const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
+            },
+        )
+        assert result.get("step_id") == "dashboard_create"
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={const.CFOF_DASHBOARD_INPUT_NAME: "Chores"},
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: DEFAULT_ASSIGNEE_TEMPLATE_ID,
+                    const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: ["Zoë"],
+                },
+                const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_ADMIN_MODE: const.DASHBOARD_ADMIN_MODE_NONE,
+                },
+                const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR: {
+                    const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
+                    const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
+                    const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: True,
+                },
+            },
+        )
+        result = await _ack_template_details_if_needed(
+            hass,
+            flow_id,
+            result,
+        )
+
+    assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+    kwargs = mock_create_dashboard.await_args.kwargs
+    assert kwargs["pinned_release_tag"] == "0.5.4"
+    assert kwargs["requested_release_selection"] == (
+        const.DASHBOARD_RELEASE_MODE_LATEST_STABLE
+    )
+    assert kwargs["resolution_reason"] == "latest_compatible"
+    assert isinstance(kwargs["prepared_release_assets"], dict)
 
 
 @pytest.mark.asyncio
@@ -525,7 +954,12 @@ async def test_dashboard_create_blocks_missing_required_template_dependencies(
                 },
             },
         )
-        result = await _ack_template_details_if_needed(hass, flow_id, result)
+        result = await _ack_template_details_if_needed(
+            hass,
+            flow_id,
+            result,
+            auto_submit_dependency_step=False,
+        )
 
         assert (
             result.get("step_id")
@@ -537,14 +971,30 @@ async def test_dashboard_create_blocks_missing_required_template_dependencies(
             flow_id,
             user_input={const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: False},
         )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
+        assert mock_create_dashboard.await_count == 0
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: DEFAULT_ASSIGNEE_TEMPLATE_ID,
+                    const.CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: ["Zoë"],
+                },
+                const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS: {
+                    const.CFOF_DASHBOARD_INPUT_ADMIN_MODE: const.DASHBOARD_ADMIN_MODE_NONE,
+                },
+                const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR: {
+                    const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
+                    const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
+                    const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: True,
+                },
+            },
+        )
         assert (
             result.get("step_id")
             == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
         )
-        assert result.get("errors", {}).get(const.CFOP_ERROR_BASE) == (
-            const.TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED
-        )
-        assert mock_create_dashboard.await_count == 0
 
         result = await hass.config_entries.options.async_configure(
             flow_id,
@@ -635,7 +1085,7 @@ async def test_dashboard_create_template_details_review_step_default_on(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Create flow shows template details review by default."""
+    """Create flow routes Step 3 submissions to dependency review."""
     config_entry = scenario_minimal.config_entry
     mock_create_dashboard = AsyncMock(return_value="kcd-chores")
 
@@ -694,16 +1144,13 @@ async def test_dashboard_create_template_details_review_step_default_on(
         )
 
         assert (
-            result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS
-        )
-        placeholders = result.get("description_placeholders", {})
-        assert "Gamification (User)" in placeholders.get(
-            const.PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS, ""
+            result.get("step_id")
+            == const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES
         )
 
         result = await hass.config_entries.options.async_configure(
             flow_id,
-            user_input={const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK: True},
+            user_input={},
         )
         assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
         assert mock_create_dashboard.await_count == 1
@@ -778,8 +1225,9 @@ async def test_dashboard_create_blocks_nonselectable_lifecycle_templates(
         result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE
-    assert "Selected templates are unavailable for generation" in str(
-        result.get("errors", {}).get(const.CFOP_ERROR_BASE, "")
+    assert (
+        result.get("errors", {}).get(const.CFOP_ERROR_BASE)
+        == const.TRANS_KEY_CFOF_DASHBOARD_NONSELECTABLE_TEMPLATES
     )
     assert mock_create_dashboard.await_count == 0
 
@@ -789,7 +1237,7 @@ async def test_dashboard_create_uses_sectioned_configure_schema(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Create path uses the unified sectioned configure form with release controls."""
+    """Create path uses the shared sectioned configure form."""
     config_entry = scenario_minimal.config_entry
 
     with patch(
@@ -827,15 +1275,14 @@ async def test_dashboard_create_uses_sectioned_configure_schema(
         const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS,
         const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS,
         const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR,
-        const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION,
     ]
 
     fields = _schema_field_names(result["data_schema"])
     assert const.CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE in fields
     assert const.CFOF_DASHBOARD_INPUT_ADMIN_MODE in fields
     assert const.CFOF_DASHBOARD_INPUT_ICON in fields
-    assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION in fields
-    assert const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES in fields
+    assert const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION not in fields
+    assert const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES not in fields
 
 
 @pytest.mark.asyncio
@@ -979,6 +1426,8 @@ async def test_dashboard_update_accepts_sectioned_configure_payload(
             flow_id,
             user_input={
                 const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+                const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
             },
         )
@@ -1006,10 +1455,6 @@ async def test_dashboard_update_accepts_sectioned_configure_payload(
                     const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: True,
                     const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
                     const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
-                },
-                const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
-                    const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1072,6 +1517,8 @@ async def test_dashboard_update_per_assignee_mode_submits_without_rerender_stall
             flow_id,
             user_input={
                 const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+                const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
             },
         )
@@ -1098,10 +1545,6 @@ async def test_dashboard_update_per_assignee_mode_submits_without_rerender_stall
                     const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR: True,
                     const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
                     const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
-                },
-                const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
-                    const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 },
             },
         )
@@ -1173,7 +1616,6 @@ async def test_dashboard_update_schema_uses_expected_section_and_access_field_or
         const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS,
         const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS,
         const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR,
-        const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION,
     ]
 
     access_field_order = _section_field_order(
@@ -1184,7 +1626,6 @@ async def test_dashboard_update_schema_uses_expected_section_and_access_field_or
         const.CFOF_DASHBOARD_INPUT_ICON,
         const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN,
         const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR,
-        const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW,
     ]
 
 
@@ -1193,7 +1634,7 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
 ) -> None:
-    """Explicit release selection forwards pinned release tag to update builder."""
+    """Update flow executes against prepared effective release ref."""
     config_entry = scenario_minimal.config_entry
     mock_update_dashboard = AsyncMock(return_value=2)
 
@@ -1238,6 +1679,8 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
             flow_id,
             user_input={
                 const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_UPDATE,
+                const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
                 const.CFOF_DASHBOARD_INPUT_CHECK_CARDS: False,
             },
         )
@@ -1266,17 +1709,14 @@ async def test_dashboard_update_non_default_release_selection_passes_pinned_tag(
                     const.CFOF_DASHBOARD_INPUT_REQUIRE_ADMIN: False,
                     const.CFOF_DASHBOARD_INPUT_ICON: "mdi:clipboard-list",
                 },
-                const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION: {
-                    const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES: False,
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: "0.5.3",
-                },
             },
         )
         result = await _ack_template_details_if_needed(hass, flow_id, result)
 
     assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
     kwargs = mock_update_dashboard.await_args.kwargs
-    assert kwargs["pinned_release_tag"] == "0.5.3"
+    assert kwargs["pinned_release_tag"] == "0.5.4"
+    assert kwargs["include_prereleases"] is False
 
 
 @pytest.mark.asyncio

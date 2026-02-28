@@ -18,6 +18,7 @@ async def test_discover_compatible_release_tags_filters_and_sorts(
 
     async def _mock_fetch_releases(_hass: Any) -> list[dict[str, Any]]:
         return [
+            {"tag_name": "v0.5.7"},
             {"tag_name": "0.5.4"},
             {"tag_name": "0.5.6-beta.1"},
             {"tag_name": "0.5.6-beta.2"},
@@ -36,6 +37,7 @@ async def test_discover_compatible_release_tags_filters_and_sorts(
     tags = await builder.discover_compatible_dashboard_release_tags(MagicMock())
 
     assert tags == [
+        "v0.5.7",
         "0.5.6-rc.1",
         "0.5.6-beta.2",
         "0.5.6-beta.1",
@@ -72,10 +74,38 @@ async def test_resolve_dashboard_release_selection_pinned_and_fallback(
 
     fallback = await builder.resolve_dashboard_release_selection(
         MagicMock(),
-        pinned_release_tag="v9.9.9",
+        pinned_release_tag="release-9.9.9",
     )
     assert fallback.selected_tag == "0.5.4"
     assert fallback.reason == "pinned_unavailable_fallback_latest"
+
+
+@pytest.mark.asyncio
+async def test_resolve_dashboard_release_selection_keeps_explicit_prerelease_pin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Explicit prerelease pin remains selected even with prerelease filtering off."""
+
+    async def _mock_discover(
+        _hass: Any, include_prereleases: bool = False
+    ) -> list[str]:
+        _ = include_prereleases
+        return ["0.5.4", "0.5.3"]
+
+    monkeypatch.setattr(
+        builder,
+        "discover_compatible_dashboard_release_tags",
+        _mock_discover,
+    )
+
+    selected = await builder.resolve_dashboard_release_selection(
+        MagicMock(),
+        pinned_release_tag="0.5.6-beta.1",
+        include_prereleases=False,
+    )
+
+    assert selected.selected_tag == "0.5.6-beta.1"
+    assert selected.reason == "pinned_release_explicit"
 
 
 @pytest.mark.asyncio

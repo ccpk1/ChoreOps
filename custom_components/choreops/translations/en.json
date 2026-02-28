@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Dashboard Actions",
-        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\n[Dashboard configuration guide]({documentation_url})",
+        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\n[Dashboard configuration guide]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Action"
+          "dashboard_action": "Action",
+          "dashboard_release_selection": "Dashboard Release Version"
         },
         "data_description": {
-          "dashboard_action": "Choose one action: create a new dashboard, update views on an existing dashboard, or delete dashboards."
+          "dashboard_action": "Choose one action: create a new dashboard, update views on an existing dashboard, or delete dashboards.",
+          "dashboard_release_selection": "Choose the currently installed release, latest stable release, or an explicit compatible release tag."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Missing dashboard dependencies",
-        "description": "Some required dashboard cards are missing for your selected templates.\n\n[Dashboard configuration guide]({documentation_url})\n\n**Missing required dependencies**\n{dashboard_missing_required_dependencies}\n\n**Missing recommended dependencies**\n{dashboard_missing_recommended_dependencies}\n\nInstall required cards via HACS Frontend before continuing.",
+        "title": "Review dashboard changes",
+        "description": "Review dependency status and template preferences for your selected templates before applying dashboard changes.\n\n[Dashboard configuration guide]({documentation_url})\n\n**Available Customizations**\n{dashboard_template_preferences}\n\n**Missing required dependencies**\n{dashboard_missing_required_dependencies}\n\n**Missing recommended dependencies**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Continue anyway"
+          "dashboard_dependency_bypass": "🚫 Continue anyway (requirements are missing)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Acknowledge missing required dependencies and continue generation anyway. Dashboard cards may fail to render until dependencies are installed."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Template details review",
-        "description": "Review details for selected templates before applying dashboard changes.\n\n[Dashboard configuration guide]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Continue with these templates"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Acknowledge the selected template details and continue to dependency checks and generation."
+          "dashboard_dependency_bypass": "Acknowledge that required dependencies are missing and continue anyway. Dashboard may fail to render or behave incorrectly until required dependencies are installed."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Dashboard Icon",
               "dashboard_require_admin": "Admin Only",
-              "dashboard_show_in_sidebar": "Add to Sidebar",
-              "dashboard_template_details_review": "Review template details before apply"
+              "dashboard_show_in_sidebar": "Add to Sidebar"
             },
             "data_description": {
               "dashboard_icon": "Sidebar icon for this dashboard.",
               "dashboard_require_admin": "Restrict dashboard access to admin users.",
-              "dashboard_show_in_sidebar": "Show this dashboard in the Home Assistant sidebar.",
-              "dashboard_template_details_review": "Show a review step with template descriptions, dependencies, and preference guide links before applying changes."
+              "dashboard_show_in_sidebar": "Show this dashboard in the Home Assistant sidebar."
             }
           },
           "section_template_version": {
             "name": "Template Version",
             "description": "Select how update mode chooses compatible dashboard templates.",
             "data": {
-              "dashboard_include_prereleases": "Include Prereleases",
               "dashboard_release_selection": "Dashboard Template Version"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Include prerelease dashboard tags in release discovery.",
-              "dashboard_release_selection": "Choose automatic latest compatible selection or explicitly select a compatible release tag."
+              "dashboard_release_selection": "Choose the currently installed release, latest stable release, or an explicit compatible release tag."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Dashboard Icon",
           "dashboard_require_admin": "Admin Only",
           "dashboard_show_in_sidebar": "Add to Sidebar",
-          "dashboard_include_prereleases": "Include Prereleases",
           "dashboard_release_selection": "Dashboard Template Version"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Sidebar icon for this dashboard.",
           "dashboard_require_admin": "Restrict dashboard access to admin users.",
           "dashboard_show_in_sidebar": "Show this dashboard in the Home Assistant sidebar.",
-          "dashboard_include_prereleases": "Include prerelease dashboard tags in release discovery.",
-          "dashboard_release_selection": "Choose automatic latest compatible selection or explicitly select a compatible release tag."
+          "dashboard_release_selection": "Choose the currently installed release, latest stable release, or an explicit compatible release tag."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "'At Due Date' approval reset types (Once or Multi) require a due date to be set. Without a due date, the approval reset will never trigger and the chore will remain approved indefinitely.",
       "error_per_assignee_applicable_days_invalid": "Invalid applicable days format for one or more assignees. Days must be integers 0-6 (Monday-Sunday) with no duplicates.",
       "error_per_assignee_daily_multi_times_invalid": "Invalid daily times format for one or more assignees. Use 24-hour format separated by | (e.g., 08:00|17:00).",
-      "dashboard_exists": "A dashboard with this URL path already exists. Enable 'Force Rebuild' to overwrite.",
+      "dashboard_exists": "A dashboard with this URL path already exists. Use Update Dashboard option.",
       "dashboard_template_error": "Failed to fetch dashboard template. Check network connection or try again later.",
       "dashboard_render_error": "Failed to render dashboard template. This may indicate a template bug.",
       "dashboard_save_error": "Failed to save dashboard to Home Assistant. Check system logs for details.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Per-user admin template is required when Admin Layout includes Per User.",
       "dashboard_admin_per_assignee_needs_assignees": "Per User Admin Layout requires at least one selected user.",
       "dashboard_dependency_ack_required": "Enable 'Continue anyway' to proceed, or go back and install missing required dependencies first.",
-      "dashboard_template_details_ack_required": "Enable 'Continue with these templates' to proceed, or go back and adjust template selections."
+      "dashboard_nonselectable_templates": "One or more selected templates are unavailable for generation.",
+      "dashboard_release_strict_pin_failed": "The selected dashboard release must be pinned exactly, but no effective release reference was available at execution time. Re-select the release in Step 1 and try again.",
+      "dashboard_release_asset_prep_failed": "Unable to prepare selected online dashboard assets. Choose a different release or use latest compatible/current local templates and try again."
     },
     "abort": {
       "invalid_action": "Invalid Action",
@@ -1967,6 +1955,8 @@
     },
     "dashboard_release_selection": {
       "options": {
+        "current_installed": "Current installed",
+        "latest_stable": "Latest stable",
         "latest_compatible": "Latest compatible (recommended)"
       }
     },
@@ -4880,6 +4870,48 @@
     },
     "service_target_title_not_found": {
       "message": "No unique loaded ChoreOps entry found for title {title}. Use config_entry_id instead."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Preparing selected online dashboard assets"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Online asset preparation failed. Choose a different release or use latest compatible/current local templates."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Applied release {release_ref} locally ({execution_source}). Reload integration or restart Home Assistant to refresh dashboard translation sensors."
+    },
+    "dashboard_status_updated": {
+      "message": "Updated {url_path} (views={view_count}, release_selection={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Created {url_path} (assignees={assignee_count}, admin_mode={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Required dashboard dependencies still missing; returning to configuration"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Missing required dependencies bypassed by user"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Missing recommended dependencies (generation will continue): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Selected templates are unavailable for generation:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Deleted {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Failed to delete {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- None"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Preferences guide"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Preferences guide not provided"
     },
     "not_authorized_action": {
       "message": "You are not authorized to {action} for this assignee."

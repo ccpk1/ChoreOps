@@ -2,10 +2,10 @@
 
 ---
 
-status: READY_FOR_HANDOFF
+status: COMPLETE_ARCHIVED
 owner: Strategist Agent
 created: 2026-02-26
-parent_plan: DASHBOARD_REGISTRY_GENERATION_IN-PROCESS.md
+parent_plan: DASHBOARD_REGISTRY_GENERATION_COMPLETED.md
 handoff_from: ChoreOps Strategist
 handoff_to: ChoreOps Plan Agent
 phase_focus: Phase 0-6 execution with hard-fork migration and parity tests
@@ -14,7 +14,7 @@ phase_focus: Phase 0-6 execution with hard-fork migration and parity tests
 
 ## Handoff button
 
-[HANDOFF_TO_BUILDER_DASHBOARD_REGISTRY_GENERATION](DASHBOARD_REGISTRY_GENERATION_IN-PROCESS.md)
+[HANDOFF_TO_BUILDER_DASHBOARD_REGISTRY_GENERATION](DASHBOARD_REGISTRY_GENERATION_COMPLETED.md)
 
 ## Implementation runbook
 

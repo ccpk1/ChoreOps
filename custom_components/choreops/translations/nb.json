@@ -1967,7 +1967,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Siste kompatible (anbefales)"
+        "latest_compatible": "Siste kompatible (anbefales)",
+        "current_installed": "Current installed",
+        "latest_stable": "Latest stable"
       }
     },
     "manage_actions": {

@@ -1967,7 +1967,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Compatible més recent (recomanat)"
+        "latest_compatible": "Compatible més recent (recomanat)",
+        "current_installed": "Current installed",
+        "latest_stable": "Latest stable"
       }
     },
     "manage_actions": {

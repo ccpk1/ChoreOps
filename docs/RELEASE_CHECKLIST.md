@@ -106,6 +106,7 @@ registry artifacts.
 - [ ] Select dashboard channel intentionally (`dev`, `beta`, `stable`) for the release objective.
 - [ ] Record selected dashboard tag/commit in release evidence.
 - [ ] Vendor dashboard manifest/assets into integration fallback paths.
+- [ ] Ensure vendored `custom_components/choreops/dashboards/dashboard_registry.json` top-level `release_version` is updated to the selected dashboard release tag and follows naming policy (`X.Y.Z`, `X.Y.Z-beta.N`, `X.Y.Z-rc.N`).
 - [ ] Validate vendored manifest contract before release cut.
 - [ ] Validate dashboard template asset references resolve in vendored copy.
 - [ ] Confirm dependency declarations still match approved machine-readable IDs.

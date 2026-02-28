@@ -74,6 +74,10 @@ To keep editor diagnostics stable across contributors, this repository uses a lo
 - **Vendored runtime mirror**: Runtime assets in `custom_components/choreops/dashboards/` are sync outputs, not hand-edited sources.
 - **No hardcoded registry filename strings**: Use constants/path derivation in runtime code.
 - **Required update flow**: canonical edit → `python utils/sync_dashboard_assets.py` → `python utils/sync_dashboard_assets.py --check` → integration validation.
+- **Release apply contract**: Dashboard generator Options Flow Step 1 must prepare selected release assets and apply them to local vendored runtime paths (`dashboards/templates`, `dashboards/translations`, `dashboards/preferences`, and local `dashboard_registry.json`) before Step 3 execution.
+- **Cache lifecycle contract**: After local release apply, reset and re-prime manifest caches and clear dashboard translation caches before continuing flow execution.
+- **Selection policy contract**: Explicit tags are strict-pin; latest modes resolve once and reuse the resolved ref; current-installed mode uses local registry `release_version`.
+- **Dependency review UX contract**: Step 4 keeps plain translated section headers for required/recommended dependencies and prefixes each missing dependency line with `❌`.
 
 ---
 

@@ -1967,7 +1967,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Najnovšie kompatibilné (odporúčané)"
+        "latest_compatible": "Najnovšie kompatibilné (odporúčané)",
+        "current_installed": "Current installed",
+        "latest_stable": "Latest stable"
       }
     },
     "manage_actions": {

@@ -4,8 +4,8 @@
 
 This document is the execution plan for closing remaining gaps against:
 
-- `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
-- `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_BUILDER_IMPLEMENTATION.md`
+- `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+- `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_BUILDER_IMPLEMENTATION.md`
 
 It defines:
 

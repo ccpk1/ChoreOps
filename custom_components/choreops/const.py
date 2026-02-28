@@ -130,7 +130,8 @@ PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES: Final = (
 PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: Final = (
     "dashboard_missing_recommended_dependencies"
 )
-PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS: Final = "dashboard_template_details"
+PLACEHOLDER_DASHBOARD_TEMPLATE_PREFERENCES: Final = "dashboard_template_preferences"
+PLACEHOLDER_DASHBOARD_STATUS_MESSAGE: Final = "dashboard_status_message"
 
 # ================================================================================================
 # Dashboard Template Configuration
@@ -171,7 +172,7 @@ DASHBOARD_RELEASES_API_URL: Final = (
 #   - 0.5.0-rc.2
 #   - 0.5.4
 DASHBOARD_RELEASE_TAG_PATTERN: Final = (
-    r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
+    r"^v?(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)"
     r"(?:-(?P<pre_label>beta|rc)\.(?P<pre_num>\d+))?$"
 )
 
@@ -547,7 +548,6 @@ OPTIONS_FLOW_STEP_PASTE_JSON_RESTORE: Final = "paste_json_restore"
 # OptionsFlow Dashboard Generator Steps
 OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR: Final = "dashboard_generator"
 OPTIONS_FLOW_STEP_DASHBOARD_CONFIGURE: Final = "dashboard_configure"
-OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS: Final = "dashboard_template_details"
 OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES: Final = (
     "dashboard_missing_dependencies"
 )
@@ -827,10 +827,6 @@ CFOF_DASHBOARD_INPUT_ASSIGNEE_SELECTION: Final = "dashboard_assignee_selection"
 CFOF_DASHBOARD_INPUT_ACTION: Final = "dashboard_action"
 CFOF_DASHBOARD_INPUT_UPDATE_SELECTION: Final = "dashboard_update_selection"
 CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS: Final = "dashboard_dependency_bypass"
-CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW: Final = (
-    "dashboard_template_details_review"
-)
-CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK: Final = "dashboard_template_details_ack"
 CFOF_DASHBOARD_INPUT_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 CFOF_DASHBOARD_INPUT_ADMIN_MODE: Final = "dashboard_admin_mode"
 CFOF_DASHBOARD_INPUT_ADMIN_TEMPLATE_GLOBAL: Final = "dashboard_admin_template_global"
@@ -867,12 +863,17 @@ DASHBOARD_ADMIN_VIEW_VISIBILITY_LINKED_APPROVERS: Final = "linked_approvers"
 
 # Dashboard release-mode options
 DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE: Final = "latest_compatible"
+DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED: Final = "current_installed"
+DASHBOARD_RELEASE_MODE_LATEST_STABLE: Final = "latest_stable"
 
 # Dashboard generated config metadata keys (not helper sensor attributes)
 DASHBOARD_CONFIG_KEY_PROVENANCE: Final = "dashboard_provenance"
 DASHBOARD_PROVENANCE_KEY_TEMPLATE_ID: Final = "template_id"
 DASHBOARD_PROVENANCE_KEY_SOURCE_TYPE: Final = "source_type"
 DASHBOARD_PROVENANCE_KEY_SELECTED_REF: Final = "selected_ref"
+DASHBOARD_PROVENANCE_KEY_REQUESTED_SELECTION: Final = "requested_selection"
+DASHBOARD_PROVENANCE_KEY_EFFECTIVE_REF: Final = "effective_ref"
+DASHBOARD_PROVENANCE_KEY_RESOLUTION_REASON: Final = "resolution_reason"
 DASHBOARD_PROVENANCE_KEY_GENERATED_AT: Final = "generated_at"
 DASHBOARD_PROVENANCE_KEY_INCLUDE_PRERELEASES: Final = "include_prereleases"
 
@@ -3272,6 +3273,15 @@ TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_PROFILE: Final = "dashboard_template_profile"
 TRANS_KEY_CFOF_DASHBOARD_UPDATE_SELECTION: Final = "dashboard_update_selection"
 TRANS_KEY_CFOF_DASHBOARD_NO_DASHBOARDS: Final = "dashboard_no_dashboards"
 TRANS_KEY_CFOF_DASHBOARD_RELEASE_INCOMPATIBLE: Final = "dashboard_release_incompatible"
+TRANS_KEY_CFOF_DASHBOARD_RELEASE_ASSET_PREP_FAILED: Final = (
+    "dashboard_release_asset_prep_failed"
+)
+TRANS_KEY_CFOF_DASHBOARD_RELEASE_STRICT_PIN_FAILED: Final = (
+    "dashboard_release_strict_pin_failed"
+)
+TRANS_KEY_CFOF_DASHBOARD_NONSELECTABLE_TEMPLATES: Final = (
+    "dashboard_nonselectable_templates"
+)
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_MODE: Final = "dashboard_admin_mode"
 TRANS_KEY_CFOF_DASHBOARD_ADMIN_TEMPLATE_GLOBAL: Final = (
     "dashboard_admin_template_global"
@@ -3298,8 +3308,39 @@ TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES: Final = (
 TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED: Final = (
     "dashboard_dependency_ack_required"
 )
-TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_DETAILS_ACK_REQUIRED: Final = (
-    "dashboard_template_details_ack_required"
+
+# Dashboard runtime message translation keys (exceptions category)
+TRANS_KEY_EXC_DASHBOARD_STATUS_PREPARING_RELEASE_ASSETS: Final = (
+    "dashboard_status_preparing_release_assets"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_RELEASE_ASSET_PREP_FAILED: Final = (
+    "dashboard_status_release_asset_prep_failed"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_RELEASE_APPLIED: Final = (
+    "dashboard_status_release_applied"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_UPDATED: Final = "dashboard_status_updated"
+TRANS_KEY_EXC_DASHBOARD_STATUS_CREATED: Final = "dashboard_status_created"
+TRANS_KEY_EXC_DASHBOARD_STATUS_REQUIRED_DEPS_STILL_MISSING: Final = (
+    "dashboard_status_required_dependencies_still_missing"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_REQUIRED_DEPS_BYPASSED: Final = (
+    "dashboard_status_required_dependencies_bypassed"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_RECOMMENDED_DEPS_MISSING: Final = (
+    "dashboard_status_recommended_dependencies_missing"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_NONSELECTABLE_TEMPLATES: Final = (
+    "dashboard_status_nonselectable_templates"
+)
+TRANS_KEY_EXC_DASHBOARD_STATUS_DELETED: Final = "dashboard_status_deleted"
+TRANS_KEY_EXC_DASHBOARD_STATUS_DELETE_FAILED: Final = "dashboard_status_delete_failed"
+TRANS_KEY_EXC_DASHBOARD_LABEL_NONE: Final = "dashboard_label_none"
+TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE: Final = (
+    "dashboard_label_preferences_guide"
+)
+TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE_NOT_PROVIDED: Final = (
+    "dashboard_label_preferences_guide_not_provided"
 )
 
 # Flow Helpers Translation Keys

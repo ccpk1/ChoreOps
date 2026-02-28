@@ -4,8 +4,8 @@
 
 This document is the builder-facing implementation plan for moving from the current dashboard generator to the new registry/contract model defined in:
 
-- `docs/in-process/DASHBOARD_REGISTRY_GENERATION_IN-PROCESS.md`
-- `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+- `docs/completed/DASHBOARD_REGISTRY_GENERATION_COMPLETED.md`
+- `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
 
 This plan is execution-oriented and assumes architecture decisions D1-D16 are already accepted and frozen for v1.
 

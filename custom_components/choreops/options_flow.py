@@ -14,7 +14,7 @@ import uuid
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import selector
+from homeassistant.helpers import selector, translation
 from homeassistant.util import dt as dt_util
 import voluptuous as vol
 
@@ -26,7 +26,7 @@ from .utils.dt_utils import dt_now_utc, dt_parse, validate_daily_multi_times
 from .utils.math_utils import parse_points_adjust_values
 
 if TYPE_CHECKING:
-    from .helpers.dashboard_helpers import DashboardTemplateDefinition
+    from .helpers.dashboard_helpers import DashboardReleaseAssets
     from .type_defs import BadgeData
 
 # ----------------------------------------------------------------------------------
@@ -87,24 +87,107 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         self._dashboard_require_admin: bool = False
         self._dashboard_icon: str = "mdi:clipboard-list"
         self._dashboard_release_selection: str = (
-            const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
+            const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED
         )
-        self._dashboard_include_prereleases: bool = (
-            const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT
-        )
+        self._dashboard_include_prereleases: bool = False
         self._dashboard_flow_mode: str = const.DASHBOARD_ACTION_CREATE
         self._dashboard_status_message: str = ""
         self._dashboard_update_url_path: str | None = None
         self._dashboard_delete_selection: list[str] = []
         self._dashboard_dedupe_removed: dict[str, int] = {}
-        self._dashboard_template_details_review: bool = True
-        self._dashboard_template_details_markdown: str = "- None"
-        self._dashboard_skip_template_details_once: bool = False
         self._dashboard_skip_dependency_validation_once: bool = False
         self._dashboard_pending_configure_input: dict[str, Any] | None = None
         self._dashboard_missing_required_dependencies: list[str] = []
         self._dashboard_missing_recommended_dependencies: list[str] = []
         self._dashboard_missing_dependency_metadata: dict[str, dict[str, str]] = {}
+        self._dashboard_template_preferences_markdown: str = const.SENTINEL_EMPTY
+        self._dashboard_ui_none_label: str = const.TRANS_KEY_EXC_DASHBOARD_LABEL_NONE
+        self._dashboard_ui_preferences_guide_label: str = (
+            const.TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE
+        )
+        self._dashboard_ui_preferences_guide_not_provided_label: str = (
+            const.TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE_NOT_PROVIDED
+        )
+        self._dashboard_release_asset_cache_key: str | None = None
+        self._dashboard_release_asset_cache: DashboardReleaseAssets | None = None
+        self._dashboard_runtime_messages: dict[str, str] | None = None
+
+    async def _async_get_dashboard_runtime_message(
+        self,
+        translation_key: str,
+        *,
+        placeholders: dict[str, Any] | None = None,
+        fallback: str,
+    ) -> str:
+        """Return localized dashboard runtime text from exceptions catalog."""
+        if self._dashboard_runtime_messages is None:
+            self._dashboard_runtime_messages = await translation.async_get_translations(
+                self.hass,
+                self.hass.config.language,
+                "exceptions",
+                integrations=[const.DOMAIN],
+            )
+
+        localization_key = (
+            f"component.{const.DOMAIN}.exceptions.{translation_key}.message"
+        )
+        message = self._dashboard_runtime_messages.get(localization_key, fallback)
+
+        if placeholders:
+            with contextlib.suppress(KeyError, ValueError):
+                message = message.format(**placeholders)
+
+        return message
+
+    async def _async_refresh_dashboard_runtime_labels(self) -> None:
+        """Refresh localized labels used in dashboard markdown placeholders."""
+        self._dashboard_ui_none_label = await self._async_get_dashboard_runtime_message(
+            const.TRANS_KEY_EXC_DASHBOARD_LABEL_NONE,
+            fallback=const.TRANS_KEY_EXC_DASHBOARD_LABEL_NONE,
+        )
+        self._dashboard_ui_preferences_guide_label = (
+            await self._async_get_dashboard_runtime_message(
+                const.TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE,
+                fallback=const.TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE,
+            )
+        )
+        self._dashboard_ui_preferences_guide_not_provided_label = (
+            await self._async_get_dashboard_runtime_message(
+                const.TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE_NOT_PROVIDED,
+                fallback=(
+                    const.TRANS_KEY_EXC_DASHBOARD_LABEL_PREFERENCES_GUIDE_NOT_PROVIDED
+                ),
+            )
+        )
+
+    @staticmethod
+    def _build_dashboard_release_asset_cache_key(
+        release_selection: str,
+    ) -> str:
+        """Build deterministic flow-session cache key for release asset prep."""
+        return release_selection
+
+    async def _async_prepare_dashboard_release_assets(
+        self,
+        release_selection: str,
+    ) -> "DashboardReleaseAssets":
+        """Prepare selected-release assets with deterministic session cache."""
+        from .helpers import dashboard_helpers as dh
+
+        cache_key = self._build_dashboard_release_asset_cache_key(release_selection)
+        if self._dashboard_release_asset_cache_key == cache_key and isinstance(
+            self._dashboard_release_asset_cache, dict
+        ):
+            return self._dashboard_release_asset_cache
+
+        prepared_assets = await dh.async_prepare_dashboard_release_assets(
+            self.hass,
+            release_selection=release_selection,
+            include_prereleases=False,
+        )
+        self._dashboard_release_asset_cache_key = cache_key
+        self._dashboard_release_asset_cache = prepared_assets
+        return prepared_assets
 
     @staticmethod
     def _normalize_dashboard_admin_mode(admin_mode: str) -> str:
@@ -150,60 +233,66 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     def _build_dashboard_dependency_markdown_lines(
         self,
         dependency_ids: list[str],
+        *,
+        item_prefix: str = "",
     ) -> str:
         """Build markdown list for dependency placeholders."""
         if not dependency_ids:
-            return "- None"
+            return self._dashboard_ui_none_label
 
+        prefix = f"{item_prefix} " if item_prefix else ""
         return "\n".join(
-            self._format_dashboard_dependency_line(
+            prefix
+            + self._format_dashboard_dependency_line(
                 dependency_id,
                 self._dashboard_missing_dependency_metadata.get(dependency_id),
             )
             for dependency_id in dependency_ids
         )
 
-    def _build_dashboard_template_details_markdown_lines(
+    def _build_dashboard_template_preferences_markdown_lines(
         self,
         template_ids: list[str],
-        template_definitions: list["DashboardTemplateDefinition"],
+        template_definitions: list[Any],
+        release_ref: str | None,
     ) -> str:
-        """Build markdown summary for selected template details."""
+        """Build markdown list of preferences docs for selected templates."""
+        if not template_ids:
+            return self._dashboard_ui_none_label
+
         definition_by_template_id = {
-            definition["template_id"]: definition for definition in template_definitions
+            str(definition.get("template_id")): definition
+            for definition in template_definitions
+            if isinstance(definition, dict) and definition.get("template_id")
         }
 
+        docs_ref = release_ref or "main"
         lines: list[str] = []
-        for template_id in template_ids:
-            definition = definition_by_template_id.get(template_id)
-            if definition is None:
-                lines.append(f"- **{template_id}**")
-                lines.append("  - No manifest metadata available")
-                continue
-
-            display_name = definition.get("display_name") or template_id
-            description = definition.get("description") or "No description provided"
-            required_count = len(definition.get("dependencies_required", []))
-            recommended_count = len(definition.get("dependencies_recommended", []))
+        for template_id in sorted(template_ids):
+            definition = definition_by_template_id.get(template_id, {})
+            display_name = str(definition.get("display_name") or template_id)
             preferences_doc_asset_path = definition.get("preferences_doc_asset_path")
 
-            lines.append(f"- **{display_name}** (`{template_id}`)")
-            lines.append(f"  - {description}")
-            lines.append(
-                f"  - Dependencies: required={required_count}, recommended={recommended_count}"
-            )
-
-            if preferences_doc_asset_path:
+            if (
+                isinstance(preferences_doc_asset_path, str)
+                and preferences_doc_asset_path
+            ):
                 preferences_url = (
                     f"https://github.com/{const.DASHBOARD_RELEASE_REPO_OWNER}/"
-                    f"{const.DASHBOARD_RELEASE_REPO_NAME}/blob/main/"
+                    f"{const.DASHBOARD_RELEASE_REPO_NAME}/blob/{docs_ref}/"
                     f"{preferences_doc_asset_path}"
                 )
-                lines.append(f"  - Preferences: [View guide]({preferences_url})")
+                lines.append(
+                    f"- **{display_name}**: "
+                    f"[{self._dashboard_ui_preferences_guide_label}]({preferences_url})"
+                )
             else:
-                lines.append("  - Preferences: Not provided")
+                lines.append(
+                    f"- **{display_name}**: "
+                    f"{self._dashboard_ui_preferences_guide_not_provided_label}"
+                )
 
-        return "\n".join(lines) if lines else "- None"
+        return "\n".join(lines) if lines else self._dashboard_ui_none_label
 
     # ----------------------------------------------------------------------------------
     # MAIN MENU
@@ -4152,32 +4241,149 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> ConfigFlowResult:
         """Handle the dashboard generator action selection.
 
-        First step: Select dashboard CRUD action.
+        Step 1: Select dashboard mode and release behavior.
         """
-        from .helpers import dashboard_helpers as dh
+        from .helpers import dashboard_builder as builder, dashboard_helpers as dh
 
         errors: dict[str, str] = {}
+        available_release_tags: list[str] = []
+        installed_release_version = await dh.async_get_local_dashboard_release_version(
+            self.hass
+        )
+        if (
+            self._dashboard_release_selection
+            == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED
+            and not installed_release_version
+        ):
+            self._dashboard_release_selection = (
+                const.DASHBOARD_RELEASE_MODE_LATEST_STABLE
+            )
+
+        try:
+            available_release_tags = (
+                await builder.discover_compatible_dashboard_release_tags(
+                    self.hass,
+                    include_prereleases=True,
+                )
+            )
+        except (TimeoutError, HomeAssistantError, ValueError, Exception) as err:
+            const.LOGGER.debug(
+                "Release tags unavailable while building dashboard generator step: %s",
+                err,
+            )
 
         if user_input is not None:
-            # Proceed with selected action
             action = str(
                 user_input.get(
                     const.CFOF_DASHBOARD_INPUT_ACTION, const.DASHBOARD_ACTION_CREATE
                 )
             )
+            release_selection = str(
+                user_input.get(
+                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION,
+                    self._dashboard_release_selection,
+                )
+            ).strip()
+            if not release_selection:
+                release_selection = const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED
 
-            if action == const.DASHBOARD_ACTION_DELETE:
-                return await self.async_step_dashboard_delete()
-            if action == const.DASHBOARD_ACTION_UPDATE:
-                return await self.async_step_dashboard_update_select()
-            if action == const.DASHBOARD_ACTION_EXIT:
-                return await self.async_step_init()
-            # Default to create flow
-            return await self.async_step_dashboard_create()
+            compatible_tags_for_selection: list[str] = []
+            try:
+                compatible_tags_for_selection = (
+                    await builder.discover_compatible_dashboard_release_tags(
+                        self.hass,
+                        include_prereleases=True,
+                    )
+                )
+            except (TimeoutError, HomeAssistantError, ValueError, Exception) as err:
+                const.LOGGER.debug(
+                    "Release tags unavailable while validating dashboard selection: %s",
+                    err,
+                )
 
-        # Show action selection
-        schema = dh.build_dashboard_action_schema()
-        self._dashboard_status_message = ""
+            if (
+                release_selection
+                not in {
+                    const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED,
+                    const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+                    const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+                }
+                and compatible_tags_for_selection
+                and release_selection not in compatible_tags_for_selection
+            ):
+                errors[const.CFOP_ERROR_BASE] = (
+                    const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_INCOMPATIBLE
+                )
+
+            if not errors:
+                self._dashboard_flow_mode = action
+                self._dashboard_include_prereleases = False
+                self._dashboard_release_selection = release_selection
+
+                if action in (
+                    const.DASHBOARD_ACTION_CREATE,
+                    const.DASHBOARD_ACTION_UPDATE,
+                ):
+                    self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                        const.TRANS_KEY_EXC_DASHBOARD_STATUS_PREPARING_RELEASE_ASSETS,
+                        fallback=(
+                            const.TRANS_KEY_EXC_DASHBOARD_STATUS_PREPARING_RELEASE_ASSETS
+                        ),
+                    )
+                    try:
+                        prepared_assets = (
+                            await self._async_prepare_dashboard_release_assets(
+                                release_selection,
+                            )
+                        )
+                        await dh.async_apply_prepared_dashboard_release_assets(
+                            self.hass,
+                            prepared_assets,
+                        )
+                    except (HomeAssistantError, TimeoutError, ValueError) as err:
+                        const.LOGGER.warning(
+                            "Dashboard release asset preparation failed: %s",
+                            err,
+                        )
+                        self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                            const.TRANS_KEY_EXC_DASHBOARD_STATUS_RELEASE_ASSET_PREP_FAILED,
+                            fallback=(
+                                const.TRANS_KEY_EXC_DASHBOARD_STATUS_RELEASE_ASSET_PREP_FAILED
+                            ),
+                        )
+                        errors[const.CFOP_ERROR_BASE] = (
+                            const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_ASSET_PREP_FAILED
+                        )
+                    else:
+                        prepared_release_ref = str(
+                            prepared_assets.get("release_ref", release_selection)
+                        )
+                        prepared_source = str(
+                            prepared_assets.get("execution_source", "remote_release")
+                        )
+                        self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                            const.TRANS_KEY_EXC_DASHBOARD_STATUS_RELEASE_APPLIED,
+                            placeholders={
+                                "release_ref": prepared_release_ref,
+                                "execution_source": prepared_source,
+                            },
+                            fallback=const.TRANS_KEY_EXC_DASHBOARD_STATUS_RELEASE_APPLIED,
+                        )
+
+                if not errors:
+                    if action == const.DASHBOARD_ACTION_DELETE:
+                        return await self.async_step_dashboard_delete()
+                    if action == const.DASHBOARD_ACTION_UPDATE:
+                        return await self.async_step_dashboard_update_select()
+                    if action == const.DASHBOARD_ACTION_EXIT:
+                        return await self.async_step_init()
+                    return await self.async_step_dashboard_create()
+
+        schema = dh.build_dashboard_action_schema(
+            release_tags=available_release_tags,
+            installed_release_version=installed_release_version,
+            release_selection_default=self._dashboard_release_selection,
+        )
 
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR,
@@ -4185,6 +4391,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
             description_placeholders={
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
+                const.PLACEHOLDER_DASHBOARD_STATUS_MESSAGE: (
+                    self._dashboard_status_message
+                ),
             },
         )
 
@@ -4193,11 +4402,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> ConfigFlowResult:
         """Handle the dashboard creation form.
 
-        Step 1 create path: capture dashboard name only, then route to Step 2.
+        Step 2 create path: capture dashboard name, then route to Step 3.
         """
         from .helpers import dashboard_builder as builder, dashboard_helpers as dh
 
         errors: dict[str, str] = {}
+
+        if self._dashboard_flow_mode != const.DASHBOARD_ACTION_CREATE:
+            return await self.async_step_dashboard_generator()
 
         if user_input is not None:
             dashboard_name = str(
@@ -4218,7 +4430,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 else:
                     self._dashboard_name = dashboard_name
                     self._dashboard_update_url_path = None
-                    self._dashboard_flow_mode = const.DASHBOARD_ACTION_CREATE
                     return await self.async_step_dashboard_configure()
 
         schema = dh.build_dashboard_create_name_schema()
@@ -4235,10 +4446,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_dashboard_update_select(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Select an existing dashboard before applying targeted updates."""
+        """Step 2 update path: select existing dashboard target."""
         from .helpers import dashboard_builder as builder, dashboard_helpers as dh
 
         errors: dict[str, str] = {}
+
+        if self._dashboard_flow_mode != const.DASHBOARD_ACTION_UPDATE:
+            return await self.async_step_dashboard_generator()
 
         if user_input is not None:
             selected_url_path = user_input.get(
@@ -4246,7 +4460,24 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             if isinstance(selected_url_path, str) and selected_url_path:
                 self._dashboard_update_url_path = selected_url_path
-                self._dashboard_flow_mode = const.DASHBOARD_ACTION_UPDATE
+                try:
+                    dashboard_metadata = (
+                        await builder.async_get_dashboard_update_metadata(
+                            self.hass,
+                            selected_url_path,
+                        )
+                    )
+                except HomeAssistantError as err:
+                    const.LOGGER.debug(
+                        "Dashboard metadata lookup failed for %s: %s",
+                        selected_url_path,
+                        err,
+                    )
+                else:
+                    if dashboard_metadata is not None:
+                        selected_icon = dashboard_metadata.get("icon")
+                        if isinstance(selected_icon, str) and selected_icon.strip():
+                            self._dashboard_icon = selected_icon.strip()
                 return await self.async_step_dashboard_configure()
 
             errors[const.CFOP_ERROR_BASE] = const.TRANS_KEY_CFOF_DASHBOARD_NO_DASHBOARDS
@@ -4267,7 +4498,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_dashboard_configure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Unified Step 2 dashboard configuration for create/update flows."""
+        """Step 3 shared dashboard configuration for create/update flows."""
         from .helpers import dashboard_builder as builder, dashboard_helpers as dh
 
         errors: dict[str, str] = {}
@@ -4277,21 +4508,9 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         if is_update_flow and not self._dashboard_update_url_path:
             return await self.async_step_dashboard_update_select()
 
-        available_release_tags: list[str] = []
-        try:
-            available_release_tags = (
-                await builder.discover_compatible_dashboard_release_tags(self.hass)
-            )
-        except (TimeoutError, HomeAssistantError, ValueError, Exception) as err:
-            const.LOGGER.debug(
-                "Release tags unavailable while building dashboard configure schema: %s",
-                err,
-            )
-
         if user_input is not None:
             user_input = dh.normalize_dashboard_configure_input(user_input)
-            skip_template_details = self._dashboard_skip_template_details_once
-            self._dashboard_skip_template_details_once = False
+            await self._async_refresh_dashboard_runtime_labels()
             skip_dependency_validation = self._dashboard_skip_dependency_validation_once
             self._dashboard_skip_dependency_validation_once = False
             self._dashboard_dedupe_removed = {}
@@ -4368,24 +4587,68 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 user_input.get(const.CFOF_DASHBOARD_INPUT_ICON, self._dashboard_icon)
             ).strip()
 
-            release_selection = str(
-                user_input.get(
-                    const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION,
-                    self._dashboard_release_selection,
+            release_selection = self._dashboard_release_selection
+            include_prereleases = False
+
+            cached_release_ref: str | None = None
+            cached_resolution_reason = "latest_compatible"
+            cached_execution_source = "remote_release"
+            cached_strict_pin = False
+            if isinstance(self._dashboard_release_asset_cache, dict):
+                cached_release_ref_raw = self._dashboard_release_asset_cache.get(
+                    "release_ref"
                 )
-            ).strip()
-            include_prereleases = bool(
-                user_input.get(
-                    const.CFOF_DASHBOARD_INPUT_INCLUDE_PRERELEASES,
-                    self._dashboard_include_prereleases,
+                if isinstance(cached_release_ref_raw, str) and cached_release_ref_raw:
+                    cached_release_ref = cached_release_ref_raw
+                cached_resolution_reason_raw = self._dashboard_release_asset_cache.get(
+                    "resolution_reason"
                 )
-            )
-            template_details_review = bool(
-                user_input.get(
-                    const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW,
-                    self._dashboard_template_details_review,
+                if isinstance(cached_resolution_reason_raw, str):
+                    cached_resolution_reason = cached_resolution_reason_raw
+                cached_execution_source_raw = self._dashboard_release_asset_cache.get(
+                    "execution_source"
                 )
-            )
+                if isinstance(cached_execution_source_raw, str):
+                    cached_execution_source = cached_execution_source_raw
+                cached_strict_pin = bool(
+                    self._dashboard_release_asset_cache.get("strict_pin", False)
+                )
+
+            if self._dashboard_flow_mode in (
+                const.DASHBOARD_ACTION_CREATE,
+                const.DASHBOARD_ACTION_UPDATE,
+            ) and not isinstance(self._dashboard_release_asset_cache, dict):
+                try:
+                    await self._async_prepare_dashboard_release_assets(
+                        release_selection
+                    )
+                except (HomeAssistantError, TimeoutError, ValueError):
+                    errors[const.CFOP_ERROR_BASE] = (
+                        const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_ASSET_PREP_FAILED
+                    )
+                    return await self.async_step_dashboard_generator()
+                if isinstance(self._dashboard_release_asset_cache, dict):
+                    cached_release_ref_raw = self._dashboard_release_asset_cache.get(
+                        "release_ref"
+                    )
+                    if (
+                        isinstance(cached_release_ref_raw, str)
+                        and cached_release_ref_raw
+                    ):
+                        cached_release_ref = cached_release_ref_raw
+                    cached_resolution_reason_raw = (
+                        self._dashboard_release_asset_cache.get("resolution_reason")
+                    )
+                    if isinstance(cached_resolution_reason_raw, str):
+                        cached_resolution_reason = cached_resolution_reason_raw
+                    cached_execution_source_raw = (
+                        self._dashboard_release_asset_cache.get("execution_source")
+                    )
+                    if isinstance(cached_execution_source_raw, str):
+                        cached_execution_source = cached_execution_source_raw
+                    cached_strict_pin = bool(
+                        self._dashboard_release_asset_cache.get("strict_pin", False)
+                    )
 
             # Update flow only: when admin layout changes, rerender with newly
             # relevant template selector fields before full validation.
@@ -4424,8 +4687,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     self._dashboard_require_admin = require_admin
                     self._dashboard_icon = icon or "mdi:clipboard-list"
                     self._dashboard_release_selection = release_selection
-                    self._dashboard_include_prereleases = include_prereleases
-                    self._dashboard_template_details_review = template_details_review
                     return await self.async_step_dashboard_configure()
 
             if not selected_assignees and admin_mode == const.DASHBOARD_ADMIN_MODE_NONE:
@@ -4465,23 +4726,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 errors[const.CFOP_ERROR_BASE] = (
                     const.TRANS_KEY_CFOF_DASHBOARD_ADMIN_PER_ASSIGNEE_NEEDS_ASSIGNEES
                 )
-            elif (
-                is_update_flow
-                and release_selection != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
-                and available_release_tags
-                and release_selection not in available_release_tags
-            ):
-                errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_INCOMPATIBLE
-                )
-
             if not errors:
-                pinned_release_tag = (
-                    release_selection
-                    if release_selection
-                    != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
-                    else None
-                )
                 selected_template_ids: set[str] = {template_profile}
                 if (
                     admin_mode
@@ -4503,30 +4748,23 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     selected_template_ids.add(admin_template_per_assignee)
 
                 template_definitions = dh.get_dashboard_template_definitions()
-                if pinned_release_tag is not None:
-                    remote_definitions = (
-                        await dh.fetch_remote_manifest_template_definitions(
-                            self.hass,
-                            pinned_release_tag,
-                        )
+                expected_cache_key = self._build_dashboard_release_asset_cache_key(
+                    release_selection,
+                )
+                if (
+                    self._dashboard_release_asset_cache_key == expected_cache_key
+                    and isinstance(self._dashboard_release_asset_cache, dict)
+                ):
+                    cached_definitions = self._dashboard_release_asset_cache.get(
+                        "template_definitions",
+                        [],
                     )
-                    if remote_definitions:
-                        template_definitions = dh.merge_manifest_template_definitions(
-                            template_definitions,
-                            remote_definitions,
-                        )
-
-                if template_details_review and not skip_template_details:
-                    self._dashboard_pending_configure_input = user_input
-                    self._dashboard_template_details_markdown = (
-                        self._build_dashboard_template_details_markdown_lines(
-                            sorted(selected_template_ids),
-                            template_definitions,
-                        )
-                    )
-                    return await self.async_step_dashboard_template_details()
-
+                    if isinstance(cached_definitions, list) and cached_definitions:
+                        template_definitions = cached_definitions
                 should_validate_dependencies = not skip_dependency_validation
+                missing_required: list[str] = []
+                missing_recommended: list[str] = []
+                dependency_metadata: dict[str, Any] = {}
                 if should_validate_dependencies:
                     nonselectable_templates = (
                         dh.get_nonselectable_template_ids_from_definitions(
@@ -4536,11 +4774,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     )
                     if nonselectable_templates:
                         errors[const.CFOP_ERROR_BASE] = (
-                            "Selected templates are unavailable for generation:\n"
-                            + "\n".join(
-                                f"- {template_id}"
-                                for template_id in nonselectable_templates
-                            )
+                            const.TRANS_KEY_CFOF_DASHBOARD_NONSELECTABLE_TEMPLATES
+                        )
+                        self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                            const.TRANS_KEY_EXC_DASHBOARD_STATUS_NONSELECTABLE_TEMPLATES,
+                            placeholders={
+                                "template_list": "\n".join(
+                                    f"- {template_id}"
+                                    for template_id in nonselectable_templates
+                                )
+                            },
+                            fallback=(
+                                const.TRANS_KEY_EXC_DASHBOARD_STATUS_NONSELECTABLE_TEMPLATES
+                            ),
                         )
 
                     required_dependency_ids: set[str] = set()
@@ -4579,47 +4825,67 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             if not dependency_status.get(dependency_id, False)
                         )
 
-                        if missing_required:
-                            self._dashboard_pending_configure_input = user_input
-                            self._dashboard_missing_required_dependencies = (
-                                missing_required
-                            )
-                            self._dashboard_missing_recommended_dependencies = (
-                                missing_recommended
-                            )
-                            self._dashboard_missing_dependency_metadata = {
-                                dependency_id: {
-                                    key: value
-                                    for key, value in dependency_metadata.get(
-                                        dependency_id,
-                                        {},
-                                    ).items()
-                                    if isinstance(value, str)
-                                }
-                                for dependency_id in (
-                                    missing_required + missing_recommended
-                                )
+                    if not errors:
+                        self._dashboard_pending_configure_input = user_input
+                        self._dashboard_missing_required_dependencies = missing_required
+                        self._dashboard_missing_recommended_dependencies = (
+                            missing_recommended
+                        )
+                        self._dashboard_missing_dependency_metadata = {
+                            dependency_id: {
+                                key: value
+                                for key, value in dependency_metadata.get(
+                                    dependency_id,
+                                    {},
+                                ).items()
+                                if isinstance(value, str)
                             }
-                            return (
-                                await self.async_step_dashboard_missing_dependencies()
+                            for dependency_id in (
+                                missing_required + missing_recommended
                             )
+                        }
+                        self._dashboard_template_preferences_markdown = (
+                            self._build_dashboard_template_preferences_markdown_lines(
+                                list(selected_template_ids),
+                                template_definitions,
+                                cached_release_ref,
+                            )
+                        )
                         if missing_recommended:
                             const.LOGGER.warning(
                                 "Missing recommended dashboard card dependencies: %s",
                                 ", ".join(missing_recommended),
                             )
-                            self._dashboard_status_message = (
-                                "Missing recommended dependencies (generation will continue): "
-                                + ", ".join(missing_recommended)
-                            )
+                        return await self.async_step_dashboard_missing_dependencies()
 
             if not errors:
                 include_admin = admin_mode != const.DASHBOARD_ADMIN_MODE_NONE
-                pinned_release_tag = (
-                    release_selection
-                    if release_selection
-                    != const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE
-                    else None
+                local_release_version = (
+                    await dh.async_get_local_dashboard_release_version(self.hass)
+                )
+                if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+                    pinned_release_tag = local_release_version
+                elif release_selection in {
+                    const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+                    const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+                }:
+                    pinned_release_tag = cached_release_ref
+                else:
+                    pinned_release_tag = cached_release_ref or release_selection
+
+                if cached_strict_pin and not pinned_release_tag:
+                    errors[const.CFOP_ERROR_BASE] = (
+                        const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_STRICT_PIN_FAILED
+                    )
+                    return await self.async_step_dashboard_generator()
+
+                const.LOGGER.debug(
+                    "Dashboard execution context: requested=%s effective=%s strict_pin=%s source=%s reason=%s",
+                    release_selection,
+                    pinned_release_tag,
+                    cached_strict_pin,
+                    cached_execution_source,
+                    cached_resolution_reason,
                 )
 
                 self._dashboard_selected_assignees = selected_assignees
@@ -4635,7 +4901,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 self._dashboard_admin_view_visibility = admin_view_visibility
                 self._dashboard_release_selection = release_selection
                 self._dashboard_include_prereleases = include_prereleases
-                self._dashboard_template_details_review = template_details_review
                 admin_visible_user_ids = (
                     self._get_user_ha_user_ids()
                     if admin_view_visibility
@@ -4671,8 +4936,24 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             require_admin=require_admin,
                             pinned_release_tag=pinned_release_tag,
                             include_prereleases=include_prereleases,
+                            prepared_release_assets=cast(
+                                "dict[str, Any] | None",
+                                self._dashboard_release_asset_cache,
+                            ),
+                            requested_release_selection=release_selection,
+                            resolution_reason=cached_resolution_reason,
                         )
-                        self._dashboard_status_message = f"Updated {url_path} (views={view_count}, release_selection={release_selection})"
+                        self._dashboard_status_message = (
+                            await self._async_get_dashboard_runtime_message(
+                                const.TRANS_KEY_EXC_DASHBOARD_STATUS_UPDATED,
+                                placeholders={
+                                    "url_path": url_path,
+                                    "view_count": view_count,
+                                    "release_selection": release_selection,
+                                },
+                                fallback=const.TRANS_KEY_EXC_DASHBOARD_STATUS_UPDATED,
+                            )
+                        )
                     else:
                         dedupe_removed = await builder.async_dedupe_choreops_dashboards(
                             self.hass,
@@ -4704,8 +4985,24 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             admin_visible_user_ids=admin_visible_user_ids,
                             pinned_release_tag=pinned_release_tag,
                             include_prereleases=include_prereleases,
+                            prepared_release_assets=cast(
+                                "dict[str, Any] | None",
+                                self._dashboard_release_asset_cache,
+                            ),
+                            requested_release_selection=release_selection,
+                            resolution_reason=cached_resolution_reason,
                         )
-                        self._dashboard_status_message = f"Created {url_path} (assignees={len(selected_assignees)}, admin_mode={admin_mode})"
+                        self._dashboard_status_message = (
+                            await self._async_get_dashboard_runtime_message(
+                                const.TRANS_KEY_EXC_DASHBOARD_STATUS_CREATED,
+                                placeholders={
+                                    "url_path": url_path,
+                                    "assignee_count": len(selected_assignees),
+                                    "admin_mode": admin_mode,
+                                },
+                                fallback=const.TRANS_KEY_EXC_DASHBOARD_STATUS_CREATED,
+                            )
+                        )
 
                     return await self.async_step_dashboard_generator()
                 except builder.DashboardTemplateError:
@@ -4733,9 +5030,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         schema = dh.build_dashboard_configure_schema(
             coordinator,
-            include_release_controls=is_update_flow,
-            show_release_controls=True,
-            release_tags=available_release_tags,
+            include_release_controls=False,
+            show_release_controls=False,
             selected_assignees_default=self._dashboard_selected_assignees,
             template_profile_default=self._dashboard_template_profile,
             admin_mode_default=self._dashboard_admin_mode,
@@ -4747,7 +5043,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             icon_default=self._dashboard_icon,
             include_prereleases_default=self._dashboard_include_prereleases,
             release_selection_default=self._dashboard_release_selection,
-            template_details_review_default=self._dashboard_template_details_review,
         )
 
         return self.async_show_form(
@@ -4761,72 +5056,63 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             },
         )
 
-    async def async_step_dashboard_template_details(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Review selected template metadata before generation/update."""
-        from .helpers import dashboard_helpers as dh
-
-        errors: dict[str, str] = {}
-
-        if user_input is not None:
-            continue_anyway = bool(
-                user_input.get(const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK, False)
-            )
-            if not continue_anyway:
-                errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_DASHBOARD_TEMPLATE_DETAILS_ACK_REQUIRED
-                )
-            elif self._dashboard_pending_configure_input is None:
-                return await self.async_step_dashboard_configure()
-            else:
-                pending_input = self._dashboard_pending_configure_input
-                self._dashboard_pending_configure_input = None
-                self._dashboard_skip_template_details_once = True
-                return await self.async_step_dashboard_configure(pending_input)
-
-        schema = dh.build_dashboard_template_details_schema()
-        return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_TEMPLATE_DETAILS,
-            data_schema=schema,
-            errors=errors,
-            description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
-                const.PLACEHOLDER_DASHBOARD_TEMPLATE_DETAILS: (
-                    self._dashboard_template_details_markdown
-                ),
-            },
-        )
-
     async def async_step_dashboard_missing_dependencies(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle missing dashboard dependency confirmation with dynamic details."""
+        """Step 4 dependency review and submit routing."""
         from .helpers import dashboard_helpers as dh
 
         errors: dict[str, str] = {}
+        await self._async_refresh_dashboard_runtime_labels()
 
         if user_input is not None:
+            if self._dashboard_pending_configure_input is None:
+                return await self.async_step_dashboard_configure()
+
             continue_anyway = bool(
                 user_input.get(const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS, False)
             )
-            if not continue_anyway:
-                errors[const.CFOP_ERROR_BASE] = (
-                    const.TRANS_KEY_CFOF_DASHBOARD_DEPENDENCY_ACK_REQUIRED
+
+            if self._dashboard_missing_required_dependencies and not continue_anyway:
+                self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                    const.TRANS_KEY_EXC_DASHBOARD_STATUS_REQUIRED_DEPS_STILL_MISSING,
+                    fallback=(
+                        const.TRANS_KEY_EXC_DASHBOARD_STATUS_REQUIRED_DEPS_STILL_MISSING
+                    ),
                 )
-            elif self._dashboard_pending_configure_input is None:
                 return await self.async_step_dashboard_configure()
-            else:
+
+            if self._dashboard_missing_required_dependencies and continue_anyway:
+                self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                    const.TRANS_KEY_EXC_DASHBOARD_STATUS_REQUIRED_DEPS_BYPASSED,
+                    fallback=const.TRANS_KEY_EXC_DASHBOARD_STATUS_REQUIRED_DEPS_BYPASSED,
+                )
+
+            if (
+                not self._dashboard_missing_required_dependencies
+                and self._dashboard_missing_recommended_dependencies
+            ):
+                self._dashboard_status_message = await self._async_get_dashboard_runtime_message(
+                    const.TRANS_KEY_EXC_DASHBOARD_STATUS_RECOMMENDED_DEPS_MISSING,
+                    placeholders={
+                        "dependency_list": ", ".join(
+                            self._dashboard_missing_recommended_dependencies
+                        )
+                    },
+                    fallback=(
+                        const.TRANS_KEY_EXC_DASHBOARD_STATUS_RECOMMENDED_DEPS_MISSING
+                    ),
+                )
+
+            if not self._dashboard_missing_required_dependencies or continue_anyway:
                 pending_input = self._dashboard_pending_configure_input
                 self._dashboard_pending_configure_input = None
-                self._dashboard_skip_template_details_once = True
                 self._dashboard_skip_dependency_validation_once = True
-                self._dashboard_status_message = (
-                    "Missing required dependencies bypassed by user"
-                )
                 return await self.async_step_dashboard_configure(pending_input)
 
-        schema = dh.build_dashboard_missing_dependencies_schema()
+        schema = dh.build_dashboard_missing_dependencies_schema(
+            show_dependency_bypass=bool(self._dashboard_missing_required_dependencies)
+        )
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_DASHBOARD_MISSING_DEPENDENCIES,
             data_schema=schema,
@@ -4835,13 +5121,18 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_DASHBOARD_GENERATION,
                 const.PLACEHOLDER_DASHBOARD_MISSING_REQUIRED_DEPENDENCIES: (
                     self._build_dashboard_dependency_markdown_lines(
-                        self._dashboard_missing_required_dependencies
+                        self._dashboard_missing_required_dependencies,
+                        item_prefix="❌",
                     )
                 ),
                 const.PLACEHOLDER_DASHBOARD_MISSING_RECOMMENDED_DEPENDENCIES: (
                     self._build_dashboard_dependency_markdown_lines(
-                        self._dashboard_missing_recommended_dependencies
+                        self._dashboard_missing_recommended_dependencies,
+                        item_prefix="❌",
                     )
+                ),
+                const.PLACEHOLDER_DASHBOARD_TEMPLATE_PREFERENCES: (
+                    self._dashboard_template_preferences_markdown
                 ),
             },
         )
@@ -4894,10 +5185,22 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             try:
                 await builder.delete_choreops_dashboard(self.hass, url_path)
                 const.LOGGER.info("Deleted dashboard: %s", url_path)
-                self._dashboard_status_message = f"Deleted {url_path}"
+                self._dashboard_status_message = (
+                    await self._async_get_dashboard_runtime_message(
+                        const.TRANS_KEY_EXC_DASHBOARD_STATUS_DELETED,
+                        placeholders={"url_path": url_path},
+                        fallback=const.TRANS_KEY_EXC_DASHBOARD_STATUS_DELETED,
+                    )
+                )
             except Exception as err:
                 const.LOGGER.error("Failed to delete dashboard %s: %s", url_path, err)
-                self._dashboard_status_message = f"Failed to delete {url_path}: {err}"
+                self._dashboard_status_message = (
+                    await self._async_get_dashboard_runtime_message(
+                        const.TRANS_KEY_EXC_DASHBOARD_STATUS_DELETE_FAILED,
+                        placeholders={"url_path": url_path, "error": str(err)},
+                        fallback=const.TRANS_KEY_EXC_DASHBOARD_STATUS_DELETE_FAILED,
+                    )
+                )
 
             return await self.async_step_dashboard_generator()
 

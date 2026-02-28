@@ -132,6 +132,33 @@ The dashboard registry repository uses SemVer-style release channels:
 
 If remote release/manifest lookup fails or returns invalid records, runtime behavior remains deterministic and falls back to vendored local registry/template assets.
 
+### Generator release execution contract (runtime)
+
+The dashboard generator enforces a deterministic release contract:
+
+1. Step 1 resolves selected release behavior to one concrete `effective_release_ref`.
+2. Step 1 prepares release assets (registry, templates, translations, preferences).
+3. Prepared assets are applied to local vendored runtime files and become the
+  baseline for generation/runtime lookups.
+4. Step 3 generation consumes the prepared release context rather than re-resolving
+  release selection.
+
+Selection mode rules:
+
+- Explicit tag selected: strict-pin behavior (no silent downgrade)
+- Latest stable/latest compatible: resolve once in Step 1 and pin that ref
+- Current installed: execute against local `release_version`
+
+### Dependency review UX contract (Step 4)
+
+Dependency review always renders two translated section headers:
+
+- Missing required dependencies
+- Missing recommended dependencies
+
+Missing dependency items are shown as link rows prefixed with `❌`.
+Required dependency bypass remains an explicit acknowledge action.
+
 ---
 
 ## Template File Structure
@@ -612,3 +639,45 @@ Release-based fetch keeps template selection deterministic; local fallback prese
 │ When: Dashboard generation   When: Dashboard render     │
 └─────────────────────────────────────────────────────────┘
 ```
+
+## Chore State General UX Design
+
+### 1. Core Chore States
+
+These represent the standard lifecycle of an actionable chore.
+
+| State        | Display Label | Standard Hex          | Lovelace CSS Variable       | Icon                | UI Behavior                                                  |
+| ------------ | ------------- | --------------------- | --------------------------- | ------------------- | ------------------------------------------------------------ |
+| **pending**  | Pending       | `#4A4A4A (Dark Grey)` | `var(--primary-text-color)` | `mdi:arrow-right`   | Neutral text. Standard interactive button.                   |
+| **due**      | Due           | `#FF9800 (Orange)`    | `var(--warning-color)`      | `mdi:arrow-right`   | Border and text highlight to grab attention.                 |
+| **caimed**   | Claimed       | `#9C27B0 (Purple)`    | `var(--primary-color)` \*   | `mdi:check-all`     | Button fills solid. Undo action becomes available.           |
+| **approved** | Approved      | `#4CAF50 (Green)`     | `var(--success-color)`      | `mdi:check`         | Success highlight. Card flattens and action button disables. |
+| **overdue**  | Overdue       | `#F44336 (Red)`       | `var(--error-color)`        | `mdi:alert-octagon` | High-alert red border and icons. Prominent display.          |
+
+\*_ Note: Home Assistant's default `var(--primary-color)` is blue. To maintain the purple aesthetic from the original setup, define a custom variable like `var(--choreops-claimed-color): #9C27B0` in your global theme._
+
+### 2. Blocked / Exception States
+
+These represent states where the assignee cannot take action. The UI standardizes these by dropping card opacity to `0.6`, flattening drop-shadows, and disabling the primary action button.
+
+| State                  | Display Label      | Standard Hex            | Lovelace CSS Variable        | Icon                        | UI Behavior / Meaning                                       |
+| ---------------------- | ------------------ | ----------------------- | ---------------------------- | --------------------------- | ----------------------------------------------------------- |
+| **waiting**            | Waiting            | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:clock-outline`         | Blocked by a dependency (e.g., sibling must finish first).  |
+| **missed**             | Missed             | `#F44336 (Red)`         | `var(--error-color)`         | `mdi:lock-outline`          | Window closed. Retains red alert color, but becomes locked. |
+| **completed_by_other** | Completed by Other | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:account-check-outline` | A shared chore claimed and finished by a sibling.           |
+| **not_my_turn**        | Not My Turn        | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:lock-outline`          | Rotating chore currently assigned to someone else.          |
+
+### 3. UI Modifiers & Badges
+
+These are appended inline to chore names or meta-text to provide immediate context without requiring the user to open a detail view.
+
+| Modifier Type      | Description                     | Standard Hex            | Lovelace CSS Variable        | Icon                                     | Location                    |
+| ------------------ | ------------------------------- | ----------------------- | ---------------------------- | ---------------------------------------- | --------------------------- |
+| **Shared (All)**   | All assignees must complete     | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:account-group`                      | Appended to Name            |
+| **Shared (First)** | First assignee to claim wins    | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:flag-checkered`                     | Appended to Name            |
+| **Rotating**       | Assignment shifts on a schedule | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:account-sync`                       | Appended to Name            |
+| **Recurring**      | Chore repeats automatically     | `#9E9E9E (Medium Grey)` | `var(--disabled-text-color)` | `mdi:repeat`                             | Prepended to Frequency Text |
+| **Bonus**          | Admin-awarded positive points   | `#4CAF50 (Green)`       | `var(--success-color)`       | `mdi:star-plus` / `mdi:gift`             | Admin Action Grids          |
+| **Penalty**        | Admin-awarded negative points   | `#F44336 (Red)`         | `var(--error-color)`         | `mdi:alert-circle` / `mdi:alert-octagon` | Admin Action Grids          |
+
+---

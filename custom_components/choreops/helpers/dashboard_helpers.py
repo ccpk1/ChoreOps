@@ -10,12 +10,14 @@ All functions here require a `hass` object or interact with HA APIs.
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 from homeassistant.data_entry_flow import section
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.util import slugify
@@ -32,7 +34,6 @@ DASHBOARD_CONFIGURE_SECTION_KEYS = (
     const.CFOF_DASHBOARD_SECTION_ASSIGNEE_VIEWS,
     const.CFOF_DASHBOARD_SECTION_ADMIN_VIEWS,
     const.CFOF_DASHBOARD_SECTION_ACCESS_SIDEBAR,
-    const.CFOF_DASHBOARD_SECTION_TEMPLATE_VERSION,
 )
 
 
@@ -66,6 +67,22 @@ class DashboardDependencyMetadata(TypedDict):
     url: NotRequired[str]
 
 
+class DashboardReleaseAssets(TypedDict):
+    """Prepared release assets for one selected dashboard release."""
+
+    requested_release_selection: str
+    release_ref: str
+    resolution_reason: str
+    execution_source: str
+    strict_pin: bool
+    allow_local_fallback: bool
+    manifest_asset: str
+    template_definitions: list[DashboardTemplateDefinition]
+    template_assets: dict[str, str]
+    translation_assets: dict[str, str]
+    preference_assets: dict[str, str]
+
+
 _VALID_TEMPLATE_ID_RE = re.compile(r"^[a-z0-9]+-[a-z0-9-]+-v[0-9]+$")
 _VALID_LIFECYCLE_STATES = frozenset({"active", "deprecated", "archived"})
 _SELECTABLE_LIFECYCLE_STATES = frozenset({"active", "deprecated"})
@@ -78,6 +95,137 @@ _manifest_template_definitions_state: dict[str, Any] = {
     "loaded": False,
     "warned": False,
 }
+
+
+def reset_manifest_template_definitions_cache() -> None:
+    """Reset cached dashboard manifest template definitions.
+
+    Use this after replacing local dashboard manifest/template files so new
+    runtime selections and lookups observe updated on-disk contracts.
+    """
+    _manifest_template_definitions_state["cache"] = ()
+    _manifest_template_definitions_state["loaded"] = False
+    _manifest_template_definitions_state["warned"] = False
+
+
+def _resolve_dashboard_asset_target_path(
+    dashboards_root: Path,
+    relative_path: str,
+) -> Path:
+    """Resolve release asset path under dashboards root with traversal guard."""
+    normalized_parts = Path(relative_path).parts
+    if not normalized_parts:
+        raise HomeAssistantError("Dashboard release asset path is empty")
+    if any(part in ("", ".", "..") for part in normalized_parts):
+        raise HomeAssistantError(
+            f"Dashboard release asset path is invalid: {relative_path}"
+        )
+
+    target_path = dashboards_root.joinpath(*normalized_parts).resolve()
+    dashboards_root_resolved = dashboards_root.resolve()
+    if not str(target_path).startswith(str(dashboards_root_resolved)):
+        raise HomeAssistantError(
+            f"Dashboard release asset path escapes dashboards root: {relative_path}"
+        )
+    return target_path
+
+
+def _replace_managed_dashboard_assets_from_release(
+    prepared_assets: DashboardReleaseAssets,
+    *,
+    component_root: Path | None = None,
+) -> None:
+    """Overwrite managed local dashboard assets from prepared release payload."""
+    if component_root is None:
+        component_root = Path(__file__).parent.parent
+    dashboards_root = component_root / Path(const.DASHBOARD_MANIFEST_PATH).parent
+
+    manifest_asset = prepared_assets.get("manifest_asset")
+    if not isinstance(manifest_asset, str) or not manifest_asset.strip():
+        raise HomeAssistantError("Prepared release payload missing manifest content")
+
+    managed_asset_groups: dict[str, dict[str, str]] = {
+        const.DASHBOARD_TEMPLATES_DIR: prepared_assets.get("template_assets", {}),
+        const.DASHBOARD_TRANSLATIONS_DIR: prepared_assets.get("translation_assets", {}),
+        const.PREFERENCES_DOCS_DIR: prepared_assets.get("preference_assets", {}),
+    }
+
+    for directory in (
+        const.DASHBOARD_TEMPLATES_DIR,
+        const.DASHBOARD_TRANSLATIONS_DIR,
+        const.PREFERENCES_DOCS_DIR,
+    ):
+        target_directory = component_root / directory
+        if target_directory.exists():
+            for file_path in sorted(target_directory.rglob("*"), reverse=True):
+                if file_path.is_file():
+                    file_path.unlink()
+                elif file_path.is_dir():
+                    with contextlib.suppress(OSError):
+                        file_path.rmdir()
+        target_directory.mkdir(parents=True, exist_ok=True)
+
+    for expected_prefix, assets in managed_asset_groups.items():
+        if not isinstance(assets, dict):
+            continue
+        prefix = f"{Path(expected_prefix).name}/"
+        for source_path, content in assets.items():
+            if not isinstance(source_path, str) or not isinstance(content, str):
+                continue
+            if not source_path.startswith(prefix):
+                continue
+
+            target_path = _resolve_dashboard_asset_target_path(
+                dashboards_root,
+                source_path,
+            )
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            target_path.write_text(content, encoding="utf-8")
+
+    manifest_target = dashboards_root / Path(const.DASHBOARD_MANIFEST_PATH).name
+    manifest_target.write_text(manifest_asset, encoding="utf-8")
+
+
+async def async_apply_prepared_dashboard_release_assets(
+    hass: Any,
+    prepared_assets: DashboardReleaseAssets,
+) -> None:
+    """Persist prepared release assets as the local dashboard baseline.
+
+    This applies selected release files to local disk so dashboard template
+    rendering and dashboard translation sensors read the selected release going
+    forward.
+    """
+    await hass.async_add_executor_job(
+        _replace_managed_dashboard_assets_from_release,
+        prepared_assets,
+    )
+    reset_manifest_template_definitions_cache()
+    await async_prime_manifest_template_definitions(hass)
+
+    from .translation_helpers import clear_translation_cache
+
+    clear_translation_cache()
+
+
+def get_local_dashboard_release_version() -> str | None:
+    """Return bundled dashboard registry release_version when available."""
+    manifest_path = Path(__file__).parent.parent / const.DASHBOARD_MANIFEST_PATH
+    try:
+        raw_manifest = manifest_path.read_text(encoding="utf-8")
+        manifest_data = json.loads(raw_manifest)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    release_version = manifest_data.get("release_version")
+    if isinstance(release_version, str) and release_version.strip():
+        return release_version.strip()
+    return None
+
+
+async def async_get_local_dashboard_release_version(hass: Any) -> str | None:
+    """Return bundled dashboard registry release_version without blocking loop."""
+    return await hass.async_add_executor_job(get_local_dashboard_release_version)
 
 
 def _validate_and_normalize_template_definition(
@@ -553,6 +701,173 @@ async def fetch_remote_manifest_template_definitions(
     return list(_parse_manifest_template_definitions(payload))
 
 
+async def _fetch_release_assets_by_path(
+    hass: Any,
+    *,
+    release_ref: str,
+    source_paths: list[str],
+) -> dict[str, str]:
+    """Fetch a list of release assets and return content keyed by source path."""
+    from . import dashboard_builder as builder
+
+    unique_paths = [path for path in sorted(set(source_paths)) if path]
+    if not unique_paths:
+        return {}
+
+    tasks = [
+        builder.fetch_release_asset_text(
+            hass,
+            release_ref=release_ref,
+            source_path=source_path,
+        )
+        for source_path in unique_paths
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    fetched_assets: dict[str, str] = {}
+    for source_path, result in zip(unique_paths, results, strict=True):
+        if isinstance(result, Exception):
+            raise HomeAssistantError(
+                f"Unable to fetch release asset '{source_path}': {result}"
+            ) from result
+        if isinstance(result, BaseException):
+            raise HomeAssistantError(
+                f"Unable to fetch release asset '{source_path}': {result}"
+            ) from result
+        fetched_assets[source_path] = result
+
+    return fetched_assets
+
+
+async def async_prepare_dashboard_release_assets(
+    hass: Any,
+    *,
+    release_selection: str,
+    include_prereleases: bool,
+) -> DashboardReleaseAssets:
+    """Prepare selected-release assets for dashboard flow session reuse.
+
+    Fetches and validates remote contract assets for Step 1 submit:
+    - manifest definitions
+    - template source files referenced by manifest
+    - dashboard translation file(s)
+    - preferences docs referenced by manifest
+    """
+    from . import dashboard_builder as builder
+
+    release_ref: str
+    resolution_reason: str
+    execution_source: str
+    strict_pin = release_selection not in {
+        const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED,
+        const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+        const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+    }
+
+    if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+        local_release = await async_get_local_dashboard_release_version(hass)
+        if not local_release:
+            raise HomeAssistantError(
+                "Local dashboard registry does not expose release_version"
+            )
+        release_ref = local_release
+        resolution_reason = "current_installed"
+        execution_source = "local_bundled"
+    elif release_selection in (
+        const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+        const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+    ):
+        resolution = await builder.resolve_dashboard_release_selection(
+            hass,
+            pinned_release_tag=None,
+            include_prereleases=False,
+        )
+        selected_tag = resolution.selected_tag
+        if not selected_tag:
+            raise HomeAssistantError(
+                "No compatible online dashboard release is currently available"
+            )
+        release_ref = selected_tag
+        resolution_reason = resolution.reason
+        execution_source = "remote_release"
+    else:
+        release_ref = release_selection
+        resolution_reason = "explicit_release_selected"
+        execution_source = "remote_release"
+
+    template_definitions = await fetch_remote_manifest_template_definitions(
+        hass,
+        release_ref,
+    )
+    if not template_definitions:
+        raise HomeAssistantError(
+            f"Dashboard registry data is unavailable for release '{release_ref}'"
+        )
+
+    template_paths = [
+        definition["source_path"]
+        for definition in template_definitions
+        if isinstance(definition.get("source_path"), str)
+    ]
+    template_assets = await _fetch_release_assets_by_path(
+        hass,
+        release_ref=release_ref,
+        source_paths=template_paths,
+    )
+
+    from .translation_helpers import get_available_dashboard_languages
+
+    available_languages = await get_available_dashboard_languages(hass)
+    translation_paths = [
+        f"translations/{language}{const.DASHBOARD_TRANSLATIONS_SUFFIX}.json"
+        for language in available_languages
+    ]
+    translation_assets = await _fetch_release_assets_by_path(
+        hass,
+        release_ref=release_ref,
+        source_paths=translation_paths,
+    )
+
+    preferences_paths = [
+        str(preferences_doc_asset_path)
+        for definition in template_definitions
+        if isinstance(
+            (
+                preferences_doc_asset_path := definition.get(
+                    "preferences_doc_asset_path"
+                )
+            ),
+            str,
+        )
+        and preferences_doc_asset_path.strip()
+    ]
+    preference_assets = await _fetch_release_assets_by_path(
+        hass,
+        release_ref=release_ref,
+        source_paths=preferences_paths,
+    )
+
+    manifest_asset = await builder.fetch_release_asset_text(
+        hass,
+        release_ref=release_ref,
+        source_path=Path(const.DASHBOARD_MANIFEST_PATH).name,
+    )
+
+    return DashboardReleaseAssets(
+        requested_release_selection=release_selection,
+        release_ref=release_ref,
+        resolution_reason=resolution_reason,
+        execution_source=execution_source,
+        strict_pin=strict_pin,
+        allow_local_fallback=not strict_pin,
+        manifest_asset=manifest_asset,
+        template_definitions=template_definitions,
+        template_assets=template_assets,
+        translation_assets=translation_assets,
+        preference_assets=preference_assets,
+    )
+
+
 def get_template_source_path(template_id: str) -> str | None:
     """Return manifest source path for a template ID."""
     for definition in _load_manifest_template_definitions():
@@ -875,17 +1190,26 @@ def build_dashboard_admin_view_visibility_options() -> list[selector.SelectOptio
 
 def build_dashboard_release_selection_options(
     release_tags: list[str] | None,
+    installed_release_version: str | None = None,
 ) -> list[selector.SelectOptionDict]:
-    """Build update-only template version selector options.
+    """Build Step 1 release selector options.
 
-    The first option keeps the existing automatic newest-compatible behavior.
-    Additional options allow explicitly selecting a discovered compatible tag.
+    Option order is fixed:
+    1) current installed
+    2) latest stable
+    3) explicit compatible tags
     """
+    _ = installed_release_version
+
     options: list[selector.SelectOptionDict] = [
         selector.SelectOptionDict(
-            value=const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
-            label=const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
-        )
+            value=const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED,
+            label=const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED,
+        ),
+        selector.SelectOptionDict(
+            value=const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+            label=const.DASHBOARD_RELEASE_MODE_LATEST_STABLE,
+        ),
     ]
     if not release_tags:
         return options
@@ -945,7 +1269,6 @@ def build_dashboard_configure_schema(
         const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT
     ),
     release_selection_default: str = const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
-    template_details_review_default: bool = True,
 ) -> vol.Schema:
     """Build unified Step 2 dashboard configuration schema."""
     if show_release_controls is None:
@@ -1075,10 +1398,6 @@ def build_dashboard_configure_schema(
             const.CFOF_DASHBOARD_INPUT_SHOW_IN_SIDEBAR,
             default=show_in_sidebar_default,
         ): selector.BooleanSelector(),
-        vol.Optional(
-            const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_REVIEW,
-            default=template_details_review_default,
-        ): selector.BooleanSelector(),
     }
 
     template_version_fields: dict[vol.Marker, Any] = {}
@@ -1154,14 +1473,16 @@ def get_existing_choreops_dashboards(
         hass: Home Assistant instance.
 
     Returns:
-        List of dicts with 'value' (url_path) and 'label' (title).
+        List of dicts with:
+        - `value`: dashboard URL path (stable internal selection value)
+        - `label`: friendly name with `(cod-...)` path suffix
     """
     from homeassistant.components.lovelace.const import LOVELACE_DATA
 
-    dashboards: list[dict[str, str]] = []
+    discovered_dashboards: list[dict[str, str]] = []
 
     if LOVELACE_DATA not in hass.data:
-        return dashboards
+        return discovered_dashboards
 
     lovelace_data = hass.data[LOVELACE_DATA]
 
@@ -1181,28 +1502,58 @@ def get_existing_choreops_dashboards(
             if hasattr(lovelace_data.dashboards[url_path], "config"):
                 config = lovelace_data.dashboards[url_path].config
                 if config and isinstance(config, dict):
-                    # Get title from views if available
-                    views = config.get("views", [])
-                    if views and isinstance(views, list) and len(views) > 0:
-                        title = views[0].get("title", url_path)
+                    config_title = config.get("title")
+                    if isinstance(config_title, str) and config_title.strip():
+                        title = config_title.strip()
+                    else:
+                        # Get title from views if available
+                        views = config.get("views", [])
+                        if views and isinstance(views, list) and len(views) > 0:
+                            first_view = views[0]
+                            if isinstance(first_view, dict):
+                                view_title = first_view.get("title")
+                                if isinstance(view_title, str) and view_title.strip():
+                                    title = view_title.strip()
 
-            dashboards.append(
+            discovered_dashboards.append(
                 {
                     "value": url_path,
-                    "label": (
-                        f"{title} ({url_path})" if title != url_path else url_path
-                    ),
+                    "title": str(title).strip() or url_path,
                 }
             )
+
+    if not discovered_dashboards:
+        return []
+
+    dashboards: list[dict[str, str]] = []
+    for dashboard in sorted(
+        discovered_dashboards, key=lambda item: item["title"].casefold()
+    ):
+        url_path = dashboard["value"]
+        title = dashboard["title"]
+        display_path = url_path
+        if display_path.startswith(const.DASHBOARD_LEGACY_URL_PATH_PREFIX):
+            display_path = display_path.replace(
+                const.DASHBOARD_LEGACY_URL_PATH_PREFIX,
+                const.DASHBOARD_URL_PATH_PREFIX,
+                1,
+            )
+        label = f"{title} ({display_path})"
+        dashboards.append({"value": url_path, "label": label})
 
     return dashboards
 
 
-def build_dashboard_action_schema() -> vol.Schema:
-    """Build schema for dashboard action selection.
+def build_dashboard_action_schema(
+    *,
+    release_tags: list[str] | None = None,
+    installed_release_version: str | None = None,
+    release_selection_default: str = const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED,
+) -> vol.Schema:
+    """Build schema for Step 1 dashboard mode and release selection.
 
     Returns:
-        Voluptuous schema for action selection.
+        Voluptuous schema for action and release controls.
     """
     action_options = [
         selector.SelectOptionDict(
@@ -1233,6 +1584,19 @@ def build_dashboard_action_schema() -> vol.Schema:
                     options=action_options,
                     mode=selector.SelectSelectorMode.DROPDOWN,
                     translation_key=const.TRANS_KEY_CFOF_DASHBOARD_ACTION,
+                )
+            ),
+            vol.Optional(
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION,
+                default=release_selection_default,
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=build_dashboard_release_selection_options(
+                        release_tags,
+                        installed_release_version,
+                    ),
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                    translation_key=const.TRANS_KEY_CFOF_DASHBOARD_RELEASE_SELECTION,
                 )
             ),
         },
@@ -1272,26 +1636,17 @@ def build_dashboard_update_selection_schema(
 
 def build_dashboard_missing_dependencies_schema(
     continue_default: bool = False,
+    *,
+    show_dependency_bypass: bool = True,
 ) -> vol.Schema:
-    """Build schema for missing dashboard dependency confirmation step."""
+    """Build schema for final dashboard review step."""
+    if not show_dependency_bypass:
+        return vol.Schema({})
+
     return vol.Schema(
         {
             vol.Optional(
                 const.CFOF_DASHBOARD_INPUT_DEPENDENCY_BYPASS,
-                default=continue_default,
-            ): selector.BooleanSelector(),
-        }
-    )
-
-
-def build_dashboard_template_details_schema(
-    continue_default: bool = False,
-) -> vol.Schema:
-    """Build schema for dashboard template details review step."""
-    return vol.Schema(
-        {
-            vol.Optional(
-                const.CFOF_DASHBOARD_INPUT_TEMPLATE_DETAILS_ACK,
                 default=continue_default,
             ): selector.BooleanSelector(),
         }

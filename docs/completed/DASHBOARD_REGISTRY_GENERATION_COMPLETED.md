@@ -5,7 +5,7 @@
 - **Name / Code**: Dashboard registry architecture standards and operating model (`DASHBOARD_REGISTRY_GENERATION`)
 - **Target release / milestone**: Architecture ratification for 0.5.0-beta.5 delivery window
 - **Owner / driver(s)**: ChoreOps maintainers (Architecture, Integration, DX)
-- **Status**: Complete (execution tracking transitioned to `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`)
+- **Status**: Complete (execution tracking transitioned to `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`)
 
 ## Summary & immediate steps
 
@@ -23,7 +23,7 @@
    - Drafted initial implementation-biased plan and now pivoting to standards-first architecture and decision framework.
 3. **Next steps (short term)**
    - Execution and remaining closeout validation moved to:
-     - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md` (Phase R1-R5 tracking)
+   - `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md` (Phase R1-R5 tracking)
    - This parent initiative plan remains the architectural decision record and completion summary.
 4. **Risks / blockers**
    - Premature coding before standards ratification can cement poor contracts.
@@ -35,8 +35,8 @@
    - `docs/CODE_REVIEW_GUIDE.md`
    - `docs/RELEASE_CHECKLIST.md`
    - `tests/AGENT_TEST_CREATION_INSTRUCTIONS.md`
-   - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
-   - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`
+   - `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+   - `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`
 6. **Decisions & completion check**
    - **Decisions captured**:
      - Architecture must be registry-contract-first, not implementation-first.
@@ -69,31 +69,31 @@
 - **Goal**: Define the architecture “north star” and quality guardrails so implementation decisions remain consistent and scalable.
 - **Steps / detailed work items**
   1. [x] Define architecture principles and anti-goals.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Include principles: deterministic behavior, explicit contracts, compatibility by default, low cognitive load, and observability.
      - Status note: Covered by sections `1) Architecture principles` and `2) Explicit non-goals` in supporting standards.
   2. [x] Define explicit scope boundaries for this initiative.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_IN-PROCESS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_COMPLETED.md`
      - Clarify what is in scope (registry contract, discovery, submission, dependency model) and out of scope (new dashboard visual design system).
      - Status note: Scope boundaries are captured in initiative summary/objective language plus explicit non-goals in supporting standards.
   3. [x] Define operating modes and guarantees.
-     - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `docs/ARCHITECTURE.md`
+     - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `docs/ARCHITECTURE.md`
      - Required guarantees: cold-start local fallback, non-blocking remote failure path, deterministic template selection.
      - Status note: Ratified under runtime source precedence, selection, cache policy, and failure matrix contracts.
   4. [x] Define observability standards.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Establish what must be logged/diagnosed (manifest source, selection reason, dependency validation outcomes).
      - Status note: Covered by the architecture principle "Observable behavior" and runtime diagnostics requirements.
   5. [x] Create architecture ratification checklist.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_IN-PROCESS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_COMPLETED.md`
      - Gate implementation start on approved standards decisions.
      - Status note: Completed under `Pre-build alignment gate` sections A-D with frozen acceptance criteria and proof artifacts.
   6. [x] Ratify custom-card boundary policy.
-     - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `choreops-dashboards/README.md`
+     - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `choreops-dashboards/README.md`
      - Confirm that template registry does not host custom card source code.
      - Status note: Accepted as D7 and documented under `6.1) Custom card strategy`.
   7. [x] Ratify localization architecture.
-     - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `docs/ARCHITECTURE.md`
+     - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `docs/ARCHITECTURE.md`
      - Decide local-only vs remote-only vs hybrid translation source and fallback rules.
      - Status note: D9/D10 accepted with hybrid source model and key-based localization contract documented in `6.2)`.
 - **Key issues**
@@ -105,27 +105,27 @@
 - **Goal**: Define the manifest as a strict, evolvable contract and standardize naming/organization so templates remain discoverable and maintainable at scale.
 - **Steps / detailed work items**
   1.  [x] Define manifest schema v1 with required and optional fields.
-  - Files: `choreops-dashboards/dashboard_registry.json` (spec target), `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - Files: `choreops-dashboards/dashboard_registry.json` (spec target), `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - Define identity fields (`template_id`, `display_name`), semantics (`category`, `audience`), compatibility, dependencies, and lifecycle state.
   - Status note: Added explicit v1 optional fields and validation rules to standards, complementing required identity/compatibility/dependency/lifecycle contract definitions.
   2. [x] Define naming taxonomy and folder organization standards.
-     - Files: `choreops-dashboards/README.md`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - Files: `choreops-dashboards/README.md`, `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Establish canonical naming for template files, IDs, variants, and deprecation aliases.
   - Status note: Runtime/options now resolve template IDs and source paths from `dashboards/dashboard_registry.json`; hardcoded profile lists, selector option labels, and legacy style constants removed from helper/build/translation paths.
   3.  [x] Define schema evolution and compatibility policy.
-  - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - Include semver strategy for manifest schema and backward-compatibility guarantees.
   - Status note: Ratified D2 policy with explicit `schema_version`, backward-compatible minor evolution, and breaking changes only on explicit major bumps.
   4.  [x] Define dependency contract model.
-  - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - Formalize `required` vs `recommended` dependencies and machine-readable dependency identifiers.
   - Status note: Ratified dependency behavior contract: `required` blocks selection/generation with explicit reason; `recommended` warns but continues; dependency IDs are stable machine-readable keys.
   5.  [x] Define template lifecycle states.
-  - Files: `choreops-dashboards/dashboard_registry.json`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - Files: `choreops-dashboards/dashboard_registry.json`, `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - States: `active`, `deprecated`, `archived`, with migration hints for replaced templates.
   - Status note: Lifecycle semantics are ratified in standards and manifest template entries now declare explicit `lifecycle_state` (currently `active`).
   6.  [x] Define dependency identifiers for future ChoreOps-specific cards.
-  - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+  - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
   - Ensure IDs map to separately versioned frontend card repositories.
   - Status note: Added namespace-scoped dependency ID guidance for future card packages, including stable ID rules and separate card-repo ownership boundaries.
   7.  [x] Define dashboard translation asset contract.
@@ -133,26 +133,26 @@
   - Standardize language file naming, schema metadata, and key-fallback behavior.
   - Status note: Ratified hybrid localization contract using local vendored baseline (`dashboards/translations`), `{lang}_dashboard.json` naming, validated remote bundle override path, and English key fallback.
   8.  [x] Define user-facing substitution contract for multi-instance templates.
-  - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, future manifest schema docs
+  - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, future manifest schema docs
   - Standardize `user.*` substitution keys and require `integration.entry_id` for instance-safe template resolution.
   - Status note: Ratified `user.*` contract (`user.name`, `user.user_id`) with required `integration.entry_id` and `dashboard_lookup_key`-safe resolution for multi-instance determinism.
   9. [x] Ratify dashboard helper pointer contract.
-     - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template authoring docs
+     - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template authoring docs
      - Status note: Accepted. Use attribute-scoped dynamic lookup (`purpose + integration.entry_id + user.user_id`) only; no legacy fallback path.
   10. [x] Ratify helper lookup optimization strategy.
-  - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template authoring docs
+  - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template authoring docs
   - Status note: Accepted. Use composite `dashboard_lookup_key` and enforce unique helper identity per `<entry_id>:<user_id>`.
   11. [x] Decide dashboard template error-handling UX at implementation time.
-  - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template implementation PRs
+  - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template implementation PRs
   - Status note: Accepted. Use warning-card pattern with minimal validation ladder; avoid new framework complexity in v1.
   12. [x] Ratify template preference customization model (D14).
-  - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template docs in registry repo
+  - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, template docs in registry repo
   - Status note: Accepted. For v1, use companion preference docs per template over backend runtime preference controls.
   13. [x] Ratify template composition storage model (D15).
-  - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `choreops-dashboards/README.md`
+  - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `choreops-dashboards/README.md`
   - Status note: Accepted. v1 uses hybrid authoring with pre-release assembly while preserving dashboard-level runtime units.
   14. [x] Ratify registry release/channel versioning model (D16).
-  - Files: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `choreops-dashboards/README.md`, `docs/RELEASE_CHECKLIST.md`
+  - Files: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`, `choreops-dashboards/README.md`, `docs/RELEASE_CHECKLIST.md`
   - Status note: Accepted. Define stable, beta, and dev publication semantics, tag formats, and branch/promotion workflow.
 - **Key issues**
   - Template IDs must be immutable once published.
@@ -163,23 +163,23 @@
 - **Goal**: Define one intuitive and deterministic runtime path for discovering, merging, selecting, and loading templates.
 - **Steps / detailed work items**
   1. [x] Define source precedence and merge semantics.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Local vendored manifest is baseline; remote can override by `template_id`; invalid remote entries are ignored with diagnostics.
      - Status note: Frozen under runtime contract `5.5.1` with deterministic merge keying, record validity rules, and stable ordering behavior.
   2. [x] Define template selection algorithm contract.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Inputs: user choice, compatibility filter, dependency policy, lifecycle state.
      - Status note: Frozen under runtime contract `5.5.2` with explicit filter order, selection precedence, and blocking result behavior.
   3. [x] Define caching and refresh behavior.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Include TTL, startup behavior, timeout policy, and stale data handling.
      - Status note: Frozen under runtime contract `5.5.3` with default 30-minute TTL, non-blocking fallback, and explicit refresh triggers.
   4. [x] Define failure-mode matrix.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Cases: remote unavailable, malformed manifest, missing template asset, dependency missing, schema mismatch.
      - Status note: Frozen under runtime contract `5.5.4` with case-by-case runtime behavior, user impact, and diagnostics expectations.
   5. [x] Define user-facing UX rules for dependency handling.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Blocking behavior for `required`; non-blocking warning behavior for `recommended`.
      - Status note: Frozen under runtime contract `5.5.5`; required dependencies block, recommended dependencies warn and continue.
 - **Key issues**
@@ -191,23 +191,23 @@
 - **Goal**: Define how templates are submitted, reviewed, validated, released, and vendored so community contribution scales cleanly.
 - **Steps / detailed work items**
   1. [x] Define template submission workflow.
-     - Files: `choreops-dashboards/README.md`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - Files: `choreops-dashboards/README.md`, `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Include contributor checklist, metadata requirements, and minimum acceptance bar.
      - Status note: Added explicit workflow and minimum acceptance bar in standards (`7`) and registry README.
   2. [x] Define CI/review quality gates for dashboard registry PRs.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Gates: schema validation, naming policy checks, dependency key validation, YAML parse checks.
      - Status note: Added required CI/review gate set for contract, naming, dependency, lifecycle, and YAML validation.
   3. [x] Define release synchronization workflow (vendoring).
-     - Files: `docs/RELEASE_CHECKLIST.md`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - Files: `docs/RELEASE_CHECKLIST.md`, `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Require sync artifact generation and contract validation prior to integration release cut.
      - Status note: Added explicit integration vendoring synchronization workflow and release-blocking criteria.
   4. [x] Define ownership and approval model.
-     - Files: `choreops-dashboards/README.md`, `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - Files: `choreops-dashboards/README.md`, `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Define who can approve schema changes vs template-only changes.
      - Status note: Maintainer approval and architecture-owner sign-off boundaries are now explicitly documented.
   5. [x] Define deprecation and retirement process.
-     - File: `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
+     - File: `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_ARCH_STANDARDS.md`
      - Include lead time, migration guidance, and fallback behavior for retired templates.
      - Status note: Added explicit stepwise deprecation-to-archival process with migration and visibility requirements.
   6. [x] Publish explicit community guidance for custom cards.
@@ -269,9 +269,9 @@ Use this packet as the mandatory handoff bundle:
 5. Documentation ownership map (integration runtime docs vs dashboard authoring docs).
 6. Builder acceptance criteria and required proof artifacts.
 7. Detailed builder implementation plan:
-   - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_BUILDER_IMPLEMENTATION.md`
+   - `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_BUILDER_IMPLEMENTATION.md`
 8. Builder handoff card:
-   - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_BUILDER_HANDOFF.md`
+   - `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_BUILDER_HANDOFF.md`
 
 ### Builder acceptance criteria (frozen)
 
@@ -290,7 +290,7 @@ Use this packet as the mandatory handoff bundle:
 
 - Tests executed (describe suites, commands, results).
   - Implementation and closeout validation are tracked in:
-    - `docs/in-process/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`
+    - `docs/completed/DASHBOARD_REGISTRY_GENERATION_SUP_GAP_REMEDIATION_PLAN.md`
 - Outstanding tests (not run and why).
   - See remediation plan Phase R5 for final validation-gate status.
 - Links to failing logs or CI runs if relevant.

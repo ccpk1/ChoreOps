@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "release_version": "0.0.1-beta.2",
   "repo": "ccpk1/ChoreOps-Dashboards",
   "title": "ChoreOps Dashboard Registry",
   "description": "Registry manifest for ChoreOps dashboard templates",
@@ -11,7 +12,7 @@
       "audience": "user",
       "category": "full",
       "lifecycle_state": "active",
-      "min_integration_version": "0.5.0",
+      "min_integration_version": "0.5.0-beta.5",
       "maintainer": "ccpk1",
       "source": {
         "type": "vendored",
@@ -75,7 +76,7 @@
       "audience": "approver",
       "category": "admin",
       "lifecycle_state": "active",
-      "min_integration_version": "0.5.0",
+      "min_integration_version": "0.5.1",
       "maintainer": "ccpk1",
       "source": {
         "type": "vendored",
@@ -117,7 +118,7 @@
       "audience": "approver",
       "category": "admin",
       "lifecycle_state": "active",
-      "min_integration_version": "0.5.0",
+      "min_integration_version": "0.5.0-beta.5",
       "maintainer": "ccpk1",
       "source": {
         "type": "vendored",

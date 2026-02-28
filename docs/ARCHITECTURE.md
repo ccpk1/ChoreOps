@@ -771,18 +771,43 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 - Runtime rendering: Home Assistant Jinja2 fetches live data with `{{ }}` delimiters
 - Output: Lovelace storage dashboard config persisted through the dashboard builder helpers
 
-**Dependency behavior**:
-
-- Template dependencies are read from registry metadata
-- Missing `required` dependencies trigger a blocking helper step with explicit continue acknowledgement
-- Missing `recommended` dependencies are non-blocking warnings
-
-**System Dashboard Selector** (`SystemDashboardAdminKidSelect`):
+**System Dashboard Selector**:
 
 - System-level select entity for admin dashboard assignee switching
 - Provides `dashboard_helper_eid` attribute for efficient assignee data access
 - Eliminates hardcoded assignee names and expensive `integration_entities()` queries
 - Purpose-based filtering (`purpose_system_dashboard_admin_assignee`) for entity ID stability
+
+#### Dashboard release execution contract (options flow)
+
+Dashboard release handling is deterministic and uses a single execution context per
+flow session:
+
+- Step 1 resolves the selected release mode to an `effective_release_ref`
+- Step 1 prepares release assets (registry, templates, translations, preferences)
+- Prepared assets are applied to local vendored dashboard paths as the active
+  baseline for generation/runtime reads
+- Manifest template-definition cache is reset and re-primed immediately after
+  apply so same-flow selectors stay populated
+- Dashboard translation caches are cleared after apply so translation sensors can
+  refresh to the applied local baseline
+
+Selection behavior:
+
+- Explicit release tag: strict pin semantics (must execute selected release)
+- Latest modes: resolve once in Step 1 and reuse that concrete ref in Step 3
+- Current installed: use local registry `release_version` as execution ref
+
+#### Dashboard dependency review UX contract
+
+Dependency review (Step 4) renders template preferences plus two fixed sections:
+
+- Missing required dependencies
+- Missing recommended dependencies
+
+Each missing card link line is prefixed with `❌`. Required dependency bypass is an
+explicit acknowledge action; missing recommended dependencies do not block
+submission.
 
 ---
 

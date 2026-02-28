@@ -182,6 +182,33 @@ def _build_release_template_url(source_path: str, release_ref: str) -> str:
     )
 
 
+async def fetch_release_asset_text(
+    hass: HomeAssistant,
+    *,
+    release_ref: str,
+    source_path: str,
+) -> str:
+    """Fetch a release asset text file by source path.
+
+    Args:
+        hass: Home Assistant instance.
+        release_ref: Release tag/ref to fetch from.
+        source_path: Path within the release repository.
+
+    Returns:
+        Asset content as text.
+
+    Raises:
+        HomeAssistantError: If fetch fails.
+        TimeoutError: If request times out.
+    """
+    asset_url = _build_release_template_url(
+        source_path=source_path,
+        release_ref=release_ref,
+    )
+    return await _fetch_remote_template(hass, asset_url)
+
+
 async def _fetch_dashboard_releases(hass: HomeAssistant) -> list[dict[str, Any]]:
     """Fetch release payloads from GitHub Releases API."""
     session = async_get_clientsession(hass)
@@ -248,6 +275,14 @@ async def resolve_dashboard_release_selection(
             include_prereleases=include_prereleases,
         )
     except (TimeoutError, HomeAssistantError, ValueError) as err:
+        if pinned_release_tag and is_supported_dashboard_release_tag(
+            pinned_release_tag
+        ):
+            return DashboardReleaseSelection(
+                selected_tag=pinned_release_tag,
+                fallback_tag=None,
+                reason="pinned_release_explicit",
+            )
         const.LOGGER.debug("Dashboard release discovery unavailable: %s", err)
         return DashboardReleaseSelection(
             selected_tag=None,
@@ -256,6 +291,14 @@ async def resolve_dashboard_release_selection(
         )
 
     if not compatible_tags:
+        if pinned_release_tag and is_supported_dashboard_release_tag(
+            pinned_release_tag
+        ):
+            return DashboardReleaseSelection(
+                selected_tag=pinned_release_tag,
+                fallback_tag=None,
+                reason="pinned_release_explicit",
+            )
         return DashboardReleaseSelection(
             selected_tag=None,
             fallback_tag=None,
@@ -274,6 +317,12 @@ async def resolve_dashboard_release_selection(
                     else None
                 ),
                 reason="pinned_release",
+            )
+        if is_supported_dashboard_release_tag(pinned_release_tag):
+            return DashboardReleaseSelection(
+                selected_tag=pinned_release_tag,
+                fallback_tag=newest_compatible,
+                reason="pinned_release_explicit",
             )
         return DashboardReleaseSelection(
             selected_tag=newest_compatible,
@@ -585,16 +634,27 @@ def _build_dashboard_provenance(
     *,
     integration_entry_id: str,
     template_id: str,
+    requested_release_selection: str,
+    effective_release_ref: str | None,
+    resolution_reason: str,
     pinned_release_tag: str | None,
     include_prereleases: bool,
 ) -> dict[str, Any]:
     """Build dashboard generation provenance metadata."""
-    source_type = "remote_release" if pinned_release_tag else "latest_compatible"
+    if requested_release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+        source_type = "local_bundled"
+    elif pinned_release_tag:
+        source_type = "remote_release"
+    else:
+        source_type = "latest_compatible"
     return {
         const.ATTR_INTEGRATION_ENTRY_ID: integration_entry_id,
         const.DASHBOARD_PROVENANCE_KEY_TEMPLATE_ID: template_id,
         const.DASHBOARD_PROVENANCE_KEY_SOURCE_TYPE: source_type,
         const.DASHBOARD_PROVENANCE_KEY_SELECTED_REF: pinned_release_tag,
+        const.DASHBOARD_PROVENANCE_KEY_REQUESTED_SELECTION: requested_release_selection,
+        const.DASHBOARD_PROVENANCE_KEY_EFFECTIVE_REF: effective_release_ref,
+        const.DASHBOARD_PROVENANCE_KEY_RESOLUTION_REASON: resolution_reason,
         const.DASHBOARD_PROVENANCE_KEY_INCLUDE_PRERELEASES: include_prereleases,
         const.DASHBOARD_PROVENANCE_KEY_GENERATED_AT: dt_now_iso(),
     }
@@ -687,6 +747,32 @@ async def async_check_dashboard_exists(hass: HomeAssistant, url_path: str) -> bo
     return False
 
 
+async def async_get_dashboard_update_metadata(
+    hass: HomeAssistant,
+    url_path: str,
+) -> dict[str, str] | None:
+    """Return minimal metadata for an existing dashboard update target.
+
+    Returns a dict containing at least `url_path`, `title`, and `icon` when the
+    dashboard exists in storage; otherwise returns None.
+    """
+    dashboards_collection = DashboardsCollection(hass)
+    await dashboards_collection.async_load()
+
+    for item in _get_collection_items(dashboards_collection):
+        if item.get(CONF_URL_PATH) != url_path:
+            continue
+        title = str(item.get(CONF_TITLE, url_path) or url_path)
+        icon = str(item.get(CONF_ICON, DEFAULT_ICON) or DEFAULT_ICON)
+        return {
+            CONF_URL_PATH: url_path,
+            CONF_TITLE: title,
+            CONF_ICON: icon,
+        }
+
+    return None
+
+
 async def async_dedupe_choreops_dashboards(
     hass: HomeAssistant,
     url_path: str | None = None,
@@ -774,6 +860,9 @@ async def create_choreops_dashboard(
     admin_visible_user_ids: list[str] | None = None,
     pinned_release_tag: str | None = None,
     include_prereleases: bool = const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT,
+    prepared_release_assets: dict[str, Any] | None = None,
+    requested_release_selection: str = const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+    resolution_reason: str = "latest_compatible",
 ) -> str:
     """Create a ChoreOps dashboard with views for multiple assignees.
 
@@ -825,16 +914,35 @@ async def create_choreops_dashboard(
         should_delete_existing = True
 
     template_cache: dict[str, str] = {}
+    prepared_template_assets: dict[str, str] = {}
+    strict_pin = False
+    if isinstance(prepared_release_assets, dict):
+        raw_template_assets = prepared_release_assets.get("template_assets")
+        if isinstance(raw_template_assets, dict):
+            prepared_template_assets = {
+                path: content
+                for path, content in raw_template_assets.items()
+                if isinstance(path, str) and isinstance(content, str)
+            }
+        strict_pin = bool(prepared_release_assets.get("strict_pin", False))
 
     async def _get_template(target_style: str) -> str:
         if target_style not in template_cache:
-            template_cache[target_style] = await fetch_dashboard_template(
-                hass,
-                target_style,
-                pinned_release_tag=pinned_release_tag,
-                include_prereleases=include_prereleases,
-                admin_template=False,
-            )
+            source_path = get_template_source_path(target_style)
+            if isinstance(source_path, str) and source_path in prepared_template_assets:
+                template_cache[target_style] = prepared_template_assets[source_path]
+            elif strict_pin:
+                raise DashboardTemplateError(
+                    f"Strict release pin is missing prepared template asset for '{target_style}'"
+                )
+            else:
+                template_cache[target_style] = await fetch_dashboard_template(
+                    hass,
+                    target_style,
+                    pinned_release_tag=pinned_release_tag,
+                    include_prereleases=include_prereleases,
+                    admin_template=False,
+                )
         return template_cache[target_style]
 
     # Ensure default style template is available for fallback behavior
@@ -889,13 +997,24 @@ async def create_choreops_dashboard(
                 "No admin dashboard template is available in manifest"
             )
 
-        admin_template_str = await fetch_dashboard_template(
-            hass,
-            admin_template_id,
-            pinned_release_tag=pinned_release_tag,
-            include_prereleases=include_prereleases,
-            admin_template=True,
-        )
+        admin_source_path = get_template_source_path(admin_template_id)
+        if (
+            isinstance(admin_source_path, str)
+            and admin_source_path in prepared_template_assets
+        ):
+            admin_template_str = prepared_template_assets[admin_source_path]
+        elif strict_pin:
+            raise DashboardTemplateError(
+                "Strict release pin is missing prepared admin template asset"
+            )
+        else:
+            admin_template_str = await fetch_dashboard_template(
+                hass,
+                admin_template_id,
+                pinned_release_tag=pinned_release_tag,
+                include_prereleases=include_prereleases,
+                admin_template=True,
+            )
         # Admin template still needs comment stripping via Jinja2 render
         # Pass empty context since admin doesn't need assignee injection
         admin_view = render_dashboard_template(
@@ -945,6 +1064,9 @@ async def create_choreops_dashboard(
         provenance=_build_dashboard_provenance(
             integration_entry_id=integration_entry_id,
             template_id=style,
+            requested_release_selection=requested_release_selection,
+            effective_release_ref=pinned_release_tag,
+            resolution_reason=resolution_reason,
             pinned_release_tag=pinned_release_tag,
             include_prereleases=include_prereleases,
         ),
@@ -1047,6 +1169,9 @@ async def update_choreops_dashboard_views(
     require_admin: bool | None = None,
     pinned_release_tag: str | None = None,
     include_prereleases: bool = const.DASHBOARD_RELEASE_INCLUDE_PRERELEASES_DEFAULT,
+    prepared_release_assets: dict[str, Any] | None = None,
+    requested_release_selection: str = const.DASHBOARD_RELEASE_MODE_LATEST_COMPATIBLE,
+    resolution_reason: str = "latest_compatible",
 ) -> int:
     """Update selected views on an existing dashboard without deleting it.
 
@@ -1097,16 +1222,35 @@ async def update_choreops_dashboard_views(
     ]
 
     template_cache: dict[str, str] = {}
+    prepared_template_assets: dict[str, str] = {}
+    strict_pin = False
+    if isinstance(prepared_release_assets, dict):
+        raw_template_assets = prepared_release_assets.get("template_assets")
+        if isinstance(raw_template_assets, dict):
+            prepared_template_assets = {
+                path: content
+                for path, content in raw_template_assets.items()
+                if isinstance(path, str) and isinstance(content, str)
+            }
+        strict_pin = bool(prepared_release_assets.get("strict_pin", False))
 
     async def _get_template(target_style: str) -> str:
         if target_style not in template_cache:
-            template_cache[target_style] = await fetch_dashboard_template(
-                hass,
-                target_style,
-                pinned_release_tag=pinned_release_tag,
-                include_prereleases=include_prereleases,
-                admin_template=False,
-            )
+            source_path = get_template_source_path(target_style)
+            if isinstance(source_path, str) and source_path in prepared_template_assets:
+                template_cache[target_style] = prepared_template_assets[source_path]
+            elif strict_pin:
+                raise DashboardTemplateError(
+                    f"Strict release pin is missing prepared template asset for '{target_style}'"
+                )
+            else:
+                template_cache[target_style] = await fetch_dashboard_template(
+                    hass,
+                    target_style,
+                    pinned_release_tag=pinned_release_tag,
+                    include_prereleases=include_prereleases,
+                    admin_template=False,
+                )
         return template_cache[target_style]
 
     updated_assignee_views_by_path: dict[str, dict[str, Any]] = {}
@@ -1166,13 +1310,24 @@ async def update_choreops_dashboard_views(
                 "No admin dashboard template is available in manifest"
             )
 
-        admin_template = await fetch_dashboard_template(
-            hass,
-            admin_template_id,
-            pinned_release_tag=pinned_release_tag,
-            include_prereleases=include_prereleases,
-            admin_template=True,
-        )
+        admin_source_path = get_template_source_path(admin_template_id)
+        if (
+            isinstance(admin_source_path, str)
+            and admin_source_path in prepared_template_assets
+        ):
+            admin_template = prepared_template_assets[admin_source_path]
+        elif strict_pin:
+            raise DashboardTemplateError(
+                "Strict release pin is missing prepared admin template asset"
+            )
+        else:
+            admin_template = await fetch_dashboard_template(
+                hass,
+                admin_template_id,
+                pinned_release_tag=pinned_release_tag,
+                include_prereleases=include_prereleases,
+                admin_template=True,
+            )
         admin_view = render_dashboard_template(
             admin_template,
             {"integration": {"entry_id": integration_entry_id}},
@@ -1218,6 +1373,9 @@ async def update_choreops_dashboard_views(
     new_config[const.DASHBOARD_CONFIG_KEY_PROVENANCE] = _build_dashboard_provenance(
         integration_entry_id=integration_entry_id,
         template_id=template_profile,
+        requested_release_selection=requested_release_selection,
+        effective_release_ref=pinned_release_tag,
+        resolution_reason=resolution_reason,
         pinned_release_tag=pinned_release_tag,
         include_prereleases=include_prereleases,
     )
