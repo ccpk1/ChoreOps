@@ -741,7 +741,13 @@ class ChoreManager(BaseManager):
             # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
             self._coordinator._persist_and_update()
 
-        # Emit event for notification system
+        # Emit lifecycle milestone signal for claim handling.
+        #
+        # Contract note (P1): In auto-approve branches, inline approval/completion
+        # work may already have executed before this claim milestone emit occurs.
+        # Consumers must treat this as a workflow-stage signal and evaluate
+        # post-settle state/capability contracts rather than requiring final
+        # visible state equality to CLAIMED.
         # StatisticsManager._on_chore_claimed handles cache refresh and entity notification
         self.emit(
             const.SIGNAL_SUFFIX_CHORE_CLAIMED,
@@ -1100,10 +1106,16 @@ class ChoreManager(BaseManager):
             notify_assignee=True,
         )
 
-        # Emit completion event based on completion criteria
+        # Emit completion milestone based on completion criteria
         # - single-claimer modes (INDEPENDENT/SHARED_FIRST/ROTATION_*):
         #   approving assignee gets immediate completion credit
         # - SHARED (all): all assignees get credit when last assignee is approved
+        #
+        # Contract note (P1): In immediate-reset branches (for example
+        # UPON_COMPLETION), completion/approved milestones can emit while the
+        # post-settle assignee-visible state has already converged to PENDING.
+        # This is intentional lifecycle milestone semantics, not a strict
+        # final-state equality guarantee.
         if is_independent_mode or is_single_claimer_mode:
             self.emit(
                 const.SIGNAL_SUFFIX_CHORE_COMPLETED,
@@ -2466,6 +2478,10 @@ class ChoreManager(BaseManager):
         """Emit canonical chore-approved signal payload.
 
         Shared across manual, auto-approve, and auto-reset approval origins.
+
+        Contract note (P1): This is a lifecycle milestone signal. In
+        immediate-reset branches, post-settle visible state can be reset
+        (for example PENDING) even though the approved milestone emit is valid.
         """
         is_shared = ChoreEngine.is_shared_chore(chore_data)
         is_multi_claim = ChoreEngine.chore_allows_multiple_claims(chore_data)

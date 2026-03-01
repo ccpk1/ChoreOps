@@ -421,6 +421,57 @@ class TestAutoApprove:
         final_points = get_points_from_sensor(hass, "zoe")
         assert final_points == initial_points + 3.0
 
+    @pytest.mark.asyncio
+    async def test_s2_auto_approve_claimed_signal_is_milestone_not_final_state(
+        self,
+        hass: HomeAssistant,
+        scenario_minimal: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """S2: Auto-approve claim signal is lifecycle milestone, not strict final state.
+
+        Contract intent:
+        - `chore_claimed` may emit after inline auto-approve work in this branch.
+        - Post-settle actor state may be `completed` (or `pending` for
+          immediate-reset branches), and does not need to remain `claimed`.
+        """
+        from custom_components.choreops import const
+
+        coordinator = scenario_minimal.coordinator
+        chore_id = scenario_minimal.chore_ids["Brush teeth"]
+
+        emitted_events: list[tuple[str, dict[str, Any]]] = []
+        original_emit = coordinator.chore_manager.emit
+
+        def tracking_emit(suffix: str, **kwargs: Any) -> None:
+            emitted_events.append((suffix, kwargs))
+            original_emit(suffix, **kwargs)
+
+        coordinator.chore_manager.emit = tracking_emit
+
+        assignee_context = Context(user_id=mock_hass_users["assignee1"].id)
+        result = await claim_chore(hass, "zoe", "Brush teeth", assignee_context)
+        assert result.success, f"Claim failed: {result.error}"
+        await hass.async_block_till_done()
+
+        chore_events = [
+            suffix
+            for suffix, payload in emitted_events
+            if payload.get("chore_id") == chore_id
+        ]
+        assert const.SIGNAL_SUFFIX_CHORE_APPROVED in chore_events
+        assert const.SIGNAL_SUFFIX_CHORE_CLAIMED in chore_events
+
+        approved_index = chore_events.index(const.SIGNAL_SUFFIX_CHORE_APPROVED)
+        claimed_index = chore_events.index(const.SIGNAL_SUFFIX_CHORE_CLAIMED)
+        assert claimed_index > approved_index
+
+        final_state = get_chore_state_from_sensor(hass, "zoe", "Brush teeth")
+        assert final_state in {CHORE_STATE_COMPLETED, CHORE_STATE_PENDING}
+
+        attrs = get_chore_attributes_from_sensor(hass, "zoe", "Brush teeth")
+        assert attrs.get(const.ATTR_CAN_CLAIM) is False
+
 
 # =============================================================================
 # SHARED_FIRST CHORE TESTS
@@ -723,6 +774,58 @@ class TestSharedAllChores:
     - Each assignee gets their own points when approved
     - All assignees share the same global state tracking
     """
+
+    @pytest.mark.asyncio
+    async def test_s4_shared_all_completion_converges_only_after_all_assignees_approved(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """S4: Shared-all convergence requires all assigned assignees to complete."""
+        from custom_components.choreops import const
+
+        coordinator = scenario_shared.coordinator
+        chore_name = "Walk the dog"
+        chore_id = scenario_shared.chore_ids[chore_name]
+
+        chore_info = coordinator.chores_data.get(chore_id, {})
+        chore_info[const.DATA_CHORE_DUE_DATE] = (
+            dt_now_utc() + timedelta(days=2)
+        ).isoformat()
+
+        assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        assignee2_ctx = Context(user_id=mock_hass_users["assignee2"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
+
+        await claim_chore(hass, "zoe", chore_name, assignee1_ctx)
+        await approve_chore(hass, "zoe", chore_name, approver_ctx)
+        await hass.async_block_till_done()
+
+        assert (
+            get_chore_state_from_sensor(hass, "zoe", chore_name)
+            == CHORE_STATE_COMPLETED
+        )
+        assert (
+            get_chore_state_from_sensor(hass, "max", chore_name)
+            != CHORE_STATE_COMPLETED
+        )
+
+        max_attrs_before = get_chore_attributes_from_sensor(hass, "max", chore_name)
+        assert max_attrs_before.get(const.ATTR_CAN_CLAIM) is True
+
+        await claim_chore(hass, "max", chore_name, assignee2_ctx)
+        await approve_chore(hass, "max", chore_name, approver_ctx)
+        await hass.async_block_till_done()
+
+        assert (
+            get_chore_state_from_sensor(hass, "zoe", chore_name)
+            == CHORE_STATE_COMPLETED
+        )
+        assert (
+            get_chore_state_from_sensor(hass, "max", chore_name)
+            == CHORE_STATE_COMPLETED
+        )
 
     @pytest.mark.asyncio
     async def test_secondary_assignee_not_blocked_and_overdue_claimable_when_due_passes(
@@ -2276,6 +2379,53 @@ class TestEnhancedFrequencyWorkflows:
             hass, "zoe", "Custom From Complete Single"
         )
         assert final_state == CHORE_STATE_PENDING
+
+    @pytest.mark.asyncio
+    async def test_s3_immediate_reset_approved_milestone_can_settle_to_pending(
+        self,
+        hass: HomeAssistant,
+        scenario_enhanced_frequencies: SetupResult,
+        mock_hass_users: dict[str, Any],
+    ) -> None:
+        """S3: Approved/completed milestones may emit while UI settles to pending.
+
+        This validates the immediate-reset contract for `UPON_COMPLETION` paths.
+        """
+        from custom_components.choreops import const
+
+        coordinator = scenario_enhanced_frequencies.coordinator
+        chore_name = "Custom From Complete Single"
+        chore_id = scenario_enhanced_frequencies.chore_ids[chore_name]
+
+        emitted_events: list[tuple[str, dict[str, Any]]] = []
+        original_emit = coordinator.chore_manager.emit
+
+        def tracking_emit(suffix: str, **kwargs: Any) -> None:
+            emitted_events.append((suffix, kwargs))
+            original_emit(suffix, **kwargs)
+
+        coordinator.chore_manager.emit = tracking_emit
+
+        assignee_ctx = Context(user_id=mock_hass_users["assignee1"].id)
+        approver_ctx = Context(user_id=mock_hass_users["approver1"].id)
+
+        await claim_chore(hass, "zoe", chore_name, assignee_ctx)
+        await approve_chore(hass, "zoe", chore_name, approver_ctx)
+        await hass.async_block_till_done()
+
+        chore_events = [
+            suffix
+            for suffix, payload in emitted_events
+            if payload.get("chore_id") == chore_id
+        ]
+        assert const.SIGNAL_SUFFIX_CHORE_APPROVED in chore_events
+        assert const.SIGNAL_SUFFIX_CHORE_COMPLETED in chore_events
+
+        final_state = get_chore_state_from_sensor(hass, "zoe", chore_name)
+        assert final_state == CHORE_STATE_PENDING
+
+        attrs = get_chore_attributes_from_sensor(hass, "zoe", chore_name)
+        assert attrs.get(const.ATTR_CAN_CLAIM) is True
 
     @pytest.mark.asyncio
     async def test_wf_03_custom_hours_claim_approve_workflow(
