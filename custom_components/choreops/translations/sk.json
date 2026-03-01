@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Akcie na ovládacom paneli",
-        "description": "Vytvorenie, aktualizácia alebo odstránenie dashboardov ChoreOps Lovelace.\n\n[Sprievodca konfiguráciou dashboardu]({documentation_url})",
+        "description": "Vytvorenie, aktualizácia alebo odstránenie dashboardov ChoreOps Lovelace.\n\n[Sprievodca konfiguráciou dashboardu]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Akcia"
+          "dashboard_action": "Akcia",
+          "dashboard_release_selection": "Verzia vydania dashboardu"
         },
         "data_description": {
-          "dashboard_action": "Vyberte jednu akciu: vytvoriť nový dashboard, aktualizovať zobrazenia na existujúcom dashboarde alebo odstrániť dashboardy."
+          "dashboard_action": "Vyberte jednu akciu: vytvoriť nový dashboard, aktualizovať zobrazenia na existujúcom dashboarde alebo odstrániť dashboardy.",
+          "dashboard_release_selection": "Vyberte aktuálne nainštalovanú verziu, najnovšiu stabilnú verziu alebo explicitný tag kompatibilnej verzie."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Chýbajúce závislosti na dashboarde",
-        "description": "Pre vami vybraté šablóny chýbajú niektoré požadované karty dashboardu.\n\n[Sprievodca konfiguráciou dashboardu]({documentation_url})\n\n**Chýbajúce požadované závislosti**\n{dashboard_missing_required_dependencies}\n\n**Chýbajúce odporúčané závislosti**\n{dashboard_missing_recommended_dependencies}\n\nPred pokračovaním nainštalujte požadované karty cez HACS Frontend.",
+        "title": "Skontrolujte zmeny na hlavnom paneli",
+        "description": "Pred použitím zmien na ovládacom paneli si skontrolujte stav závislostí a preferencie šablón pre vybraté šablóny.\n\n[Sprievodca konfiguráciou ovládacieho panela]({documentation_url})\n\n**Dostupné prispôsobenia**\n{dashboard_template_preferences}\n\n**Chýbajúce požadované závislosti**\n{dashboard_missing_required_dependencies}\n\n**Chýbajúce odporúčané závislosti**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Pokračovať aj tak"
+          "dashboard_dependency_bypass": "🚫 Pokračovať aj tak (chýbajú požiadavky)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Potvrdiť chýbajúce požadované závislosti a aj tak pokračovať v generovaní. Karty dashboardu sa nemusia vykresliť, kým sa závislosti nenainštalujú."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Prehľad podrobností šablóny",
-        "description": "Pred použitím zmien na ovládacom paneli si skontrolujte podrobnosti o vybratých šablónach.\n\n[Sprievodca konfiguráciou ovládacieho panela]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Pokračujte s týmito šablónami"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Potvrďte vybraté podrobnosti šablóny a pokračujte v kontrole závislostí a generovaní."
+          "dashboard_dependency_bypass": "Potvrďte, že chýbajú požadované závislosti a aj tak pokračujte. Ovládací panel sa nemusí vykresliť alebo sa môže správať nesprávne, kým nebudú nainštalované požadované závislosti."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Ikona ovládacieho panela",
               "dashboard_require_admin": "Iba pre správcov",
-              "dashboard_show_in_sidebar": "Pridať do bočného panela",
-              "dashboard_template_details_review": "Pred použitím si skontrolujte podrobnosti šablóny"
+              "dashboard_show_in_sidebar": "Pridať do bočného panela"
             },
             "data_description": {
               "dashboard_icon": "Ikona bočného panela pre tento ovládací panel.",
               "dashboard_require_admin": "Obmedzte prístup k ovládaciemu panelu len pre administrátorov.",
-              "dashboard_show_in_sidebar": "Zobraziť tento ovládací panel na bočnom paneli Domáceho asistenta.",
-              "dashboard_template_details_review": "Pred použitím zmien zobrazte krok kontroly s popismi šablón, závislosťami a odkazmi na sprievodcu preferenciami."
+              "dashboard_show_in_sidebar": "Zobraziť tento ovládací panel na bočnom paneli Domáceho asistenta."
             }
           },
           "section_template_version": {
             "name": "Verzia šablóny",
             "description": "Vyberte, ako režim aktualizácie vyberá kompatibilné šablóny dashboardu.",
             "data": {
-              "dashboard_include_prereleases": "Zahrnúť predbežné vydania",
               "dashboard_release_selection": "Verzia šablóny dashboardu"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Zahrnúť značky predbežného panela do zisťovania vydaní.",
-              "dashboard_release_selection": "Vyberte automatický výber najnovšej kompatibilnej verzie alebo explicitne vyberte kompatibilnú značku vydania."
+              "dashboard_release_selection": "Vyberte aktuálne nainštalovanú verziu, najnovšiu stabilnú verziu alebo explicitný tag kompatibilnej verzie."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Ikona ovládacieho panela",
           "dashboard_require_admin": "Iba pre správcov",
           "dashboard_show_in_sidebar": "Pridať do bočného panela",
-          "dashboard_include_prereleases": "Zahrnúť predbežné vydania",
           "dashboard_release_selection": "Verzia šablóny dashboardu"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Ikona bočného panela pre tento ovládací panel.",
           "dashboard_require_admin": "Obmedzte prístup k ovládaciemu panelu len pre administrátorov.",
           "dashboard_show_in_sidebar": "Zobraziť tento ovládací panel na bočnom paneli Domáceho asistenta.",
-          "dashboard_include_prereleases": "Zahrnúť značky predbežného panela do zisťovania vydaní.",
-          "dashboard_release_selection": "Vyberte automatický výber najnovšej kompatibilnej verzie alebo explicitne vyberte kompatibilnú značku vydania."
+          "dashboard_release_selection": "Vyberte aktuálne nainštalovanú verziu, najnovšiu stabilnú verziu alebo explicitný tag kompatibilnej verzie."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Typy resetovania schválenia „V deň splatnosti“ (raz alebo viacnásobné) vyžadujú nastavenie dátumu splatnosti. Bez dátumu splatnosti sa resetovanie schválenia nikdy nespustí a úloha zostane schválená na neurčito.",
       "error_per_assignee_applicable_days_invalid": "Neplatný formát príslušných dní pre jedného alebo viacerých pridelených osôb. Dni musia byť celé čísla 0-6 (pondelok-nedeľa) bez duplikátov.",
       "error_per_assignee_daily_multi_times_invalid": "Neplatný formát denných časov pre jedného alebo viacerých pridelených osôb. Použite 24-hodinový formát oddelený znakom | (napr. 08:00|17:00).",
-      "dashboard_exists": "Informačný panel s touto cestou URL už existuje. Povoľte možnosť „Vynútiť obnovu“, aby sa prepísal.",
+      "dashboard_exists": "Informačný panel s touto cestou URL už existuje. Použite možnosť Aktualizovať informačný panel.",
       "dashboard_template_error": "Nepodarilo sa načítať šablónu ovládacieho panela. Skontrolujte sieťové pripojenie alebo skúste to znova neskôr.",
       "dashboard_render_error": "Nepodarilo sa vykresliť šablónu informačného panela. Môže to znamenať chybu šablóny.",
       "dashboard_save_error": "Nepodarilo sa uložiť ovládací panel do služby Home Assistant. Podrobnosti nájdete v systémových protokoloch.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Šablóna správcu pre jednotlivých používateľov je vyžadovaná, keď rozloženie správcu zahŕňa možnosť „Na používateľa“.",
       "dashboard_admin_per_assignee_needs_assignees": "Rozloženie administrátora na používateľa vyžaduje aspoň jedného vybratého používateľa.",
       "dashboard_dependency_ack_required": "Ak chcete pokračovať, povoľte možnosť „Pokračovať aj tak“ alebo sa vráťte a najprv nainštalujte chýbajúce požadované závislosti.",
-      "dashboard_template_details_ack_required": "Ak chcete pokračovať, povoľte možnosť „Pokračovať s týmito šablónami“ alebo sa vráťte a upravte výber šablón."
+      "dashboard_nonselectable_templates": "Jedna alebo viacero vybratých šablón nie je k dispozícii na generovanie.",
+      "dashboard_release_strict_pin_failed": "Vybrané vydanie na dashboarde musí byť presne pripnuté, ale v čase vykonávania nebol k dispozícii žiadny platný referenčný odkaz na vydanie. V kroku 1 znova vyberte vydanie a skúste to znova.",
+      "dashboard_release_asset_prep_failed": "Nepodarilo sa pripraviť vybrané prvky online ovládacieho panela. Vyberte inú verziu alebo použite najnovšie kompatibilné/aktuálne lokálne šablóny a skúste to znova."
     },
     "abort": {
       "invalid_action": "Neplatná akcia",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Najnovšie kompatibilné (odporúčané)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Aktuálne nainštalované",
+        "latest_stable": "Najnovšia stabilná",
+        "latest_compatible": "Najnovšie kompatibilné (odporúčané)"
       }
     },
     "manage_actions": {
@@ -3081,14 +3069,10 @@
         "name": "Stav domácej úlohy - {chore_name}",
         "state": {
           "pending": "Čaká sa na spracovanie",
-          "approved": "Schválené",
+          "completed": "Dokončené",
           "claimed": "Nárokované",
           "due": "Dátum splatnosti",
           "overdue": "Po termíne",
-          "unknown": "Neznámy",
-          "none": "Žiadne",
-          "approved_in_part": "Schválené (čiastočne)",
-          "claimed_in_part": "Nárokované (čiastočne)",
           "completed_by_other": "Dokončené iným používateľom",
           "waiting": "Čakanie (Okno splatnosti nie je otvorené)",
           "not_my_turn": "Nie je môj ťah (rotácia)",
@@ -3249,14 +3233,15 @@
             "name": "Globálny štát",
             "state": {
               "pending": "Čaká sa na spracovanie",
-              "approved": "Schválené",
+              "completed": "Dokončené",
               "claimed": "Nárokované",
               "overdue": "Po termíne",
-              "unknown": "Neznámy",
-              "none": "Žiadne",
-              "approved_in_part": "Schválené (čiastočne)",
+              "completed_in_part": "Dokončené (čiastočne)",
               "claimed_in_part": "Nárokované (čiastočne)",
-              "independent": "Nezávislý"
+              "independent": "Nezávislý",
+              "due": "Dátum splatnosti",
+              "waiting": "Čakanie",
+              "missed": "Zmeškané (Uzamknuté)"
             }
           },
           "can_claim": {
@@ -3927,15 +3912,15 @@
         "name": "{chore_name} - Globálny stav",
         "state": {
           "pending": "Čaká sa na spracovanie",
-          "approved": "Schválené",
+          "completed": "Dokončené",
           "claimed": "Nárokované",
           "due": "Dátum splatnosti",
           "overdue": "Po termíne",
-          "unknown": "Neznámy",
-          "none": "Žiadne",
-          "approved_in_part": "Schválené (čiastočne)",
+          "completed_in_part": "Dokončené (čiastočne)",
           "claimed_in_part": "Nárokované (čiastočne)",
-          "independent": "Nezávislý"
+          "independent": "Nezávislý",
+          "waiting": "Čakanie",
+          "missed": "Zmeškané (Uzamknuté)"
         },
         "state_attributes": {
           "purpose": {
@@ -4882,6 +4867,48 @@
     },
     "service_target_title_not_found": {
       "message": "Pre názov {title}sa nenašiel žiadny jedinečný načítaný záznam ChoreOps. Namiesto toho použite config_entry_id."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Príprava vybraných prvkov online panela"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "Príprava online aktíva zlyhala. Vyberte inú verziu alebo použite najnovšie kompatibilné/aktuálne lokálne šablóny."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Lokálne použitá verzia {release_ref} ({execution_source}). Znova načítajte integráciu alebo reštartujte Home Assistant, aby sa obnovili senzory prekladu na dashboarde."
+    },
+    "dashboard_status_updated": {
+      "message": "Aktualizované {url_path} (zobrazenia={view_count}, výber_vydania={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Vytvorené {url_path} (priradené osoby ={assignee_count}, admin_mode ={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Požadované závislosti dashboardu stále chýbajú; návrat ku konfigurácii"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Chýbajúce požadované závislosti obídené používateľom"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Chýbajúce odporúčané závislosti (generovanie bude pokračovať): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Vybrané šablóny nie sú k dispozícii na generovanie:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Odstránené {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Nepodarilo sa odstrániť {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Žiadne"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Sprievodca nastaveniami"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Sprievodca preferenciami nie je k dispozícii"
     },
     "not_authorized_action": {
       "message": "Nemáte oprávnenie na {action} pre tohto nadobúdateľa."
