@@ -3069,14 +3069,10 @@
         "name": "Chore Status - {chore_name}",
         "state": {
           "pending": "Pending",
-          "approved": "Approved",
+          "completed": "Completed",
           "claimed": "Claimed",
           "due": "Due",
           "overdue": "Overdue",
-          "unknown": "Unknown",
-          "none": "None",
-          "approved_in_part": "Approved (in-part)",
-          "claimed_in_part": "Claimed (in-part)",
           "completed_by_other": "Completed by Other",
           "waiting": "Waiting (Due Window Not Open)",
           "not_my_turn": "Not My Turn (Rotation)",
@@ -3237,14 +3233,15 @@
             "name": "Global State",
             "state": {
               "pending": "Pending",
-              "approved": "Approved",
+              "completed": "Completed",
               "claimed": "Claimed",
               "overdue": "Overdue",
-              "unknown": "Unknown",
-              "none": "None",
-              "approved_in_part": "Approved (in-part)",
+              "completed_in_part": "Completed (in-part)",
               "claimed_in_part": "Claimed (in-part)",
-              "independent": "Independent"
+              "independent": "Independent",
+              "due": "Due",
+              "waiting": "Waiting",
+              "missed": "Missed (Locked)"
             }
           },
           "can_claim": {
@@ -3915,15 +3912,15 @@
         "name": "{chore_name} - Global Status",
         "state": {
           "pending": "Pending",
-          "approved": "Approved",
+          "completed": "Completed",
           "claimed": "Claimed",
           "due": "Due",
           "overdue": "Overdue",
-          "unknown": "Unknown",
-          "none": "None",
-          "approved_in_part": "Approved (in-part)",
+          "completed_in_part": "Completed (in-part)",
           "claimed_in_part": "Claimed (in-part)",
-          "independent": "Independent"
+          "independent": "Independent",
+          "waiting": "Waiting",
+          "missed": "Missed (Locked)"
         },
         "state_attributes": {
           "purpose": {

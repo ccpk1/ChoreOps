@@ -31,8 +31,8 @@ from homeassistant.core import Context, HomeAssistant
 import pytest
 
 from tests.helpers import (
-    CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
+    CHORE_STATE_COMPLETED,
     CHORE_STATE_PENDING,
     DATA_CHORE_DEFAULT_POINTS,
     DATA_USER_POINTS,
@@ -222,7 +222,8 @@ class TestZeroPointsChores:
 
         # Verify approval succeeded
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
 
         # Points unchanged (0 point chore)
@@ -279,10 +280,10 @@ class TestConsecutiveOperations:
         # This simulates what happens at midnight or when due date passes
         await coordinator.async_refresh()
 
-        # Chore should be back to pending after reset
+        # Chore should be pending after reset, or completed if still within period
         current_state = get_chore_state_from_sensor(hass, "zoe", "Make bed")
-        assert current_state in (CHORE_STATE_PENDING, CHORE_STATE_APPROVED), (
-            f"Expected pending or approved after reset, got {current_state}"
+        assert current_state in (CHORE_STATE_PENDING, CHORE_STATE_COMPLETED), (
+            f"Expected pending or completed after reset, got {current_state}"
         )
 
     @pytest.mark.asyncio
@@ -335,7 +336,8 @@ class TestConsecutiveOperations:
 
         # Now points should be awarded
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_points + 5.0
 
@@ -403,9 +405,10 @@ class TestMultiChoreOperations:
             # Approve only one
             await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
-        # First should be approved, second still claimed
+        # First should be completed, second still claimed
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Clean room")
@@ -449,18 +452,19 @@ class TestFrequencyResetInteraction:
             await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
             await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
-        # Verify approved
+        # Verify completed
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
 
         # Trigger a coordinator refresh (simulates time passing)
         # NOTE: This is internal logic verification per Rule 6
         await coordinator.async_refresh()
 
-        # The state depends on timing - either still approved or reset to pending
+        # The state depends on timing - either still completed or reset to pending
         final_state = get_chore_state_from_sensor(hass, "zoe", "Make bed")
-        assert final_state in (CHORE_STATE_APPROVED, CHORE_STATE_PENDING)
+        assert final_state in (CHORE_STATE_COMPLETED, CHORE_STATE_PENDING)
 
 
 # =============================================================================
@@ -682,9 +686,9 @@ class TestErrorHandlingEdgeCases:
         ):
             await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
-        # Chore should now be approved (approver override)
+        # Chore should now be completed (approver override)
         state = get_chore_state_from_sensor(hass, "zoe", "Make bed")
-        assert state == CHORE_STATE_APPROVED
+        assert state == CHORE_STATE_COMPLETED
 
         # Points should be awarded
         assert get_points_from_sensor(hass, "zoe") == initial_points + 5.0
@@ -782,7 +786,7 @@ class TestSharedFirstChoreWorkflow:
         scenario_full: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Approving shared_first chore marks claimer as approved."""
+        """Approving shared_first chore marks claimer as completed."""
         coordinator = scenario_full.coordinator
 
         assignee1_ctx = Context(user_id=mock_hass_users["assignee1"].id)  # Zoë
@@ -796,10 +800,10 @@ class TestSharedFirstChoreWorkflow:
             await claim_chore(hass, "zoe", "Täke Öut Trash", assignee1_ctx)
             await approve_chore(hass, "zoe", "Täke Öut Trash", approver_ctx)
 
-        # Zoë should be approved and get points
+        # Zoë should be completed and get points
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Täke Öut Trash")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_points + 12.0  # 12 pts
 
@@ -920,10 +924,10 @@ class TestAutoApproveChoreWorkflow:
         ):
             await claim_chore(hass, "zoe", "Wåter the plänts", assignee1_ctx)
 
-        # Should skip claimed and go straight to approved
+        # Should skip claimed and go straight to completed
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Wåter the plänts")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
 
         # Points should be awarded immediately

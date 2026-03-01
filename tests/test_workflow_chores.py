@@ -30,9 +30,9 @@ import pytest
 from custom_components.choreops.utils.dt_utils import dt_now_utc
 from tests.helpers import (
     ATTR_GLOBAL_STATE,
-    CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
     CHORE_STATE_CLAIMED_IN_PART,
+    CHORE_STATE_COMPLETED,
     CHORE_STATE_MISSED,
     CHORE_STATE_NOT_MY_TURN,
     CHORE_STATE_OVERDUE,
@@ -265,9 +265,9 @@ class TestIndependentChores:
         final_points = get_points_from_sensor(hass, "zoe")
         assert final_points == initial_points + 5.0
 
-        # State should be approved (verified via sensor)
+        # State should be completed (verified via sensor)
         state = get_chore_state_from_sensor(hass, "zoe", "Make bed")
-        assert state == CHORE_STATE_APPROVED
+        assert state == CHORE_STATE_COMPLETED
 
     @pytest.mark.asyncio
     async def test_disapprove_resets_to_pending(
@@ -413,9 +413,9 @@ class TestAutoApprove:
         # Wait for auto-approve task to complete
         await hass.async_block_till_done()
 
-        # State should be approved (skipped claimed)
+        # State should be completed (skipped claimed)
         state = get_chore_state_from_sensor(hass, "zoe", "Brush teeth")
-        assert state == CHORE_STATE_APPROVED
+        assert state == CHORE_STATE_COMPLETED
 
         # Points should have increased
         final_points = get_points_from_sensor(hass, "zoe")
@@ -535,10 +535,10 @@ class TestSharedFirstChores:
         approver_context = Context(user_id=mock_hass_users["approver1"].id)
         await approve_chore(hass, "zoe", "Take out trash", approver_context)
 
-        # Zoë should be approved with points (5 points)
+        # Zoë should be completed with points (5 points)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Take out trash")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_zoe_points + 5.0
 
@@ -578,9 +578,10 @@ class TestSharedFirstChores:
         assert claim_result.success, f"Claim failed: {claim_result.error}"
         await hass.async_block_till_done()
 
-        # Winner approved, secondary blocked by completed_by_other
+        # Winner completed, secondary blocked by completed_by_other
         assert (
-            get_chore_state_from_sensor(hass, "zoe", chore_name) == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", chore_name)
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_zoe_points + 15.0
         assert (
@@ -931,10 +932,10 @@ class TestSharedAllChores:
         await claim_chore(hass, "zoe", "Family dinner cleanup", assignee1_ctx)
         await approve_chore(hass, "zoe", "Family dinner cleanup", approver_ctx)
 
-        # Zoë is approved
+        # Zoë is completed
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Family dinner cleanup")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
 
         # Max and Lila are still pending
@@ -1432,7 +1433,7 @@ class TestApprovalResetNoDueDate:
         await approve_chore(hass, "zoe", "No Due Date Independent", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Independent")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 10.0
 
@@ -1505,11 +1506,11 @@ class TestApprovalResetNoDueDate:
             == "completed_by_other"
         )
 
-        # Assignee1 gets approved
+        # Assignee1 gets completed
         await approve_chore(hass, "zoe", "No Due Date Shared First", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared First")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 15.0
 
@@ -1569,7 +1570,7 @@ class TestApprovalResetNoDueDate:
         await approve_chore(hass, "zoe", "No Due Date Shared All", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "No Due Date Shared All")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_assignee1_points + 20.0
 
@@ -1578,7 +1579,7 @@ class TestApprovalResetNoDueDate:
         await approve_chore(hass, "max", "No Due Date Shared All", approver_ctx)
         assert (
             get_chore_state_from_sensor(hass, "max", "No Due Date Shared All")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "max") == initial_assignee2_points + 20.0
 
@@ -1922,7 +1923,8 @@ class TestWorkflowIntegrationEdgeCases:
         await hass.async_block_till_done()
 
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == initial_points + 5.0
 
@@ -1970,7 +1972,7 @@ class TestWorkflowIntegrationEdgeCases:
                 get_dashboard_helper(hass, slug), "Dishes Rotation"
             )
             assert rotation_chore is not None
-            if rotation_chore["status"] == CHORE_STATE_PENDING:
+            if rotation_chore["state"] == CHORE_STATE_PENDING:
                 rotation_turn_slug = slug
                 break
         assert rotation_turn_slug is not None
@@ -2071,9 +2073,10 @@ class TestWorkflowResetIntegration:
         await claim_chore(hass, "zoe", "Make bed", assignee_ctx)
         await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
-        # Verify approved
+        # Verify completed
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
 
         # Trigger daily reset (INTERNAL API)
@@ -2219,11 +2222,11 @@ class TestEnhancedFrequencyWorkflows:
         # Approve the chore
         await approve_chore(hass, "zoe", "Daily Multi Single Assignee", approver_ctx)
 
-        # After approval, state should change (APPROVED or PENDING based on reset)
+        # After approval, state should change (COMPLETED or PENDING based on reset)
         final_state = get_chore_state_from_sensor(
             hass, "zoe", "Daily Multi Single Assignee"
         )
-        assert final_state in [CHORE_STATE_APPROVED, CHORE_STATE_PENDING]
+        assert final_state in [CHORE_STATE_COMPLETED, CHORE_STATE_PENDING]
 
     @pytest.mark.asyncio
     async def test_wf_02_custom_from_complete_claim_approve_workflow(
@@ -2321,7 +2324,7 @@ class TestEnhancedFrequencyWorkflows:
         final_state = get_chore_state_from_sensor(
             hass, "zoe", "Custom Hours 8h Cross Midnight"
         )
-        assert final_state in [CHORE_STATE_APPROVED, CHORE_STATE_PENDING]
+        assert final_state in [CHORE_STATE_COMPLETED, CHORE_STATE_PENDING]
 
     @pytest.mark.asyncio
     async def test_wf_04_existing_daily_not_affected(
@@ -2354,9 +2357,10 @@ class TestEnhancedFrequencyWorkflows:
 
         await approve_chore(hass, "zoe", "Make bed", approver_ctx)
 
-        # Should be APPROVED (standard behavior)
+        # Should be COMPLETED (UI behavior)
         assert (
-            get_chore_state_from_sensor(hass, "zoe", "Make bed") == CHORE_STATE_APPROVED
+            get_chore_state_from_sensor(hass, "zoe", "Make bed")
+            == CHORE_STATE_COMPLETED
         )
 
     @pytest.mark.asyncio
@@ -2403,7 +2407,7 @@ class TestEnhancedFrequencyWorkflows:
         dashboard = get_dashboard_helper(hass, "zoe")
         dashboard_chore = find_chore(dashboard, chore_name)
         assert dashboard_chore is not None
-        assert dashboard_chore["status"] == CHORE_STATE_PENDING
+        assert dashboard_chore["state"] == CHORE_STATE_PENDING
 
     @pytest.mark.asyncio
     async def test_wf_06_custom_from_complete_due_date_anchored_to_completion_timestamp(
@@ -2526,5 +2530,5 @@ class TestEnhancedFrequencyWorkflows:
         max_chore = find_chore(max_dashboard, chore_name)
         assert zoe_chore is not None
         assert max_chore is not None
-        assert zoe_chore["status"] == const.CHORE_STATE_DUE
-        assert max_chore["status"] == const.CHORE_STATE_WAITING
+        assert zoe_chore["state"] == const.CHORE_STATE_DUE
+        assert max_chore["state"] == const.CHORE_STATE_WAITING

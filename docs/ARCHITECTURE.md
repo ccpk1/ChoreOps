@@ -470,18 +470,49 @@ Practical implication:
 
 ## Chore state resolution contract (FSM)
 
-Assignee display state uses first-match-wins priority in `ChoreEngine.resolve_assignee_chore_state(...)`. Any new state must be inserted deliberately into this order.
+Chore state contract is layered and explicit:
 
-| Priority | State         | Meaning / Effect                                             |
-| -------- | ------------- | ------------------------------------------------------------ |
-| P1       | `approved`    | Completed and approved in current period; highest precedence |
-| P2       | `claimed`     | Pending approver action                                      |
-| P3       | `not_my_turn` | Rotation lock (unless steal window opens)                    |
-| P4       | `missed`      | Strict missed lock (non-claimable)                           |
-| P5       | `overdue`     | Relaxed overdue (claimable)                                  |
-| P6       | `waiting`     | Claim window not open yet                                    |
-| P7       | `due`         | In claim window                                              |
-| P8       | `pending`     | Default fallback                                             |
+1. Engine workflow state (`ChoreEngine.resolve_assignee_chore_state(...)`):
+   first-match-wins resolution with `approved` as workflow completion checkpoint.
+2. Assignee UI state (`ChoreManager.get_chore_status_context(...)["state"]`):
+   Option A projection for assignee-facing display (`approved` → `completed` where
+   no blocker overlay applies).
+3. Global state split (`DATA_CHORE_STATE` + shared/global sensor publication):
+   persisted aggregate keeps workflow token (`approved_in_part`), while UI
+   publication uses display token (`completed_in_part`).
+
+Any new state must be inserted deliberately into this contract.
+
+| Priority | Engine workflow state | Assignee UI state (Option A) | Meaning / Effect                                             |
+| -------- | --------------------- | ---------------------------- | ------------------------------------------------------------ |
+| P1       | `approved`            | `completed`                  | Completed and approved in current period; highest precedence |
+| P2       | `claimed`             | `claimed`                    | Pending approver action                                      |
+| P3       | `not_my_turn`         | `not_my_turn`                | Rotation lock (unless steal window opens)                    |
+| P4       | `missed`              | `missed`                     | Strict missed lock (non-claimable)                           |
+| P5       | `overdue`             | `overdue`                    | Relaxed overdue (claimable)                                  |
+| P6       | `waiting`             | `waiting`                    | Claim window not open yet                                    |
+| P7       | `due`                 | `due`                        | In claim window                                              |
+| P8       | `pending`             | `pending`                    | Default fallback                                             |
+
+Assignee UI allowlist (`CHORE_UI_ASSIGNEE_STATES`):
+
+- `pending`, `due`, `waiting`, `claimed`, `overdue`, `missed`,
+  `not_my_turn`, `completed`, `completed_by_other`
+
+Global persisted allowlist (`CHORE_PERSISTED_GLOBAL_STATES`):
+
+- `pending`, `claimed`, `claimed_in_part`, `approved`, `approved_in_part`,
+  `overdue`, `missed`, `independent`
+
+Global UI allowlist (`CHORE_UI_GLOBAL_STATES`):
+
+- `pending`, `due`, `waiting`, `claimed`, `completed`, `completed_in_part`,
+  `overdue`, `missed`, `independent`, `claimed_in_part`
+
+Global mapping rule:
+
+- Persisted `approved_in_part` is published as UI `completed_in_part`
+- Persisted `approved` is published as UI `completed`
 
 **Rotation steal exception**: For `at_due_date_allow_steal`, once past due the P3 lock lifts and resolves to overdue (implemented as a dedicated branch between P4 and P5).
 

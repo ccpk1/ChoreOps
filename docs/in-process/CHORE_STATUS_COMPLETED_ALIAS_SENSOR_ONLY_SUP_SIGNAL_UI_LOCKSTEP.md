@@ -1,5 +1,11 @@
 # Chore signal ↔ UI state lockstep analysis
 
+## Status in roadmap
+
+- This document is retained as **deferred follow-up analysis**.
+- It is **not implementation scope** for `CHORE_STATUS_COMPLETED_ALIAS_SENSOR_ONLY`.
+- Execute this analysis only after the minimal completed-display + helper-key change is implemented and validated.
+
 ## Purpose
 
 Expand alignment analysis from `completed` only to **all chore lifecycle signals** so event semantics and visible UI state remain predictably consistent.
@@ -67,11 +73,13 @@ These should be documented as advisory, not strict state-equality signals.
 ### Due-window/reminder: current behavior vs recommendation
 
 **Current behavior**
+
 - `chore_due_window` and `chore_due_reminder` are emitted from scanner window classification in `ChoreManager`.
 - They do not directly mutate chore state when emitted; they report timing context for notifications.
 - A chore can receive these signals while visible state may still be `pending`, `waiting`, `claimed`, or later transition independently.
 
 **Recommendation**
+
 - Keep these as **advisory temporal signals** (do not reinterpret as strict state transitions).
 - Test contract should assert scanner/window predicate correctness and post-settle consistency with due-window flags where applicable.
 - Do not require `sensor.state == due` as a universal assertion for reminder emissions.
@@ -94,7 +102,11 @@ These represent workflow milestones; visible state may differ due to immediate r
 - `chore_approved`
 - `chore_completed`
 
-For these, contract must explicitly define allowed post-emit visible states by branch.
+For these, contract must explicitly define allowed post-emit visible states by branch
+**and by assignee perspective** (actor vs non-actor assignees).
+
+Important: “not strict equality” applies at the whole-chore aggregate level, not as an
+excuse for ambiguity. Per assignee, expected state sets must still be explicit.
 
 ### C) Advisory temporal signals
 
@@ -120,6 +132,37 @@ For each scenario, capture both axes explicitly:
 
 This prevents false assumptions like “state X always implies user can interact.”
 
+### Canonical per-assignee examples (normative)
+
+1. **Shared-first claim (`chore_claimed`)**
+   - Scenario: `userA` claims, `userB` is another assigned user.
+   - Expected post-settle state:
+     - `userA`: `claimed`
+     - `userB`: `completed_by_other`
+   - Capability axis:
+     - `userA`: claim is already consumed; approval capability follows normal rules.
+     - `userB`: `can_claim=False` with completed-by-other style lock semantics.
+
+2. **Rotation simple overdue without steal (`chore_overdue`)**
+   - Scenario: current turn is `userA`, `userB` is not current turn, overdue handling is
+     not `allow_steal`.
+   - Expected post-settle state:
+     - `userA`: `overdue`
+     - `userB`: `not_my_turn`
+   - Capability axis:
+     - `userA`: actionable per overdue policy.
+     - `userB`: `can_claim=False`, lock reason `not_my_turn`.
+
+3. **Rotation simple overdue with steal (`chore_overdue`)**
+   - Scenario: same as above, but overdue handling is `allow_steal`.
+   - Expected post-settle state:
+     - `userA`: `overdue`
+     - `userB`: `overdue` (turn lock lifted in steal window)
+   - Capability axis:
+     - `userB`: `can_claim=True` in steal window.
+
+These examples are contract anchors and should be encoded as direct tests.
+
 ### Required artifact in tests/docs
 
 Add/maintain a matrix with these columns:
@@ -130,6 +173,11 @@ Add/maintain a matrix with these columns:
 - expected visible-state set (post-settle)
 - expected capability flags (`can_claim`, `can_approve`, `lock_reason`)
 - contract type (strict equality vs lifecycle-stage vs advisory)
+
+For lifecycle-stage signals, include at least two assignee rows per scenario:
+
+- actor assignee expected state/capability
+- non-actor assignee expected state/capability
 
 ### Practical rule
 
@@ -153,22 +201,51 @@ Add/maintain a matrix with these columns:
    - Keep payloads and event meanings stable
    - Only codify and test alignment expectations
 5. **Post-settle test discipline**:
-  - All lockstep assertions run after settle boundary, not mid-transaction.
+
+- All lockstep assertions run after settle boundary, not mid-transaction.
+
+## Test-preservation policy (anti-dilution)
+
+This initiative must not reduce test quality to absorb alias-related failures.
+
+### Allowed test updates
+
+- Update expected display values for approved→completed alias behavior.
+- Update helper key access from `status` to `state`.
+- Correct outdated assumptions when branch behavior is proven by existing lifecycle rules.
+
+### Prohibited test updates
+
+- Replacing exact branch assertions with overly broad state sets without branch justification.
+- Dropping actor vs non-actor assertions in shared/rotation scenarios.
+- Removing capability-axis checks (`can_claim`, `can_approve`, `lock_reason`) from covered scenarios.
+- Deleting failing scenario tests when failure indicates possible lifecycle drift.
+
+### Failure triage rule
+
+For each failing test, classify as:
+
+1. display-contract mismatch (expected from alias/key rename)
+2. real lifecycle regression (must be fixed in code path, not tests)
+3. test assumption bug (update assertion with explicit rationale)
+
+Only categories (1) and (3) permit test expectation changes.
 
 ## Suggested test matrix additions
 
 - `chore_claimed`:
-  - normal claim: visible includes `claimed`
-  - auto-approve claim: visible may be `completed`/`pending` depending reset policy
+  - shared-first: actor=`claimed`, other assigned assignee=`completed_by_other`
+  - auto-approve branch: actor follows approved/completed/reset policy; non-actor states branch-aware
 - `chore_approved`:
-  - non-immediate reset: visible includes approved/completed alias
-  - immediate reset (`upon_completion`): visible may be `pending`
+  - non-immediate reset: actor follows approved/completed alias contract, non-actor follows criteria rules
+  - immediate reset (`upon_completion`): actor may settle to `pending`; non-actor expectations explicit by criteria
 - `chore_completed`:
-  - single-claimer and shared-all completion gates; validate expected visible-state set
+  - single-claimer and shared-all completion gates; validate actor + non-actor post-settle state sets
 - `chore_overdue`, `chore_missed`, `chore_status_reset`:
-  - strict visible-state checks
+  - strict visible-state checks per assignee role where applicable
+  - include rotation overdue with and without `allow_steal`
 - `chore_due_window`, `chore_due_reminder`:
-  - advisory contract checks against due-window predicates
+  - advisory contract checks against due-window predicates, plus capability/state split assertions
 
 ## Confirmed hard-fork decisions reflected here
 

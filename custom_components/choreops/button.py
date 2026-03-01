@@ -620,7 +620,9 @@ class ApproverChoreDisapproveButton(ChoreOpsCoordinatorEntity, ButtonEntity):
         """
         try:
             # Check if there's a pending approval for this assignee and chore.
-            pending_approvals = self.coordinator.chore_manager.pending_chore_approvals
+            pending_approvals = (
+                self.coordinator.chore_manager.get_pending_chore_approvals()
+            )
             if not any(
                 approval[const.DATA_USER_ID] == self._assignee_id
                 and approval[const.DATA_CHORE_ID] == self._chore_id

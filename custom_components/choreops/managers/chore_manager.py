@@ -58,6 +58,7 @@ if TYPE_CHECKING:
     from ..type_defs import (
         AssigneeChoreDataEntry,
         ChoreData,
+        GlobalChoreStateContext,
         ResetApplyContext,
         ResetBoundaryCategory,
         ResetContext,
@@ -133,7 +134,7 @@ class ChoreManager(BaseManager):
 
         Subscribes to:
         - DATA_READY: Startup initialization (recalculate stats) → emit CHORES_READY
-        - KID_DELETED: Remove orphaned assignments
+        - USER_DELETED: Remove orphaned assignments
         - MIDNIGHT_ROLLOVER: Recurring resets and overdue checks (nightly)
         - PERIODIC_UPDATE: Due window transitions and reminders (5-min interval)
         """
@@ -3076,11 +3077,6 @@ class ChoreManager(BaseManager):
     # They are read-only and do not modify state.
 
     @property
-    def pending_chore_approvals(self) -> list[dict[str, Any]]:
-        """Return the list of pending chore approvals (computed from timestamps)."""
-        return self.get_pending_chore_approvals()
-
-    @property
     def pending_chore_changed(self) -> bool:
         """Return whether pending chore approvals have changed since last reset."""
         return self._coordinator.ui_manager.pending_chore_changed
@@ -3480,6 +3476,84 @@ class ChoreManager(BaseManager):
             chore_data, assignee_data, assignee_id
         )
 
+    def get_global_chore_state_context(self, chore_id: str) -> GlobalChoreStateContext:
+        """Return persisted and UI global state contract for a chore.
+
+        State authority split:
+        - Persisted aggregate state is stored at chore level (`DATA_CHORE_STATE`)
+        - UI publication projects selected persisted states for display surfaces
+
+        Mapping rules:
+        - `approved` -> `completed`
+        - `approved_in_part` -> `completed_in_part`
+        - `pending` -> `due` when chore is currently in due window
+        """
+        chore_data: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+            chore_id, {}
+        )
+        persisted_state = chore_data.get(
+            const.DATA_CHORE_STATE,
+            const.CHORE_STATE_PENDING,
+        )
+
+        if persisted_state == const.CHORE_STATE_APPROVED:
+            return {
+                "persisted_state": cast("str", persisted_state),
+                "ui_state": const.CHORE_STATE_COMPLETED,
+                "due_window_override_applied": False,
+            }
+
+        if persisted_state == const.CHORE_STATE_APPROVED_IN_PART:
+            return {
+                "persisted_state": cast("str", persisted_state),
+                "ui_state": const.CHORE_STATE_COMPLETED_IN_PART,
+                "due_window_override_applied": False,
+            }
+
+        if persisted_state == const.CHORE_STATE_PENDING and self.chore_is_due(
+            None, chore_id
+        ):
+            return {
+                "persisted_state": cast("str", persisted_state),
+                "ui_state": const.CHORE_STATE_DUE,
+                "due_window_override_applied": True,
+            }
+
+        return {
+            "persisted_state": cast("str", persisted_state),
+            "ui_state": cast("str", persisted_state),
+            "due_window_override_applied": False,
+        }
+
+    def _collect_normalized_assignee_persisted_states(
+        self,
+        chore_id: str,
+        assigned_assignees: list[str],
+    ) -> dict[str, str]:
+        """Collect normalized persisted assignee states for global aggregation.
+
+        Normalization rules:
+        - Non-persisted values are normalized to `pending`
+        - In multi-assignee chores, `missed` contributes as `overdue`
+        """
+        assignee_states: dict[str, str] = {}
+        for assignee_id in assigned_assignees:
+            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+            state = assignee_chore_data.get(
+                const.DATA_USER_CHORE_DATA_STATE,
+                const.CHORE_STATE_PENDING,
+            )
+
+            if state not in const.CHORE_PERSISTED_USER_STATES:
+                state = const.CHORE_STATE_PENDING
+
+            if len(assigned_assignees) > 1 and state == const.CHORE_STATE_MISSED:
+                state = const.CHORE_STATE_OVERDUE
+
+            assignee_states[assignee_id] = state
+
+        return assignee_states
+
     def get_chore_status_context(
         self, assignee_id: str, chore_id: str
     ) -> dict[str, Any]:
@@ -3508,7 +3582,8 @@ class ChoreManager(BaseManager):
             - last_completed: str | None
 
         Display state priority:
-            approved > completed_by_other > claimed > overdue > due > pending
+            completed_by_other > completed >
+            claimed > overdue > due > pending
         """
         # Single data fetch
         assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
@@ -3543,6 +3618,14 @@ class ChoreManager(BaseManager):
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_INDEPENDENT,
         )
+        assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
+
+        # Per-user context contract (Option A): assignee state can expose personal
+        # lifecycle/blocker states only and must never emit aggregate partial
+        # states like approved_in_part/claimed_in_part.
+        if display_state == const.CHORE_STATE_APPROVED:
+            display_state = const.CHORE_STATE_COMPLETED
+
         other_assignee_states = None
         is_completed_by_other = False
         if completion_criteria in (
@@ -3550,7 +3633,6 @@ class ChoreManager(BaseManager):
             const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
             const.COMPLETION_CRITERIA_ROTATION_SMART,
         ):
-            assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:
@@ -4546,11 +4628,11 @@ class ChoreManager(BaseManager):
             assignee_chore_data[const.DATA_CHORE_COMPLETED_BY] = effect.set_completed_by
 
     def _update_global_state(self, chore_id: str) -> None:
-        """Update the chore-level global state based on all assigned assignees' states.
+        """Update chore-level aggregate state from per-assignee persisted states.
 
-        This mirrors the logic from coordinator's _transition_chore_state to ensure
-        the chore-level state (chores_data[chore_id][DATA_CHORE_STATE]) is consistent
-        with the per-assignee states (assignee_chore_data[chore_id][DATA_USER_CHORE_DATA_STATE]).
+        Authority boundary:
+        - Engine computes aggregate state via `ChoreEngine.compute_global_chore_state`
+        - Manager adapts persisted-only inputs and applies rotation metadata overrides
 
         Args:
             chore_id: The chore's internal ID
@@ -4561,137 +4643,41 @@ class ChoreManager(BaseManager):
 
         assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         if not assigned_assignees:
-            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_UNKNOWN
+            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
             return
 
-        completion_criteria = chore_data.get(
-            const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_SHARED
+        assignee_states = self._collect_normalized_assignee_persisted_states(
+            chore_id,
+            assigned_assignees,
         )
 
-        # Single assignee - use their state directly
-        if len(assigned_assignees) == 1:
-            assignee_chore_data = self._get_assignee_chore_data(
-                assigned_assignees[0], chore_id
-            )
-            state = assignee_chore_data.get(
-                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
-            )
-            chore_data[const.DATA_CHORE_STATE] = state
-            return
+        global_state = ChoreEngine.compute_global_chore_state(
+            chore_data=chore_data,
+            assignee_states=assignee_states,
+        )
 
-        # Multiple assignees - count states
-        count_pending = 0
-        count_claimed = 0
-        count_approved = 0
-        count_overdue = 0
-        # Phase 2: count_completed_by_other removed (state eliminated from FSM)
+        # Defensive normalization: unknown should not be a steady-state aggregate
+        # for covered workflows with assigned assignees.
+        if global_state == const.CHORE_STATE_UNKNOWN:
+            global_state = const.CHORE_STATE_PENDING
 
-        for assignee_id in assigned_assignees:
-            assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
-            state = assignee_chore_data.get(
-                const.DATA_USER_CHORE_DATA_STATE, const.CHORE_STATE_PENDING
-            )
-
-            if state == const.CHORE_STATE_APPROVED:
-                count_approved += 1
-            elif state == const.CHORE_STATE_CLAIMED:
-                count_claimed += 1
-            elif state in (const.CHORE_STATE_OVERDUE, const.CHORE_STATE_MISSED):
-                # Phase 2: missed maps like overdue for global state
-                count_overdue += 1
-            elif state == const.CHORE_STATE_NOT_MY_TURN:
-                # Phase 2: not_my_turn is cosmetic, ignore for global aggregation
-                # (rotation chores aggregate based on turn-holder's state)
-                pass
-            # Phase 2: waiting and all other states count as pending
-            else:
-                count_pending += 1
-
-        total = len(assigned_assignees)
-
-        # If all assignees are in the same state
-        if count_pending == total:
-            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
-        elif count_claimed == total:
-            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED
-        elif count_approved == total:
-            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED
-        elif count_overdue == total:
-            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
-
-        # SHARED_FIRST: global state tracks the claimant's progression
-        elif completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
-            if count_approved > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED
-            elif count_claimed > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED
-            elif count_overdue > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
-            else:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
-
-        # SHARED: partial states
-        elif completion_criteria == const.COMPLETION_CRITERIA_SHARED:
-            if count_overdue > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
-            elif count_approved > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED_IN_PART
-            elif count_claimed > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED_IN_PART
-            else:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_UNKNOWN
-
-        # INDEPENDENT: multiple assignees with different states
-        else:
-            chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_INDEPENDENT
+        chore_data[const.DATA_CHORE_STATE] = global_state
 
         # ROTATION override: authoritative global state contract
         # - Closed rotation cycle: follow current turn-holder state
         # - Open cycle (manual override or steal window): behave as shared_first
         #   and follow first active claimant progression
         if ChoreEngine.is_rotation_mode(chore_data):
-            if self._is_rotation_open_claim_cycle(chore_id, chore_data):
-                if count_approved > 0:
-                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED
-                elif count_claimed > 0:
-                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED
-                elif count_overdue > 0:
-                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
-                else:
-                    chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
-                return
-
-            turn_assignee_id = chore_data.get(
-                const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID
+            chore_data[const.DATA_CHORE_STATE] = (
+                ChoreEngine.resolve_rotation_global_state(
+                    chore_data=chore_data,
+                    assignee_states=assignee_states,
+                    is_open_claim_cycle=self._is_rotation_open_claim_cycle(
+                        chore_id,
+                        chore_data,
+                    ),
+                )
             )
-            if turn_assignee_id in assigned_assignees:
-                turn_assignee_chore_data = self._get_assignee_chore_data(
-                    turn_assignee_id,
-                    chore_id,
-                )
-                turn_state = turn_assignee_chore_data.get(
-                    const.DATA_USER_CHORE_DATA_STATE,
-                    const.CHORE_STATE_PENDING,
-                )
-                if turn_state == const.CHORE_STATE_NOT_MY_TURN:
-                    turn_state = const.CHORE_STATE_PENDING
-                elif turn_state == const.CHORE_STATE_CLAIMED:
-                    # Closed rotation with an active claim is a mixed assignee-state
-                    # condition (claimer + non-turn holders), so expose independent
-                    # at chore level while per-assignee sensors keep claimant state.
-                    turn_state = const.CHORE_STATE_INDEPENDENT
-                chore_data[const.DATA_CHORE_STATE] = turn_state
-                return
-
-            # Defensive fallback if rotation turn holder metadata is invalid
-            if count_approved > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_APPROVED
-            elif count_claimed > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_CLAIMED
-            elif count_overdue > 0:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_OVERDUE
-            else:
-                chore_data[const.DATA_CHORE_STATE] = const.CHORE_STATE_PENDING
 
     def _is_rotation_open_claim_cycle(
         self,
@@ -4721,7 +4707,11 @@ class ChoreManager(BaseManager):
         if due_date is None:
             return False
 
-        return dt_util.now() > due_date
+        due_dt = dt_parse(due_date)
+        if due_dt is None:
+            return False
+
+        return dt_util.utcnow() >= due_dt
 
     def _set_approval_period_start(
         self,
@@ -4729,11 +4719,10 @@ class ChoreManager(BaseManager):
         assignee_id: str | None,
         timestamp: str,
     ) -> None:
-        """Set the approval period start timestamp.
+        """Set approval period start timestamp.
 
-        Handles INDEPENDENT vs SHARED storage location:
-        - INDEPENDENT: Sets per-assignee approval_period_start in assignee_chore_data
-        - SHARED/SHARED_FIRST: Sets chore-level approval_period_start
+        For INDEPENDENT chores, stores at assignee level.
+        For SHARED/SHARED_FIRST chores, stores at chore level.
 
         Args:
             chore_id: The chore's internal ID

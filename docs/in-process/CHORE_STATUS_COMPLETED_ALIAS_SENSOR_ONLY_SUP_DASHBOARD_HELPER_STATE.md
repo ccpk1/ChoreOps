@@ -62,6 +62,7 @@ Current templates consume **both** helper status and sensor state, but for diffe
 ### 3) Existing helper contract declaration
 
 Dashboard helper docstring currently describes `status` as:
+
 - `pending/claimed/approved/overdue` (narrow set)
 - File: `custom_components/choreops/sensor.py` (`_calculate_chore_attributes` docstring)
 
@@ -75,11 +76,11 @@ Dashboard helper docstring currently describes `status` as:
 
 ## Hard-fork decision matrix
 
-| Decision | Helper key | Helper value | Sensor state | Compatibility layer | Risk profile |
-| --- | --- | --- | --- | --- | --- |
-| H1 | `state` only | `completed` alias applied | `completed` alias applied | None | Correct long-term contract; template consumers must be updated in rework |
-| H2 | `state` + `status` | mirrored | `completed` alias applied | Yes | Rejected (violates hard-fork/no-compat rule) |
-| H3 | `status` only | `completed` alias applied | `completed` alias applied | N/A | Rejected (keeps ambiguous naming) |
+| Decision | Helper key         | Helper value              | Sensor state              | Compatibility layer | Risk profile                                                             |
+| -------- | ------------------ | ------------------------- | ------------------------- | ------------------- | ------------------------------------------------------------------------ |
+| H1       | `state` only       | `completed` alias applied | `completed` alias applied | None                | Correct long-term contract; template consumers must be updated in rework |
+| H2       | `state` + `status` | mirrored                  | `completed` alias applied | Yes                 | Rejected (violates hard-fork/no-compat rule)                             |
+| H3       | `status` only      | `completed` alias applied | `completed` alias applied | N/A                 | Rejected (keeps ambiguous naming)                                        |
 
 ## Key findings
 
@@ -89,7 +90,8 @@ Dashboard helper docstring currently describes `status` as:
 3. Test updates must explicitly separate:
    - backend/context assertions (`approved` remains lifecycle state)
    - sensor display assertions (`completed` alias)
-  - helper state assertions (`state` key only)
+
+- helper state assertions (`state` key only)
 
 ## Signal consistency check (approved vs completed events)
 
@@ -109,6 +111,7 @@ Dashboard helper docstring currently describes `status` as:
 ### Accepted strategy: **H1 (`state` only, no compatibility alias key)**
 
 Reasoning:
+
 - Aligns with long-term contract clarity (`state` is explicit and unambiguous).
 - Enforces no-compatibility technical debt policy in this hard-fork initiative.
 - Prevents future drift by requiring one canonical helper field and one canonical sensor state projection.
@@ -137,10 +140,11 @@ Reasoning:
 ### Add one contract test
 
 Assert in same scenario that:
-  - manager context state is `approved`
-  - helper `chores[*].state` is `completed`
-  - helper has no `status` key
-  - sensor `state` is `completed`
+
+- manager context state is `approved`
+- helper `chores[*].state` is `completed`
+- helper has no `status` key
+- sensor `state` is `completed`
 
 This prevents accidental future coupling regressions.
 

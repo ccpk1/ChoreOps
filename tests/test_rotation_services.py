@@ -88,14 +88,14 @@ async def test_set_rotation_turn_service(
     # Verify initial rotation state is correct
     # - Exactly one assignee should have "pending" (their turn)
     # - All other assignees should have "not_my_turn"
-    assert zoe_chore["status"] == CHORE_STATE_PENDING, (
-        f"Expected Zoë to have pending status, got {zoe_chore['status']}"
+    assert zoe_chore["state"] == CHORE_STATE_PENDING, (
+        f"Expected Zoë to have pending state, got {zoe_chore['state']}"
     )
-    assert max_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
-        f"Expected Max! to have not_my_turn status, got {max_chore['status']}"
+    assert max_chore["state"] == CHORE_STATE_NOT_MY_TURN, (
+        f"Expected Max! to have not_my_turn state, got {max_chore['state']}"
     )
-    assert lila_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
-        f"Expected Lila to have not_my_turn status, got {lila_chore['status']}"
+    assert lila_chore["state"] == CHORE_STATE_NOT_MY_TURN, (
+        f"Expected Lila to have not_my_turn state, got {lila_chore['state']}"
     )
 
     # Identify original turn holder and choose a different assignee as target
@@ -110,24 +110,24 @@ async def test_set_rotation_turn_service(
 
     # Find who currently has the turn (sees 'pending')
     for slug, chore, name, assignee_id_placeholder in chores:
-        if chore["status"] == CHORE_STATE_PENDING:
+        if chore["state"] == CHORE_STATE_PENDING:
             original_turn_holder = (slug, chore, name)
             break
 
     assert original_turn_holder is not None, (
-        f"No assignee found with PENDING status. All states: {[(n, c['status']) for _, c, n, _ in chores]}"
+        f"No assignee found with PENDING state. All states: {[(n, c['state']) for _, c, n, _ in chores]}"
     )
 
     # Choose a different assignee as the new target (not the current turn holder)
     for slug, chore, name, assignee_id_placeholder in chores:
         if (
-            chore["status"] == CHORE_STATE_NOT_MY_TURN
+            chore["state"] == CHORE_STATE_NOT_MY_TURN
         ):  # Pick first assignee who doesn't have turn
             new_turn_target = (slug, chore, name)
             break
 
     assert new_turn_target is not None, (
-        f"No assignee found with NOT_MY_TURN status. All states: {[(n, c['status']) for _, c, n, _ in chores]}"
+        f"No assignee found with NOT_MY_TURN state. All states: {[(n, c['state']) for _, c, n, _ in chores]}"
     )
 
     orig_slug, orig_chore, orig_name = original_turn_holder
@@ -175,7 +175,7 @@ async def test_set_rotation_turn_service(
 
         if slug == new_slug:
             # New turn holder sees pending
-            assert current_chore["status"] == CHORE_STATE_PENDING, (
+            assert current_chore["state"] == CHORE_STATE_PENDING, (
                 f"{name} should now have the turn"
             )
             assert sensor.state == CHORE_STATE_PENDING
@@ -183,7 +183,7 @@ async def test_set_rotation_turn_service(
             assert sensor.attributes.get(const.ATTR_CHORE_TURN_USER_NAME) == new_name
         else:
             # Others see not_my_turn
-            assert current_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
+            assert current_chore["state"] == CHORE_STATE_NOT_MY_TURN, (
                 f"{name} should see not_my_turn after turn changed to {new_name}"
             )
             assert sensor.state == CHORE_STATE_NOT_MY_TURN
@@ -265,7 +265,7 @@ async def test_reset_rotation_service(
 
         if assignee_name == first_assignee_name:
             # First assignee sees pending
-            assert chore["status"] == CHORE_STATE_PENDING, (
+            assert chore["state"] == CHORE_STATE_PENDING, (
                 f"{assignee_name} should have the turn after reset"
             )
             assert sensor.state == CHORE_STATE_PENDING
@@ -276,7 +276,7 @@ async def test_reset_rotation_service(
             )
         else:
             # Others see not_my_turn
-            assert chore["status"] == CHORE_STATE_NOT_MY_TURN
+            assert chore["state"] == CHORE_STATE_NOT_MY_TURN
             assert sensor.state == CHORE_STATE_NOT_MY_TURN
             assert sensor.attributes.get("can_claim") is False
             assert (
@@ -372,7 +372,7 @@ async def test_open_rotation_cycle_allows_one_claim_then_blocks_others(
     for slug, _name, _user_id in assignee_rows:
         chore = find_chore(get_dashboard_helper(hass, slug), "Dishes Rotation")
         assert chore is not None
-        if chore["status"] == CHORE_STATE_PENDING:
+        if chore["state"] == CHORE_STATE_PENDING:
             turn_slug = slug
         else:
             non_turn_slugs.append(slug)
@@ -504,8 +504,8 @@ async def test_rotation_advancement_with_skipped_assignees(
     assert lila_chore is not None, "Lila should see Water Plants chore"
 
     # One of Max/Lila should have pending, the other not_my_turn
-    max_status = max_chore["status"]
-    lila_status = lila_chore["status"]
+    max_status = max_chore["state"]
+    lila_status = lila_chore["state"]
 
     pending_count = 0
     if max_status == CHORE_STATE_PENDING:

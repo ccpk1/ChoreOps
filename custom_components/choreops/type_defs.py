@@ -61,6 +61,14 @@ ISODatetime = str  # ISO 8601 datetime string "2026-01-18T12:30:00+00:00"
 ISODate = str  # ISO 8601 date string (no time) "2026-01-18"
 
 
+class GlobalChoreStateContext(TypedDict):
+    """Manager contract for global chore state publication context."""
+
+    persisted_state: str
+    ui_state: str
+    due_window_override_applied: bool
+
+
 # =============================================================================
 # Simple Entity Types (no nesting)
 # =============================================================================

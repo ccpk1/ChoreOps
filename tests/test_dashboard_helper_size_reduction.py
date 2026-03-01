@@ -377,7 +377,7 @@ class TestMinimalChoreAttributes:
     EXPECTED_CHORE_FIELDS = {
         "eid",
         "name",
-        "status",
+        "state",
         "labels",
         "primary_group",
         "is_today_am",
@@ -445,11 +445,19 @@ class TestMinimalChoreAttributes:
             # name should be non-empty string
             assert isinstance(chore["name"], str) and len(chore["name"]) > 0
 
-            # status should be one of the valid states
-            valid_statuses = {"pending", "claimed", "approved", "overdue"}
-            assert chore["status"] in valid_statuses, (
-                f"Invalid status: {chore['status']}"
-            )
+            # state should be one of the valid UI states
+            valid_states = {
+                "pending",
+                "due",
+                "waiting",
+                "claimed",
+                "overdue",
+                "missed",
+                "not_my_turn",
+                "completed",
+                "completed_by_other",
+            }
+            assert chore["state"] in valid_states, f"Invalid state: {chore['state']}"
 
             # labels should be a list
             assert isinstance(chore["labels"], list)

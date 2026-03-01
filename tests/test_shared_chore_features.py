@@ -37,6 +37,7 @@ from tests.helpers import (
     # State constants
     CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
+    CHORE_STATE_COMPLETED,
     # Phase 2: "completed_by_other" removed - use "completed_by_other" string literal
     CHORE_STATE_PENDING,
     # Completion criteria
@@ -198,9 +199,9 @@ class TestSharedAllAutoApprove:
         # Wait for auto-approve task to complete
         await hass.async_block_till_done()
 
-        # Verify Zoë's state is APPROVED
+        # Verify Zoë's state is COMPLETED
         state = get_chore_state_from_sensor(hass, "zoe", "Shared All Auto Approve")
-        assert state == CHORE_STATE_APPROVED, f"Expected APPROVED, got {state}"
+        assert state == CHORE_STATE_COMPLETED, f"Expected COMPLETED, got {state}"
 
         # Verify points awarded (chore is worth 12 points)
         points_after = get_points_from_sensor(hass, "zoe")
@@ -231,9 +232,11 @@ class TestSharedAllAutoApprove:
 
         await hass.async_block_till_done()
 
-        # Verify Max's state is APPROVED
+        # Verify Max's state is COMPLETED
         max_state = get_chore_state_from_sensor(hass, "max", "Shared All Auto Approve")
-        assert max_state == CHORE_STATE_APPROVED, f"Expected APPROVED, got {max_state}"
+        assert max_state == CHORE_STATE_COMPLETED, (
+            f"Expected COMPLETED, got {max_state}"
+        )
 
         # Verify Max got points
         max_points_after = get_points_from_sensor(hass, "max")
@@ -264,18 +267,18 @@ class TestSharedAllAutoApprove:
         # Wait for all auto-approve tasks to complete
         await hass.async_block_till_done()
 
-        # All should have APPROVED state
+        # All should have COMPLETED state
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Shared All Auto Approve")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert (
             get_chore_state_from_sensor(hass, "max", "Shared All Auto Approve")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert (
             get_chore_state_from_sensor(hass, "lila", "Shared All Auto Approve")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
 
         # All should have received points (12 each)
@@ -303,7 +306,7 @@ class TestSharedFirstAutoApprove:
         shared_scenario: SetupResult,
         mock_hass_users: dict[str, Any],
     ) -> None:
-        """Test: First assignee to claim shared_first auto-approve gets approved."""
+        """Test: First assignee to claim shared_first auto-approve gets completed."""
         coordinator = shared_scenario.coordinator
 
         # Verify chore configuration
@@ -328,9 +331,9 @@ class TestSharedFirstAutoApprove:
 
         await hass.async_block_till_done()
 
-        # Verify Zoë's state is APPROVED
+        # Verify Zoë's state is COMPLETED
         state = get_chore_state_from_sensor(hass, "zoe", "Shared First Auto Approve")
-        assert state == CHORE_STATE_APPROVED, f"Expected APPROVED, got {state}"
+        assert state == CHORE_STATE_COMPLETED, f"Expected COMPLETED, got {state}"
 
         # Verify points awarded (15 points)
         points_after = get_points_from_sensor(hass, "zoe")
@@ -349,10 +352,10 @@ class TestSharedFirstAutoApprove:
         await claim_chore(hass, "zoe", "Shared First Auto Approve", assignee_context)
         await hass.async_block_till_done()
 
-        # Zoë should be APPROVED
+        # Zoë should be COMPLETED
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Shared First Auto Approve")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
 
         # Max and Lila should be COMPLETED_BY_OTHER
@@ -1081,10 +1084,10 @@ class TestSharedFirstEdgeCases:
         await claim_chore(hass, "zoe", "Shared First Auto Approve", assignee_ctx)
         await hass.async_block_till_done()
 
-        # Zoë should be APPROVED (auto-approve chore)
+        # Zoë should be COMPLETED (auto-approve chore)
         assert (
             get_chore_state_from_sensor(hass, "zoe", "Shared First Auto Approve")
-            == CHORE_STATE_APPROVED
+            == CHORE_STATE_COMPLETED
         )
         assert get_points_from_sensor(hass, "zoe") == zoe_before + 15.0
 
@@ -1153,7 +1156,7 @@ class TestSharedFirstRaceConditions:
     """Test race conditions in shared_first chores.
 
     Verifies that when multiple assignees claim a shared_first chore concurrently:
-    - Only ONE assignee gets APPROVED (winner)
+    - Only ONE assignee gets COMPLETED (winner)
     - All others get COMPLETED_BY_OTHER (losers)
     - Points awarded only to winner
     - No double-point awards
@@ -1175,7 +1178,7 @@ class TestSharedFirstRaceConditions:
         - Use asyncio.create_task() to simulate true concurrency
 
         Expected:
-        - Exactly 1 assignee: APPROVED (the winner - determined by race)
+        - Exactly 1 assignee: COMPLETED (the winner - determined by race)
         - Exactly 2 assignees: COMPLETED_BY_OTHER (the losers)
 
         NOTE: We don't assert WHICH assignee wins (non-deterministic), just that
@@ -1213,10 +1216,10 @@ class TestSharedFirstRaceConditions:
 
         states = [zoe_state, max_state, lila_state]
 
-        # Assert exactly 1 APPROVED
-        approved_count = states.count(CHORE_STATE_APPROVED)
-        assert approved_count == 1, (
-            f"Expected exactly 1 APPROVED, got {approved_count}. "
+        # Assert exactly 1 COMPLETED
+        completed_count = states.count(CHORE_STATE_COMPLETED)
+        assert completed_count == 1, (
+            f"Expected exactly 1 COMPLETED, got {completed_count}. "
             f"States: Zoë={zoe_state}, Max={max_state}, Lila={lila_state}"
         )
 

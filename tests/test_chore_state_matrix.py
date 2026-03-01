@@ -23,16 +23,20 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.core import HomeAssistant
 import pytest
 
+from custom_components.choreops import const
+from custom_components.choreops.engines.chore_engine import ChoreEngine
 from tests.helpers import (
     # Chore states
     CHORE_STATE_APPROVED,
     CHORE_STATE_APPROVED_IN_PART,
     CHORE_STATE_CLAIMED,
     CHORE_STATE_CLAIMED_IN_PART,
+    CHORE_STATE_COMPLETED,
+    CHORE_STATE_COMPLETED_IN_PART,
     CHORE_STATE_INDEPENDENT,
+    CHORE_STATE_NOT_MY_TURN,
     CHORE_STATE_PENDING,
     CHORE_STATE_UNKNOWN,
-    # Phase 2: DATA_KID_COMPLETED_BY_OTHER_CHORES removed (was line 38)
     COMPLETION_CRITERIA_SHARED_FIRST,
     DATA_CHORE_ASSIGNED_USER_IDS,
     DATA_CHORE_COMPLETION_CRITERIA,
@@ -42,6 +46,7 @@ from tests.helpers import (
     DATA_USER_CHORE_DATA_STATE,
 )
 from tests.helpers.setup import SetupResult, setup_from_yaml
+from tests.helpers.workflows import find_chore, get_dashboard_helper
 
 # =============================================================================
 # FIXTURES
@@ -858,3 +863,162 @@ class TestGlobalStateConsistency:
             )
 
         assert get_global_chore_state(coordinator, chore_id) == CHORE_STATE_INDEPENDENT
+
+    @pytest.mark.asyncio
+    async def test_shared_all_context_state_never_emits_approved_in_part(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Per-user context remains assignee-scoped and never emits approved_in_part."""
+        coordinator = scenario_shared.coordinator
+        zoe_id = scenario_shared.assignee_ids["Zoë"]
+        chore_id = scenario_shared.chore_ids["Family dinner cleanup"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
+            await coordinator.chore_manager.approve_chore("Mom", zoe_id, chore_id)
+
+        context = coordinator.chore_manager.get_chore_status_context(zoe_id, chore_id)
+        assert context[const.CHORE_CTX_STATE] == CHORE_STATE_COMPLETED
+        assert context[const.CHORE_CTX_STATE] != CHORE_STATE_APPROVED_IN_PART
+
+    @pytest.mark.asyncio
+    async def test_per_user_sensor_state_mirrors_manager_context_and_allowlist(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Per-user sensor state mirrors manager context and stays in UI allowlist."""
+        coordinator = scenario_shared.coordinator
+        zoe_id = scenario_shared.assignee_ids["Zoë"]
+        chore_id = scenario_shared.chore_ids["Family dinner cleanup"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
+            await coordinator.chore_manager.approve_chore("Mom", zoe_id, chore_id)
+
+        context = coordinator.chore_manager.get_chore_status_context(zoe_id, chore_id)
+        context_state = context[const.CHORE_CTX_STATE]
+
+        zoe_dashboard = get_dashboard_helper(hass, "zoe")
+        chore = find_chore(zoe_dashboard, "Family dinner cleanup")
+        assert chore is not None
+        sensor_state = hass.states.get(chore[const.ATTR_EID])
+        assert sensor_state is not None
+
+        assert sensor_state.state == context_state
+        assert sensor_state.state in const.CHORE_UI_ASSIGNEE_STATES
+        assert sensor_state.state not in {
+            CHORE_STATE_APPROVED,
+            CHORE_STATE_APPROVED_IN_PART,
+            CHORE_STATE_CLAIMED_IN_PART,
+            CHORE_STATE_INDEPENDENT,
+            CHORE_STATE_UNKNOWN,
+        }
+
+    @pytest.mark.asyncio
+    async def test_global_ui_mapping_and_assignee_attr_parity_for_partial_approval(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Persisted approved_in_part maps to completed_in_part in global UI outputs."""
+        coordinator = scenario_shared.coordinator
+        zoe_id = scenario_shared.assignee_ids["Zoë"]
+        chore_id = scenario_shared.chore_ids["Family dinner cleanup"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
+            await coordinator.chore_manager.approve_chore("Mom", zoe_id, chore_id)
+
+        persisted_global_state = coordinator.chores_data[chore_id][
+            const.DATA_CHORE_STATE
+        ]
+        assert persisted_global_state == CHORE_STATE_APPROVED_IN_PART
+
+        global_context = coordinator.chore_manager.get_global_chore_state_context(
+            chore_id
+        )
+        assert global_context["persisted_state"] == CHORE_STATE_APPROVED_IN_PART
+        assert global_context["ui_state"] == CHORE_STATE_COMPLETED_IN_PART
+        assert global_context["ui_state"] in const.CHORE_UI_GLOBAL_STATES
+        assert global_context["ui_state"] not in {
+            const.CHORE_STATE_COMPLETED_BY_OTHER,
+            CHORE_STATE_NOT_MY_TURN,
+            CHORE_STATE_APPROVED_IN_PART,
+        }
+
+        zoe_dashboard = get_dashboard_helper(hass, "zoe")
+        chore = find_chore(zoe_dashboard, "Family dinner cleanup")
+        assert chore is not None
+        sensor_state = hass.states.get(chore[const.ATTR_EID])
+        assert sensor_state is not None
+        assert (
+            sensor_state.attributes.get(const.ATTR_GLOBAL_STATE)
+            == global_context["ui_state"]
+        )
+
+    @pytest.mark.asyncio
+    async def test_global_state_authority_parity_and_unknown_regression(
+        self,
+        hass: HomeAssistant,
+        scenario_shared: SetupResult,
+    ) -> None:
+        """Persisted global state matches authoritative engine path and avoids unknown."""
+        coordinator = scenario_shared.coordinator
+
+        shared_all_chore_id = scenario_shared.chore_ids["Family dinner cleanup"]
+        rotation_chore_id = scenario_shared.chore_ids["Dishes Rotation"]
+
+        # Shared_all baseline: persisted state should be known and match engine aggregate
+        shared_all_assignees = coordinator.chores_data[shared_all_chore_id][
+            const.DATA_CHORE_ASSIGNED_USER_IDS
+        ]
+        shared_all_states = (
+            coordinator.chore_manager._collect_normalized_assignee_persisted_states(
+                shared_all_chore_id,
+                shared_all_assignees,
+            )
+        )
+        expected_shared_all = ChoreEngine.compute_global_chore_state(
+            coordinator.chores_data[shared_all_chore_id],
+            shared_all_states,
+        )
+        persisted_shared_all = coordinator.chores_data[shared_all_chore_id][
+            const.DATA_CHORE_STATE
+        ]
+
+        assert persisted_shared_all == expected_shared_all
+        assert persisted_shared_all != CHORE_STATE_UNKNOWN
+
+        # Rotation baseline: persisted state should match rotation override authority path
+        rotation_assignees = coordinator.chores_data[rotation_chore_id][
+            const.DATA_CHORE_ASSIGNED_USER_IDS
+        ]
+        rotation_states = (
+            coordinator.chore_manager._collect_normalized_assignee_persisted_states(
+                rotation_chore_id,
+                rotation_assignees,
+            )
+        )
+        expected_rotation = ChoreEngine.resolve_rotation_global_state(
+            chore_data=coordinator.chores_data[rotation_chore_id],
+            assignee_states=rotation_states,
+            is_open_claim_cycle=coordinator.chore_manager._is_rotation_open_claim_cycle(
+                rotation_chore_id,
+                coordinator.chores_data[rotation_chore_id],
+            ),
+        )
+        persisted_rotation = coordinator.chores_data[rotation_chore_id][
+            const.DATA_CHORE_STATE
+        ]
+
+        assert persisted_rotation == expected_rotation
+        assert persisted_rotation != CHORE_STATE_UNKNOWN

@@ -1112,7 +1112,7 @@ class ChoreEngine:
             The global chore state string
         """
         if not assignee_states:
-            return const.CHORE_STATE_UNKNOWN
+            return const.CHORE_STATE_PENDING
 
         assigned_assignees = list(assignee_states.keys())
         total = len(assigned_assignees)
@@ -1198,10 +1198,70 @@ class ChoreEngine:
                 return const.CHORE_STATE_APPROVED_IN_PART
             if count_claimed > 0:
                 return const.CHORE_STATE_CLAIMED_IN_PART
-            return const.CHORE_STATE_UNKNOWN
+            return const.CHORE_STATE_PENDING
 
         # INDEPENDENT: Different states
         return const.CHORE_STATE_INDEPENDENT
+
+    @staticmethod
+    def resolve_rotation_global_state(
+        chore_data: ChoreData | dict[str, Any],
+        assignee_states: dict[str, str],
+        is_open_claim_cycle: bool,
+    ) -> str:
+        """Resolve rotation-mode global state from normalized per-assignee states.
+
+        Args:
+            chore_data: Rotation chore definition.
+            assignee_states: Per-assignee persisted states normalized by manager.
+            is_open_claim_cycle: Whether rotation lock is currently opened.
+
+        Returns:
+            Rotation-aware aggregate state.
+        """
+        count_approved = sum(
+            1
+            for state in assignee_states.values()
+            if state == const.CHORE_STATE_APPROVED
+        )
+        count_claimed = sum(
+            1
+            for state in assignee_states.values()
+            if state == const.CHORE_STATE_CLAIMED
+        )
+        count_overdue = sum(
+            1
+            for state in assignee_states.values()
+            if state == const.CHORE_STATE_OVERDUE
+        )
+
+        if is_open_claim_cycle:
+            if count_approved > 0:
+                return const.CHORE_STATE_APPROVED
+            if count_claimed > 0:
+                return const.CHORE_STATE_CLAIMED
+            if count_overdue > 0:
+                return const.CHORE_STATE_OVERDUE
+            return const.CHORE_STATE_PENDING
+
+        turn_assignee_id = chore_data.get(const.DATA_CHORE_ROTATION_CURRENT_ASSIGNEE_ID)
+        turn_state = (
+            assignee_states.get(turn_assignee_id)
+            if isinstance(turn_assignee_id, str)
+            else None
+        )
+        if turn_state is not None:
+            if turn_state == const.CHORE_STATE_CLAIMED:
+                return const.CHORE_STATE_INDEPENDENT
+            return turn_state
+
+        if count_approved > 0:
+            return const.CHORE_STATE_APPROVED
+        if count_claimed > 0:
+            return const.CHORE_STATE_CLAIMED
+        if count_overdue > 0:
+            return const.CHORE_STATE_OVERDUE
+        return const.CHORE_STATE_PENDING
 
     # =========================================================================
     # STREAK CALCULATION (Schedule-Aware)

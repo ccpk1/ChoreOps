@@ -807,8 +807,7 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         ctx = self.coordinator.chore_manager.get_chore_status_context(
             self._assignee_id, self._chore_id
         )
-
-        return ctx[const.CHORE_CTX_STATE]
+        return cast("str", ctx[const.CHORE_CTX_STATE])
 
     @staticmethod
     def _format_claimed_completed_by(value: str | list[str] | None) -> str | None:
@@ -893,7 +892,12 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         completion_criteria = chore_info.get(
             const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_INDEPENDENT
         )
-        global_state = chore_info.get(const.DATA_CHORE_STATE, const.CHORE_STATE_UNKNOWN)
+        global_state_context = (
+            self.coordinator.chore_manager.get_global_chore_state_context(
+                self._chore_id
+            )
+        )
+        global_state = global_state_context["ui_state"]
 
         assigned_assignees_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         assigned_assignees_names = [
@@ -908,7 +912,6 @@ class AssigneeChoreStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         completion_criteria = chore_info.get(
             const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_INDEPENDENT
         )
-        global_state = chore_info.get(const.DATA_CHORE_STATE, const.CHORE_STATE_UNKNOWN)
 
         assigned_assignees_ids = chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
         assigned_assignees_names = [
@@ -2386,20 +2389,14 @@ class SystemChoreSharedStateSensor(ChoreOpsCoordinatorEntity, SensorEntity):
     def native_value(self) -> str:
         """Return the global state for the chore.
 
-        Returns the stored chore state, but if it would be PENDING and
-        the chore is within its due window, returns DUE instead.
+        Returns manager-projected global UI state from persisted global state.
         """
-        chore_info: ChoreData = cast(
-            "ChoreData", self.coordinator.chores_data.get(self._chore_id, {})
+        global_state_context = (
+            self.coordinator.chore_manager.get_global_chore_state_context(
+                self._chore_id
+            )
         )
-        state = chore_info.get(const.DATA_CHORE_STATE, const.CHORE_STATE_UNKNOWN)
-
-        # If state would be pending, check if in due window (None = use chore-level due date)
-        if state == const.CHORE_STATE_PENDING:
-            if self.coordinator.chore_manager.chore_is_due(None, self._chore_id):
-                return const.CHORE_STATE_DUE
-
-        return state
+        return global_state_context["ui_state"]
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -4049,7 +4046,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         Minimal fields (6 total):
         - eid: entity_id (for fetching additional attributes from chore sensor)
         - name: chore name (for display)
-        - status: pending/claimed/approved/overdue (for status coloring)
+        - state: pending/claimed/completed/overdue (for status coloring)
         - labels: list of label strings (for label filtering)
         - primary_group: today/this_week/other (for grouping)
         - is_today_am: boolean or None (for AM/PM sorting)
@@ -4069,7 +4066,7 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         ctx = self.coordinator.chore_manager.get_chore_status_context(
             self._assignee_id, chore_id
         )
-        status = ctx[const.CHORE_CTX_STATE]
+        state = cast("str", ctx[const.CHORE_CTX_STATE])
         due_date_str = ctx[const.CHORE_CTX_DUE_DATE]
         is_due = ctx[const.CHORE_CTX_IS_DUE]
 
@@ -4099,14 +4096,14 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # Calculate primary_group for dashboard grouping
         recurring_frequency = chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY) or ""
         primary_group = self._calculate_primary_group(
-            status, is_due, due_date_local_dt, recurring_frequency
+            state, is_due, due_date_local_dt, recurring_frequency
         )
 
         # Return the minimal fields needed for dashboard rendering
         return {
             const.ATTR_EID: chore_eid,
             const.ATTR_NAME: chore_name,
-            const.ATTR_STATUS: status,
+            const.ATTR_STATE: state,
             const.ATTR_CHORE_LABELS: chore_labels,
             const.ATTR_CHORE_PRIMARY_GROUP: primary_group,
             const.ATTR_CHORE_IS_TODAY_AM: is_today_am,
@@ -4273,8 +4270,10 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         pending_chores = []
         pending_rewards = []
 
-        # Get all pending approvals from coordinator via public properties
-        pending_chore_approvals = self.coordinator.chore_manager.pending_chore_approvals
+        # Get all pending approvals from coordinator via manager query methods
+        pending_chore_approvals = (
+            self.coordinator.chore_manager.get_pending_chore_approvals()
+        )
         pending_reward_approvals = (
             self.coordinator.reward_manager.get_pending_approvals()
         )

@@ -819,10 +819,10 @@ class TestPointCalculations:
 class TestComputeGlobalChoreState:
     """Test global state calculation from per-assignee states."""
 
-    def test_empty_states_returns_unknown(self) -> None:
-        """Empty assignee_states returns UNKNOWN."""
+    def test_empty_states_returns_pending(self) -> None:
+        """Empty assignee_states defaults to PENDING."""
         result = ChoreEngine.compute_global_chore_state({}, {})
-        assert result == const.CHORE_STATE_UNKNOWN
+        assert result == const.CHORE_STATE_PENDING
 
     def test_single_assignee_returns_their_state(self) -> None:
         """Single assignee: global state is their state."""
@@ -1496,8 +1496,8 @@ class TestComputeGlobalChoreStateEdges:
         result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
         assert result == const.CHORE_STATE_NOT_MY_TURN
 
-    def test_shared_due_and_pending_returns_unknown(self) -> None:
-        """Mixed DUE/PENDING in shared mode currently resolves to UNKNOWN."""
+    def test_shared_due_and_pending_returns_pending(self) -> None:
+        """Mixed DUE/PENDING in shared mode resolves to PENDING fallback."""
         chore_data = {
             const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
         }
@@ -1507,4 +1507,4 @@ class TestComputeGlobalChoreStateEdges:
         }
 
         result = ChoreEngine.compute_global_chore_state(chore_data, assignee_states)
-        assert result == const.CHORE_STATE_UNKNOWN
+        assert result == const.CHORE_STATE_PENDING
