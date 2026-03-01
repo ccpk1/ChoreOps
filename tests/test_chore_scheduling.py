@@ -2397,7 +2397,7 @@ class TestTimeBoundaryCrossing:
         assert chore is not None
         sensor = hass.states.get(chore["eid"])
         assert sensor is not None
-        assert sensor.state == CHORE_STATE_APPROVED
+        assert sensor.state == const.CHORE_STATE_COMPLETED
 
         period_after = (now_utc + timedelta(seconds=1)).isoformat()
         chore_data[DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = period_after
@@ -2414,7 +2414,7 @@ class TestTimeBoundaryCrossing:
         assert chore_after is not None
         sensor_after = hass.states.get(chore_after["eid"])
         assert sensor_after is not None
-        assert sensor_after.state != CHORE_STATE_APPROVED
+        assert sensor_after.state != const.CHORE_STATE_COMPLETED
 
     @pytest.mark.asyncio
     async def test_waiting_window_transition_stays_stable_across_periodic_updates(

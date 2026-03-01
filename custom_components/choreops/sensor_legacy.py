@@ -377,13 +377,13 @@ class SystemChoresPendingApprovalSensor(ChoreOpsCoordinatorEntity, SensorEntity)
     @property
     def native_value(self) -> str:
         """Return a summary of pending chore approvals."""
-        approvals = self.coordinator.chore_manager.pending_chore_approvals
+        approvals = self.coordinator.chore_manager.get_pending_chore_approvals()
         return f"{len(approvals)}"
 
     @property
     def extra_state_attributes(self) -> dict[str, list[dict[str, Any]]]:
         """Return detailed pending chores."""
-        approvals = self.coordinator.chore_manager.pending_chore_approvals
+        approvals = self.coordinator.chore_manager.get_pending_chore_approvals()
         grouped_by_assignee: dict[str, list[dict[str, Any]]] = {}
 
         try:

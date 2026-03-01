@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Actions du tableau de bord",
-        "description": "Créez, mettez à jour ou supprimez des tableaux de bord ChoreOps Lovelace.\n\n[Guide de configuration des tableaux de bord]({documentation_url})",
+        "description": "Créez, mettez à jour ou supprimez des tableaux de bord ChoreOps Lovelace.\n\n[Guide de configuration des tableaux de bord]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Action"
+          "dashboard_action": "Action",
+          "dashboard_release_selection": "Version de publication du tableau de bord"
         },
         "data_description": {
-          "dashboard_action": "Choisissez une action : créer un nouveau tableau de bord, mettre à jour les vues d’un tableau de bord existant ou supprimer des tableaux de bord."
+          "dashboard_action": "Choisissez une action : créer un nouveau tableau de bord, mettre à jour les vues d’un tableau de bord existant ou supprimer des tableaux de bord.",
+          "dashboard_release_selection": "Choisissez la version actuellement installée, la dernière version stable ou une étiquette de version compatible explicite."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Dépendances manquantes du tableau de bord",
-        "description": "Certaines cartes de tableau de bord requises sont manquantes pour les modèles sélectionnés.\n\n[Guide de configuration du tableau de bord]({documentation_url})\n\n**Dépendances requises manquantes**\n{dashboard_missing_required_dependencies}\n\n**Dépendances recommandées manquantes**\n{dashboard_missing_recommended_dependencies}\n\nInstallez les cartes requises via l'interface HACS avant de continuer.",
+        "title": "Consulter les modifications du tableau de bord",
+        "description": "Vérifiez l'état des dépendances et les préférences des modèles sélectionnés avant d'appliquer les modifications au tableau de bord.\n\n[Guide de configuration du tableau de bord]({documentation_url})\n\n**Personnalisations disponibles**\n{dashboard_template_preferences}\n\n**Dépendances requises manquantes**\n{dashboard_missing_required_dependencies}\n\n**Dépendances recommandées manquantes**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Continuez quand même"
+          "dashboard_dependency_bypass": "🚫 Continuez quand même (conditions requises manquantes)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Le système signale l'absence de dépendances requises et poursuit la génération malgré tout. L'affichage des cartes du tableau de bord peut être impossible tant que les dépendances ne sont pas installées."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Examen des détails du modèle",
-        "description": "Consultez les détails des modèles sélectionnés avant d'appliquer les modifications au tableau de bord.\n\n[Guide de configuration du tableau de bord]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Continuez avec ces modèles"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Prenez connaissance des détails du modèle sélectionné et poursuivez avec les vérifications de dépendances et la génération."
+          "dashboard_dependency_bypass": "Veuillez noter que des dépendances requises sont manquantes et poursuivre malgré tout. Le tableau de bord risque de ne pas s'afficher correctement ou de fonctionner incorrectement tant que les dépendances requises ne seront pas installées."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Icône du tableau de bord",
               "dashboard_require_admin": "Réservé aux administrateurs",
-              "dashboard_show_in_sidebar": "Ajouter à la barre latérale",
-              "dashboard_template_details_review": "Veuillez consulter les détails du modèle avant de postuler."
+              "dashboard_show_in_sidebar": "Ajouter à la barre latérale"
             },
             "data_description": {
               "dashboard_icon": "Icône de barre latérale pour ce tableau de bord.",
               "dashboard_require_admin": "Limiter l'accès au tableau de bord aux utilisateurs administrateurs.",
-              "dashboard_show_in_sidebar": "Afficher ce tableau de bord dans la barre latérale de Home Assistant.",
-              "dashboard_template_details_review": "Afficher une étape de révision avec les descriptions des modèles, les dépendances et les liens vers le guide des préférences avant d'appliquer les modifications."
+              "dashboard_show_in_sidebar": "Afficher ce tableau de bord dans la barre latérale de Home Assistant."
             }
           },
           "section_template_version": {
             "name": "Version du modèle",
             "description": "Sélectionnez comment le mode de mise à jour choisit les modèles de tableau de bord compatibles.",
             "data": {
-              "dashboard_include_prereleases": "Inclure les préversions",
               "dashboard_release_selection": "Version du modèle de tableau de bord"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Inclure les balises du tableau de bord de préversion dans la découverte des versions.",
-              "dashboard_release_selection": "Choisissez la sélection automatique de la dernière version compatible ou sélectionnez explicitement une étiquette de version compatible."
+              "dashboard_release_selection": "Choisissez la version actuellement installée, la dernière version stable ou une étiquette de version compatible explicite."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Icône du tableau de bord",
           "dashboard_require_admin": "Réservé aux administrateurs",
           "dashboard_show_in_sidebar": "Ajouter à la barre latérale",
-          "dashboard_include_prereleases": "Inclure les préversions",
           "dashboard_release_selection": "Version du modèle de tableau de bord"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Icône de barre latérale pour ce tableau de bord.",
           "dashboard_require_admin": "Limiter l'accès au tableau de bord aux utilisateurs administrateurs.",
           "dashboard_show_in_sidebar": "Afficher ce tableau de bord dans la barre latérale de Home Assistant.",
-          "dashboard_include_prereleases": "Inclure les balises du tableau de bord de préversion dans la découverte des versions.",
-          "dashboard_release_selection": "Choisissez la sélection automatique de la dernière version compatible ou sélectionnez explicitement une étiquette de version compatible."
+          "dashboard_release_selection": "Choisissez la version actuellement installée, la dernière version stable ou une étiquette de version compatible explicite."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Les réinitialisations d'approbation de type « À l'échéance » (ponctuelles ou multiples) nécessitent la définition d'une date d'échéance. Sans date d'échéance, la réinitialisation de l'approbation ne sera jamais déclenchée et la tâche restera approuvée indéfiniment.",
       "error_per_assignee_applicable_days_invalid": "Format des jours applicables invalide pour un ou plusieurs destinataires. Les jours doivent être des nombres entiers de 0 à 6 (lundi-dimanche) sans doublons.",
       "error_per_assignee_daily_multi_times_invalid": "Format horaire journalier invalide pour un ou plusieurs responsables. Utilisez le format 24 heures séparé par | (ex. : 08:00|17:00).",
-      "dashboard_exists": "Un tableau de bord existe déjà avec ce chemin d'URL. Activez l'option « Forcer la reconstruction » pour l'écraser.",
+      "dashboard_exists": "Un tableau de bord existe déjà avec cette URL. Utilisez l'option « Mettre à jour le tableau de bord ».",
       "dashboard_template_error": "Impossible de récupérer le modèle de tableau de bord. Vérifiez votre connexion réseau ou réessayez plus tard.",
       "dashboard_render_error": "Impossible d'afficher le modèle de tableau de bord. Cela peut indiquer un bug du modèle.",
       "dashboard_save_error": "Impossible d'enregistrer le tableau de bord dans Home Assistant. Consultez les journaux système pour plus de détails.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Un modèle d'administration par utilisateur est requis lorsque la mise en page d'administration inclut « Par utilisateur ».",
       "dashboard_admin_per_assignee_needs_assignees": "La configuration d'administration par utilisateur nécessite au moins un utilisateur sélectionné.",
       "dashboard_dependency_ack_required": "Activez l'option « Continuer quand même » pour poursuivre, ou revenez en arrière et installez d'abord les dépendances requises manquantes.",
-      "dashboard_template_details_ack_required": "Activez l'option « Continuer avec ces modèles » pour poursuivre, ou revenez en arrière et ajustez votre sélection de modèles."
+      "dashboard_nonselectable_templates": "Un ou plusieurs modèles sélectionnés ne sont pas disponibles pour la génération.",
+      "dashboard_release_strict_pin_failed": "La version du tableau de bord sélectionnée doit être épinglée avec précision, mais aucune référence de version valide n'était disponible au moment de l'exécution. Veuillez resélectionner la version à l'étape 1 et réessayer.",
+      "dashboard_release_asset_prep_failed": "Impossible de préparer les éléments sélectionnés du tableau de bord en ligne. Choisissez une autre version ou utilisez les modèles locaux compatibles les plus récents et réessayez."
     },
     "abort": {
       "invalid_action": "Action invalide",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Dernière version compatible (recommandée)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Actuellement installé",
+        "latest_stable": "Dernière version stable",
+        "latest_compatible": "Dernière version compatible (recommandée)"
       }
     },
     "manage_actions": {
@@ -3081,14 +3069,10 @@
         "name": "Statut des tâches - {chore_name}",
         "state": {
           "pending": "En attente",
-          "approved": "Approuvé",
+          "completed": "Complété",
           "claimed": "Réclamé",
           "due": "Exigible",
           "overdue": "En retard",
-          "unknown": "Inconnu",
-          "none": "Aucun",
-          "approved_in_part": "Approuvé (en partie)",
-          "claimed_in_part": "Revendiqué (en partie)",
           "completed_by_other": "Réalisé par d'autres",
           "waiting": "En attente (fenêtre fermée)",
           "not_my_turn": "Ce n'est pas mon tour (rotation)",
@@ -3249,14 +3233,15 @@
             "name": "État mondial",
             "state": {
               "pending": "En attente",
-              "approved": "Approuvé",
+              "completed": "Complété",
               "claimed": "Réclamé",
               "overdue": "En retard",
-              "unknown": "Inconnu",
-              "none": "Aucun",
-              "approved_in_part": "Approuvé (en partie)",
+              "completed_in_part": "Terminé (en partie)",
               "claimed_in_part": "Revendiqué (en partie)",
-              "independent": "Indépendant"
+              "independent": "Indépendant",
+              "due": "Exigible",
+              "waiting": "En attendant",
+              "missed": "Manqué (Verrouillé)"
             }
           },
           "can_claim": {
@@ -3927,15 +3912,15 @@
         "name": "{chore_name} - Statut global",
         "state": {
           "pending": "En attente",
-          "approved": "Approuvé",
+          "completed": "Complété",
           "claimed": "Réclamé",
           "due": "Exigible",
           "overdue": "En retard",
-          "unknown": "Inconnu",
-          "none": "Aucun",
-          "approved_in_part": "Approuvé (en partie)",
+          "completed_in_part": "Terminé (en partie)",
           "claimed_in_part": "Revendiqué (en partie)",
-          "independent": "Indépendant"
+          "independent": "Indépendant",
+          "waiting": "En attendant",
+          "missed": "Manqué (Verrouillé)"
         },
         "state_attributes": {
           "purpose": {
@@ -4882,6 +4867,48 @@
     },
     "service_target_title_not_found": {
       "message": "Aucune entrée ChoreOps chargée unique trouvée pour le titre {title}. Utilisez plutôt config_entry_id."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Préparation des éléments sélectionnés du tableau de bord en ligne"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "La préparation des ressources en ligne a échoué. Veuillez choisir une autre version ou utiliser les modèles locaux compatibles les plus récents."
+    },
+    "dashboard_status_release_applied": {
+      "message": "Version {release_ref} appliquée localement ({execution_source}). Rechargez l'intégration ou redémarrez Home Assistant pour actualiser les capteurs de traduction du tableau de bord."
+    },
+    "dashboard_status_updated": {
+      "message": "Mise à jour {url_path} (vues={view_count}, sélection_version={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Créé {url_path} (responsables={assignee_count}, mode_admin={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Dépendances requises pour le tableau de bord toujours manquantes ; retour à la configuration"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "Dépendances requises manquantes ignorées par l'utilisateur"
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Dépendances recommandées manquantes (la génération va continuer) : {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Les modèles sélectionnés ne sont pas disponibles pour la génération :\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Supprimé {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "Échec de la suppression de {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Aucun"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Guide des préférences"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Guide des préférences non fourni"
     },
     "not_authorized_action": {
       "message": "Vous n'êtes pas autorisé à {action} pour ce cessionnaire."

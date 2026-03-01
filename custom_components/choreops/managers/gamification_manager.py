@@ -28,7 +28,12 @@ from .. import const, data_builders as db
 from ..engines.gamification_engine import GamificationEngine
 from ..helpers import entity_helpers as eh
 from ..helpers.entity_helpers import get_item_id_by_name, remove_entities_by_item_id
-from ..utils.dt_utils import dt_add_interval, dt_next_schedule, dt_now_iso, dt_today_iso
+from ..utils.dt_utils import (
+    dt_add_interval,
+    dt_next_schedule,
+    dt_now_utc_iso,
+    dt_today_iso,
+)
 from .base_manager import BaseManager
 
 if TYPE_CHECKING:
@@ -2104,7 +2109,7 @@ class GamificationManager(BaseManager):
         badge_entry_dict[const.DATA_USER_BADGES_EARNED_AWARD_COUNT] = current_count + 1
 
         # Update last award date
-        badge_entry_dict[const.DATA_USER_BADGES_EARNED_LAST_AWARDED] = dt_now_iso()
+        badge_entry_dict[const.DATA_USER_BADGES_EARNED_LAST_AWARDED] = dt_now_utc_iso()
 
         # Persist changes
         self.coordinator._persist_and_update()
@@ -2191,6 +2196,49 @@ class GamificationManager(BaseManager):
             result: Evaluation result from engine
         """
         criteria_met = result.get("criteria_met", False)
+
+        progress_changed = False
+        criterion_results = result.get("criterion_results", [])
+        current_value_raw: Any = None
+        if criterion_results and isinstance(criterion_results, list):
+            first_criterion = criterion_results[0]
+            if isinstance(first_criterion, dict):
+                current_value_raw = first_criterion.get("current_value")
+
+        if isinstance(current_value_raw, (int, float)):
+            achievement_progress = achievement_data.setdefault(
+                const.DATA_ACHIEVEMENT_PROGRESS, {}
+            )
+            assignee_progress = achievement_progress.setdefault(assignee_id, {})
+            assignee_progress_dict = cast("dict[str, Any]", assignee_progress)
+
+            if const.DATA_ACHIEVEMENT_AWARDED not in assignee_progress_dict:
+                assignee_progress_dict[const.DATA_ACHIEVEMENT_AWARDED] = False
+                progress_changed = True
+
+            achievement_type = achievement_data.get(const.DATA_ACHIEVEMENT_TYPE)
+            current_value = int(current_value_raw)
+
+            if achievement_type == const.ACHIEVEMENT_TYPE_STREAK:
+                if (
+                    assignee_progress_dict.get(const.DATA_ACHIEVEMENT_CURRENT_STREAK)
+                    != current_value
+                ):
+                    assignee_progress_dict[const.DATA_ACHIEVEMENT_CURRENT_STREAK] = (
+                        current_value
+                    )
+                    progress_changed = True
+            elif (
+                assignee_progress_dict.get(const.DATA_ACHIEVEMENT_CURRENT_VALUE)
+                != current_value
+            ):
+                assignee_progress_dict[const.DATA_ACHIEVEMENT_CURRENT_VALUE] = (
+                    current_value
+                )
+                progress_changed = True
+
+        if progress_changed and not criteria_met:
+            self.coordinator._persist_and_update()
 
         if criteria_met:
             const.LOGGER.info(
@@ -2411,6 +2459,37 @@ class GamificationManager(BaseManager):
                 only_due_today=True,
             )
         )
+        runtime_context_dict = cast("dict[str, Any]", runtime_context)
+        runtime_context_dict["tracked_current_streak"] = (
+            self._get_tracked_current_streak(
+                assignee_id,
+                tracked_chores,
+            )
+        )
+        if (
+            canonical_target.get("source_entity_type") == "challenge"
+            and canonical_target.get("target_type")
+            == const.CANONICAL_TARGET_TYPE_TOTAL_WITHIN_WINDOW
+        ):
+            challenge_id = str(canonical_target.get("source_item_id", ""))
+            challenge_data = cast(
+                "dict[str, Any]",
+                self.coordinator.challenges_data.get(challenge_id, {}),
+            )
+            start_date_iso = str(
+                challenge_data.get(const.DATA_CHALLENGE_START_DATE, "")
+            )[:10]
+            end_date_iso = str(challenge_data.get(const.DATA_CHALLENGE_END_DATE, ""))[
+                :10
+            ]
+            runtime_context_dict["tracked_total_within_window"] = (
+                self._get_tracked_window_completion_total(
+                    assignee_id,
+                    tracked_chores,
+                    start_date_iso,
+                    end_date_iso,
+                )
+            )
 
         if current_achievement_progress is not None:
             runtime_context["current_achievement_progress"] = cast(
@@ -2422,6 +2501,89 @@ class GamificationManager(BaseManager):
             )
 
         return runtime_context
+
+    def _get_tracked_current_streak(
+        self,
+        assignee_id: str,
+        tracked_chores: list[str],
+    ) -> int:
+        """Return current streak from assignee chore data for tracked chores."""
+        assignee_data = cast(
+            "dict[str, Any]",
+            self.coordinator.assignees_data.get(assignee_id, {}),
+        )
+        assignee_chore_data = cast(
+            "dict[str, Any]",
+            assignee_data.get(const.DATA_USER_CHORE_DATA, {}),
+        )
+
+        if tracked_chores:
+            streak_values: list[int] = []
+            for chore_id in tracked_chores:
+                chore_entry = cast(
+                    "dict[str, Any]", assignee_chore_data.get(chore_id, {})
+                )
+                streak_values.append(
+                    int(chore_entry.get(const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0))
+                )
+            return max(streak_values, default=0)
+
+        return max(
+            (
+                int(
+                    cast("dict[str, Any]", chore_entry).get(
+                        const.DATA_USER_CHORE_DATA_CURRENT_STREAK, 0
+                    )
+                )
+                for chore_entry in assignee_chore_data.values()
+                if isinstance(chore_entry, dict)
+            ),
+            default=0,
+        )
+
+    def _get_tracked_window_completion_total(
+        self,
+        assignee_id: str,
+        tracked_chores: list[str],
+        start_date_iso: str,
+        end_date_iso: str,
+    ) -> int:
+        """Return approved completion count for tracked chores within date window."""
+        assignee_data = cast(
+            "dict[str, Any]",
+            self.coordinator.assignees_data.get(assignee_id, {}),
+        )
+        assignee_chore_data = cast(
+            "dict[str, Any]",
+            assignee_data.get(const.DATA_USER_CHORE_DATA, {}),
+        )
+
+        chore_ids = tracked_chores or list(assignee_chore_data.keys())
+        total_approved = 0
+
+        for chore_id in chore_ids:
+            chore_entry = cast("dict[str, Any]", assignee_chore_data.get(chore_id, {}))
+            periods = cast(
+                "dict[str, Any]",
+                chore_entry.get(const.DATA_USER_CHORE_DATA_PERIODS, {}),
+            )
+            daily_periods = cast(
+                "dict[str, Any]",
+                periods.get(const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {}),
+            )
+
+            for day_iso, day_bucket in daily_periods.items():
+                if not isinstance(day_iso, str) or not isinstance(day_bucket, dict):
+                    continue
+                if start_date_iso and day_iso < start_date_iso:
+                    continue
+                if end_date_iso and day_iso > end_date_iso:
+                    continue
+                total_approved += int(
+                    day_bucket.get(const.DATA_USER_CHORE_DATA_PERIOD_APPROVED, 0)
+                )
+
+        return total_approved
 
     async def _apply_challenge_result(
         self,
@@ -2439,6 +2601,53 @@ class GamificationManager(BaseManager):
             result: Evaluation result from engine
         """
         criteria_met = result.get("criteria_met", False)
+
+        progress_changed = False
+        criterion_results = result.get("criterion_results", [])
+        current_value_raw: Any = None
+        if criterion_results and isinstance(criterion_results, list):
+            first_criterion = criterion_results[0]
+            if isinstance(first_criterion, dict):
+                current_value_raw = first_criterion.get("current_value")
+
+        if isinstance(current_value_raw, (int, float)):
+            challenge_progress = challenge_data.setdefault(
+                const.DATA_CHALLENGE_PROGRESS, {}
+            )
+            assignee_progress = challenge_progress.setdefault(assignee_id, {})
+            assignee_progress_dict = cast("dict[str, Any]", assignee_progress)
+
+            if const.DATA_CHALLENGE_AWARDED not in assignee_progress_dict:
+                assignee_progress_dict[const.DATA_CHALLENGE_AWARDED] = False
+                progress_changed = True
+
+            challenge_type = challenge_data.get(const.DATA_CHALLENGE_TYPE)
+            current_value = int(current_value_raw)
+
+            if challenge_type == const.CHALLENGE_TYPE_DAILY_MIN:
+                daily_counts = assignee_progress_dict.setdefault(
+                    const.DATA_CHALLENGE_DAILY_COUNTS, {}
+                )
+                if isinstance(daily_counts, dict):
+                    today_iso = dt_today_iso()
+                    if daily_counts.get(today_iso) != current_value:
+                        daily_counts[today_iso] = current_value
+                        progress_changed = True
+
+                if (
+                    assignee_progress_dict.get(const.DATA_CHALLENGE_COUNT)
+                    != current_value
+                ):
+                    assignee_progress_dict[const.DATA_CHALLENGE_COUNT] = current_value
+                    progress_changed = True
+            elif (
+                assignee_progress_dict.get(const.DATA_CHALLENGE_COUNT) != current_value
+            ):
+                assignee_progress_dict[const.DATA_CHALLENGE_COUNT] = current_value
+                progress_changed = True
+
+        if progress_changed and not criteria_met:
+            self.coordinator._persist_and_update()
 
         if criteria_met:
             const.LOGGER.info(

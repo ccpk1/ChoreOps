@@ -4,6 +4,10 @@
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
+## Companion design guideline
+
+For visual consistency standards (typography, state colors, icon semantics, and card behavior), use this guide together with `docs/DASHBOARD_UI_DESIGN_GUIDELINE.md`.
+
 ## Authority and source-of-truth model
 
 Use this guide as the canonical architecture and runtime contract reference for dashboard template authoring.
@@ -139,9 +143,9 @@ The dashboard generator enforces a deterministic release contract:
 1. Step 1 resolves selected release behavior to one concrete `effective_release_ref`.
 2. Step 1 prepares release assets (registry, templates, translations, preferences).
 3. Prepared assets are applied to local vendored runtime files and become the
-  baseline for generation/runtime lookups.
+   baseline for generation/runtime lookups.
 4. Step 3 generation consumes the prepared release context rather than re-resolving
-  release selection.
+   release selection.
 
 Selection mode rules:
 

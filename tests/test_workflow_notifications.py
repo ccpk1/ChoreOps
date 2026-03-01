@@ -931,6 +931,75 @@ class TestDueDateReminders:
         assert "due_window" in assignee_notifications[0]["title_key"].lower()
 
     @pytest.mark.asyncio
+    async def test_s9_due_window_is_advisory_not_strict_due_state_equality(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """S9: Due-window notifications are advisory, not strict `state == due`.
+
+        Contract focus:
+        - Notification emission must be validated via timing predicate behavior.
+        - State assertion uses an allowed advisory set, not strict equality.
+        """
+        from datetime import timedelta
+
+        from homeassistant.util import dt as dt_util
+
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        now = dt_util.utcnow()
+        due_in_45_min = now + timedelta(minutes=45)
+
+        chore_info = coordinator.chores_data[chore_id]
+        if "per_assignee_due_dates" not in chore_info:
+            chore_info["per_assignee_due_dates"] = {}
+        chore_info["per_assignee_due_dates"][assignee_id] = due_in_45_min.isoformat()
+        chore_info["notify_on_due_window"] = True
+        chore_info["chore_due_window_offset"] = "1h"
+        coordinator._persist()
+
+        assignee_notifications: list[dict[str, Any]] = []
+
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            assignee_notifications.append(
+                {
+                    "assignee_id": assignee_id_arg,
+                    "title_key": title_key,
+                    "message_key": message_key,
+                    **kwargs,
+                }
+            )
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_assignee_translated",
+            new=capture_assignee_notification,
+        ):
+            await coordinator.chore_manager._on_periodic_update({})
+
+        assert len(assignee_notifications) > 0
+        assert "due_window" in assignee_notifications[0]["title_key"].lower()
+
+        context = coordinator.chore_manager.get_chore_status_context(
+            assignee_id, chore_id
+        )
+        allowed_states = {
+            const.CHORE_STATE_PENDING,
+            const.CHORE_STATE_WAITING,
+            const.CHORE_STATE_DUE,
+            const.CHORE_STATE_CLAIMED,
+        }
+        assert context["state"] in allowed_states
+
+    @pytest.mark.asyncio
     async def test_configurable_reminder_offset_respected(
         self,
         hass: HomeAssistant,
@@ -990,6 +1059,73 @@ class TestDueDateReminders:
             "No reminder sent with custom 1h offset (50min until due)"
         )
         assert assignee_notifications[0]["assignee_id"] == assignee_id
+
+    @pytest.mark.asyncio
+    async def test_s10_due_reminder_advisory_preserves_lock_capability_contract(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """S10: Due-reminder remains advisory while capability lock semantics hold.
+
+        Contract focus:
+        - Reminder can emit before due-window unlock.
+        - Capability/lock fields remain authoritative for interaction.
+        """
+        from datetime import timedelta
+
+        from homeassistant.util import dt as dt_util
+
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        now = dt_util.utcnow()
+        due_in_50_min = now + timedelta(minutes=50)
+
+        chore_info = coordinator.chores_data[chore_id]
+        if "per_assignee_due_dates" not in chore_info:
+            chore_info["per_assignee_due_dates"] = {}
+        chore_info["per_assignee_due_dates"][assignee_id] = due_in_50_min.isoformat()
+        chore_info["notify_due_reminder"] = True
+        chore_info["chore_due_reminder_offset"] = "1h"
+        chore_info[const.DATA_CHORE_DUE_WINDOW_OFFSET] = "30m"
+        chore_info[const.DATA_CHORE_CLAIM_LOCK_UNTIL_WINDOW] = True
+        coordinator._persist()
+
+        assignee_notifications: list[dict[str, Any]] = []
+
+        async def capture_assignee_notification(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            assignee_notifications.append(
+                {
+                    "assignee_id": assignee_id_arg,
+                    "title_key": title_key,
+                    "message_key": message_key,
+                    **kwargs,
+                }
+            )
+
+        with patch.object(
+            coordinator.notification_manager,
+            "notify_assignee_translated",
+            new=capture_assignee_notification,
+        ):
+            await coordinator.chore_manager._on_periodic_update({})
+
+        assert len(assignee_notifications) > 0
+        assert "chore_due_reminder" in assignee_notifications[0]["title_key"].lower()
+
+        context = coordinator.chore_manager.get_chore_status_context(
+            assignee_id, chore_id
+        )
+        assert context["state"] == const.CHORE_STATE_WAITING
+        assert context["can_claim"] is False
+        assert context["lock_reason"] == const.CHORE_STATE_WAITING
 
 
 class TestMultiplierChangeNotifications:

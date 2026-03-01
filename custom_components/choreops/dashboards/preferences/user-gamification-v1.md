@@ -22,8 +22,8 @@ This template has multiple cards with configurable `pref_*` values.
 - `pref_include_weekly_recurring_in_this_week` (default: `true`)
   - Keep recurring weekly chores in this-week group.
   - Allowed: `true`, `false`.
-- `pref_exclude_approved` (default: `false`)
-  - Hide approved chores from the display.
+- `pref_exclude_completed` (default: `false`)
+  - Hide completed chores from the display.
   - Allowed: `true`, `false`.
 - `pref_use_label_grouping` (default: `false`)
   - Group chores by labels.

@@ -336,6 +336,8 @@ from custom_components.choreops.const import (
     CHORE_STATE_APPROVED_IN_PART,
     CHORE_STATE_CLAIMED,
     CHORE_STATE_CLAIMED_IN_PART,
+    CHORE_STATE_COMPLETED,
+    CHORE_STATE_COMPLETED_IN_PART,
     CHORE_STATE_INDEPENDENT,
     CHORE_STATE_MISSED,  # v0.5.0
     CHORE_STATE_NOT_MY_TURN,  # v0.5.0
@@ -527,7 +529,6 @@ from custom_components.choreops.const import (
     # =========================================================================
     # SENSOR ENTITY ID COMPONENTS
     # =========================================================================
-    SENSOR_KC_PREFIX,
     SENSOR_KC_UID_SUFFIX_CHORE_STATUS_SENSOR,
     SENSOR_KC_UID_SUFFIX_ASSIGNEE_POINTS_SENSOR,
     # =========================================================================

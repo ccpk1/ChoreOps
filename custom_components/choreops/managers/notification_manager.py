@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Any, cast
 from .. import const
 from ..engines.chore_engine import ChoreEngine
 from ..helpers import translation_helpers as th
-from ..utils.dt_utils import dt_format_short, dt_now_iso, dt_to_utc
+from ..utils.dt_utils import dt_format_short, dt_now_utc_iso, dt_to_utc
 from .base_manager import BaseManager
 
 if TYPE_CHECKING:
@@ -400,7 +400,7 @@ class NotificationManager(BaseManager):
         notif_key = self._get_chore_notif_key(notif_type)
 
         notif_record = self._get_chore_notification_record(assignee_id, chore_id)
-        notif_record[notif_key] = dt_now_iso()
+        notif_record[notif_key] = dt_now_utc_iso()
         self.coordinator._persist()  # Debounced persist
 
         const.LOGGER.debug(

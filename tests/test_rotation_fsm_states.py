@@ -16,8 +16,8 @@ from custom_components.choreops.utils.dt_utils import dt_now_utc
 
 # Import test constants from helpers (not from const.py - Rule 0)
 from tests.helpers.constants import (
-    CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
+    CHORE_STATE_COMPLETED,
     CHORE_STATE_NOT_MY_TURN,
     CHORE_STATE_PENDING,
 )
@@ -56,9 +56,9 @@ async def test_rotation_turn_holder_can_claim(
     """Test that only the current turn holder can claim a rotation chore.
 
     Validates:
-    - Turn holder sees status = 'pending'
+    - Turn holder sees state = 'pending'
     - Turn holder has can_claim = True
-    - Non-turn holders see status = 'not_my_turn'
+    - Non-turn holders see state = 'not_my_turn'
     - Non-turn holders have can_claim = False with lock_reason = 'not_my_turn'
     """
     result = scenario_shared
@@ -78,7 +78,7 @@ async def test_rotation_turn_holder_can_claim(
     assert max_chore is not None
     assert lila_chore is not None
 
-    # Identify turn holder by checking status
+    # Identify turn holder by checking state
     chores = [
         (zoe_chore, "Zoë", "zoe"),
         (max_chore, "Max!", "max"),
@@ -89,10 +89,10 @@ async def test_rotation_turn_holder_can_claim(
     non_turn_holders = []
 
     for chore, name, slug in chores:
-        if chore["status"] == CHORE_STATE_PENDING:
+        if chore["state"] == CHORE_STATE_PENDING:
             turn_holder = (chore, name, slug)
         else:
-            assert chore["status"] == CHORE_STATE_NOT_MY_TURN, (
+            assert chore["state"] == CHORE_STATE_NOT_MY_TURN, (
                 f"{name} should see not_my_turn"
             )
             non_turn_holders.append((chore, name, slug))
@@ -132,7 +132,7 @@ async def test_rotation_approved_does_not_advance_immediately(
     """Test that rotation does NOT advance immediately after approval.
 
     When a turn holder completes their turn:
-    - Turn holder sees status = 'approved'
+    - Turn holder sees state = 'completed'
     - Other assignees continue to see 'not_my_turn' (rotation locked until boundary)
     - turn_user_name remains unchanged
     - Rotation advances at the next boundary reset (e.g., midnight)
@@ -170,7 +170,7 @@ async def test_rotation_approved_does_not_advance_immediately(
     turn_holder: tuple[str, dict[str, Any], str, str] | None = None
     for item in chores:
         slug, chore, name, user_id = item
-        if chore["status"] == CHORE_STATE_PENDING:
+        if chore["state"] == CHORE_STATE_PENDING:
             turn_holder = item
             break
 
@@ -197,7 +197,7 @@ async def test_rotation_approved_does_not_advance_immediately(
     max_chore = find_chore(max_helper, "Dishes Rotation")
     lila_chore = find_chore(lila_helper, "Dishes Rotation")
 
-    # Only the turn holder should see 'approved'
+    # Only the turn holder should see 'completed'
     # Others remain 'not_my_turn' because rotation hasn't advanced yet
     for slug, chore, name, user_id in chores:
         current_chore = find_chore(get_dashboard_helper(hass, slug), "Dishes Rotation")
@@ -206,16 +206,16 @@ async def test_rotation_approved_does_not_advance_immediately(
         assert sensor is not None
 
         if slug == turn_slug:
-            # Turn holder sees approved
-            assert current_chore["status"] == CHORE_STATE_APPROVED, (
+            # Turn holder sees completed
+            assert current_chore["state"] == CHORE_STATE_COMPLETED, (
                 f"{name} completed their turn"
             )
-            assert sensor.state == CHORE_STATE_APPROVED
+            assert sensor.state == CHORE_STATE_COMPLETED
             assert sensor.attributes.get("can_claim") is False
             assert sensor.attributes.get("lock_reason") is None
         else:
             # Others still blocked by not_my_turn
-            assert current_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
+            assert current_chore["state"] == CHORE_STATE_NOT_MY_TURN, (
                 f"{name} still blocked"
             )
             assert sensor.state == CHORE_STATE_NOT_MY_TURN
@@ -235,7 +235,7 @@ async def test_rotation_claimed_state(
     """Test rotation chore in claimed state.
 
     Validates:
-    - Turn holder sees status = 'claimed' after claiming
+    - Turn holder sees state = 'claimed' after claiming
     - Turn holder has can_claim = False (already claimed)
     - Non-turn holders still see 'not_my_turn'
     - claimed_by attribute is set correctly
@@ -271,7 +271,7 @@ async def test_rotation_claimed_state(
     turn_holder: tuple[str, dict[str, Any], str, str] | None = None
     for item in chores:
         slug, chore, name, user_id = item
-        if chore["status"] == CHORE_STATE_PENDING:
+        if chore["state"] == CHORE_STATE_PENDING:
             turn_holder = item
             break
 
@@ -301,7 +301,7 @@ async def test_rotation_claimed_state(
 
         if slug == turn_slug:
             # Turn holder sees claimed
-            assert current_chore["status"] == CHORE_STATE_CLAIMED, (
+            assert current_chore["state"] == CHORE_STATE_CLAIMED, (
                 f"{name} should see claimed"
             )
             assert sensor.state == CHORE_STATE_CLAIMED
@@ -312,7 +312,7 @@ async def test_rotation_claimed_state(
             assert claimed_by == turn_name, f"Expected claimed_by={turn_name}"
         else:
             # Others still blocked by not_my_turn
-            assert current_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
+            assert current_chore["state"] == CHORE_STATE_NOT_MY_TURN, (
                 f"{name} still blocked"
             )
             assert sensor.state == CHORE_STATE_NOT_MY_TURN
@@ -368,7 +368,7 @@ async def test_rotation_non_turn_holder_cannot_claim(
     non_turn_holder = None
 
     for slug, chore, name, user_id in chores:
-        if chore["status"] == CHORE_STATE_PENDING:
+        if chore["state"] == CHORE_STATE_PENDING:
             turn_holder = (slug, chore, name, user_id)
         elif non_turn_holder is None:
             non_turn_holder = (slug, chore, name, user_id)
@@ -397,7 +397,7 @@ async def test_rotation_non_turn_holder_cannot_claim(
     turn_sensor = hass.states.get(turn_chore["eid"])
     assert turn_sensor is not None
 
-    assert turn_chore["status"] == CHORE_STATE_PENDING, (
+    assert turn_chore["state"] == CHORE_STATE_PENDING, (
         f"Turn holder {turn_name} should still see pending"
     )
     assert turn_sensor.state == CHORE_STATE_PENDING
@@ -410,7 +410,7 @@ async def test_rotation_non_turn_holder_cannot_claim(
     non_sensor = hass.states.get(non_chore["eid"])
     assert non_sensor is not None
 
-    assert non_chore["status"] == CHORE_STATE_NOT_MY_TURN, (
+    assert non_chore["state"] == CHORE_STATE_NOT_MY_TURN, (
         f"{non_name} should still be blocked"
     )
     assert non_sensor.state == CHORE_STATE_NOT_MY_TURN
@@ -450,7 +450,7 @@ async def test_rotation_midnight_advances_once_and_keeps_single_claimable_holder
             get_dashboard_helper(hass, assignee_slug), "Dishes Rotation"
         )
         assert rotation_chore is not None
-        if rotation_chore["status"] == CHORE_STATE_PENDING:
+        if rotation_chore["state"] == CHORE_STATE_PENDING:
             initial_turn_slug = assignee_slug
             break
 

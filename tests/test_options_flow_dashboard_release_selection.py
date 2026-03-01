@@ -178,6 +178,61 @@ async def test_dashboard_step1_applies_selected_release_assets_locally(
 
 
 @pytest.mark.asyncio
+async def test_dashboard_step1_current_installed_skips_release_asset_apply(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """Current installed release selection does not rewrite local assets."""
+    config_entry = scenario_minimal.config_entry
+
+    prepared_assets = {
+        "release_ref": "0.5.4",
+        "execution_source": "local_bundled",
+        "manifest_asset": '{"release_version": "0.5.4"}',
+        "template_definitions": [],
+        "template_assets": {},
+        "translation_assets": {"translations/en_dashboard.json": "{}"},
+        "preference_assets": {},
+    }
+
+    with (
+        patch(
+            "custom_components.choreops.helpers.dashboard_builder.discover_compatible_dashboard_release_tags",
+            return_value=["0.5.4", "0.5.3"],
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.async_prepare_dashboard_release_assets",
+            return_value=prepared_assets,
+        ),
+        patch(
+            "custom_components.choreops.helpers.dashboard_helpers.async_apply_prepared_dashboard_release_assets",
+            new=AsyncMock(),
+        ) as apply_mock,
+    ):
+        result = await hass.config_entries.options.async_init(config_entry.entry_id)
+        flow_id = result["flow_id"]
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.OPTIONS_FLOW_INPUT_MENU_SELECTION: const.OPTIONS_FLOW_DASHBOARD_GENERATOR
+            },
+        )
+        assert result.get("step_id") == const.OPTIONS_FLOW_STEP_DASHBOARD_GENERATOR
+
+        result = await hass.config_entries.options.async_configure(
+            flow_id,
+            user_input={
+                const.CFOF_DASHBOARD_INPUT_ACTION: const.DASHBOARD_ACTION_CREATE,
+                const.CFOF_DASHBOARD_INPUT_RELEASE_SELECTION: const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED,
+            },
+        )
+
+    assert result.get("step_id") == "dashboard_create"
+    assert apply_mock.await_count == 0
+
+
+@pytest.mark.asyncio
 async def test_dashboard_step1_returns_with_actionable_error_when_asset_prep_fails(
     hass: HomeAssistant,
     scenario_minimal: SetupResult,
@@ -374,6 +429,25 @@ def test_dashboard_template_labels_are_human_friendly() -> None:
         value = str(option["value"])
         label = str(option["label"])
         assert label == dh.resolve_template_display_label(value)
+
+
+def test_dashboard_configure_schema_uses_mode_specific_admin_template_defaults() -> (
+    None
+):
+    """Schema defaults to shared template for global and per-user template per-assignee."""
+    expected_global_default = dh.normalize_template_id(
+        "admin-shared-v1",
+        admin_template=True,
+    )
+    expected_per_assignee_default = dh.normalize_template_id(
+        "admin-peruser-v1",
+        admin_template=True,
+    )
+
+    assert dh.get_default_admin_global_template_id() == expected_global_default
+    assert (
+        dh.get_default_admin_per_assignee_template_id() == expected_per_assignee_default
+    )
 
 
 def test_update_selection_labels_are_friendly_and_disambiguate_duplicates() -> None:

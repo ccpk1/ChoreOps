@@ -852,6 +852,8 @@ async def create_choreops_dashboard(
     assignee_template_profiles: dict[str, str] | None = None,
     include_admin: bool = True,
     admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
+    admin_template_global: str | None = None,
+    admin_template_per_assignee: str | None = None,
     force_rebuild: bool = False,
     show_in_sidebar: bool = True,
     require_admin: bool = False,
@@ -881,6 +883,8 @@ async def create_choreops_dashboard(
         assignee_template_profiles: Optional per-assignee template profile map.
         include_admin: Whether to include an admin view tab.
         admin_mode: Admin layout mode (none, global, per_assignee, both).
+        admin_template_global: Admin template ID for global admin view.
+        admin_template_per_assignee: Admin template ID for per-assignee admin views.
         force_rebuild: If True, delete existing dashboard first.
         show_in_sidebar: Whether to show in sidebar.
         require_admin: Whether dashboard requires admin access.
@@ -945,6 +949,25 @@ async def create_choreops_dashboard(
                 )
         return template_cache[target_style]
 
+    async def _get_admin_template(target_style: str) -> str:
+        if target_style not in template_cache:
+            source_path = get_template_source_path(target_style)
+            if isinstance(source_path, str) and source_path in prepared_template_assets:
+                template_cache[target_style] = prepared_template_assets[source_path]
+            elif strict_pin:
+                raise DashboardTemplateError(
+                    f"Strict release pin is missing prepared admin template asset for '{target_style}'"
+                )
+            else:
+                template_cache[target_style] = await fetch_dashboard_template(
+                    hass,
+                    target_style,
+                    pinned_release_tag=pinned_release_tag,
+                    include_prereleases=include_prereleases,
+                    admin_template=True,
+                )
+        return template_cache[target_style]
+
     # Ensure default style template is available for fallback behavior
     style = normalize_template_id(
         style or get_default_assignee_template_id(),
@@ -988,75 +1011,88 @@ async def create_choreops_dashboard(
 
     # Add admin view if requested
     if include_admin:
-        admin_template_id = normalize_template_id(
-            get_default_admin_template_id(),
+        include_global_admin = normalized_admin_mode in (
+            const.DASHBOARD_ADMIN_MODE_GLOBAL,
+            const.DASHBOARD_ADMIN_MODE_BOTH,
+        )
+        include_per_assignee_admin = normalized_admin_mode in (
+            const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
+            const.DASHBOARD_ADMIN_MODE_BOTH,
+        )
+
+        global_admin_template_id = normalize_template_id(
+            admin_template_global or get_default_admin_template_id(),
             admin_template=True,
         )
-        if not admin_template_id:
-            raise DashboardTemplateError(
-                "No admin dashboard template is available in manifest"
-            )
-
-        admin_source_path = get_template_source_path(admin_template_id)
-        if (
-            isinstance(admin_source_path, str)
-            and admin_source_path in prepared_template_assets
-        ):
-            admin_template_str = prepared_template_assets[admin_source_path]
-        elif strict_pin:
-            raise DashboardTemplateError(
-                "Strict release pin is missing prepared admin template asset"
-            )
-        else:
-            admin_template_str = await fetch_dashboard_template(
-                hass,
-                admin_template_id,
-                pinned_release_tag=pinned_release_tag,
-                include_prereleases=include_prereleases,
-                admin_template=True,
-            )
-        # Admin template still needs comment stripping via Jinja2 render
-        # Pass empty context since admin doesn't need assignee injection
-        admin_view = render_dashboard_template(
-            admin_template_str,
-            {"integration": {"entry_id": integration_entry_id}},
+        per_assignee_admin_template_id = normalize_template_id(
+            admin_template_per_assignee or get_default_admin_template_id(),
+            admin_template=True,
         )
-        if isinstance(admin_view, dict):
-            include_global_admin = normalized_admin_mode in (
-                const.DASHBOARD_ADMIN_MODE_GLOBAL,
-                const.DASHBOARD_ADMIN_MODE_BOTH,
+
+        if include_global_admin and not global_admin_template_id:
+            raise DashboardTemplateError(
+                "No admin dashboard template is available for global admin views"
             )
-            include_per_assignee_admin = normalized_admin_mode in (
-                const.DASHBOARD_ADMIN_MODE_PER_ASSIGNEE,
-                const.DASHBOARD_ADMIN_MODE_BOTH,
+        if include_per_assignee_admin and not per_assignee_admin_template_id:
+            raise DashboardTemplateError(
+                "No admin dashboard template is available for per-assignee admin views"
             )
 
-            if include_global_admin:
-                global_admin_view = dict(admin_view)
-                global_admin_view.setdefault("title", "ChoreOps Admin")
-                global_admin_view["path"] = "admin"
+        if include_global_admin:
+            global_admin_template = await _get_admin_template(global_admin_template_id)
+            global_admin_view = render_dashboard_template(
+                global_admin_template,
+                {
+                    "integration": {"entry_id": integration_entry_id},
+                    "user": {},
+                    "assignee": {},
+                },
+            )
+            global_admin_view.setdefault("title", "ChoreOps Admin")
+            global_admin_view["path"] = "admin"
+            if visible_entries := _build_admin_visible_users(
+                admin_view_visibility,
+                admin_visible_user_ids,
+            ):
+                global_admin_view["visible"] = visible_entries
+            views.append(global_admin_view)
+
+        if include_per_assignee_admin:
+            per_assignee_admin_template = await _get_admin_template(
+                per_assignee_admin_template_id
+            )
+            for assignee_name in assignee_names:
+                assignee_id = (
+                    assignee_ids_by_name.get(assignee_name)
+                    if assignee_ids_by_name is not None
+                    else None
+                )
+                if assignee_id is None:
+                    assignee_id = slugify(assignee_name)
+
+                per_assignee_context = build_dashboard_context(
+                    assignee_name,
+                    assignee_id=assignee_id,
+                    integration_entry_id=integration_entry_id,
+                    template_profile=per_assignee_admin_template_id,
+                )
+                per_assignee_admin_view = render_dashboard_template(
+                    per_assignee_admin_template,
+                    dict(per_assignee_context),
+                )
+                per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
+                per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
                 if visible_entries := _build_admin_visible_users(
                     admin_view_visibility,
                     admin_visible_user_ids,
                 ):
-                    global_admin_view["visible"] = visible_entries
-                views.append(global_admin_view)
+                    per_assignee_admin_view["visible"] = visible_entries
+                views.append(per_assignee_admin_view)
 
-            if include_per_assignee_admin:
-                for assignee_name in assignee_names:
-                    per_assignee_admin_view = dict(admin_view)
-                    per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
-                    per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
-                    if visible_entries := _build_admin_visible_users(
-                        admin_view_visibility,
-                        admin_visible_user_ids,
-                    ):
-                        per_assignee_admin_view["visible"] = visible_entries
-                    views.append(per_assignee_admin_view)
-            const.LOGGER.debug(
-                "Added admin view(s) for mode: %s",
-                normalized_admin_mode,
-            )
+        const.LOGGER.debug(
+            "Added admin view(s) for mode: %s",
+            normalized_admin_mode,
+        )
 
     # Combine all views into dashboard config
     dashboard_config = build_multi_view_dashboard(
@@ -1162,6 +1198,8 @@ async def update_choreops_dashboard_views(
     include_admin: bool,
     assignee_ids_by_name: dict[str, str] | None = None,
     admin_mode: str = const.DASHBOARD_ADMIN_MODE_GLOBAL,
+    admin_template_global: str | None = None,
+    admin_template_per_assignee: str | None = None,
     admin_view_visibility: str = const.DASHBOARD_ADMIN_VIEW_VISIBILITY_ALL,
     admin_visible_user_ids: list[str] | None = None,
     icon: str | None = None,
@@ -1253,6 +1291,25 @@ async def update_choreops_dashboard_views(
                 )
         return template_cache[target_style]
 
+    async def _get_admin_template(target_style: str) -> str:
+        if target_style not in template_cache:
+            source_path = get_template_source_path(target_style)
+            if isinstance(source_path, str) and source_path in prepared_template_assets:
+                template_cache[target_style] = prepared_template_assets[source_path]
+            elif strict_pin:
+                raise DashboardTemplateError(
+                    f"Strict release pin is missing prepared admin template asset for '{target_style}'"
+                )
+            else:
+                template_cache[target_style] = await fetch_dashboard_template(
+                    hass,
+                    target_style,
+                    pinned_release_tag=pinned_release_tag,
+                    include_prereleases=include_prereleases,
+                    admin_template=True,
+                )
+        return template_cache[target_style]
+
     updated_assignee_views_by_path: dict[str, dict[str, Any]] = {}
     for assignee_name in assignee_names:
         assignee_id = (
@@ -1301,40 +1358,6 @@ async def update_choreops_dashboard_views(
             merged_views.append(view)
 
     if include_admin:
-        admin_template_id = normalize_template_id(
-            get_default_admin_template_id(),
-            admin_template=True,
-        )
-        if not admin_template_id:
-            raise DashboardTemplateError(
-                "No admin dashboard template is available in manifest"
-            )
-
-        admin_source_path = get_template_source_path(admin_template_id)
-        if (
-            isinstance(admin_source_path, str)
-            and admin_source_path in prepared_template_assets
-        ):
-            admin_template = prepared_template_assets[admin_source_path]
-        elif strict_pin:
-            raise DashboardTemplateError(
-                "Strict release pin is missing prepared admin template asset"
-            )
-        else:
-            admin_template = await fetch_dashboard_template(
-                hass,
-                admin_template_id,
-                pinned_release_tag=pinned_release_tag,
-                include_prereleases=include_prereleases,
-                admin_template=True,
-            )
-        admin_view = render_dashboard_template(
-            admin_template,
-            {"integration": {"entry_id": integration_entry_id}},
-        )
-        if not isinstance(admin_view, dict):
-            admin_view = {}
-
         include_global_admin = normalized_admin_mode in (
             const.DASHBOARD_ADMIN_MODE_GLOBAL,
             const.DASHBOARD_ADMIN_MODE_BOTH,
@@ -1344,8 +1367,34 @@ async def update_choreops_dashboard_views(
             const.DASHBOARD_ADMIN_MODE_BOTH,
         )
 
+        global_admin_template_id = normalize_template_id(
+            admin_template_global or get_default_admin_template_id(),
+            admin_template=True,
+        )
+        per_assignee_admin_template_id = normalize_template_id(
+            admin_template_per_assignee or get_default_admin_template_id(),
+            admin_template=True,
+        )
+
+        if include_global_admin and not global_admin_template_id:
+            raise DashboardTemplateError(
+                "No admin dashboard template is available for global admin views"
+            )
+        if include_per_assignee_admin and not per_assignee_admin_template_id:
+            raise DashboardTemplateError(
+                "No admin dashboard template is available for per-assignee admin views"
+            )
+
         if include_global_admin:
-            global_admin_view = dict(admin_view)
+            global_admin_template = await _get_admin_template(global_admin_template_id)
+            global_admin_view = render_dashboard_template(
+                global_admin_template,
+                {
+                    "integration": {"entry_id": integration_entry_id},
+                    "user": {},
+                    "assignee": {},
+                },
+            )
             global_admin_view.setdefault("title", "ChoreOps Admin")
             global_admin_view["path"] = "admin"
             if visible_entries := _build_admin_visible_users(
@@ -1356,8 +1405,28 @@ async def update_choreops_dashboard_views(
             merged_views.append(global_admin_view)
 
         if include_per_assignee_admin:
+            per_assignee_admin_template = await _get_admin_template(
+                per_assignee_admin_template_id
+            )
             for assignee_name in assignee_names:
-                per_assignee_admin_view = dict(admin_view)
+                assignee_id = (
+                    assignee_ids_by_name.get(assignee_name)
+                    if assignee_ids_by_name is not None
+                    else None
+                )
+                if assignee_id is None:
+                    assignee_id = slugify(assignee_name)
+
+                per_assignee_context = build_dashboard_context(
+                    assignee_name,
+                    assignee_id=assignee_id,
+                    integration_entry_id=integration_entry_id,
+                    template_profile=per_assignee_admin_template_id,
+                )
+                per_assignee_admin_view = render_dashboard_template(
+                    per_assignee_admin_template,
+                    dict(per_assignee_context),
+                )
                 per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
                 per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
                 if visible_entries := _build_admin_visible_users(

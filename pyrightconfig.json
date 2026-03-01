@@ -1,6 +1,8 @@
 {
   "include": ["custom_components", "tests"],
   "extraPaths": [".", "./custom_components", "./tests", "../core"],
+  "venvPath": "/home/vscode/.local",
+  "venv": "ha-venv",
   "exclude": [
     ".venv",
     "**/.venv/**",

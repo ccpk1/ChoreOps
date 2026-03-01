@@ -582,12 +582,18 @@
                     {#-- Initialize all display variables with defaults from dashboard helper or fallback values --#}
                     {%- set state_map = {
                         'pending': ui.get('pending', 'err-pending'),
+                      'due': ui.get('due', 'err-due'),
+                      'waiting': ui.get('waiting', 'err-waiting'),
                         'claimed': ui.get('claimed', 'err-claimed'),
                         'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
-                        'approved': ui.get('approved', 'err-approved'),
-                        'approved_in_part': ui.get('approved_in_part', 'err-approved_in_part'),
+                      'completed': ui.get('completed', 'err-completed'),
+                      'completed_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
                         'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                      'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                      'missed': ui.get('missed', 'err-missed'),
                         'overdue': ui.get('overdue', 'err-overdue'),
+                      'approved': ui.get('completed', 'err-completed'),
+                      'approved_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
                         'independent': ui.get('independent', 'err-independent'),
                         'shared_all': ui.get('shared_all', 'err-shared_all'),
                         'shared_first': ui.get('shared_first', 'err-shared_first')
@@ -595,12 +601,18 @@
 
                     {%- set global_status_map = {
                         'pending': ui.get('pending', 'err-pending'),
+                      'due': ui.get('due', 'err-due'),
+                      'waiting': ui.get('waiting', 'err-waiting'),
                         'claimed': ui.get('claimed', 'err-claimed'),
                         'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
-                        'approved': ui.get('approved', 'err-approved'),
-                        'approved_in_part': ui.get('approved_in_part', 'err-approved_in_part'),
+                      'completed': ui.get('completed', 'err-completed'),
+                      'completed_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
                         'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
-                        'overdue': ui.get('overdue', 'err-overdue')
+                      'missed': ui.get('missed', 'err-missed'),
+                      'overdue': ui.get('overdue', 'err-overdue'),
+                      'independent': ui.get('independent', 'err-independent'),
+                      'approved': ui.get('completed', 'err-completed'),
+                      'approved_in_part': ui.get('completed_in_part', 'err-completed_in_part')
                     } -%}
 
                     {%- set approval_reset_map = {
@@ -663,8 +675,8 @@
                         {%- set ns.chore_custom_freq_unit = chore_state.attributes.get('custom_frequency_unit', '') -%}
                         {%- set ns.chore_custom_freq_int = chore_state.attributes.get('custom_frequency_interval', '') -%}
 
-                        {#-- Pre-compute assignee_name based on completion_criteria (independent vs shared) --#}
-                        {%- set ns.assignee_name_for_service = name if ns.shared_chore == 'independent' else '' -%}
+                        {#-- Pre-compute user_name based on completion_criteria (independent vs shared) --#}
+                        {%- set ns.user_name_for_service = name if ns.shared_chore == 'independent' else '' -%}
                       {%- else -%}
                         {#-- Chore entity not found or unavailable - use safe defaults --#}
                         {%- set ns.current_status = 'Unknown' -%}
@@ -678,7 +690,7 @@
                         {%- set ns.chore_days = [] -%}
                         {%- set ns.chore_custom_freq_unit = '' -%}
                         {%- set ns.chore_custom_freq_int = '' -%}
-                        {%- set ns.assignee_name_for_service = '' -%}
+                        {%- set ns.user_name_for_service = '' -%}
                       {%- endif -%}
                     {%- else -%}
                       {#-- No chore selected - use safe defaults --#}
@@ -693,7 +705,7 @@
                       {%- set ns.chore_days = [] -%}
                       {%- set ns.chore_custom_freq_unit = '' -%}
                       {%- set ns.chore_custom_freq_int = '' -%}
-                      {%- set ns.assignee_name_for_service = '' -%}
+                      {%- set ns.user_name_for_service = '' -%}
                     {%- endif -%}
 
                     {#-- Map display values using translation lookups --#}
@@ -735,7 +747,7 @@
                       {%- set ns.content = "**🚫 " ~ ui.get('no_chore_selected', 'err-no_chore_selected') ~ "**" -%}
                     {%- endif -%}
 
-                    {#-- 5. Render (Step 2: Conditional assignee_name based on completion_criteria) --#}
+                    {#-- 5. Render (Step 2: Conditional user_name based on completion_criteria) --#}
                     {{- {
                     'type': 'heading',
                     'icon': 'mdi:rocket-launch',
@@ -758,7 +770,8 @@
                               'action': 'call-service',
                               'service': 'choreops.reset_overdue_chores',
                               'data': {
-                                'assignee_name': ns.assignee_name_for_service if ns.assignee_name_for_service else name
+                                'config_entry_id': entry_id,
+                                'user_name': ns.user_name_for_service if ns.user_name_for_service else name
                               }
                             }
                           }
@@ -795,8 +808,9 @@
                                 'action': 'call-service',
                                 'service': 'choreops.reset_overdue_chores',
                                 'data': {
+                                  'config_entry_id': entry_id,
                                   'chore_name': ns.chore_selected,
-                                  'assignee_name': ns.assignee_name_for_service
+                                  'user_name': ns.user_name_for_service
                                 }
                               }
                             }
@@ -819,8 +833,9 @@
                               'action': 'call-service',
                               'service': 'choreops.skip_chore_due_date',
                               'data': {
+                                'config_entry_id': entry_id,
                                 'chore_name': ns.chore_selected,
-                                'assignee_name': ns.assignee_name_for_service
+                                'user_name': ns.user_name_for_service
                               }
                             }
                           },
@@ -834,8 +849,9 @@
                               'action': 'call-service',
                               'service': 'choreops.set_chore_due_date',
                               'data': {
+                                'config_entry_id': entry_id,
                                 'chore_name': ns.chore_selected,
-                                'assignee_name': ns.assignee_name_for_service,
+                                'user_name': ns.user_name_for_service,
                                 'due_date': (ns.due_date + timedelta(days=1)).isoformat() if ns.due_date else ''
                               }
                             }
@@ -850,8 +866,9 @@
                               'action': 'call-service',
                               'service': 'choreops.set_chore_due_date',
                               'data': {
+                                'config_entry_id': entry_id,
                                 'chore_name': ns.chore_selected,
-                                'assignee_name': ns.assignee_name_for_service,
+                                'user_name': ns.user_name_for_service,
                                 'due_date': (ns.due_date + timedelta(weeks=1)).isoformat() if ns.due_date else ''
                               }
                             }
@@ -866,8 +883,9 @@
                               'action': 'call-service',
                               'service': 'choreops.set_chore_due_date',
                               'data': {
+                                'config_entry_id': entry_id,
                                 'chore_name': ns.chore_selected,
-                                'assignee_name': ns.assignee_name_for_service,
+                                'user_name': ns.user_name_for_service,
                                 'due_date': ''
                               }
                             }
@@ -895,8 +913,9 @@
                               'action': 'call-service',
                               'service': 'choreops.set_chore_due_date',
                               'data': {
+                                'config_entry_id': entry_id,
                                 'chore_name': ns.chore_selected,
-                                'assignee_name': ns.assignee_name_for_service,
+                                'user_name': ns.user_name_for_service,
                                 'due_date': states(ns.datetime_helper)
                               }
                             }

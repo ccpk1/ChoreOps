@@ -1752,29 +1752,40 @@ BADGE_THRESHOLD_TYPE_CHORE_COUNT: Final = "chore_count"
 # States
 # ------------------------------------------------------------------------------------------------
 
-# Chore states persisted in backend records
-CHORE_STATE_APPROVED = "approved"
-CHORE_STATE_APPROVED_IN_PART = "approved_in_part"
-CHORE_STATE_CLAIMED = "claimed"
-CHORE_STATE_CLAIMED_IN_PART = "claimed_in_part"
-CHORE_STATE_INDEPENDENT = "independent"
-CHORE_STATE_OVERDUE = "overdue"
-CHORE_STATE_PENDING = "pending"
-CHORE_STATE_UNKNOWN = "unknown"
-CHORE_STATE_MISSED = "missed"
+# Chore states (single source of truth)
+#
+# Contract categories:
+# - Persisted assignee state: workflow checkpoints stored in
+#   assignee_chore_data[chore_id][state]
+# - Persisted chore state: aggregate snapshot stored on chores[chore_id][state]
+# - Derived UI state: runtime-only display projection (never persisted)
 
-# Chore states used for display context only (not persisted)
-CHORE_STATE_COMPLETED_BY_OTHER = "completed_by_other"
+# Persisted workflow states
+CHORE_STATE_PENDING: Final = "pending"
+CHORE_STATE_CLAIMED: Final = "claimed"
+CHORE_STATE_APPROVED: Final = "approved"
+CHORE_STATE_OVERDUE: Final = "overdue"
+CHORE_STATE_MISSED: Final = "missed"
 
-# Chore states calculated at runtime (not persisted)
-CHORE_STATE_DUE = "due"
-CHORE_STATE_WAITING = "waiting"
-CHORE_STATE_NOT_MY_TURN = "not_my_turn"
+# Persisted aggregate-only states (chore-level, not assignee-level)
+CHORE_STATE_CLAIMED_IN_PART: Final = "claimed_in_part"
+CHORE_STATE_APPROVED_IN_PART: Final = "approved_in_part"
+CHORE_STATE_INDEPENDENT: Final = "independent"
+CHORE_STATE_UNKNOWN: Final = "unknown"
 
-# State source-of-truth contracts
-# - Assignee-level persisted state: workflow checkpoints stored in assignee_chore_data
-# - Assignee-level derived state: display/claimability states resolved at runtime
-# - Chore-level persisted state: aggregate snapshot stored on chore record
+# Derived UI-only states (never persisted)
+CHORE_STATE_COMPLETED: Final = "completed"
+CHORE_STATE_COMPLETED_IN_PART: Final = "completed_in_part"
+CHORE_STATE_COMPLETED_BY_OTHER: Final = "completed_by_other"
+CHORE_STATE_DUE: Final = "due"
+CHORE_STATE_WAITING: Final = "waiting"
+CHORE_STATE_NOT_MY_TURN: Final = "not_my_turn"
+
+# Allowlists by state contract surface
+# - Assignee persisted: assignee_chore_data[chore_id][state]
+# - Chore persisted: chores[chore_id][state]
+# - Assignee UI: get_chore_status_context(...)[state]
+# - Global UI: shared/global sensor publication
 CHORE_PERSISTED_USER_STATES: Final[frozenset[str]] = frozenset(
     {
         CHORE_STATE_PENDING,
@@ -1782,6 +1793,48 @@ CHORE_PERSISTED_USER_STATES: Final[frozenset[str]] = frozenset(
         CHORE_STATE_APPROVED,
         CHORE_STATE_OVERDUE,
         CHORE_STATE_MISSED,
+    }
+)
+
+CHORE_PERSISTED_GLOBAL_STATES: Final[frozenset[str]] = frozenset(
+    {
+        CHORE_STATE_PENDING,
+        CHORE_STATE_CLAIMED,
+        CHORE_STATE_CLAIMED_IN_PART,
+        CHORE_STATE_APPROVED,
+        CHORE_STATE_APPROVED_IN_PART,
+        CHORE_STATE_OVERDUE,
+        CHORE_STATE_MISSED,
+        CHORE_STATE_INDEPENDENT,
+    }
+)
+
+CHORE_UI_ASSIGNEE_STATES: Final[frozenset[str]] = frozenset(
+    {
+        CHORE_STATE_PENDING,
+        CHORE_STATE_DUE,
+        CHORE_STATE_WAITING,
+        CHORE_STATE_CLAIMED,
+        CHORE_STATE_OVERDUE,
+        CHORE_STATE_MISSED,
+        CHORE_STATE_NOT_MY_TURN,
+        CHORE_STATE_COMPLETED,
+        CHORE_STATE_COMPLETED_BY_OTHER,
+    }
+)
+
+CHORE_UI_GLOBAL_STATES: Final[frozenset[str]] = frozenset(
+    {
+        CHORE_STATE_PENDING,
+        CHORE_STATE_DUE,
+        CHORE_STATE_WAITING,
+        CHORE_STATE_CLAIMED,
+        CHORE_STATE_CLAIMED_IN_PART,
+        CHORE_STATE_COMPLETED,
+        CHORE_STATE_COMPLETED_IN_PART,
+        CHORE_STATE_OVERDUE,
+        CHORE_STATE_MISSED,
+        CHORE_STATE_INDEPENDENT,
     }
 )
 
@@ -1801,6 +1854,26 @@ CHORE_CTX_CAN_APPROVE_ERROR: Final = "can_approve_error"
 CHORE_CTX_DUE_DATE: Final = "due_date"
 CHORE_CTX_AVAILABLE_AT: Final = "available_at"
 CHORE_CTX_LAST_COMPLETED: Final = "last_completed"
+
+CHORE_STATUS_CONTEXT_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        CHORE_CTX_STATE,
+        CHORE_CTX_STORED_STATE,
+        CHORE_CTX_IS_OVERDUE,
+        CHORE_CTX_IS_DUE,
+        CHORE_CTX_HAS_PENDING_CLAIM,
+        CHORE_CTX_IS_APPROVED_IN_PERIOD,
+        CHORE_CTX_IS_COMPLETED_BY_OTHER,
+        CHORE_CTX_CAN_CLAIM,
+        CHORE_CTX_CAN_CLAIM_ERROR,
+        CHORE_CTX_LOCK_REASON,
+        CHORE_CTX_CAN_APPROVE,
+        CHORE_CTX_CAN_APPROVE_ERROR,
+        CHORE_CTX_DUE_DATE,
+        CHORE_CTX_AVAILABLE_AT,
+        CHORE_CTX_LAST_COMPLETED,
+    }
+)
 
 # ==============================================================================
 # Chore Scanner API (ChoreManager Internal)
@@ -1852,13 +1925,30 @@ REWARD_STATE_AVAILABLE: Final = "available"
 REWARD_STATE_REQUESTED: Final = "requested"
 REWARD_STATE_APPROVED: Final = "approved"
 
+REWARD_STATES: Final[frozenset[str]] = frozenset(
+    {
+        REWARD_STATE_LOCKED,
+        REWARD_STATE_AVAILABLE,
+        REWARD_STATE_REQUESTED,
+        REWARD_STATE_APPROVED,
+    }
+)
+
 # Badge States
 BADGE_STATE_IN_PROGRESS: Final = "in_progress"
 BADGE_STATE_EARNED: Final = "earned"
 BADGE_STATE_ACTIVE_CYCLE: Final = "active_cycle"
-CUMULATIVE_BADGE_STATE_ACTIVE = "active"
-CUMULATIVE_BADGE_STATE_GRACE = "grace"
-CUMULATIVE_BADGE_STATE_DEMOTED = "demoted"
+CUMULATIVE_BADGE_STATE_ACTIVE: Final = "active"
+CUMULATIVE_BADGE_STATE_GRACE: Final = "grace"
+CUMULATIVE_BADGE_STATE_DEMOTED: Final = "demoted"
+
+CUMULATIVE_BADGE_STATES: Final[frozenset[str]] = frozenset(
+    {
+        CUMULATIVE_BADGE_STATE_ACTIVE,
+        CUMULATIVE_BADGE_STATE_GRACE,
+        CUMULATIVE_BADGE_STATE_DEMOTED,
+    }
+)
 
 # ================================================================================================
 # Actions
@@ -2162,7 +2252,6 @@ ATTR_BADGE_AWARDS: Final = "awards"
 ATTR_BONUS_BUTTON_EID: Final = "bonus_button_eid"
 ATTR_CAN_APPROVE: Final = "can_approve"
 ATTR_CAN_CLAIM: Final = "can_claim"
-# Rotation UI attributes removed - not exposed in entity attributes
 ATTR_CLAIMED_BY: Final = "claimed_by"
 ATTR_COMPLETED_BY: Final = "completed_by"
 ATTR_ASSIGNED_USER_NAMES: Final = "assigned_user_names"
@@ -2360,6 +2449,7 @@ ATTR_CHORE_AVAILABLE_AT: Final = "available_at"
 # Common attributes for chores and rewards in dashboard helper
 ATTR_EID: Final = "eid"
 ATTR_NAME: Final = "name"
+ATTR_STATE: Final = "state"
 ATTR_STATUS: Final = "status"
 ATTR_TIME_UNTIL_DUE: Final = "time_until_due"
 ATTR_TIME_UNTIL_OVERDUE: Final = "time_until_overdue"
@@ -2377,30 +2467,8 @@ PRIMARY_GROUP_OTHER = "other"
 
 
 # ================================================================================================
-# Entity ID Constants (SUFFIX and MIDFIX patterns)
+# Entity UID Constants (SUFFIX patterns)
 # ================================================================================================
-#
-# See docs/ARCHITECTURE.md "Entity ID Construction Patterns" for detailed explanation of:
-# - SUFFIX pattern: Appended identifiers ("_points", "_badge")
-# - MIDFIX pattern: Embedded between parts ("_chore_claim_", "_bonus_")
-# - UNIQUE_ID construction: entry_id + [_ids] + SUFFIX
-# - ENTITY_ID construction: prefix + [names] + [MIDFIX] + [names] + [SUFFIX]
-#
-# ================================================================================================
-
-# ------------------------------------------------------------------------------------------------
-# Sensors
-# ------------------------------------------------------------------------------------------------
-
-# Sensor Prefixes
-SENSOR_KC_PREFIX: Final = "sensor.kc_"
-
-# ------------------------------------------------------------------------------------------------
-# DateTime
-# ------------------------------------------------------------------------------------------------
-
-# DateTime Prefix
-DATETIME_KC_PREFIX: Final = "datetime.kc_"
 
 # DateTime Unique ID Suffix
 DATETIME_KC_UID_SUFFIX_DATE_HELPER: Final = "_dashboard_datetime_picker"

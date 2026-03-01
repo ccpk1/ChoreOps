@@ -306,10 +306,12 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         if not self._dashboard_template_profile:
             self._dashboard_template_profile = dh.get_default_assignee_template_id()
         if not self._dashboard_admin_template_global:
-            self._dashboard_admin_template_global = dh.get_default_admin_template_id()
+            self._dashboard_admin_template_global = (
+                dh.get_default_admin_global_template_id()
+            )
         if not self._dashboard_admin_template_per_assignee:
             self._dashboard_admin_template_per_assignee = (
-                dh.get_default_admin_template_id()
+                dh.get_default_admin_per_assignee_template_id()
             )
 
         # Check if reload is needed from previous entity add/edit operations
@@ -4336,10 +4338,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                                 release_selection,
                             )
                         )
-                        await dh.async_apply_prepared_dashboard_release_assets(
-                            self.hass,
-                            prepared_assets,
-                        )
+                        if (
+                            release_selection
+                            != const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED
+                        ):
+                            await dh.async_apply_prepared_dashboard_release_assets(
+                                self.hass,
+                                prepared_assets,
+                            )
                     except (HomeAssistantError, TimeoutError, ValueError) as err:
                         const.LOGGER.warning(
                             "Dashboard release asset preparation failed: %s",
@@ -4929,6 +4935,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             template_profile=template_profile,
                             include_admin=include_admin,
                             admin_mode=admin_mode,
+                            admin_template_global=admin_template_global,
+                            admin_template_per_assignee=admin_template_per_assignee,
                             admin_view_visibility=admin_view_visibility,
                             admin_visible_user_ids=admin_visible_user_ids,
                             icon=self._dashboard_icon,
@@ -4977,6 +4985,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                             else None,
                             include_admin=include_admin,
                             admin_mode=admin_mode,
+                            admin_template_global=admin_template_global,
+                            admin_template_per_assignee=admin_template_per_assignee,
                             force_rebuild=False,
                             show_in_sidebar=show_in_sidebar,
                             require_admin=require_admin,
