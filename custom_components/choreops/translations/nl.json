@@ -28,7 +28,11 @@
         "description": "Kies een label en een pictogram voor de punten.",
         "data": {
           "points_label": "Puntenlabel",
-          "points_icon": "Puntenpictogram"
+          "points_icon": "Puntenpictogram",
+          "default_chore_points": "Standaardpunten per taak"
+        },
+        "data_description": {
+          "default_chore_points": "De standaardpuntenwaarde die wordt gebruikt bij het aanmaken van een taak, tenzij je aangepaste punten voor die taak instelt."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Puntenlabel",
           "points_icon": "Puntenpictogram",
+          "default_chore_points": "Standaardpunten per taak",
           "update_interval": "Update-interval (minuten)",
           "calendar_show_period": "Kalenderweergaveperiode (dagen)",
           "retention_daily": "Dagelijkse retentie (dagen)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Label weergegeven voor punten (bijv. 'Punten', 'Sterren', 'Munten')",
           "points_icon": "MDI-pictogram voor punten (bijv. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "De standaardpuntenwaarde die wordt gebruikt bij het aanmaken van een taak, tenzij er aangepaste punten zijn ingesteld.",
           "update_interval": "Hoe vaak moeten de gegevens worden bijgewerkt (minimum: 1 minuut)?",
           "calendar_show_period": "Aantal historische dagen dat in de kalender moet worden weergegeven (minimaal 1)",
           "retention_daily": "Aantal dagen om dagelijkse totalen bij te houden",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 DOEL: Onderhoudspunten (optioneel)",
           "occasion_type": "🎉 Gelegenheidstype",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, vermenigvuldiger (optioneel)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Geef het minimum aantal punten op dat tijdens de onderhoudscyclus vereist is om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
-          "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of een puntenvermenigvuldiger. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. (optioneel)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Voor de workflow van huishoudelijke taken en de gamificatie-opties moet eerst 'Taken aan mij toewijzen' zijn ingeschakeld.",
       "invalid_update_interval": "Ongeldig update-interval. Moet een positief geheel getal zijn.",
       "invalid_calendar_show_period": "Ongeldige kalenderweergaveperiode. Moet een positief geheel getal zijn.",
+      "invalid_default_chore_points": "Ongeldige standaardpunten voor klusjes. Moet een positief geheel getal zijn.",
       "invalid_retention_period": "Ongeldige bewaartermijn. Moet een positief geheel getal zijn.",
       "invalid_points_adjust_values": "Ongeldige punten passen waarden aan. Moet een lijst zijn."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Selecteer een actie"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Uitdagingen volgen binnenkort",
+        "description": "Uitdagingen zullen beschikbaar komen in een toekomstige update.\n\nTijdens de migratie worden bestaande uitdagingsrecords omgezet naar equivalente periodieke badge-tracking om de intentie en voortgang zoveel mogelijk te behouden. Aan uitdagingen gekoppelde badges worden in deze release verwijderd.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Selecteer {entity_type}",
         "description": "Selecteer de {entity_type} die je wilt {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Bewerk het label en pictogram van de punten",
-        "description": "Wijzig het label en het pictogram dat wordt gebruikt om punten weer te geven.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "title": "Instellingen voor het bewerken van punten",
+        "description": "Wijzig het label, het pictogram en de standaardpunten per taak die in ChoreOps worden gebruikt.\n\n📖 [Configuratiehandleiding]({documentation_url})",
         "data": {
           "points_label": "Puntenlabel",
-          "points_icon": "Puntenpictogram"
+          "points_icon": "Puntenpictogram",
+          "default_chore_points": "Standaardpunten per taak"
+        },
+        "data_description": {
+          "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven. Moet een geheel getal groter dan 0 zijn."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 DOEL: Onderhoudspunten (optioneel)",
           "occasion_type": "🎉 Gelegenheidstype",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, vermenigvuldiger (optioneel)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Geef het minimum aantal punten op dat tijdens de onderhoudscyclus vereist is om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
-          "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg om alle toegewezen klusjes bij te houden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of een puntenvermenigvuldiger. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. (optioneel)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 DOEL: Onderhoudspunten (optioneel)",
           "occasion_type": "🎉 Gelegenheidstype",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, straffen (optioneel)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Geef het minimum aantal punten op dat nodig is tijdens de resetcyclus om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
-          "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of straffen. Alle geselecteerde opties worden toegekend of toegepast wanneer de badge is verdiend. Straffen worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
@@ -861,30 +871,6 @@
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
           "associated_achievement": "Koppel deze badge aan een specifieke prestatie om deze bij te houden.",
-          "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
-          "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
-          "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Voeg een badge toe die gekoppeld is aan een uitdaging.",
-        "description": "Configureer de details voor een badge die is gekoppeld aan een uitdaging. Deze badges belonen degenen die ze hebben gekregen voor het voltooien van specifieke uitdagingen.\n\n[📖 Badges Overzicht]({documentation_url})",
-        "data": {
-          "badge_name": "Badgenaam",
-          "badge_description": "Badgeomschrijving (optioneel)",
-          "badge_labels": "Labels (optioneel)",
-          "icon": "Badge-pictogram (mdi:xxx)",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
-          "assigned_user_ids": "🧒 Toegewezen aan",
-          "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
-          "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
-        },
-        "data_description": {
-          "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
-          "badge_description": "Geef een beschrijving van het doel of de criteria van de badge (optioneel).",
-          "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
-          "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
-          "associated_challenge": "Koppel deze badge aan een specifieke uitdaging voor trackingdoeleinden.",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 DOEL: Onderhoudspunten (optioneel)",
           "occasion_type": "🎉 Gelegenheidstype",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, vermenigvuldiger (optioneel)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Geef het minimum aantal punten op dat tijdens de onderhoudscyclus vereist is om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
-          "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of een puntenvermenigvuldiger. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. (optioneel)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 DOEL: Onderhoudspunten (optioneel)",
           "occasion_type": "🎉 Gelegenheidstype",
           "associated_achievement": "🏆 Bijbehorende prestatie",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
           "selected_chores": "🧹 Bijgehouden klusjes (optioneel)",
           "assigned_user_ids": "🧒 Toegewezen aan",
           "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen, straffen (optioneel)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Geef het minimum aantal punten op dat nodig is tijdens de resetcyclus om de badge en de bijbehorende actieve vermenigvuldiger te behouden (optioneel).",
           "occasion_type": "Kies het type gelegenheid voor deze badge (bijv. feestdag, verjaardag).",
           "associated_achievement": "Koppel deze badge aan een prestatie om deze bij te houden.",
-          "associated_challenge": "Koppel deze badge aan een uitdaging om je voortgang bij te houden.",
           "selected_chores": "Selecteer de klusjes die punten opleveren voor deze badge. Laat dit veld leeg als je alle toegewezen klusjes wilt bijhouden (optioneel).",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen, bonussen of straffen. Alle geselecteerde opties worden toegekend of toegepast wanneer de badge is verdiend. Straffen worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
           "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
           "associated_achievement": "Koppel deze badge aan een specifieke prestatie om deze bij te houden.",
-          "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
-          "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
-          "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Bewerk de badge die aan een uitdaging is gekoppeld",
-        "description": "Configureer de details voor een badge die is gekoppeld aan een uitdaging. Deze badges belonen degenen die ze hebben gekregen voor het voltooien van specifieke uitdagingen.\n\n📖 [Badgesoverzicht]({documentation_url})",
-        "data": {
-          "badge_name": "Badgenaam",
-          "badge_description": "Badgeomschrijving (optioneel)",
-          "badge_labels": "Labels (optioneel)",
-          "icon": "Badge-pictogram (mdi:xxx)",
-          "associated_challenge": "🏁 Bijbehorende uitdaging",
-          "assigned_user_ids": "🧒 Toegewezen aan",
-          "award_items": "🎁 BELONINGEN: Selecteer punten, beloningen, bonussen (optioneel)",
-          "award_points": "🎁 PRIJZEN: Toegekende punten (optioneel)"
-        },
-        "data_description": {
-          "badge_name": "Geef de badge een unieke naam. Deze naam wordt in het systeem weergegeven.",
-          "badge_description": "Geef een beschrijving van het doel of de criteria van de badge (optioneel).",
-          "badge_labels": "Voeg labels toe om de badge te categoriseren of te taggen (optioneel).",
-          "icon": "Geef een pictogram op voor de badge met behulp van Material Design Icons (bijvoorbeeld mdi:star).",
-          "associated_challenge": "Koppel deze badge aan een specifieke uitdaging voor trackingdoeleinden.",
           "assigned_user_ids": "Wijs deze badge toe aan specifieke personen voor registratiedoeleinden.",
           "award_items": "Selecteer een of meer opties uit punten, beloningen of bonussen. Alle geselecteerde items worden toegekend of toegepast wanneer de badge is verdiend. Strafpunten worden alleen toegepast als de badge niet is verdiend vóór de einddatum of de resetdatum. (optioneel)",
           "award_points": "Als punten een gekozen beloningsoptie zijn, geef dan aan hoeveel punten van toepassing zijn wanneer deze badge wordt behaald. (optioneel)."
@@ -1668,6 +1626,7 @@
         "title": "Algemene opties",
         "description": "Beheer de algemene instellingen voor de ChoreOps-integratie.\n\n[📖 Meer informatie over algemene opties]({documentation_url})",
         "data": {
+          "default_chore_points": "Standaardpunten per taak",
           "points_adjust_values": "Handmatige puntaanpassingsknopwaarden",
           "update_interval": "Update-interval",
           "calendar_show_period": "Aantal dagen dat in de kalender moet worden weergegeven",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Back-upacties"
         },
         "data_description": {
+          "default_chore_points": "Standaardpuntenwaarde die wordt gebruikt voor nieuwe taken wanneer geen aangepaste punten zijn opgegeven.",
           "points_adjust_values": "Lijst met waarden voor de knoppen voor handmatige puntafstelling. Elke waarde wordt gescheiden door een '|'.",
           "update_interval": "Interval in minuten voor het bijwerken van de interne status van ChoreOps.",
           "calendar_show_period": "Aantal dagen in de toekomst om geplande klusjes en uitdagingen in de kalender weer te geven.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Het geselecteerde bestand mist de vereiste gegevensstructuur.",
       "file_not_found": "Het geselecteerde bestand kon niet worden gevonden.",
       "invalid_selection": "Selecteer een geldige optie.",
+      "invalid_default_chore_points": "Ongeldige standaardpunten voor klusjes. Moet een positief geheel getal zijn.",
       "error_daily_multi_requires_compatible_reset": "De frequentie 'Meerdere keren per dag' is niet compatibel met resettypen die om middernacht worden gereset, omdat deze goedkeuringen slechts één keer om middernacht resetten.",
       "error_daily_multi_independent_multi_assignees": "Bij een frequentie van 'Meerdere keren per dag' met ONAFHANKELIJKE voltooiing is er precies één toegewezen persoon nodig, tenzij er per toegewezen persoon verschillende tijden zijn geconfigureerd. Configureer verschillende tijden voor elke toegewezen persoon in de instellingen per toegewezen persoon.",
       "error_daily_multi_times_required": "Een lijst met tijden is vereist voor de frequentie 'Meerdere keren per dag'.",
@@ -1993,7 +1954,6 @@
         "daily": "Dagelijks",
         "periodic": "Periodiek",
         "achievement_linked": "Prestatie gekoppeld",
-        "challenge_linked": "Uitdaging gekoppeld",
         "special_occasion": "Speciale gelegenheid"
       }
     },

@@ -28,7 +28,11 @@
         "description": "Vyberte označenie a ikonu pre body.",
         "data": {
           "points_label": "Označenie bodov",
-          "points_icon": "Ikona bodov"
+          "points_icon": "Ikona bodov",
+          "default_chore_points": "Predvolené body za domácu úlohu"
+        },
+        "data_description": {
+          "default_chore_points": "Predvolená hodnota bodov použitá pri vytváraní úlohy, pokiaľ pre túto úlohu nenastavíte vlastné body."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Označenie bodov",
           "points_icon": "Ikona bodov",
+          "default_chore_points": "Predvolené body za domácu úlohu",
           "update_interval": "Interval aktualizácie (minúty)",
           "calendar_show_period": "Obdobie zobrazenia kalendára (dni)",
           "retention_daily": "Denná miera udržania (dni)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Označenie zobrazené pre body (napr. „Body“, „Hviezdy“, „Mince“)",
           "points_icon": "Ikona MDI pre body (napr. „mdi:star“, „mdi:coin“, „mdi:trophy“)",
+          "default_chore_points": "Predvolená hodnota bodov použitá pri vytváraní úlohy, pokiaľ nie sú nastavené vlastné body.",
           "update_interval": "Ako často aktualizovať údaje (minimálne: 1 minúta)",
           "calendar_show_period": "Počet dní histórie, ktoré sa majú zobraziť v kalendári (minimálne 1)",
           "retention_daily": "Dni na uchovávanie denných agregátov",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 CIEĽ: Body údržby (voliteľné)",
           "occasion_type": "🎉 Typ príležitosti",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, multiplikátor (voliteľné)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Zadajte minimálny počet bodov potrebných počas cyklu údržby na udržanie odznaku a jeho aktívneho multiplikátora (voliteľné).",
           "occasion_type": "Vyberte typ príležitosti pre tento odznak (napr. sviatok, narodeniny).",
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
-          "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo multiplikátora bodov. Všetky vybrané položky budú udelené alebo použité po získaní odznaku. (voliteľné)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Možnosti pracovného postupu domácich prác a gamifikácie vyžadujú, aby bola najprv povolená možnosť „Povoliť priradenie domácich prác mne“.",
       "invalid_update_interval": "Neplatný interval aktualizácie. Musí to byť kladné celé číslo.",
       "invalid_calendar_show_period": "Neplatné obdobie zobrazenia kalendára. Musí to byť kladné celé číslo.",
+      "invalid_default_chore_points": "Neplatné predvolené body úloh. Musí to byť kladné celé číslo.",
       "invalid_retention_period": "Neplatná doba uchovávania. Musí to byť kladné celé číslo.",
       "invalid_points_adjust_values": "Neplatné hodnoty úpravy bodov. Musí to byť zoznam."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Vyberte akciu"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Výzvy čoskoro",
+        "description": "Výzvy budú sprístupnené v budúcej aktualizácii.\n\nPočas migrácie sa existujúce záznamy o výzvach prevedú na ekvivalentné sledovanie periodických odznakov, aby sa zachoval zámer a správanie pri postupe, kde je to možné. Odznaky prepojené s výzvami sú v tejto verzii odstránené.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Vyberte {entity_type}",
         "description": "Vyberte {entity_type} , ktorý chcete {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Upraviť štítok a ikonu bodov",
-        "description": "Zmeňte označenie a ikonu používanú na znázornenie bodov.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "title": "Upraviť nastavenia bodov",
+        "description": "Zmeňte označenie, ikonu a predvolené body pre každú úlohu používanú v rámci ChoreOps.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "points_label": "Označenie bodov",
-          "points_icon": "Ikona bodov"
+          "points_icon": "Ikona bodov",
+          "default_chore_points": "Predvolené body za domácu úlohu"
+        },
+        "data_description": {
+          "default_chore_points": "Predvolená hodnota bodov použitá pre nové úlohy, keď nie sú zadané vlastné body. Musí to byť celé číslo väčšie ako 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 CIEĽ: Body údržby (voliteľné)",
           "occasion_type": "🎉 Typ príležitosti",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, multiplikátor (voliteľné)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Zadajte minimálny počet bodov potrebných počas cyklu údržby na udržanie odznaku a jeho aktívneho multiplikátora (voliteľné).",
           "occasion_type": "Vyberte typ príležitosti pre tento odznak (napr. sviatok, narodeniny).",
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
-          "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo multiplikátora bodov. Všetky vybrané položky budú udelené alebo použité po získaní odznaku. (voliteľné)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 CIEĽ: Body údržby (voliteľné)",
           "occasion_type": "🎉 Typ príležitosti",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, sankcie (voliteľné)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Zadajte minimálny počet bodov potrebných počas cyklu resetovania na udržanie odznaku a jeho aktívneho multiplikátora (voliteľné).",
           "occasion_type": "Vyberte typ príležitosti pre tento odznak (napr. sviatok, narodeniny).",
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
-          "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
@@ -861,30 +871,6 @@
           "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
           "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
           "associated_achievement": "Prepojte tento odznak s konkrétnym úspechom, ktorý chcete sledovať.",
-          "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
-          "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
-          "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Pridať odznak prepojený s výzvou",
-        "description": "Nakonfigurujte podrobnosti pre odznak prepojený s výzvou. Tieto odznaky odmeňujú účastníkov za splnenie konkrétnych výziev.\n\n[📖 Prehľad odznakov]({documentation_url})",
-        "data": {
-          "badge_name": "Názov odznaku",
-          "badge_description": "Popis odznaku (voliteľné)",
-          "badge_labels": "Štítky (voliteľné)",
-          "icon": "Ikona odznaku (mdi:xxx)",
-          "associated_challenge": "🏁 Súvisiaca výzva",
-          "assigned_user_ids": "🧒 Pridelené",
-          "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
-          "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
-        },
-        "data_description": {
-          "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
-          "badge_description": "Uveďte popis účelu alebo kritérií odznaku (voliteľné).",
-          "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
-          "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
-          "associated_challenge": "Prepojte tento odznak s konkrétnou výzvou na sledovanie.",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 CIEĽ: Body údržby (voliteľné)",
           "occasion_type": "🎉 Typ príležitosti",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, multiplikátor (voliteľné)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Zadajte minimálny počet bodov potrebných počas cyklu údržby na udržanie odznaku a jeho aktívneho multiplikátora (voliteľné).",
           "occasion_type": "Vyberte typ príležitosti pre tento odznak (napr. sviatok, narodeniny).",
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
-          "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo multiplikátora bodov. Všetky vybrané položky budú udelené alebo použité po získaní odznaku. (voliteľné)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 CIEĽ: Body údržby (voliteľné)",
           "occasion_type": "🎉 Typ príležitosti",
           "associated_achievement": "🏆 Súvisiaci úspech",
-          "associated_challenge": "🏁 Súvisiaca výzva",
           "selected_chores": "🧹 Sledované domáce práce (voliteľné)",
           "assigned_user_ids": "🧒 Pridelené",
           "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy, sankcie (voliteľné)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Zadajte minimálny počet bodov potrebných počas cyklu resetovania na udržanie odznaku a jeho aktívneho multiplikátora (voliteľné).",
           "occasion_type": "Vyberte typ príležitosti pre tento odznak (napr. sviatok, narodeniny).",
           "associated_achievement": "Prepojte tento odznak s dosiahnutým úspechom, ktorý chcete sledovať.",
-          "associated_challenge": "Prepojte tento odznak s výzvou na sledovanie.",
           "selected_chores": "Vyberte úlohy, ktoré prispievajú k získaniu tohto odznaku. Ak chcete sledovať všetky priradené úlohy, nechajte toto pole prázdne (voliteľné).",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien, bonusov alebo penalizácií. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Penalizácie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
           "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
           "associated_achievement": "Prepojte tento odznak s konkrétnym úspechom, ktorý chcete sledovať.",
-          "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
-          "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
-          "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Upraviť odznak prepojený s výzvou",
-        "description": "Nakonfigurujte podrobnosti pre odznak prepojený s výzvou. Tieto odznaky odmeňujú účastníkov za splnenie konkrétnych výziev.\n\n📖 [Prehľad odznakov]({documentation_url})",
-        "data": {
-          "badge_name": "Názov odznaku",
-          "badge_description": "Popis odznaku (voliteľné)",
-          "badge_labels": "Štítky (voliteľné)",
-          "icon": "Ikona odznaku (mdi:xxx)",
-          "associated_challenge": "🏁 Súvisiaca výzva",
-          "assigned_user_ids": "🧒 Pridelené",
-          "award_items": "🎁 ODMENY: Vyberte si body, odmeny, bonusy (voliteľné)",
-          "award_points": "🎁 OCENENIA: Udelené body (voliteľné)"
-        },
-        "data_description": {
-          "badge_name": "Zadajte jedinečný názov pre odznak. Tento názov sa zobrazí v systéme.",
-          "badge_description": "Uveďte popis účelu alebo kritérií odznaku (voliteľné).",
-          "badge_labels": "Pridajte štítky na kategorizáciu alebo označenie odznaku (voliteľné).",
-          "icon": "Zadajte ikonu pre odznak pomocou ikon v Material Design (napr. mdi:star).",
-          "associated_challenge": "Prepojte tento odznak s konkrétnou výzvou na sledovanie.",
           "assigned_user_ids": "Priraďte tento odznak konkrétnym prideleným osobám na sledovanie.",
           "award_items": "Vyberte si jednu alebo viacero možností z bodov, odmien alebo bonusov. Všetky vybrané položky budú udelené alebo uplatnené po získaní odznaku. Sankcie budú uplatnené iba v prípade, že odznak nebude získaný do dátumu ukončenia alebo dátumu resetovania. (voliteľné)",
           "award_points": "Ak sú body vybraným ocenením, uveďte počet bodov, ktoré sa majú uplatniť pri získaní tohto odznaku. (voliteľné)."
@@ -1668,6 +1626,7 @@
         "title": "Všeobecné možnosti",
         "description": "Spravujte všeobecné nastavenia pre integráciu ChoreOps.\n\n[📖 Získajte viac informácií o všeobecných možnostiach]({documentation_url})",
         "data": {
+          "default_chore_points": "Predvolené body za domácu úlohu",
           "points_adjust_values": "Hodnoty tlačidla manuálneho nastavenia bodov",
           "update_interval": "Interval aktualizácie",
           "calendar_show_period": "Počet dní, ktoré sa majú zobraziť v kalendári",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Zálohovacie akcie"
         },
         "data_description": {
+          "default_chore_points": "Predvolená hodnota bodov použitá pre nové úlohy, keď nie sú zadané vlastné body.",
           "points_adjust_values": "Zoznam hodnôt pre tlačidlá manuálneho nastavenia bodov. Každá hodnota je oddelená znakom „|“.",
           "update_interval": "Interval v minútach pre aktualizáciu interného stavu ChoreOps.",
           "calendar_show_period": "Počet dní v budúcnosti, kedy sa majú v kalendári zobraziť naplánované domáce úlohy a výzvy.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Vybranému súboru chýba požadovaná dátová štruktúra.",
       "file_not_found": "Vybraný súbor sa nepodarilo nájsť.",
       "invalid_selection": "Vyberte platnú možnosť.",
+      "invalid_default_chore_points": "Neplatné predvolené body úloh. Musí to byť kladné celé číslo.",
       "error_daily_multi_requires_compatible_reset": "Frekvencia „Viacerokrát za deň“ nie je kompatibilná s typmi resetovania o polnoci, pretože resetujú schválenia iba raz o polnoci.",
       "error_daily_multi_independent_multi_assignees": "Frekvencia „Viacerokrát za deň“ s NEZÁVISLÝM dokončením vyžaduje presne jedného priradeného používateľa, pokiaľ nie sú nakonfigurované časy pre každého priradeného používateľa. V nastaveniach pre každého priradeného používateľa nakonfigurujte rôzne časy.",
       "error_daily_multi_times_required": "Pre frekvenciu „Viacerokrát za deň“ je potrebný zoznam časov.",
@@ -1993,7 +1954,6 @@
         "daily": "Denne",
         "periodic": "Periodické",
         "achievement_linked": "Úspech prepojený",
-        "challenge_linked": "Prepojená výzva",
         "special_occasion": "Špeciálna príležitosť"
       }
     },

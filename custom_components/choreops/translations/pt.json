@@ -28,7 +28,11 @@
         "description": "Escolha um rótulo e um ícone para os pontos.",
         "data": {
           "points_label": "Rótulo de Pontos",
-          "points_icon": "Ícone de Pontos"
+          "points_icon": "Ícone de Pontos",
+          "default_chore_points": "Pontos padrão por tarefa"
+        },
+        "data_description": {
+          "default_chore_points": "O valor de pontos predefinido é utilizado ao criar uma tarefa, a menos que defina pontos personalizados para essa tarefa."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Rótulo de Pontos",
           "points_icon": "Ícone de Pontos",
+          "default_chore_points": "Pontos padrão por tarefa",
           "update_interval": "Intervalo de atualização (minutos)",
           "calendar_show_period": "Período de exibição do calendário (dias)",
           "retention_daily": "Retenção diária (dias)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Etiqueta apresentada para pontos (ex.: 'Pontos', 'Estrelas', 'Moedas')",
           "points_icon": "Ícone MDI para pontos (ex: 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "O valor de pontos padrão é utilizado ao criar uma tarefa, a menos que sejam definidos pontos personalizados.",
           "update_interval": "Com que frequência devem ser atualizados os dados (mínimo: 1 minuto)",
           "calendar_show_period": "Dias históricos a apresentar no calendário (mínimo 1)",
           "retention_daily": "Dias para manter os agregados diários",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Pontos de Manutenção (Opcional)",
           "occasion_type": "🎉 Tipo de ocasião",
           "associated_achievement": "🏆 Conquista Associada",
-          "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Multiplicador (Opcional)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Especifique a quantidade mínima de pontos necessária durante o ciclo de manutenção para manter o crachá e o seu multiplicador ativo (opcional).",
           "occasion_type": "Escolha o tipo de ocasião para este emblema (ex.: feriado, aniversário).",
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
-          "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou um multiplicador de pontos. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. (opcional)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Para que as opções de workflow e de gamificação de tarefas sejam implementadas, é necessário ativar a opção \"Permitir que as tarefas me sejam atribuídas\".",
       "invalid_update_interval": "Intervalo de atualização inválido. Deve ser um número inteiro positivo.",
       "invalid_calendar_show_period": "Período de apresentação do calendário inválido. Deve ser um número inteiro positivo.",
+      "invalid_default_chore_points": "Pontos de tarefas padrão inválidos. Deve ser um número inteiro positivo.",
       "invalid_retention_period": "Período de conservação inválido. Deve ser um número inteiro positivo.",
       "invalid_points_adjust_values": "Valores de ajuste de pontos inválidos. Deve ser uma lista."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Selecione uma ação"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Desafios em breve",
+        "description": "Os desafios estarão disponíveis numa atualização futura.\n\nDurante a migração, os registos de Desafios existentes são convertidos em rastreio de Insígnias Periódicas equivalentes para preservar a intenção e o comportamento de progresso sempre que possível. As insígnias ligadas a Desafios foram removidas nesta versão.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Selecione {entity_type}",
         "description": "Selecione o {entity_type} que pretende {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Editar rótulo e ícone de pontos",
-        "description": "Alterar o rótulo e o ícone utilizados para representar os pontos.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "title": "Editar as definições de pontos",
+        "description": "Altere o rótulo, o ícone e os pontos padrão por tarefa utilizados em todo o ChoreOps.\n\n📖 [Guia de Configuração]({documentation_url})",
         "data": {
           "points_label": "Rótulo de Pontos",
-          "points_icon": "Ícone de Pontos"
+          "points_icon": "Ícone de Pontos",
+          "default_chore_points": "Pontos padrão por tarefa"
+        },
+        "data_description": {
+          "default_chore_points": "Valor predefinido de pontos utilizado para novas tarefas quando não são especificados pontos personalizados. Deve ser um número inteiro maior que 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Pontos de Manutenção (Opcional)",
           "occasion_type": "🎉 Tipo de ocasião",
           "associated_achievement": "🏆 Conquista Associada",
-          "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Multiplicador (Opcional)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Especifique a quantidade mínima de pontos necessária durante o ciclo de manutenção para manter o crachá e o seu multiplicador ativo (opcional).",
           "occasion_type": "Escolha o tipo de ocasião para este emblema (ex.: feriado, aniversário).",
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
-          "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco para registar todas as tarefas atribuídas (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou um multiplicador de pontos. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. (opcional)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Pontos de Manutenção (Opcional)",
           "occasion_type": "🎉 Tipo de ocasião",
           "associated_achievement": "🏆 Conquista Associada",
-          "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Penalizações (Opcional)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Especifique a pontuação mínima necessária durante o ciclo de reinicialização para manter o distintivo e o seu multiplicador ativo (opcional).",
           "occasion_type": "Escolha o tipo de ocasião para este emblema (ex.: feriado, aniversário).",
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
-          "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
@@ -861,30 +871,6 @@
           "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
           "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
           "associated_achievement": "Ligue este distintivo a uma conquista específica para fins de acompanhamento.",
-          "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
-          "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
-          "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Adicionar distintivo ligado ao desafio",
-        "description": "Configure os detalhes de um distintivo ligado a um desafio. Estes distintivos recompensam os participantes por concluírem desafios específicos.\n\n[📖 Visão geral dos distintivos]({documentation_url})",
-        "data": {
-          "badge_name": "Nome do crachá",
-          "badge_description": "Descrição do emblema (opcional)",
-          "badge_labels": "Rótulos (Opcional)",
-          "icon": "Ícone distintivo (mdi:xxx)",
-          "associated_challenge": "🏁 Desafio Associado",
-          "assigned_user_ids": "🧒 Designado para",
-          "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
-          "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
-        },
-        "data_description": {
-          "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
-          "badge_description": "Forneça uma descrição da finalidade ou dos critérios do selo (opcional).",
-          "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
-          "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
-          "associated_challenge": "Associe este distintivo a um desafio específico para efeitos de acompanhamento.",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Pontos de Manutenção (Opcional)",
           "occasion_type": "🎉 Tipo de ocasião",
           "associated_achievement": "🏆 Conquista Associada",
-          "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Multiplicador (Opcional)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Especifique a quantidade mínima de pontos necessária durante o ciclo de manutenção para manter o crachá e o seu multiplicador ativo (opcional).",
           "occasion_type": "Escolha o tipo de ocasião para este emblema (ex.: feriado, aniversário).",
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
-          "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este crachá. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou um multiplicador de pontos. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. (opcional)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Pontos de Manutenção (Opcional)",
           "occasion_type": "🎉 Tipo de ocasião",
           "associated_achievement": "🏆 Conquista Associada",
-          "associated_challenge": "🏁 Desafio Associado",
           "selected_chores": "🧹 Tarefas Registadas (Opcional)",
           "assigned_user_ids": "🧒 Designado para",
           "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas, Bónus, Penalizações (Opcional)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Especifique a pontuação mínima necessária durante o ciclo de reinicialização para manter o distintivo e o seu multiplicador ativo (opcional).",
           "occasion_type": "Escolha o tipo de ocasião para este emblema (ex.: feriado, aniversário).",
           "associated_achievement": "Ligue este distintivo a uma conquista para fins de acompanhamento.",
-          "associated_challenge": "Associe este distintivo a um desafio para efeitos de acompanhamento.",
           "selected_chores": "Selecione as tarefas que contribuem com pontos para este distintivo. Deixe em branco se pretender acompanhar todas as tarefas atribuídas (opcional).",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas, bónus ou penalizações. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
           "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
           "associated_achievement": "Ligue este distintivo a uma conquista específica para fins de acompanhamento.",
-          "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
-          "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
-          "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Editar distintivo ligado ao desafio",
-        "description": "Configure os detalhes de um distintivo ligado a um desafio. Estes distintivos recompensam os participantes por concluírem desafios específicos.\n\n📖 [Visão geral dos distintivos]({documentation_url})",
-        "data": {
-          "badge_name": "Nome do crachá",
-          "badge_description": "Descrição do emblema (opcional)",
-          "badge_labels": "Rótulos (Opcional)",
-          "icon": "Ícone distintivo (mdi:xxx)",
-          "associated_challenge": "🏁 Desafio Associado",
-          "assigned_user_ids": "🧒 Designado para",
-          "award_items": "🎁 PRÉMIOS: Selecione Pontos, Recompensas e Bónus (Opcional)",
-          "award_points": "🎁 PRÉMIOS: Pontos Atribuídos (Opcional)"
-        },
-        "data_description": {
-          "badge_name": "Introduza um nome exclusivo para o crachá. Esse nome será apresentado no sistema.",
-          "badge_description": "Forneça uma descrição da finalidade ou dos critérios do selo (opcional).",
-          "badge_labels": "Adicione etiquetas para categorizar ou identificar o crachá (opcional).",
-          "icon": "Especifique um ícone para o distintivo utilizando ícones do Material Design (por exemplo, mdi:star).",
-          "associated_challenge": "Associe este distintivo a um desafio específico para efeitos de acompanhamento.",
           "assigned_user_ids": "Atribua este crachá a responsáveis específicos para efeitos de rastreio.",
           "award_items": "Selecione um ou mais itens entre pontos, recompensas ou bónus. Todos os artigos selecionados serão atribuídos ou aplicados quando o distintivo for conquistado. As penalizações serão aplicadas apenas se o distintivo não for conquistado até à data final ou à data de reinicialização. (opcional)",
           "award_points": "Se os pontos forem uma das recompensas selecionadas, especifique a quantidade de pontos a considerar quando este distintivo for conquistado. (opcional)"
@@ -1668,6 +1626,7 @@
         "title": "Opções gerais",
         "description": "Faça a gestão das configurações gerais da integração com o ChoreOps.\n\n[📖 Saiba mais sobre as Opções Gerais]({documentation_url})",
         "data": {
+          "default_chore_points": "Pontos padrão por tarefa",
           "points_adjust_values": "Valores do botão de regulação manual dos pontos",
           "update_interval": "Intervalo de atualização",
           "calendar_show_period": "Número de dias a apresentar no calendário",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Ações de backup"
         },
         "data_description": {
+          "default_chore_points": "Valor de pontos padrão utilizado para novas tarefas quando não são especificados pontos personalizados.",
           "points_adjust_values": "Lista de valores para os botões de ajuste manual dos pontos. Cada valor separado por '|'.",
           "update_interval": "Intervalo em minutos para atualização do estado interno do ChoreOps.",
           "calendar_show_period": "Número de dias no futuro para apresentar as tarefas e desafios agendados no calendário.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "O ficheiro selecionado não possui a estrutura de dados necessária.",
       "file_not_found": "O ficheiro selecionado não foi encontrado.",
       "invalid_selection": "Por favor, selecione uma opção válida.",
+      "invalid_default_chore_points": "Pontos de tarefas padrão inválidos. Deve ser um número inteiro positivo.",
       "error_daily_multi_requires_compatible_reset": "A frequência 'várias vezes por dia' é incompatível com os tipos de reposição da meia-noite, uma vez que estes redefinem as aprovações apenas uma vez, à meia-noite.",
       "error_daily_multi_independent_multi_assignees": "A frequência \"Várias vezes por dia\" com conclusão INDEPENDENTE exige exatamente um responsável, a menos que estejam configurados os horários por responsável. Configure horários diferentes para cada responsável nas definições por responsável.",
       "error_daily_multi_times_required": "A lista de horários é obrigatória para a frequência 'Várias vezes por dia'.",
@@ -1993,7 +1954,6 @@
         "daily": "Diariamente",
         "periodic": "Periódico",
         "achievement_linked": "Conquista Vinculada",
-        "challenge_linked": "Desafio Vinculado",
         "special_occasion": "Ocasião Especial"
       }
     },

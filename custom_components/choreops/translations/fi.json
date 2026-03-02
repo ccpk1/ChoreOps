@@ -28,7 +28,11 @@
         "description": "Valitse pisteille otsikko ja kuvake.",
         "data": {
           "points_label": "Pistemerkintä",
-          "points_icon": "Pistekuvake"
+          "points_icon": "Pistekuvake",
+          "default_chore_points": "Oletuspisteet per työtehtävä"
+        },
+        "data_description": {
+          "default_chore_points": "Työtä luotaessa käytetty oletuspistemäärä, ellet aseta kyseiselle työlle mukautettuja pisteitä."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Pistemerkintä",
           "points_icon": "Pistekuvake",
+          "default_chore_points": "Oletuspisteet per työtehtävä",
           "update_interval": "Päivitysväli (minuuttia)",
           "calendar_show_period": "Kalenterin näyttöjakso (päivinä)",
           "retention_daily": "Päivittäinen säilytys (päivää)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Pisteiden nimi (esim. 'Pisteet', 'Tähdet', 'Kolikot')",
           "points_icon": "MDI-kuvake pisteille (esim. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Työtehtävää luotaessa käytetty oletuspistemäärä, ellei mukautettuja pisteitä ole asetettu.",
           "update_interval": "Kuinka usein tiedot päivitetään (vähintään: 1 minuutti)",
           "calendar_show_period": "Kalenterissa näytettävät historiapäivät (vähintään 1)",
           "retention_daily": "Päivittäisten koosteiden säilytyspäivät",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 KOHDE: Huoltopisteet (valinnainen)",
           "occasion_type": "🎉 Tilaisuuden tyyppi",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, kerroin (valinnainen)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Määritä ylläpitosyklin aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
-          "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai pistekertoimesta. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. (valinnainen)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Tehtävien työnkulku ja pelillistämisasetukset edellyttävät, että 'Salli tehtävien osoittaminen minulle' on ensin otettu käyttöön.",
       "invalid_update_interval": "Virheellinen päivitysväli. Arvon on oltava positiivinen kokonaisluku.",
       "invalid_calendar_show_period": "Virheellinen kalenterin näyttöjakso. Arvon on oltava positiivinen kokonaisluku.",
+      "invalid_default_chore_points": "Virheelliset oletusarvoiset työpisteet. Arvon on oltava positiivinen kokonaisluku.",
       "invalid_retention_period": "Virheellinen säilytysaika. Arvon on oltava positiivinen kokonaisluku.",
       "invalid_points_adjust_values": "Virheelliset pisteet säätävät arvoja. Arvon on oltava luettelo."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Valitse toiminto"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Haasteita tulossa pian",
+        "description": "Haasteet tulevat saataville tulevassa päivityksessä.\n\nSiirron aikana olemassa olevat haastetietueet muunnetaan vastaaviksi säännöllisten merkkien seurantatiedoksi, jotta aikomus ja edistymiskäyttäytyminen säilyvät mahdollisuuksien mukaan. Haasteisiin liittyvät merkit poistetaan tässä julkaisussa.\n\n📖 [Määritysopas]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Valitse {entity_type}",
         "description": "Valitse {entity_type} , jonka haluat {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Muokkaa pisteiden otsikkoa ja kuvaketta",
-        "description": "Vaihda pisteiden esittämiseen käytettyä otsikkoa ja kuvaketta.\n\n📖 [Määritysopas]({documentation_url})",
+        "title": "Muokkaa pisteasetuksia",
+        "description": "Muuta ChoreOpsissa käytettyä työtehtävän otsikkoa, kuvaketta ja oletuspisteitä.\n\n📖 [Määritysopas]({documentation_url})",
         "data": {
           "points_label": "Pistemerkintä",
-          "points_icon": "Pistekuvake"
+          "points_icon": "Pistekuvake",
+          "default_chore_points": "Oletuspisteet per työtehtävä"
+        },
+        "data_description": {
+          "default_chore_points": "Uusille töille käytetään oletuspistearvoa, kun mukautettuja pisteitä ei ole määritetty. Arvon on oltava kokonaisluku, joka on suurempi kuin 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 KOHDE: Huoltopisteet (valinnainen)",
           "occasion_type": "🎉 Tilaisuuden tyyppi",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, kerroin (valinnainen)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Määritä ylläpitosyklin aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
-          "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi seurataksesi kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai pistekertoimesta. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. (valinnainen)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 KOHDE: Huoltopisteet (valinnainen)",
           "occasion_type": "🎉 Tilaisuuden tyyppi",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, rangaistukset (valinnainen)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Määritä nollausjakson aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
-          "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
@@ -861,30 +871,6 @@
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
           "associated_achievement": "Linkitä tämä ansiomerkki tiettyyn saavutukseen seurantaa varten.",
-          "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
-          "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
-          "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Lisää haasteeseen liittyvä merkki",
-        "description": "Määritä haasteeseen linkitetyn ansiomerkin tiedot. Nämä ansiomerkit palkitsevat osallistujia tiettyjen haasteiden suorittamisesta.\n\n[📖 Ansiomerkkien yleiskatsaus]({documentation_url})",
-        "data": {
-          "badge_name": "Merkin nimi",
-          "badge_description": "Merkin kuvaus (valinnainen)",
-          "badge_labels": "Tarrat (valinnainen)",
-          "icon": "Tunnuskuvake (mdi:xxx)",
-          "associated_challenge": "🏁 Liittyvä haaste",
-          "assigned_user_ids": "🧒 Määrätty",
-          "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
-          "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
-        },
-        "data_description": {
-          "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
-          "badge_description": "Anna kuvaus merkin tarkoituksesta tai kriteereistä (valinnainen).",
-          "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
-          "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
-          "associated_challenge": "Linkitä tämä merkki tiettyyn seurantahaasteeseen.",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 KOHDE: Huoltopisteet (valinnainen)",
           "occasion_type": "🎉 Tilaisuuden tyyppi",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, kerroin (valinnainen)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Määritä ylläpitosyklin aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
-          "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai pistekertoimesta. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. (valinnainen)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 KOHDE: Huoltopisteet (valinnainen)",
           "occasion_type": "🎉 Tilaisuuden tyyppi",
           "associated_achievement": "🏆 Liittyvä saavutus",
-          "associated_challenge": "🏁 Liittyvä haaste",
           "selected_chores": "🧹 Seurattavat askareet (valinnainen)",
           "assigned_user_ids": "🧒 Määrätty",
           "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset, rangaistukset (valinnainen)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Määritä nollausjakson aikana vaadittava vähimmäispistemäärä merkin ja sen aktiivisen kertoimen (valinnainen) säilyttämiseksi.",
           "occasion_type": "Valitse tämän merkin tilaisuuden tyyppi (esim. loma, syntymäpäivä).",
           "associated_achievement": "Linkitä tämä ansiomerkki saavutukseen seurantaa varten.",
-          "associated_challenge": "Linkitä tämä merkki seurantahaasteeseen.",
           "selected_chores": "Valitse tehtävät, jotka kerryttävät pisteitä tähän merkkiin. Jätä tyhjäksi, jos haluat seurata kaikkia määrättyjä tehtäviä (valinnainen).",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista, bonuksista tai rangaistuksia. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
           "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
           "associated_achievement": "Linkitä tämä ansiomerkki tiettyyn saavutukseen seurantaa varten.",
-          "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
-          "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
-          "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Muokkaa haasteeseen linkitettyä arvomerkkiä",
-        "description": "Määritä haasteeseen linkitetyn ansiomerkin tiedot. Nämä ansiomerkit palkitsevat osallistujia tiettyjen haasteiden suorittamisesta.\n\n📖 [Ansiomerkkien yleiskatsaus]({documentation_url})",
-        "data": {
-          "badge_name": "Merkin nimi",
-          "badge_description": "Merkin kuvaus (valinnainen)",
-          "badge_labels": "Tarrat (valinnainen)",
-          "icon": "Tunnuskuvake (mdi:xxx)",
-          "associated_challenge": "🏁 Liittyvä haaste",
-          "assigned_user_ids": "🧒 Määrätty",
-          "award_items": "🎁 PALKINNOT: Valitse pisteet, palkinnot, bonukset (valinnainen)",
-          "award_points": "🎁 PALKINNOT: Myönnetyt pisteet (valinnainen)"
-        },
-        "data_description": {
-          "badge_name": "Anna merkille yksilöllinen nimi. Tämä nimi näkyy järjestelmässä.",
-          "badge_description": "Anna kuvaus merkin tarkoituksesta tai kriteereistä (valinnainen).",
-          "badge_labels": "Lisää tunnisteita merkin luokittelemiseksi tai merkitsemiseksi (valinnainen).",
-          "icon": "Määritä merkille kuvake käyttämällä Material Design Icons -kuvakkeita (esim. mdi:star).",
-          "associated_challenge": "Linkitä tämä merkki tiettyyn seurantahaasteeseen.",
           "assigned_user_ids": "Anna tämä merkki tietyille henkilöille seurantaa varten.",
           "award_items": "Valitse yksi tai useampi pisteistä, palkinnoista tai bonuksista. Kaikki valitut kohteet myönnetään tai niitä käytetään, kun merkki ansaitaan. Rangaistuksia sovelletaan vain, jos merkkiä ei ansaita päättymispäivään tai nollauspäivään mennessä. (valinnainen)",
           "award_points": "Jos pisteet ovat valittu palkinto, määritä pisteiden määrä, joka lisätään, kun tämä ansiomerkki ansaitaan. (valinnainen)"
@@ -1668,6 +1626,7 @@
         "title": "Yleiset asetukset",
         "description": "Hallitse ChoreOps-integraation yleisiä asetuksia.\n\n[📖 Lue lisää yleisistä asetuksista]({documentation_url})",
         "data": {
+          "default_chore_points": "Oletuspisteet per työtehtävä",
           "points_adjust_values": "Manuaalisten pisteiden säätöpainikkeiden arvot",
           "update_interval": "Päivitysväli",
           "calendar_show_period": "Kalenterissa näytettävien päivien määrä",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Varmuuskopiointitoiminnot"
         },
         "data_description": {
+          "default_chore_points": "Uusille töille käytetään oletuspistearvoa, kun mukautettuja pisteitä ei ole määritetty.",
           "points_adjust_values": "Luettelo manuaalisten pisteiden säätöpainikkeiden arvoista. Arvot erotetaan merkillä '|'.",
           "update_interval": "ChoreOpsin sisäisen tilan päivitysväli minuutteina.",
           "calendar_show_period": "Kuinka monena päivänä tulevaisuudessa aikataulun mukaiset askareet ja haasteet näytetään kalenterissa.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Valitusta tiedostosta puuttuu vaadittu tietorakenne.",
       "file_not_found": "Valittua tiedostoa ei löytynyt.",
       "invalid_selection": "Valitse kelvollinen vaihtoehto.",
+      "invalid_default_chore_points": "Virheelliset oletusarvoiset työpisteet. Arvon on oltava positiivinen kokonaisluku.",
       "error_daily_multi_requires_compatible_reset": "'Useita kertoja päivässä' -tiheys ei ole yhteensopiva keskiyön nollaustyyppien kanssa, koska ne nollaavat hyväksynnät vain kerran keskiyöllä.",
       "error_daily_multi_independent_multi_assignees": "'Useita kertoja päivässä' -tiheys RIIPPUMATTOMAN suorituksen kanssa vaatii täsmälleen yhden vastuuhenkilön, ellei vastuuhenkilökohtaisia aikoja ole määritetty. Määritä kullekin vastuuhenkilölle eri ajat vastuuhenkilökohtaisissa asetuksissa.",
       "error_daily_multi_times_required": "Aikaluettelo vaaditaan, jos tiheys on 'Useita kertoja päivässä'.",
@@ -1993,7 +1954,6 @@
         "daily": "Päivittäin",
         "periodic": "Säännöllinen",
         "achievement_linked": "Saavutus linkitetty",
-        "challenge_linked": "Haaste linkitetty",
         "special_occasion": "Erikoistilaisuudet"
       }
     },

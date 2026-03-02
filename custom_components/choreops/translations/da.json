@@ -28,7 +28,11 @@
         "description": "Vælg en etiket og et ikon for punkter.",
         "data": {
           "points_label": "Pointmærke",
-          "points_icon": "Pointikon"
+          "points_icon": "Pointikon",
+          "default_chore_points": "Standardpoint pr. opgave"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpointværdi, der bruges, når du opretter en opgave, medmindre du angiver brugerdefinerede point for den pågældende opgave."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Pointmærke",
           "points_icon": "Pointikon",
+          "default_chore_points": "Standardpoint pr. opgave",
           "update_interval": "Opdateringsinterval (minutter)",
           "calendar_show_period": "Kalendervisningsperiode (dage)",
           "retention_daily": "Daglig opbevaring (dage)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Etiket vist for point (f.eks. 'Point', 'Stjerner', 'Mønter')",
           "points_icon": "MDI-ikon for point (f.eks. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Standardpointværdien bruges ved oprettelse af en opgave, medmindre der er angivet brugerdefinerede point.",
           "update_interval": "Hvor ofte data skal opdateres (minimum: 1 minut)",
           "calendar_show_period": "Historiske dage, der skal vises i kalenderen (minimum 1)",
           "retention_daily": "Dage til at gemme daglige aggregater",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 MÅL: Vedligeholdelsespunkter (valgfrit)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, multiplikator (valgfrit)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Angiv minimumspointene under vedligeholdelsescyklussen for at beholde badget og dets aktive multiplikator (valgfrit).",
           "occasion_type": "Vælg typen af lejlighed for dette badge (f.eks. ferie, fødselsdag).",
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
-          "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller en pointmultiplikator. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. (valgfrit)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Indstillinger for opgaver og gamification kræver, at \"Tillad, at opgaver tildeles mig\" først er aktiveret.",
       "invalid_update_interval": "Ugyldigt opdateringsinterval. Skal være et positivt heltal.",
       "invalid_calendar_show_period": "Ugyldig kalendervisningsperiode. Skal være et positivt heltal.",
+      "invalid_default_chore_points": "Ugyldige standardopgaver. Skal være et positivt heltal.",
       "invalid_retention_period": "Ugyldig opbevaringsperiode. Skal være et positivt heltal.",
       "invalid_points_adjust_values": "Ugyldige pointjusteringsværdier. Skal være en liste."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Vælg en handling"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Udfordringer kommer snart",
+        "description": "Udfordringer vil blive gjort tilgængelige i fremtidige opdateringer.\n\nUnder migreringen konverteres eksisterende udfordringsregistreringer til tilsvarende periodisk badge-sporing for at bevare intention og fremskridtsadfærd, hvor det er muligt. Udfordringsrelaterede badges fjernes i denne udgivelse.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Vælg {entity_type}",
         "description": "Vælg den {entity_type} , du vil {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Rediger punkters etiket og ikon",
-        "description": "Skift den etiket og det ikon, der bruges til at repræsentere punkter.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "title": "Rediger pointindstillinger",
+        "description": "Skift etiketten, ikonet og standardpunkterne pr. opgave, der bruges i hele ChoreOps.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "points_label": "Pointmærke",
-          "points_icon": "Pointikon"
+          "points_icon": "Pointikon",
+          "default_chore_points": "Standardpoint pr. opgave"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpointværdien bruges til nye opgaver, når der ikke er angivet brugerdefinerede point. Skal være et heltal større end 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 MÅL: Vedligeholdelsespunkter (valgfrit)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, multiplikator (valgfrit)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Angiv minimumspointene under vedligeholdelsescyklussen for at beholde badget og dets aktive multiplikator (valgfrit).",
           "occasion_type": "Vælg typen af lejlighed for dette badge (f.eks. ferie, fødselsdag).",
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
-          "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt for at spore alle tildelte opgaver (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller en pointmultiplikator. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. (valgfrit)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 MÅL: Vedligeholdelsespunkter (valgfrit)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, straffe (valgfrit)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Angiv minimumspointene under nulstillingscyklussen for at beholde badget og dets aktive multiplikator (valgfrit).",
           "occasion_type": "Vælg typen af lejlighed for dette badge (f.eks. ferie, fødselsdag).",
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
-          "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
@@ -861,30 +871,6 @@
           "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
           "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Knyt dette badge til en specifik præstation for sporing.",
-          "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
-          "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
-          "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Tilføj badge relateret til udfordring",
-        "description": "Konfigurer detaljerne for et badge, der er knyttet til en udfordring. Disse badges belønner tildelte personer for at gennemføre specifikke udfordringer.\n\n[📖 Oversigt over badges]({documentation_url})",
-        "data": {
-          "badge_name": "Badgenavn",
-          "badge_description": "Beskrivelse af badge (valgfrit)",
-          "badge_labels": "Etiketter (valgfrit)",
-          "icon": "Badge-ikon (mdi:xxx)",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
-          "assigned_user_ids": "🧒 Tildelt til",
-          "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
-          "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
-        },
-        "data_description": {
-          "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
-          "badge_description": "Angiv en beskrivelse af badgets formål eller kriterier (valgfrit).",
-          "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
-          "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
-          "associated_challenge": "Knyt dette badge til en specifik udfordring til sporing.",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 MÅL: Vedligeholdelsespunkter (valgfrit)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, multiplikator (valgfrit)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Angiv minimumspointene under vedligeholdelsescyklussen for at beholde badget og dets aktive multiplikator (valgfrit).",
           "occasion_type": "Vælg typen af lejlighed for dette badge (f.eks. ferie, fødselsdag).",
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
-          "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller en pointmultiplikator. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. (valgfrit)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 MÅL: Vedligeholdelsespunkter (valgfrit)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet præstation",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
           "selected_chores": "🧹 Registrerede pligter (valgfrit)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser, straffe (valgfrit)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Angiv minimumspointene under nulstillingscyklussen for at beholde badget og dets aktive multiplikator (valgfrit).",
           "occasion_type": "Vælg typen af lejlighed for dette badge (f.eks. ferie, fødselsdag).",
           "associated_achievement": "Knyt dette badge til en præstation for sporing.",
-          "associated_challenge": "Knyt dette badge til en udfordring til sporing.",
           "selected_chores": "Vælg de opgaver, der bidrager med point til dette badge. Lad feltet stå tomt, hvis du vil spore alle tildelte opgaver (valgfrit).",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger, bonusser eller straffe. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Straffer vil kun blive anvendt, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
           "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Knyt dette badge til en specifik præstation for sporing.",
-          "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
-          "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
-          "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Rediger badge relateret til udfordring",
-        "description": "Konfigurer detaljerne for et badge, der er knyttet til en udfordring. Disse badges belønner tildelte personer for at gennemføre specifikke udfordringer.\n\n📖 [Oversigt over badges]({documentation_url})",
-        "data": {
-          "badge_name": "Badgenavn",
-          "badge_description": "Beskrivelse af badge (valgfrit)",
-          "badge_labels": "Etiketter (valgfrit)",
-          "icon": "Badge-ikon (mdi:xxx)",
-          "associated_challenge": "🏁 Tilknyttet udfordring",
-          "assigned_user_ids": "🧒 Tildelt til",
-          "award_items": "🎁 PRÆMIER: Vælg point, belønninger, bonusser (valgfrit)",
-          "award_points": "🎁 PRÆMIER: Tildelte point (valgfrit)"
-        },
-        "data_description": {
-          "badge_name": "Indtast et unikt navn til badget. Dette navn vil blive vist i systemet.",
-          "badge_description": "Angiv en beskrivelse af badgets formål eller kriterier (valgfrit).",
-          "badge_labels": "Tilføj etiketter for at kategorisere eller tagge badget (valgfrit).",
-          "icon": "Angiv et ikon til badget ved hjælp af Material Design Icons (f.eks. mdi:star).",
-          "associated_challenge": "Knyt dette badge til en specifik udfordring til sporing.",
           "assigned_user_ids": "Tildel dette badge til bestemte tildelte personer til sporing.",
           "award_items": "Vælg en eller flere af point, belønninger eller bonusser. Alle valgte elementer vil blive tildelt eller anvendt, når badget er optjent. Der vil kun blive anvendt straffe, hvis badget ikke er optjent inden slutdatoen eller nulstillingsdatoen. (valgfrit)",
           "award_points": "Hvis pointene er en valgt belønning, skal du angive antallet af point, der skal anvendes, når dette badge optjenes. (valgfrit)."
@@ -1668,6 +1626,7 @@
         "title": "Generelle muligheder",
         "description": "Administrer generelle indstillinger for ChoreOps-integrationen.\n\n[📖 Få mere at vide om generelle indstillinger]({documentation_url})",
         "data": {
+          "default_chore_points": "Standardpoint pr. opgave",
           "points_adjust_values": "Værdier for knap til manuel justering af punkter",
           "update_interval": "Opdateringsinterval",
           "calendar_show_period": "Antal dage, der skal vises i kalenderen",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Sikkerhedskopieringshandlinger"
         },
         "data_description": {
+          "default_chore_points": "Standardpointværdi brugt til nye opgaver, når brugerdefinerede point ikke er angivet.",
           "points_adjust_values": "Liste over værdier for knapperne til manuel punktjustering. Hver værdi adskilt af '|'.",
           "update_interval": "Interval i minutter for opdatering af ChoreOps' interne tilstand.",
           "calendar_show_period": "Antal dage i fremtiden, hvor planlagte pligter og udfordringer skal vises i kalenderen.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Den valgte fil mangler den nødvendige datastruktur.",
       "file_not_found": "Den valgte fil kunne ikke findes.",
       "invalid_selection": "Vælg venligst en gyldig mulighed.",
+      "invalid_default_chore_points": "Ugyldige standardopgaver. Skal være et positivt heltal.",
       "error_daily_multi_requires_compatible_reset": "Frekvensen 'Flere gange om dagen' er ikke kompatibel med nulstillingstyperne ved midnat, fordi de kun nulstiller godkendelser én gang ved midnat.",
       "error_daily_multi_independent_multi_assignees": "Hyppigheden 'Flere gange om dagen' med UAFHÆNGIG fuldførelse kræver præcis én tildelt person, medmindre der er konfigureret tidspunkter pr. tildelt person. Konfigurer forskellige tidspunkter for hver tildelt person i indstillingerne pr. tildelt person.",
       "error_daily_multi_times_required": "Tidsliste er påkrævet for hyppigheden 'Flere gange om dagen'.",
@@ -1993,7 +1954,6 @@
         "daily": "Daglig",
         "periodic": "Periodisk",
         "achievement_linked": "Præstationslinket",
-        "challenge_linked": "Udfordring tilknyttet",
         "special_occasion": "Særlig lejlighed"
       }
     },

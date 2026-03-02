@@ -28,7 +28,11 @@
         "description": "Izberite oznako in ikono za točke.",
         "data": {
           "points_label": "Oznaka točk",
-          "points_icon": "Ikona točk"
+          "points_icon": "Ikona točk",
+          "default_chore_points": "Privzete točke na opravilo"
+        },
+        "data_description": {
+          "default_chore_points": "Privzeta vrednost točk, ki se uporablja pri ustvarjanju opravila, razen če za to opravilo nastavite točke po meri."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Oznaka točk",
           "points_icon": "Ikona točk",
+          "default_chore_points": "Privzete točke na opravilo",
           "update_interval": "Interval posodobitve (minute)",
           "calendar_show_period": "Obdobje prikaza koledarja (dnevi)",
           "retention_daily": "Dnevna hramba (dni)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Oznaka, prikazana za točke (npr. »Točke«, »Zvezdice«, »Kovanci«)",
           "points_icon": "Ikona MDI za točke (npr. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Privzeta vrednost točk, uporabljena pri ustvarjanju opravila, razen če so nastavljene točke po meri.",
           "update_interval": "Kako pogosto posodabljati podatke (najmanj: 1 minuta)",
           "calendar_show_period": "Število dni zgodovine za prikaz v koledarju (najmanj 1)",
           "retention_daily": "Dnevi za hrambo dnevnih agregatov",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 CILJ: Vzdrževalne točke (neobvezno)",
           "occasion_type": "🎉 Vrsta priložnosti",
           "associated_achievement": "🏆 Povezan dosežek",
-          "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Določite najmanjše število točk, potrebnih med vzdrževalnim ciklom, da ohranite značko in njen aktivni množitelj (neobvezno).",
           "occasion_type": "Izberite vrsto priložnosti za to značko (npr. praznik, rojstni dan).",
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
-          "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Za možnosti poteka dela pri opravilih in gamifikacije je treba najprej omogočiti možnost »Dovoli dodeljevanje opravil meni«.",
       "invalid_update_interval": "Neveljaven interval posodabljanja. Biti mora pozitivno celo število.",
       "invalid_calendar_show_period": "Neveljavno obdobje prikaza koledarja. Biti mora pozitivno celo število.",
+      "invalid_default_chore_points": "Neveljavne privzete točke opravila. Biti mora pozitivno celo število.",
       "invalid_retention_period": "Neveljavno obdobje hrambe. Mora biti pozitivno celo število.",
       "invalid_points_adjust_values": "Neveljavne vrednosti prilagoditve točk. Mora biti seznam."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Izberite dejanje"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Izzivi kmalu",
+        "description": "Izzivi bodo na voljo v prihodnji posodobitvi.\n\nMed selitvijo se obstoječi zapisi izzivov pretvorijo v enakovredno periodično sledenje značk, da se ohrani namen in vedenje napredka, kjer je to mogoče. Značke, povezane z izzivi, so v tej izdaji odstranjene.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Izberite {entity_type}",
         "description": "Izberite {entity_type} , ki ga želite {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Urejanje oznake in ikone točk",
-        "description": "Spremenite oznako in ikono, ki se uporabljata za predstavitev točk.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "title": "Urejanje nastavitev točk",
+        "description": "Spremenite oznako, ikono in privzete točke za vsako opravilo, ki se uporablja v ChoreOps.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "points_label": "Oznaka točk",
-          "points_icon": "Ikona točk"
+          "points_icon": "Ikona točk",
+          "default_chore_points": "Privzete točke na opravilo"
+        },
+        "data_description": {
+          "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar točke po meri niso določene. Mora biti celo število, večje od 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 CILJ: Vzdrževalne točke (neobvezno)",
           "occasion_type": "🎉 Vrsta priložnosti",
           "associated_achievement": "🏆 Povezan dosežek",
-          "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Določite najmanjše število točk, potrebnih med vzdrževalnim ciklom, da ohranite značko in njen aktivni množitelj (neobvezno).",
           "occasion_type": "Izberite vrsto priložnosti za to značko (npr. praznik, rojstni dan).",
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
-          "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Pustite prazno, če želite spremljati vsa dodeljena opravila (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 CILJ: Vzdrževalne točke (neobvezno)",
           "occasion_type": "🎉 Vrsta priložnosti",
           "associated_achievement": "🏆 Povezan dosežek",
-          "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Določite najmanjše število točk, potrebnih med ciklom ponastavitve, da ohranite značko in njen aktivni množitelj (neobvezno).",
           "occasion_type": "Izberite vrsto priložnosti za to značko (npr. praznik, rojstni dan).",
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
-          "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
@@ -861,30 +871,6 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon Material Design (npr. mdi:star).",
           "associated_achievement": "Povežite to značko z določenim dosežkom za sledenje.",
-          "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
-          "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
-          "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Dodaj značko, povezano z izzivom",
-        "description": "Konfigurirajte podrobnosti za značko, povezano z izzivom. Te značke nagrajujejo dodeljene osebe za dokončanje določenih izzivov.\n\n[📖 Pregled značk]({documentation_url})",
-        "data": {
-          "badge_name": "Ime značke",
-          "badge_description": "Opis značke (neobvezno)",
-          "badge_labels": "Oznake (neobvezno)",
-          "icon": "Ikona značke (mdi:xxx)",
-          "associated_challenge": "🏁 Povezan izziv",
-          "assigned_user_ids": "🧒 Dodeljeno",
-          "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
-          "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
-        },
-        "data_description": {
-          "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
-          "badge_description": "Navedite opis namena ali meril značke (neobvezno).",
-          "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
-          "icon": "Določite ikono za značko z uporabo ikon Material Design (npr. mdi:star).",
-          "associated_challenge": "Povežite to značko z določenim izzivom za sledenje.",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 CILJ: Vzdrževalne točke (neobvezno)",
           "occasion_type": "🎉 Vrsta priložnosti",
           "associated_achievement": "🏆 Povezan dosežek",
-          "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, množitelj (neobvezno)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Določite najmanjše število točk, potrebnih med vzdrževalnim ciklom, da ohranite značko in njen aktivni množitelj (neobvezno).",
           "occasion_type": "Izberite vrsto priložnosti za to značko (npr. praznik, rojstni dan).",
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
-          "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali množitelja točk. Vsi izbrani elementi bodo dodeljeni ali uporabljeni, ko bo značka pridobljena. (neobvezno)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 CILJ: Vzdrževalne točke (neobvezno)",
           "occasion_type": "🎉 Vrsta priložnosti",
           "associated_achievement": "🏆 Povezan dosežek",
-          "associated_challenge": "🏁 Povezan izziv",
           "selected_chores": "🧹 Sledena opravila (neobvezno)",
           "assigned_user_ids": "🧒 Dodeljeno",
           "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse, kazni (neobvezno)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Določite najmanjše število točk, potrebnih med ciklom ponastavitve, da ohranite značko in njen aktivni množitelj (neobvezno).",
           "occasion_type": "Izberite vrsto priložnosti za to značko (npr. praznik, rojstni dan).",
           "associated_achievement": "Povežite to značko z dosežkom za sledenje.",
-          "associated_challenge": "Povežite to značko z izzivom za sledenje.",
           "selected_chores": "Izberite opravila, ki prispevajo k tej znački. Če želite spremljati vsa dodeljena opravila, pustite polje prazno (neobvezno).",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad, bonusov ali kazni. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
           "icon": "Določite ikono za značko z uporabo ikon Material Design (npr. mdi:star).",
           "associated_achievement": "Povežite to značko z določenim dosežkom za sledenje.",
-          "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
-          "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
-          "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Uredi značko, povezano z izzivom",
-        "description": "Konfigurirajte podrobnosti za značko, povezano z izzivom. Te značke nagrajujejo dodeljene osebe za dokončanje določenih izzivov.\n\n📖 [Pregled značk]({documentation_url})",
-        "data": {
-          "badge_name": "Ime značke",
-          "badge_description": "Opis značke (neobvezno)",
-          "badge_labels": "Oznake (neobvezno)",
-          "icon": "Ikona značke (mdi:xxx)",
-          "associated_challenge": "🏁 Povezan izziv",
-          "assigned_user_ids": "🧒 Dodeljeno",
-          "award_items": "🎁 NAGRADE: Izberite točke, nagrade, bonuse (neobvezno)",
-          "award_points": "🎁 NAGRADE: Dodeljene točke (neobvezno)"
-        },
-        "data_description": {
-          "badge_name": "Vnesite edinstveno ime za značko. To ime bo prikazano v sistemu.",
-          "badge_description": "Navedite opis namena ali meril značke (neobvezno).",
-          "badge_labels": "Dodajte oznake za kategorizacijo ali označevanje značke (neobvezno).",
-          "icon": "Določite ikono za značko z uporabo ikon Material Design (npr. mdi:star).",
-          "associated_challenge": "Povežite to značko z določenim izzivom za sledenje.",
           "assigned_user_ids": "To značko dodelite določenim prejemnikom za sledenje.",
           "award_items": "Izberite eno ali več točk, nagrad ali bonusov. Vse izbrane postavke bodo dodeljene ali uporabljene, ko bo značka pridobljena. Kazni bodo uporabljene le, če značka ni pridobljena do končnega datuma ali datuma ponastavitve. (neobvezno)",
           "award_points": "Če so točke izbrana nagrada, navedite število točk, ki se uporabijo ob pridobitvi te značke. (neobvezno)."
@@ -1668,6 +1626,7 @@
         "title": "Splošne možnosti",
         "description": "Upravljajte splošne nastavitve za integracijo ChoreOps.\n\n[📖 Več o splošnih možnostih]({documentation_url})",
         "data": {
+          "default_chore_points": "Privzete točke na opravilo",
           "points_adjust_values": "Vrednosti gumba za ročno prilagajanje točk",
           "update_interval": "Interval posodobitve",
           "calendar_show_period": "Število dni za prikaz v koledarju",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Varnostna dejanja"
         },
         "data_description": {
+          "default_chore_points": "Privzeta vrednost točk, ki se uporablja za nova opravila, kadar točke po meri niso določene.",
           "points_adjust_values": "Seznam vrednosti za gumbe za ročno prilagajanje točk. Vsaka vrednost je ločena z '|'.",
           "update_interval": "Interval v minutah za posodabljanje notranjega stanja ChoreOps.",
           "calendar_show_period": "Število dni v prihodnosti za prikaz načrtovanih opravil in izzivov v koledarju.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Izbrani datoteki manjka zahtevana podatkovna struktura.",
       "file_not_found": "Izbrane datoteke ni bilo mogoče najti.",
       "invalid_selection": "Izberite veljavno možnost.",
+      "invalid_default_chore_points": "Neveljavne privzete točke opravila. Biti mora pozitivno celo število.",
       "error_daily_multi_requires_compatible_reset": "Pogostost »Večkrat na dan« ni združljiva s tipi ponastavitve ob polnoči, ker odobritve ponastavijo le enkrat ob polnoči.",
       "error_daily_multi_independent_multi_assignees": "Pogostost »Večkrat na dan« z dokončanjem NEODVISNO zahteva natanko enega dodeljevalca, razen če so časi za vsakega dodeljevalca konfigurirani. V nastavitvah za vsakega dodeljevalca konfigurirajte različne čase.",
       "error_daily_multi_times_required": "Za pogostost »Večkrat na dan« je potreben seznam časov.",
@@ -1993,7 +1954,6 @@
         "daily": "Dnevno",
         "periodic": "Periodično",
         "achievement_linked": "Povezan dosežek",
-        "challenge_linked": "Izziv povezan",
         "special_occasion": "Posebna priložnost"
       }
     },

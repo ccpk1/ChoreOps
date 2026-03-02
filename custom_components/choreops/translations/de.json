@@ -28,7 +28,11 @@
         "description": "Wählen Sie eine Bezeichnung und ein Symbol für die Punkte.",
         "data": {
           "points_label": "Punkte-Etikett",
-          "points_icon": "Punkte-Symbol"
+          "points_icon": "Punkte-Symbol",
+          "default_chore_points": "Standardpunkte pro Aufgabe"
+        },
+        "data_description": {
+          "default_chore_points": "Standardmäßig wird beim Erstellen einer Aufgabe der Punktewert verwendet, es sei denn, Sie legen für diese Aufgabe benutzerdefinierte Punkte fest."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Punkte-Etikett",
           "points_icon": "Punkte-Symbol",
+          "default_chore_points": "Standardpunkte pro Aufgabe",
           "update_interval": "Aktualisierungsintervall (Minuten)",
           "calendar_show_period": "Kalenderanzeigezeitraum (Tage)",
           "retention_daily": "Tägliche Retention (Tage)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Angezeigte Bezeichnung für Punkte (z. B. „Punkte“, „Sterne“, „Münzen“)",
           "points_icon": "MDI-Symbol für Punkte (z. B. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Standard-Punktewert, der beim Erstellen einer Aufgabe verwendet wird, sofern keine benutzerdefinierten Punkte festgelegt sind.",
           "update_interval": "Wie oft sollen die Daten aktualisiert werden (Minimum: 1 Minute)",
           "calendar_show_period": "Historische Tage, die im Kalender angezeigt werden sollen (mindestens 1)",
           "retention_daily": "Tage, um die täglichen Aggregate zu erfassen",
@@ -261,7 +267,6 @@
           "maintenance_rules": "Mindestaufrechterhaltungspunkte",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
-          "associated_challenge": "Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Punktzahl, die während der Schonfrist erreicht werden muss, um das Abzeichen zu behalten.",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere der Optionen Punkte, Belohnungen, Boni oder einen Punktemultiplikator aus. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. (optional)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Für die Workflow- und Gamification-Optionen im Bereich der Aufgabenverwaltung muss zunächst die Option „Mir erlauben, Aufgaben zugewiesen zu bekommen“ aktiviert werden.",
       "invalid_update_interval": "Ungültiges Aktualisierungsintervall. Muss eine positive ganze Zahl sein.",
       "invalid_calendar_show_period": "Ungültiger Kalenderzeitraum. Muss eine positive ganze Zahl sein.",
+      "invalid_default_chore_points": "Ungültige Standard-Aufgabenpunkte. Muss eine positive ganze Zahl sein.",
       "invalid_retention_period": "Ungültige Aufbewahrungsfrist. Muss eine positive ganze Zahl sein.",
       "invalid_points_adjust_values": "Ungültige Punkte führen zu Wertkorrekturen. Es muss eine Liste sein."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Wählen Sie eine Aktion"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Demnächst kommen neue Herausforderungen",
+        "description": "Herausforderungen werden in einem zukünftigen Update verfügbar sein.\n\nWährend der Migration werden bestehende Herausforderungsdatensätze in die entsprechende periodische Badge-Verfolgung umgewandelt, um Absicht und Fortschritt nach Möglichkeit beizubehalten. Herausforderungsbezogene Badges werden in dieser Version entfernt.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Wählen Sie {entity_type}",
         "description": "Wählen Sie die {entity_type}, die Sie {action} möchten.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Punkte-Etikett & -Symbol bearbeiten",
-        "description": "Ändern Sie die Bezeichnung und das Symbol für die Punkte.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "title": "Bearbeitungspunkte-Einstellungen",
+        "description": "Ändern Sie die Bezeichnung, das Symbol und die Standardpunkte pro Aufgabe in ChoreOps.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "points_label": "Punkte-Etikett",
-          "points_icon": "Punkte-Symbol"
+          "points_icon": "Punkte-Symbol",
+          "default_chore_points": "Standardpunkte pro Aufgabe"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden. Muss eine ganze Zahl größer als 0 sein."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "Mindestaufrechterhaltungspunkte",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
-          "associated_challenge": "Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Minimale Punkte, die innerhalb der Schonfrist erreicht werden müssen, um das Abzeichen zu behalten.",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, um alle zugewiesenen Aufgaben zu erfassen (optional).",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere der Optionen Punkte, Belohnungen, Boni oder einen Punktemultiplikator aus. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. (optional)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "Mindestaufrechterhaltungspunkte",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
-          "associated_challenge": "Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Reset-Zyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Belohnungen, Boni oder Strafen. Alle ausgewählten Elemente werden gewährt bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
@@ -861,30 +871,6 @@
           "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer bestimmten Leistung, um deren Erfolg zu verfolgen.",
-          "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
-          "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
-          "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Herausforderungsgebundenes Abzeichen hinzufügen",
-        "description": "Konfigurieren Sie die Details für ein Abzeichen, das mit einer Herausforderung verknüpft ist. Diese Abzeichen belohnen die Beauftragten für das Abschließen bestimmter Herausforderungen.\n\n[📖 Abzeichenübersicht]({documentation_url})",
-        "data": {
-          "badge_name": "Abzeichenname",
-          "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
-          "icon": "Symbol (mdi:xxx)",
-          "associated_challenge": "Zugehörige Herausforderung",
-          "assigned_user_ids": "🧒 Zugewiesen an",
-          "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
-          "award_points": "Punkte vergeben"
-        },
-        "data_description": {
-          "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
-          "badge_description": "Geben Sie optional eine Beschreibung des Zwecks oder der Kriterien des Abzeichens an.",
-          "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
-          "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer bestimmten Herausforderung, um den Fortschritt zu verfolgen.",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "Mindestaufrechterhaltungspunkte",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
-          "associated_challenge": "Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Multiplikator auswählen (optional)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Minimale Punkte, die innerhalb der Schonfrist erreicht werden müssen, um das Abzeichen zu behalten.",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere der Optionen Punkte, Belohnungen, Boni oder einen Punktemultiplikator aus. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. (optional)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "Mindestaufrechterhaltungspunkte",
           "occasion_type": "Art des Anlasses",
           "associated_achievement": "Zugehörige Errungenschaft",
-          "associated_challenge": "Zugehörige Herausforderung",
           "selected_chores": "🧹 Erfasste Aufgaben (optional)",
           "assigned_user_ids": "🧒 Zugewiesen an",
           "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni, Strafen auswählen (optional)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Geben Sie die Mindestpunktzahl an, die während des Reset-Zyklus erforderlich ist, um das Abzeichen und seinen aktiven Multiplikator zu behalten (optional).",
           "occasion_type": "Wählen Sie die Art des Anlasses für dieses Abzeichen (z. B. Feiertag, Geburtstag).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer Errungenschaft, um deren Erfolg zu verfolgen.",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer Herausforderung, um die Nachverfolgung zu ermöglichen.",
           "selected_chores": "Wählen Sie die Aufgaben aus, die Punkte für dieses Abzeichen einbringen. Lassen Sie das Feld leer, wenn Sie alle zugewiesenen Aufgaben erfassen möchten (optional).",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Belohnungen, Boni oder Strafen. Alle ausgewählten Elemente werden gewährt bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
           "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
           "associated_achievement": "Verknüpfe dieses Abzeichen mit einer bestimmten Leistung, um deren Erfolg zu verfolgen.",
-          "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
-          "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
-          "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Bearbeitungsherausforderung – Verknüpftes Abzeichen",
-        "description": "Konfigurieren Sie die Details für ein Abzeichen, das mit einer Herausforderung verknüpft ist. Diese Abzeichen belohnen die Beauftragten für das Abschließen bestimmter Herausforderungen.\n\n📖 [Abzeichenübersicht]({documentation_url})",
-        "data": {
-          "badge_name": "Abzeichenname",
-          "badge_description": "Beschreibung (optional)",
-          "badge_labels": "Abzeichen-Etiketten",
-          "icon": "Symbol (mdi:xxx)",
-          "associated_challenge": "Zugehörige Herausforderung",
-          "assigned_user_ids": "🧒 Zugewiesen an",
-          "award_items": "🎁 AUSZEICHNUNGEN: Punkte, Prämien, Boni auswählen (optional)",
-          "award_points": "Punkte vergeben"
-        },
-        "data_description": {
-          "badge_name": "Geben Sie einen eindeutigen Namen für das Abzeichen ein. Dieser Name wird im System angezeigt.",
-          "badge_description": "Geben Sie optional eine Beschreibung des Zwecks oder der Kriterien des Abzeichens an.",
-          "badge_labels": "Fügen Sie optional Labels hinzu, um das Badge zu kategorisieren oder zu taggen.",
-          "icon": "Geben Sie ein Symbol für das Badge mithilfe von Material Design Icons an (z. B. mdi:star).",
-          "associated_challenge": "Verknüpfe dieses Abzeichen mit einer bestimmten Herausforderung, um den Fortschritt zu verfolgen.",
           "assigned_user_ids": "Weisen Sie dieses Badge bestimmten Verantwortlichen zur Nachverfolgung zu.",
           "award_items": "Wähle eine oder mehrere Optionen aus Punkten, Prämien oder Boni. Alle ausgewählten Elemente werden gutgeschrieben bzw. angewendet, sobald das Abzeichen verdient wurde. Strafen werden nur dann verhängt, wenn das Abzeichen bis zum Enddatum oder dem Zurücksetzungsdatum nicht verdient wurde. (optional)",
           "award_points": "Wenn Punkte als Auszeichnung ausgewählt sind, geben Sie die Anzahl der Punkte an, die beim Erhalt dieses Abzeichens angerechnet werden sollen. (optional)."
@@ -1668,6 +1626,7 @@
         "title": "Allgemeine Optionen",
         "description": "Verwalten Sie die allgemeinen Einstellungen für die ChoreOps-Integration.\n\n[📖 Mehr über die allgemeinen Optionen erfahren]({documentation_url})",
         "data": {
+          "default_chore_points": "Standardpunkte pro Aufgabe",
           "points_adjust_values": "Manuelle Punkte-Anpassungswerte",
           "update_interval": "Aktualisierungsintervall",
           "calendar_show_period": "Anzahl der anzuzeigenden Kalendertage",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Sicherungsaktionen"
         },
         "data_description": {
+          "default_chore_points": "Standardpunktwert, der für neue Aufgaben verwendet wird, wenn keine benutzerdefinierten Punkte angegeben werden.",
           "points_adjust_values": "Liste von Werten für die Schaltflächen zur manuellen Punkteanpassung. Jeden Wert durch '|' trennen..",
           "update_interval": "Intervall in Minuten für die Aktualisierung des internen Status von ChoreOps.",
           "calendar_show_period": "Anzahl zukünftiger Tage, für die geplante Hausarbeiten und Herausforderungen im Kalender angezeigt werden.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Die ausgewählte Datei weist nicht die erforderliche Datenstruktur auf.",
       "file_not_found": "Die ausgewählte Datei konnte nicht gefunden werden.",
       "invalid_selection": "Bitte wählen Sie eine gültige Option.",
+      "invalid_default_chore_points": "Ungültige Standard-Aufgabenpunkte. Muss eine positive ganze Zahl sein.",
       "error_daily_multi_requires_compatible_reset": "Die Frequenz „Mehrmals täglich“ ist mit den Mitternachts-Reset-Typen nicht kompatibel, da diese die Genehmigungen nur einmal um Mitternacht zurücksetzen.",
       "error_daily_multi_independent_multi_assignees": "Die Frequenz „Mehrmals täglich“ mit unabhängiger Bearbeitung erfordert genau einen Bearbeiter, sofern keine individuellen Bearbeitungszeiten konfiguriert sind. Konfigurieren Sie in den Einstellungen für jeden Bearbeiter unterschiedliche Bearbeitungszeiten.",
       "error_daily_multi_times_required": "Für die Frequenz „Mehrmals täglich“ ist eine Zeitliste erforderlich.",
@@ -1993,7 +1954,6 @@
         "daily": "Täglich",
         "periodic": "Periodisch",
         "achievement_linked": "Verbunden mit Errungenschaft",
-        "challenge_linked": "Verbunden mit Herausforderung",
         "special_occasion": "Besonderer Anlass"
       }
     },

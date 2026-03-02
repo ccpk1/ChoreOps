@@ -28,7 +28,11 @@
         "description": "Velg en etikett og et ikon for poeng.",
         "data": {
           "points_label": "Poengetikett",
-          "points_icon": "Poengikon"
+          "points_icon": "Poengikon",
+          "default_chore_points": "Standardpoeng per gjøremål"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpoengverdi som brukes når du oppretter en gjøremålsoppgave, med mindre du angir egendefinerte poeng for den gjøremålsoppgaven."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Poengetikett",
           "points_icon": "Poengikon",
+          "default_chore_points": "Standardpoeng per gjøremål",
           "update_interval": "Oppdateringsintervall (minutter)",
           "calendar_show_period": "Kalendervisningsperiode (dager)",
           "retention_daily": "Daglig oppbevaring (dager)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Etikett vist for poeng (f.eks. «Poeng», «Stjerner», «Mynter»)",
           "points_icon": "MDI-ikon for poeng (f.eks. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Standard poengverdi som brukes når du oppretter en gjøremålsoppgave, med mindre egendefinerte poeng er angitt.",
           "update_interval": "Hvor ofte data skal oppdateres (minimum: 1 minutt)",
           "calendar_show_period": "Dager med historikk som skal vises i kalenderen (minimum 1)",
           "retention_daily": "Dager for å holde daglige aggregater",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 MÅL: Vedlikeholdspoeng (valgfritt)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, multiplikator (valgfritt)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Angi minimumspoengene som kreves under vedlikeholdssyklusen for å beholde merket og den aktive multiplikatoren (valgfritt).",
           "occasion_type": "Velg anledningstype for dette merket (f.eks. ferie, bursdag).",
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
-          "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller en poengmultiplikator. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. (valgfritt)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Alternativer for arbeidsflyt og gamification for husarbeid krever at «Tillat at husarbeid tildeles meg» først er aktivert.",
       "invalid_update_interval": "Ugyldig oppdateringsintervall. Må være et positivt heltall.",
       "invalid_calendar_show_period": "Ugyldig kalendervisningsperiode. Må være et positivt heltall.",
+      "invalid_default_chore_points": "Ugyldige standard gjøremålspoeng. Må være et positivt heltall.",
       "invalid_retention_period": "Ugyldig oppbevaringsperiode. Må være et positivt heltall.",
       "invalid_points_adjust_values": "Ugyldige poengjusteringsverdier. Må være en liste."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Velg en handling"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Utfordringer kommer snart",
+        "description": "Utfordringer vil bli tilgjengelige i fremtidige oppdateringer.\n\nUnder migrering konverteres eksisterende utfordringsposter til tilsvarende periodisk merkesporing for å bevare intensjon og fremdriftsatferd der det er mulig. Utfordringskoblede merker fjernes i denne utgivelsen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Velg {entity_type}",
         "description": "Velg {entity_type} du vil {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Rediger poengetikett og -ikon",
-        "description": "Endre etiketten og ikonet som brukes til å representere punkter.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "title": "Rediger poenginnstillinger",
+        "description": "Endre etiketten, ikonet og standardpoengene per gjøremål som brukes i ChoreOps.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "points_label": "Poengetikett",
-          "points_icon": "Poengikon"
+          "points_icon": "Poengikon",
+          "default_chore_points": "Standardpoeng per gjøremål"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpoengverdien brukes for nye gjøremål når tilpassede poeng ikke er spesifisert. Må være et heltall større enn 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 MÅL: Vedlikeholdspoeng (valgfritt)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, multiplikator (valgfritt)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Angi minimumspoengene som kreves under vedlikeholdssyklusen for å beholde merket og den aktive multiplikatoren (valgfritt).",
           "occasion_type": "Velg anledningstype for dette merket (f.eks. ferie, bursdag).",
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
-          "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt for å spore alle tildelte gjøremål (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller en poengmultiplikator. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. (valgfritt)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 MÅL: Vedlikeholdspoeng (valgfritt)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, straffer (valgfritt)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Angi minimumspoengene som kreves under tilbakestillingssyklusen for å beholde merket og den aktive multiplikatoren (valgfritt).",
           "occasion_type": "Velg anledningstype for dette merket (f.eks. ferie, bursdag).",
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
-          "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
@@ -861,30 +871,6 @@
           "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
           "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Koble dette merket til en spesifikk prestasjon for sporing.",
-          "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
-          "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
-          "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Legg til et merke knyttet til utfordringen",
-        "description": "Konfigurer detaljene for et merke knyttet til en utfordring. Disse merkene belønner tildelte for å fullføre spesifikke utfordringer.\n\n[📖 Merkeoversikt]({documentation_url})",
-        "data": {
-          "badge_name": "Merkenavn",
-          "badge_description": "Beskrivelse av merke (valgfritt)",
-          "badge_labels": "Etiketter (valgfritt)",
-          "icon": "Merkeikon (mdi:xxx)",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
-          "assigned_user_ids": "🧒 Tildelt til",
-          "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
-          "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
-        },
-        "data_description": {
-          "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
-          "badge_description": "Gi en beskrivelse av merkets formål eller kriterier (valgfritt).",
-          "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
-          "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
-          "associated_challenge": "Koble dette merket til en spesifikk utfordring for sporing.",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 MÅL: Vedlikeholdspoeng (valgfritt)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, multiplikator (valgfritt)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Angi minimumspoengene som kreves under vedlikeholdssyklusen for å beholde merket og den aktive multiplikatoren (valgfritt).",
           "occasion_type": "Velg anledningstype for dette merket (f.eks. ferie, bursdag).",
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
-          "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller en poengmultiplikator. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. (valgfritt)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 MÅL: Vedlikeholdspoeng (valgfritt)",
           "occasion_type": "🎉 Anledningstype",
           "associated_achievement": "🏆 Tilknyttet prestasjon",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
           "selected_chores": "🧹 Sporede gjøremål (valgfritt)",
           "assigned_user_ids": "🧒 Tildelt til",
           "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser, straffer (valgfritt)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Angi minimumspoengene som kreves under tilbakestillingssyklusen for å beholde merket og den aktive multiplikatoren (valgfritt).",
           "occasion_type": "Velg anledningstype for dette merket (f.eks. ferie, bursdag).",
           "associated_achievement": "Koble dette merket til en prestasjon for sporing.",
-          "associated_challenge": "Koble dette merket til en utfordring for sporing.",
           "selected_chores": "Velg gjøremålene som bidrar med poeng til dette merket. La stå tomt hvis du vil spore alle tildelte gjøremål (valgfritt).",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poeng, belønninger, bonuser eller straffer. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
           "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
           "associated_achievement": "Koble dette merket til en spesifikk prestasjon for sporing.",
-          "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
-          "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
-          "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Rediger merke knyttet til utfordringen",
-        "description": "Konfigurer detaljene for et merke knyttet til en utfordring. Disse merkene belønner tildelte for å fullføre spesifikke utfordringer.\n\n📖 [Oversikt over merker]({documentation_url})",
-        "data": {
-          "badge_name": "Merkenavn",
-          "badge_description": "Beskrivelse av merke (valgfritt)",
-          "badge_labels": "Etiketter (valgfritt)",
-          "icon": "Merkeikon (mdi:xxx)",
-          "associated_challenge": "🏁 Tilknyttet utfordring",
-          "assigned_user_ids": "🧒 Tildelt til",
-          "award_items": "🎁 PRISER: Velg poeng, belønninger, bonuser (valgfritt)",
-          "award_points": "🎁 PRISER: Poeng tildelt (valgfritt)"
-        },
-        "data_description": {
-          "badge_name": "Skriv inn et unikt navn for merket. Dette navnet vil vises i systemet.",
-          "badge_description": "Gi en beskrivelse av merkets formål eller kriterier (valgfritt).",
-          "badge_labels": "Legg til etiketter for å kategorisere eller merke merket (valgfritt).",
-          "icon": "Angi et ikon for merket ved hjelp av Material Design Icons (f.eks. mdi:star).",
-          "associated_challenge": "Koble dette merket til en spesifikk utfordring for sporing.",
           "assigned_user_ids": "Tildel dette merket til bestemte tildelere for sporing.",
           "award_items": "Velg ett eller flere av poengene, belønningene eller bonusene. Alle valgte elementer vil bli gitt eller brukt når merket er opptjent. Straffer vil kun bli brukt hvis merket ikke er opptjent innen sluttdatoen eller tilbakestillingsdatoen. (valgfritt)",
           "award_points": "Hvis poeng er en valgt utmerkelse, angi antall poeng som skal brukes når dette merket er opptjent. (valgfritt)."
@@ -1668,6 +1626,7 @@
         "title": "Generelle alternativer",
         "description": "Administrer generelle innstillinger for ChoreOps-integrasjonen.\n\n[📖 Lær mer om generelle alternativer]({documentation_url})",
         "data": {
+          "default_chore_points": "Standardpoeng per gjøremål",
           "points_adjust_values": "Verdier for manuell punktjusteringsknapp",
           "update_interval": "Oppdateringsintervall",
           "calendar_show_period": "Antall dager som skal vises i kalenderen",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Sikkerhetskopieringshandlinger"
         },
         "data_description": {
+          "default_chore_points": "Standard poengverdi brukt for nye gjøremål når egendefinerte poeng ikke er spesifisert.",
           "points_adjust_values": "Liste over verdier for knappene for manuell punktjustering. Hver verdi atskilt med '|'.",
           "update_interval": "Intervall i minutter for oppdatering av den interne tilstanden til ChoreOps.",
           "calendar_show_period": "Antall dager i fremtiden som skal vise planlagte gjøremål og utfordringer i kalenderen.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Den valgte filen mangler nødvendig datastruktur.",
       "file_not_found": "Den valgte filen ble ikke funnet.",
       "invalid_selection": "Vennligst velg et gyldig alternativ.",
+      "invalid_default_chore_points": "Ugyldige standard gjøremålspoeng. Må være et positivt heltall.",
       "error_daily_multi_requires_compatible_reset": "Frekvensen «Flere ganger per dag» er ikke kompatibel med tilbakestillingstyper ved midnatt fordi de bare tilbakestiller godkjenninger én gang ved midnatt.",
       "error_daily_multi_independent_multi_assignees": "Frekvensen «Flere ganger per dag» med UAVHENGIG fullføring krever nøyaktig én tildeler, med mindre tider per tildeler er konfigurert. Konfigurer forskjellige tider for hver tildeler i innstillingene per tildeler.",
       "error_daily_multi_times_required": "Tidsliste er obligatorisk for frekvensen «Flere ganger per dag».",
@@ -1993,7 +1954,6 @@
         "daily": "Daglig",
         "periodic": "Periodisk",
         "achievement_linked": "Prestasjonskobling",
-        "challenge_linked": "Utfordringen er knyttet til",
         "special_occasion": "Spesiell anledning"
       }
     },

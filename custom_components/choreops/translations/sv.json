@@ -28,7 +28,11 @@
         "description": "Välj en etikett och ikon för punkter.",
         "data": {
           "points_label": "Poängetikett",
-          "points_icon": "Poängikon"
+          "points_icon": "Poängikon",
+          "default_chore_points": "Standardpoäng per syssla"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpoängvärde som används när du skapar en syssla om du inte anger anpassade poäng för den sysslan."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Poängetikett",
           "points_icon": "Poängikon",
+          "default_chore_points": "Standardpoäng per syssla",
           "update_interval": "Uppdateringsintervall (minuter)",
           "calendar_show_period": "Kalendervisningsperiod (dagar)",
           "retention_daily": "Daglig retention (dagar)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Etikett som visas för poäng (t.ex. 'Poäng', 'Stjärnor', 'Mynt')",
           "points_icon": "MDI-ikon för poäng (t.ex. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Standardpoängvärde som används när en syssla skapas om inte anpassade poäng har angetts.",
           "update_interval": "Hur ofta data ska uppdateras (minst: 1 minut)",
           "calendar_show_period": "Historikdagar som ska visas i kalendern (minst 1)",
           "retention_daily": "Dagar att spara dagliga aggregat",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 MÅL: Underhållspoäng (valfritt)",
           "occasion_type": "🎉 Tillfällestyp",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, multiplikator (valfritt)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under underhållscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
-          "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller en poängmultiplikator. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. (valfritt)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Alternativ för sysslor och gamification kräver att \"Tillåt att sysslor tilldelas mig\" först är aktiverat.",
       "invalid_update_interval": "Ogiltigt uppdateringsintervall. Måste vara ett positivt heltal.",
       "invalid_calendar_show_period": "Ogiltig kalendervisningsperiod. Måste vara ett positivt heltal.",
+      "invalid_default_chore_points": "Ogiltiga standardpoäng för sysslor. Måste vara ett positivt heltal.",
       "invalid_retention_period": "Ogiltig lagringsperiod. Måste vara ett positivt heltal.",
       "invalid_points_adjust_values": "Ogiltiga poängjusteringsvärden. Måste vara en lista."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Välj en åtgärd"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Utmaningar kommer snart",
+        "description": "Utmaningar kommer att göras tillgängliga i framtida uppdateringar.\n\nUnder migreringen konverteras befintliga utmaningsposter till motsvarande periodisk badge-spårning för att bevara avsikt och framstegsbeteende där det är möjligt. Utmaningslänkade märken har tagits bort i den här versionen.\n\n📖 [Konfigurationsguide]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Välj {entity_type}",
         "description": "Välj den {entity_type} du vill {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Redigera poängetikett och ikon",
-        "description": "Ändra etiketten och ikonen som används för att representera punkter.\n\n📖 [Konfigurationsguide]({documentation_url})",
+        "title": "Redigera poänginställningar",
+        "description": "Ändra etikett, ikon och standardpoäng per rutin som används i ChoreOps.\n\n📖 [Konfigurationsguide]({documentation_url})",
         "data": {
           "points_label": "Poängetikett",
-          "points_icon": "Poängikon"
+          "points_icon": "Poängikon",
+          "default_chore_points": "Standardpoäng per syssla"
+        },
+        "data_description": {
+          "default_chore_points": "Standardpoängvärde som används för nya sysslor när anpassade poäng inte anges. Måste vara ett heltal större än 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 MÅL: Underhållspoäng (valfritt)",
           "occasion_type": "🎉 Tillfällestyp",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "associated_challenge": "🏁 Tillhörande utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, multiplikator (valfritt)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under underhållscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
-          "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt för att spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller en poängmultiplikator. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. (valfritt)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 MÅL: Underhållspoäng (valfritt)",
           "occasion_type": "🎉 Tillfällestyp",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, straff (valfritt)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under återställningscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
-          "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
@@ -863,30 +873,6 @@
           "associated_achievement": "Koppla detta märke till en specifik prestation för spårning.",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
-          "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Lägg till utmaningskopplat märke",
-        "description": "Konfigurera detaljerna för ett märke som är kopplat till en utmaning. Dessa märken belönar tilldelade för att de slutför specifika utmaningar.\n\n[📖 Översikt över märken]({documentation_url})",
-        "data": {
-          "badge_name": "Märkesnamn",
-          "badge_description": "Märkesbeskrivning (valfritt)",
-          "badge_labels": "Etiketter (valfritt)",
-          "icon": "Märkesikon (mdi:xxx)",
-          "associated_challenge": "🏁 Associerad utmaning",
-          "assigned_user_ids": "🧒 Tilldelad till",
-          "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
-          "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
-        },
-        "data_description": {
-          "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
-          "badge_description": "Ange en beskrivning av märkets syfte eller kriterier (valfritt).",
-          "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
-          "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
-          "associated_challenge": "Koppla det här märket till en specifik utmaning för spårning.",
-          "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
-          "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda föremål beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt)."
         }
       },
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 MÅL: Underhållspoäng (valfritt)",
           "occasion_type": "🎉 Tillfällestyp",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, multiplikator (valfritt)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under underhållscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
-          "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller en poängmultiplikator. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. (valfritt)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 MÅL: Underhållspoäng (valfritt)",
           "occasion_type": "🎉 Tillfällestyp",
           "associated_achievement": "🏆 Tillhörande prestation",
-          "associated_challenge": "🏁 Associerad utmaning",
           "selected_chores": "🧹 Spårade sysslor (valfritt)",
           "assigned_user_ids": "🧒 Tilldelad till",
           "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar, straff (valfritt)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Ange det lägsta antal poäng som krävs under återställningscykeln för att behålla märket och dess aktiva multiplikator (valfritt).",
           "occasion_type": "Välj typ av tillfälle för den här etiketten (t.ex. helgdag, födelsedag).",
           "associated_achievement": "Koppla detta märke till en prestation för spårning.",
-          "associated_challenge": "Länka den här etiketten till en utmaning för spårning.",
           "selected_chores": "Välj de sysslor som bidrar med poäng till detta märke. Lämna tomt om du vill spåra alla tilldelade sysslor (valfritt).",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar, bonusar eller straff. Alla valda objekt kommer att beviljas eller tillämpas när märket är intjänat. Straffar tillämpas endast om märket inte är intjänat senast slutdatumet eller återställningsdatumet. (valfritt)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
           "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
           "associated_achievement": "Koppla detta märke till en specifik prestation för spårning.",
-          "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
-          "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
-          "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Redigera utmaningslänkat märke",
-        "description": "Konfigurera detaljerna för ett märke som är kopplat till en utmaning. Dessa märken belönar tilldelade för att de slutför specifika utmaningar.\n\n📖 [Översikt över märken]({documentation_url})",
-        "data": {
-          "badge_name": "Märkesnamn",
-          "badge_description": "Märkesbeskrivning (valfritt)",
-          "badge_labels": "Etiketter (valfritt)",
-          "icon": "Märkesikon (mdi:xxx)",
-          "associated_challenge": "🏁 Associerad utmaning",
-          "assigned_user_ids": "🧒 Tilldelad till",
-          "award_items": "🎁 UTMÄRKELSER: Välj poäng, belöningar, bonusar (valfritt)",
-          "award_points": "🎁 UTMÄRKELSER: Poäng tilldelade (valfritt)"
-        },
-        "data_description": {
-          "badge_name": "Ange ett unikt namn för märket. Namnet kommer att visas i systemet.",
-          "badge_description": "Ange en beskrivning av märkets syfte eller kriterier (valfritt).",
-          "badge_labels": "Lägg till etiketter för att kategorisera eller tagga märket (valfritt).",
-          "icon": "Ange en ikon för märket med hjälp av Material Design Icons (t.ex. mdi:star).",
-          "associated_challenge": "Koppla det här märket till en specifik utmaning för spårning.",
           "assigned_user_ids": "Tilldela detta märke till specifika tilldelade personer för spårning.",
           "award_items": "Välj en eller flera av poäng, belöningar eller bonusar. Alla valda objekt beviljas eller tillämpas när märket intjänas. Straffar tillämpas endast om märket inte intjänas senast slutdatumet eller återställningsdatumet. (valfritt)",
           "award_points": "Om poäng är en vald utmärkelse, ange antalet poäng som ska tillämpas när denna utmärkelse intjänas. (valfritt)."
@@ -1668,6 +1626,7 @@
         "title": "Allmänna alternativ",
         "description": "Hantera allmänna inställningar för ChoreOps-integrationen.\n\n[📖 Läs mer om allmänna alternativ]({documentation_url})",
         "data": {
+          "default_chore_points": "Standardpoäng per syssla",
           "points_adjust_values": "Värden på knappen för manuell punktjustering",
           "update_interval": "Uppdateringsintervall",
           "calendar_show_period": "Antal dagar som ska visas i kalendern",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Säkerhetskopieringsåtgärder"
         },
         "data_description": {
+          "default_chore_points": "Standardpoängvärde som används för nya sysslor när anpassade poäng inte anges.",
           "points_adjust_values": "Lista med värden för knapparna för manuell punktjustering. Varje värde separeras med '|'.",
           "update_interval": "Intervall i minuter för uppdatering av ChoreOps interna tillstånd.",
           "calendar_show_period": "Antal dagar i framtiden för att visa schemalagda sysslor och utmaningar i kalendern.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Den valda filen saknar nödvändig datastruktur.",
       "file_not_found": "Den valda filen kunde inte hittas.",
       "invalid_selection": "Välj ett giltigt alternativ.",
+      "invalid_default_chore_points": "Ogiltiga standardpoäng för sysslor. Måste vara ett positivt heltal.",
       "error_daily_multi_requires_compatible_reset": "Frekvensen \"Flera gånger per dag\" är inte kompatibel med återställningstyperna vid midnatt eftersom de bara återställer godkännanden en gång vid midnatt.",
       "error_daily_multi_independent_multi_assignees": "Frekvensen \"Flera gånger per dag\" med OBEROENDE slutförande kräver exakt en tilldelad, såvida inte tider per tilldelad har konfigurerats. Konfigurera olika tider för varje tilldelad i inställningarna per tilldelad.",
       "error_daily_multi_times_required": "Tidslista krävs för frekvensen 'Flera gånger per dag'.",
@@ -1993,7 +1954,6 @@
         "daily": "Dagligen",
         "periodic": "Periodisk",
         "achievement_linked": "Prestationslänkad",
-        "challenge_linked": "Utmaning länkad",
         "special_occasion": "Speciellt tillfälle"
       }
     },

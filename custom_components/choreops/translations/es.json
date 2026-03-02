@@ -28,7 +28,11 @@
         "description": "Elige una etiqueta e ícono para los puntos.",
         "data": {
           "points_label": "Etiqueta de Puntos",
-          "points_icon": "Ícono de Puntos"
+          "points_icon": "Ícono de Puntos",
+          "default_chore_points": "Puntos predeterminados por tarea"
+        },
+        "data_description": {
+          "default_chore_points": "Valor de puntos predeterminado utilizado al crear una tarea, a menos que establezca puntos personalizados para esa tarea."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Etiqueta de Puntos",
           "points_icon": "Ícono de Puntos",
+          "default_chore_points": "Puntos predeterminados por tarea",
           "update_interval": "Intervalo de actualización (minutos)",
           "calendar_show_period": "Periodo de visualización del calendario (días)",
           "retention_daily": "Retención diaria (días)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Etiqueta que se muestra para los puntos (por ejemplo, 'Puntos', 'Estrellas', 'Monedas')",
           "points_icon": "Icono MDI para puntos (por ejemplo, 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Valor de puntos predeterminado que se utiliza al crear una tarea, a menos que se establezcan puntos personalizados.",
           "update_interval": "Con qué frecuencia actualizar los datos (mínimo: 1 minuto)",
           "calendar_show_period": "Días de historial a mostrar en el calendario (mínimo 1)",
           "retention_daily": "Días para mantener los agregados diarios",
@@ -261,7 +267,6 @@
           "maintenance_rules": "Puntos de Mantenimiento Mínimos",
           "occasion_type": "🎉 Tipo de Ocasión",
           "associated_achievement": "🏆 Logro Asociado",
-          "associated_challenge": "🏁 Reto Asociado",
           "selected_chores": "🧹 Tareas Rastreadas (Opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccionar Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Puntos mínimos que se deben obtener durante el Período de Gracia para conservar la insignia.",
           "occasion_type": "Elige el tipo de ocasión para esta insignia (ej: día festivo, cumpleaños).",
           "associated_achievement": "Vincula esta insignia a un logro para rastreo.",
-          "associated_challenge": "Vincula esta insignia a un reto para rastreo.",
           "selected_chores": "Selecciona las tareas que contribuyen puntos hacia esta insignia. Deja en blanco si quieres rastrear todas las tareas asignadas (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más entre puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia (opcional).",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Las opciones de flujo de trabajo de tareas y gamificación requieren que primero se habilite \"Permitir que se me asignen tareas\".",
       "invalid_update_interval": "Intervalo de actualización no válido. Debe ser un entero positivo.",
       "invalid_calendar_show_period": "Periodo de visualización del calendario no válido. Debe ser un entero positivo.",
+      "invalid_default_chore_points": "Puntos de tarea predeterminados no válidos. Debe ser un entero positivo.",
       "invalid_retention_period": "Periodo de retención no válido. Debe ser un número entero positivo.",
       "invalid_points_adjust_values": "Los valores de ajuste de puntos no son válidos. Debe ser una lista."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Selecciona una acción"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Desafíos que vienen pronto",
+        "description": "Los desafíos estarán disponibles en una próxima actualización.\n\nDurante la migración, los registros de desafíos existentes se convierten al seguimiento periódico de insignias equivalente para preservar la intención y el progreso siempre que sea posible. Las insignias vinculadas a los desafíos se eliminan en esta versión.\n\n📖 [Guía de configuración]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Selecciona {entity_type}",
         "description": "Selecciona el/la {entity_type} que deseas {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Editar Etiqueta e Ícono de Puntos",
-        "description": "Cambiar la etiqueta y el icono utilizados para representar puntos.\n\n📖 [Guía de configuración]({documentation_url})",
+        "title": "Editar la configuración de puntos",
+        "description": "Cambie la etiqueta, el ícono y los puntos predeterminados por tarea utilizados en ChoreOps.\n\n📖 [Guía de configuración]({documentation_url})",
         "data": {
           "points_label": "Etiqueta de Puntos",
-          "points_icon": "Ícono de Puntos"
+          "points_icon": "Ícono de Puntos",
+          "default_chore_points": "Puntos predeterminados por tarea"
+        },
+        "data_description": {
+          "default_chore_points": "Valor de puntos predeterminado utilizado para las nuevas tareas cuando no se especifican puntos personalizados. Debe ser un número entero mayor que 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Puntos de mantenimiento (opcional)",
           "occasion_type": "🎉 Tipo de ocasión",
           "associated_achievement": "🏆 Logro asociado",
-          "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Especifique los puntos mínimos necesarios durante el ciclo de mantenimiento para conservar la insignia y su multiplicador activo (opcional).",
           "occasion_type": "Elija el tipo de ocasión para esta insignia (por ejemplo, feriado, cumpleaños).",
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
-          "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Seleccione las tareas que otorgan puntos para esta insignia. Deje en blanco para registrar todas las tareas asignadas (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más elementos: puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. (opcional)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Puntos de mantenimiento (opcional)",
           "occasion_type": "🎉 Tipo de ocasión",
           "associated_achievement": "🏆 Logro asociado",
-          "associated_challenge": "🏁 Desafío asociado",
           "selected_chores": "🧹 Tareas rastreadas (opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Especifique los puntos mínimos necesarios durante el ciclo de reinicio para conservar la insignia y su multiplicador activo (opcional).",
           "occasion_type": "Elija el tipo de ocasión para esta insignia (por ejemplo, feriado, cumpleaños).",
           "associated_achievement": "Vincula esta insignia a un logro para realizar un seguimiento.",
-          "associated_challenge": "Vincula esta insignia a un desafío para su seguimiento.",
           "selected_chores": "Selecciona las tareas que aportan puntos para esta insignia. Deja en blanco si deseas hacer un seguimiento de todas las tareas asignadas (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más elementos entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán al obtener la insignia. Las penalizaciones solo se aplicarán si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
@@ -861,30 +871,6 @@
           "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
           "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
           "associated_achievement": "Vincula esta insignia a un logro específico para realizar un seguimiento.",
-          "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
-          "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
-          "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Agregar insignia vinculada al desafío",
-        "description": "Configura los detalles de una insignia vinculada a un desafío. Estas insignias recompensan a los usuarios por completar desafíos específicos.\n\n[📖 Resumen de insignias]({documentation_url})",
-        "data": {
-          "badge_name": "Nombre de la insignia",
-          "badge_description": "Descripción de la insignia (opcional)",
-          "badge_labels": "Etiquetas (opcional)",
-          "icon": "Icono de insignia (mdi:xxx)",
-          "associated_challenge": "🏁 Desafío asociado",
-          "assigned_user_ids": "🧒 Asignado a",
-          "award_items": "🎁 PREMIOS: Seleccione Puntos, Recompensas, Bonificaciones (Opcional)",
-          "award_points": "🎁 PREMIOS: Puntos otorgados (opcional)"
-        },
-        "data_description": {
-          "badge_name": "Introduzca un nombre único para la insignia. Este nombre se mostrará en el sistema.",
-          "badge_description": "Proporcione una descripción del propósito o los criterios de la insignia (opcional).",
-          "badge_labels": "Agregue etiquetas para categorizar o etiquetar la insignia (opcional).",
-          "icon": "Especifique un ícono para la insignia usando íconos de Material Design (por ejemplo, mdi:star).",
-          "associated_challenge": "Vincula esta insignia a un desafío específico para su seguimiento.",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más puntos, recompensas o bonificaciones. Todos los artículos seleccionados se otorgarán o aplicarán al obtener la insignia. Solo se aplicarán penalizaciones si no se obtiene la insignia antes de la fecha de finalización o de reinicio. (opcional)",
           "award_points": "Si los puntos son un premio seleccionado, especifique la cantidad de puntos que se aplicarán cuando se obtenga esta insignia. (opcional)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Puntos de Mantenimiento (Opcional)",
           "occasion_type": "🎉 Tipo de Ocasión",
           "associated_achievement": "🏆 Logro Asociado",
-          "associated_challenge": "🏁 Reto Asociado",
           "selected_chores": "🧹 Tareas Rastreadas (Opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccionar Puntos, Recompensas, Bonificaciones, Multiplicador (Opcional)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Especifica los puntos mínimos requeridos durante el ciclo de mantenimiento para conservar la insignia y su multiplicador activo (opcional).",
           "occasion_type": "Elige el tipo de ocasión para esta insignia (ej: día festivo, cumpleaños).",
           "associated_achievement": "Vincula esta insignia a un logro para rastreo.",
-          "associated_challenge": "Vincula esta insignia a un reto para rastreo.",
           "selected_chores": "Selecciona las tareas que contribuyen puntos hacia esta insignia. Deja en blanco si quieres rastrear todas las tareas asignadas (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más entre puntos, recompensas, bonificaciones o un multiplicador de puntos. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia (opcional).",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 OBJETIVO: Puntos de Mantenimiento (Opcional)",
           "occasion_type": "🎉 Tipo de Ocasión",
           "associated_achievement": "🏆 Logro Asociado",
-          "associated_challenge": "🏁 Reto Asociado",
           "selected_chores": "🧹 Tareas Rastreadas (Opcional)",
           "assigned_user_ids": "🧒 Asignado a",
           "award_items": "🎁 PREMIOS: Seleccionar Puntos, Recompensas, Bonificaciones, Penalizaciones (Opcional)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Especifica los puntos mínimos requeridos durante el ciclo de reinicio para conservar la insignia y su multiplicador activo (opcional).",
           "occasion_type": "Elige el tipo de ocasión para esta insignia (ej: día festivo, cumpleaños).",
           "associated_achievement": "Vincula esta insignia a un logro para rastreo.",
-          "associated_challenge": "Vincula esta insignia a un reto para rastreo.",
           "selected_chores": "Selecciona las tareas que contribuyen puntos hacia esta insignia. Deja en blanco si quieres rastrear todas las tareas asignadas (opcional).",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más entre puntos, recompensas, bonificaciones o penalizaciones. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia. Las penalizaciones solo se aplicarán si la insignia no se gana antes de la fecha final o de reinicio (opcional).",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Agrega etiquetas para categorizar o marcar la insignia (opcional).",
           "icon": "Especifica un ícono para la insignia usando Material Design Icons (ej: mdi:star).",
           "associated_achievement": "Vincula esta insignia a un logro específico para rastreo.",
-          "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
-          "award_items": "Selecciona uno o más entre puntos, recompensas o bonificaciones. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia. Las penalizaciones solo se aplicarán si la insignia no se gana antes de la fecha final o de reinicio (opcional).",
-          "award_points": "Si los puntos son un premio seleccionado, especifica el número de puntos a aplicar cuando se gane esta insignia (opcional)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Editar Insignia Vinculada a Reto",
-        "description": "Configura los detalles de una insignia vinculada a un desafío. Estas insignias recompensan a los usuarios por completar desafíos específicos.\n\n📖 [Resumen de insignias]({documentation_url})",
-        "data": {
-          "badge_name": "Nombre de Insignia",
-          "badge_description": "Descripción de Insignia (Opcional)",
-          "badge_labels": "Etiquetas (Opcional)",
-          "icon": "Ícono de Insignia (mdi:xxx)",
-          "associated_challenge": "🏁 Reto Asociado",
-          "assigned_user_ids": "🧒 Asignado a",
-          "award_items": "🎁 PREMIOS: Seleccionar Puntos, Recompensas, Bonificaciones (Opcional)",
-          "award_points": "🎁 PREMIOS: Puntos Otorgados (Opcional)"
-        },
-        "data_description": {
-          "badge_name": "Introduce un nombre único para la insignia. Este nombre se mostrará en el sistema.",
-          "badge_description": "Proporciona una descripción del propósito o criterios de la insignia (opcional).",
-          "badge_labels": "Agrega etiquetas para categorizar o marcar la insignia (opcional).",
-          "icon": "Especifica un ícono para la insignia usando Material Design Icons (ej: mdi:star).",
-          "associated_challenge": "Vincula esta insignia a un reto específico para rastreo.",
           "assigned_user_ids": "Asigne esta insignia a personas específicas para su seguimiento.",
           "award_items": "Selecciona uno o más entre puntos, recompensas o bonificaciones. Todos los elementos seleccionados se otorgarán o aplicarán cuando se gane la insignia. Las penalizaciones solo se aplicarán si la insignia no se gana antes de la fecha final o de reinicio (opcional).",
           "award_points": "Si los puntos son un premio seleccionado, especifica el número de puntos a aplicar cuando se gane esta insignia (opcional)."
@@ -1668,6 +1626,7 @@
         "title": "Opciones Generales",
         "description": "Administrar la configuración general para la integración de ChoreOps.\n\n[📖 Obtenga más información sobre las opciones generales]({documentation_url})",
         "data": {
+          "default_chore_points": "Puntos predeterminados por tarea",
           "points_adjust_values": "Valores de Ajuste Manual de Puntos",
           "update_interval": "Intervalo de Actualización",
           "calendar_show_period": "Cantidad de Días a Mostrar en el Calendario",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Acciones de Copia de Seguridad"
         },
         "data_description": {
+          "default_chore_points": "Valor de puntos predeterminado utilizado para nuevas tareas cuando no se especifican puntos personalizados.",
           "points_adjust_values": "Lista de valores para los botones de ajuste manual de puntos. Cada valor separado por '|'.",
           "update_interval": "Intervalo en minutos para actualizar el estado interno de ChoreOps.",
           "calendar_show_period": "Cantidad de días a futuro para mostrar tareas y retos programados en el calendario.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Al archivo seleccionado le falta la estructura de datos requerida.",
       "file_not_found": "No se pudo encontrar el archivo seleccionado.",
       "invalid_selection": "Seleccione una opción válida.",
+      "invalid_default_chore_points": "Puntos de tarea predeterminados no válidos. Debe ser un entero positivo.",
       "error_daily_multi_requires_compatible_reset": "La frecuencia 'varias veces al día' es incompatible con los tipos de reinicio de medianoche porque solo reinician las aprobaciones una vez a medianoche.",
       "error_daily_multi_independent_multi_assignees": "La frecuencia \"Varias veces al día\" con finalización INDEPENDIENTE requiere solo un asignado, a menos que se configuren horarios por asignado. Configure horarios diferentes para cada asignado en la configuración por asignado.",
       "error_daily_multi_times_required": "Se requiere una lista de tiempos para la frecuencia \"Varias veces al día\".",
@@ -1993,7 +1954,6 @@
         "daily": "Diaria",
         "periodic": "Periódica",
         "achievement_linked": "Vinculada a Logro",
-        "challenge_linked": "Vinculada a Reto",
         "special_occasion": "Ocasión Especial"
       }
     },

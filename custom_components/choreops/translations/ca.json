@@ -28,7 +28,11 @@
         "description": "Trieu una etiqueta i una icona per als punts.",
         "data": {
           "points_label": "Etiqueta de punts",
-          "points_icon": "Icona de punts"
+          "points_icon": "Icona de punts",
+          "default_chore_points": "Punts per defecte per tasca"
+        },
+        "data_description": {
+          "default_chore_points": "El valor de punts per defecte s'utilitza en crear una tasca, tret que definiu punts personalitzats per a aquesta tasca."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Etiqueta de punts",
           "points_icon": "Icona de punts",
+          "default_chore_points": "Punts per defecte per tasca",
           "update_interval": "Interval d'actualització (minuts)",
           "calendar_show_period": "Període de visualització del calendari (dies)",
           "retention_daily": "Retenció diària (dies)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Etiqueta que es mostra per als punts (per exemple, \"Punts\", \"Estrelles\", \"Monedes\")",
           "points_icon": "Icona MDI per a punts (per exemple, 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "El valor de punts per defecte s'utilitza en crear una tasca, tret que s'hagin definit punts personalitzats.",
           "update_interval": "Amb quina freqüència s'han d'actualitzar les dades (mínim: 1 minut)",
           "calendar_show_period": "Dies de l'historial per mostrar al calendari (mínim 1)",
           "retention_daily": "Dies per mantenir els agregats diaris",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 OBJECTIU: Punts de manteniment (opcional)",
           "occasion_type": "🎉 Tipus d'ocasió",
           "associated_achievement": "🏆 Assoliment associat",
-          "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions, multiplicador (opcional)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de manteniment per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents punts, recompenses, bonificacions o un multiplicador de punts. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. (opcional)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "El flux de treball de les tasques i les opcions de gamificació requereixen que primer estigui activada l'opció \"Permet que se m'assignin tasques\".",
       "invalid_update_interval": "Interval d'actualització no vàlid. Ha de ser un enter positiu.",
       "invalid_calendar_show_period": "Període de visualització del calendari no vàlid. Ha de ser un nombre enter positiu.",
+      "invalid_default_chore_points": "Punts de tasca predeterminats no vàlids. Ha de ser un nombre enter positiu.",
       "invalid_retention_period": "Període de retenció no vàlid. Ha de ser un nombre enter positiu.",
       "invalid_points_adjust_values": "Valors d'ajust de punts no vàlids. Ha de ser una llista."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Selecciona una acció"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Reptes properament",
+        "description": "Els reptes estaran disponibles en futures actualitzacions.\n\nDurant la migració, els registres de reptes existents es converteixen al seguiment equivalent de les insígnies periòdiques per preservar la intenció i el comportament de progrés sempre que sigui possible. Les insígnies vinculades als reptes s'eliminen en aquesta versió.\n\n📖 [Guia de configuració]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Seleccioneu {entity_type}",
         "description": "Seleccioneu el {entity_type} que voleu {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Edita l'etiqueta i la icona dels punts",
-        "description": "Canvia l'etiqueta i la icona que s'utilitzen per representar punts.\n\n📖 [Guia de configuració]({documentation_url})",
+        "title": "Edita la configuració dels punts",
+        "description": "Canvia l'etiqueta, la icona i els punts predeterminats per tasca que s'utilitzen a ChoreOps.\n\n📖 [Guia de configuració]({documentation_url})",
         "data": {
           "points_label": "Etiqueta de punts",
-          "points_icon": "Icona de punts"
+          "points_icon": "Icona de punts",
+          "default_chore_points": "Punts per defecte per tasca"
+        },
+        "data_description": {
+          "default_chore_points": "Valor de punts per defecte utilitzat per a les tasques noves quan no s'especifiquen punts personalitzats. Ha de ser un nombre enter superior a 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 OBJECTIU: Punts de manteniment (opcional)",
           "occasion_type": "🎉 Tipus d'ocasió",
           "associated_achievement": "🏆 Assoliment associat",
-          "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions, multiplicador (opcional)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de manteniment per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc per fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents punts, recompenses, bonificacions o un multiplicador de punts. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. (opcional)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 OBJECTIU: Punts de manteniment (opcional)",
           "occasion_type": "🎉 Tipus d'ocasió",
           "associated_achievement": "🏆 Assoliment associat",
-          "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions i penalitzacions (opcional)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de reinici per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
@@ -861,30 +871,6 @@
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment específic per al seguiment.",
-          "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
-          "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
-          "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Afegeix una insígnia vinculada al repte",
-        "description": "Configura els detalls d'una insígnia vinculada a un repte. Aquestes insígnies recompensen els assignats per completar reptes específics.\n\n[📖 Visió general de les insígnies]({documentation_url})",
-        "data": {
-          "badge_name": "Nom de la insígnia",
-          "badge_description": "Descripció de la insígnia (opcional)",
-          "badge_labels": "Etiquetes (opcional)",
-          "icon": "Icona de distintiu (mdi:xxx)",
-          "associated_challenge": "🏁 Repte associat",
-          "assigned_user_ids": "🧒 Assignat a",
-          "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
-          "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
-        },
-        "data_description": {
-          "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
-          "badge_description": "Proporcioneu una descripció de la finalitat o els criteris de la insígnia (opcional).",
-          "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
-          "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte específic per al seguiment.",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 OBJECTIU: Punts de manteniment (opcional)",
           "occasion_type": "🎉 Tipus d'ocasió",
           "associated_achievement": "🏆 Assoliment associat",
-          "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions, multiplicador (opcional)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de manteniment per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents punts, recompenses, bonificacions o un multiplicador de punts. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. (opcional)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 OBJECTIU: Punts de manteniment (opcional)",
           "occasion_type": "🎉 Tipus d'ocasió",
           "associated_achievement": "🏆 Assoliment associat",
-          "associated_challenge": "🏁 Repte associat",
           "selected_chores": "🧹 Tasques domèstiques controlades (opcional)",
           "assigned_user_ids": "🧒 Assignat a",
           "award_items": "🎁 PREMIS: Punts seleccionats, recompenses, bonificacions i penalitzacions (opcional)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Especifiqueu els punts mínims necessaris durant el cicle de reinici per conservar la insígnia i el seu multiplicador actiu (opcional).",
           "occasion_type": "Trieu el tipus d'ocasió per a aquesta insígnia (per exemple, vacances, aniversari).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment per fer-ne un seguiment.",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte per al seguiment.",
           "selected_chores": "Seleccioneu les tasques que contribueixen a obtenir punts per a aquesta insígnia. Deixeu-ho en blanc si voleu fer un seguiment de totes les tasques assignades (opcional).",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més dels següents: punts, recompenses, bonificacions o penalitzacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Les penalitzacions només s'aplicaran si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
           "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
           "associated_achievement": "Enllaça aquesta insígnia a un assoliment específic per fer-ne el seguiment.",
-          "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
-          "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
-          "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Edita la insígnia vinculada al repte",
-        "description": "Configura els detalls d'una insígnia vinculada a un repte. Aquestes insígnies recompensen els assignats per completar reptes específics.\n\n📖 [Visió general de les insígnies]({documentation_url})",
-        "data": {
-          "badge_name": "Nom de la insígnia",
-          "badge_description": "Descripció de la insígnia (opcional)",
-          "badge_labels": "Etiquetes (opcional)",
-          "icon": "Icona de distintiu (mdi:xxx)",
-          "associated_challenge": "🏁 Repte associat",
-          "assigned_user_ids": "🧒 Assignat a",
-          "award_items": "🎁 PREMIS: Punts seleccionats, recompenses i bonificacions (opcional)",
-          "award_points": "🎁 PREMIS: Punts atorgats (opcional)"
-        },
-        "data_description": {
-          "badge_name": "Introduïu un nom únic per a la insígnia. Aquest nom es mostrarà al sistema.",
-          "badge_description": "Proporcioneu una descripció de la finalitat o els criteris de la insígnia (opcional).",
-          "badge_labels": "Afegeix etiquetes per categoritzar o etiquetar la insígnia (opcional).",
-          "icon": "Especifiqueu una icona per a la insígnia utilitzant icones de disseny de materials (per exemple, mdi:star).",
-          "associated_challenge": "Enllaça aquesta insígnia a un repte específic per al seguiment.",
           "assigned_user_ids": "Assigneu aquesta insígnia a persones assignades específiques per al seguiment.",
           "award_items": "Seleccioneu un o més punts, recompenses o bonificacions. Tots els elements seleccionats s'atorgaran o s'aplicaran quan s'obtingui la insígnia. Només s'aplicaran penalitzacions si no s'obtingui la insígnia abans de la data de finalització o de restabliment. (opcional)",
           "award_points": "Si els punts són un premi seleccionat, especifiqueu el nombre de punts que s'aplicaran quan s'obtingui aquesta insígnia (opcional)."
@@ -1668,6 +1626,7 @@
         "title": "Opcions generals",
         "description": "Gestiona la configuració general per a la integració de ChoreOps.\n\n[📖 Més informació sobre les opcions generals]({documentation_url})",
         "data": {
+          "default_chore_points": "Punts per defecte per tasca",
           "points_adjust_values": "Valors del botó d'ajust manual de punts",
           "update_interval": "Interval d'actualització",
           "calendar_show_period": "Nombre de dies que es mostraran al calendari",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Accions de còpia de seguretat"
         },
         "data_description": {
+          "default_chore_points": "El valor de punts per defecte s'utilitza per a les tasques noves quan no s'especifiquen punts personalitzats.",
           "points_adjust_values": "Llista de valors per als botons d'ajust manual de punts. Cada valor està separat per '|'.",
           "update_interval": "Interval en minuts per actualitzar l'estat intern de ChoreOps.",
           "calendar_show_period": "Nombre de dies en el futur per mostrar les tasques i els reptes programats al calendari.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Al fitxer seleccionat li falta l'estructura de dades necessària.",
       "file_not_found": "No s'ha pogut trobar el fitxer seleccionat.",
       "invalid_selection": "Si us plau, seleccioneu una opció vàlida.",
+      "invalid_default_chore_points": "Punts de tasca predeterminats no vàlids. Ha de ser un nombre enter positiu.",
       "error_daily_multi_requires_compatible_reset": "La freqüència de \"Diverses vegades al dia\" és incompatible amb els tipus de restabliment de mitjanit perquè només restableixen les aprovacions una vegada a mitjanit.",
       "error_daily_multi_independent_multi_assignees": "La freqüència de \"Diverses vegades al dia\" amb una finalització INDEPENDENT requereix exactament un assignat, tret que es configuren horaris per assignat. Configureu horaris diferents per a cada assignat a la configuració per assignat.",
       "error_daily_multi_times_required": "Cal una llista d'hores per a la freqüència \"Diverses vegades al dia\".",
@@ -1993,7 +1954,6 @@
         "daily": "Diari",
         "periodic": "Periòdic",
         "achievement_linked": "Assoliment vinculat",
-        "challenge_linked": "Repte vinculat",
         "special_occasion": "ocasió especial"
       }
     },

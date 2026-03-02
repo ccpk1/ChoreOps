@@ -28,7 +28,11 @@
         "description": "Choisissez une étiquette et une icône pour les points.",
         "data": {
           "points_label": "Étiquette des points",
-          "points_icon": "Icône des points"
+          "points_icon": "Icône des points",
+          "default_chore_points": "Points par défaut par tâche"
+        },
+        "data_description": {
+          "default_chore_points": "Valeur de points par défaut utilisée lors de la création d'une tâche, sauf si vous définissez des points personnalisés pour cette tâche."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Étiquette des points",
           "points_icon": "Icône des points",
+          "default_chore_points": "Points par défaut par tâche",
           "update_interval": "Intervalle de mise à jour (minutes)",
           "calendar_show_period": "Afficher la période du calendrier (jours)",
           "retention_daily": "Rétention quotidienne (jours)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Libellé affiché pour les points (ex. : « Points », « Étoiles », « Pièces »)",
           "points_icon": "Icône MDI pour les points (ex. : « mdi:star », « mdi:coin », « mdi:trophy »)",
+          "default_chore_points": "Valeur de points par défaut utilisée lors de la création d'une tâche, sauf si des points personnalisés sont définis.",
           "update_interval": "Fréquence de mise à jour des données (minimum : 1 minute)",
           "calendar_show_period": "Jours historiques à afficher dans le calendrier (minimum 1)",
           "retention_daily": "Jours pour conserver les agrégats quotidiens",
@@ -261,7 +267,6 @@
           "maintenance_rules": "🎯 CIBLE : Points de maintenance (facultatif)",
           "occasion_type": "🎉 Type d'occasion",
           "associated_achievement": "🏆 Réalisation associée",
-          "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, Récompenses, Bonus, Multiplicateur (Optionnel)",
@@ -284,7 +289,6 @@
           "maintenance_rules": "Spécifiez le nombre minimum de points requis pendant le cycle de maintenance pour conserver le badge et son multiplicateur actif (facultatif).",
           "occasion_type": "Choisissez le type d'occasion pour ce badge (par exemple, vacances, anniversaire).",
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
-          "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
@@ -495,6 +499,7 @@
       "chore_options_require_assignment": "Les options de gestion des tâches ménagères et de gamification nécessitent d'abord l'activation de l'option « Autoriser l'attribution de tâches ménagères ».",
       "invalid_update_interval": "Intervalle de mise à jour invalide. Doit être un entier positif.",
       "invalid_calendar_show_period": "Période d'affichage du calendrier invalide. Doit être un entier positif.",
+      "invalid_default_chore_points": "Points de tâches par défaut invalides. Doit être un entier positif.",
       "invalid_retention_period": "Période de conservation invalide. Doit être un entier positif.",
       "invalid_points_adjust_values": "Les points invalides ajustent les valeurs. Doit être une liste."
     },
@@ -524,6 +529,11 @@
           "manage_action": "Sélectionnez une action"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Des défis arrivent bientôt",
+        "description": "Les défis seront disponibles dans une prochaine mise à jour.\n\nLors de la migration, les enregistrements de défis existants sont convertis en un système de suivi des badges périodiques équivalent afin de préserver, dans la mesure du possible, l'intention et le comportement de progression. Les badges liés aux défis sont supprimés dans cette version.\n\n📖 [Guide de configuration]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Sélectionnez {entity_type}",
         "description": "Sélectionnez le {entity_type} que vous souhaitez {action}.",
@@ -532,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Modifier l'étiquette et l'icône des points",
-        "description": "Modifiez l'étiquette et l'icône utilisées pour représenter les points.\n\n📖 [Guide de configuration]({documentation_url})",
+        "title": "Paramètres des points de modification",
+        "description": "Modifiez l'étiquette, l'icône et le nombre de points par défaut pour chaque tâche dans ChoreOps.\n\n📖 [Guide de configuration]({documentation_url})",
         "data": {
           "points_label": "Étiquette des points",
-          "points_icon": "Icône des points"
+          "points_icon": "Icône des points",
+          "default_chore_points": "Points par défaut par tâche"
+        },
+        "data_description": {
+          "default_chore_points": "Valeur de points par défaut utilisée pour les nouvelles tâches lorsque les points personnalisés ne sont pas spécifiés. Doit être un nombre entier supérieur à 0."
         }
       },
       "add_user": {
@@ -731,7 +745,6 @@
           "maintenance_rules": "🎯 CIBLE : Points de maintenance (facultatif)",
           "occasion_type": "🎉 Type d'occasion",
           "associated_achievement": "🏆 Réalisation associée",
-          "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, Récompenses, Bonus, Multiplicateur (Optionnel)",
@@ -754,7 +767,6 @@
           "maintenance_rules": "Spécifiez le nombre minimum de points requis pendant le cycle de maintenance pour conserver le badge et son multiplicateur actif (facultatif).",
           "occasion_type": "Choisissez le type d'occasion pour ce badge (par exemple, vacances, anniversaire).",
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
-          "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide pour enregistrer toutes les tâches assignées (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
@@ -809,7 +821,6 @@
           "maintenance_rules": "🎯 CIBLE : Points de maintenance (facultatif)",
           "occasion_type": "🎉 Type d'occasion",
           "associated_achievement": "🏆 Réalisation associée",
-          "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus, pénalités (facultatif)",
@@ -830,7 +841,6 @@
           "maintenance_rules": "Spécifiez le nombre minimum de points requis pendant le cycle de réinitialisation pour conserver le badge et son multiplicateur actif (facultatif).",
           "occasion_type": "Choisissez le type d'occasion pour ce badge (par exemple, vacances, anniversaire).",
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
-          "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
@@ -861,30 +871,6 @@
           "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
           "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
           "associated_achievement": "Associez ce badge à une réalisation spécifique pour en assurer le suivi.",
-          "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
-          "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
-          "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Ajouter un badge lié au défi",
-        "description": "Configurez les détails d'un badge associé à un défi. Ces badges récompensent les personnes désignées pour la réalisation de défis spécifiques.\n\n[📖 Aperçu des badges]({documentation_url})",
-        "data": {
-          "badge_name": "Nom du badge",
-          "badge_description": "Description du badge (facultatif)",
-          "badge_labels": "Étiquettes (facultatif)",
-          "icon": "Icône de badge (mdi:xxx)",
-          "associated_challenge": "🏁 Défi associé",
-          "assigned_user_ids": "🧒 Attribué à",
-          "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
-          "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
-        },
-        "data_description": {
-          "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
-          "badge_description": "Veuillez fournir une description de l'objectif ou des critères du badge (facultatif).",
-          "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
-          "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
-          "associated_challenge": "Associez ce badge à un défi spécifique pour le suivi.",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
@@ -1218,7 +1204,6 @@
           "maintenance_rules": "🎯 CIBLE : Points de maintenance (facultatif)",
           "occasion_type": "🎉 Type d'occasion",
           "associated_achievement": "🏆 Réalisation associée",
-          "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, Récompenses, Bonus, Multiplicateur (Optionnel)",
@@ -1241,7 +1226,6 @@
           "maintenance_rules": "Spécifiez le nombre minimum de points requis pendant le cycle de maintenance pour conserver le badge et son multiplicateur actif (facultatif).",
           "occasion_type": "Choisissez le type d'occasion pour ce badge (par exemple, vacances, anniversaire).",
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
-          "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses, les bonus ou un multiplicateur de points. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. (facultatif)",
@@ -1296,7 +1280,6 @@
           "maintenance_rules": "🎯 CIBLE : Points de maintenance (facultatif)",
           "occasion_type": "🎉 Type d'occasion",
           "associated_achievement": "🏆 Réalisation associée",
-          "associated_challenge": "🏁 Défi associé",
           "selected_chores": "🧹 Suivi des tâches ménagères (facultatif)",
           "assigned_user_ids": "🧒 Attribué à",
           "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus, pénalités (facultatif)",
@@ -1317,7 +1300,6 @@
           "maintenance_rules": "Spécifiez le nombre minimum de points requis pendant le cycle de réinitialisation pour conserver le badge et son multiplicateur actif (facultatif).",
           "occasion_type": "Choisissez le type d'occasion pour ce badge (par exemple, vacances, anniversaire).",
           "associated_achievement": "Associez ce badge à une réussite pour en assurer le suivi.",
-          "associated_challenge": "Associez ce badge à un défi pour le suivi.",
           "selected_chores": "Sélectionnez les tâches qui permettent d'obtenir des points pour ce badge. Laissez ce champ vide si vous souhaitez suivre toutes les tâches assignées (facultatif).",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Sélectionnez un ou plusieurs éléments parmi les points, récompenses, bonus ou pénalités. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Les pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
@@ -1348,30 +1330,6 @@
           "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
           "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
           "associated_achievement": "Associez ce badge à une réalisation spécifique pour en assurer le suivi.",
-          "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
-          "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
-          "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Modifier le badge lié au défi",
-        "description": "Configurez les détails d'un badge associé à un défi. Ces badges récompensent les personnes désignées pour la réalisation de défis spécifiques.\n\n📖 [Aperçu des badges]({documentation_url})",
-        "data": {
-          "badge_name": "Nom du badge",
-          "badge_description": "Description du badge (facultatif)",
-          "badge_labels": "Étiquettes (facultatif)",
-          "icon": "Icône de badge (mdi:xxx)",
-          "associated_challenge": "🏁 Défi associé",
-          "assigned_user_ids": "🧒 Attribué à",
-          "award_items": "🎁 RÉCOMPENSES : Points, récompenses, bonus au choix (facultatif)",
-          "award_points": "🎁 RÉCOMPENSES : Points attribués (facultatif)"
-        },
-        "data_description": {
-          "badge_name": "Saisissez un nom unique pour le badge. Ce nom sera affiché dans le système.",
-          "badge_description": "Veuillez fournir une description de l'objectif ou des critères du badge (facultatif).",
-          "badge_labels": "Ajoutez des étiquettes pour catégoriser ou étiqueter le badge (facultatif).",
-          "icon": "Spécifiez une icône pour le badge en utilisant les icônes Material Design (par exemple, mdi:star).",
-          "associated_challenge": "Associez ce badge à un défi spécifique pour le suivi.",
           "assigned_user_ids": "Attribuez ce badge à des personnes spécifiques à des fins de suivi.",
           "award_items": "Choisissez un ou plusieurs éléments parmi les points, les récompenses ou les bonus. Tous les éléments sélectionnés seront attribués ou appliqués lors de l'obtention du badge. Des pénalités ne seront appliquées que si le badge n'est pas obtenu avant la date limite ou la date de réinitialisation. (facultatif)",
           "award_points": "Si les points constituent une récompense sélectionnée, veuillez préciser le nombre de points à appliquer lors de l'obtention de ce badge. (facultatif)."
@@ -1668,6 +1626,7 @@
         "title": "Options générales",
         "description": "Gérez les paramètres généraux de l'intégration ChoreOps.\n\n[📖 En savoir plus sur les options générales]({documentation_url})",
         "data": {
+          "default_chore_points": "Points par défaut par tâche",
           "points_adjust_values": "Valeurs du bouton de réglage manuel des points",
           "update_interval": "Intervalle de mise à jour",
           "calendar_show_period": "Nombre de jours à afficher dans le calendrier",
@@ -1682,6 +1641,7 @@
           "backup_action_selection": "Actions de sauvegarde"
         },
         "data_description": {
+          "default_chore_points": "Valeur de points par défaut utilisée pour les nouvelles tâches lorsque les points personnalisés ne sont pas spécifiés.",
           "points_adjust_values": "Liste des valeurs des boutons de réglage manuel des points. Chaque valeur est séparée par '|'.",
           "update_interval": "Intervalle en minutes pour la mise à jour de l'état interne de ChoreOps.",
           "calendar_show_period": "Nombre de jours à venir pour afficher les tâches et défis planifiés dans le calendrier.",
@@ -1848,6 +1808,7 @@
       "invalid_structure": "Le fichier sélectionné ne contient pas la structure de données requise.",
       "file_not_found": "Le fichier sélectionné est introuvable.",
       "invalid_selection": "Veuillez sélectionner une option valide.",
+      "invalid_default_chore_points": "Points de tâches par défaut invalides. Doit être un entier positif.",
       "error_daily_multi_requires_compatible_reset": "La fréquence « Plusieurs fois par jour » est incompatible avec les types de réinitialisation de minuit, car ceux-ci ne réinitialisent les approbations qu'une seule fois, à minuit.",
       "error_daily_multi_independent_multi_assignees": "L'option « Plusieurs fois par jour » avec réalisation INDÉPENDANTE requiert un seul responsable, sauf si des plages horaires spécifiques sont configurées pour chaque responsable. Configurez des plages horaires différentes pour chaque responsable dans les paramètres correspondants.",
       "error_daily_multi_times_required": "Une liste des horaires est requise pour la fréquence « Plusieurs fois par jour ».",
@@ -1993,7 +1954,6 @@
         "daily": "Tous les jours",
         "periodic": "Périodique",
         "achievement_linked": "Réussite liée",
-        "challenge_linked": "Défi lié",
         "special_occasion": "Occasion spéciale"
       }
     },
