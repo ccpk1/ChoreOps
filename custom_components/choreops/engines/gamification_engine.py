@@ -619,12 +619,21 @@ class GamificationEngine:
 
         elif target_type == const.CANONICAL_TARGET_TYPE_COMPLETION_STREAK:
             achievement_progress = context.get("current_achievement_progress") or {}
-            current_value = float(
+            stored_streak = float(
                 cast("dict[str, Any]", achievement_progress).get(
                     const.DATA_USER_CURRENT_STREAK,
                     0,
                 )
             )
+            tracked_streak_raw: Any = cast("Any", context).get(
+                "tracked_current_streak", 0
+            )
+            tracked_streak = (
+                float(tracked_streak_raw)
+                if isinstance(tracked_streak_raw, (int, float, str))
+                else 0.0
+            )
+            current_value = max(stored_streak, tracked_streak)
             reason = f"Streak: {current_value}/{threshold}"
 
         elif target_type == const.CANONICAL_TARGET_TYPE_TOTAL_WITH_BASELINE:
@@ -640,12 +649,21 @@ class GamificationEngine:
 
         elif target_type == const.CANONICAL_TARGET_TYPE_TOTAL_WITHIN_WINDOW:
             challenge_progress = context.get("current_challenge_progress") or {}
-            current_value = float(
+            stored_total = float(
                 cast("dict[str, Any]", challenge_progress).get(
                     const.DATA_CHALLENGE_COUNT,
                     0,
                 )
             )
+            tracked_total_raw: Any = cast("Any", context).get(
+                "tracked_total_within_window", 0
+            )
+            tracked_total = (
+                float(tracked_total_raw)
+                if isinstance(tracked_total_raw, (int, float, str))
+                else 0.0
+            )
+            current_value = max(stored_total, tracked_total)
             reason = f"Total: {current_value}/{threshold}"
 
         elif target_type == const.CANONICAL_TARGET_TYPE_BADGE_AWARD_COUNT:

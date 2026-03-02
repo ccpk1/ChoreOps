@@ -42,7 +42,7 @@ from ..helpers.entity_helpers import (
 )
 from ..utils.dt_utils import (
     HELPER_RETURN_DATETIME_LOCAL,
-    dt_now_iso,
+    dt_now_utc_iso,
     dt_parse,
     dt_parse_duration,
     dt_to_utc,
@@ -716,7 +716,7 @@ class ChoreManager(BaseManager):
             self._apply_effect(effect, chore_id)
 
         # Set last_claimed timestamp for the claiming assignee
-        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_CLAIMED] = dt_now_iso()
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_CLAIMED] = dt_now_utc_iso()
 
         # Update global chore state
         self._update_global_state(chore_id)
@@ -888,7 +888,7 @@ class ChoreManager(BaseManager):
         # =====================================================================
         # UPDATE TIMESTAMPS AND CALCULATE STREAK
         # =====================================================================
-        now_iso = dt_now_iso()
+        now_iso = dt_now_utc_iso()
         previous_last_completed = assignee_chore_data.get(
             const.DATA_USER_CHORE_DATA_LAST_COMPLETED
         )
@@ -1000,7 +1000,7 @@ class ChoreManager(BaseManager):
             elif is_full_cycle_reset:
                 # Set chore-level approval_period_start ONCE for SHARED/SHARED_FIRST
                 # Use FRESH timestamp to ensure it's AFTER last_approved
-                reset_period_start = dt_now_iso()
+                reset_period_start = dt_now_utc_iso()
                 chore_data[const.DATA_CHORE_APPROVAL_PERIOD_START] = reset_period_start
 
                 reset_targets = [
@@ -1277,7 +1277,9 @@ class ChoreManager(BaseManager):
         self._decrement_pending_count(assignee_id, chore_id)
 
         # Set last_disapproved timestamp for the disapproved assignee
-        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_DISAPPROVED] = dt_now_iso()
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_DISAPPROVED] = (
+            dt_now_utc_iso()
+        )
 
         # Persist → Emit (per DEVELOPMENT_STANDARDS.md § 5.3)
         self._coordinator._persist_and_update()
@@ -2421,7 +2423,7 @@ class ChoreManager(BaseManager):
                 const.DATA_USER_CHORE_DATA_STATE,
                 const.CHORE_STATE_PENDING,
             )
-            now_iso = dt_now_iso()
+            now_iso = dt_now_utc_iso()
             effective_date_iso = self._resolve_approval_effective_date_iso(
                 assignee_chore_data,
                 now_iso,
@@ -3997,7 +3999,7 @@ class ChoreManager(BaseManager):
             assignee_chore_data[const.DATA_USER_CHORE_DATA_PENDING_CLAIM_COUNT] = 0
 
             if reset_approval_period:
-                now_iso = dt_now_iso()
+                now_iso = dt_now_utc_iso()
                 completion_criteria = chore_info.get(
                     const.DATA_CHORE_COMPLETION_CRITERIA, const.SENTINEL_EMPTY
                 )
@@ -4130,7 +4132,7 @@ class ChoreManager(BaseManager):
             )
             if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
                 default_data[const.DATA_USER_CHORE_DATA_APPROVAL_PERIOD_START] = (
-                    dt_now_iso()
+                    dt_now_utc_iso()
                 )
             assignee_chores[chore_id] = default_data
 
@@ -4803,7 +4805,7 @@ class ChoreManager(BaseManager):
         if not chore_info:
             return
 
-        now_iso = timestamp or dt_now_iso()
+        now_iso = timestamp or dt_now_utc_iso()
         completion_criteria = chore_info.get(
             const.DATA_CHORE_COMPLETION_CRITERIA, const.COMPLETION_CRITERIA_SHARED
         )
@@ -4964,7 +4966,7 @@ class ChoreManager(BaseManager):
         )
 
         # Update top-level timestamp (like last_approved, last_claimed)
-        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_MISSED] = dt_now_iso()
+        assignee_chore_data[const.DATA_USER_CHORE_DATA_LAST_MISSED] = dt_now_utc_iso()
 
         # Ensure periods structure exists for StatisticsManager to write to
         # Phase 3B Landlord/Tenant: ChoreManager must create containers before emitting

@@ -431,6 +431,25 @@ def test_dashboard_template_labels_are_human_friendly() -> None:
         assert label == dh.resolve_template_display_label(value)
 
 
+def test_dashboard_configure_schema_uses_mode_specific_admin_template_defaults() -> (
+    None
+):
+    """Schema defaults to shared template for global and per-user template per-assignee."""
+    expected_global_default = dh.normalize_template_id(
+        "admin-shared-v1",
+        admin_template=True,
+    )
+    expected_per_assignee_default = dh.normalize_template_id(
+        "admin-peruser-v1",
+        admin_template=True,
+    )
+
+    assert dh.get_default_admin_global_template_id() == expected_global_default
+    assert (
+        dh.get_default_admin_per_assignee_template_id() == expected_per_assignee_default
+    )
+
+
 def test_update_selection_labels_are_friendly_and_disambiguate_duplicates() -> None:
     """Update selector shows title first and always appends cod-path suffix."""
     options = [

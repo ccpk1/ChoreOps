@@ -200,6 +200,18 @@ def dt_now_utc() -> datetime:
     return datetime.now(UTC)
 
 
+def dt_now_utc_iso() -> str:
+    """Return the current UTC datetime as an ISO 8601 string.
+
+    Returns:
+        Current UTC datetime as ISO string.
+
+    Example:
+        "2025-04-07T19:30:00+00:00"
+    """
+    return dt_now_utc().isoformat()
+
+
 # ==============================================================================
 # Timezone Conversion
 # ==============================================================================

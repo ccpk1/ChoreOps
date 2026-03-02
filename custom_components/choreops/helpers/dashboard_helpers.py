@@ -989,6 +989,24 @@ def get_default_admin_template_id() -> str:
     return ""
 
 
+def get_default_admin_global_template_id() -> str:
+    """Return default admin template ID for shared/global admin views."""
+    admin_template_ids = get_admin_template_ids()
+    preferred_template_id = "admin-shared-v1"
+    if preferred_template_id in admin_template_ids:
+        return preferred_template_id
+    return get_default_admin_template_id()
+
+
+def get_default_admin_per_assignee_template_id() -> str:
+    """Return default admin template ID for per-assignee admin views."""
+    admin_template_ids = get_admin_template_ids()
+    preferred_template_id = "admin-peruser-v1"
+    if preferred_template_id in admin_template_ids:
+        return preferred_template_id
+    return get_default_admin_template_id()
+
+
 def normalize_template_id(template_id: str, *, admin_template: bool) -> str:
     """Normalize template ID to a manifest-supported value."""
     candidates = (
@@ -1341,10 +1359,12 @@ def build_dashboard_configure_schema(
         template_profile_default = get_default_assignee_template_id()
 
     if admin_template_global_default is None:
-        admin_template_global_default = get_default_admin_template_id()
+        admin_template_global_default = get_default_admin_global_template_id()
 
     if admin_template_per_assignee_default is None:
-        admin_template_per_assignee_default = get_default_admin_template_id()
+        admin_template_per_assignee_default = (
+            get_default_admin_per_assignee_template_id()
+        )
 
     template_profile_default = normalize_template_id(
         template_profile_default,
