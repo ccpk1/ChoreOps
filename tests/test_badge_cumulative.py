@@ -122,9 +122,12 @@ class TestCumulativeBadgeLoading:
 
         # Verify badges_data is populated
         assert coordinator.badges_data, "badges_data should not be empty"
-        assert len(coordinator.badges_data) == 2, (
-            "scenario_full has 2 cumulative badges"
-        )
+        cumulative_badges = [
+            badge
+            for badge in coordinator.badges_data.values()
+            if badge.get(const.DATA_BADGE_TYPE) == const.BADGE_TYPE_CUMULATIVE
+        ]
+        assert len(cumulative_badges) == 2, "scenario_full has 2 cumulative badges"
 
         # Verify badge names
         badge_names = [b.get("name") for b in coordinator.badges_data.values()]
@@ -585,7 +588,12 @@ class TestCumulativeThreeBadgeSensorAttributes:
             )
             for badge_data in coordinator.badges_data.values()
         }
-        assert len(coordinator.badges_data) == 3
+        cumulative_badge_count = sum(
+            1
+            for badge_data in coordinator.badges_data.values()
+            if badge_data.get(const.DATA_BADGE_TYPE) == const.BADGE_TYPE_CUMULATIVE
+        )
+        assert cumulative_badge_count == 3
         for badge_name in (
             "Chore Stär Champion",
             "Team Player Badge",

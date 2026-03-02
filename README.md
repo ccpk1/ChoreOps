@@ -1,18 +1,6 @@
-![Status](https://img.shields.io/badge/Status-Pre--Alpha-red)
-![Build](https://img.shields.io/badge/Build-Unstable-orange)
-
-<br><br><br><br><br><br>
-
-> [!WARNING]
-> **UNDER ACTIVE DEVELOPMENT**
-> This repository is currently in a pre-alpha state and is being refactored from the original [KidsChores] integration.
-> Breaking changes are pushed directly to `main` without notice. Please do not install this in a production Home Assistant environment yet.
-
-## <br><br><br><br><br><br>
-
 [![Quality Scale: Platinum](https://img.shields.io/badge/Quality%20Scale-Platinum-platinum.svg)](https://github.com/ccpk1/choreops)
 [![Crowdin](https://badges.crowdin.net/choreops-translations/localized.svg)](https://crowdin.com/project/choreops-translations)
-[![License](https://img.shields.io/github/license/ccpk1/choreops)](https://github.com/ccpk1/choreops/blob/main/LICENSE)<br>
+[![License](https://img.shields.io/github/license/ccpk1/choreops)](https://github.com/ccpk1/choreops/blob/main/LICENSE) [![GitHub Issues](https://img.shields.io/github/issues/ccpk1/choreops)](https://github.com/ccpk1/choreops/issues) [![GitHub Stars](https://img.shields.io/github/stars/ccpk1/choreops?style=social)](https://github.com/ccpk1/choreops/stargazers) <br>
 [![HACS Custom](https://img.shields.io/badge/HACS%20Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![Validate](https://github.com/ccpk1/choreops/actions/workflows/validate.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/validate.yaml)
 [![Hassfest](https://github.com/ccpk1/choreops/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/hassfest.yaml)
@@ -20,8 +8,6 @@
 [![GitHub Release](https://img.shields.io/github/v/release/ccpk1/choreops?include_prereleases)](https://github.com/ccpk1/choreops/releases)
 [![Latest Release Downloads](https://img.shields.io/github/downloads/ccpk1/choreops/latest/total?label=Latest%20Release%20Downloads)](https://github.com/ccpk1/choreops/releases)
 [![All Release Downloads](https://img.shields.io/github/downloads/ccpk1/choreops/total?label=All%20Release%20Downloads)](https://github.com/ccpk1/choreops/releases)<br>
-[![GitHub Stars](https://img.shields.io/github/stars/ccpk1/choreops?style=social)](https://github.com/ccpk1/choreops/stargazers)
-[![GitHub Issues](https://img.shields.io/github/issues/ccpk1/choreops)](https://github.com/ccpk1/choreops/issues)
 
 <p align="center">
   <img src="logo.png" alt="ChoreOps - Level Up your Household Tasks" width="640">
@@ -35,7 +21,7 @@
 
 **ChoreOps helps keep your home running smoothly... _Level Up your Household Tasks_**
 
-Whether you are staying on top of a busy lifestyle, sharing duties with a housemate, or trying to motivate your kids, ChoreOps fills a gap in the ecosystem. Users needed something more powerful than a simple to-do list, but more integrated and private than external cloud services.
+Whether you are staying on top of a busy lifestyle, sharing duties with a housemate, or trying to motivate your kids, ChoreOps fills a gap in the ecosystem. Users often need something more powerful than a simple to-do list, but more integrated and private than external cloud services.
 
 Born from the popular _KidsChores_ integration, ChoreOps evolves that foundation into a sophisticated **Household Operations Platform**. It recognizes that while the high-quality gamification at its core is a powerful motivator for many, others just want the trash taken out on time.
 
@@ -73,12 +59,13 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 - 🎨 **Easy Dashboards:** Quickly set up full featured dashboards for any user easily-no YAML required
 - 🔔 **Advanced notifications**: actionable alerts with approval workflows and reminder controls
 - 🎮 **Optional gamification**: robust progression systems you can enable or minimize as needed
-- ⚡ **Open control**: tasks and members exposed as Home Assistant entities and services for full automation control
-- 🌍 **Global ready**: multilingual support with 13+ language packs out of the box
+- ⚡ **Open control**: tasks, statistics, and actions exposed as Home Assistant entities and services for full automation control
+- 🌍 **Global ready**: multilingual support with 13+ languages
 
 ## Core philosophy
 
 - **Native by Design:** No Docker sidecar, no external database, no cloud dependency.
+- **Platinum Quality:** Built to Home Assistant Platinum quality standards prioritizing long-term stability and scale.
 - **Gamification with Purpose:** Progression systems built as first-class capabilities, not tacked-on extras.
 - **Privacy First:** Your household data remains 100% on your local instance. No external data sharing.
 - **Open by Default:** Rich entities + Service-level APIs for dashboards, scripts, and Node-RED.
@@ -94,6 +81,7 @@ Strip away the game layer entirely. Use the **Enterprise-Grade Scheduling** and 
 - **Challenges and achievements**: time-bound goals and milestone tracking
 - **Calendar visibility**: scheduled chores and challenge windows in Home Assistant calendar contexts
 - **Statistics**: daily/weekly/monthly/yearly/all-time period tracking and analytics sensors
+- **Weekly activity reports**: generate detailed 7-day progress reports via service, copy as markdown, or deliver through Home Assistant notify/email services
 
 ## For power users
 
@@ -110,7 +98,7 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 - 🚀 Getting Started: [Installation](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Installation) · [Quick Start](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Quick-Start) · [Scenarios](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Scenarios) · [Migration from KidsChores](https://github.com/ccpk1/choreops/wiki/Getting-Started:-Migration-from-KidsChores)
 - ⚙️ Configuration: [Users](https://github.com/ccpk1/choreops/wiki/Configuration:-Users) · [Chores](https://github.com/ccpk1/choreops/wiki/Configuration:-Chores)
 - 🏅 Gamification: [Points](https://github.com/ccpk1/choreops/wiki/Configuration:-Points) · [Rewards](https://github.com/ccpk1/choreops/wiki/Configuration:-Rewards) · [Badges Overview](https://github.com/ccpk1/choreops/wiki/Configuration:-Badges-Overview) · [Achievements](https://github.com/ccpk1/choreops/wiki/Configuration:-Achievements) · [Challenges](https://github.com/ccpk1/choreops/wiki/Configuration:-Challenges)
-- 🔧 Operations: [Services Reference](https://github.com/ccpk1/choreops/wiki/Services:-Reference) · [Advanced Dashboard](https://github.com/ccpk1/choreops/wiki/Advanced:-Dashboard) · [Advanced Access Control](https://github.com/ccpk1/choreops/wiki/Advanced:-Access-Control)
+- 🔧 Operations: [Services Reference](https://github.com/ccpk1/choreops/wiki/Services:-Reference) · [Weekly Activity Reports](https://github.com/ccpk1/choreops/wiki/Technical:-Weekly-Activity-Reports) · [Advanced Dashboard](https://github.com/ccpk1/choreops/wiki/Advanced:-Dashboard) · [Advanced Access Control](https://github.com/ccpk1/choreops/wiki/Advanced:-Access-Control)
 - 🧪 Technical: [Entities & States](https://github.com/ccpk1/choreops/wiki/Technical:-Entities-States) · [Dashboard Generation](https://github.com/ccpk1/choreops/wiki/Technical:-Dashboard-Generation) · [Troubleshooting](https://github.com/ccpk1/choreops/wiki/Technical:-Troubleshooting) · [FAQ](<https://github.com/ccpk1/choreops/wiki/Frequently-Asked-Questions-(FAQ)>)
 
 ## Quick installation
@@ -134,6 +122,11 @@ Prefer the guided steps? See the full [Wiki installation guide](https://github.c
 - 💬 Community discussion: [GitHub Discussions](https://github.com/ccpk1/choreops/discussions)
 - 🛠️ Issues and feature requests: [GitHub Issues](https://github.com/ccpk1/choreops/issues)
 - 🔀 Contribute: [Pull requests](https://github.com/ccpk1/choreops/pulls)
+
+### Companion repository
+
+- Dashboard templates and registry assets are maintained in [ChoreOps Dashboards](https://github.com/ccpk1/choreops-dashboards).
+- The integration repository remains the primary product repository for installation, runtime behavior, and user support.
 
 ### Use issues vs discussions
 

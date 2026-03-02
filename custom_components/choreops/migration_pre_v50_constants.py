@@ -6,6 +6,11 @@ runtime constants stay focused on active schema/runtime behavior.
 
 from typing import Final
 
+# Schema45 migration-only challenge/badge literals
+BADGE_TYPE_CHALLENGE_LINKED_MIGRATION: Final = "challenge_linked"
+CHALLENGE_TYPE_DAILY_MIN_MIGRATION: Final = "daily_minimum"
+CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW_MIGRATION: Final = "total_within_window"
+
 DATA_ASSIGNEE_POINT_STATS_AVG_PER_DAY_WEEK_LEGACY: Final = (
     "avg_points_per_day_week"  # DERIVED from weekly period
 )

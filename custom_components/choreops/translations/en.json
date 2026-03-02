@@ -261,7 +261,6 @@
           "maintenance_rules": "🎯 TARGET: Maintenance Points (Optional)",
           "occasion_type": "🎉 Occasion Type",
           "associated_achievement": "🏆 Associated Achievement",
-          "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
@@ -284,7 +283,6 @@
           "maintenance_rules": "Specify the minimum points required during the maintenance cycle to retain the badge and its active multiplier (optional).",
           "occasion_type": "Choose the type of occasion for this badge (e.g., holiday, birthday).",
           "associated_achievement": "Link this badge to an achievement for tracking.",
-          "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
@@ -524,6 +522,11 @@
           "manage_action": "Select an Action"
         }
       },
+      "challenge_coming_soon": {
+        "title": "Challenges coming soon",
+        "description": "Challenges will be made available in future update.\n\nDuring migration, existing Challenge records are converted to equivalent Periodic Badge tracking to preserve intent and progress behavior where possible. Challenge-linked badges are removed in this release.\n\n📖 [Configuration Guide]({documentation_url})",
+        "data": {}
+      },
       "select_entity": {
         "title": "Select {entity_type}",
         "description": "Select the {entity_type} you want to {action}.",
@@ -731,7 +734,6 @@
           "maintenance_rules": "🎯 TARGET: Maintenance Points (Optional)",
           "occasion_type": "🎉 Occasion Type",
           "associated_achievement": "🏆 Associated Achievement",
-          "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
@@ -754,7 +756,6 @@
           "maintenance_rules": "Specify the minimum points required during the maintenance cycle to retain the badge and its active multiplier (optional).",
           "occasion_type": "Choose the type of occasion for this badge (e.g., holiday, birthday).",
           "associated_achievement": "Link this badge to an achievement for tracking.",
-          "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank to track all assigned chores (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
@@ -809,7 +810,6 @@
           "maintenance_rules": "🎯 TARGET: Maintenance Points (Optional)",
           "occasion_type": "🎉 Occasion Type",
           "associated_achievement": "🏆 Associated Achievement",
-          "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
@@ -830,7 +830,6 @@
           "maintenance_rules": "Specify the minimum points required during the reset cycle to retain the badge and its active multiplier (optional).",
           "occasion_type": "Choose the type of occasion for this badge (e.g., holiday, birthday).",
           "associated_achievement": "Link this badge to an achievement for tracking.",
-          "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
@@ -861,30 +860,6 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_achievement": "Link this badge to a specific achievement for tracking.",
-          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
-          "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
-          "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
-        }
-      },
-      "add_badge_challenge": {
-        "title": "Add Challenge-Linked Badge",
-        "description": "Configure the details for a badge linked to a challenge. These badges reward assignees for completing specific challenges.\n\n[📖 Badges Overview]({documentation_url})",
-        "data": {
-          "badge_name": "Badge Name",
-          "badge_description": "Badge Description (Optional)",
-          "badge_labels": "Labels (Optional)",
-          "icon": "Badge Icon (mdi:xxx)",
-          "associated_challenge": "🏁 Associated Challenge",
-          "assigned_user_ids": "🧒 Assigned to",
-          "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
-          "award_points": "🎁 AWARDS: Points Awarded (Optional)"
-        },
-        "data_description": {
-          "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
-          "badge_description": "Provide a description of the badge's purpose or criteria (optional).",
-          "badge_labels": "Add labels to categorize or tag the badge (optional).",
-          "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
-          "associated_challenge": "Link this badge to a specific challenge for tracking.",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
@@ -1218,7 +1193,6 @@
           "maintenance_rules": "🎯 TARGET: Maintenance Points (Optional)",
           "occasion_type": "🎉 Occasion Type",
           "associated_achievement": "🏆 Associated Achievement",
-          "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Multiplier (Optional)",
@@ -1241,7 +1215,6 @@
           "maintenance_rules": "Specify the minimum points required during the maintenance cycle to retain the badge and its active multiplier (optional).",
           "occasion_type": "Choose the type of occasion for this badge (e.g., holiday, birthday).",
           "associated_achievement": "Link this badge to an achievement for tracking.",
-          "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or a points multiplier. All selected items will be granted or applied when the badge is earned. (optional)",
@@ -1296,7 +1269,6 @@
           "maintenance_rules": "🎯 TARGET: Maintenance Points (Optional)",
           "occasion_type": "🎉 Occasion Type",
           "associated_achievement": "🏆 Associated Achievement",
-          "associated_challenge": "🏁 Associated Challenge",
           "selected_chores": "🧹 Tracked Chores (Optional)",
           "assigned_user_ids": "🧒 Assigned to",
           "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses, Penalties (Optional)",
@@ -1317,7 +1289,6 @@
           "maintenance_rules": "Specify the minimum points required during the reset cycle to retain the badge and its active multiplier (optional).",
           "occasion_type": "Choose the type of occasion for this badge (e.g., holiday, birthday).",
           "associated_achievement": "Link this badge to an achievement for tracking.",
-          "associated_challenge": "Link this badge to a challenge for tracking.",
           "selected_chores": "Select the chores that contribute points toward this badge. Leave blank if you want to track all assigned chores (optional).",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, bonuses, or penalties. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
@@ -1348,30 +1319,6 @@
           "badge_labels": "Add labels to categorize or tag the badge (optional).",
           "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
           "associated_achievement": "Link this badge to a specific achievement for tracking.",
-          "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
-          "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
-          "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
-        }
-      },
-      "edit_badge_challenge": {
-        "title": "Edit Challenge-Linked Badge",
-        "description": "Configure the details for a badge linked to a challenge. These badges reward assignees for completing specific challenges.\n\n📖 [Badges Overview]({documentation_url})",
-        "data": {
-          "badge_name": "Badge Name",
-          "badge_description": "Badge Description (Optional)",
-          "badge_labels": "Labels (Optional)",
-          "icon": "Badge Icon (mdi:xxx)",
-          "associated_challenge": "🏁 Associated Challenge",
-          "assigned_user_ids": "🧒 Assigned to",
-          "award_items": "🎁 AWARDS: Select Points, Rewards, Bonuses (Optional)",
-          "award_points": "🎁 AWARDS: Points Awarded (Optional)"
-        },
-        "data_description": {
-          "badge_name": "Enter a unique name for the badge. This name will be displayed in the system.",
-          "badge_description": "Provide a description of the badge's purpose or criteria (optional).",
-          "badge_labels": "Add labels to categorize or tag the badge (optional).",
-          "icon": "Specify an icon for the badge using Material Design Icons (e.g., mdi:star).",
-          "associated_challenge": "Link this badge to a specific challenge for tracking.",
           "assigned_user_ids": "Assign this badge to specific assignees for tracking.",
           "award_items": "Select one or more from points, rewards, or bonuses. All selected items will be granted or applied when the badge is earned. Penalties will only be applied if the badge is not earned by the end date or reset date. (optional)",
           "award_points": "If points are a selected award, specify the number of points to apply when this badge is earned. (optional)."
@@ -1993,7 +1940,6 @@
         "daily": "Daily",
         "periodic": "Periodic",
         "achievement_linked": "Achievement Linked",
-        "challenge_linked": "Challenge Linked",
         "special_occasion": "Special Occasion"
       }
     },

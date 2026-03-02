@@ -834,13 +834,11 @@ class GamificationManager(BaseManager):
                 context, achievement_id, achievement_data
             )
 
-        # Get challenge data from coordinator
-        challenges_data = self.coordinator.challenges_data
-
-        # Evaluate each challenge
-        for challenge_id, challenge_data in challenges_data.items():
-            await self._evaluate_challenge_for_assignee(
-                context, challenge_id, challenge_data
+        challenge_count = len(self.coordinator.challenges_data)
+        if challenge_count:
+            const.LOGGER.debug(
+                "Challenge evaluation disabled during sunset; skipped %d challenges",
+                challenge_count,
             )
 
     # =========================================================================
@@ -2279,6 +2277,12 @@ class GamificationManager(BaseManager):
             challenge_id: Challenge internal ID
             challenge_data: Challenge definition
         """
+        const.LOGGER.debug(
+            "Challenge evaluation disabled during sunset; skipping challenge %s",
+            challenge_id,
+        )
+        return
+
         assignee_id = context["assignee_id"]
 
         # Check if assignee already completed this challenge (awarded flag in progress)
@@ -2826,17 +2830,11 @@ class GamificationManager(BaseManager):
         Returns:
             EvaluationResult or None if context/challenge not found
         """
-        context = self._build_evaluation_context(assignee_id)
-        if not context:
-            return None
-
-        challenge_data = self.coordinator.challenges_data.get(challenge_id)
-        if not challenge_data:
-            return None
-
-        # Cast TypedDict to dict for engine
-        challenge_dict = cast("dict[str, Any]", challenge_data)
-        return GamificationEngine.evaluate_challenge(context, challenge_dict)
+        const.LOGGER.debug(
+            "Challenge dry-run disabled during sunset; skipping challenge %s",
+            challenge_id,
+        )
+        return None
 
     # =========================================================================
     # BADGE UTILITIES (Pure Helpers - No Side Effects)

@@ -160,7 +160,11 @@ class TestBadgeShadowComparison:
         for badge_id, badge_data in coordinator.badges_data.items():
             target = badge_data.get(const.DATA_BADGE_TARGET, {})
             target_type = target.get(const.DATA_BADGE_TARGET_TYPE, "")
-            if target_type == const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT:
+            migration_meta = badge_data.get("migration_meta", {})
+            if target_type == const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT and not (
+                isinstance(migration_meta, dict)
+                and migration_meta.get("source") == "challenge"
+            ):
                 chore_badge_id = badge_id
                 chore_badge_data = badge_data
                 break

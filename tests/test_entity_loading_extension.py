@@ -54,10 +54,12 @@ async def test_scenario_full_loads_all_entity_types(
     # NEW ENTITY TYPES (Phase 12 Step 7 Implementation)
     # =========================================================================
 
-    # Verify badges loaded (2 from scenario_full.yaml)
-    assert len(result.badge_ids) == 2
+    # Verify badges loaded (2 cumulative + 2 migrated periodic from challenges)
+    assert len(result.badge_ids) == 4
     assert "Chore Stär Champion" in result.badge_ids
     assert "Team Player Badge" in result.badge_ids
+    assert "Weekend Warrior" in result.badge_ids
+    assert "Summer Sprint" in result.badge_ids
 
     # Verify rewards loaded (3 from scenario_full.yaml)
     assert len(result.reward_ids) == 3
@@ -80,10 +82,8 @@ async def test_scenario_full_loads_all_entity_types(
     assert "Early Bird" in result.achievement_ids
     assert "Chore Champion" in result.achievement_ids
 
-    # Verify challenges loaded (2 from scenario_full.yaml)
-    assert len(result.challenge_ids) == 2
-    assert "Weekend Warrior" in result.challenge_ids
-    assert "Summer Sprint" in result.challenge_ids
+    # Verify challenges are converted/cleared during schema45 migration
+    assert len(result.challenge_ids) == 0
 
     # =========================================================================
     # COORDINATOR DATA VALIDATION
@@ -92,12 +92,12 @@ async def test_scenario_full_loads_all_entity_types(
     coordinator = result.coordinator
 
     # Verify coordinator has all entity data
-    assert len(coordinator.badges_data) == 2
+    assert len(coordinator.badges_data) == 4
     assert len(coordinator.rewards_data) == 3
     assert len(coordinator.penalties_data) == 2
     assert len(coordinator.bonuses_data) == 2
     assert len(coordinator.achievements_data) == 2
-    assert len(coordinator.challenges_data) == 2
+    assert len(coordinator.challenges_data) == 0
 
     # Spot-check: Verify specific badge data loaded correctly
     chore_star_badge_id = result.badge_ids["Chore Stär Champion"]
@@ -132,13 +132,6 @@ async def test_scenario_full_loads_all_entity_types(
     assert achievement_data["name"] == "Early Bird"
     assert achievement_data["type"] == "chore_total"  # Achievement type, not name
     assert achievement_data["reward_points"] == 25.0
-
-    # Spot-check: Verify specific challenge data loaded correctly
-    weekend_warrior_challenge_id = result.challenge_ids["Weekend Warrior"]
-    challenge_data = coordinator.challenges_data[weekend_warrior_challenge_id]
-    assert challenge_data["name"] == "Weekend Warrior"
-    assert challenge_data["type"] == "daily_minimum"  # Challenge type, not name
-    assert challenge_data["reward_points"] == 50.0
 
 
 @pytest.mark.usefixtures("mock_hass_users")

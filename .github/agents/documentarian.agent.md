@@ -1,7 +1,7 @@
 ---
 name: ChoreOps Documentarian
 description: Writes user guides, architecture docs, and maintains the Wiki
-tools: ["search/codebase", "edit/editFiles", "web/fetch"]
+tools: ["search", "edit/editFiles", "read", "web"]
 handoffs:
   - label: Escalate to Maintainer
     agent: ChoreOps Maintainer

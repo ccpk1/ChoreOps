@@ -169,7 +169,9 @@ async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
             },
             const.DATA_CHALLENGES: {
                 "challenge-1": {
-                    const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY: ["assignee-1"]
+                    const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY: ["assignee-1"],
+                    const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW,
+                    const.DATA_CHALLENGE_TARGET_VALUE: 3,
                 }
             },
         }
@@ -197,13 +199,182 @@ async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
     assert "rotation_current_kid_id" not in chore
 
     achievement = coordinator._data[const.DATA_ACHIEVEMENTS]["achievement-1"]
-    challenge = coordinator._data[const.DATA_CHALLENGES]["challenge-1"]
+    badges = coordinator._data[const.DATA_BADGES]
+    migrated_badge = badges["migrated_challenge_challenge-1"]
     assert achievement[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] == ["assignee-1"]
-    assert challenge[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] == ["assignee-1"]
+    assert migrated_badge[const.DATA_BADGE_ASSIGNED_USER_IDS] == ["assignee-1"]
+    assert coordinator._data[const.DATA_CHALLENGES] == {}
     assert const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY not in achievement
-    assert const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY not in challenge
 
     assert summary["kid_key_remaps"] >= 7
+
+
+async def test_schema45_converts_challenges_and_removes_challenge_linked_badges() -> (
+    None
+):
+    """Schema45 converts supported challenges and removes challenge-linked badges."""
+    coordinator = _DummyCoordinator(
+        _data={
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
+                const.DATA_META_MIGRATIONS_APPLIED: [],
+            },
+            const.DATA_USERS: {
+                "assignee-1": {
+                    const.DATA_USER_NAME: "Alex",
+                }
+            },
+            const.DATA_APPROVERS: {},
+            const.DATA_BADGES: {
+                "challenge-linked-1": {
+                    const.DATA_BADGE_INTERNAL_ID: "challenge-linked-1",
+                    const.DATA_BADGE_NAME: "Legacy Linked Badge",
+                    const.DATA_BADGE_TYPE: const.BADGE_TYPE_CHALLENGE_LINKED,
+                },
+                "existing-name": {
+                    const.DATA_BADGE_INTERNAL_ID: "existing-name",
+                    const.DATA_BADGE_NAME: "Summer Sprint",
+                    const.DATA_BADGE_TYPE: const.BADGE_TYPE_PERIODIC,
+                },
+            },
+            const.DATA_CHALLENGES: {
+                "challenge-total": {
+                    const.DATA_CHALLENGE_NAME: "Summer Sprint",
+                    const.DATA_CHALLENGE_DESCRIPTION: "Complete chores this month",
+                    const.DATA_CHALLENGE_ICON: "mdi:run-fast",
+                    const.DATA_CHALLENGE_LABELS: ["seasonal"],
+                    const.DATA_CHALLENGE_ASSIGNED_USER_IDS: ["assignee-1"],
+                    const.DATA_CHALLENGE_REWARD_POINTS: 50,
+                    const.DATA_CHALLENGE_TARGET_VALUE: 20,
+                    const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW,
+                },
+                "challenge-daily": {
+                    const.DATA_CHALLENGE_NAME: "Weekend Warrior",
+                    const.DATA_CHALLENGE_DESCRIPTION: "Do chores daily",
+                    const.DATA_CHALLENGE_ICON: "mdi:calendar-star",
+                    const.DATA_CHALLENGE_LABELS: ["daily"],
+                    const.DATA_CHALLENGE_ASSIGNED_USER_IDS: ["assignee-1"],
+                    const.DATA_CHALLENGE_REWARD_POINTS: 25,
+                    const.DATA_CHALLENGE_TARGET_VALUE: 3,
+                    const.DATA_CHALLENGE_SELECTED_CHORE_ID: "chore-1",
+                    const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_DAILY_MIN,
+                },
+            },
+        }
+    )
+
+    summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+
+    assert summary["converted_challenges"] == 2
+    assert summary["removed_challenge_linked_badges"] == 1
+    assert summary["renamed_challenges_name_collision"] == 1
+    assert summary["skipped_challenges_existing_badge"] == 0
+    assert summary["skipped_challenges_invalid_type"] == 0
+
+    assert coordinator._data[const.DATA_CHALLENGES] == {}
+    badges = coordinator._data[const.DATA_BADGES]
+    assert "challenge-linked-1" not in badges
+
+    total_badge = badges["migrated_challenge_challenge-total"]
+    assert total_badge[const.DATA_BADGE_NAME] == "Summer Sprint_2"
+    assert total_badge[const.DATA_BADGE_TYPE] == const.BADGE_TYPE_PERIODIC
+    assert total_badge[const.DATA_BADGE_TARGET][const.DATA_BADGE_TARGET_TYPE] == (
+        const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT
+    )
+    assert (
+        total_badge[const.DATA_BADGE_TARGET][const.DATA_BADGE_TARGET_THRESHOLD_VALUE]
+        == 20.0
+    )
+
+    daily_badge = badges["migrated_challenge_challenge-daily"]
+    assert daily_badge[const.DATA_BADGE_TARGET][const.DATA_BADGE_TARGET_TYPE] == (
+        const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_3_CHORES
+    )
+    assert (
+        daily_badge[const.DATA_BADGE_TARGET][const.DATA_BADGE_TARGET_THRESHOLD_VALUE]
+        == 1.0
+    )
+    assert daily_badge[const.DATA_BADGE_TRACKED_CHORES][
+        const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES
+    ] == ["chore-1"]
+
+
+async def test_schema45_kidschores_data_31_challenge_fixture_conversion() -> None:
+    """Schema31-style challenge records convert and clear challenge container."""
+    coordinator = _DummyCoordinator(
+        _data={
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_LEGACY_BASELINE,
+                const.DATA_META_MIGRATIONS_APPLIED: [],
+            },
+            LEGACY_ASSIGNEES_BUCKET: {
+                "assignee-1": {
+                    const.DATA_USER_NAME: "Alex",
+                }
+            },
+            const.DATA_APPROVERS: {},
+            const.DATA_BADGES: {},
+            const.DATA_CHALLENGES: {
+                "legacy-31": {
+                    const.DATA_CHALLENGE_NAME: "Legacy 31 Challenge",
+                    const.DATA_CHALLENGE_DESCRIPTION: "Legacy payload conversion",
+                    const.DATA_CHALLENGE_ICON: "mdi:star",
+                    const.CONF_CHALLENGE_ASSIGNED_ASSIGNEES_LEGACY: ["assignee-1"],
+                    const.DATA_CHALLENGE_REWARD_POINTS: 15,
+                    const.DATA_CHALLENGE_TARGET_VALUE: 5,
+                    const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_DAILY_MIN,
+                }
+            },
+        }
+    )
+
+    summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+
+    assert summary["converted_challenges"] == 1
+    assert coordinator._data[const.DATA_CHALLENGES] == {}
+    migrated = coordinator._data[const.DATA_BADGES]["migrated_challenge_legacy-31"]
+    assert migrated[const.DATA_BADGE_ASSIGNED_USER_IDS] == ["assignee-1"]
+    assert migrated[const.DATA_BADGE_TARGET][const.DATA_BADGE_TARGET_TYPE] == (
+        const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES
+    )
+
+
+async def test_schema45_challenge_conversion_idempotent_no_duplicate_badges() -> None:
+    """Running schema45 hook twice does not duplicate migrated challenge badges."""
+    coordinator = _DummyCoordinator(
+        _data={
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
+                const.DATA_META_MIGRATIONS_APPLIED: [],
+            },
+            const.DATA_USERS: {
+                "assignee-1": {
+                    const.DATA_USER_NAME: "Alex",
+                }
+            },
+            const.DATA_APPROVERS: {},
+            const.DATA_BADGES: {},
+            const.DATA_CHALLENGES: {
+                "challenge-1": {
+                    const.DATA_CHALLENGE_NAME: "Idempotent Challenge",
+                    const.DATA_CHALLENGE_ASSIGNED_USER_IDS: ["assignee-1"],
+                    const.DATA_CHALLENGE_REWARD_POINTS: 10,
+                    const.DATA_CHALLENGE_TARGET_VALUE: 10,
+                    const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW,
+                }
+            },
+        }
+    )
+
+    first_summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+    first_badges = coordinator._data[const.DATA_BADGES].copy()
+
+    second_summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+
+    assert first_summary["converted_challenges"] == 1
+    assert second_summary["converted_challenges"] == 0
+    assert second_summary["skipped_challenges_existing_badge"] == 0
+    assert coordinator._data[const.DATA_BADGES] == first_badges
 
 
 def test_store_default_structure_uses_users_bucket() -> None:

@@ -1698,7 +1698,6 @@ def build_badge_common_schema(
     include_achievement_linked = (
         badge_type in const.INCLUDE_ACHIEVEMENT_LINKED_BADGE_TYPES
     )
-    include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
     include_assigned_user_ids = (
         badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
@@ -1866,34 +1865,6 @@ def build_badge_common_schema(
                         options=achievement_options,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                         translation_key=const.TRANS_KEY_CFOF_BADGE_ASSOCIATED_ACHIEVEMENT,
-                    )
-                )
-            }
-        )
-
-    # --- Challenge-Linked Component Schema ---
-    if include_challenge_linked:
-        challenge_options = [
-            {"value": const.SENTINEL_NO_SELECTION, "label": const.LABEL_NONE}
-        ] + [
-            {
-                "value": challenge_id,
-                "label": challenge.get(
-                    const.DATA_CHALLENGE_NAME, const.SENTINEL_NONE_TEXT
-                ),
-            }
-            for challenge_id, challenge in challenges_dict.items()
-        ]
-        schema_fields.update(
-            {
-                vol.Required(
-                    const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE,
-                    default=const.SENTINEL_NO_SELECTION,
-                ): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=challenge_options,
-                        mode=selector.SelectSelectorMode.DROPDOWN,
-                        translation_key=const.TRANS_KEY_CFOF_BADGE_ASSOCIATED_CHALLENGE,
                     )
                 )
             }
@@ -2194,7 +2165,6 @@ def validate_badge_common_inputs(
     include_achievement_linked = (
         badge_type in const.INCLUDE_ACHIEVEMENT_LINKED_BADGE_TYPES
     )
-    include_challenge_linked = badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
     include_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
     include_assigned_user_ids = (
         badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
@@ -2326,19 +2296,6 @@ def validate_badge_common_inputs(
         ):
             errors[const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT] = (
                 const.TRANS_KEY_CFOF_ERROR_BADGE_ACHIEVEMENT_REQUIRED
-            )
-
-    # --- Challenge-Linked Validation ---
-    if include_challenge_linked:
-        challenge_id = user_input.get(
-            const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE, const.SENTINEL_EMPTY
-        )
-        if not challenge_id or challenge_id in (
-            const.SENTINEL_EMPTY,
-            const.SENTINEL_NO_SELECTION,
-        ):
-            errors[const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE] = (
-                const.TRANS_KEY_CFOF_ERROR_BADGE_CHALLENGE_REQUIRED
             )
 
     # --- Tracked Chores Component Validation ---

@@ -247,6 +247,43 @@ class TestSchemaStampFix:
         assert alice[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
         assert alice[const.DATA_USER_ENABLE_GAMIFICATION] is True
 
+    async def test_schema45_wrapper_sets_challenge_migration_markers_and_counters(
+        self,
+        base_storage_data: dict[str, Any],
+        migrate_payload_to_schema45_users: Any,
+    ) -> None:
+        """Schema45 summary and markers include challenge sunset migration fields."""
+        payload = copy.deepcopy(base_storage_data)
+        payload[const.DATA_CHALLENGES] = {
+            "challenge-1": {
+                const.DATA_CHALLENGE_NAME: "Challenge A",
+                const.DATA_CHALLENGE_ASSIGNED_USER_IDS: ["assignee-uuid-1"],
+                const.DATA_CHALLENGE_REWARD_POINTS: 5,
+                const.DATA_CHALLENGE_TARGET_VALUE: 3,
+                const.DATA_CHALLENGE_TYPE: const.CHALLENGE_TYPE_DAILY_MIN,
+            }
+        }
+        payload[const.DATA_BADGES] = {
+            "linked": {
+                const.DATA_BADGE_INTERNAL_ID: "linked",
+                const.DATA_BADGE_NAME: "Old linked",
+                const.DATA_BADGE_TYPE: const.BADGE_TYPE_CHALLENGE_LINKED,
+            }
+        }
+
+        migrated_data = await migrate_payload_to_schema45_users(payload)
+
+        meta = migrated_data[const.DATA_META]
+        applied = meta[const.DATA_META_MIGRATIONS_APPLIED]
+        summary = meta["schema45_last_summary"]
+
+        assert "schema45_challenges_to_periodic_badges" in applied
+        assert "schema45_remove_challenge_linked_badges" in applied
+        assert summary["converted_challenges"] == 1
+        assert summary["removed_challenge_linked_badges"] == 1
+        assert "renamed_challenges_name_collision" in summary
+        assert "skipped_challenges_invalid_type" in summary
+
     async def test_pre_v50_pipeline_canonicalizes_kids_before_cleanup(
         self, hass: HomeAssistant
     ) -> None:

@@ -25,6 +25,11 @@ from . import const, data_builders as db
 from .coordinator import ChoreOpsDataCoordinator
 from .helpers import backup_helpers as bh, entity_helpers as eh
 from .helpers.entity_helpers import get_item_id_by_name
+from .migration_pre_v50_constants import (
+    BADGE_TYPE_CHALLENGE_LINKED_MIGRATION,
+    CHALLENGE_TYPE_DAILY_MIN_MIGRATION,
+    CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW_MIGRATION,
+)
 from .utils.dt_utils import (
     dt_add_interval,
     dt_next_schedule,
@@ -49,6 +54,10 @@ LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS = "_points_adjust_"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY = "notify_on_reminder"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT = True
 LEGACY_APPROVER_LINKED_PROFILE_KEY = "linked_shadow_assignee_id"
+SCHEMA45_MARKER_CHALLENGES_TO_PERIODIC_BADGES = "schema45_challenges_to_periodic_badges"
+SCHEMA45_MARKER_REMOVE_CHALLENGE_LINKED_BADGES = (
+    "schema45_remove_challenge_linked_badges"
+)
 
 
 def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
@@ -231,15 +240,206 @@ def _normalize_legacy_kid_keys(data: dict[str, Any]) -> int:
     return remap_count
 
 
+def _map_schema45_daily_min_threshold(target_value: int) -> tuple[str, float]:
+    """Map daily-minimum challenge values to supported periodic badge targets."""
+    if target_value <= 3:
+        return (const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_3_CHORES, 1.0)
+    if target_value <= 5:
+        return (const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES, 1.0)
+    return (const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_7_CHORES, 1.0)
+
+
+def _build_schema45_migrated_periodic_badge(
+    challenge_id: str,
+    challenge: dict[str, Any],
+    target_type: str,
+    threshold_value: float,
+    migrated_name: str,
+) -> dict[str, Any]:
+    """Build a periodic badge payload from a challenge record."""
+    selected_chore_id_raw = challenge.get(const.DATA_CHALLENGE_SELECTED_CHORE_ID)
+    selected_chores: list[str] = []
+    if isinstance(selected_chore_id_raw, str) and selected_chore_id_raw:
+        selected_chores = [selected_chore_id_raw]
+
+    assigned_user_ids_raw = challenge.get(const.DATA_CHALLENGE_ASSIGNED_USER_IDS, [])
+    assigned_user_ids = (
+        assigned_user_ids_raw if isinstance(assigned_user_ids_raw, list) else []
+    )
+
+    challenge_labels_raw = challenge.get(const.DATA_CHALLENGE_LABELS, [])
+    challenge_labels = (
+        challenge_labels_raw if isinstance(challenge_labels_raw, list) else []
+    )
+
+    reward_points_raw = challenge.get(const.DATA_CHALLENGE_REWARD_POINTS, 0)
+    try:
+        reward_points = float(reward_points_raw)
+    except (TypeError, ValueError):
+        reward_points = 0.0
+
+    return {
+        const.DATA_BADGE_INTERNAL_ID: f"migrated_challenge_{challenge_id}",
+        const.DATA_BADGE_NAME: migrated_name,
+        const.DATA_BADGE_TYPE: const.BADGE_TYPE_PERIODIC,
+        const.DATA_BADGE_DESCRIPTION: str(
+            challenge.get(const.DATA_CHALLENGE_DESCRIPTION, "")
+        ),
+        const.DATA_BADGE_ICON: str(challenge.get(const.DATA_CHALLENGE_ICON, "")),
+        const.DATA_BADGE_LABELS: list(challenge_labels),
+        const.DATA_BADGE_ASSIGNED_USER_IDS: list(assigned_user_ids),
+        const.DATA_BADGE_EARNED_BY: [],
+        const.DATA_BADGE_AWARDS: {
+            const.DATA_BADGE_AWARDS_AWARD_ITEMS: [const.AWARD_ITEMS_KEY_POINTS],
+            const.DATA_BADGE_AWARDS_AWARD_POINTS: reward_points,
+            const.DATA_BADGE_AWARDS_POINT_MULTIPLIER: None,
+        },
+        const.DATA_BADGE_TARGET: {
+            const.DATA_BADGE_TARGET_TYPE: target_type,
+            const.DATA_BADGE_TARGET_THRESHOLD_VALUE: threshold_value,
+            const.DATA_BADGE_MAINTENANCE_RULES: const.DEFAULT_BADGE_MAINTENANCE_THRESHOLD,
+        },
+        const.DATA_BADGE_RESET_SCHEDULE: copy.deepcopy(
+            const.DEFAULT_BADGE_RESET_SCHEDULE
+        ),
+        const.DATA_BADGE_TRACKED_CHORES: {
+            const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES: selected_chores,
+        },
+        "migration_meta": {
+            "source": "challenge",
+            "source_challenge_id": challenge_id,
+            "source_challenge_type": challenge.get(const.DATA_CHALLENGE_TYPE, ""),
+            "source_target_value": challenge.get(const.DATA_CHALLENGE_TARGET_VALUE, 0),
+        },
+    }
+
+
+def _migrate_schema45_challenges_to_periodic_badges(
+    data: dict[str, Any],
+) -> dict[str, int]:
+    """Convert challenge records to periodic badges for schema45 contract."""
+    badges_raw = data.get(const.DATA_BADGES)
+    badges: dict[str, Any]
+    if isinstance(badges_raw, dict):
+        badges = badges_raw
+    else:
+        badges = {}
+        data[const.DATA_BADGES] = badges
+
+    challenges_raw = data.get(const.DATA_CHALLENGES, {})
+    if not isinstance(challenges_raw, dict):
+        return {
+            "converted_challenges": 0,
+            "skipped_existing": 0,
+            "renamed_name_collision": 0,
+            "skipped_invalid_type": 0,
+        }
+
+    converted = 0
+    skipped_existing = 0
+    renamed_name_collision = 0
+    skipped_invalid_type = 0
+
+    existing_names = {
+        badge.get(const.DATA_BADGE_NAME)
+        for badge in badges.values()
+        if isinstance(badge, dict)
+    }
+
+    for challenge_id, challenge_raw in challenges_raw.items():
+        if not isinstance(challenge_raw, dict):
+            skipped_invalid_type += 1
+            continue
+
+        challenge = cast("dict[str, Any]", challenge_raw)
+        badge_id = f"migrated_challenge_{challenge_id}"
+        if badge_id in badges:
+            skipped_existing += 1
+            continue
+
+        challenge_type = challenge.get(const.DATA_CHALLENGE_TYPE, "")
+        target_value_raw = challenge.get(const.DATA_CHALLENGE_TARGET_VALUE, 0)
+        try:
+            target_value = int(float(target_value_raw))
+        except (TypeError, ValueError):
+            skipped_invalid_type += 1
+            continue
+
+        if target_value <= 0:
+            skipped_invalid_type += 1
+            continue
+
+        target_type: str
+        threshold_value: float
+        if challenge_type == CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW_MIGRATION:
+            target_type = const.BADGE_TARGET_THRESHOLD_TYPE_CHORE_COUNT
+            threshold_value = float(target_value)
+        elif challenge_type == CHALLENGE_TYPE_DAILY_MIN_MIGRATION:
+            target_type, threshold_value = _map_schema45_daily_min_threshold(
+                target_value
+            )
+        else:
+            skipped_invalid_type += 1
+            continue
+
+        base_name_raw = challenge.get(const.DATA_CHALLENGE_NAME, "")
+        base_name = str(base_name_raw).strip() or f"Migrated challenge {challenge_id}"
+        migrated_name = base_name
+        if migrated_name in existing_names:
+            migrated_name = f"{base_name}_2"
+            renamed_name_collision += 1
+        existing_names.add(migrated_name)
+
+        badges[badge_id] = _build_schema45_migrated_periodic_badge(
+            challenge_id,
+            challenge,
+            target_type,
+            threshold_value,
+            migrated_name,
+        )
+        converted += 1
+
+    return {
+        "converted_challenges": converted,
+        "skipped_existing": skipped_existing,
+        "renamed_name_collision": renamed_name_collision,
+        "skipped_invalid_type": skipped_invalid_type,
+    }
+
+
+def _remove_schema45_challenge_linked_badges(data: dict[str, Any]) -> dict[str, int]:
+    """Remove challenge-linked badges from active badge records."""
+    badges_raw = data.get(const.DATA_BADGES, {})
+    if not isinstance(badges_raw, dict):
+        return {"removed": 0}
+
+    badges = badges_raw
+    to_remove = [
+        badge_id
+        for badge_id, badge in badges.items()
+        if isinstance(badge, dict)
+        and badge.get(const.DATA_BADGE_TYPE) == BADGE_TYPE_CHALLENGE_LINKED_MIGRATION
+    ]
+
+    for badge_id in to_remove:
+        badges.pop(badge_id, None)
+
+    return {"removed": len(to_remove)}
+
+
+def _clear_schema45_challenges_container(data: dict[str, Any]) -> None:
+    """Clear active challenges container after schema45 conversion/removal."""
+    data[const.DATA_CHALLENGES] = {}
+
+
 async def async_apply_schema45_user_contract(
     coordinator: ChoreOpsDataCoordinator,
 ) -> dict[str, int]:
     """Apply schema 45 contract hook before DATA_READY emission.
 
-    Phase 1 contract checkpoint:
+    Phase 1 + 2 contract checkpoint:
     - Executes in SystemManager.ensure_data_integrity() before DATA_READY.
-    - Idempotently stamps migration metadata for schema-45 contract readiness.
-    - Does not perform structural migration yet (handled in Phase 2).
+    - Idempotently applies schema45 identity migration + challenge sunset conversion.
 
     Args:
         coordinator: Integration coordinator instance.
@@ -385,9 +585,34 @@ async def async_apply_schema45_user_contract(
     data[const.DATA_USERS] = users
     data.pop(const.DATA_APPROVERS, None)
 
+    challenge_conv_marker = SCHEMA45_MARKER_CHALLENGES_TO_PERIODIC_BADGES
+    challenge_linked_rm_marker = SCHEMA45_MARKER_REMOVE_CHALLENGE_LINKED_BADGES
     contract_marker = "schema45_user_contract_hook"
     if contract_marker not in applied:
         applied.append(contract_marker)
+
+    converted_challenges = 0
+    skipped_challenges_existing_badge = 0
+    renamed_challenges_name_collision = 0
+    skipped_challenges_invalid_type = 0
+    removed_challenge_linked_badges = 0
+
+    if challenge_conv_marker not in applied:
+        conversion_summary = _migrate_schema45_challenges_to_periodic_badges(data)
+        converted_challenges += conversion_summary["converted_challenges"]
+        skipped_challenges_existing_badge += conversion_summary["skipped_existing"]
+        renamed_challenges_name_collision += conversion_summary[
+            "renamed_name_collision"
+        ]
+        skipped_challenges_invalid_type += conversion_summary["skipped_invalid_type"]
+        applied.append(challenge_conv_marker)
+
+    if challenge_linked_rm_marker not in applied:
+        removal_summary = _remove_schema45_challenge_linked_badges(data)
+        removed_challenge_linked_badges += removal_summary["removed"]
+        applied.append(challenge_linked_rm_marker)
+
+    _clear_schema45_challenges_container(data)
 
     meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_BETA5
 
@@ -398,6 +623,11 @@ async def async_apply_schema45_user_contract(
         "approver_id_collisions": approver_id_collisions,
         "approver_id_remap_entries_total": len(remap),
         "approver_id_remap_entries_added": approver_id_remap_added,
+        "converted_challenges": converted_challenges,
+        "skipped_challenges_existing_badge": skipped_challenges_existing_badge,
+        "renamed_challenges_name_collision": renamed_challenges_name_collision,
+        "skipped_challenges_invalid_type": skipped_challenges_invalid_type,
+        "removed_challenge_linked_badges": removed_challenge_linked_badges,
         "kid_key_remaps": kid_key_remaps,
     }
     meta["schema45_last_summary"] = summary

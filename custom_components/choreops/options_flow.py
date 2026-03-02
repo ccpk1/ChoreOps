@@ -524,10 +524,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                         return await self.async_step_edit_badge_achievement(
                             default_data=badge_data
                         )
-                    if badge_type == const.BADGE_TYPE_CHALLENGE_LINKED:
-                        return await self.async_step_edit_badge_challenge(
-                            default_data=badge_data
-                        )
                     if badge_type == const.BADGE_TYPE_SPECIAL_OCCASION:
                         return await self.async_step_edit_badge_special(
                             default_data=badge_data
@@ -2477,8 +2473,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 return await self.async_step_add_badge_periodic()
             if badge_type == const.BADGE_TYPE_ACHIEVEMENT_LINKED:
                 return await self.async_step_add_badge_achievement()
-            if badge_type == const.BADGE_TYPE_CHALLENGE_LINKED:
-                return await self.async_step_add_badge_challenge()
             if badge_type == const.BADGE_TYPE_SPECIAL_OCCASION:
                 return await self.async_step_add_badge_special()
             # Fallback to cumulative if unknown.
@@ -2489,7 +2483,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.BADGE_TYPE_DAILY,
             const.BADGE_TYPE_PERIODIC,
             const.BADGE_TYPE_ACHIEVEMENT_LINKED,
-            const.BADGE_TYPE_CHALLENGE_LINKED,
             const.BADGE_TYPE_SPECIAL_OCCASION,
         ]
         schema = vol.Schema(
@@ -2515,17 +2508,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         return await self.async_add_edit_badge_common(
             user_input=user_input,
             badge_type=const.BADGE_TYPE_ACHIEVEMENT_LINKED,
-            is_edit=False,
-        )
-
-    # ----- Add Challenge-Linked Badge -----
-    async def async_step_add_badge_challenge(self, user_input=None):
-        """Handle adding a challenge-linked badge."""
-        # Redirect to the common function with the appropriate badge type
-        # Allows customization of the UI text for challenge-linked badges
-        return await self.async_add_edit_badge_common(
-            user_input=user_input,
-            badge_type=const.BADGE_TYPE_CHALLENGE_LINKED,
             is_edit=False,
         )
 
@@ -2594,7 +2576,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         valid_assignee_ids = set(assignees_dict.keys())
         valid_chore_ids = set(chores_dict.keys())
         valid_achievement_ids = set(achievements_dict.keys())
-        valid_challenge_ids = set(challenges_dict.keys())
 
         errors: dict[str, str] = {}
 
@@ -2727,9 +2708,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT: existing_badge.get(
                     const.DATA_BADGE_ASSOCIATED_ACHIEVEMENT
                 ),
-                const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE: existing_badge.get(
-                    const.DATA_BADGE_ASSOCIATED_CHALLENGE
-                ),
                 # Tracked chores
                 const.CFOF_BADGES_INPUT_SELECTED_CHORES: tracked_chores_data.get(
                     const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
@@ -2802,18 +2780,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     const.SENTINEL_NO_SELECTION
                 )
 
-            associated_challenge = suggested_values.get(
-                const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE,
-                const.SENTINEL_NO_SELECTION,
-            )
-            if (
-                associated_challenge != const.SENTINEL_NO_SELECTION
-                and associated_challenge not in valid_challenge_ids
-            ):
-                suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE] = (
-                    const.SENTINEL_NO_SELECTION
-                )
-
         # On validation error, preserve user's attempted input
         if user_input:
             suggested_values.update(user_input)
@@ -2840,18 +2806,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             and associated_achievement not in valid_achievement_ids
         ):
             suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_ACHIEVEMENT] = (
-                const.SENTINEL_NO_SELECTION
-            )
-
-        associated_challenge = suggested_values.get(
-            const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE,
-            const.SENTINEL_NO_SELECTION,
-        )
-        if (
-            associated_challenge != const.SENTINEL_NO_SELECTION
-            and associated_challenge not in valid_challenge_ids
-        ):
-            suggested_values[const.CFOF_BADGES_INPUT_ASSOCIATED_CHALLENGE] = (
                 const.SENTINEL_NO_SELECTION
             )
 
@@ -2886,7 +2840,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         doc_url_map = {
             const.BADGE_TYPE_CUMULATIVE: const.DOC_URL_BADGES_CUMULATIVE,
             const.BADGE_TYPE_ACHIEVEMENT_LINKED: const.DOC_URL_BADGES_OVERVIEW,
-            const.BADGE_TYPE_CHALLENGE_LINKED: const.DOC_URL_BADGES_OVERVIEW,
             const.BADGE_TYPE_DAILY: const.DOC_URL_BADGES_OVERVIEW,
             const.BADGE_TYPE_PERIODIC: const.DOC_URL_BADGES_OVERVIEW,
             const.BADGE_TYPE_SPECIAL_OCCASION: const.DOC_URL_BADGES_OVERVIEW,
@@ -2909,16 +2862,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         return await self.async_add_edit_badge_common(
             user_input=user_input,
             badge_type=const.BADGE_TYPE_ACHIEVEMENT_LINKED,
-            default_data=default_data,
-            is_edit=True,
-        )
-
-    # ----- Edit Challenge-Linked Badge -----
-    async def async_step_edit_badge_challenge(self, user_input=None, default_data=None):
-        """Handle editing a challenge-linked badge."""
-        return await self.async_add_edit_badge_common(
-            user_input=user_input,
-            badge_type=const.BADGE_TYPE_CHALLENGE_LINKED,
             default_data=default_data,
             is_edit=True,
         )
@@ -3822,417 +3765,32 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
     # CHALLENGES MANAGEMENT
     # ----------------------------------------------------------------------------------
 
-    async def async_step_add_challenge(self, user_input=None):
-        """Add a new challenge."""
-        coordinator = self._get_coordinator()
-        errors: dict[str, str] = {}
-        chores_dict = coordinator.chores_data
-
+    async def async_step_challenge_coming_soon(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show the challenge sunset coming-soon messaging."""
         if user_input is not None:
-            # Layer 2: UI validation (uniqueness + type-specific checks)
-            errors = fh.validate_challenges_inputs(
-                user_input,
-                existing_challenges=coordinator.challenges_data,
-                current_challenge_id=None,  # New challenge
-            )
-
-            if not errors:
-                try:
-                    # Build assignees name to ID mapping for options flow
-                    assignees_name_to_id = {
-                        assignee[const.DATA_USER_NAME]: assignee[
-                            const.DATA_USER_INTERNAL_ID
-                        ]
-                        for assignee in coordinator.data.get(
-                            const.DATA_USERS, {}
-                        ).values()
-                    }
-
-                    # Layer 3: Convert CFOF_* to DATA_* keys
-                    data_input = db.map_cfof_to_challenge_data(user_input)
-
-                    # Convert assigned assignees from names to IDs (options flow uses names)
-                    assigned_assignees_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
-                    )
-                    if not isinstance(assigned_assignees_names, list):
-                        assigned_assignees_names = (
-                            [assigned_assignees_names]
-                            if assigned_assignees_names
-                            else []
-                        )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] = [
-                        assignees_name_to_id.get(name, name)
-                        for name in assigned_assignees_names
-                    ]
-
-                    # Parse dates using dt_parse (same pattern as chores)
-                    # Dates from DateTimeSelector are local time - convert to UTC
-                    raw_start = data_input.get(const.DATA_CHALLENGE_START_DATE)
-                    raw_end = data_input.get(const.DATA_CHALLENGE_END_DATE)
-
-                    start_dt = None
-                    end_dt = None
-                    if raw_start:
-                        start_dt = dt_parse(
-                            raw_start,
-                            default_tzinfo=const.DEFAULT_TIME_ZONE,
-                            return_type=const.HELPER_RETURN_DATETIME_UTC,
-                        )
-                    if raw_end:
-                        end_dt = dt_parse(
-                            raw_end,
-                            default_tzinfo=const.DEFAULT_TIME_ZONE,
-                            return_type=const.HELPER_RETURN_DATETIME_UTC,
-                        )
-
-                    # Validate dates are in the future (compare UTC to UTC)
-                    now_utc = dt_util.utcnow()
-                    if (
-                        start_dt
-                        and isinstance(start_dt, datetime)
-                        and start_dt < now_utc
-                    ):
-                        errors = {
-                            const.CFOP_ERROR_START_DATE: const.TRANS_KEY_CFOF_START_DATE_IN_PAST
-                        }
-                    elif end_dt and isinstance(end_dt, datetime) and end_dt <= now_utc:
-                        errors = {
-                            const.CFOP_ERROR_END_DATE: const.TRANS_KEY_CFOF_END_DATE_IN_PAST
-                        }
-
-                    # Store dates as ISO UTC strings
-                    if start_dt and isinstance(start_dt, datetime):
-                        data_input[const.DATA_CHALLENGE_START_DATE] = (
-                            start_dt.isoformat()
-                        )
-                    if end_dt and isinstance(end_dt, datetime):
-                        data_input[const.DATA_CHALLENGE_END_DATE] = end_dt.isoformat()
-
-                    if not errors:
-                        # Use GamificationManager for challenge creation
-                        internal_id = coordinator.gamification_manager.create_challenge(
-                            data_input, immediate_persist=True
-                        )
-
-                        challenge_name = user_input[
-                            const.CFOF_CHALLENGES_INPUT_NAME
-                        ].strip()
-                        const.LOGGER.debug(
-                            "Added Challenge '%s' with ID: %s",
-                            challenge_name,
-                            internal_id,
-                        )
-                        self._mark_reload_needed()
-                        return await self.async_step_init()
-
-                except EntityValidationError as err:
-                    errors[err.field] = err.translation_key
-
-        # Build schema - pass date defaults for DateTimeSelector to work correctly
-        assignees_dict = {
-            data[const.DATA_USER_NAME]: eid
-            for eid, data in coordinator.assignees_data.items()
-        }
-
-        # On error, pass user's date inputs as schema defaults (DateTimeSelector pattern)
-        date_defaults = {}
-        if errors and user_input:
-            date_defaults = {
-                const.CFOF_CHALLENGES_INPUT_START_DATE: user_input.get(
-                    const.CFOF_CHALLENGES_INPUT_START_DATE
-                ),
-                const.CFOF_CHALLENGES_INPUT_END_DATE: user_input.get(
-                    const.CFOF_CHALLENGES_INPUT_END_DATE
-                ),
-            }
-
-        challenge_schema = fh.build_challenge_schema(
-            assignees_dict=assignees_dict,
-            chores_dict=chores_dict,
-            default=date_defaults,
-        )
-
-        # On error, use suggested values to preserve other user input
-        if errors and user_input:
-            challenge_schema = self.add_suggested_values_to_schema(
-                challenge_schema, user_input
-            )
-
-        return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_ADD_CHALLENGE,
-            data_schema=challenge_schema,
-            errors=errors,
-            description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHALLENGES_OVERVIEW
-            },
-        )
-
-    async def async_step_edit_challenge(self, user_input=None):
-        """Edit an existing challenge."""
-        coordinator = self._get_coordinator()
-        errors: dict[str, str] = {}
-        challenges_dict = coordinator.challenges_data
-        internal_id = cast("str | None", self.context.get(const.DATA_INTERNAL_ID))
-
-        if not internal_id or internal_id not in challenges_dict:
-            const.LOGGER.error("Edit Challenge - Invalid Internal ID '%s'", internal_id)
-            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_CHALLENGE)
-
-        challenge_data = challenges_dict[internal_id]
-
-        if user_input is not None:
-            # Build assignees name to ID mapping for conversion
-            assignees_name_to_id = {
-                assignee[const.DATA_USER_NAME]: assignee[const.DATA_USER_INTERNAL_ID]
-                for assignee in coordinator.data.get(const.DATA_USERS, {}).values()
-            }
-
-            # Layer 2: UI validation (uniqueness + type-specific checks)
-            errors = fh.validate_challenges_inputs(
-                user_input,
-                existing_challenges=coordinator.challenges_data,
-                current_challenge_id=internal_id,  # Editing existing challenge
-            )
-
-            if not errors:
-                try:
-                    # Layer 3: Convert CFOF_* to DATA_* keys
-                    data_input = db.map_cfof_to_challenge_data(user_input)
-
-                    # Convert assigned assignees from names to IDs (form uses names)
-                    assigned_assignees_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
-                    )
-                    if not isinstance(assigned_assignees_names, list):
-                        assigned_assignees_names = (
-                            [assigned_assignees_names]
-                            if assigned_assignees_names
-                            else []
-                        )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] = [
-                        assignees_name_to_id.get(name, name)
-                        for name in assigned_assignees_names
-                    ]
-
-                    # Parse dates using dt_parse (same pattern as chores)
-                    # Dates from DateTimeSelector are local time - convert to UTC
-                    raw_start = data_input.get(const.DATA_CHALLENGE_START_DATE)
-                    raw_end = data_input.get(const.DATA_CHALLENGE_END_DATE)
-
-                    start_dt = None
-                    end_dt = None
-                    if raw_start:
-                        start_dt = dt_parse(
-                            raw_start,
-                            default_tzinfo=const.DEFAULT_TIME_ZONE,
-                            return_type=const.HELPER_RETURN_DATETIME_UTC,
-                        )
-                    if raw_end:
-                        end_dt = dt_parse(
-                            raw_end,
-                            default_tzinfo=const.DEFAULT_TIME_ZONE,
-                            return_type=const.HELPER_RETURN_DATETIME_UTC,
-                        )
-
-                    # Validate dates are in the future (compare UTC to UTC)
-                    now_utc = dt_util.utcnow()
-                    if (
-                        start_dt
-                        and isinstance(start_dt, datetime)
-                        and start_dt < now_utc
-                    ):
-                        errors = {
-                            const.CFOP_ERROR_START_DATE: const.TRANS_KEY_CFOF_START_DATE_IN_PAST
-                        }
-                    elif end_dt and isinstance(end_dt, datetime) and end_dt <= now_utc:
-                        errors = {
-                            const.CFOP_ERROR_END_DATE: const.TRANS_KEY_CFOF_END_DATE_IN_PAST
-                        }
-
-                    # Store dates as ISO UTC strings
-                    if start_dt and isinstance(start_dt, datetime):
-                        data_input[const.DATA_CHALLENGE_START_DATE] = (
-                            start_dt.isoformat()
-                        )
-                    if end_dt and isinstance(end_dt, datetime):
-                        data_input[const.DATA_CHALLENGE_END_DATE] = end_dt.isoformat()
-
-                    if not errors:
-                        # Use GamificationManager for challenge update
-                        coordinator.gamification_manager.update_challenge(
-                            str(internal_id), data_input, immediate_persist=True
-                        )
-
-                        new_name = user_input[const.CFOF_CHALLENGES_INPUT_NAME].strip()
-                        const.LOGGER.debug(
-                            "Edited Challenge '%s' with ID: %s",
-                            new_name,
-                            internal_id,
-                        )
-                        self._mark_reload_needed()
-                        return await self.async_step_init()
-
-                except EntityValidationError as err:
-                    errors[err.field] = err.translation_key
-
-        # Create reverse mapping from internal_id to name (for display)
-        id_to_name = {
-            assignee_id: data[const.DATA_USER_NAME]
-            for assignee_id, data in coordinator.assignees_data.items()
-        }
-
-        # Convert assigned user IDs to names for display (schema uses names)
-        assigned_user_ids = challenge_data.get(
-            const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
-        )
-        assigned_user_names = [
-            assignee_name
-            for assignee_id in assigned_user_ids
-            if isinstance(assignee_id, str)
-            if (assignee_name := id_to_name.get(assignee_id))
-            if isinstance(assignee_name, str)
-        ]
-
-        # Convert stored start/end dates to selector format for display
-        # Format must be "%Y-%m-%d %H:%M:%S" (space separator, NOT ISO with T)
-        start_date_display = None
-        end_date_display = None
-        if challenge_data.get(const.DATA_CHALLENGE_START_DATE):
-            start_date_display = dt_parse(
-                challenge_data[const.DATA_CHALLENGE_START_DATE],
-                default_tzinfo=const.DEFAULT_TIME_ZONE,
-                return_type=const.HELPER_RETURN_SELECTOR_DATETIME,
-            )
-        if challenge_data.get(const.DATA_CHALLENGE_END_DATE):
-            end_date_display = dt_parse(
-                challenge_data[const.DATA_CHALLENGE_END_DATE],
-                default_tzinfo=const.DEFAULT_TIME_ZONE,
-                return_type=const.HELPER_RETURN_SELECTOR_DATETIME,
-            )
-
-        # Build schema with date defaults passed directly (like chores pattern)
-        # This ensures DateTimeSelector works correctly when user only changes time
-        assignees_dict = {
-            data[const.DATA_USER_NAME]: assignee_id
-            for assignee_id, data in coordinator.assignees_data.items()
-        }
-        chores_dict = coordinator.chores_data
-        valid_assignee_names = set(assignees_dict.keys())
-        valid_chore_ids = set(chores_dict.keys())
-        challenge_schema = fh.build_challenge_schema(
-            assignees_dict=assignees_dict,
-            chores_dict=chores_dict,
-            default={
-                const.CFOF_CHALLENGES_INPUT_START_DATE: start_date_display,
-                const.CFOF_CHALLENGES_INPUT_END_DATE: end_date_display,
-            },
-        )
-
-        # Build suggested values from existing data (using CFOF keys for form)
-        # Note: this form field stores selected names in the UI schema.
-        suggested_values: dict[str, Any] = {
-            const.CFOF_CHALLENGES_INPUT_NAME: challenge_data.get(
-                const.DATA_CHALLENGE_NAME, ""
-            ),
-            const.CFOF_CHALLENGES_INPUT_DESCRIPTION: challenge_data.get(
-                const.DATA_CHALLENGE_DESCRIPTION, ""
-            ),
-            const.CFOF_CHALLENGES_INPUT_LABELS: challenge_data.get(
-                const.DATA_CHALLENGE_LABELS, []
-            ),
-            const.CFOF_CHALLENGES_INPUT_ICON: challenge_data.get(
-                const.DATA_CHALLENGE_ICON
-            ),
-            const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS: assigned_user_names,
-            const.CFOF_CHALLENGES_INPUT_TYPE: challenge_data.get(
-                const.DATA_CHALLENGE_TYPE, const.CHALLENGE_TYPE_DAILY_MIN
-            ),
-            const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID: challenge_data.get(
-                const.DATA_CHALLENGE_SELECTED_CHORE_ID, const.SENTINEL_EMPTY
-            ),
-            const.CFOF_CHALLENGES_INPUT_CRITERIA: challenge_data.get(
-                const.DATA_CHALLENGE_CRITERIA, ""
-            ),
-            const.CFOF_CHALLENGES_INPUT_TARGET_VALUE: challenge_data.get(
-                const.DATA_CHALLENGE_TARGET_VALUE, const.DEFAULT_CHALLENGE_TARGET
-            ),
-            const.CFOF_CHALLENGES_INPUT_REWARD_POINTS: challenge_data.get(
-                const.DATA_CHALLENGE_REWARD_POINTS,
-                const.DEFAULT_CHALLENGE_REWARD_POINTS,
-            ),
-            const.CFOF_CHALLENGES_INPUT_START_DATE: start_date_display,
-            const.CFOF_CHALLENGES_INPUT_END_DATE: end_date_display,
-        }
-
-        # On error, merge user_input to preserve their changes
-        if errors and user_input:
-            suggested_values.update(user_input)
-
-        suggested_values[const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS] = (
-            _sanitize_select_values(
-                suggested_values.get(const.CFOF_CHALLENGES_INPUT_ASSIGNED_USER_IDS),
-                valid_assignee_names,
-            )
-        )
-
-        selected_chore_id = suggested_values.get(
-            const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID,
-            const.SENTINEL_EMPTY,
-        )
-        if (
-            selected_chore_id != const.SENTINEL_EMPTY
-            and selected_chore_id not in valid_chore_ids
-        ):
-            suggested_values[const.CFOF_CHALLENGES_INPUT_SELECTED_CHORE_ID] = (
-                const.SENTINEL_EMPTY
-            )
-
-        challenge_schema = self.add_suggested_values_to_schema(
-            challenge_schema, suggested_values
-        )
-
-        return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_EDIT_CHALLENGE,
-            data_schema=challenge_schema,
-            errors=errors,
-            description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHALLENGES_OVERVIEW
-            },
-        )
-
-    async def async_step_delete_challenge(self, user_input=None):
-        """Delete a challenge."""
-        coordinator = self._get_coordinator()
-        challenges_dict = coordinator.challenges_data
-        internal_id = self.context.get(const.DATA_INTERNAL_ID)
-
-        if not internal_id or internal_id not in challenges_dict:
-            const.LOGGER.error(
-                "Delete Challenge - Invalid Internal ID '%s'", internal_id
-            )
-            return self.async_abort(reason=const.TRANS_KEY_CFOF_INVALID_CHALLENGE)
-
-        challenge_name = challenges_dict[internal_id][const.DATA_CHALLENGE_NAME]
-
-        if user_input is not None:
-            # Use Manager-owned CRUD method
-            coordinator.gamification_manager.delete_challenge(
-                str(internal_id), immediate_persist=True
-            )
-
-            const.LOGGER.debug(
-                "Deleted Challenge '%s' with ID: %s", challenge_name, internal_id
-            )
             return await self.async_step_init()
 
         return self.async_show_form(
-            step_id=const.OPTIONS_FLOW_STEP_DELETE_CHALLENGE,
+            step_id=const.OPTIONS_FLOW_STEP_CHALLENGE_COMING_SOON,
             data_schema=vol.Schema({}),
             description_placeholders={
-                const.OPTIONS_FLOW_PLACEHOLDER_CHALLENGE_NAME: challenge_name
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_BADGES_OVERVIEW
             },
         )
+
+    async def async_step_add_challenge(self, user_input=None):
+        """Show challenge sunset messaging for add action."""
+        return await self.async_step_challenge_coming_soon(user_input)
+
+    async def async_step_edit_challenge(self, user_input=None):
+        """Show challenge sunset messaging for edit action."""
+        return await self.async_step_challenge_coming_soon(user_input)
+
+    async def async_step_delete_challenge(self, user_input=None):
+        """Show challenge sunset messaging for delete action."""
+        return await self.async_step_challenge_coming_soon(user_input)
 
     # ----------------------------------------------------------------------------------
     # DASHBOARD GENERATOR

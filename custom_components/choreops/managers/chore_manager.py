@@ -4721,11 +4721,7 @@ class ChoreManager(BaseManager):
         if overdue_handling != const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL:
             return False
 
-        due_date = self.get_due_date(chore_id)
-        if due_date is None:
-            return False
-
-        due_dt = dt_parse(due_date)
+        due_dt = self.get_due_date(chore_id)
         if due_dt is None:
             return False
 

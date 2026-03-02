@@ -1326,19 +1326,26 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
     async def async_step_challenge_count(
         self, user_input: dict[str, Any] | None = None
     ):
-        """Ask how many challenges to define initially."""
+        """Challenge step is sunset; continue directly to finish."""
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
-                self._challenge_count = int(
+                requested_challenge_count = int(
                     user_input[const.CFOF_CHALLENGES_INPUT_CHALLENGE_COUNT]
                 )
-                if self._challenge_count < 0:
+                if requested_challenge_count < 0:
                     raise ValueError
-                if self._challenge_count == 0:
-                    return await self.async_step_finish()
+
+                # Challenge creation is sunset in config flow.
+                # Keep legacy step compatible, but ignore non-zero requests.
+                if requested_challenge_count > 0:
+                    const.LOGGER.info(
+                        "Challenge creation requested in config flow but is disabled during sunset"
+                    )
+
+                self._challenge_count = 0
                 self._challenge_index = 0
-                return await self.async_step_challenges()
+                return await self.async_step_finish()
             except ValueError:
                 errors[const.CFOP_ERROR_BASE] = (
                     const.TRANS_KEY_CFOF_INVALID_CHALLENGE_COUNT
@@ -1357,107 +1364,13 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         )
 
     async def async_step_challenges(self, user_input: dict[str, Any] | None = None):
-        """Collect each challenge's details using internal_id as the key."""
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            # Layer 2: UI validation (uniqueness + type-specific checks)
-            errors = fh.validate_challenges_inputs(
-                user_input,
-                existing_challenges=self._challenges_temp,
-                current_challenge_id=None,  # New challenge
-            )
-
-            if not errors:
-                try:
-                    # Config flow uses names directly (need name-to-ID mapping)
-                    assignees_name_to_id = {
-                        assignee_data[const.DATA_USER_NAME]: assignee_id
-                        for assignee_id, assignee_data in self._assignees_temp.items()
-                    }
-
-                    # Layer 3: Convert CFOF_* to DATA_* keys
-                    data_input = db.map_cfof_to_challenge_data(user_input)
-
-                    # Convert assigned assignees from names to IDs
-                    assigned_assignees_names = data_input.get(
-                        const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
-                    )
-                    if not isinstance(assigned_assignees_names, list):
-                        assigned_assignees_names = (
-                            [assigned_assignees_names]
-                            if assigned_assignees_names
-                            else []
-                        )
-                    data_input[const.DATA_CHALLENGE_ASSIGNED_USER_IDS] = [
-                        assignees_name_to_id.get(name, name)
-                        for name in assigned_assignees_names
-                    ]
-
-                    # Additional config flow specific validation: dates must be in the future
-                    start_date_str = data_input.get(const.DATA_CHALLENGE_START_DATE)
-                    end_date_str = data_input.get(const.DATA_CHALLENGE_END_DATE)
-
-                    start_dt = (
-                        dt_util.parse_datetime(start_date_str)
-                        if start_date_str
-                        else None
-                    )
-                    end_dt = (
-                        dt_util.parse_datetime(end_date_str) if end_date_str else None
-                    )
-
-                    if start_dt and start_dt < dt_util.utcnow():
-                        errors = {
-                            const.CFOP_ERROR_START_DATE: const.TRANS_KEY_CFOF_START_DATE_IN_PAST
-                        }
-                    elif end_dt and end_dt <= dt_util.utcnow():
-                        errors = {
-                            const.CFOP_ERROR_END_DATE: const.TRANS_KEY_CFOF_END_DATE_IN_PAST
-                        }
-
-                    if not errors:
-                        # Build complete challenge structure
-                        challenge = db.build_challenge(data_input)
-                        internal_id = challenge[const.DATA_CHALLENGE_INTERNAL_ID]
-                        self._challenges_temp[internal_id] = dict(challenge)
-
-                        challenge_name = user_input[
-                            const.CFOF_CHALLENGES_INPUT_NAME
-                        ].strip()
-                        const.LOGGER.debug(
-                            "DEBUG: Added Challenge '%s' with ID: %s",
-                            challenge_name,
-                            internal_id,
-                        )
-
-                except EntityValidationError as err:
-                    errors[err.field] = err.translation_key
-
-            if not errors:
-                self._challenge_index += 1
-                if self._challenge_index >= self._challenge_count:
-                    return await self.async_step_finish()
-                return await self.async_step_challenges()
-
-        assignees_dict = {
-            assignee_data[const.DATA_USER_NAME]: assignee_id
-            for assignee_id, assignee_data in self._assignees_temp.items()
-        }
-        all_chores = self._chores_temp
-        default_data = user_input or None
-        challenge_schema = fh.build_challenge_schema(
-            assignees_dict=assignees_dict,
-            chores_dict=all_chores,
-            default=default_data,
+        """Challenge step is sunset; continue directly to finish."""
+        const.LOGGER.debug(
+            "Config flow challenge entry attempted while sunset is active; routing to finish"
         )
-        return self.async_show_form(
-            step_id=const.CONFIG_FLOW_STEP_CHALLENGES,
-            data_schema=challenge_schema,
-            errors=errors,
-            description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_CHALLENGES_OVERVIEW
-            },
-        )
+        self._challenge_count = 0
+        self._challenge_index = 0
+        return await self.async_step_finish()
 
     # --------------------------------------------------------------------------
     # FINISH

@@ -55,7 +55,6 @@ from tests.helpers import (
     OPTIONS_FLOW_ACTIONS_BACK,
     OPTIONS_FLOW_BADGES,
     OPTIONS_FLOW_BONUSES,
-    OPTIONS_FLOW_CHALLENGES,
     OPTIONS_FLOW_CHORES,
     OPTIONS_FLOW_INPUT_MANAGE_ACTION,
     OPTIONS_FLOW_INPUT_MENU_SELECTION,
@@ -63,7 +62,6 @@ from tests.helpers import (
     OPTIONS_FLOW_REWARDS,
     OPTIONS_FLOW_STEP_ADD_ACHIEVEMENT,
     OPTIONS_FLOW_STEP_ADD_BONUS,
-    OPTIONS_FLOW_STEP_ADD_CHALLENGE,
     OPTIONS_FLOW_STEP_ADD_CHORE,
     OPTIONS_FLOW_STEP_ADD_PENALTY,
     OPTIONS_FLOW_STEP_ADD_REWARD,
@@ -520,58 +518,6 @@ async def test_add_achievement_via_options_flow(
     # Verify achievement was created via coordinator
     achievement_names = [a["name"] for a in coordinator.achievements_data.values()]
     assert "First Ten Chores" in achievement_names
-
-
-async def test_add_challenge_via_options_flow(
-    hass: HomeAssistant,
-    init_integration_with_coordinator: SetupResult,
-) -> None:
-    """Test adding a challenge via options flow."""
-    from homeassistant.util import dt as dt_util
-
-    config_entry = init_integration_with_coordinator.config_entry
-    coordinator = init_integration_with_coordinator.coordinator
-
-    # Get existing assignee NAME for assignment (options flow schema uses names as values)
-    assignee_id = next(iter(coordinator.assignees_data.keys()))
-    assignee_name = coordinator.assignees_data[assignee_id][DATA_ASSIGNEE_NAME]
-
-    # Calculate future dates (options flow validates dates must be in future)
-    now = dt_util.utcnow()
-    start_date = (now + datetime.timedelta(days=1)).isoformat()
-    end_date = (now + datetime.timedelta(days=3)).isoformat()
-
-    yaml_challenge = {
-        "name": "Weekend Warrior",
-        "icon": "mdi:flag",
-        "description": "Complete 5 chores this weekend",
-        "type": "total_within_window",  # Valid types: total_within_window, daily_minimum
-        "target_value": 5,
-        "reward_points": 100,
-        "start_date": start_date,
-        "end_date": end_date,
-        "assigned_to": [
-            assignee_name
-        ],  # Options flow schema expects assignee NAMES as selector values
-    }
-
-    form_data = FlowTestHelper.build_challenge_form_data(yaml_challenge)
-
-    result = await FlowTestHelper.add_entity_via_options_flow(
-        hass,
-        config_entry.entry_id,
-        OPTIONS_FLOW_CHALLENGES,
-        OPTIONS_FLOW_STEP_ADD_CHALLENGE,
-        form_data,
-    )
-
-    # Options flow returns to init step after successful add
-    assert result.get("type") == FlowResultType.FORM
-    assert result.get("step_id") == OPTIONS_FLOW_STEP_INIT
-
-    # Verify challenge was created via coordinator
-    challenge_names = [c["name"] for c in coordinator.challenges_data.values()]
-    assert "Weekend Warrior" in challenge_names
 
 
 # =========================================================================

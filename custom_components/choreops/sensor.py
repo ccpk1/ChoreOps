@@ -419,32 +419,6 @@ async def async_setup_entry(
                         )
                     )
 
-        # Challenge Progress per Assignee (GAMIFICATION requirement)
-        if should_create_entity_for_user_assignee(
-            const.SENSOR_KC_UID_SUFFIX_CHALLENGE_PROGRESS_SENSOR,
-            coordinator,
-            assignee_id,
-        ):
-            for challenge_id, challenge in coordinator.challenges_data.items():
-                if assignee_id in challenge.get(
-                    const.DATA_CHALLENGE_ASSIGNED_USER_IDS, []
-                ):
-                    challenge_name = get_item_name_or_log_error(
-                        "challenge", challenge_id, challenge, const.DATA_CHALLENGE_NAME
-                    )
-                    if not challenge_name:
-                        continue
-                    entities.append(
-                        AssigneeChallengeProgressSensor(
-                            coordinator,
-                            entry,
-                            assignee_id,
-                            assignee_name,
-                            challenge_id,
-                            challenge_name,
-                        )
-                    )
-
         # Highest Streak Sensor per Assignee (EXTRA requirement)
         if should_create_entity_for_user_assignee(
             const.SENSOR_KC_UID_SUFFIX_ASSIGNEE_HIGHEST_STREAK_SENSOR,
@@ -552,17 +526,6 @@ async def async_setup_entry(
             SystemAchievementSensor(
                 coordinator, entry, achievement_id, achievement_name
             )
-        )
-
-    # For each Challenge, add a ChallengeSensor (GAMIFICATION requirement - system-level)
-    for challenge_id, challenge in coordinator.challenges_data.items():
-        challenge_name = get_item_name_or_log_error(
-            "challenge", challenge_id, challenge, const.DATA_CHALLENGE_NAME
-        )
-        if not challenge_name:
-            continue
-        entities.append(
-            SystemChallengeSensor(coordinator, entry, challenge_id, challenge_name)
         )
 
     # Collect unique dashboard languages in use across all assignees and approvers
