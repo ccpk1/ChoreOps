@@ -269,11 +269,11 @@ async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coord
     # Get diagnostics
     result = await async_get_config_entry_diagnostics(hass, mock_config_entry)
 
-    # Assert: config_entry_settings section exists with all 9 settings
+    # Assert: config_entry_settings section exists with all 10 settings
     assert const.DATA_CONFIG_ENTRY_SETTINGS in result
     settings = result[const.DATA_CONFIG_ENTRY_SETTINGS]
 
-    assert len(settings) == 9
+    assert len(settings) == 10
     assert settings[const.CONF_POINTS_LABEL] == "Credits"
     assert settings[const.CONF_POINTS_ICON] == "mdi:currency-usd"
     assert settings[const.CONF_UPDATE_INTERVAL] == 25
@@ -283,3 +283,4 @@ async def test_diagnostics_includes_settings(hass, mock_config_entry, mock_coord
     assert settings[const.CONF_RETENTION_MONTHLY] == 5
     assert settings[const.CONF_RETENTION_YEARLY] == 3
     assert settings[const.CONF_POINTS_ADJUST_VALUES] == [+3.0, -3.0]
+    assert settings[const.CONF_DEFAULT_CHORE_POINTS] == const.DEFAULT_POINTS

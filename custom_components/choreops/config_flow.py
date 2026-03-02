@@ -589,6 +589,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
         points_schema = fh.build_points_schema(
             default_label=const.DEFAULT_POINTS_LABEL,
             default_icon=const.DEFAULT_POINTS_ICON,
+            default_default_chore_points=const.DEFAULT_CHORE_POINTS,
         )
 
         return self.async_show_form(
@@ -846,6 +847,10 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             for assignee_id, assignee_data in self._assignees_temp.items()
         }
         default_data: dict[str, Any] = {}
+        default_data[const.CFOF_CHORES_INPUT_DEFAULT_POINTS] = self._data.get(
+            const.CONF_DEFAULT_CHORE_POINTS,
+            const.DEFAULT_CHORE_POINTS,
+        )
         chore_schema = fh.build_chore_schema(
             assignees_dict,
             default_data,
@@ -1613,6 +1618,9 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
             ),
             default_points_icon=config_entry.options.get(
                 const.CONF_POINTS_ICON, const.DEFAULT_POINTS_ICON
+            ),
+            default_default_chore_points=config_entry.options.get(
+                const.CONF_DEFAULT_CHORE_POINTS, const.DEFAULT_CHORE_POINTS
             ),
             default_update_interval=config_entry.options.get(
                 const.CONF_UPDATE_INTERVAL, const.DEFAULT_UPDATE_INTERVAL

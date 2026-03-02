@@ -180,7 +180,9 @@ def validate_duration_string(value: str) -> str:
 
 
 def build_points_schema(
-    default_label=const.DEFAULT_POINTS_LABEL, default_icon=const.DEFAULT_POINTS_ICON
+    default_label=const.DEFAULT_POINTS_LABEL,
+    default_icon=const.DEFAULT_POINTS_ICON,
+    default_default_chore_points=const.DEFAULT_CHORE_POINTS,
 ):
     """Build a schema for points label & icon."""
     return vol.Schema(
@@ -191,6 +193,10 @@ def build_points_schema(
             vol.Optional(
                 const.CFOF_SYSTEM_INPUT_POINTS_ICON, default=default_icon
             ): selector.IconSelector(),
+            vol.Required(
+                const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
+                default=default_default_chore_points,
+            ): cv.positive_int,
         }
     )
 
@@ -213,6 +219,10 @@ def build_points_data(user_input: dict[str, Any]) -> dict[str, Any]:
         const.CONF_POINTS_ICON: user_input.get(
             const.CFOF_SYSTEM_INPUT_POINTS_ICON, const.DEFAULT_POINTS_ICON
         ),
+        const.CONF_DEFAULT_CHORE_POINTS: user_input.get(
+            const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
+            const.DEFAULT_CHORE_POINTS,
+        ),
     }
 
 
@@ -232,6 +242,16 @@ def validate_points_inputs(user_input: dict[str, Any]) -> dict[str, str]:
     # Validate label is not empty
     if not points_label:
         errors["base"] = const.TRANS_KEY_CFOF_POINTS_LABEL_REQUIRED
+
+    default_chore_points = user_input.get(const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS)
+    if default_chore_points is not None:
+        try:
+            if int(default_chore_points) <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
+                const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
+            )
 
     return errors
 
@@ -746,7 +766,8 @@ def build_chore_schema(
         vol.Required(
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
             default=default.get(
-                const.CFOF_CHORES_INPUT_DEFAULT_POINTS, const.DEFAULT_POINTS
+                const.CFOF_CHORES_INPUT_DEFAULT_POINTS,
+                const.DEFAULT_CHORE_POINTS,
             ),
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
@@ -3072,6 +3093,10 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
     default_calendar_period = default.get(
         const.CFOF_SYSTEM_INPUT_CALENDAR_SHOW_PERIOD, const.DEFAULT_CALENDAR_SHOW_PERIOD
     )
+    default_default_chore_points = default.get(
+        const.CONF_DEFAULT_CHORE_POINTS,
+        const.DEFAULT_CHORE_POINTS,
+    )
 
     # Consolidated retention periods (pipe-separated: Daily|Weekly|Monthly|Yearly)
     default_retention_daily = default.get(
@@ -3103,6 +3128,10 @@ def build_general_options_schema(default: dict | None = None) -> vol.Schema:
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_POINTS_ADJUST_VALUES, default=default_points_str
             ): str,
+            vol.Required(
+                const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
+                default=default_default_chore_points,
+            ): cv.positive_int,
             vol.Required(
                 const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL, default=default_interval
             ): cv.positive_int,
@@ -3203,6 +3232,7 @@ def parse_retention_periods(retention_str: str) -> tuple[int, int, int, int]:
 def build_all_system_settings_schema(
     default_points_label: str | None = None,
     default_points_icon: str | None = None,
+    default_default_chore_points: int | None = None,
     default_update_interval: int | None = None,
     default_calendar_show_period: int | None = None,
     default_retention_daily: int | None = None,
@@ -3211,7 +3241,7 @@ def build_all_system_settings_schema(
     default_retention_yearly: int | None = None,
     default_points_adjust_values: list[int] | None = None,
 ) -> vol.Schema:
-    """Build form schema for all 9 system settings.
+    """Build form schema for all 10 system settings.
 
     Combines points schema, update interval, calendar period, retention periods,
     and points adjust values into a single comprehensive schema.
@@ -3219,6 +3249,7 @@ def build_all_system_settings_schema(
     Args:
         default_points_label: Points label (e.g., "Points", "Stars")
         default_points_icon: MDI icon for points
+        default_default_chore_points: Default points for new chores
         default_update_interval: Coordinator update interval in minutes
         default_calendar_show_period: Calendar lookback period in days
         default_retention_daily: Days retention for daily history
@@ -3228,12 +3259,14 @@ def build_all_system_settings_schema(
         default_points_adjust_values: List of point adjustment values
 
     Returns:
-        vol.Schema with all 9 system settings fields
+        vol.Schema with all 10 system settings fields
     """
     # Use defaults if not provided
     defaults = {
         "points_label": default_points_label or const.DEFAULT_POINTS_LABEL,
         "points_icon": default_points_icon or const.DEFAULT_POINTS_ICON,
+        "default_chore_points": default_default_chore_points
+        or const.DEFAULT_CHORE_POINTS,
         "update_interval": default_update_interval or const.DEFAULT_UPDATE_INTERVAL,
         "calendar_show_period": default_calendar_show_period
         or const.DEFAULT_CALENDAR_SHOW_PERIOD,
@@ -3250,6 +3283,7 @@ def build_all_system_settings_schema(
     points_fields = build_points_schema(
         default_label=defaults["points_label"],
         default_icon=defaults["points_icon"],
+        default_default_chore_points=defaults["default_chore_points"],
     )
 
     # Add update interval field
@@ -3314,7 +3348,7 @@ def build_all_system_settings_schema(
 
 
 def validate_all_system_settings(user_input: dict[str, Any]) -> dict[str, str]:
-    """Validate all 9 system settings.
+    """Validate all 10 system settings.
 
     Validates points label/icon, update interval, calendar period,
     retention periods, and points adjust values.
@@ -3351,6 +3385,24 @@ def validate_all_system_settings(user_input: dict[str, Any]) -> dict[str, str]:
             errors[const.CFOP_ERROR_CALENDAR_SHOW_PERIOD] = (
                 const.TRANS_KEY_CFOF_INVALID_CALENDAR_SHOW_PERIOD
             )
+
+    default_chore_points = user_input.get(const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS)
+    if default_chore_points is not None and not isinstance(default_chore_points, int):
+        try:
+            parsed_default_points = int(default_chore_points)
+            if parsed_default_points <= 0:
+                raise ValueError
+            user_input[const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS] = (
+                parsed_default_points
+            )
+        except (ValueError, TypeError):
+            errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
+                const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
+            )
+    elif isinstance(default_chore_points, int) and default_chore_points <= 0:
+        errors[const.CFOP_ERROR_DEFAULT_CHORE_POINTS] = (
+            const.TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS
+        )
 
     # Validate retention periods (all positive ints)
     for field, error_key in [
@@ -3392,16 +3444,16 @@ def validate_all_system_settings(user_input: dict[str, Any]) -> dict[str, str]:
 
 
 def build_all_system_settings_data(user_input: dict[str, Any]) -> dict[str, Any]:
-    """Build 9-key system settings options dictionary from user input.
+    """Build 10-key system settings options dictionary from user input.
 
-    Extracts all 9 system setting values from user input and returns
+    Extracts all 10 system setting values from user input and returns
     a dictionary ready for config_entry.options.
 
     Args:
         user_input: Form input from user (assumed valid)
 
     Returns:
-        dict: 9-key dictionary with system settings
+        dict: 10-key dictionary with system settings
     """
     # Build points settings using existing function
     points_data = build_points_data(user_input)

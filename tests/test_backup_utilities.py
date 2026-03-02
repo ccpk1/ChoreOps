@@ -613,7 +613,7 @@ async def test_backup_includes_config_entry_settings(
     mock_hass,
     mock_storage_manager,
 ):
-    """Test backup includes config_entry_settings section with all 9 system settings."""
+    """Test backup includes config_entry_settings section with all 10 system settings."""
     from unittest.mock import MagicMock
 
     from custom_components.choreops import const
@@ -665,7 +665,7 @@ async def test_backup_includes_config_entry_settings(
     assert const.DATA_CONFIG_ENTRY_SETTINGS in backup_content
 
     settings = backup_content[const.DATA_CONFIG_ENTRY_SETTINGS]
-    assert len(settings) == 9
+    assert len(settings) == 10
     assert settings[const.CONF_POINTS_LABEL] == "Stars"
     assert settings[const.CONF_POINTS_ICON] == "mdi:star"
     assert settings[const.CONF_UPDATE_INTERVAL] == 10
@@ -689,7 +689,7 @@ async def test_roundtrip_preserves_all_settings(
     mock_hass,
     mock_storage_manager,
 ):
-    """Test backup → restore roundtrip preserves all 9 system settings exactly."""
+    """Test backup → restore roundtrip preserves all 10 system settings exactly."""
     from unittest.mock import MagicMock
 
     from custom_components.choreops import const
@@ -745,8 +745,8 @@ async def test_roundtrip_preserves_all_settings(
     # Step 3: Simulate restore - validate and compare
     restored_settings = validate_config_entry_settings(backed_up_settings)
 
-    # Assert: All 9 settings preserved exactly
-    assert len(restored_settings) == 9
+    # Assert: All 10 settings preserved exactly
+    assert len(restored_settings) == 10
     for key, original_value in original_settings.items():
         assert restored_settings[key] == original_value, (
             f"Setting {key} not preserved: expected {original_value}, "

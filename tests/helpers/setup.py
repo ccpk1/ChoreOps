@@ -1167,22 +1167,9 @@ async def setup_scenario(
         user_input={const.CFOF_CHALLENGES_INPUT_CHALLENGE_COUNT: challenge_count},
     )
 
-    if challenge_count > 0:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHALLENGES
-
-        for i, challenge_config in enumerate(challenges_config):
-            result = await _configure_challenge_step(
-                hass, result, challenge_config, assignee_name_to_id
-            )
-
-            if i < challenge_count - 1:
-                # More challenges to configure
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_CHALLENGES
-            else:
-                # Last challenge - should advance to finish
-                assert result.get("step_id") == const.CONFIG_FLOW_STEP_FINISH
-    else:
-        assert result.get("step_id") == const.CONFIG_FLOW_STEP_FINISH
+    # Challenge creation is sunset in config flow.
+    # The flow keeps challenge_count for compatibility, then proceeds to finish.
+    assert result.get("step_id") == const.CONFIG_FLOW_STEP_FINISH
 
     # -----------------------------------------------------------------
     # Finish config flow

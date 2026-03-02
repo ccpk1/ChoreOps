@@ -847,10 +847,14 @@ class ChoreManager(BaseManager):
             return  # Graceful exit - expected behavior
 
         # Calculate base points (EconomyManager owns multiplier application)
+        default_chore_points = self._coordinator.config_entry.options.get(
+            const.CONF_DEFAULT_CHORE_POINTS,
+            const.DEFAULT_CHORE_POINTS,
+        )
         base_points = float(
             points_override
             if points_override is not None
-            else chore_data.get(const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS)
+            else chore_data.get(const.DATA_CHORE_DEFAULT_POINTS, default_chore_points)
         )
 
         # Get assignee name for effects

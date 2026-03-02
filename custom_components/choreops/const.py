@@ -780,6 +780,7 @@ OPTIONS_FLOW_MENU_MANAGE_PREFIX: Final = "manage_"
 
 # Global Settings
 CONF_CALENDAR_SHOW_PERIOD: Final = "calendar_show_period"
+CONF_DEFAULT_CHORE_POINTS: Final = "default_chore_points"
 CONF_POINTS_ADJUST_VALUES: Final = "points_adjust_values"
 CONF_POINTS_ICON: Final = "points_icon"
 CONF_POINTS_LABEL: Final = "points_label"
@@ -808,6 +809,7 @@ BACKUP_TAG_MANUAL: Final = "manual"  # User-initiated (never deleted)
 # System settings (ConfigFlow & OptionsFlow)
 CFOF_SYSTEM_INPUT_POINTS_LABEL: Final = "points_label"
 CFOF_SYSTEM_INPUT_POINTS_ICON: Final = "points_icon"
+CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS: Final = "default_chore_points"
 CFOF_SYSTEM_INPUT_UPDATE_INTERVAL: Final = "update_interval"
 CFOF_SYSTEM_INPUT_CALENDAR_SHOW_PERIOD: Final = "calendar_show_period"
 CFOF_SYSTEM_INPUT_RETENTION_DAILY: Final = "retention_daily"
@@ -1689,6 +1691,7 @@ DEFAULT_PENALTY_POINTS: Final = 1
 DEFAULT_PENDING_CHORES_UNIT: Final = "Pending Chores"
 DEFAULT_PENDING_REWARDS_UNIT: Final = "Pending Rewards"
 DEFAULT_POINTS: Final = 5
+DEFAULT_CHORE_POINTS: Final = DEFAULT_POINTS
 DEFAULT_POINTS_ADJUST_VALUES: list[float] = [+1.0, -1.0, +2.0, -2.0, +10.0, -10.0]
 DEFAULT_POINTS_LABEL: Final = "Points"
 DEFAULT_POINTS_MULTIPLIER = 1.0
@@ -1703,6 +1706,7 @@ DEFAULT_ZERO: Final = 0
 DEFAULT_SYSTEM_SETTINGS: Final = {
     CONF_POINTS_LABEL: DEFAULT_POINTS_LABEL,
     CONF_POINTS_ICON: DEFAULT_POINTS_ICON,
+    CONF_DEFAULT_CHORE_POINTS: DEFAULT_CHORE_POINTS,
     CONF_UPDATE_INTERVAL: DEFAULT_UPDATE_INTERVAL,
     CONF_CALENDAR_SHOW_PERIOD: DEFAULT_CALENDAR_SHOW_PERIOD,
     CONF_RETENTION_DAILY: DEFAULT_RETENTION_DAILY,
@@ -3111,6 +3115,7 @@ CFOP_ERROR_OVERDUE_RESET_COMBO: Final = "overdue_handling_type"  # Invalid combi
 # System settings consolidation
 CFOP_ERROR_UPDATE_INTERVAL: Final = "update_interval"
 CFOP_ERROR_CALENDAR_SHOW_PERIOD: Final = "calendar_show_period"
+CFOP_ERROR_DEFAULT_CHORE_POINTS: Final = "default_chore_points"
 CFOP_ERROR_RETENTION_DAILY: Final = "retention_daily"
 CFOP_ERROR_RETENTION_WEEKLY: Final = "retention_weekly"
 CFOP_ERROR_RETENTION_MONTHLY: Final = "retention_monthly"
@@ -3327,6 +3332,7 @@ SUMMARY_LABEL_REWARDS: Final = "Rewards: "
 # System settings translation keys
 TRANS_KEY_CFOF_INVALID_UPDATE_INTERVAL: Final = "invalid_update_interval"
 TRANS_KEY_CFOF_INVALID_CALENDAR_SHOW_PERIOD: Final = "invalid_calendar_show_period"
+TRANS_KEY_CFOF_INVALID_DEFAULT_CHORE_POINTS: Final = "invalid_default_chore_points"
 TRANS_KEY_CFOF_INVALID_RETENTION_PERIOD: Final = "invalid_retention_period"
 TRANS_KEY_CFOF_INVALID_POINTS_ADJUST_VALUES: Final = "invalid_points_adjust_values"
 

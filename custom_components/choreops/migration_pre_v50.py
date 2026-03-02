@@ -1465,6 +1465,9 @@ async def migrate_config_to_storage(
         const.CONF_POINTS_ICON: entry.options.get(
             const.CONF_POINTS_ICON, const.DEFAULT_POINTS_ICON
         ),
+        const.CONF_DEFAULT_CHORE_POINTS: entry.options.get(
+            const.CONF_DEFAULT_CHORE_POINTS, const.DEFAULT_CHORE_POINTS
+        ),
         const.CONF_UPDATE_INTERVAL: entry.options.get(
             const.CONF_UPDATE_INTERVAL, const.DEFAULT_UPDATE_INTERVAL
         ),

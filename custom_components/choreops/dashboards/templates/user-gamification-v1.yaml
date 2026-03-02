@@ -83,15 +83,15 @@
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points = states(points_sensor) | int(default=0) -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
-                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
-                    {%- set weekly_completed = state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0) -%}
-                    {%- set todays_completed = state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0) -%}
-                    {%- set highest_badge = states(highest_badge_entity) or 'None' -%}
-                    {%- set highest_badge_icon = state_attr(highest_badge_entity, 'icon') or 'mdi:medal-outline' -%}
-                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(default=1) -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
+                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
 
                     {#-- 4. Build Display --#}
                     {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
@@ -228,9 +228,9 @@
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
-                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
                     {%- set chores_by_label_raw = state_attr(dashboard_helper, 'chores_by_label') | default({}, true) -%}
 
@@ -427,11 +427,11 @@
 
                       {%- for chore_sensor_id in group.buttons -%}
                         {%- set claim_button_eid = state_attr(chore_sensor_id, 'claim_button_eid') | default('', true) -%}
+                        {%- set approve_button_eid = state_attr(chore_sensor_id, 'approve_button_eid') | default('', true) -%}
                         {%- set disapprove_button_eid = state_attr(chore_sensor_id, 'disapprove_button_eid') | default('', true) -%}
                         {%- set chore_name = state_attr(chore_sensor_id, 'chore_name') | default('Unknown') -%}
                         {%- set shared_chore = state_attr(chore_sensor_id, 'completion_criteria') != 'independent' -%}
                         {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
-                        {%- set button_state = states(claim_button_eid) if claim_button_eid else 'unknown' -%}
                         {%- set due_date_str = state_attr(chore_sensor_id, 'due_date') | string -%}
                         {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str not in ['None', 'unknown', 'unavailable'] else None -%}
                         {%- set recurring = state_attr(chore_sensor_id, 'recurring_frequency') -%}
@@ -498,8 +498,13 @@
                               'mdi:lock' if chore_state == 'completed_by_other' else
                               ''
                             ) -%}
-                        {#-- Select button entity based on chore state: disapprove for claimed, claim for others --#}
-                        {%- set active_button_eid = disapprove_button_eid if chore_state in ['claimed', 'claimed_in_part'] else claim_button_eid -%}
+                        {#-- Select button entity based on chore state --#}
+                        {#-- For non-workflow chores, claim_button_eid may be empty; fallback to approve_button_eid --#}
+                        {%- if chore_state in ['claimed', 'claimed_in_part'] -%}
+                          {%- set active_button_eid = disapprove_button_eid or claim_button_eid or approve_button_eid -%}
+                        {%- else -%}
+                          {%- set active_button_eid = claim_button_eid or approve_button_eid -%}
+                        {%- endif -%}
                         {#-- Add chore card to the group_cards list --#}
                         {%- set chore_icon = state_attr(chore_sensor_id, 'icon') | default('mdi:broom', true) -%}
                         {%- set ns.group_cards = ns.group_cards + [{
@@ -627,11 +632,12 @@
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
-                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set reward_list = state_attr(dashboard_helper, 'rewards') | default([], true) -%}
-                    {%- set current_points = states(points_sensor) | int(default=0) -%}
+                    {%- set current_points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
 
                     {#-- Apply label exclusion filter (works regardless of grouping setting) --#}
                     {%- if pref_exclude_label_list | length > 0 -%}
@@ -739,6 +745,7 @@
                     {%- endif -%}
 
                     {#-- 5. Render --#}
+                    {%- if gamification_enabled -%}
                     {%- if ns.label_groups | length == 0 -%}
                       {{
                         {
@@ -831,6 +838,7 @@
                         }},
                       {%- endfor -%}
                     {%- endif -%}
+                    {%- endif -%}
                   {%- endif -%}
     - type: grid
       cards:
@@ -917,17 +925,18 @@
                     {%- set all_time_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set helper_attrs = states[dashboard_helper].attributes -%}
-                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
-                    {%- set points = states(points_sensor) | int(default=0) -%}
-                    {%- set points_earned_all_time = state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0) -%}
-                    {%- set all_time_completed = state_attr(all_time_sensor, 'chore_stat_approved_all_time') | int(default=0) -%}
-                    {%- set highest_badge = states(highest_badge_entity) or 'None' -%}
-                    {%- set highest_badge_icon = state_attr(highest_badge_entity, 'icon') or 'mdi:medal-outline' -%}
-                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(1) -%}
-                    {%- set all_badges = state_attr(highest_badge_entity, 'all_earned_badges') | default([], true) -%}
+                    {%- set gamification_enabled = helper_attrs.gamification_enabled | default(false, true) -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
+                    {%- set all_time_completed = (state_attr(all_time_sensor, 'chore_stat_approved_all_time') | int(default=0)) if all_time_sensor else 0 -%}
+                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
+                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
+                    {%- set all_badges = (state_attr(highest_badge_entity, 'all_earned_badges') | default([], true)) if highest_badge_entity else [] -%}
                     {%- set reward_list = helper_attrs.rewards | default([], true) -%}
                     {%- set badge_list = helper_attrs.badges | default([], true) -%}
                     {%- set bonus_list = helper_attrs.bonuses | default([], true) -%}
@@ -996,34 +1005,38 @@
                     {#-- Collect Achievements with Progress and Rewards --#}
                     {%- for achievement in achievement_list -%}
                       {%- set achievement_sensor = achievement.eid if achievement is mapping else achievement -%}
-                      {%- set name = (achievement.name | default('Unknown Achievement')) if achievement is mapping else state_attr(achievement_sensor, 'achievement_name') | default('Unknown Achievement') -%}
-                      {%- set icon = state_attr(achievement_sensor, 'icon') or 'mdi:trophy-award' -%}
-                      {%- set progress = states(achievement_sensor) | float(default=0) -%}
-                      {%- set award_status = state_attr(achievement_sensor, 'awarded') -%}
+                      {%- if achievement_sensor -%}
+                        {%- set name = (achievement.name | default('Unknown Achievement')) if achievement is mapping else state_attr(achievement_sensor, 'achievement_name') | default('Unknown Achievement') -%}
+                        {%- set icon = state_attr(achievement_sensor, 'icon') or 'mdi:trophy-award' -%}
+                        {%- set progress = states(achievement_sensor) | float(default=0) -%}
+                        {%- set award_status = state_attr(achievement_sensor, 'awarded') -%}
 
-                      {#-- Get Overall Sensor for Reward Points --#}
-                      {%- set overall_sensor = achievement_sensor | regex_replace('^sensor\\.kc_.*?_achievement_status_', 'sensor.kc_achievement_status_') -%}
+                        {#-- Get Overall Sensor for Reward Points --#}
+                        {%- set overall_sensor = achievement_sensor | regex_replace('^sensor\\.kc_.*?_achievement_status_', 'sensor.kc_achievement_status_') -%}
 
-                      {%- set reward_points = state_attr(overall_sensor, 'reward_points') | int(default=0) -%}
+                        {%- set reward_points = (state_attr(overall_sensor, 'reward_points') | int(default=0)) if overall_sensor else 0 -%}
 
-                      {%- set status = ui.get('completed', 'err-completed') if award_status == 'true' else '⌛ ' ~ progress|round(0) ~ '%' -%}
-                      {%- set ns.achievements = ns.achievements + ["- " ~ "<ha-icon icon='" ~ icon ~ "'></ha-icon>&nbsp;" ~ name ~ " (" ~ status ~ ", 💎 " ~ reward_points ~ ")"] -%}
+                        {%- set status = ui.get('completed', 'err-completed') if award_status == 'true' else '⌛ ' ~ progress|round(0) ~ '%' -%}
+                        {%- set ns.achievements = ns.achievements + ["- " ~ "<ha-icon icon='" ~ icon ~ "'></ha-icon>&nbsp;" ~ name ~ " (" ~ status ~ ", 💎 " ~ reward_points ~ ")"] -%}
+                      {%- endif -%}
                     {%- endfor -%}
 
                     {#-- Collect Challenges with Progress and Rewards --#}
                     {%- for challenge in challenge_list -%}
                       {%- set challenge_sensor = challenge.eid if challenge is mapping else challenge -%}
-                      {%- set name = (challenge.name | default('Unknown Challenge')) if challenge is mapping else state_attr(challenge_sensor, 'challenge_name') | default('Unknown Challenge') -%}
-                      {%- set icon = state_attr(challenge_sensor, 'icon') or 'mdi:flag-checkered' -%}
-                      {%- set progress = states(challenge_sensor) | float(default=0) -%}
-                      {%- set award_status = state_attr(challenge_sensor, 'awarded') -%}
+                      {%- if challenge_sensor -%}
+                        {%- set name = (challenge.name | default('Unknown Challenge')) if challenge is mapping else state_attr(challenge_sensor, 'challenge_name') | default('Unknown Challenge') -%}
+                        {%- set icon = state_attr(challenge_sensor, 'icon') or 'mdi:flag-checkered' -%}
+                        {%- set progress = states(challenge_sensor) | float(default=0) -%}
+                        {%- set award_status = state_attr(challenge_sensor, 'awarded') -%}
 
-                      {#-- Get Overall Sensor for Reward Points --#}
-                      {%- set overall_sensor = challenge_sensor | regex_replace('^sensor\\.kc_.*?_achievement_status_', 'sensor.kc_achievement_status_') -%}
-                      {%- set reward_points = state_attr(overall_sensor, 'reward_points') | int(default=0) -%}
+                        {#-- Get Overall Sensor for Reward Points --#}
+                        {%- set overall_sensor = challenge_sensor | regex_replace('^sensor\\.kc_.*?_achievement_status_', 'sensor.kc_achievement_status_') -%}
+                        {%- set reward_points = (state_attr(overall_sensor, 'reward_points') | int(default=0)) if overall_sensor else 0 -%}
 
-                      {%- set status = "✔️ " ~ ui.get('completed', 'err-completed') if award_status == 'true' else '⌛ ' ~ progress|round(0) ~ '%' -%}
-                      {%- set ns.challenges = ns.challenges + ["- " ~ "<ha-icon icon='" ~ icon ~ "'></ha-icon>&nbsp;" ~ name ~ " (" ~ status ~ ", 💎 " ~ reward_points ~ ")"] -%}
+                        {%- set status = "✔️ " ~ ui.get('completed', 'err-completed') if award_status == 'true' else '⌛ ' ~ progress|round(0) ~ '%' -%}
+                        {%- set ns.challenges = ns.challenges + ["- " ~ "<ha-icon icon='" ~ icon ~ "'></ha-icon>&nbsp;" ~ name ~ " (" ~ status ~ ", 💎 " ~ reward_points ~ ")"] -%}
+                      {%- endif -%}
                     {%- endfor -%}
 
                     {#-- Create Content Variable --#}
@@ -1073,7 +1086,7 @@
                       ('\n' ~ ('\n'.join(ns.challenges)) if ns.challenges | length > 0 else "&nbsp;" ~ ui.get('none', 'err-none')) ~ "  \n"
                     -%}
 
-                    {%- if not skip_render -%}
+                    {%- if not skip_render and gamification_enabled -%}
                       {{
                         {
                           'type': 'markdown',
@@ -1162,12 +1175,13 @@
                 {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                 {%- set points_sensor = core_sensors.get('points_eid') -%}
                 {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                {%- set ns.points = states(points_sensor) | int(default=0) -%}
-                {%- set ns.points_earned_all_time = state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0) -%}
-                {%- set ns.points_label = state_attr(points_sensor, 'unit_of_measurement') | default('Pts', true) -%}
+                {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                {%- set ns.points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                {%- set ns.points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
+                {%- set ns.points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) | default('Pts', true) -%}
                 {%- set ns.highest_badge_sensor = core_sensors.get('badges_eid') -%}
-                {%- set hb_state = states(ns.highest_badge_sensor) -%}
+                {%- set hb_state = states(ns.highest_badge_sensor) if ns.highest_badge_sensor else 'unknown' -%}
 
                 {#-- Extract Live Maintenance Details (attributes accessible even if state is unknown) --#}
                 {%- if ns.highest_badge_sensor -%}
@@ -1253,6 +1267,7 @@
                 {%- endif -%}
 
                 {#-- 5. Render --#}
+                {%- if gamification_enabled -%}
                 {%- if ns.badges | length == 0 -%}
                   {{
                     {
@@ -1379,6 +1394,7 @@
                   }},
                   {%- endfor -%}
                 {%- endif -%}
+                {%- endif -%}
               {%- endif -%}
         - type: custom:auto-entities
           card:
@@ -1443,9 +1459,10 @@
                 {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                 {%- set points_sensor = core_sensors.get('points_eid') -%}
                 {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                {%- set points = states(points_sensor) | int(default=0) -%}
-                {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') | default('Pts', true) -%}
+                {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) | default('Pts', true) -%}
 
                 {%- set badge_list = state_attr(dashboard_helper, 'badges') | default([], true) -%}
                 {%- for badge in badge_list -%}
@@ -1480,6 +1497,7 @@
                 {%- set sorted_badges = ns.badges | sort(attribute='name') -%}
 
                 {#-- 5. Render --#}
+                {%- if gamification_enabled -%}
                 {%- if sorted_badges | length == 0 -%}
                   {{
                     {
@@ -1539,6 +1557,7 @@
                     }},
                   {%- endfor -%}
                 {%- endif -%}
+                  {%- endif -%}
               {%- endif -%}
         - square: false
           type: grid
@@ -1609,8 +1628,9 @@
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
 
                     {%- set achievements = state_attr(dashboard_helper, 'achievements') | default([], true) -%}
 
@@ -1618,6 +1638,7 @@
                     {#-- (No pre-processing needed) --#}
 
                     {#-- 5. Render --#}
+                    {%- if gamification_enabled -%}
                     {%- if achievements | length == 0 -%}
                       {{
                         {
@@ -1628,18 +1649,19 @@
                     {%- else -%}
                       {%- for achievement in achievements -%}
                         {%- set achievement_sensor_id = achievement.eid if achievement is mapping else achievement -%}
-                        {%- set achievement_name = state_attr(achievement_sensor_id, 'achievement_name') | default('Unknown') -%}
-                        {%- set achievement_icon = state_attr(achievement_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
-                        {%- set target_value = state_attr(achievement_sensor_id, 'target_value') | int(default=0) -%}
-                        {%- set raw_progress = state_attr(achievement_sensor_id, 'raw_progress') | float(default=0) -%}
-                        {%- set awarded = state_attr(achievement_sensor_id, 'awarded') | default(false) -%}
-                        {%- set reward_points = state_attr(achievement_sensor_id, 'reward_points') | int(default=0) -%}
-                        {%- set achievement_type = state_attr(achievement_sensor_id, 'type') | default('total_within_window') -%}
-                        {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
-                        {%- set associated_chore = state_attr(achievement_sensor_id, 'associated_chore') | default('') -%}
-                        {%- set description = state_attr(achievement_sensor_id, 'description') | default('') -%}
-                        {%- set criteria = state_attr(achievement_sensor_id, 'criteria') | default('') -%}
-                        {%- set assigned_assignees = state_attr(achievement_sensor_id, 'assigned_assignees') | default([], true) -%}
+                        {%- if achievement_sensor_id -%}
+                          {%- set achievement_name = state_attr(achievement_sensor_id, 'achievement_name') | default('Unknown') -%}
+                          {%- set achievement_icon = state_attr(achievement_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
+                          {%- set target_value = state_attr(achievement_sensor_id, 'target_value') | int(default=0) -%}
+                          {%- set raw_progress = state_attr(achievement_sensor_id, 'raw_progress') | float(default=0) -%}
+                          {%- set awarded = state_attr(achievement_sensor_id, 'awarded') | default(false) -%}
+                          {%- set reward_points = state_attr(achievement_sensor_id, 'reward_points') | int(default=0) -%}
+                          {%- set achievement_type = state_attr(achievement_sensor_id, 'type') | default('total_within_window') -%}
+                          {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
+                          {%- set associated_chore = state_attr(achievement_sensor_id, 'associated_chore') | default('') -%}
+                          {%- set description = state_attr(achievement_sensor_id, 'description') | default('') -%}
+                          {%- set criteria = state_attr(achievement_sensor_id, 'criteria') | default('') -%}
+                          {%- set assigned_assignees = state_attr(achievement_sensor_id, 'assigned_assignees') | default([], true) -%}
 
                         {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
                         {%- set goal_type_label =
@@ -1677,13 +1699,15 @@
                           {%- set content = content ~ "**🛠 " ~ ui.get('related_chore', 'err-related_chore') ~ ":** &nbsp;&nbsp;" ~ associated_chore ~ "  \n" -%}
                         {%- endif -%}
 
-                        {{
-                          {
-                            'type': 'markdown',
-                            'content': content
-                          }
-                        }},
+                          {{
+                            {
+                              'type': 'markdown',
+                              'content': content
+                            }
+                          }},
+                        {%- endif -%}
                       {%- endfor -%}
+                    {%- endif -%}
                     {%- endif -%}
                   {%- endif -%}
         - square: false
@@ -1748,15 +1772,17 @@
                     {#-- 3. Collect Data --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
                     {%- set challenges = state_attr(dashboard_helper, 'challenges') | default([], true) -%}
 
                     {#-- 4. Build Display --#}
                     {#-- (No pre-processing needed) --#}
 
                     {#-- 5. Render --#}
+                    {%- if gamification_enabled -%}
                     {%- if challenges | length == 0 -%}
                       {{
                         {
@@ -1767,69 +1793,72 @@
                     {%- else -%}
                       {%- for challenge in challenges -%}
                         {%- set challenge_sensor_id = challenge.eid if challenge is mapping else challenge -%}
-                        {%- set challenge_name = state_attr(challenge_sensor_id, 'challenge_name') | default('Unknown') -%}
-                        {%- set challenge_icon = state_attr(challenge_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
-                        {%- set target_value = state_attr(challenge_sensor_id, 'target_value') | int(default=0) -%}
-                        {%- set raw_progress = state_attr(challenge_sensor_id, 'raw_progress') | float(default=0) -%}
-                        {%- set awarded = state_attr(challenge_sensor_id, 'awarded') | default(false) -%}
-                        {%- set reward_points = state_attr(challenge_sensor_id, 'reward_points') | int(default=0) -%}
-                        {%- set challenge_type = state_attr(challenge_sensor_id, 'type') | default('total_within_window') -%}
-                        {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
-                        {%- set associated_chore = state_attr(challenge_sensor_id, 'associated_chore') | default('') -%}
-                        {%- set description = state_attr(challenge_sensor_id, 'description') | default('') -%}
-                        {%- set criteria = state_attr(challenge_sensor_id, 'criteria') | default('') -%}
-                        {%- set assigned_assignees = state_attr(challenge_sensor_id, 'assigned_assignees') | default([], true) -%}
+                        {%- if challenge_sensor_id -%}
+                          {%- set challenge_name = state_attr(challenge_sensor_id, 'challenge_name') | default('Unknown') -%}
+                          {%- set challenge_icon = state_attr(challenge_sensor_id, 'icon') or 'mdi:flag-checkered' -%}
+                          {%- set target_value = state_attr(challenge_sensor_id, 'target_value') | int(default=0) -%}
+                          {%- set raw_progress = state_attr(challenge_sensor_id, 'raw_progress') | float(default=0) -%}
+                          {%- set awarded = state_attr(challenge_sensor_id, 'awarded') | default(false) -%}
+                          {%- set reward_points = state_attr(challenge_sensor_id, 'reward_points') | int(default=0) -%}
+                          {%- set challenge_type = state_attr(challenge_sensor_id, 'type') | default('total_within_window') -%}
+                          {%- set progress_percentage = ((raw_progress / target_value) * 100) | round(1) if target_value > 0 else 0 -%}
+                          {%- set associated_chore = state_attr(challenge_sensor_id, 'associated_chore') | default('') -%}
+                          {%- set description = state_attr(challenge_sensor_id, 'description') | default('') -%}
+                          {%- set criteria = state_attr(challenge_sensor_id, 'criteria') | default('') -%}
+                          {%- set assigned_assignees = state_attr(challenge_sensor_id, 'assigned_assignees') | default([], true) -%}
 
-                        {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
-                        {%- set goal_type_label =
-                          target_value ~ ' (' ~ ui.get('total_chores', 'err-total_chores') ~ ')' if challenge_type == 'total_within_window'
-                          else target_value ~ ' (' ~ ui.get('per_day_goal', 'err-per_day_goal') ~ ')'
-                        -%}
-                        {%- set assignees_display = assigned_assignees | join(', ') if assigned_assignees | count > 0 else '' -%}
+                          {%- set awarded_text = "✔️ " ~ ui.get('earned', 'err-earned') if awarded else "⌛ " ~ ui.get('in_progress', 'err-in_progress') -%}
+                          {%- set goal_type_label =
+                            target_value ~ ' (' ~ ui.get('total_chores', 'err-total_chores') ~ ')' if challenge_type == 'total_within_window'
+                            else target_value ~ ' (' ~ ui.get('per_day_goal', 'err-per_day_goal') ~ ')'
+                          -%}
+                          {%- set assignees_display = assigned_assignees | join(', ') if assigned_assignees | count > 0 else '' -%}
 
-                        {%- set start_date_utc = state_attr(challenge_sensor_id, 'start_date') -%}
-                        {%- set end_date_utc = state_attr(challenge_sensor_id, 'end_date') -%}
-                        {%- set start_date = as_datetime(start_date_utc).astimezone().strftime('%b %d, %Y') if start_date_utc else 'N/A' -%}
-                        {%- set end_date = as_datetime(end_date_utc).astimezone().strftime('%b %d, %Y') if end_date_utc else 'N/A' -%}
+                          {%- set start_date_utc = state_attr(challenge_sensor_id, 'start_date') -%}
+                          {%- set end_date_utc = state_attr(challenge_sensor_id, 'end_date') -%}
+                          {%- set start_date = as_datetime(start_date_utc).astimezone().strftime('%b %d, %Y') if start_date_utc else 'N/A' -%}
+                          {%- set end_date = as_datetime(end_date_utc).astimezone().strftime('%b %d, %Y') if end_date_utc else 'N/A' -%}
 
-                        {%- set content = "## <ha-icon icon=" ~ challenge_icon ~ "></ha-icon> " ~ ui.get('challenge', 'err-challenge') ~ ": " ~ challenge_name ~ "  \n" -%}
-                        {%- set content = content ~ "### 🏅 " ~ ui.get('award_status', 'err-award_status') ~ ": &nbsp;&nbsp;" ~ awarded_text ~ "  \n" -%}
+                          {%- set content = "## <ha-icon icon=" ~ challenge_icon ~ "></ha-icon> " ~ ui.get('challenge', 'err-challenge') ~ ": " ~ challenge_name ~ "  \n" -%}
+                          {%- set content = content ~ "### 🏅 " ~ ui.get('award_status', 'err-award_status') ~ ": &nbsp;&nbsp;" ~ awarded_text ~ "  \n" -%}
 
-                        {%- if description -%}
-                          {%- set content = content ~ "#### 📖 &nbsp;&nbsp;" ~ description ~ "  \n" -%}
+                          {%- if description -%}
+                            {%- set content = content ~ "#### 📖 &nbsp;&nbsp;" ~ description ~ "  \n" -%}
+                          {%- endif -%}
+
+                          {%- if criteria -%}
+                            {%- set content = content ~ "**📌 " ~ ui.get('criteria', 'err-criteria') ~ ":** &nbsp;&nbsp;" ~ criteria ~ "  \n" -%}
+                          {%- endif -%}
+
+                          {%- set content = content ~ "**🎯 " ~ ui.get('goal', 'err-goal') ~ ":** &nbsp;&nbsp;" ~ goal_type_label ~ "  \n" -%}
+                          {%- set content = content ~ "**📅 " ~ ui.get('start_date', 'err-start_date') ~ ":** &nbsp;&nbsp;" ~ start_date ~ "  \n" -%}
+                          {%- set content = content ~ "**📅 " ~ ui.get('end_date', 'err-end_date') ~ ":** &nbsp;&nbsp;" ~ end_date ~ "  \n" -%}
+
+                          {%- if reward_points > 0 -%}
+                            {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ reward_points|string ~ " " ~ points_label ~ " \n" -%}
+                          {%- endif -%}
+
+                          {%- if not awarded -%}
+                            {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ raw_progress|int|string ~ "/" ~ target_value|string ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
+                          {%- endif -%}
+
+                          {%- if assignees_display -%}
+                            {%- set content = content ~ "**👥 " ~ ui.get('assigned_to', 'err-assigned_to') ~ ":** &nbsp;&nbsp;" ~ assignees_display ~ "  \n" -%}
+                          {%- endif -%}
+
+                          {%- if associated_chore -%}
+                            {%- set content = content ~ "**🛠 " ~ ui.get('related_chore', 'err-related_chore') ~ ":** &nbsp;&nbsp;" ~ associated_chore ~ "  \n" -%}
+                          {%- endif -%}
+
+                          {{
+                            {
+                              'type': 'markdown',
+                              'content': content
+                            }
+                          }},
                         {%- endif -%}
-
-                        {%- if criteria -%}
-                          {%- set content = content ~ "**📌 " ~ ui.get('criteria', 'err-criteria') ~ ":** &nbsp;&nbsp;" ~ criteria ~ "  \n" -%}
-                        {%- endif -%}
-
-                        {%- set content = content ~ "**🎯 " ~ ui.get('goal', 'err-goal') ~ ":** &nbsp;&nbsp;" ~ goal_type_label ~ "  \n" -%}
-                        {%- set content = content ~ "**📅 " ~ ui.get('start_date', 'err-start_date') ~ ":** &nbsp;&nbsp;" ~ start_date ~ "  \n" -%}
-                        {%- set content = content ~ "**📅 " ~ ui.get('end_date', 'err-end_date') ~ ":** &nbsp;&nbsp;" ~ end_date ~ "  \n" -%}
-
-                        {%- if reward_points > 0 -%}
-                          {%- set content = content ~ "**💎 " ~ ui.get('reward', 'err-reward') ~ ":** &nbsp;&nbsp;" ~ reward_points|string ~ " " ~ points_label ~ " \n" -%}
-                        {%- endif -%}
-
-                        {%- if not awarded -%}
-                          {%- set content = content ~ "\n **📊 " ~ ui.get('progress', 'err-progress') ~ ":** &nbsp;&nbsp;" ~ raw_progress|int|string ~ "/" ~ target_value|string ~ " (" ~ progress_percentage|string ~ "%)  \n" -%}
-                        {%- endif -%}
-
-                        {%- if assignees_display -%}
-                          {%- set content = content ~ "**👥 " ~ ui.get('assigned_to', 'err-assigned_to') ~ ":** &nbsp;&nbsp;" ~ assignees_display ~ "  \n" -%}
-                        {%- endif -%}
-
-                        {%- if associated_chore -%}
-                          {%- set content = content ~ "**🛠 " ~ ui.get('related_chore', 'err-related_chore') ~ ":** &nbsp;&nbsp;" ~ associated_chore ~ "  \n" -%}
-                        {%- endif -%}
-
-                        {{
-                          {
-                            'type': 'markdown',
-                            'content': content
-                          }
-                        }},
                       {%- endfor -%}
+                    {%- endif -%}
                     {%- endif -%}
                   {%- endif -%}
   cards: []

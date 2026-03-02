@@ -160,7 +160,7 @@
 
                     {#-- 6. Collect Data --#}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set helper_attrs = states[dashboard_helper].attributes -%}
                     {%- set pending_approvals = helper_attrs.pending_approvals | default({}, true) -%}
                     {%- set pending_chore_data = pending_approvals.get('chores', []) | default([], true) -%}
@@ -341,10 +341,10 @@
                     {%- set total_chores_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_sensor = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
 
-                    {%- set points = states(points_sensor) | int(default=0) -%}
-                    {%- set points_attrs = states[points_sensor].attributes | default({}, true) -%}
+                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_attrs = states[points_sensor].attributes | default({}, true) if points_sensor else {} -%}
                     {%- set points_label = points_attrs.get('unit_of_measurement') | default('Pts') -%}
                     {%- set points_icon = points_attrs.get('icon') -%}
 
@@ -353,7 +353,7 @@
                     {%- set points_spent_week = points_attrs.get('point_stat_points_spent_week', 0) | int(default=0) -%}
 
                     {#-- Chore Stats from assignee_chores_completed_total --#}
-                    {%- set chores_attrs = states[total_chores_sensor].attributes | default({}, true) -%}
+                    {%- set chores_attrs = states[total_chores_sensor].attributes | default({}, true) if total_chores_sensor else {} -%}
                     {%- set weekly_completed = chores_attrs.get('chore_stat_approved_week', 0) | int(default=0) -%}
                     {%- set chore_longest_streak = chores_attrs.get('chore_stat_longest_streak_week', 0) | int(default=0) -%}
                     {%- set most_completed_chore = chores_attrs.get('chore_stat_most_completed_chore_week', 'N/A') | default('N/A') -%}
@@ -363,9 +363,9 @@
                     {%- set weekly_overdue = chores_attrs.get('chore_stat_overdue_week', 0) | int(default=0) -%}
 
                     {#-- Badge Stats from highest_badge --#}
-                    {%- set highest_badge = states(highest_badge_sensor) or 'None' -%}
-                    {%- set highest_badge_icon = state_attr(highest_badge_sensor, 'icon') or 'mdi:medal-outline' -%}
-                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(default=1) -%}
+                    {%- set highest_badge = (states(highest_badge_sensor) if highest_badge_sensor else 'None') or 'None' -%}
+                    {%- set highest_badge_icon = (state_attr(highest_badge_sensor, 'icon') if highest_badge_sensor else None) or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
 
                     {#-- 4. Build Display --#}
                     {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
@@ -574,10 +574,10 @@
                     {%- set dashboard_date_helper = dashboard_helpers.get('date_helper_eid') -%}
                     {%- set chore_select_entity = dashboard_helpers.get('chore_select_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
-                    {%- set ns.chore_selected = states(chore_select_entity) | default('') -%}
+                    {%- set ns.chore_selected = (states(chore_select_entity) | default('')) if chore_select_entity else '' -%}
                     {%- set overdue_count = chore_list | selectattr('status', 'eq', 'overdue') | list | length -%}
 
                     {#-- Step 1: Find selected chore in dashboard helper list instead of querying sensor directly --#}
@@ -737,7 +737,7 @@
                     {%- endif -%}
 
                     {%- set ns.datetime_helper = dashboard_date_helper -%}
-                    {%- set ns.select_new_date_and_time_secondary = ui.get('tap_to_change', 'err-tap_to_change') ~ "\n \n" ~ as_timestamp(states(ns.datetime_helper)) | timestamp_custom('%a, %b %d, %Y %I:%M %p', true) if states(ns.datetime_helper) != 'unknown' else ui.get('no_date_set', 'err-no_date_set') -%}
+                    {%- set ns.select_new_date_and_time_secondary = ui.get('tap_to_change', 'err-tap_to_change') ~ "\n \n" ~ as_timestamp(states(ns.datetime_helper)) | timestamp_custom('%a, %b %d, %Y %I:%M %p', true) if ns.datetime_helper and states(ns.datetime_helper) != 'unknown' else ui.get('no_date_set', 'err-no_date_set') -%}
 
                     {#-- 4. Build Display --#}
                     {%- if ns.chore_selected | lower not in ['none', 'unknown', 'unavailable', ''] and ns.selected_chore_data -%}
@@ -928,7 +928,7 @@
                                 'config_entry_id': entry_id,
                                 'chore_name': ns.chore_selected,
                                 'user_name': ns.user_name_for_service,
-                                'due_date': states(ns.datetime_helper)
+                                'due_date': states(ns.datetime_helper) if ns.datetime_helper else ''
                               }
                             }
                           }
@@ -1008,6 +1008,7 @@
 
                     {%- set dashboard_helper = admin_selector_eid
                       | default("err-dashboard_helper_missing", true) -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
 
                   {#-- Validation: Check if name is configured --#}
                   {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' -%}
@@ -1026,6 +1027,8 @@
                       }
                     }},
                     {%- set skip_render = true -%}
+                  {%- elif not gamification_enabled -%}
+                    {%- set skip_render = true -%}
                   {%- else -%}
                     {%- set skip_render = false -%}
                   {%- endif -%}
@@ -1035,7 +1038,7 @@
                     {#-- *** Section 3: Collect Data *** --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
 
                     {#-- *** Section 4: Build Display *** --#}
                     {#-- No intermediate variables needed for inline translations --#}
@@ -1100,9 +1103,10 @@
 
                     {%- set dashboard_helper = admin_selector_eid
                       | default("err-dashboard_helper_missing", true) -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
 
                   {#-- Validation: Check if name is configured --#}
-                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] or not gamification_enabled -%}
                     {%- set skip_render = true -%}
                   {%- else -%}
                     {%- set skip_render = false -%}
@@ -1114,9 +1118,9 @@
                     {%- set ns = namespace( points_sensor='', points_label='' ) -%}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set ns.points_sensor = core_sensors.get('points_eid') -%}
-                    {%- set ns.points_label = state_attr(ns.points_sensor, 'unit_of_measurement') -%}
+                    {%- set ns.points_label = (state_attr(ns.points_sensor, 'unit_of_measurement') if ns.points_sensor else None) or 'Points' -%}
                     {%- set bonus_list = state_attr(dashboard_helper, 'bonuses') | default([], true) -%}
 
                     {#-- *** Section 4: Build Display *** --#}
@@ -1126,7 +1130,7 @@
                     {%- for bonus in bonus_list -%}
                     {%- set bonus_name = (bonus.name | default('Unknown Bonus')) if bonus is mapping else 'Unknown Bonus' -%}
                     {%- set bonus_button_eid = (bonus.eid | default('')) if bonus is mapping else '' -%}
-                    {%- set bonus_icon = state_attr(bonus_button_eid, 'icon') | default('mdi:gift') -%}
+                    {%- set bonus_icon = (state_attr(bonus_button_eid, 'icon') if bonus_button_eid else none) | default('mdi:gift') -%}
                     {%- set bonus_points = (bonus.points | default(0)) if bonus is mapping else 0 -%}
                     {%- set bonuses_applied = (bonus.applied | default(0)) if bonus is mapping else 0 -%}
 
@@ -1201,9 +1205,10 @@
 
                     {%- set dashboard_helper = admin_selector_eid
                       | default("err-dashboard_helper_missing", true) -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
 
                   {#-- Validation: Check if name is configured --#}
-                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] or not gamification_enabled -%}
                     {%- set skip_render = true -%}
                   {%- else -%}
                     {%- set skip_render = false -%}
@@ -1213,7 +1218,7 @@
 
                     {#-- *** Section 3: Collect Data *** --#}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set point_buttons = state_attr(dashboard_helper, 'points_buttons') | default([], true) -%}
 
                     {#-- *** Section 4: Build Display *** --#}
@@ -1223,7 +1228,7 @@
                     {%- for button_data in point_buttons -%}
                       {%- set button_eid = button_data.eid if button_data is mapping else button_data -%}
                       {%- set button_name = button_data.name if button_data is mapping else '' -%}
-                      {%- set button_icon = state_attr(button_eid, 'icon') or '' -%}
+                      {%- set button_icon = (state_attr(button_eid, 'icon') if button_eid else None) or '' -%}
                       {%- set primary = button_name | regex_replace('^Points ', '') -%}
                       {%- set is_positive = 'minus' not in button_icon -%}
                       {%- set icon = button_icon -%}
@@ -1291,9 +1296,10 @@
 
                     {%- set dashboard_helper = admin_selector_eid
                       | default("err-dashboard_helper_missing", true) -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
 
                   {#-- Validation: Check if name is configured --#}
-                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] -%}
+                  {%- if name == 'K i d n a m e' | replace(' ', '') or name == '' or states(dashboard_helper) in ['unknown', 'unavailable'] or not gamification_enabled -%}
                     {%- set skip_render = true -%}
                   {%- else -%}
                     {%- set skip_render = false -%}
@@ -1305,9 +1311,9 @@
                     {%- set ns = namespace(points_sensor='', points_label='') -%}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set ns.points_sensor = core_sensors.get('points_eid') -%}
-                    {%- set ns.points_label = state_attr(ns.points_sensor, 'unit_of_measurement') -%}
+                    {%- set ns.points_label = (state_attr(ns.points_sensor, 'unit_of_measurement') if ns.points_sensor else None) or 'Points' -%}
                     {%- set penalty_list = state_attr(dashboard_helper, 'penalties') | default([], true) -%}
 
 
@@ -1318,7 +1324,7 @@
                     {%- for penalty in penalty_list -%}
                     {%- set penalty_name = (penalty.name | default('Unknown Penalty')) if penalty is mapping else 'Unknown Penalty' -%}
                     {%- set penalty_button_eid = (penalty.eid | default('')) if penalty is mapping else '' -%}
-                    {%- set penalty_icon = state_attr(penalty_button_eid, 'icon') | default('mdi:alert-octagon') -%}
+                    {%- set penalty_icon = (state_attr(penalty_button_eid, 'icon') if penalty_button_eid else none) | default('mdi:alert-octagon') -%}
                     {%- set penalty_points = (penalty.points | default(0)) if penalty is mapping else 0 -%}
                     {%- set penalties_applied = (penalty.applied | default(0)) if penalty is mapping else 0 -%}
 
@@ -1425,7 +1431,7 @@
 
                     {#-- *** Section 3: Collect Data *** --#}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set entity_list = device_entities(device_id(dashboard_helper))
                       | reject('search', 'ui_dashboard')
                       | reject('match', 'calendar')

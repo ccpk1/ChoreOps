@@ -28,7 +28,11 @@
         "description": "Choose a label and icon for points.",
         "data": {
           "points_label": "Points Label",
-          "points_icon": "Points Icon"
+          "points_icon": "Points Icon",
+          "default_chore_points": "Default Points per Chore"
+        },
+        "data_description": {
+          "default_chore_points": "Default points value used when creating a chore unless you set custom points for that chore."
         }
       },
       "reconfigure": {
@@ -37,6 +41,7 @@
         "data": {
           "points_label": "Points Label",
           "points_icon": "Points Icon",
+          "default_chore_points": "Default Points per Chore",
           "update_interval": "Update Interval (minutes)",
           "calendar_show_period": "Calendar Show Period (days)",
           "retention_daily": "Daily Retention (days)",
@@ -48,6 +53,7 @@
         "data_description": {
           "points_label": "Label displayed for points (e.g., 'Points', 'Stars', 'Coins')",
           "points_icon": "MDI icon for points (e.g., 'mdi:star', 'mdi:coin', 'mdi:trophy')",
+          "default_chore_points": "Default points value used when creating a chore unless custom points are set.",
           "update_interval": "How often to update data (minimum: 1 minute)",
           "calendar_show_period": "Days of history to show in calendar (minimum 1)",
           "retention_daily": "Days to keep daily aggregates",
@@ -493,6 +499,7 @@
       "chore_options_require_assignment": "Chore workflow and gamification options require 'Allow Chores to be Assigned to Me' to be enabled first.",
       "invalid_update_interval": "Invalid update interval. Must be a positive integer.",
       "invalid_calendar_show_period": "Invalid calendar show period. Must be a positive integer.",
+      "invalid_default_chore_points": "Invalid default chore points. Must be a positive integer.",
       "invalid_retention_period": "Invalid retention period. Must be a positive integer.",
       "invalid_points_adjust_values": "Invalid points adjust values. Must be a list."
     },
@@ -535,11 +542,15 @@
         }
       },
       "manage_points": {
-        "title": "Edit Points Label & Icon",
-        "description": "Change the label and icon used to represent points.\n\n📖 [Configuration Guide]({documentation_url})",
+        "title": "Edit points settings",
+        "description": "Change the label, icon, and default points per chore used throughout ChoreOps.\n\n📖 [Configuration Guide]({documentation_url})",
         "data": {
           "points_label": "Points Label",
-          "points_icon": "Points Icon"
+          "points_icon": "Points Icon",
+          "default_chore_points": "Default Points per Chore"
+        },
+        "data_description": {
+          "default_chore_points": "Default points value used for new chores when custom points are not specified. Must be a whole number greater than 0."
         }
       },
       "add_user": {
@@ -1615,6 +1626,7 @@
         "title": "General Options",
         "description": "Manage general settings for the ChoreOps integration.\n\n[📖 Learn more about General Options]({documentation_url})",
         "data": {
+          "default_chore_points": "Default Points per Chore",
           "points_adjust_values": "Manual Points Adjustment Button Values",
           "update_interval": "Update Interval",
           "calendar_show_period": "Number of Days to Show in Calendar",
@@ -1629,6 +1641,7 @@
           "backup_action_selection": "Backup Actions"
         },
         "data_description": {
+          "default_chore_points": "Default points value used for new chores when custom points are not specified.",
           "points_adjust_values": "List of values for the manual points adjustment buttons. Each value separate by '|'.",
           "update_interval": "Interval in minutes for updating the internal state of ChoreOps.",
           "calendar_show_period": "Number of days in the future to show scheduled chores and challenges in the calendar.",
@@ -1795,6 +1808,7 @@
       "invalid_structure": "The selected file is missing required data structure.",
       "file_not_found": "The selected file could not be found.",
       "invalid_selection": "Please select a valid option.",
+      "invalid_default_chore_points": "Invalid default chore points. Must be a positive integer.",
       "error_daily_multi_requires_compatible_reset": "'Multiple times per day' frequency incompatible with Midnight reset types because they only reset approvals once at midnight.",
       "error_daily_multi_independent_multi_assignees": "'Multiple times per day' frequency with INDEPENDENT completion requires exactly one assignee, unless per-assignee times are configured. Configure different times for each assignee in the per-assignee settings.",
       "error_daily_multi_times_required": "Times list is required for 'Multiple times per day' frequency.",

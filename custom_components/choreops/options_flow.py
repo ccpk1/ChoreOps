@@ -595,9 +595,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 self._entry_options = dict(self.config_entry.options)
                 self._entry_options.update(points_data)
                 const.LOGGER.debug(
-                    "Configured points with name %s and icon %s",
+                    "Configured points with name %s, icon %s, and default chore points %s",
                     points_data[const.CONF_POINTS_LABEL],
                     points_data[const.CONF_POINTS_ICON],
+                    points_data[const.CONF_DEFAULT_CHORE_POINTS],
                 )
                 await self._update_system_settings_and_reload()
 
@@ -610,10 +611,16 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         current_icon = self._entry_options.get(
             const.CONF_POINTS_ICON, const.DEFAULT_POINTS_ICON
         )
+        current_default_chore_points = self._entry_options.get(
+            const.CONF_DEFAULT_CHORE_POINTS,
+            const.DEFAULT_CHORE_POINTS,
+        )
 
         # Build the form with existing values as defaults
         points_schema = fh.build_points_schema(
-            default_label=current_label, default_icon=current_icon
+            default_label=current_label,
+            default_icon=current_icon,
+            default_default_chore_points=current_default_chore_points,
         )
 
         # On validation error, preserve user's attempted input
@@ -1154,7 +1161,15 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             data[const.DATA_USER_NAME]: eid
             for eid, data in coordinator.assignees_data.items()
         }
-        schema = fh.build_chore_schema(assignees_dict)
+        schema = fh.build_chore_schema(
+            assignees_dict,
+            {
+                const.CFOF_CHORES_INPUT_DEFAULT_POINTS: self._entry_options.get(
+                    const.CONF_DEFAULT_CHORE_POINTS,
+                    const.DEFAULT_CHORE_POINTS,
+                )
+            },
+        )
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_ADD_CHORE,
             data_schema=schema,
@@ -1608,7 +1623,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_CHORES_INPUT_ICON: chore_data.get(const.DATA_CHORE_ICON),
             const.CFOF_CHORES_INPUT_LABELS: chore_data.get(const.DATA_CHORE_LABELS, []),
             const.CFOF_CHORES_INPUT_DEFAULT_POINTS: chore_data.get(
-                const.DATA_CHORE_DEFAULT_POINTS, const.DEFAULT_POINTS
+                const.DATA_CHORE_DEFAULT_POINTS,
+                self._entry_options.get(
+                    const.CONF_DEFAULT_CHORE_POINTS,
+                    const.DEFAULT_CHORE_POINTS,
+                ),
             ),
             const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_user_names,
             const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: chore_data.get(
@@ -4812,6 +4831,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             else:
                 # Remove the key if the field is left empty.
                 self._entry_options.pop(const.CONF_POINTS_ADJUST_VALUES, None)
+            # Update default chore points.
+            self._entry_options[const.CONF_DEFAULT_CHORE_POINTS] = user_input.get(
+                const.CFOF_SYSTEM_INPUT_DEFAULT_CHORE_POINTS,
+                const.DEFAULT_CHORE_POINTS,
+            )
             # Update the update interval.
             self._entry_options[const.CONF_UPDATE_INTERVAL] = user_input.get(
                 const.CFOF_SYSTEM_INPUT_UPDATE_INTERVAL
@@ -4870,10 +4894,11 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             )
             const.LOGGER.debug(
                 "General Options Updated: Points Adjust Values=%s, "
-                "Update Interval=%s, Calendar Period to Show=%s, "
+                "Default Chore Points=%s, Update Interval=%s, Calendar Period to Show=%s, "
                 "Retention Periods=%s, "
                 "Show Legacy Entities=%s, Kiosk Mode=%s, Backup Retention=%s",
                 self._entry_options.get(const.CONF_POINTS_ADJUST_VALUES),
+                self._entry_options.get(const.CONF_DEFAULT_CHORE_POINTS),
                 self._entry_options.get(const.CONF_UPDATE_INTERVAL),
                 self._entry_options.get(const.CONF_CALENDAR_SHOW_PERIOD),
                 retention_str,

@@ -86,15 +86,15 @@
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
                     {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points = states(points_sensor) | int(default=0) -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
-                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
-                    {%- set weekly_completed = state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0) -%}
-                    {%- set todays_completed = state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0) -%}
-                    {%- set highest_badge = states(highest_badge_entity) or 'None' -%}
-                    {%- set highest_badge_icon = state_attr(highest_badge_entity, 'icon') or 'mdi:medal-outline' -%}
-                    {%- set points_multiplier = state_attr(points_sensor, 'points_multiplier') | float(default=1) -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
+                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
+                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
 
                     {#-- 4. Build Display --#}
                     {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
@@ -233,9 +233,9 @@
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                    {%- set ui = state_attr(translation_sensor, 'ui_translations') or {} -%}
-                    {%- set points_label = state_attr(points_sensor, 'unit_of_measurement') -%}
-                    {%- set points_icon = state_attr(points_sensor, 'icon') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
                     {%- set chores_by_label_raw = state_attr(dashboard_helper, 'chores_by_label') | default({}, true) -%}
 
@@ -432,11 +432,11 @@
 
                       {%- for chore_sensor_id in group.buttons -%}
                         {%- set claim_button_eid = state_attr(chore_sensor_id, 'claim_button_eid') | default('', true) -%}
+                        {%- set approve_button_eid = state_attr(chore_sensor_id, 'approve_button_eid') | default('', true) -%}
                         {%- set disapprove_button_eid = state_attr(chore_sensor_id, 'disapprove_button_eid') | default('', true) -%}
                         {%- set chore_name = state_attr(chore_sensor_id, 'chore_name') | default('Unknown') -%}
                         {%- set shared_chore = state_attr(chore_sensor_id, 'completion_criteria') != 'independent' -%}
                         {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
-                        {%- set button_state = states(claim_button_eid) if claim_button_eid else 'unknown' -%}
                         {%- set due_date_str = state_attr(chore_sensor_id, 'due_date') | string -%}
                         {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str not in ['None', 'unknown', 'unavailable'] else None -%}
                         {%- set recurring = state_attr(chore_sensor_id, 'recurring_frequency') -%}
@@ -503,8 +503,13 @@
                               'mdi:lock' if chore_state == 'completed_by_other' else
                               ''
                             ) -%}
-                        {#-- Select button entity based on chore state: disapprove for claimed, claim for others --#}
-                        {%- set active_button_eid = disapprove_button_eid if chore_state in ['claimed', 'claimed_in_part'] else claim_button_eid -%}
+                        {#-- Select button entity based on chore state --#}
+                        {#-- For non-workflow chores, claim_button_eid may be empty; fallback to approve_button_eid --#}
+                        {%- if chore_state in ['claimed', 'claimed_in_part'] -%}
+                          {%- set active_button_eid = disapprove_button_eid or claim_button_eid or approve_button_eid -%}
+                        {%- else -%}
+                          {%- set active_button_eid = claim_button_eid or approve_button_eid -%}
+                        {%- endif -%}
                         {#-- Add chore card to the group_cards list --#}
                         {%- set chore_icon = state_attr(chore_sensor_id, 'icon') | default('mdi:broom', true) -%}
                         {%- set ns.group_cards = ns.group_cards + [{

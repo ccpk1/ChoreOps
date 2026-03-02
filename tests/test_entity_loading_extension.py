@@ -54,12 +54,10 @@ async def test_scenario_full_loads_all_entity_types(
     # NEW ENTITY TYPES (Phase 12 Step 7 Implementation)
     # =========================================================================
 
-    # Verify badges loaded (2 cumulative + 2 migrated periodic from challenges)
-    assert len(result.badge_ids) == 4
+    # Verify badges loaded (2 cumulative from scenario; challenges are sunset)
+    assert len(result.badge_ids) == 2
     assert "Chore Stär Champion" in result.badge_ids
     assert "Team Player Badge" in result.badge_ids
-    assert "Weekend Warrior" in result.badge_ids
-    assert "Summer Sprint" in result.badge_ids
 
     # Verify rewards loaded (3 from scenario_full.yaml)
     assert len(result.reward_ids) == 3
@@ -92,7 +90,7 @@ async def test_scenario_full_loads_all_entity_types(
     coordinator = result.coordinator
 
     # Verify coordinator has all entity data
-    assert len(coordinator.badges_data) == 4
+    assert len(coordinator.badges_data) == 2
     assert len(coordinator.rewards_data) == 3
     assert len(coordinator.penalties_data) == 2
     assert len(coordinator.bonuses_data) == 2
