@@ -1527,32 +1527,24 @@
       },
       "dashboard_generator": {
         "title": "Accions del tauler de control",
-        "description": "Crea, actualitza o elimina els quadres de comandament de ChoreOps Lovelace.\n\n[Guia de configuració del quadre de comandament]({documentation_url})",
+        "description": "Crea, actualitza o suprimeix els quadres de comandament de ChoreOps Lovelace.\n\n[Guia de configuració del quadre de comandament]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
-          "dashboard_action": "Acció"
+          "dashboard_action": "Acció",
+          "dashboard_release_selection": "Versió de llançament del tauler de control"
         },
         "data_description": {
-          "dashboard_action": "Trieu una acció: creeu un tauler de control nou, actualitzeu les vistes d'un tauler de control existent o suprimiu els taulers de control."
+          "dashboard_action": "Trieu una acció: creeu un tauler de control nou, actualitzeu les vistes d'un tauler de control existent o suprimiu els taulers de control.",
+          "dashboard_release_selection": "Trieu la versió instal·lada actualment, la darrera versió estable o una etiqueta de versió compatible explícita."
         }
       },
       "dashboard_missing_dependencies": {
-        "title": "Dependències del tauler de control que falten",
-        "description": "Falten algunes targetes de control necessàries per a les plantilles seleccionades.\n\n[Guia de configuració del control]({documentation_url})\n\n**Falten dependències necessàries**\n{dashboard_missing_required_dependencies}\n\n**Falten dependències recomanades**\n{dashboard_missing_recommended_dependencies}\n\nInstal·leu les targetes necessàries a través del frontend de HACS abans de continuar.",
+        "title": "Revisa els canvis del tauler de control",
+        "description": "Reviseu l'estat de les dependències i les preferències de plantilla per a les plantilles seleccionades abans d'aplicar els canvis al tauler de control.\n\n[Guia de configuració del tauler de control]({documentation_url})\n\n**Personalitzacions disponibles**\n{dashboard_template_preferences}\n\n**Falten les dependències obligatòries**\n{dashboard_missing_required_dependencies}\n\n**Falten les dependències recomanades**\n{dashboard_missing_recommended_dependencies}",
         "data": {
-          "dashboard_dependency_bypass": "Continua igualment"
+          "dashboard_dependency_bypass": "🚫 Continua igualment (falten requisits)"
         },
         "data_description": {
-          "dashboard_dependency_bypass": "Reconeixeu les dependències necessàries que falten i continueu la generació de totes maneres. És possible que les targetes del tauler de control no es renderitzin fins que no s'instal·lin les dependències."
-        }
-      },
-      "dashboard_template_details": {
-        "title": "Revisió dels detalls de la plantilla",
-        "description": "Reviseu els detalls de les plantilles seleccionades abans d'aplicar els canvis al tauler de control.\n\n[Guia de configuració del tauler de control]({documentation_url})\n\n{dashboard_template_details}",
-        "data": {
-          "dashboard_template_details_ack": "Continua amb aquestes plantilles"
-        },
-        "data_description": {
-          "dashboard_template_details_ack": "Reconeix els detalls de la plantilla seleccionada i continua amb les comprovacions i la generació de dependències."
+          "dashboard_dependency_bypass": "Reconeix que falten dependències necessàries i continua igualment. És possible que el tauler de control no es renderitzi o es comporti incorrectament fins que no s'instal·lin les dependències necessàries."
         }
       },
       "dashboard_create": {
@@ -1613,26 +1605,22 @@
             "data": {
               "dashboard_icon": "Icona del tauler de control",
               "dashboard_require_admin": "Només administrador",
-              "dashboard_show_in_sidebar": "Afegeix a la barra lateral",
-              "dashboard_template_details_review": "Revisa els detalls de la plantilla abans de sol·licitar-la"
+              "dashboard_show_in_sidebar": "Afegeix a la barra lateral"
             },
             "data_description": {
               "dashboard_icon": "Icona de la barra lateral per a aquest tauler de control.",
               "dashboard_require_admin": "Restringeix l'accés al tauler de control als usuaris administradors.",
-              "dashboard_show_in_sidebar": "Mostra aquest tauler de control a la barra lateral de l'Assistent de casa.",
-              "dashboard_template_details_review": "Mostra un pas de revisió amb descripcions de plantilles, dependències i enllaços a la guia de preferències abans d'aplicar els canvis."
+              "dashboard_show_in_sidebar": "Mostra aquest tauler de control a la barra lateral de l'Assistent de casa."
             }
           },
           "section_template_version": {
             "name": "Versió de plantilla",
             "description": "Seleccioneu com el mode d'actualització tria les plantilles de tauler de control compatibles.",
             "data": {
-              "dashboard_include_prereleases": "Inclou les preestrenes",
               "dashboard_release_selection": "Versió de la plantilla del tauler de control"
             },
             "data_description": {
-              "dashboard_include_prereleases": "Inclou etiquetes del tauler de control de prellançament al descobriment de versions.",
-              "dashboard_release_selection": "Trieu la selecció automàtica de la darrera versió compatible o seleccioneu explícitament una etiqueta de versió compatible."
+              "dashboard_release_selection": "Trieu la versió instal·lada actualment, la darrera versió estable o una etiqueta de versió compatible explícita."
             }
           }
         },
@@ -1646,7 +1634,6 @@
           "dashboard_icon": "Icona del tauler de control",
           "dashboard_require_admin": "Només administrador",
           "dashboard_show_in_sidebar": "Afegeix a la barra lateral",
-          "dashboard_include_prereleases": "Inclou les preestrenes",
           "dashboard_release_selection": "Versió de la plantilla del tauler de control"
         },
         "data_description": {
@@ -1659,8 +1646,7 @@
           "dashboard_icon": "Icona de la barra lateral per a aquest tauler de control.",
           "dashboard_require_admin": "Restringeix l'accés al tauler de control als usuaris administradors.",
           "dashboard_show_in_sidebar": "Mostra aquest tauler de control a la barra lateral de l'Assistent de casa.",
-          "dashboard_include_prereleases": "Inclou etiquetes del tauler de control de prellançament al descobriment de versions.",
-          "dashboard_release_selection": "Trieu la selecció automàtica de la darrera versió compatible o seleccioneu explícitament una etiqueta de versió compatible."
+          "dashboard_release_selection": "Trieu la versió instal·lada actualment, la darrera versió estable o una etiqueta de versió compatible explícita."
         }
       },
       "dashboard_delete": {
@@ -1874,7 +1860,7 @@
       "error_at_due_date_reset_requires_due_date": "Els tipus de restabliment d'aprovació \"A la data de venciment\" (Una o Múltiple) requereixen que s'estableixi una data de venciment. Sense una data de venciment, el restabliment d'aprovació no s'activarà mai i la tasca romandrà aprovada indefinidament.",
       "error_per_assignee_applicable_days_invalid": "Format de dies aplicable no vàlid per a un o més assignats. Els dies han de ser nombres enters del 0 al 6 (de dilluns a diumenge) sense duplicats.",
       "error_per_assignee_daily_multi_times_invalid": "Format d'hora diària no vàlid per a un o més assignats. Utilitzeu el format de 24 hores separat per | (p. ex., 08:00|17:00).",
-      "dashboard_exists": "Ja existeix un tauler de control amb aquesta ruta d'URL. Activeu \"Força la reconstrucció\" per sobreescriure-ho.",
+      "dashboard_exists": "Ja existeix un tauler de control amb aquesta ruta d'URL. Feu servir l'opció Actualitza el tauler de control.",
       "dashboard_template_error": "No s'ha pogut obtenir la plantilla del tauler de control. Comproveu la connexió de xarxa o torneu-ho a provar més tard.",
       "dashboard_render_error": "No s'ha pogut renderitzar la plantilla del tauler de control. Això pot indicar un error de plantilla.",
       "dashboard_save_error": "No s'ha pogut desar el tauler de control a Home Assistant. Consulta els registres del sistema per obtenir més informació.",
@@ -1887,7 +1873,9 @@
       "dashboard_admin_per_assignee_template_required": "Cal una plantilla d'administració per usuari quan el disseny d'administració inclou Per usuari.",
       "dashboard_admin_per_assignee_needs_assignees": "El disseny d'administració per usuari requereix com a mínim un usuari seleccionat.",
       "dashboard_dependency_ack_required": "Activeu \"Continua igualment\" per continuar o torneu enrere i instal·leu primer les dependències necessàries que falten.",
-      "dashboard_template_details_ack_required": "Activeu \"Continua amb aquestes plantilles\" per continuar o torneu enrere i ajusteu les seleccions de plantilles."
+      "dashboard_nonselectable_templates": "Una o més plantilles seleccionades no estan disponibles per a la generació.",
+      "dashboard_release_strict_pin_failed": "La versió seleccionada del tauler de control ha d'estar fixada exactament, però no hi havia cap referència de versió efectiva disponible en el moment de l'execució. Torneu a seleccionar la versió al pas 1 i torneu-ho a provar.",
+      "dashboard_release_asset_prep_failed": "No s'han pogut preparar els recursos del tauler de control en línia seleccionats. Trieu una versió diferent o utilitzeu les plantilles locals compatibles/actuals més recents i torneu-ho a provar."
     },
     "abort": {
       "invalid_action": "Acció no vàlida",
@@ -1967,9 +1955,9 @@
     },
     "dashboard_release_selection": {
       "options": {
-        "latest_compatible": "Compatible més recent (recomanat)",
-        "current_installed": "Current installed",
-        "latest_stable": "Latest stable"
+        "current_installed": "Actual instal·lat",
+        "latest_stable": "Últim estable",
+        "latest_compatible": "Compatible més recent (recomanat)"
       }
     },
     "manage_actions": {
@@ -3081,14 +3069,10 @@
         "name": "Estat de les tasques - {chore_name}",
         "state": {
           "pending": "Pendent",
-          "approved": "Aprovat",
+          "completed": "Completat",
           "claimed": "Reclamat",
           "due": "Venciment",
           "overdue": "Endarrerit",
-          "unknown": "Desconegut",
-          "none": "Cap",
-          "approved_in_part": "Aprovat (en part)",
-          "claimed_in_part": "Reclamat (en part)",
           "completed_by_other": "Completat per altres",
           "waiting": "Esperant (finestra de venciment no oberta)",
           "not_my_turn": "No és el meu torn (rotació)",
@@ -3249,14 +3233,15 @@
             "name": "Estat global",
             "state": {
               "pending": "Pendent",
-              "approved": "Aprovat",
+              "completed": "Completat",
               "claimed": "Reclamat",
               "overdue": "Endarrerit",
-              "unknown": "Desconegut",
-              "none": "Cap",
-              "approved_in_part": "Aprovat (en part)",
+              "completed_in_part": "Completat (en part)",
               "claimed_in_part": "Reclamat (en part)",
-              "independent": "Independent"
+              "independent": "Independent",
+              "due": "Venciment",
+              "waiting": "Esperant",
+              "missed": "Perdut (Bloquejat)"
             }
           },
           "can_claim": {
@@ -3927,15 +3912,15 @@
         "name": "{chore_name} - Estat global",
         "state": {
           "pending": "Pendent",
-          "approved": "Aprovat",
+          "completed": "Completat",
           "claimed": "Reclamat",
           "due": "Venciment",
           "overdue": "Endarrerit",
-          "unknown": "Desconegut",
-          "none": "Cap",
-          "approved_in_part": "Aprovat (en part)",
+          "completed_in_part": "Completat (en part)",
           "claimed_in_part": "Reclamat (en part)",
-          "independent": "Independent"
+          "independent": "Independent",
+          "waiting": "Esperant",
+          "missed": "Perdut (Bloquejat)"
         },
         "state_attributes": {
           "purpose": {
@@ -4882,6 +4867,48 @@
     },
     "service_target_title_not_found": {
       "message": "No s'ha trobat cap entrada ChoreOps carregada única per al títol {title}. Feu servir config_entry_id en comptes d'això."
+    },
+    "dashboard_status_preparing_release_assets": {
+      "message": "Preparació dels recursos seleccionats del tauler de control en línia"
+    },
+    "dashboard_status_release_asset_prep_failed": {
+      "message": "La preparació dels recursos en línia ha fallat. Trieu una versió diferent o utilitzeu les plantilles locals compatibles/actuals més recents."
+    },
+    "dashboard_status_release_applied": {
+      "message": "S'ha aplicat la versió {release_ref} localment ({execution_source}). Torna a carregar la integració o reinicia Home Assistant per actualitzar els sensors de traducció del tauler de control."
+    },
+    "dashboard_status_updated": {
+      "message": "Actualitzat {url_path} (vistes={view_count}, release_selection={release_selection})"
+    },
+    "dashboard_status_created": {
+      "message": "Creat {url_path} (assignees={assignee_count}, admin_mode={admin_mode})"
+    },
+    "dashboard_status_required_dependencies_still_missing": {
+      "message": "Encara falten les dependències obligatòries del tauler de control; es torna a la configuració"
+    },
+    "dashboard_status_required_dependencies_bypassed": {
+      "message": "L'usuari ha ignorat les dependències necessàries que falten."
+    },
+    "dashboard_status_recommended_dependencies_missing": {
+      "message": "Falten dependències recomanades (la generació continuarà): {dependency_list}"
+    },
+    "dashboard_status_nonselectable_templates": {
+      "message": "Les plantilles seleccionades no estan disponibles per a la generació:\n{template_list}"
+    },
+    "dashboard_status_deleted": {
+      "message": "Suprimit {url_path}"
+    },
+    "dashboard_status_delete_failed": {
+      "message": "No s'ha pogut suprimir {url_path}: {error}"
+    },
+    "dashboard_label_none": {
+      "message": "- Cap"
+    },
+    "dashboard_label_preferences_guide": {
+      "message": "Guia de preferències"
+    },
+    "dashboard_label_preferences_guide_not_provided": {
+      "message": "Guia de preferències no proporcionada"
     },
     "not_authorized_action": {
       "message": "No esteu autoritzat a {action} per a aquest cessionari."
