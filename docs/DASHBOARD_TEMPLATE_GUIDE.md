@@ -4,6 +4,10 @@
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
+## Companion design guideline
+
+For visual consistency standards (typography, state colors, icon semantics, and card behavior), use this guide together with `docs/DASHBOARD_UI_DESIGN_GUIDELINE.md`.
+
 ## Authority and source-of-truth model
 
 Use this guide as the canonical architecture and runtime contract reference for dashboard template authoring.

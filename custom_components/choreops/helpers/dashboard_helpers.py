@@ -739,6 +739,45 @@ async def _fetch_release_assets_by_path(
     return fetched_assets
 
 
+def _read_local_dashboard_asset_text(source_path: str) -> str:
+    """Read one local dashboard asset by source path."""
+    component_root = Path(__file__).parent.parent
+    dashboards_root = component_root / Path(const.DASHBOARD_MANIFEST_PATH).parent
+    asset_path = _resolve_dashboard_asset_target_path(dashboards_root, source_path)
+    return asset_path.read_text(encoding="utf-8")
+
+
+async def _load_local_assets_by_path(
+    hass: Any,
+    *,
+    source_paths: list[str],
+) -> dict[str, str]:
+    """Load local dashboard assets keyed by source path."""
+    unique_paths = [path for path in sorted(set(source_paths)) if path]
+    if not unique_paths:
+        return {}
+
+    tasks = [
+        hass.async_add_executor_job(_read_local_dashboard_asset_text, source_path)
+        for source_path in unique_paths
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    loaded_assets: dict[str, str] = {}
+    for source_path, result in zip(unique_paths, results, strict=True):
+        if isinstance(result, Exception):
+            raise HomeAssistantError(
+                f"Unable to load local dashboard asset '{source_path}': {result}"
+            ) from result
+        if isinstance(result, BaseException):
+            raise HomeAssistantError(
+                f"Unable to load local dashboard asset '{source_path}': {result}"
+            ) from result
+        loaded_assets[source_path] = result
+
+    return loaded_assets
+
+
 async def async_prepare_dashboard_release_assets(
     hass: Any,
     *,
@@ -795,10 +834,13 @@ async def async_prepare_dashboard_release_assets(
         resolution_reason = "explicit_release_selected"
         execution_source = "remote_release"
 
-    template_definitions = await fetch_remote_manifest_template_definitions(
-        hass,
-        release_ref,
-    )
+    if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+        template_definitions = get_dashboard_template_definitions()
+    else:
+        template_definitions = await fetch_remote_manifest_template_definitions(
+            hass,
+            release_ref,
+        )
     if not template_definitions:
         raise HomeAssistantError(
             f"Dashboard registry data is unavailable for release '{release_ref}'"
@@ -809,11 +851,17 @@ async def async_prepare_dashboard_release_assets(
         for definition in template_definitions
         if isinstance(definition.get("source_path"), str)
     ]
-    template_assets = await _fetch_release_assets_by_path(
-        hass,
-        release_ref=release_ref,
-        source_paths=template_paths,
-    )
+    if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+        template_assets = await _load_local_assets_by_path(
+            hass,
+            source_paths=template_paths,
+        )
+    else:
+        template_assets = await _fetch_release_assets_by_path(
+            hass,
+            release_ref=release_ref,
+            source_paths=template_paths,
+        )
 
     from .translation_helpers import get_available_dashboard_languages
 
@@ -822,11 +870,17 @@ async def async_prepare_dashboard_release_assets(
         f"translations/{language}{const.DASHBOARD_TRANSLATIONS_SUFFIX}.json"
         for language in available_languages
     ]
-    translation_assets = await _fetch_release_assets_by_path(
-        hass,
-        release_ref=release_ref,
-        source_paths=translation_paths,
-    )
+    if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+        translation_assets = await _load_local_assets_by_path(
+            hass,
+            source_paths=translation_paths,
+        )
+    else:
+        translation_assets = await _fetch_release_assets_by_path(
+            hass,
+            release_ref=release_ref,
+            source_paths=translation_paths,
+        )
 
     preferences_paths = [
         str(preferences_doc_asset_path)
@@ -841,17 +895,26 @@ async def async_prepare_dashboard_release_assets(
         )
         and preferences_doc_asset_path.strip()
     ]
-    preference_assets = await _fetch_release_assets_by_path(
-        hass,
-        release_ref=release_ref,
-        source_paths=preferences_paths,
-    )
-
-    manifest_asset = await builder.fetch_release_asset_text(
-        hass,
-        release_ref=release_ref,
-        source_path=Path(const.DASHBOARD_MANIFEST_PATH).name,
-    )
+    if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
+        preference_assets = await _load_local_assets_by_path(
+            hass,
+            source_paths=preferences_paths,
+        )
+        manifest_asset = await hass.async_add_executor_job(
+            _read_local_dashboard_asset_text,
+            Path(const.DASHBOARD_MANIFEST_PATH).name,
+        )
+    else:
+        preference_assets = await _fetch_release_assets_by_path(
+            hass,
+            release_ref=release_ref,
+            source_paths=preferences_paths,
+        )
+        manifest_asset = await builder.fetch_release_asset_text(
+            hass,
+            release_ref=release_ref,
+            source_path=Path(const.DASHBOARD_MANIFEST_PATH).name,
+        )
 
     return DashboardReleaseAssets(
         requested_release_selection=release_selection,

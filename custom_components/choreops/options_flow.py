@@ -4336,10 +4336,14 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                                 release_selection,
                             )
                         )
-                        await dh.async_apply_prepared_dashboard_release_assets(
-                            self.hass,
-                            prepared_assets,
-                        )
+                        if (
+                            release_selection
+                            != const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED
+                        ):
+                            await dh.async_apply_prepared_dashboard_release_assets(
+                                self.hass,
+                                prepared_assets,
+                            )
                     except (HomeAssistantError, TimeoutError, ValueError) as err:
                         const.LOGGER.warning(
                             "Dashboard release asset preparation failed: %s",
