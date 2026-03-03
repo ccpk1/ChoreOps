@@ -1,6 +1,6 @@
 [![Quality Scale: Platinum](https://img.shields.io/badge/Quality%20Scale-Platinum-platinum.svg)](https://github.com/ccpk1/choreops)
 [![Crowdin](https://badges.crowdin.net/choreops-translations/localized.svg)](https://crowdin.com/project/choreops-translations)
-[![License](https://img.shields.io/github/license/ccpk1/choreops)](https://github.com/ccpk1/choreops/blob/main/LICENSE) [![GitHub Issues](https://img.shields.io/github/issues/ccpk1/choreops)](https://github.com/ccpk1/choreops/issues) [![GitHub Stars](https://img.shields.io/github/stars/ccpk1/choreops?style=social)](https://github.com/ccpk1/choreops/stargazers) <br>
+[![License](https://img.shields.io/github/license/ccpk1/choreops)](https://github.com/ccpk1/choreops/blob/main/LICENSE) <br>
 [![HACS Custom](https://img.shields.io/badge/HACS%20Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![Validate](https://github.com/ccpk1/choreops/actions/workflows/validate.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/validate.yaml)
 [![Hassfest](https://github.com/ccpk1/choreops/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/ccpk1/choreops/actions/workflows/hassfest.yaml)
@@ -10,7 +10,7 @@
 [![All Release Downloads](https://img.shields.io/github/downloads/ccpk1/choreops/total?label=All%20Release%20Downloads)](https://github.com/ccpk1/choreops/releases)<br>
 
 <p align="center">
-  <img src="logo.png" alt="ChoreOps - Level Up your Household Tasks" width="640">
+  <img src="https://raw.githubusercontent.com/ccpk1/choreops/main/custom_components/choreops/brand/logo.png" alt="ChoreOps - Level Up your Household Tasks" width="640">
 </p>
 
 <p align="center">
