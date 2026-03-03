@@ -50,7 +50,6 @@ Checklist:
 - [ ] Config flow setup path works.
 - [ ] Options flow updates persist and reload behavior is correct.
 - [ ] Service calls validate input and return translatable errors.
-- [ ] Validate `manual_adjust_points` contract if included in release (signed non-zero `amount`, required `reason`, and `user_id`/`user_name` targeting).
 - [ ] Entity registration and IDs remain stable.
 
 ## 6) Storage and migration safety
