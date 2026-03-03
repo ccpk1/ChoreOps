@@ -63,7 +63,7 @@
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Chore Claimed",
-    "message": "{assignee_name} claimed {chore_name} and is working on it now"
+    "message": "{assignee_name} claimed {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Approval Needed",
