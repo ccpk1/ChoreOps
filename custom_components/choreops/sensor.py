@@ -2604,7 +2604,7 @@ class AssigneeRewardStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self) -> str:
-        """Return the current reward status: 'locked', 'available', 'requested', or 'approved'."""
+        """Return the current reward status: 'locked', 'available', or 'requested'."""
         assignee_info: AssigneeData = cast(
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
@@ -2616,16 +2616,6 @@ class AssigneeRewardStatusSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         pending_count = reward_data.get(const.DATA_USER_REWARD_DATA_PENDING_COUNT, 0)
         if pending_count > 0:
             return const.REWARD_STATE_REQUESTED
-
-        # Check if approved today using last_approved timestamp
-        last_approved = reward_data.get(const.DATA_USER_REWARD_DATA_LAST_APPROVED)
-        if last_approved:
-            try:
-                approved_dt = dt_to_utc(last_approved)
-                if approved_dt and approved_dt.date() == dt_util.now().date():
-                    return const.REWARD_STATE_APPROVED
-            except (ValueError, TypeError):
-                pass
 
         # Check if assignee can afford the reward
         assignee_points = assignee_info.get(const.DATA_USER_POINTS, 0)
