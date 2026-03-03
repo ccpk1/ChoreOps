@@ -24,6 +24,9 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.choreops import const
+from custom_components.choreops.migration_pre_v50_constants import (
+    DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY,
+)
 from custom_components.choreops.helpers.storage_helpers import (
     get_entry_storage_key_from_entry,
 )
@@ -153,11 +156,22 @@ def get_assignable_users(migrated_data: dict[str, Any]) -> dict[str, dict[str, A
     if not isinstance(users, dict):
         return {}
 
-    return {
+    assignable_users = {
         user_id: user_data
         for user_id, user_data in users.items()
         if isinstance(user_data, dict)
         and user_data.get(const.DATA_USER_CAN_BE_ASSIGNED, False)
+    }
+
+    # Legacy samples may not include explicit can_be_assigned markers.
+    # Fall back to all user records to keep migration invariants testable.
+    if assignable_users:
+        return assignable_users
+
+    return {
+        user_id: user_data
+        for user_id, user_data in users.items()
+        if isinstance(user_data, dict)
     }
 
 
@@ -452,6 +466,16 @@ class TestPointsMigrationFromV40:
                 f"earned={earned}, highest={highest_balance}"
             )
 
+            # Invariant guards: all-time earned/highest can never be below current balance
+            assert earned >= current_balance, (
+                f"{assignee_id}: all_time earned cannot be below current balance: "
+                f"earned={earned}, balance={current_balance}"
+            )
+            assert highest_balance >= current_balance, (
+                f"{assignee_id}: highest_balance cannot be below current balance: "
+                f"highest={highest_balance}, balance={current_balance}"
+            )
+
             # Verify spent = current_balance - highest_balance
             expected_spent = current_balance - highest_balance
             assert spent == expected_spent, (
@@ -463,6 +487,77 @@ class TestPointsMigrationFromV40:
                 f"{assignee_id}: net relationship broken: "
                 f"earned({earned}) + spent({spent}) != balance({current_balance})"
             )
+
+    async def test_migration_clamps_earned_to_current_balance_when_legacy_is_lower(
+        self,
+        hass: HomeAssistant,
+        hass_storage: dict[str, Any],
+    ) -> None:
+        """Verify all-time earned cannot migrate below current assignee balance."""
+        sample_path = (
+            Path(__file__).parent / "migration_samples" / "kidschores_data_40beta1"
+        )
+        v40beta1_data = normalize_legacy_sample_keys(
+            json.loads(sample_path.read_text())
+        )
+
+        users = v40beta1_data["data"].get(const.DATA_USERS, {})
+        assert isinstance(users, dict)
+
+        target_user = next(
+            (user for user in users.values() if isinstance(user, dict)),
+            None,
+        )
+        assert isinstance(target_user, dict)
+
+        target_user[const.DATA_USER_POINTS] = 1250.0
+        target_user[const.DATA_ASSIGNEE_MAX_POINTS_EVER_LEGACY] = 400.0
+        target_user[const.DATA_ASSIGNEE_POINT_STATS_LEGACY] = {
+            DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY: 300.0,
+        }
+
+        hass_storage["choreops_data"] = v40beta1_data
+
+        config_entry = MockConfigEntry(
+            domain=DOMAIN,
+            title="ChoreOps",
+            data={"schema_version": 40},
+            options={
+                CONF_POINTS_LABEL: "Points",
+                CONF_POINTS_ICON: "mdi:star",
+                CONF_UPDATE_INTERVAL: 5,
+            },
+        )
+        config_entry.add_to_hass(hass)
+        await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        migrated_data = hass_storage[_get_storage_key_for_entry(config_entry)]["data"]
+        migrated_assignees = get_assignable_users(migrated_data)
+        assert migrated_assignees
+
+        migrated_target = next(
+            (
+                user
+                for user in migrated_assignees.values()
+                if isinstance(user, dict)
+                and float(user.get(const.DATA_USER_POINTS, 0.0)) == 1250.0
+            ),
+            None,
+        )
+        assert isinstance(migrated_target, dict)
+
+        all_time_entry = migrated_target["point_periods"]["all_time"]["all_time"]
+        earned = float(all_time_entry["points_earned"])
+        highest = float(all_time_entry["highest_balance"])
+        spent = float(all_time_entry["points_spent"])
+        current_balance = float(migrated_target[const.DATA_USER_POINTS])
+
+        assert earned == 1250.0
+        assert highest == 1250.0
+        assert earned >= current_balance
+        assert highest >= current_balance
+        assert earned + spent == current_balance
 
 
 # =============================================================================

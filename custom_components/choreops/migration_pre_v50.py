@@ -29,6 +29,9 @@ from .migration_pre_v50_constants import (
     BADGE_TYPE_CHALLENGE_LINKED_MIGRATION,
     CHALLENGE_TYPE_DAILY_MIN_MIGRATION,
     CHALLENGE_TYPE_TOTAL_WITHIN_WINDOW_MIGRATION,
+    DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_ALL_TIME_LEGACY,
+    DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY,
+    DATA_ASSIGNEE_POINT_STATS_SPENT_ALL_TIME_LEGACY,
 )
 from .utils.dt_utils import (
     dt_add_interval,
@@ -5935,21 +5938,21 @@ class PreV50Migrator:
         const.LOGGER.info("INFO: ==========================================")
 
     def _consolidate_point_stats(self) -> None:
-        """Migrate point_stats → periods.all_time using current balance as baseline.
+        """Migrate point_stats → periods.all_time preserving historical totals.
 
         Phase 7b: Stats Consolidation
         The point_stats dict was generated from periods. Now we store all_time values
         directly in the all_time period bucket, eliminating the redundant dict.
 
         MIGRATION STRATEGY:
-        Use assignee's CURRENT POINTS BALANCE as the baseline for all_time stats.
-        This ensures the math works: points_earned + points_spent = current balance.
+        Preserve legacy all-time totals when available. Fall back to current balance
+        only when legacy all-time fields are missing.
 
         What this migration does:
-        1. Set all_time.points_earned = current assignee points balance
-        2. Set all_time.points_spent = 0.0 (fresh start)
-        3. Set all_time.by_source.other = current assignee points (pre-migration activity)
-        4. Set all_time.highest_balance = max(current balance, old highest if available)
+        1. Read legacy all-time values from point_stats when present
+        2. Set all_time.points_earned / points_spent from preserved values
+        3. Preserve all_time.by_source from legacy point_stats when present
+        4. Set all_time.highest_balance from best available historical source
         5. Delete legacy point_stats key from assignee_info
         6. Convert points_total → points_earned in period buckets
         """
@@ -5989,36 +5992,112 @@ class PreV50Migrator:
 
             # Get or create the all_time bucket (nested: all_time.all_time)
             all_time_bucket = all_time_periods.setdefault(const.PERIOD_ALL_TIME, {})
+            existing_all_time_earned = float(
+                all_time_bucket.get(
+                    const.DATA_USER_POINT_PERIOD_POINTS_EARNED,
+                    0.0,
+                )
+            )
+            existing_all_time_highest = float(
+                all_time_bucket.get(
+                    const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE,
+                    0.0,
+                )
+            )
 
-            # Find highest known historical value from legacy sources:
-            # 1. Legacy max_points_ever (v30/v31/v40 - direct assignee field)
-            # 2. Current balance (fallback minimum)
+            # Read legacy all-time point_stats values when available.
+            legacy_point_stats_raw = assignee_info.get(
+                const.DATA_ASSIGNEE_POINT_STATS_LEGACY, {}
+            )
+            legacy_point_stats = (
+                legacy_point_stats_raw
+                if isinstance(legacy_point_stats_raw, dict)
+                else {}
+            )
+
+            legacy_earned_all_time = float(
+                legacy_point_stats.get(
+                    DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY,
+                    0.0,
+                )
+            )
+            legacy_spent_all_time = float(
+                legacy_point_stats.get(
+                    DATA_ASSIGNEE_POINT_STATS_SPENT_ALL_TIME_LEGACY,
+                    0.0,
+                )
+            )
+            legacy_by_source_all_time = legacy_point_stats.get(
+                DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_ALL_TIME_LEGACY,
+                {},
+            )
 
             # Source 1: Legacy max_points_ever (the original field in v30/v31/v40beta1)
             legacy_max_points = float(
                 assignee_info.get(const.DATA_ASSIGNEE_MAX_POINTS_EVER_LEGACY, 0.0)
             )
 
-            # Use max_points_ever if available, otherwise fall back to current balance
-            historical_earned = max(legacy_max_points, current_balance)
+            # Use strongest historical source for earned all-time.
+            yearly_periods = periods.get(const.DATA_USER_POINT_PERIODS_YEARLY, {})
+            yearly_earned_floor = 0.0
+            if isinstance(yearly_periods, dict):
+                for year_bucket in yearly_periods.values():
+                    if not isinstance(year_bucket, dict):
+                        continue
+                    year_earned = float(
+                        year_bucket.get(
+                            const.DATA_USER_POINT_PERIOD_POINTS_EARNED,
+                            max(
+                                float(
+                                    year_bucket.get(
+                                        const.DATA_ASSIGNEE_POINT_DATA_PERIOD_POINTS_TOTAL_LEGACY,
+                                        0.0,
+                                    )
+                                ),
+                                0.0,
+                            ),
+                        )
+                    )
+                    yearly_earned_floor = max(yearly_earned_floor, year_earned)
+
+            historical_earned = max(
+                legacy_earned_all_time,
+                legacy_max_points,
+                existing_all_time_earned,
+                existing_all_time_highest,
+                yearly_earned_floor,
+                current_balance,
+            )
 
             const.LOGGER.debug(
-                "  %s: max_points_ever=%.2f, current=%.2f, using=%.2f",
+                "  %s: earned_all_time=%.2f, max_points_ever=%.2f, bucket_earned=%.2f, bucket_highest=%.2f, yearly_floor=%.2f, current=%.2f, using_earned=%.2f",
                 assignee_name,
+                legacy_earned_all_time,
                 legacy_max_points,
+                existing_all_time_earned,
+                existing_all_time_highest,
+                yearly_earned_floor,
                 current_balance,
                 historical_earned,
             )
 
             # MIGRATION STRATEGY:
-            # points_earned = highest known historical value (represents all earnings ever)
-            # points_spent = offset to bring net down to current balance
-            # by_source.other = current balance (net pre-migration activity, unknown +/-)
+            # points_earned = strongest known historical earned total
+            # points_spent = legacy all-time spent when available, otherwise inferred
+            # by_source = preserved legacy by_source when available
             # Math: earned + spent = current_balance
             #
             # Example: highest=2980, current=1504 → earned=2980, spent=-1476
             # Check: 2980 + (-1476) = 1504 ✓
-            calculated_spent = current_balance - historical_earned
+            calculated_spent = (
+                legacy_spent_all_time
+                if legacy_spent_all_time != 0.0
+                else current_balance - historical_earned
+            )
+            if round(historical_earned + calculated_spent, 2) != round(
+                current_balance, 2
+            ):
+                calculated_spent = current_balance - historical_earned
 
             # ALWAYS overwrite to ensure clean state
             all_time_bucket[const.DATA_USER_POINT_PERIOD_POINTS_EARNED] = (
@@ -6027,9 +6106,14 @@ class PreV50Migrator:
             all_time_bucket[const.DATA_USER_POINT_PERIOD_POINTS_SPENT] = (
                 calculated_spent
             )
-            all_time_bucket[const.DATA_USER_POINT_PERIOD_BY_SOURCE] = {
-                const.POINTS_SOURCE_OTHER: current_balance
-            }
+            if isinstance(legacy_by_source_all_time, dict) and legacy_by_source_all_time:
+                all_time_bucket[const.DATA_USER_POINT_PERIOD_BY_SOURCE] = dict(
+                    legacy_by_source_all_time
+                )
+            else:
+                all_time_bucket[const.DATA_USER_POINT_PERIOD_BY_SOURCE] = {
+                    const.POINTS_SOURCE_OTHER: current_balance
+                }
             all_time_bucket[const.DATA_USER_POINT_PERIOD_HIGHEST_BALANCE] = (
                 historical_earned
             )

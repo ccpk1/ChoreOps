@@ -1336,6 +1336,33 @@ class AssigneePointsSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             all_time_entry.get(const.DATA_USER_POINT_PERIOD_BY_SOURCE, {})
         )
 
+        # === Runtime sanity guards for legacy/migrated data ===
+        # all_time should never underflow current balance or temporal earned totals.
+        pres_stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
+        current_points = float(assignee_info.get(const.DATA_USER_POINTS, 0.0))
+        temporal_earned_floor = max(
+            float(pres_stats.get(const.PRES_USER_POINTS_EARNED_TODAY, 0.0)),
+            float(pres_stats.get(const.PRES_USER_POINTS_EARNED_WEEK, 0.0)),
+            float(pres_stats.get(const.PRES_USER_POINTS_EARNED_MONTH, 0.0)),
+            float(pres_stats.get(const.PRES_USER_POINTS_EARNED_YEAR, 0.0)),
+        )
+        all_time_earned_floor = max(
+            current_points,
+            temporal_earned_floor,
+            highest_balance,
+        )
+        if earned_all_time < all_time_earned_floor:
+            earned_all_time = all_time_earned_floor
+
+        if highest_balance < earned_all_time:
+            highest_balance = earned_all_time
+
+        # Keep all-time net coherent with current balance when source data is inconsistent.
+        spent_all_time = round(
+            current_points - earned_all_time,
+            const.DATA_FLOAT_PRECISION,
+        )
+
         # Add persistent all_time stats with backward-compatible attribute names
         attributes[f"{const.ATTR_PREFIX_POINT_STAT}points_earned_all_time"] = (
             earned_all_time
@@ -1355,7 +1382,6 @@ class AssigneePointsSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         # === Add temporal stats from presentation cache ===
         # PRES_KID_* keys map to backward-compatible names by stripping "pres_user_" prefix
-        pres_stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
         for pres_key, value in pres_stats.items():
             if pres_key.startswith(("pres_user_points_", "pres_user_avg_points_")):
                 # Strip "pres_user_" prefix to get backward-compatible attribute name
