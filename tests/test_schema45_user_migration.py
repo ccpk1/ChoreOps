@@ -7,6 +7,7 @@ from typing import Any
 
 from custom_components.choreops import const
 from custom_components.choreops.migration_pre_v50 import (
+    PreV50Migrator,
     async_apply_schema45_user_contract,
 )
 from custom_components.choreops.store import ChoreOpsStore
@@ -19,6 +20,18 @@ class _DummyCoordinator:
     """Minimal coordinator stub for migration function tests."""
 
     _data: dict[str, Any]
+
+    @property
+    def assignees_data(self) -> dict[str, dict[str, Any]]:
+        """Return assignment-capable users for pre-v50 approver migration helpers."""
+        users_raw = self._data.get(const.DATA_USERS, {})
+        if not isinstance(users_raw, dict):
+            return {}
+        return {
+            user_id: user_data
+            for user_id, user_data in users_raw.items()
+            if isinstance(user_data, dict)
+        }
 
 
 async def test_schema45_migration_moves_assignees_to_users_and_sets_defaults() -> None:
@@ -78,7 +91,11 @@ async def test_schema45_migration_merges_linked_approver_into_existing_user() ->
                 "approver-1": {
                     const.DATA_USER_NAME: "Sam",
                     const.DATA_USER_HA_USER_ID: "ha-approver-1",
-                    "linked_shadow_assignee_id": "assignee-1",
+                    "linked_shadow_kid_id": "assignee-1",
+                    "allow_chore_assignment": True,
+                    const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+                    const.DATA_USER_ENABLE_GAMIFICATION: False,
+                    const.DATA_USER_ASSOCIATED_USER_IDS: ["assignee-2", "assignee-1"],
                 }
             },
         }
@@ -91,8 +108,12 @@ async def test_schema45_migration_merges_linked_approver_into_existing_user() ->
     assert user_data[const.DATA_USER_CAN_APPROVE] is True
     assert user_data[const.DATA_USER_CAN_MANAGE] is True
     assert user_data[const.DATA_USER_CAN_BE_ASSIGNED] is True
-    assert user_data[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is True
-    assert user_data[const.DATA_USER_ENABLE_GAMIFICATION] is True
+    assert user_data[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is False
+    assert user_data[const.DATA_USER_ENABLE_GAMIFICATION] is False
+    assert user_data[const.DATA_USER_ASSOCIATED_USER_IDS] == [
+        "assignee-2",
+        "assignee-1",
+    ]
 
 
 async def test_schema45_migration_handles_collision_and_is_idempotent() -> None:
@@ -207,6 +228,64 @@ async def test_schema45_migration_remaps_legacy_kid_keys() -> None:
     assert const.CONF_ACHIEVEMENT_ASSIGNED_ASSIGNEES_LEGACY not in achievement
 
     assert summary["kid_key_remaps"] >= 7
+
+
+async def test_schema45_migration_merges_linked_parent_after_pre_v50_approver_stage() -> (
+    None
+):
+    """Pre-v50 approver stage preserves legacy parent link/flags for schema45 merge."""
+    coordinator = _DummyCoordinator(
+        _data={
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA4,
+                const.DATA_META_MIGRATIONS_APPLIED: [],
+            },
+            const.DATA_USERS: {
+                "shadow-1": {
+                    const.DATA_USER_NAME: "Alex",
+                    const.DATA_USER_HA_USER_ID: "ha-alex",
+                    const.DATA_USER_CAN_BE_ASSIGNED: True,
+                    const.DATA_USER_ENABLE_CHORE_WORKFLOW: True,
+                    const.DATA_USER_ENABLE_GAMIFICATION: True,
+                },
+                "kid-2": {
+                    const.DATA_USER_NAME: "Taylor",
+                    const.DATA_USER_HA_USER_ID: "ha-taylor",
+                    const.DATA_USER_CAN_BE_ASSIGNED: True,
+                },
+            },
+            const.DATA_APPROVERS: {},
+        }
+    )
+
+    migrator = PreV50Migrator(coordinator)  # type: ignore[arg-type]
+    migrator._create_approver(
+        "parent-1",
+        {
+            const.DATA_USER_NAME: "Alex Parent",
+            const.DATA_USER_HA_USER_ID: "ha-alex",
+            const.DATA_USER_ASSOCIATED_USER_IDS: ["kid-2"],
+            "linked_shadow_kid_id": "shadow-1",
+            "allow_chore_assignment": True,
+            const.DATA_USER_ENABLE_CHORE_WORKFLOW: False,
+            const.DATA_USER_ENABLE_GAMIFICATION: False,
+        },
+    )
+
+    summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+
+    assert summary["linked_approver_merges"] == 1
+    assert summary["standalone_approver_creations"] == 0
+
+    shadow_user = coordinator._data[const.DATA_USERS]["shadow-1"]
+    assert shadow_user[const.DATA_USER_CAN_APPROVE] is True
+    assert shadow_user[const.DATA_USER_CAN_MANAGE] is True
+    assert shadow_user[const.DATA_USER_CAN_BE_ASSIGNED] is True
+    assert shadow_user[const.DATA_USER_ENABLE_CHORE_WORKFLOW] is False
+    assert shadow_user[const.DATA_USER_ENABLE_GAMIFICATION] is False
+    assert shadow_user[const.DATA_USER_ASSOCIATED_USER_IDS] == ["kid-2"]
+
+    assert "parent-1" not in coordinator._data[const.DATA_USERS]
 
 
 async def test_schema45_converts_challenges_and_removes_challenge_linked_badges() -> (

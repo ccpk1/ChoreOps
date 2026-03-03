@@ -54,6 +54,8 @@ LEGACY_BUTTON_UID_MIDFIX_ADJUST_POINTS = "_points_adjust_"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_KEY = "notify_on_reminder"
 LEGACY_CHORE_NOTIFY_ON_REMINDER_DEFAULT = True
 LEGACY_APPROVER_LINKED_PROFILE_KEY = "linked_shadow_assignee_id"
+LEGACY_APPROVER_LINKED_PROFILE_KEY_ALT = "linked_shadow_kid_id"
+LEGACY_APPROVER_ALLOW_ASSIGNMENT_KEY = "allow_chore_assignment"
 SCHEMA45_MARKER_CHALLENGES_TO_PERIODIC_BADGES = "schema45_challenges_to_periodic_badges"
 SCHEMA45_MARKER_REMOVE_CHALLENGE_LINKED_BADGES = (
     "schema45_remove_challenge_linked_badges"
@@ -247,6 +249,38 @@ def _map_schema45_daily_min_threshold(target_value: int) -> tuple[str, float]:
     if target_value <= 5:
         return (const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_5_CHORES, 1.0)
     return (const.BADGE_TARGET_THRESHOLD_TYPE_DAYS_MIN_7_CHORES, 1.0)
+
+
+def _extract_legacy_approver_assignment_flag(
+    approver_data: dict[str, Any],
+) -> bool | None:
+    """Extract assignment capability from approver payload when explicitly provided."""
+    if const.DATA_USER_CAN_BE_ASSIGNED in approver_data:
+        return bool(approver_data.get(const.DATA_USER_CAN_BE_ASSIGNED))
+
+    if LEGACY_APPROVER_ALLOW_ASSIGNMENT_KEY in approver_data:
+        return bool(approver_data.get(LEGACY_APPROVER_ALLOW_ASSIGNMENT_KEY))
+
+    return None
+
+
+def _coerce_string_list(value: Any) -> list[str]:
+    """Return list of string items preserving original order."""
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
+
+
+def _merge_unique_string_lists(base: list[str], extra: list[str]) -> list[str]:
+    """Merge two string lists preserving first-seen order and uniqueness."""
+    merged: list[str] = []
+    seen: set[str] = set()
+    for item in [*base, *extra]:
+        if item in seen:
+            continue
+        seen.add(item)
+        merged.append(item)
+    return merged
 
 
 def _build_schema45_migrated_periodic_badge(
@@ -531,13 +565,48 @@ async def async_apply_schema45_user_contract(
 
         approver_data = cast("dict[str, Any]", approver_data_raw)
         linked_profile_id = approver_data.get(LEGACY_APPROVER_LINKED_PROFILE_KEY)
+        if not isinstance(linked_profile_id, str):
+            linked_profile_id = approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY_ALT
+            )
+
+        associated_user_ids = _coerce_string_list(
+            approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, [])
+        )
+        assignment_flag = _extract_legacy_approver_assignment_flag(approver_data)
+        workflow_flag = bool(
+            approver_data.get(
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW,
+                const.DEFAULT_USER_ENABLE_CHORE_WORKFLOW,
+            )
+        )
+        gamification_flag = bool(
+            approver_data.get(
+                const.DATA_USER_ENABLE_GAMIFICATION,
+                const.DEFAULT_USER_ENABLE_GAMIFICATION,
+            )
+        )
         if isinstance(linked_profile_id, str) and linked_profile_id in users:
             target_id = linked_profile_id
             linked_approver_merges += 1
             target_user = cast("dict[str, Any]", users[target_id])
             target_user[const.DATA_USER_CAN_APPROVE] = True
             target_user[const.DATA_USER_CAN_MANAGE] = True
-            target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+            if assignment_flag is not None:
+                target_user[const.DATA_USER_CAN_BE_ASSIGNED] = assignment_flag
+            else:
+                target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, True)
+            target_user[const.DATA_USER_ENABLE_CHORE_WORKFLOW] = workflow_flag
+            target_user[const.DATA_USER_ENABLE_GAMIFICATION] = gamification_flag
+            existing_associations = _coerce_string_list(
+                target_user.get(const.DATA_USER_ASSOCIATED_USER_IDS, [])
+            )
+            target_user[const.DATA_USER_ASSOCIATED_USER_IDS] = (
+                _merge_unique_string_lists(
+                    existing_associations,
+                    associated_user_ids,
+                )
+            )
             target_user.setdefault(
                 const.DATA_USER_HA_USER_ID,
                 approver_data.get(const.DATA_USER_HA_USER_ID),
@@ -568,14 +637,31 @@ async def async_apply_schema45_user_contract(
                 const.DATA_USER_HA_USER_ID: approver_data.get(
                     const.DATA_USER_HA_USER_ID
                 ),
-                const.DATA_USER_CAN_BE_ASSIGNED: False,
+                const.DATA_USER_CAN_BE_ASSIGNED: (
+                    assignment_flag if assignment_flag is not None else False
+                ),
+                const.DATA_USER_ENABLE_CHORE_WORKFLOW: workflow_flag,
+                const.DATA_USER_ENABLE_GAMIFICATION: gamification_flag,
+                const.DATA_USER_ASSOCIATED_USER_IDS: associated_user_ids,
             }
             users[target_id] = target_user
             standalone_approver_creations += 1
 
         target_user[const.DATA_USER_CAN_APPROVE] = True
         target_user[const.DATA_USER_CAN_MANAGE] = True
-        target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, False)
+        if assignment_flag is not None:
+            target_user[const.DATA_USER_CAN_BE_ASSIGNED] = assignment_flag
+        else:
+            target_user.setdefault(const.DATA_USER_CAN_BE_ASSIGNED, False)
+        target_user[const.DATA_USER_ENABLE_CHORE_WORKFLOW] = workflow_flag
+        target_user[const.DATA_USER_ENABLE_GAMIFICATION] = gamification_flag
+        existing_associations = _coerce_string_list(
+            target_user.get(const.DATA_USER_ASSOCIATED_USER_IDS, [])
+        )
+        target_user[const.DATA_USER_ASSOCIATED_USER_IDS] = _merge_unique_string_lists(
+            existing_associations,
+            associated_user_ids,
+        )
         target_user.setdefault(
             const.DATA_USER_HA_USER_ID,
             approver_data.get(const.DATA_USER_HA_USER_ID),
@@ -6626,6 +6712,14 @@ class PreV50Migrator:
         )
 
     def _create_approver(self, approver_id: str, approver_data: dict[str, Any]):
+        linked_profile_id = approver_data.get(LEGACY_APPROVER_LINKED_PROFILE_KEY)
+        if not isinstance(linked_profile_id, str):
+            linked_profile_id = approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY_ALT
+            )
+
+        assignment_flag = _extract_legacy_approver_assignment_flag(approver_data)
+
         associated_assignees_ids = []
         for assignee_id in approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []):
             if assignee_id in self.coordinator.assignees_data:
@@ -6668,8 +6762,10 @@ class PreV50Migrator:
                 const.DATA_USER_ENABLE_GAMIFICATION,
                 const.DEFAULT_USER_ENABLE_GAMIFICATION,
             ),
-            LEGACY_APPROVER_LINKED_PROFILE_KEY: approver_data.get(
-                LEGACY_APPROVER_LINKED_PROFILE_KEY
+            LEGACY_APPROVER_LINKED_PROFILE_KEY: linked_profile_id,
+            LEGACY_APPROVER_ALLOW_ASSIGNMENT_KEY: assignment_flag,
+            const.DATA_USER_CAN_BE_ASSIGNED: (
+                assignment_flag if assignment_flag is not None else False
             ),
         }
         const.LOGGER.debug(
@@ -6682,6 +6778,14 @@ class PreV50Migrator:
 
     def _update_approver(self, approver_id: str, approver_data: dict[str, Any]):
         approver_info = self.coordinator._data[const.DATA_APPROVERS][approver_id]
+        linked_profile_id = approver_data.get(LEGACY_APPROVER_LINKED_PROFILE_KEY)
+        if not isinstance(linked_profile_id, str):
+            linked_profile_id = approver_data.get(
+                LEGACY_APPROVER_LINKED_PROFILE_KEY_ALT
+            )
+
+        assignment_flag = _extract_legacy_approver_assignment_flag(approver_data)
+
         approver_info[const.DATA_USER_NAME] = approver_data.get(
             const.DATA_USER_NAME, approver_info[const.DATA_USER_NAME]
         )
@@ -6741,11 +6845,12 @@ class PreV50Migrator:
                 const.DEFAULT_USER_ENABLE_GAMIFICATION,
             ),
         )
-        # Update shadow assignee link if provided
-        if LEGACY_APPROVER_LINKED_PROFILE_KEY in approver_data:
-            approver_info[LEGACY_APPROVER_LINKED_PROFILE_KEY] = approver_data.get(
-                LEGACY_APPROVER_LINKED_PROFILE_KEY
-            )
+        if isinstance(linked_profile_id, str):
+            approver_info[LEGACY_APPROVER_LINKED_PROFILE_KEY] = linked_profile_id
+
+        if assignment_flag is not None:
+            approver_info[LEGACY_APPROVER_ALLOW_ASSIGNMENT_KEY] = assignment_flag
+            approver_info[const.DATA_USER_CAN_BE_ASSIGNED] = assignment_flag
 
         const.LOGGER.debug(
             "DEBUG: Approver Updated - '%s', ID '%s'",
