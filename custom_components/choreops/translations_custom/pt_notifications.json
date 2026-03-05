@@ -14,6 +14,10 @@
     "title": "⏰ Tarefa atrasada",
     "message": "{chore_name} está atrasado! Complete-o agora para ganhar {points} pontos"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Alerta de Tarefa",
+    "message": "{chore_name} está atrasado e disponível para roubar! Complete-o primeiro para ganhar {points} pontos"
+  },
   "chore_missed_assignee": {
     "title": "😔 Tarefa expirada",
     "message": "{chore_name} expirou sem estar concluído."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "═══════════════════════════════ ════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tarefa atribuída",
-    "message": "{assignee_name} reivindicou {chore_name} e está a trabalhar nisso agora"
+    "message": "{assignee_name} alegou {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Aprovação necessária",

@@ -67,7 +67,7 @@
         "title": "Nombre d'usuaris",
         "description": "Quants usuaris vols definir inicialment?",
         "data": {
-          "approver_count": "Nombre d'usuaris"
+          "user_count": "Nombre d'usuaris"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Punts d'ajust manual",
+      "description": "Ajusta els punts manualment per a un usuari utilitzant un import enter amb signe i un motiu obligatori registrat al llibre major.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID d'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració de ChoreOps. Està dirigit a una configuració específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració ChoreOps i cadascuna té noms únics. Si els noms es repeteixen, feu servir l'ID d'entrada de configuració.",
+          "example": "Tasques familiars"
+        },
+        "approver_name": {
+          "name": "Nom de l'aprovador (opcional)",
+          "description": "Nom opcional per mostrar de l'actor que realitza l'ajust manual.",
+          "example": "Pare"
+        },
+        "user_id": {
+          "name": "ID d'usuari (opcional)",
+          "description": "UUID intern de l'usuari de destinació. Proporcioneu user_id o user_name.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Nom d'usuari (opcional)",
+          "description": "Nom de visualització de l'usuari de destinació. Proporcioneu user_id o user_name.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Import",
+          "description": "Punts enters amb signe que cal ajustar (per exemple, 10 o -10; no es permet 0).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Raó",
+          "description": "Motiu obligatori registrat al nom de l'element del llibre major de transaccions.",
+          "example": "Va ajudar un germà amb els deures"
+        }
+      }
+    },
     "create_reward": {
       "name": "Crea una recompensa",
       "description": "Crea una nova recompensa mitjançant la programació.",
@@ -3087,6 +3128,43 @@
               "manual": "Només restabliment manual"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Restabliment d'aprovació Acció de reclamació pendent",
+            "state": {
+              "hold_pending": "Estat de la reclamació en espera (espera d'aprovació/rebuig)",
+              "clear_pending": "Esborra les reclamacions pendents",
+              "auto_approve_pending": "Aprova automàticament les reclamacions pendents"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Tipus de gestió de venciments",
+            "state": {
+              "never_overdue": "Mai endarrerit",
+              "at_due_date": "Endarrerit fins a completar-se",
+              "at_due_date_clear_at_approval_reset": "Endarrerit fins a restabliment d'aprovació",
+              "at_due_date_clear_immediate_on_late": "Endarrerit fins a completar-se (esborrar les aprovacions tardanes immediatament)",
+              "at_due_date_clear_and_mark_missed": "Reinici de l'aprovació endarrerit (marcar com a perdut)",
+              "at_due_date_mark_missed_and_lock": "Bloqueja fins a aprovació Restableix (impedeix reclamacions, marca com a perdudes)",
+              "at_due_date_allow_steal": "Permetre robar fins que es restableixi l'aprovació (només per rotació)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Bloqueja la reclamació fins que s'obri el període de venciment",
+            "state": {
+              "true": "Sí",
+              "false": "No"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Desplaçament de la finestra de venciment"
+          },
+          "auto_approve": {
+            "name": "Aprovació automàtica de reclamacions",
+            "state": {
+              "true": "Sí",
+              "false": "No"
+            }
+          },
           "recurring_frequency": {
             "name": "Freqüència recurrent",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Temps fins al venciment"
           },
-          "lock_reason": {
-            "name": "Motiu del bloqueig",
+          "claim_mode": {
+            "name": "Mode de reclamació",
             "state": {
-              "waiting": "Esperant la finestra de venciment",
-              "not_my_turn": "No és el teu torn",
-              "missed": "Perdut"
+              "claimable": "Reclamable",
+              "steal_available": "Robar disponible",
+              "blocked_completed_by_other": "Completat per altres",
+              "blocked_already_approved": "Ja aprovat",
+              "blocked_pending_claim": "Reclamació pendent",
+              "blocked_waiting_window": "Esperant la finestra de venciment",
+              "blocked_not_my_turn": "No és el teu torn",
+              "blocked_missed_locked": "Perdut i bloquejat"
             }
           },
           "turn_user_name": {

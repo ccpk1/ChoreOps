@@ -14,6 +14,10 @@
     "title": "⏰ Tâche ménagère en retard",
     "message": "{chore_name} est en retard ! Terminez-le maintenant pour gagner {points} points"
   },
+  "chore_overdue_steal_available": {
+    "title": "Alerte corvée",
+    "message": "{chore_name} est en retard et disponible pour être volé ! Terminez-le en premier pour gagner {points} points"
+  },
   "chore_missed_assignee": {
     "title": "😔 Tâche expirée",
     "message": "{chore_name} a expiré sans être complété."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tâche prise",
-    "message": "{assignee_name} a revendiqué {chore_name} et travaille dessus actuellement."
+    "message": "{assignee_name} a revendiqué {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Approbation requise",

@@ -67,7 +67,7 @@
         "title": "Käyttäjien määrä",
         "description": "Kuinka monta käyttäjää haluat aluksi määrittää?",
         "data": {
-          "approver_count": "Käyttäjien määrä"
+          "user_count": "Käyttäjien määrä"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Manuaaliset säätöpisteet",
+      "description": "Säädä käyttäjän pisteitä manuaalisesti käyttämällä etumerkillistä kokonaislukua ja kirjanpitoon kirjattua pakollista syytä.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-kokoonpano. Se kohdistuu yhteen tiettyyn kokoonpanoon.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfiguraatiomerkinnän nimi (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-asetus ja niillä jokaisella on yksilölliset nimet. Jos nimet toistuvat, käytä määritysmerkinnän tunnusta.",
+          "example": "Perheen askareita"
+        },
+        "approver_name": {
+          "name": "Hyväksyjän nimi (valinnainen)",
+          "description": "Manuaalisen säädön suorittavan toimijan valinnainen näyttönimi.",
+          "example": "Isä"
+        },
+        "user_id": {
+          "name": "Käyttäjätunnus (valinnainen)",
+          "description": "Kohdekäyttäjän sisäinen UUID. Anna käyttäjätunnus tai käyttäjänimi.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Käyttäjänimi (valinnainen)",
+          "description": "Kohdekäyttäjän näyttönimi. Anna käyttäjätunnus tai käyttäjänimi.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Määrä",
+          "description": "Muokattava etumerkillinen kokonaisluku pistemäärä (esimerkiksi 10 tai -10; 0 ei ole sallittu).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Syy",
+          "description": "Pakollinen syy, joka on kirjattu tapahtumaresurssin nimikkeen nimeen.",
+          "example": "Auttoi sisarusta läksyissä"
+        }
+      }
+    },
     "create_reward": {
       "name": "Luo palkinto",
       "description": "Luo uusi palkinto ohjelmallisesti.",
@@ -3087,6 +3128,43 @@
               "manual": "Vain manuaalinen nollaus"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Hyväksyntä Nollaus Odottaa vaatimustoimintoa",
+            "state": {
+              "hold_pending": "Vaatimuksen tila (odottaa hyväksyntää/hylkäämistä)",
+              "clear_pending": "Tyhjennä odottavat vaatimukset",
+              "auto_approve_pending": "Hyväksy odottavat hakemukset automaattisesti"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Myöhästymiskäsittelyn tyyppi",
+            "state": {
+              "never_overdue": "Ei koskaan myöhässä",
+              "at_due_date": "Myöhässä, kunnes valmis",
+              "at_due_date_clear_at_approval_reset": "Myöhässä, kunnes hyväksyntä on voimassa",
+              "at_due_date_clear_immediate_on_late": "Myöhässä, kunnes valmis (tyhjennä myöhästyneet hyväksynnät välittömästi)",
+              "at_due_date_clear_and_mark_missed": "Myöhässä, kunnes hyväksyntä on palautettu (Merkitse ohitetuksi)",
+              "at_due_date_mark_missed_and_lock": "Lukitse hyväksyntään asti Nollaa (Estä hakemukset, merkitse ohitetuksi)",
+              "at_due_date_allow_steal": "Salli varastaminen hyväksynnän nollaukseen asti (vain rotaatio)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Lukitse vaatimus, kunnes eräpäiväaika avautuu",
+            "state": {
+              "true": "Kyllä",
+              "false": "Ei"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Eräikkunan siirtymä"
+          },
+          "auto_approve": {
+            "name": "Hyväksytäänkö korvaushakemukset automaattisesti",
+            "state": {
+              "true": "Kyllä",
+              "false": "Ei"
+            }
+          },
           "recurring_frequency": {
             "name": "Toistuva tiheys",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Myöhästymisaika"
           },
-          "lock_reason": {
-            "name": "Lukituksen syy",
+          "claim_mode": {
+            "name": "Vaatimustila",
             "state": {
-              "waiting": "Odotetaan eräpäivää",
-              "not_my_turn": "Ei sinun vuorosi",
-              "missed": "Jäi väliin"
+              "claimable": "Lunastuskelpoinen",
+              "steal_available": "Varasta saatavilla",
+              "blocked_completed_by_other": "Muun suorittama",
+              "blocked_already_approved": "Jo hyväksytty",
+              "blocked_pending_claim": "Odottava vaatimus",
+              "blocked_waiting_window": "Odotetaan eräpäivää",
+              "blocked_not_my_turn": "Ei sinun vuorosi",
+              "blocked_missed_locked": "Kadonnut ja lukittu"
             }
           },
           "turn_user_name": {

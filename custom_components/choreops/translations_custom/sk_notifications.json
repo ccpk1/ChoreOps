@@ -14,6 +14,10 @@
     "title": "⏰ Domáca práca po termíne",
     "message": "{chore_name} je oneskorené! Dokončite ho teraz a získajte {points} bodov"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Upozornenie na domáce práce",
+    "message": "{chore_name} je po termíne a je k dispozícii na ukradnutie! Najprv ho dokončite a získajte {points} bodov"
+  },
   "chore_missed_assignee": {
     "title": "😔 Platnosť úlohy vypršala",
     "message": "{chore_name} platnosť vypršala bez dokončenia."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Domáca práca nárokovaná",
-    "message": "{assignee_name} si nárokoval {chore_name} a teraz na tom pracuje"
+    "message": "{assignee_name} nárokované {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Vyžaduje sa schválenie",
