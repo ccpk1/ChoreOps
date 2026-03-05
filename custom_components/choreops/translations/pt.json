@@ -67,7 +67,7 @@
         "title": "Número de utilizadores",
         "description": "Quantos utilizadores pretende definir inicialmente?",
         "data": {
-          "approver_count": "Número de utilizadores"
+          "user_count": "Número de utilizadores"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Pontos de regulação manual",
+      "description": "Ajuste manualmente os pontos de um utilizador utilizando um valor inteiro com sinal e uma justificação obrigatória registada no livro-razão.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps. É direcionada para uma configuração específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nome da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps e cada uma delas tiver um nome único. Se os nomes se repetirem, utilize o ID da entrada de configuração.",
+          "example": "Tarefas familiares"
+        },
+        "approver_name": {
+          "name": "Nome do aprovador (opcional)",
+          "description": "Nome opcional do ator que efetua o ajuste manual.",
+          "example": "Pai"
+        },
+        "user_id": {
+          "name": "ID do utilizador (opcional)",
+          "description": "UUID interno do utilizador alvo. Forneça o user_id ou user_name.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Nome de utilizador (opcional)",
+          "description": "Exibir o nome do utilizador alvo. Forneça o user_id ou user_name.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Montante",
+          "description": "Os valores em pontos inteiros com sinal devem ser ajustados (por exemplo, 10 ou -10; 0 não é permitido).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Razão",
+          "description": "O motivo necessário é registado no nome do artigo do razão de transações.",
+          "example": "Ajudei o meu irmão com os trabalhos de casa."
+        }
+      }
+    },
     "create_reward": {
       "name": "Criar recompensa",
       "description": "Criar uma nova recompensa programaticamente.",
@@ -3087,6 +3128,43 @@
               "manual": "Reinicialização apenas manual"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Aprovação Redefinida Ação de Reclamação Pendente",
+            "state": {
+              "hold_pending": "Estado da solicitação em espera (aguarda aprovação/rejeição)",
+              "clear_pending": "Liquidar as reclamações pendentes",
+              "auto_approve_pending": "Aprovar automaticamente os pedidos pendentes"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Tipo de manuseamento atrasado",
+            "state": {
+              "never_overdue": "Nunca atrasado",
+              "at_due_date": "Em atraso até estar concluído.",
+              "at_due_date_clear_at_approval_reset": "Em atraso até aprovação. Redefinir.",
+              "at_due_date_clear_immediate_on_late": "Em atraso até à conclusão (aprovações atrasadas devem ser libertadas imediatamente)",
+              "at_due_date_clear_and_mark_missed": "Em atraso até à aprovação (Marcar como não realizado)",
+              "at_due_date_mark_missed_and_lock": "Bloquear até aprovação (Impedir reclamações, marcar como perdido)",
+              "at_due_date_allow_steal": "Permitir o Roubo até à Reposição de Aprovação (Apenas Rotação)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Bloquear sinistro até à abertura do prazo",
+            "state": {
+              "true": "Sim",
+              "false": "Não"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Deslocamento da janela devido"
+          },
+          "auto_approve": {
+            "name": "Aprovar os pedidos automaticamente",
+            "state": {
+              "true": "Sim",
+              "false": "Não"
+            }
+          },
           "recurring_frequency": {
             "name": "Frequência recorrente",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Tempo até ao vencimento"
           },
-          "lock_reason": {
-            "name": "Razão de bloqueio",
+          "claim_mode": {
+            "name": "Modo de reivindicação",
             "state": {
-              "waiting": "Aguarda o prazo final",
-              "not_my_turn": "Não é a sua vez",
-              "missed": "Perdido"
+              "claimable": "Reivindicável",
+              "steal_available": "Roubar disponível",
+              "blocked_completed_by_other": "Concluído por outro",
+              "blocked_already_approved": "Já aprovado",
+              "blocked_pending_claim": "Reclamação pendente",
+              "blocked_waiting_window": "Aguarda o prazo final",
+              "blocked_not_my_turn": "Não é a sua vez",
+              "blocked_missed_locked": "Perdido e trancado"
             }
           },
           "turn_user_name": {
@@ -4835,7 +4918,7 @@
       "message": "A preparação de ativos online falhou. Escolha uma versão diferente ou utilize os modelos locais mais recentes compatíveis/atuais."
     },
     "dashboard_status_release_applied": {
-      "message": "Applied release {release_ref} locally ({execution_source}). Reload integration or restart Home Assistant to refresh dashboard translation sensors."
+      "message": "Versão {release_ref} aplicada localmente ({execution_source}). Recarregue a integração ou reinicie o Assistente do Início para atualizar os sensores de tradução do painel."
     },
     "dashboard_status_updated": {
       "message": "Atualizado {url_path} (visualizações={view_count}, seleção_de_lançamento={release_selection})"

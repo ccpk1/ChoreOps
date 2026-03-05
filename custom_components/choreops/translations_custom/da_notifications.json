@@ -14,6 +14,10 @@
     "title": "⏰ Forfalden pligt",
     "message": "{chore_name} er for sent! Færdiggør den nu for at optjene {points} point"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Huslige pligter",
+    "message": "{chore_name} er for sent og kan stjæles! Fuldfør den først for at optjene {points} point"
+  },
   "chore_missed_assignee": {
     "title": "😔 Opgave udløbet",
     "message": "{chore_name} udløb uden fuldførelse."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Opgave påtaget",
-    "message": "{assignee_name} har gjort krav på {chore_name} og arbejder på det nu"
+    "message": "{assignee_name} gjorde krav på {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Godkendelse påkrævet",

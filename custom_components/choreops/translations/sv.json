@@ -67,7 +67,7 @@
         "title": "Antal användare",
         "description": "Hur många användare vill du definiera från början?",
         "data": {
-          "approver_count": "Antal användare"
+          "user_count": "Antal användare"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Manuella justeringspunkter",
+      "description": "Justera poäng manuellt för en användare med hjälp av ett teckenförtydligat heltal och en obligatorisk orsak registrerad i huvudboken.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationspost-ID (valfritt)",
+          "description": "Använd detta om du har mer än en ChoreOps-inställning. Den riktar sig mot en specifik inställning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfigurationspostnamn (valfritt)",
+          "description": "Använd detta om du har fler än en ChoreOps-konfiguration och de har unika namn. Om namnen upprepas, använd Config Entry ID.",
+          "example": "Familjesysslor"
+        },
+        "approver_name": {
+          "name": "Godkännarens namn (valfritt)",
+          "description": "Valfritt visningsnamn för aktören som utför den manuella justeringen.",
+          "example": "Pappa"
+        },
+        "user_id": {
+          "name": "Användar-ID (valfritt)",
+          "description": "Intern UUID för målanvändaren. Ange användar-id eller användarnamn.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Användarnamn (valfritt)",
+          "description": "Visningsnamn för målanvändaren. Ange användar-id eller användarnamn.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Belopp",
+          "description": "Beloppet för teckenförtydliga heltal som ska justeras (till exempel 10 eller -10; 0 är inte tillåtet).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Resonera",
+          "description": "Obligatorisk orsak registrerad i transaktionsreskontrapostens namn.",
+          "example": "Hjälpte syskon med läxorna"
+        }
+      }
+    },
     "create_reward": {
       "name": "Skapa belöning",
       "description": "Skapa en ny belöning programmatiskt.",
@@ -3087,6 +3128,43 @@
               "manual": "Endast manuell återställning"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Godkännande Återställ väntande anspråk Åtgärd",
+            "state": {
+              "hold_pending": "Status för spärrkrav (väntar på godkännande/avslag)",
+              "clear_pending": "Rensa väntande anspråk",
+              "auto_approve_pending": "Godkänn väntande anspråk automatiskt"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Försenad hanteringstyp",
+            "state": {
+              "never_overdue": "Aldrig försenad",
+              "at_due_date": "Försenad tills klar",
+              "at_due_date_clear_at_approval_reset": "Försenad till godkännande Återställ",
+              "at_due_date_clear_immediate_on_late": "Försenad tills klar (Avklara sena godkännanden omedelbart)",
+              "at_due_date_clear_and_mark_missed": "Försenad till godkännande Återställ (Markera som missad)",
+              "at_due_date_mark_missed_and_lock": "Lås tills godkännande Återställ (Förhindra anspråk, markera missad)",
+              "at_due_date_allow_steal": "Tillåt stjälning tills godkännande återställs (endast rotation)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Lås anspråk tills förfallofönstret öppnas",
+            "state": {
+              "true": "Ja",
+              "false": "Inga"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Förskjutning för förfallet fönster"
+          },
+          "auto_approve": {
+            "name": "Godkänna anspråk automatiskt",
+            "state": {
+              "true": "Ja",
+              "false": "Inga"
+            }
+          },
           "recurring_frequency": {
             "name": "Återkommande frekvens",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Tid till förfallodatum"
           },
-          "lock_reason": {
-            "name": "Låsorsak",
+          "claim_mode": {
+            "name": "Anspråksläge",
             "state": {
-              "waiting": "Väntar på förfallofönstret",
-              "not_my_turn": "Inte din tur",
-              "missed": "Missade"
+              "claimable": "Anspråksbar",
+              "steal_available": "Stjäl tillgängligt",
+              "blocked_completed_by_other": "Färdigställd av andra",
+              "blocked_already_approved": "Redan godkänd",
+              "blocked_pending_claim": "Väntande anspråk",
+              "blocked_waiting_window": "Väntar på förfallofönstret",
+              "blocked_not_my_turn": "Inte din tur",
+              "blocked_missed_locked": "Missad och låst"
             }
           },
           "turn_user_name": {

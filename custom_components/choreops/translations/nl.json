@@ -67,7 +67,7 @@
         "title": "Aantal gebruikers",
         "description": "Hoeveel gebruikers wilt u in eerste instantie definiëren?",
         "data": {
-          "approver_count": "Aantal gebruikers"
+          "user_count": "Aantal gebruikers"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Handmatig afstelpunten",
+      "description": "Pas de punten handmatig aan voor een gebruiker met behulp van een getekend geheel getal en een vereiste reden die in het grootboek is vastgelegd.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Configuratie-item-ID (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt. Het is gericht op één specifieke configuratie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Configuratie-itemnaam (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt en deze elk een unieke naam hebben. Als de namen zich herhalen, gebruik dan de configuratie-item-ID.",
+          "example": "Huishoudelijke klusjes"
+        },
+        "approver_name": {
+          "name": "Naam van de goedkeurder (optioneel)",
+          "description": "Optionele weergavenaam van de persoon die de handmatige aanpassing uitvoert.",
+          "example": "Pa"
+        },
+        "user_id": {
+          "name": "Gebruikers-ID (optioneel)",
+          "description": "Interne UUID van de doelgebruiker. Geef user_id of user_name op.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Gebruikersnaam (optioneel)",
+          "description": "Toon de naam van de doelgebruiker. Geef de gebruikers-ID of gebruikersnaam op.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Hoeveelheid",
+          "description": "Het aantal punten dat moet worden aangepast, moet een getekend geheel getal zijn (bijvoorbeeld 10 of -10; 0 is niet toegestaan).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Reden",
+          "description": "De vereiste reden moet worden vastgelegd in de naam van het transactieboekingsitem.",
+          "example": "Heeft mijn broer of zus geholpen met huiswerk."
+        }
+      }
+    },
     "create_reward": {
       "name": "Creëer een beloning",
       "description": "Maak programmatisch een nieuwe beloning aan.",
@@ -3087,6 +3128,43 @@
               "manual": "Alleen handmatige reset"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Goedkeuring resetten Lopende claimactie",
+            "state": {
+              "hold_pending": "Status van de claim in behandeling (Wachten op goedkeuring/afwijzing)",
+              "clear_pending": "Openstaande vorderingen wissen",
+              "auto_approve_pending": "Lopende claims automatisch goedkeuren"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Type afhandeling van achterstallige betalingen",
+            "state": {
+              "never_overdue": "Nooit te laat",
+              "at_due_date": "Te laat tot voltooiing",
+              "at_due_date_clear_at_approval_reset": "Te laat tot goedkeuring opnieuw ingesteld",
+              "at_due_date_clear_immediate_on_late": "Te laat tot voltooiing (Verwerk te late goedkeuringen onmiddellijk)",
+              "at_due_date_clear_and_mark_missed": "Te laat tot goedkeuring opnieuw wordt ingesteld (Markeren als gemist)",
+              "at_due_date_mark_missed_and_lock": "Vergrendelen tot goedkeuring opnieuw instellen (Voorkom claims, markeer gemist)",
+              "at_due_date_allow_steal": "Stelen toestaan tot goedkeuring opnieuw wordt ingesteld (alleen rotatie)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Is de claim geblokkeerd tot de vervaldatum",
+            "state": {
+              "true": "Ja",
+              "false": "Nee"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Vervaldatum vensterverschuiving"
+          },
+          "auto_approve": {
+            "name": "Claims automatisch goedkeuren",
+            "state": {
+              "true": "Ja",
+              "false": "Nee"
+            }
+          },
           "recurring_frequency": {
             "name": "Terugkerende frequentie",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Tijd tot vervaldatum"
           },
-          "lock_reason": {
-            "name": "Vergrendelingsreden",
+          "claim_mode": {
+            "name": "Claimmodus",
             "state": {
-              "waiting": "Wachten op de deadline",
-              "not_my_turn": "Nu ben jij aan de beurt.",
-              "missed": "Gemist"
+              "claimable": "Aanvraagbaar",
+              "steal_available": "Stelen mogelijk",
+              "blocked_completed_by_other": "Voltooid door anderen",
+              "blocked_already_approved": "Reeds goedgekeurd",
+              "blocked_pending_claim": "Claim in behandeling",
+              "blocked_waiting_window": "Wachten op de deadline",
+              "blocked_not_my_turn": "Nu ben jij aan de beurt.",
+              "blocked_missed_locked": "Gemist en vergrendeld"
             }
           },
           "turn_user_name": {

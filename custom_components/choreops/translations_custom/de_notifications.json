@@ -14,6 +14,10 @@
     "title": "⏰ Überfällige Aufgabe",
     "message": "{chore_name} ist überfällig! Schließe es jetzt ab, um {points} Punkte zu erhalten."
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Aufgabenalarm",
+    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe es zuerst ab, um {points} Punkte zu erhalten."
+  },
   "chore_missed_assignee": {
     "title": "😔 Aufgabe abgelaufen",
     "message": "{chore_name} ist ohne Abschluss abgelaufen."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Aufgabe übernommen",
-    "message": "{assignee_name} beanspruchte {chore_name} und arbeitet jetzt daran."
+    "message": "{assignee_name} beanspruchte {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Genehmigung erforderlich",
