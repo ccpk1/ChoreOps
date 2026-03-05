@@ -67,7 +67,7 @@
         "title": "Número de usuarios",
         "description": "¿Cuántos usuarios quieres definir inicialmente?",
         "data": {
-          "approver_count": "Número de usuarios"
+          "user_count": "Número de usuarios"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Puntos de ajuste manual",
+      "description": "Ajuste los puntos manualmente para un usuario utilizando una cantidad entera con signo y un motivo requerido registrado en el libro mayor.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de entrada de configuración (opcional)",
+          "description": "Úselo si tiene más de una configuración de ChoreOps. Se centra en una configuración específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nombre de la entrada de configuración (opcional)",
+          "description": "Use esto si tiene varias configuraciones de ChoreOps y cada una tiene un nombre único. Si los nombres se repiten, use el ID de entrada de configuración.",
+          "example": "Tareas familiares"
+        },
+        "approver_name": {
+          "name": "Nombre del aprobador (opcional)",
+          "description": "Nombre para mostrar opcional del actor que realiza el ajuste manual.",
+          "example": "Papá"
+        },
+        "user_id": {
+          "name": "ID de usuario (opcional)",
+          "description": "UUID interno del usuario objetivo. Proporcione el ID de usuario o el nombre de usuario.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Nombre de usuario (opcional)",
+          "description": "Nombre para mostrar del usuario objetivo. Proporcione user_id o user_name.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Cantidad",
+          "description": "Cantidad de puntos de números enteros con signo a ajustar (por ejemplo, 10 o -10; 0 no está permitido).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Razón",
+          "description": "Motivo obligatorio registrado en el nombre del elemento del libro mayor de transacciones.",
+          "example": "Ayudó a su hermano con la tarea."
+        }
+      }
+    },
     "create_reward": {
       "name": "Crear recompensa",
       "description": "Cree una nueva recompensa mediante programación.",
@@ -3087,6 +3128,43 @@
               "manual": "Solo reinicio manual"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Acción de reclamación pendiente de restablecimiento de aprobación",
+            "state": {
+              "hold_pending": "Mantener el estado de la reclamación (esperar aprobación/rechazo)",
+              "clear_pending": "Reclamaciones pendientes claras",
+              "auto_approve_pending": "Aprobación automática de reclamaciones pendientes"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Tipo de manejo de vencimiento",
+            "state": {
+              "never_overdue": "Nunca vencido",
+              "at_due_date": "Vencido hasta completar",
+              "at_due_date_clear_at_approval_reset": "Vencido hasta restablecimiento de aprobación",
+              "at_due_date_clear_immediate_on_late": "Atrasado hasta su finalización (Liquidar aprobaciones tardías de inmediato)",
+              "at_due_date_clear_and_mark_missed": "Vencido hasta restablecimiento de aprobación (marcar como perdido)",
+              "at_due_date_mark_missed_and_lock": "Bloquear hasta restablecer la aprobación (evitar reclamos, marcar como no aprobado)",
+              "at_due_date_allow_steal": "Permitir robo hasta reinicio de aprobación (solo rotación)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Bloquear reclamo hasta que se abra la ventana de vencimiento",
+            "state": {
+              "true": "Sí",
+              "false": "No"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Desplazamiento de ventana debido"
+          },
+          "auto_approve": {
+            "name": "Aprobación automática de reclamaciones",
+            "state": {
+              "true": "Sí",
+              "false": "No"
+            }
+          },
           "recurring_frequency": {
             "name": "Frecuencia Recurrente",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Tiempo hasta el vencimiento"
           },
-          "lock_reason": {
-            "name": "Motivo del bloqueo",
+          "claim_mode": {
+            "name": "Modo de reclamación",
             "state": {
-              "waiting": "Esperando la ventana de vencimiento",
-              "not_my_turn": "No es tu turno",
-              "missed": "Omitido"
+              "claimable": "Reclamable",
+              "steal_available": "Robo disponible",
+              "blocked_completed_by_other": "Completado por otros",
+              "blocked_already_approved": "Ya aprobado",
+              "blocked_pending_claim": "Reclamación pendiente",
+              "blocked_waiting_window": "Esperando la ventana de vencimiento",
+              "blocked_not_my_turn": "No es tu turno",
+              "blocked_missed_locked": "Perdido y bloqueado"
             }
           },
           "turn_user_name": {

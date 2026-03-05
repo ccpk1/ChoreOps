@@ -14,6 +14,10 @@
     "title": "⏰ Tasca pendent",
     "message": "{chore_name} està pendent! Completa-ho ara per guanyar {points} punts"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Alerta de tasques domèstiques",
+    "message": "{chore_name} està endarrerit i disponible per robar! Completa-ho primer per guanyar {points} punts"
+  },
   "chore_missed_assignee": {
     "title": "😔 Tasca caducada",
     "message": "{chore_name} ha caducat sense completar-se."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Tasca reclamada",
-    "message": "{assignee_name} ha reclamat {chore_name} i hi està treballant ara mateix"
+    "message": "{assignee_name} reclamat {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Cal aprovació",

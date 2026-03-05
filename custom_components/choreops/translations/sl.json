@@ -67,7 +67,7 @@
         "title": "Število uporabnikov",
         "description": "Koliko uporabnikov želite na začetku definirati?",
         "data": {
-          "approver_count": "Število uporabnikov"
+          "user_count": "Število uporabnikov"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Ročno prilagajanje točk",
+      "description": "Ročno prilagodite točke za uporabnika z uporabo predznačenega celega števila in zahtevanega razloga, zabeleženega v knjigi.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps. Cilja na eno specifično nastavitev.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Ime vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps in ima vsaka edinstveno ime. Če se imena ponavljajo, uporabite ID vnosa konfiguracije.",
+          "example": "Družinska opravila"
+        },
+        "approver_name": {
+          "name": "Ime odobritelja (neobvezno)",
+          "description": "Neobvezno prikazno ime akterja, ki izvaja ročno prilagoditev.",
+          "example": "Oče"
+        },
+        "user_id": {
+          "name": "ID uporabnika (neobvezno)",
+          "description": "Notranji UUID ciljnega uporabnika. Navedite user_id ali user_name.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Uporabniško ime (neobvezno)",
+          "description": "Prikazno ime ciljnega uporabnika. Navedite user_id ali user_name.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Znesek",
+          "description": "Znesek predznačenih celih števil, ki ga je treba prilagoditi (na primer 10 ali -10; 0 ni dovoljeno).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Razlog",
+          "description": "Zahtevan razlog, zabeležen v imenu postavke v knjigi transakcij.",
+          "example": "Pomagal bratu/sestri pri domačih nalogah"
+        }
+      }
+    },
     "create_reward": {
       "name": "Ustvari nagrado",
       "description": "Programsko ustvarite novo nagrado.",
@@ -3087,6 +3128,43 @@
               "manual": "Samo ročna ponastavitev"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Ponastavitev odobritve Čakajoče dejanje zahtevka",
+            "state": {
+              "hold_pending": "Status zadržanega zahtevka (čakam na odobritev/zavrnitev)",
+              "clear_pending": "Počisti čakajoče zahtevke",
+              "auto_approve_pending": "Samodejno odobri zahtevke v teku"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Vrsta ravnanja z zamudo",
+            "state": {
+              "never_overdue": "Nikoli zamudno",
+              "at_due_date": "Zamuja do dokončanja",
+              "at_due_date_clear_at_approval_reset": "Zamuda do odobritve Ponastavitev",
+              "at_due_date_clear_immediate_on_late": "Zamuda do dokončanja (takojšnje potrditev)",
+              "at_due_date_clear_and_mark_missed": "Zamujeno do ponastavitve odobritve (označi kot zamujeno)",
+              "at_due_date_mark_missed_and_lock": "Zakleni do odobritve Ponastavi (Prepreči zahtevke, označi kot zamujene)",
+              "at_due_date_allow_steal": "Dovoli krajo do ponastavitve odobritve (samo rotacija)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Zakleni do odprtja roka",
+            "state": {
+              "true": "Da",
+              "false": "Ne"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Odmik zapadlega okna"
+          },
+          "auto_approve": {
+            "name": "Samodejno odobritev zahtevkov",
+            "state": {
+              "true": "Da",
+              "false": "Ne"
+            }
+          },
           "recurring_frequency": {
             "name": "Ponavljajoča se pogostost",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Čas do zapadlosti"
           },
-          "lock_reason": {
-            "name": "Razlog zaklepanja",
+          "claim_mode": {
+            "name": "Način zahtevka",
             "state": {
-              "waiting": "Čakanje na zapadli okvir",
-              "not_my_turn": "Nisi na vrsti",
-              "missed": "Zamujeno"
+              "claimable": "Zahtevljivo",
+              "steal_available": "Na voljo je krajo",
+              "blocked_completed_by_other": "Dokončal drug",
+              "blocked_already_approved": "Že odobreno",
+              "blocked_pending_claim": "Zahtevek v teku",
+              "blocked_waiting_window": "Čakanje na zapadli okvir",
+              "blocked_not_my_turn": "Nisi na vrsti",
+              "blocked_missed_locked": "Zgrešeno in zaklenjeno"
             }
           },
           "turn_user_name": {

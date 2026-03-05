@@ -14,6 +14,10 @@
     "title": "⏰ Forfalt husarbeid",
     "message": "{chore_name} er for sent! Fullfør nå for å tjene {points} poeng"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Varsel om husarbeid",
+    "message": "{chore_name} er for sent ute og kan stjeles! Fullfør først for å tjene {points} poeng"
+  },
   "chore_missed_assignee": {
     "title": "😔 Gjøremål utløpt",
     "message": "{chore_name} utløp uten fullføring."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Gjøremål gjort krav på",
-    "message": "{assignee_name} har gjort krav på {chore_name} og jobber med det nå"
+    "message": "{assignee_name} gjorde krav på {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Godkjenning kreves",

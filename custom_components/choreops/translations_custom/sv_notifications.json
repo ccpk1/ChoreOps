@@ -14,6 +14,10 @@
     "title": "⏰ Försenad syssla",
     "message": "{chore_name} är försenad! Slutför den nu för att tjäna {points} poäng"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Sysslovarning",
+    "message": "{chore_name} är försenad och tillgänglig för stjälning! Slutför den först för att tjäna {points} poäng"
+  },
   "chore_missed_assignee": {
     "title": "😔 Syssla har löpt ut",
     "message": "{chore_name} har upphört att fungera utan att det har slutförts."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Syssla begärd",
-    "message": "{assignee_name} har gjort anspråk på {chore_name} och arbetar på det nu"
+    "message": "{assignee_name} gjorde anspråk på {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Godkännande krävs",

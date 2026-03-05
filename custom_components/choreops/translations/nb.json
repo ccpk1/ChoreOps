@@ -67,7 +67,7 @@
         "title": "Antall brukere",
         "description": "Hvor mange brukere vil du definere i utgangspunktet?",
         "data": {
-          "approver_count": "Antall brukere"
+          "user_count": "Antall brukere"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Manuelle justeringspunkter",
+      "description": "Juster poeng manuelt for en bruker ved å bruke et heltall med fortegn og en obligatorisk årsak registrert i regnskapsboken.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurasjonsoppførings-ID (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett. Det er rettet mot ett spesifikt oppsett.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurasjonsoppføring (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett, og hvert av dem har unike navn. Hvis navnene gjentas, bruk Config Entry ID.",
+          "example": "Familiearbeid"
+        },
+        "approver_name": {
+          "name": "Godkjennernavn (valgfritt)",
+          "description": "Valgfritt visningsnavn på aktøren som utfører den manuelle justeringen.",
+          "example": "Pappa"
+        },
+        "user_id": {
+          "name": "Bruker-ID (valgfritt)",
+          "description": "Intern UUID for målbrukeren. Oppgi bruker-ID eller brukernavn.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Brukernavn (valgfritt)",
+          "description": "Visningsnavnet til målbrukeren. Oppgi bruker-ID eller brukernavn.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Beløp",
+          "description": "Punktbeløp med fortegn som skal justeres (for eksempel 10 eller -10; 0 er ikke tillatt).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Grunn",
+          "description": "Obligatorisk årsak registrert i transaksjonspostnavnet.",
+          "example": "Hjalp søsken med lekser"
+        }
+      }
+    },
     "create_reward": {
       "name": "Opprett belønning",
       "description": "Opprett en ny belønning programmatisk.",
@@ -3087,6 +3128,43 @@
               "manual": "Kun manuell tilbakestilling"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Godkjenning Tilbakestill ventende krav Handling",
+            "state": {
+              "hold_pending": "Status for tilbakeholdne krav (venter på godkjenning/avslag)",
+              "clear_pending": "Fjern ventende krav",
+              "auto_approve_pending": "Godkjenn ventende krav automatisk"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Forsinket håndteringstype",
+            "state": {
+              "never_overdue": "Aldri for sent",
+              "at_due_date": "Forsinket til fullført",
+              "at_due_date_clear_at_approval_reset": "Forfalt til godkjenning Tilbakestill",
+              "at_due_date_clear_immediate_on_late": "Forsinket til fullført (fjern forsinkede godkjenninger umiddelbart)",
+              "at_due_date_clear_and_mark_missed": "Forfalt til godkjenning Tilbakestill (Marker som savnet)",
+              "at_due_date_mark_missed_and_lock": "Lås til godkjenning Tilbakestill (Forhindre krav, merk som bommet)",
+              "at_due_date_allow_steal": "Tillat stjeling til godkjenning tilbakestilles (kun rotasjon)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Låse krav til forfallsfristen åpnes",
+            "state": {
+              "true": "Ja",
+              "false": "Ingen"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Forventet vindusforskyvning"
+          },
+          "auto_approve": {
+            "name": "Automatisk godkjenning av krav",
+            "state": {
+              "true": "Ja",
+              "false": "Ingen"
+            }
+          },
           "recurring_frequency": {
             "name": "Gjentakende frekvens",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Tid til forfall"
           },
-          "lock_reason": {
-            "name": "Årsak til låsing",
+          "claim_mode": {
+            "name": "Kravmodus",
             "state": {
-              "waiting": "Venter på forfallsvinduet",
-              "not_my_turn": "Ikke din tur",
-              "missed": "Gå glipp av"
+              "claimable": "Kan kreves",
+              "steal_available": "Stjele tilgjengelig",
+              "blocked_completed_by_other": "Fullført av andre",
+              "blocked_already_approved": "Allerede godkjent",
+              "blocked_pending_claim": "Ventende krav",
+              "blocked_waiting_window": "Venter på forfallsvinduet",
+              "blocked_not_my_turn": "Ikke din tur",
+              "blocked_missed_locked": "Savnet og låst"
             }
           },
           "turn_user_name": {

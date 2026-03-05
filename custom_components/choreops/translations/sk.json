@@ -67,7 +67,7 @@
         "title": "Počet používateľov",
         "description": "Koľko používateľov chcete na začiatku definovať?",
         "data": {
-          "approver_count": "Počet používateľov"
+          "user_count": "Počet používateľov"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Manuálne nastavenie bodov",
+      "description": "Manuálne upravte body pre používateľa pomocou sumy so znamienkom a požadovaného dôvodu zaznamenaného v účtovnej knihe.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viac ako jedno nastavenie ChoreOps. Zameriava sa na jedno konkrétne nastavenie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Názov konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viacero nastavení ChoreOps a každé z nich má jedinečný názov. Ak sa názvy opakujú, použite ID položky konfigurácie.",
+          "example": "Rodinné práce"
+        },
+        "approver_name": {
+          "name": "Meno schvaľovateľa (voliteľné)",
+          "description": "Voliteľné zobrazované meno aktéra vykonávajúceho manuálnu úpravu.",
+          "example": "Otec"
+        },
+        "user_id": {
+          "name": "ID používateľa (voliteľné)",
+          "description": "Interné UUID cieľového používateľa. Zadajte user_id alebo user_name.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Používateľské meno (voliteľné)",
+          "description": "Zobrazované meno cieľového používateľa. Zadajte user_id alebo user_name.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Suma",
+          "description": "Množstvo bodov so znamienkom, ktoré sa má upraviť (napríklad 10 alebo -10; 0 nie je povolené).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Dôvod",
+          "description": "Požadovaný dôvod zaznamenaný v názve položky účtovnej knihy transakcií.",
+          "example": "Pomohol súrodencovi s domácimi úlohami"
+        }
+      }
+    },
     "create_reward": {
       "name": "Vytvoriť odmenu",
       "description": "Vytvorte novú odmenu programovo.",
@@ -3087,6 +3128,43 @@
               "manual": "Iba manuálny reset"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Schválenie Obnoviť Čakajúca akcia nároku",
+            "state": {
+              "hold_pending": "Stav pozastavenia nároku (čaká sa na schválenie/zamietnutie)",
+              "clear_pending": "Vymazať čakajúce nároky",
+              "auto_approve_pending": "Automatické schválenie čakajúcich nárokov"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Typ spracovania po termíne",
+            "state": {
+              "never_overdue": "Nikdy po termíne",
+              "at_due_date": "Po termíne do dokončenia",
+              "at_due_date_clear_at_approval_reset": "Po termíne do schválenia Reset",
+              "at_due_date_clear_immediate_on_late": "Po termíne do dokončenia (okamžite vymazať oneskorené schválenia)",
+              "at_due_date_clear_and_mark_missed": "Po termíne do schválenia resetovať (Označiť ako zmeškané)",
+              "at_due_date_mark_missed_and_lock": "Zamknúť do schválenia Obnoviť (Zabrániť nárokom, označiť ako zmeškané)",
+              "at_due_date_allow_steal": "Povoliť kradnutie do schválenia resetovania (iba rotácia)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Zablokovať nárok do otvorenia lehoty na podanie",
+            "state": {
+              "true": "Áno",
+              "false": "Nie"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Posun okna splatnosti"
+          },
+          "auto_approve": {
+            "name": "Automatické schvaľovanie reklamácií",
+            "state": {
+              "true": "Áno",
+              "false": "Nie"
+            }
+          },
           "recurring_frequency": {
             "name": "Opakujúca sa frekvencia",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Čas do splatnosti"
           },
-          "lock_reason": {
-            "name": "Dôvod uzamknutia",
+          "claim_mode": {
+            "name": "Režim nárokovania",
             "state": {
-              "waiting": "Čakanie na časový úsek",
-              "not_my_turn": "Nie si na rade",
-              "missed": "Zmeškané"
+              "claimable": "Nárokovateľné",
+              "steal_available": "Kradnúť k dispozícii",
+              "blocked_completed_by_other": "Dokončené iným",
+              "blocked_already_approved": "Už schválené",
+              "blocked_pending_claim": "Čaká na vybavenie nároku",
+              "blocked_waiting_window": "Čakanie na časový úsek",
+              "blocked_not_my_turn": "Nie si na rade",
+              "blocked_missed_locked": "Nepremeškané a uzamknuté"
             }
           },
           "turn_user_name": {

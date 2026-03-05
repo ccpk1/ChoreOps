@@ -67,7 +67,7 @@
         "title": "Nombre d'utilisateurs",
         "description": "Combien d'utilisateurs souhaitez-vous définir initialement ?",
         "data": {
-          "approver_count": "Nombre d'utilisateurs"
+          "user_count": "Nombre d'utilisateurs"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Points de réglage manuel",
+      "description": "Ajuster manuellement les points d'un utilisateur à l'aide d'un montant entier signé et d'une raison requise enregistrée dans le registre.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps. Elle cible une configuration spécifique.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps et que chacune possède un nom unique. Si des noms se répètent, utilisez l'ID d'entrée de configuration.",
+          "example": "Tâches familiales"
+        },
+        "approver_name": {
+          "name": "Nom de l'approbateur (facultatif)",
+          "description": "Nom d'affichage facultatif de l'acteur effectuant le réglage manuel.",
+          "example": "Papa"
+        },
+        "user_id": {
+          "name": "Identifiant utilisateur (facultatif)",
+          "description": "UUID interne de l'utilisateur cible. Veuillez indiquer user_id ou user_name.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Nom d'utilisateur (facultatif)",
+          "description": "Nom d'affichage de l'utilisateur cible. Indiquez l'identifiant ou le nom d'utilisateur.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Montant",
+          "description": "Nombre entier signé de points à ajuster (par exemple 10 ou -10 ; 0 n'est pas autorisé).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Raison",
+          "description": "Motif requis enregistré dans le nom de l'élément du grand livre des transactions.",
+          "example": "J'ai aidé mon frère/ma sœur à faire ses devoirs"
+        }
+      }
+    },
     "create_reward": {
       "name": "Créer une récompense",
       "description": "Créer une nouvelle récompense par programmation.",
@@ -3087,6 +3128,43 @@
               "manual": "Réinitialisation manuelle uniquement"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Réinitialisation de l'approbation en attente d'action de réclamation",
+            "state": {
+              "hold_pending": "Statut de la demande en attente (Approbation/Rejet)",
+              "clear_pending": "Effacer les réclamations en cours",
+              "auto_approve_pending": "Approbation automatique des demandes en attente"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Type de traitement en retard",
+            "state": {
+              "never_overdue": "Jamais en retard",
+              "at_due_date": "En retard jusqu'à achèvement",
+              "at_due_date_clear_at_approval_reset": "En retard jusqu'à approbation Réinitialisation",
+              "at_due_date_clear_immediate_on_late": "En retard jusqu'à achèvement (Traitez immédiatement les approbations tardives)",
+              "at_due_date_clear_and_mark_missed": "En retard jusqu'à approbation - Réinitialisation (Marquer comme manqué)",
+              "at_due_date_mark_missed_and_lock": "Verrouiller jusqu'à approbation Réinitialiser (Empêcher les réclamations, marquer comme manqué)",
+              "at_due_date_allow_steal": "Autoriser le vol jusqu'à approbation Réinitialisation (Rotation uniquement)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Verrouiller la réclamation jusqu'à l'ouverture de la période d'échéance",
+            "state": {
+              "true": "Oui",
+              "false": "Non"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Décalage de fenêtre dû"
+          },
+          "auto_approve": {
+            "name": "Approbation automatique des demandes de remboursement",
+            "state": {
+              "true": "Oui",
+              "false": "Non"
+            }
+          },
           "recurring_frequency": {
             "name": "Fréquence récurrente",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Délai restant avant l'échéance"
           },
-          "lock_reason": {
-            "name": "Raison du verrouillage",
+          "claim_mode": {
+            "name": "Mode de réclamation",
             "state": {
-              "waiting": "En attente de la fenêtre d'échéance",
-              "not_my_turn": "À votre tour",
-              "missed": "Manqué"
+              "claimable": "Réclamation",
+              "steal_available": "Offre spéciale disponible",
+              "blocked_completed_by_other": "Complété par d'autres",
+              "blocked_already_approved": "Déjà approuvé",
+              "blocked_pending_claim": "Réclamation en cours",
+              "blocked_waiting_window": "En attente de la fenêtre d'échéance",
+              "blocked_not_my_turn": "À votre tour",
+              "blocked_missed_locked": "Manqué et verrouillé"
             }
           },
           "turn_user_name": {

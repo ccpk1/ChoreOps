@@ -14,6 +14,10 @@
     "title": "⏰ Opravilo je zamujeno",
     "message": "{chore_name} je že v zamudi! Izpolnite ga zdaj in si prislužite {points} točk"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Opozorilo o opravilih",
+    "message": "{chore_name} je zapadla in jo lahko ukradete! Najprej jo dokončajte, da zaslužite {points} točk"
+  },
   "chore_missed_assignee": {
     "title": "😔 Opravilo je poteklo",
     "message": "{chore_name} je potekel brez dokončanja."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Opravilo prevzeto",
-    "message": "{assignee_name} je zahteval {chore_name} in zdaj dela na tem"
+    "message": "{assignee_name} zahteval {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Potrebna je odobritev",

@@ -14,6 +14,10 @@
     "title": "⏰ Klus die al lang had moeten worden uitgevoerd",
     "message": "{chore_name} is te laat! Voltooi het nu om {points} punten te verdienen!"
   },
+  "chore_overdue_steal_available": {
+    "title": "⚡ Huishoudelijke taken-melding",
+    "message": "{chore_name} is te laat en kan gestolen worden! Voltooi het eerst om {points} punten te verdienen!"
+  },
   "chore_missed_assignee": {
     "title": "😔 Taak verlopen",
     "message": "{chore_name} is verlopen zonder te worden voltooid."
@@ -63,7 +67,7 @@
   "_comment_approver_footer": "═════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Taak opgeëist",
-    "message": "{assignee_name} claimde {chore_name} en werkt er nu aan."
+    "message": "{assignee_name} beweerde {chore_name}"
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Goedkeuring vereist",

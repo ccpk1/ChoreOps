@@ -67,7 +67,7 @@
         "title": "Anzahl der Nutzer",
         "description": "Wie viele Benutzer möchten Sie anfänglich definieren?",
         "data": {
-          "approver_count": "Anzahl der Nutzer"
+          "user_count": "Anzahl der Nutzer"
         }
       },
       "users": {
@@ -2372,6 +2372,47 @@
         }
       }
     },
+    "manual_adjust_points": {
+      "name": "Manuelle Einstellpunkte",
+      "description": "Punkte für einen Benutzer manuell anpassen, indem ein vorzeichenbehafteter ganzzahliger Betrag und ein erforderlicher Grund im Hauptbuch erfasst werden.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationseintrags-ID (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups haben. Sie ist auf ein bestimmtes Setup ausgerichtet.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups mit jeweils eindeutigen Namen haben. Bei sich wiederholenden Namen verwenden Sie die Konfigurationseintrags-ID.",
+          "example": "Familienaufgaben"
+        },
+        "approver_name": {
+          "name": "Name des Genehmigers (optional)",
+          "description": "Optionaler Anzeigename des Akteurs, der die manuelle Anpassung vornimmt.",
+          "example": "Papa"
+        },
+        "user_id": {
+          "name": "Benutzer-ID (optional)",
+          "description": "Interne UUID des Zielbenutzers. Geben Sie user_id oder user_name an.",
+          "example": "018f1c2a-1234-4f8a-9b6d-123456789abc"
+        },
+        "user_name": {
+          "name": "Benutzername (optional)",
+          "description": "Anzeigename des Zielbenutzers. Geben Sie user_id oder user_name an.",
+          "example": "Zoë"
+        },
+        "amount": {
+          "name": "Menge",
+          "description": "Die anzupassenden Punkte müssen als ganze Zahl mit Vorzeichen angegeben werden (z. B. 10 oder -10; 0 ist nicht zulässig).",
+          "example": "-10"
+        },
+        "reason": {
+          "name": "Grund",
+          "description": "Der erforderliche Grund wird im Namen des Transaktionsbuchpostens vermerkt.",
+          "example": "Habe meinem Geschwisterkind bei den Hausaufgaben geholfen"
+        }
+      }
+    },
     "create_reward": {
       "name": "Belohnung erstellen",
       "description": "Erstellen Sie programmatisch eine neue Belohnung.",
@@ -3087,6 +3128,43 @@
               "manual": "Nur manuelle Rückstellung"
             }
           },
+          "approval_reset_pending_claim_action": {
+            "name": "Genehmigung zurückgesetzt – Antragsbearbeitung ausstehend",
+            "state": {
+              "hold_pending": "Antragsstatus: Ausstehend (Genehmigung/Ablehnung ausstehend)",
+              "clear_pending": "Offene Ansprüche löschen",
+              "auto_approve_pending": "Automatische Genehmigung ausstehender Anträge"
+            }
+          },
+          "overdue_handling_type": {
+            "name": "Art der Bearbeitung überfälliger Fälle",
+            "state": {
+              "never_overdue": "Nie überfällig",
+              "at_due_date": "Überfällig bis zur Fertigstellung",
+              "at_due_date_clear_at_approval_reset": "Überfällig bis zur Genehmigung – Zurücksetzen",
+              "at_due_date_clear_immediate_on_late": "Überfällig bis zur Fertigstellung (Verspätete Genehmigungen sofort bearbeiten)",
+              "at_due_date_clear_and_mark_missed": "Überfällig bis zur Genehmigung (Als verpasst markieren)",
+              "at_due_date_mark_missed_and_lock": "Sperre bis zur Genehmigung zurücksetzen (Ansprüche verhindern, als verpasst markieren)",
+              "at_due_date_allow_steal": "Stehlen erlauben bis zur Genehmigung (nur Rotation)"
+            }
+          },
+          "chore_claim_lock_until_window": {
+            "name": "Anspruch bis zum Fälligkeitstermin sperren",
+            "state": {
+              "true": "Ja",
+              "false": "Nein"
+            }
+          },
+          "chore_due_window_offset": {
+            "name": "Aufgrund des Fensterversatzes"
+          },
+          "auto_approve": {
+            "name": "Automatische Genehmigung von Schadensfällen",
+            "state": {
+              "true": "Ja",
+              "false": "Nein"
+            }
+          },
           "recurring_frequency": {
             "name": "Wiederkehrende Häufigkeit",
             "state": {
@@ -3236,12 +3314,17 @@
           "time_until_overdue": {
             "name": "Zeit bis zur Überfälligkeit"
           },
-          "lock_reason": {
-            "name": "Sperrgrund",
+          "claim_mode": {
+            "name": "Anspruchsmodus",
             "state": {
-              "waiting": "Warten auf das Fälligkeitsfenster",
-              "not_my_turn": "Du bist nicht dran.",
-              "missed": "Verpasst"
+              "claimable": "Anspruchsfähig",
+              "steal_available": "Schnäppchenangebot",
+              "blocked_completed_by_other": "Von anderen ausgefüllt",
+              "blocked_already_approved": "Bereits genehmigt",
+              "blocked_pending_claim": "Anhängiger Anspruch",
+              "blocked_waiting_window": "Warten auf das Fälligkeitsfenster",
+              "blocked_not_my_turn": "Du bist nicht dran.",
+              "blocked_missed_locked": "Verpasst und gesperrt"
             }
           },
           "turn_user_name": {
