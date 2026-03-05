@@ -6,7 +6,7 @@
 
 - Lightweight by design: focuses on welcome + chores without adding extra dashboard complexity.
 - Portable: the chores card can be copied into other dashboard views as a drop-in block.
-- Portability note: this template is intentionally kept inline for easy copy/paste portability, but inline rendering can hit template-size limits at scale (commonly around ~25 chores, depending on data and labels).
+- Portability note: this template is intentionally kept inline for easy copy/paste portability, but inline rendering can hit template-size limits at scale (commonly around ~25 chores, depending on data and labels). See [Known issues / limitations](#known-issues--limitations).
 - Friendly for drag-and-drop workflows: keep defaults for a simple setup, then tune behavior with `pref_*` values.
 - Supports practical organization controls (time buckets, labels, sorting, and state filtering).
 
@@ -74,6 +74,13 @@
 ## Practical tuning examples
 
 - Keep it minimal: set only `pref_column_count`, leave everything else as default.
-- Hide done chores: set `pref_exclude_completed: true`.
+- Hide done chores: add `completed` to `pref_exclude_states` (for example `['completed']`).
 - Build a label board: set `pref_use_label_grouping: true` and define `pref_label_display_order`.
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.
+
+## Known issues / limitations
+
+- Inline template rendering has a practical size ceiling. With richer chore metadata and labels, this layout can hit Home Assistant template output limits at around ~25 chores.
+- Typical runtime error when this limit is exceeded:
+  - `homeassistant.exceptions.TemplateError: Template output exceeded maximum size of 262144 characters`
+- If you encounter this, reduce rendered chore volume (for example by state/label filters) or move to different template profile.

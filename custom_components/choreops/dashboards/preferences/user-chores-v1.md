@@ -4,8 +4,8 @@
 
 ## Quick overview
 
-- Feature-complete chore UX: includes richer shared progress context, claim-mode nuance, and dual claimed actions.
-- Modular shared-template architecture: core chore-row logic is sourced from `templates/shared/chore_row_user_chores_v1.yaml` and composed into published runtime templates.
+- Feature-complete chore UX: includes shared progress context, claim-mode nuance, overdue/missed context, and claim/approve/undo controls.
+- Modular shared-template architecture: core chore-row logic is sourced from `templates/shared/button_card_template_user_chores_row_v1.yaml` and composed into published runtime templates.
 - Portability note: copy from composed runtime templates (vendored output), not directly from shared fragment source files.
 - Friendly for drag-and-drop workflows: keep defaults for a simple setup, then tune behavior with `pref_*` values.
 - Supports practical organization controls (time buckets, labels, sorting, and state filtering).
@@ -66,7 +66,7 @@
   - Sorting mode inside each rendered group.
   - Allowed: `default`, `name_asc`, `name_desc`, `date_asc`, `date_desc`, `by_state_and_date`.
 
-- `pref_show_chore_description` (default: `true`)
+- `pref_show_chore_description` (default: `false`)
   - Shows the optional description row when a chore has non-empty description text.
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
@@ -74,6 +74,6 @@
 ## Practical tuning examples
 
 - Keep it minimal: set only `pref_column_count`, leave everything else as default.
-- Hide done chores: set `pref_exclude_completed: true`.
+- Hide done chores: add `completed` to `pref_exclude_states` (for example `['completed']`).
 - Build a label board: set `pref_use_label_grouping: true` and define `pref_label_display_order`.
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.
