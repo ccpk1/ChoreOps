@@ -18,6 +18,7 @@
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
 
+views:
 - max_columns: 4
   title: << user.name >> Chores
   path: << user.slug >>

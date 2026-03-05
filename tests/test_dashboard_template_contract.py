@@ -66,3 +66,16 @@ def test_templates_keep_card_header_and_section_markers() -> None:
         assert "{#-- =====" in content
         assert "CARD ===== --#}" in content
         assert "{#-- 1. " in content
+
+
+def test_user_chores_template_uses_button_card_template_contract() -> None:
+    """User chores template defines and uses a named button-card row template."""
+    content = _read_template("user-chores-v1.yaml")
+
+    assert "button_card_templates" in content
+    assert "choreops_chore_row_v1" in content
+    assert "'template': 'choreops_chore_row_v1'" in content
+    assert "template_shared.chore_row_user_chores_v1" not in content
+
+    legacy_row_helper = TEMPLATES_ROOT / "shared" / "chore_row_user_chores_v1.yaml"
+    assert not legacy_row_helper.exists()

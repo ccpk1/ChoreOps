@@ -14,6 +14,7 @@ import contextlib
 import json
 from pathlib import Path
 import re
+import textwrap
 from typing import TYPE_CHECKING, Any, NotRequired, TypedDict, cast
 
 from homeassistant.data_entry_flow import section
@@ -59,6 +60,9 @@ class DashboardTemplateDefinition(TypedDict):
     dependencies_recommended_metadata: NotRequired[
         dict[str, DashboardDependencyMetadata]
     ]
+    shared_contract_version: NotRequired[int]
+    shared_fragments_required: NotRequired[list[str]]
+    shared_fragments_optional: NotRequired[list[str]]
 
 
 class DashboardDependencyMetadata(TypedDict):
@@ -90,12 +94,148 @@ _SELECTABLE_LIFECYCLE_STATES = frozenset({"active", "deprecated"})
 _VALID_AUDIENCES = frozenset({"user", "approver", "mixed"})
 _VALID_SOURCE_TYPES = frozenset({"vendored", "remote"})
 _VALID_DEPENDENCY_ID_RE = re.compile(r"^ha-card:[a-z0-9][a-z0-9_-]*$")
+_VALID_SHARED_FRAGMENT_ID_RE = re.compile(r"^[a-z0-9_][a-z0-9_./-]*$")
+_SHARED_TEMPLATE_MARKER_RE = re.compile(
+    r"<<\s*template_shared\.([a-zA-Z0-9_./-]+)\s*>>"
+)
+_SHARED_TEMPLATE_MARKER_LINE_RE = re.compile(
+    r"(?m)^(?P<indent>[ \t]*)<<\s*template_shared\.(?P<fragment_id>[a-zA-Z0-9_./-]+)\s*>>\s*$"
+)
+_TEMPLATE_SHARED_PREFIX = "templates/shared/"
 
 _manifest_template_definitions_state: dict[str, Any] = {
     "cache": (),
     "loaded": False,
     "warned": False,
 }
+
+
+def _shared_fragment_id_to_source_path(fragment_id: str) -> str:
+    """Convert shared fragment id to source asset path."""
+    return f"{_TEMPLATE_SHARED_PREFIX}{fragment_id}.yaml"
+
+
+def get_shared_fragment_source_paths_for_definitions(
+    definitions: list[DashboardTemplateDefinition],
+) -> list[str]:
+    """Return deterministic source paths for required shared fragments."""
+    source_paths: set[str] = set()
+    for definition in definitions:
+        for fragment_id in definition.get("shared_fragments_required", []):
+            source_paths.add(_shared_fragment_id_to_source_path(fragment_id))
+    return sorted(source_paths)
+
+
+def compile_prepared_template_assets(
+    template_assets: dict[str, str],
+    *,
+    template_definitions: list[DashboardTemplateDefinition] | None = None,
+) -> dict[str, str]:
+    """Validate and compose prepared template assets for runtime usage."""
+    normalized_template_assets = {
+        source_path: content
+        for source_path, content in template_assets.items()
+        if isinstance(source_path, str) and isinstance(content, str)
+    }
+
+    if template_definitions:
+        for definition in template_definitions:
+            source_path = definition.get("source_path")
+            template_id = definition.get("template_id", "unknown")
+            if not isinstance(source_path, str) or not source_path.strip():
+                continue
+
+            for fragment_id in definition.get("shared_fragments_required", []):
+                shared_source_path = _shared_fragment_id_to_source_path(fragment_id)
+                if shared_source_path not in normalized_template_assets:
+                    raise HomeAssistantError(
+                        "Prepared release payload is missing required shared "
+                        f"fragment '{fragment_id}' for template '{template_id}'"
+                    )
+
+    return _compose_prepared_template_assets(normalized_template_assets)
+
+
+def _compose_prepared_template_assets(
+    template_assets: dict[str, str],
+) -> dict[str, str]:
+    """Compose shared-fragment markers for prepared template assets.
+
+    Shared fragment source paths use `templates/shared/<fragment_id>.yaml` and are
+    composed into non-shared `templates/*.yaml` outputs. Shared source assets are
+    not written to runtime template folders.
+    """
+    fragments: dict[str, str] = {}
+    composed_templates: dict[str, str] = {}
+
+    for source_path, content in template_assets.items():
+        if not isinstance(source_path, str) or not isinstance(content, str):
+            continue
+        if source_path.startswith(_TEMPLATE_SHARED_PREFIX) and source_path.endswith(
+            ".yaml"
+        ):
+            fragment_id = (
+                Path(source_path)
+                .relative_to(Path(_TEMPLATE_SHARED_PREFIX))
+                .with_suffix("")
+                .as_posix()
+            )
+            fragments[fragment_id] = content
+
+    def resolve_fragment(fragment_id: str, stack: tuple[str, ...]) -> str:
+        if fragment_id in stack:
+            cycle = " -> ".join((*stack, fragment_id))
+            raise HomeAssistantError(
+                f"Circular shared template fragment reference detected: {cycle}"
+            )
+        if fragment_id not in fragments:
+            raise HomeAssistantError(f"Missing shared template fragment: {fragment_id}")
+
+        fragment_source = fragments[fragment_id]
+
+        def _replace_line(match: re.Match[str]) -> str:
+            indent = match.group("indent")
+            nested_id = match.group("fragment_id")
+            resolved_nested = resolve_fragment(nested_id, (*stack, fragment_id))
+            return textwrap.indent(resolved_nested, indent)
+
+        def _replace_inline(match: re.Match[str]) -> str:
+            nested_id = match.group(1)
+            return resolve_fragment(nested_id, (*stack, fragment_id))
+
+        composed_fragment = _SHARED_TEMPLATE_MARKER_LINE_RE.sub(
+            _replace_line,
+            fragment_source,
+        )
+        return _SHARED_TEMPLATE_MARKER_RE.sub(_replace_inline, composed_fragment)
+
+    for source_path, content in template_assets.items():
+        if not isinstance(source_path, str) or not isinstance(content, str):
+            continue
+        if not source_path.startswith("templates/"):
+            continue
+        if source_path.startswith(_TEMPLATE_SHARED_PREFIX):
+            continue
+
+        def _replace_root_line(match: re.Match[str]) -> str:
+            indent = match.group("indent")
+            fragment_id = match.group("fragment_id")
+            resolved = resolve_fragment(fragment_id, ())
+            return textwrap.indent(resolved, indent)
+
+        def _replace_root_inline(match: re.Match[str]) -> str:
+            fragment_id = match.group(1)
+            return resolve_fragment(fragment_id, ())
+
+        composed = _SHARED_TEMPLATE_MARKER_LINE_RE.sub(_replace_root_line, content)
+        composed = _SHARED_TEMPLATE_MARKER_RE.sub(_replace_root_inline, composed)
+        if _SHARED_TEMPLATE_MARKER_RE.search(composed):
+            raise HomeAssistantError(
+                f"Unresolved template_shared marker remains in {source_path}"
+            )
+        composed_templates[source_path] = composed
+
+    return composed_templates
 
 
 def reset_manifest_template_definitions_cache() -> None:
@@ -145,8 +285,30 @@ def _replace_managed_dashboard_assets_from_release(
     if not isinstance(manifest_asset, str) or not manifest_asset.strip():
         raise HomeAssistantError("Prepared release payload missing manifest content")
 
+    prepared_template_assets_raw = prepared_assets.get("template_assets", {})
+    if not isinstance(prepared_template_assets_raw, dict):
+        prepared_template_assets_raw = {}
+
+    prepared_template_definitions_raw = prepared_assets.get("template_definitions", [])
+    prepared_template_definitions: list[DashboardTemplateDefinition] = []
+    if isinstance(prepared_template_definitions_raw, list):
+        for definition in prepared_template_definitions_raw:
+            if isinstance(definition, dict):
+                prepared_template_definitions.append(definition)
+
+    normalized_template_assets = {
+        source_path: content
+        for source_path, content in prepared_template_assets_raw.items()
+        if isinstance(source_path, str) and isinstance(content, str)
+    }
+
+    compile_prepared_template_assets(
+        normalized_template_assets,
+        template_definitions=prepared_template_definitions,
+    )
+
     managed_asset_groups: dict[str, dict[str, str]] = {
-        const.DASHBOARD_TEMPLATES_DIR: prepared_assets.get("template_assets", {}),
+        const.DASHBOARD_TEMPLATES_DIR: normalized_template_assets,
         const.DASHBOARD_TRANSLATIONS_DIR: prepared_assets.get("translation_assets", {}),
         const.PREFERENCES_DOCS_DIR: prepared_assets.get("preference_assets", {}),
     }
@@ -278,6 +440,63 @@ def _validate_and_normalize_template_definition(
         raw_doc_asset_path = preferences.get("doc_asset_path")
         if isinstance(raw_doc_asset_path, str) and raw_doc_asset_path.strip():
             preferences_doc_asset_path = raw_doc_asset_path.strip()
+
+    shared_contract_version_raw = template.get("shared_contract_version")
+    shared_fragments_required_raw = template.get("shared_fragments_required")
+    shared_fragments_optional_raw = template.get("shared_fragments_optional")
+    has_shared_contract_fields = any(
+        key in template
+        for key in (
+            "shared_contract_version",
+            "shared_fragments_required",
+            "shared_fragments_optional",
+        )
+    )
+
+    shared_contract_version: int | None = None
+    shared_fragments_required: list[str] = []
+    shared_fragments_optional: list[str] = []
+
+    if has_shared_contract_fields:
+        if not isinstance(shared_contract_version_raw, int) or isinstance(
+            shared_contract_version_raw, bool
+        ):
+            return None
+        if shared_contract_version_raw != 1:
+            return None
+        shared_contract_version = shared_contract_version_raw
+
+        if not isinstance(shared_fragments_required_raw, list):
+            return None
+        if shared_fragments_optional_raw is not None and not isinstance(
+            shared_fragments_optional_raw, list
+        ):
+            return None
+
+        for fragment_id_raw in shared_fragments_required_raw:
+            if not isinstance(fragment_id_raw, str):
+                return None
+            fragment_id = fragment_id_raw.strip()
+            if (
+                not fragment_id
+                or not _VALID_SHARED_FRAGMENT_ID_RE.match(fragment_id)
+                or fragment_id in shared_fragments_required
+            ):
+                return None
+            shared_fragments_required.append(fragment_id)
+
+        for fragment_id_raw in shared_fragments_optional_raw or []:
+            if not isinstance(fragment_id_raw, str):
+                return None
+            fragment_id = fragment_id_raw.strip()
+            if (
+                not fragment_id
+                or not _VALID_SHARED_FRAGMENT_ID_RE.match(fragment_id)
+                or fragment_id in shared_fragments_optional
+                or fragment_id in shared_fragments_required
+            ):
+                return None
+            shared_fragments_optional.append(fragment_id)
 
     if not isinstance(audience, str):
         return None
@@ -421,6 +640,10 @@ def _validate_and_normalize_template_definition(
     )
     if preferences_doc_asset_path is not None:
         normalized_definition["preferences_doc_asset_path"] = preferences_doc_asset_path
+    if shared_contract_version is not None:
+        normalized_definition["shared_contract_version"] = shared_contract_version
+        normalized_definition["shared_fragments_required"] = shared_fragments_required
+        normalized_definition["shared_fragments_optional"] = shared_fragments_optional
     return normalized_definition
 
 
@@ -851,7 +1074,7 @@ async def async_prepare_dashboard_release_assets(
         definition["source_path"]
         for definition in template_definitions
         if isinstance(definition.get("source_path"), str)
-    ]
+    ] + get_shared_fragment_source_paths_for_definitions(template_definitions)
     if release_selection == const.DASHBOARD_RELEASE_MODE_CURRENT_INSTALLED:
         template_assets = await _load_local_assets_by_path(
             hass,

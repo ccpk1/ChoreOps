@@ -742,6 +742,7 @@ async def load_scenario_to_live_instance(args: argparse.Namespace) -> None:
         total_skipped = 0
         total_failed = 0
         total_attempted = 0
+        present_chore_names: set[str] = set()
 
         async def _bulk_add(
             title: str,
@@ -766,10 +767,13 @@ async def load_scenario_to_live_instance(args: argparse.Namespace) -> None:
                 if add_status == ENTITY_ADD_STATUS_ADDED:
                     total_added += 1
                     print(f"   ✅ {name}")  # noqa: T201
+                    if menu_key == MENU_MANAGE_CHORE:
+                        present_chore_names.add(name)
                 elif add_status == ENTITY_ADD_STATUS_SKIPPED:
                     total_skipped += 1
                     print(f"   ⏭️ {name} (already exists)")  # noqa: T201
                     if menu_key == MENU_MANAGE_CHORE:
+                        present_chore_names.add(name)
                         await refresh_duplicate_chore_due_date(
                             session,
                             args.ha_url,
@@ -795,11 +799,16 @@ async def load_scenario_to_live_instance(args: argparse.Namespace) -> None:
         )
 
         if args.reset:
+            rotation_chores_present = [
+                chore
+                for chore in chores
+                if str(chore.get("name", "")).strip() in present_chore_names
+            ]
             rotation_success, rotation_total = await normalize_rotation_turns(
                 session,
                 args.ha_url,
                 entry_id,
-                chores,
+                rotation_chores_present,
                 args.delay,
             )
             if rotation_total:

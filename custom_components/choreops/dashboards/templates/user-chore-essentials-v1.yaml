@@ -1,9 +1,9 @@
 <#-- ============================================= --#>
-<#-- ChoreOps Dashboard Template - ESSENTIAL  --#>
+<#-- ChoreOps Dashboard Template - CHORE ESSENTIALS --#>
 <#-- Template Schema Version: 1                  --#>
 <#-- ============================================= --#>
 <#--                                             --#>
-<#-- Essential dashboard: Welcome + Chores baseline  --#>
+<#-- Chore essentials dashboard: full grouping logic + lightweight chore rows --#>
 <#--                                             --#>
 <#-- Injection variables (Python << >>):         --#>
 <#--   << user.name >> - User's display name      --#>
@@ -60,9 +60,9 @@ views:
 
                     {#-- 3. Collect Data --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
-                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
@@ -70,48 +70,44 @@ views:
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
                     {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
-                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
-                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
-                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
+                    {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
 
-                    {#-- 4. Build Display - POC-aligned --#}
+                    {#-- 4. Build Display - essentials minimal --#}
                     {%- set p_icon = points_icon | default('mdi:star', true) -%}
 
-                    {%- set badge_pill = "" -%}
-                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
-                      {%- set mult_text = " (x" ~ points_multiplier|string ~ ")" if points_multiplier > 1 else "" -%}
-                      {%- set badge_pill =
-                        "<div style='margin-top: 6px; font-size: 11px; background: var(--secondary-background-color); padding: 2px 10px; border-radius: 12px; border: 1px solid var(--divider-color); display: inline-flex; align-items: center; justify-content: center;'>"
-                        ~ "<ha-icon icon='" ~ highest_badge_icon ~ "' style='width: 16px; height: 12px; margin-right: 4px; color: var(--warning-color);'></ha-icon>"
-                        ~ "<span style='font-weight: 600; color: var(--primary-text-color);'>" ~ highest_badge ~ mult_text ~ "</span>"
+                    {%- set left_col =
+                      "<div style='text-align: left; flex-grow: 1; min-width: 0;'>"
+                      ~ "<div style='font-size: 18px; font-weight: 600; margin-bottom: 8px; line-height: 1.2;'>👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "!</div>"
+                      ~ "<div style='font-size: 12px; color: var(--secondary-text-color); display: flex; flex-direction: column; gap: 5px; line-height: 1.15;'>"
+                      ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:alert-octagon-outline' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('overdue', 'err-overdue') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--primary-text-color)') ~ ";'>" ~ overdue_now ~ "</b></span>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:calendar-clock' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('due_today', 'err-due_today') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--primary-text-color)') ~ ";'>" ~ due_today_open ~ "</b></span>"
+                      ~ "</div>"
+                      ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap;'><ha-icon icon='mdi:calendar-today' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('todays_completed', 'err-todays_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ todays_completed ~ "</b></span>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap;'><ha-icon icon='mdi:calendar-week' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ weekly_completed ~ "</b></span>"
+                      ~ "</div>"
+                      ~ "</div></div>"
+                    -%}
+
+                    {%- set right_col = "" -%}
+                    {%- if gamification_enabled -%}
+                      {%- set right_col =
+                        "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; margin-left: 14px;'>"
+                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(0px);'></ha-icon>" ~ points ~ "</div>"
+                        ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
                         ~ "</div>"
                       -%}
                     {%- endif -%}
 
-                    {%- set left_col =
-                      "<div style='text-align: left; flex-grow: 1; padding-right: 12px;'>"
-                      ~ "<div style='font-size: 18px; font-weight: 600; margin-bottom: 6px; line-height: 1.2;'>👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "!</div>"
-                      ~ "<div style='font-size: 13px; color: var(--secondary-text-color); display: flex; flex-wrap: wrap; gap: 8px 16px;'>"
-                      ~ "<span style='display: flex; align-items: center;'><ha-icon icon='mdi:calendar-today' style='width: 14px; height: 14px; margin-right: 4px;'></ha-icon>" ~ ui.get('todays_completed', 'err-todays_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ todays_completed ~ "</b></span>"
-                      ~ "<span style='display: flex; align-items: center;'><ha-icon icon='mdi:calendar-week' style='width: 14px; height: 14px; margin-right: 4px;'></ha-icon>" ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ weekly_completed ~ "</b></span>"
-                      ~ "</div></div>"
-                    -%}
-
-                    {%- set right_col =
-                      "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end;'>"
-                      ~ "<div style='display: flex; align-items: center; color: var(--primary-color); font-size: 18px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 18px; height: 28px; margin-right: 6px;'></ha-icon> " ~ points ~ "</div>"
-                      ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.6; margin-top: 2px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
-                      ~ badge_pill
-                      ~ "</div>"
-                    -%}
-
-                    {%- set content_html = "<div style='display: flex; justify-content: space-between; align-items: center; width: 100%;'>" ~ left_col ~ right_col ~ "</div>" -%}
+                    {%- set content_html = "<div style='display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px;'>" ~ left_col ~ right_col ~ "</div>" if gamification_enabled else left_col -%}
 
                     {#-- 5. Render --#}
                     {{
                       {
                         'type': 'custom:button-card',
-                        'entity': points_sensor,
+                        'entity': points_sensor if gamification_enabled and points_sensor else total_sensor,
                         'show_name': false,
                         'show_icon': false,
                         'tap_action': {'action': 'more-info'},
@@ -121,7 +117,7 @@ views:
                             {'border-radius': '16px'},
                             {'border': '1px solid var(--divider-color)'},
                             {'background-color': 'var(--card-background-color)'},
-                            {'box-shadow': '0px 2px 6px rgba(0,0,0,0.05)'}
+                            {'box-shadow': 'none'}
                           ],
                           'grid': [
                             {'grid-template-areas': '"content"'},
@@ -185,23 +181,25 @@ views:
 
                   {%- set pref_sort_within_groups = 'by_state_and_date' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc', 'by_state_and_date' --#}
 
+                  {%- set pref_show_chore_description = true -%}
+
 
                   {#-- Type coercion for preferences --#}
                   {%- set pref_column_count = pref_column_count | int(default=2) -%}
-                  {%- set pref_use_overdue_grouping = (pref_use_overdue_grouping | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_use_today_grouping = (pref_use_today_grouping | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_include_daily_recurring_in_today = (pref_include_daily_recurring_in_today | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_use_this_week_grouping = (pref_use_this_week_grouping | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_include_weekly_recurring_in_this_week = (pref_include_weekly_recurring_in_this_week | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_exclude_completed = (pref_exclude_completed | default('false') | string | lower) == 'true' -%}
-                  {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable and pref_exclude_states is not string else [] -%}
-                  {%- set pref_exclude_states = pref_exclude_states | map('string') | map('lower') | list -%}
+                  {%- set pref_use_overdue_grouping = pref_use_overdue_grouping | default(true, true) -%}
+                  {%- set pref_use_today_grouping = pref_use_today_grouping | default(true, true) -%}
+                  {%- set pref_include_daily_recurring_in_today = pref_include_daily_recurring_in_today | default(true, true) -%}
+                  {%- set pref_use_this_week_grouping = pref_use_this_week_grouping | default(true, true) -%}
+                  {%- set pref_include_weekly_recurring_in_this_week = pref_include_weekly_recurring_in_this_week | default(true, true) -%}
+                  {%- set pref_exclude_completed = pref_exclude_completed | default(false, true) -%}
+                  {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable else [] -%}
+                  {%- set pref_exclude_states = pref_exclude_states | map('lower') | list -%}
                   {%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
                     {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
                   {%- endif -%}
-                  {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
-                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
-                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
+                  {%- set pref_use_label_grouping = pref_use_label_grouping | default(false, true) -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable else [] -%}
 
                   {#-- 2. Dynamic Lookups & Validations --#}
 
@@ -375,9 +373,9 @@ views:
                             {#-- Build list of (due_date_timestamp, eid) tuples for sorting --#}
                             {%- set ns.temp_list = [] -%}
                             {%- for eid in group.buttons -%}
-                              {%- set due_date_str = state_attr(eid, 'due_date') | string -%}
-                              {%- if due_date_str not in ['None', 'unknown', 'unavailable'] -%}
-                                {%- set due_timestamp = as_timestamp(due_date_str) | default(9999999999, true) -%}
+                              {%- set due_date_value = state_attr(eid, 'due_date') -%}
+                              {%- if due_date_value is not none and due_date_value not in ['unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_value) | default(9999999999, true) -%}
                               {%- else -%}
                                 {%- set due_timestamp = 9999999999 -%}
                               {%- endif -%}
@@ -395,7 +393,7 @@ views:
                             {#-- Actionability sort: overdue, due, pending, waiting, claimed, completed, completed_by_other, not_my_turn, missed --#}
                             {%- set ns.temp_list = [] -%}
                             {%- for eid in group.buttons -%}
-                              {%- set chore_state = states(eid) | string | lower -%}
+                              {%- set chore_state = states(eid) | lower -%}
                               {%- if chore_state == 'overdue' -%}
                                 {%- set state_priority = 0 -%}
                               {%- elif chore_state == 'due' -%}
@@ -417,9 +415,9 @@ views:
                               {%- else -%}
                                 {%- set state_priority = 50 -%}
                               {%- endif -%}
-                              {%- set due_date_str = state_attr(eid, 'due_date') | string -%}
-                              {%- if due_date_str not in ['None', 'unknown', 'unavailable'] -%}
-                                {%- set due_timestamp = as_timestamp(due_date_str) | default(9999999999, true) -%}
+                              {%- set due_date_value = state_attr(eid, 'due_date') -%}
+                              {%- if due_date_value is not none and due_date_value not in ['unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_value) | default(9999999999, true) -%}
                               {%- else -%}
                                 {%- set due_timestamp = 9999999999 -%}
                               {%- endif -%}
@@ -439,7 +437,7 @@ views:
                       {%- set button_groups = ns.sorted_groups -%}
                     {%- endif -%}
 
-                    {#-- 6. Render (POC-aligned button-card layout) --#}
+                    {#-- 6. Render (production-aligned button-card layout) --#}
                     {{
                       {
                         'type': 'custom:button-card',
@@ -522,44 +520,25 @@ views:
                         }},
 
                         {%- for chore_sensor_id in group.buttons -%}
-                            {%- set state_map = {
-                              'pending': ui.get('pending', 'err-pending'),
-                              'due': ui.get('due', 'err-due'),
-                              'claimed': ui.get('claimed', 'err-claimed'),
-                              'completed': ui.get('completed', 'err-completed'),
-                              'approved': ui.get('completed', 'err-completed'),
-                              'overdue': ui.get('overdue', 'err-overdue'),
-                              'waiting': ui.get('waiting', 'err-waiting'),
-                              'missed': ui.get('missed', 'err-missed'),
-                              'already_approved': ui.get('already_approved', 'err-already_approved'),
-                              'pending_claim': ui.get('pending_claim', 'err-pending_claim'),
-                              'missed_locked': ui.get('missed_locked', 'err-missed_locked'),
-                              'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
-                              'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
-                              'independent': ui.get('independent', 'err-independent'),
-                              'shared_all': ui.get('shared_all', 'err-shared_all'),
-                              'shared_first': ui.get('shared_first', 'err-shared_first')
-                          } -%}
-
                           {%- set ns.group_cards = ns.group_cards + [{
                               'type': 'custom:button-card',
                               'entity': chore_sensor_id,
                               'show_name': true,
                               'show_icon': true,
                               'tap_action': {'action': 'more-info'},
-                              'name': "[[[ let name = entity.attributes.chore_name; let type = entity.attributes.completion_criteria; let badge = ''; if (type === 'shared_all') { let assignedRaw = entity.attributes.assigned_user_names; let completedRaw = entity.attributes.completed_by; let assigned = Array.isArray(assignedRaw) ? assignedRaw.filter(Boolean) : []; let completed = Array.isArray(completedRaw) ? completedRaw.filter(Boolean) : (completedRaw ? [completedRaw] : []); let allDone = assigned.length > 0 && completed.length >= assigned.length; let badgeColor = allDone ? 'var(--success-color)' : 'var(--disabled-text-color)'; badge = `<ha-icon icon=\"mdi:account-group\" style=\"width: 16px; height: 16px; color: ${badgeColor}; margin-left: 8px; margin-bottom: 4px;\"></ha-icon>`; } if (type === 'shared_first') badge = '<ha-icon icon=\"mdi:flag-checkered\" style=\"width: 16px; height: 16px; color: var(--disabled-text-color); margin-left: 8px; margin-bottom: 4px;\"></ha-icon>'; if (type && type.includes('rotation')) badge = '<ha-icon icon=\"mdi:account-sync\" style=\"width: 16px; height: 16px; color: var(--disabled-text-color); margin-left: 8px; margin-bottom: 4px;\"></ha-icon>'; return `${name}${badge}`; ]]]",
+                              'name': "[[[ return entity.attributes.chore_name || entity.attributes.friendly_name || entity.entity_id; ]]]",
                               'icon': "[[[ return entity.attributes.icon || 'mdi:broom'; ]]]",
                               'styles': {
                                 'card': [
                                   {'padding': '6px 8px'},
                                   {'border-radius': '10px'},
-                                  {'opacity': "[[[ const canClaim = entity.attributes.can_claim === true; const claimBlocked = !canClaim && entity.state !== 'claimed'; return claimBlocked ? '0.6' : '1.0'; ]]]"},
+                                  {'opacity': "[[[ const canClaim = entity.attributes.can_claim === true; const rawState = entity.state; const normalizedState = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return (!canClaim && normalizedState !== 'claimed') ? '0.6' : '1.0'; ]]]"},
                                   {'border-left': "[[[ if (['overdue', 'missed'].includes(entity.state)) return '4px solid #ff4444'; if (entity.state === 'due') return '4px solid #ff9800'; return '4px solid transparent'; ]]]"}
                                 ],
                                 'grid': [
-                                  {'grid-template-areas': '"i n btn_undo btn_action" "i due btn_undo btn_action" "i history btn_undo btn_action"'},
-                                  {'grid-template-columns': '30px 1fr min-content min-content'},
-                                  {'grid-template-rows': 'min-content min-content min-content'},
+                                  {'grid-template-areas': '"i n btn_action" "i due btn_action" "i description btn_action" "i history btn_action"'},
+                                  {'grid-template-columns': '30px 1fr min-content'},
+                                  {'grid-template-rows': 'min-content min-content min-content min-content'},
                                   {'row-gap': '0px'},
                                   {'column-gap': '8px'},
                                   {'align-items': 'center'}
@@ -568,37 +547,31 @@ views:
                                   {'justify-self': 'start'},
                                   {'font-weight': '600'},
                                   {'font-size': '14px'},
-                                  {'margin-bottom': '2px'},
-                                  {'display': 'flex'},
-                                  {'align-items': 'center'},
                                   {'line-height': '1.2'}
                                 ],
                                 'icon': [
                                   {'width': '28px'},
-                                  {'align-self': 'center'},
-                                  {'margin-top': '0px'},
-                                  {'color': "[[[ if (['overdue', 'missed'].includes(entity.state)) return '#ff4444'; if (entity.state === 'due') return '#ff9800'; if (entity.state === 'claimed') return '#a957fa'; if (entity.state === 'completed') return 'var(--success-color)'; return 'var(--primary-text-color)'; ]]]"}
+                                  {'color': "[[[ const rawState = entity.state; const normalizedState = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(normalizedState)) return '#ff4444'; if (normalizedState === 'due') return '#ff9800'; if (normalizedState === 'claimed') return '#a957fa'; if (['completed', 'completed_in_part'].includes(normalizedState)) return 'var(--success-color)'; return 'var(--primary-text-color)'; ]]]"}
                                 ],
                                 'custom_fields': {
                                   'due': [
                                     {'justify-self': 'start'},
                                     {'font-size': '11px'},
-                                    {'font-weight': '400'},
                                     {'line-height': '1.2'},
-                                    {'margin-bottom': '1px'},
-                                    {'color': "[[[ if (['overdue', 'missed'].includes(entity.state)) return '#ff4444'; if (entity.state === 'due') return '#ff9800'; return 'var(--primary-text-color)'; ]]]"}
+                                    {'color': "[[[ const claimMode = entity.attributes.claim_mode || null; if (claimMode === 'steal_available') return '#F2C94C'; if (['overdue', 'missed'].includes(entity.state)) return '#ff4444'; if (entity.state === 'due') return '#ff9800'; return 'var(--primary-text-color)'; ]]]"}
+                                  ],
+                                  'description': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '10px'},
+                                    {'line-height': '1.2'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'display': "[[[ const prefEnabled = " ~ (pref_show_chore_description | tojson) ~ "; const value = typeof entity.attributes.description === 'string' ? entity.attributes.description.trim() : ''; return prefEnabled && value.length > 0 ? 'block' : 'none'; ]]]"}
                                   ],
                                   'history': [
                                     {'justify-self': 'start'},
                                     {'font-size': '10px'},
                                     {'line-height': '1.2'},
                                     {'color': 'var(--secondary-text-color)'}
-                                  ],
-                                  'btn_undo': [
-                                    {'align-self': 'center'},
-                                    {'justify-self': 'end'},
-                                    {'margin-right': '8px'},
-                                    {'display': "[[[ return entity.state === 'claimed' ? 'block' : 'none'; ]]]"}
                                   ],
                                   'btn_action': [
                                     {'align-self': 'center'},
@@ -607,65 +580,57 @@ views:
                                 }
                               },
                               'custom_fields': {
-                                'due': "[[[ const map = " ~ state_map | tojson ~ "; let s = entity.state; const br = entity.attributes.block_reason || null; const dueLbl = " ~ (ui.get('due_date', 'err-due_date') | tojson) ~ "; if (!['pending','due','claimed','completed','overdue'].includes(s) && entity.attributes.can_claim === false && br) s = br; s = map[s] || s; const due = entity.attributes.due_date; const dText = due ? new Date(due).toLocaleString(undefined, {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : '--'; return `<b>${String(s).toUpperCase()}</b> • ${dueLbl}: ${dText}`; ]]]",
-                                'history': "[[[ const map = " ~ state_map | tojson ~ "; const state = entity.state; const type = entity.attributes.completion_criteria || ''; const assignedRaw = entity.attributes.assigned_user_names; const completedRaw = entity.attributes.completed_by; const assigned = Array.isArray(assignedRaw) ? assignedRaw.filter(Boolean) : []; const completed = Array.isArray(completedRaw) ? completedRaw.filter(Boolean) : (completedRaw ? [completedRaw] : []); const br = entity.attributes.block_reason || null; const progressLbl = " ~ (ui.get('progress', 'err-progress') | tojson) ~ "; const doneLbl = " ~ (ui.get('done', 'err-done') | tojson) ~ "; const byLbl = " ~ (ui.get('by', 'err-by') | tojson) ~ "; const completedByLbl = " ~ (ui.get('completed_by', 'err-completed_by') | tojson) ~ "; const completedLbl = " ~ (ui.get('completed', 'err-completed') | tojson) ~ "; const currentlyLbl = " ~ (ui.get('currently', 'err-currently') | tojson) ~ "; const lastLbl = " ~ (ui.get('last', 'err-last') | tojson) ~ "; const neverLbl = " ~ (ui.get('never', 'err-never') | tojson) ~ "; let context = ''; if (type === 'shared_all' && assigned.length > 0) { const c = completed.length; const a = assigned.length; const p = Math.max(0, Math.min(100, Math.round((c / a) * 100))); const prefix = p >= 100 ? `${completedLbl}: ${c}/${a}` : `${progressLbl}: ${c}/${a} ${doneLbl}`; const who = c > 0 ? ` ${byLbl} ${completed.join(', ')}` : ''; context = `${prefix}${who}  •  `; } else if (type === 'shared_first' && completed.length > 0) { context = `${completedByLbl}: ${completed[0]}  •  `; } else if (state === 'not_my_turn' && entity.attributes.turn_user_name) { context = `${currentlyLbl}: ${entity.attributes.turn_user_name}  •  `; } else if (state === 'completed_by_other' && completed.length > 0) { context = `${completedByLbl}: ${completed.join(', ')}  •  `; } else if (entity.attributes.can_claim === false && br) { context = `${map[br] || br}  •  `; } const last = entity.attributes.last_completed; const lText = last ? new Date(last).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : neverLbl; const freq = entity.attributes.recurring_frequency; const rText = freq ? `  •  <ha-icon icon=\\\"mdi:repeat\\\" style=\\\"width:10px;height:10px;\\\"></ha-icon> ${freq.charAt(0).toUpperCase() + freq.slice(1)}` : ''; return `${context}${lastLbl}: ${lText}${rText}`; ]]]",
-                                'btn_undo': {
-                                  'card': {
-                                    'type': 'custom:button-card',
-                                    'entity': chore_sensor_id,
-                                    'icon': 'mdi:undo',
-                                    'show_name': false,
-                                    'show_icon': true,
-                                    'styles': {
-                                      'card': [
-                                        {'width': '34px'},
-                                        {'height': '34px'},
-                                        {'border-radius': '50%'},
-                                        {'background-color': 'transparent'},
-                                        {'border': '1px solid var(--divider-color)'},
-                                        {'box-shadow': 'none'}
-                                      ],
-                                      'icon': [
-                                        {'width': '20px'},
-                                        {'color': 'var(--secondary-text-color)'}
-                                      ]
-                                    },
-                                    'tap_action': {
-                                      'action': 'call-service',
-                                      'service': 'button.press',
-                                      'service_data': {
-                                        'entity_id': "[[[ return entity.attributes.disapprove_button_eid; ]]]"
-                                      }
-                                    }
-                                  }
-                                },
+                                'due': "[[[ const statusMap = " ~ ({
+                                  'pending': ui.get('pending', 'err-pending'),
+                                  'due': ui.get('due', 'err-due'),
+                                  'claimed': ui.get('claimed', 'err-claimed'),
+                                  'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
+                                  'completed': ui.get('completed', 'err-completed'),
+                                  'completed_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
+                                  'overdue': ui.get('overdue', 'err-overdue'),
+                                  'waiting': ui.get('waiting', 'err-waiting'),
+                                  'missed': ui.get('missed', 'err-missed'),
+                                  'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                                  'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                  'already_approved': ui.get('completed', 'err-completed'),
+                                  'pending_claim': ui.get('claimed', 'err-claimed'),
+                                  'missed_locked': ui.get('missed_locked', 'err-missed_locked'),
+                                  'blocked_completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                                  'blocked_already_approved': ui.get('completed', 'err-completed'),
+                                  'blocked_pending_claim': ui.get('claimed', 'err-claimed'),
+                                  'blocked_waiting_window': ui.get('waiting', 'err-waiting'),
+                                  'blocked_not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                  'blocked_missed_locked': ui.get('missed_locked', 'err-missed_locked'),
+                                  'steal_available': ui.get('steal_available', 'err-steal_available')
+                                }) | tojson ~ "; const rawState = entity.state; let status = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (claimMode === 'steal_available') status = 'steal_available'; else if (entity.attributes.can_claim === false && claimMode && !['completed', 'completed_in_part'].includes(status)) status = claimMode; const value = entity.attributes.due_date || entity.attributes.due_window_start; const dateText = value ? new Date(value).toLocaleString(undefined, {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : '--'; const statusLabel = statusMap[status] || status; const dueLabel = " ~ (ui.get('due_date', 'err-due_date') | tojson) ~ "; return `<b>${String(statusLabel).toUpperCase()}</b> • ${dueLabel}: ${dateText}`; ]]]",
+                                'description': "[[[ const prefEnabled = " ~ (pref_show_chore_description | tojson) ~ "; const value = typeof entity.attributes.description === 'string' ? entity.attributes.description.trim() : ''; if (!prefEnabled || value.length === 0) return ''; const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); return `<span>${escaped}</span>`; ]]]",
+                                'history': "[[[ const value = entity.attributes.last_completed; const label = value ? new Date(value).toLocaleDateString(undefined, {month:'short', day:'numeric'}) : " ~ (ui.get('never', 'err-never') | tojson) ~ "; const lastLabel = " ~ (ui.get('last', 'err-last') | tojson) ~ "; return `${lastLabel}: ${label}`; ]]]",
                                 'btn_action': {
                                   'card': {
                                     'type': 'custom:button-card',
                                     'entity': chore_sensor_id,
                                     'show_name': false,
                                     'show_icon': true,
-                                    'icon': "[[[ let s = entity.state; let canClaim = entity.attributes.can_claim === true; let blockReason = entity.attributes.block_reason || null; let blockReasonIconMap = { completed_by_other: 'mdi:account-check-outline', already_approved: 'mdi:check', pending_claim: 'mdi:progress-check', waiting: 'mdi:clock-outline', not_my_turn: 'mdi:account-lock-outline', missed_locked: 'mdi:lock-outline' }; if (s === 'claimed') return 'mdi:check-all'; if (s === 'completed') return 'mdi:check'; if (!canClaim && blockReason && s !== 'claimed') return blockReasonIconMap[blockReason] || 'mdi:lock-outline'; if (s === 'overdue') return 'mdi:alert-octagon'; return 'mdi:arrow-right'; ]]]",
+                                    'icon': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (state === 'claimed') return 'mdi:check-all'; if (['completed', 'completed_in_part'].includes(state)) return 'mdi:check'; if (claimMode === 'steal_available') return 'mdi:hand-back-right-outline'; if (state === 'overdue') return 'mdi:alert-octagon'; if (state === 'waiting' || claimMode === 'blocked_waiting_window') return 'mdi:clock-outline'; if (entity.attributes.can_claim !== true) return 'mdi:lock-outline'; return 'mdi:arrow-right'; ]]]",
                                     'styles': {
                                       'card': [
                                         {'width': '34px'},
                                         {'height': '34px'},
                                         {'border-radius': '50%'},
-                                        {'background-color': "[[[ return entity.state === 'claimed' ? '#a957fa' : 'transparent'; ]]]"},
-                                        {'color': "[[[ if (entity.state === 'claimed') return '#ffffff'; if (entity.state === 'completed' || entity.attributes.can_claim !== true) return 'var(--disabled-text-color)'; return 'var(--primary-color)'; ]]]"},
-                                        {'border': "[[[ if (entity.state === 'claimed' || entity.state === 'completed') return '1px solid transparent'; return entity.attributes.can_claim === true ? '2px solid var(--primary-color)' : '1px solid var(--disabled-text-color)'; ]]]"},
-                                        {'box-shadow': "[[[ return (entity.attributes.can_claim === true && entity.state !== 'completed') ? '0px 2px 4px rgba(0,0,0,0.1)' : 'none'; ]]]"}
+                                        {'background-color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return state === 'claimed' ? '#a957fa' : 'transparent'; ]]]"},
+                                        {'border': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'overdue') return '2px solid var(--error-color)'; if (['completed', 'completed_in_part'].includes(state)) return '1px solid var(--disabled-text-color)'; return entity.attributes.can_claim === true ? '2px solid var(--primary-color)' : '1px solid var(--disabled-text-color)'; ]]]"},
+                                        {'box-shadow': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return (entity.attributes.can_claim === true && !['completed', 'completed_in_part'].includes(state)) ? '0px 2px 4px rgba(0,0,0,0.1)' : 'none'; ]]]"}
                                       ],
                                       'icon': [
                                         {'width': '20px'},
-                                        {'margin-left': "[[[ if (entity.state === 'claimed' || entity.state === 'completed') return '0px'; return '1px'; ]]]"}
+                                        {'color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (state === 'claimed') return '#ffffff'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (state === 'overdue') return 'var(--error-color)'; if (claimMode === 'steal_available') return 'var(--primary-text-color)'; if (entity.attributes.can_claim !== true) return 'var(--disabled-text-color)'; return 'var(--primary-text-color)'; ]]]"}
                                       ]
                                     },
                                     'tap_action': {
-                                      'action': "[[[ let canClaim = entity.attributes.can_claim === true; if ((!canClaim && entity.state !== 'claimed') || entity.state === 'completed') return 'none'; return 'call-service'; ]]]",
+                                      'action': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; if ((!canClaim && state !== 'claimed') || ['completed', 'completed_in_part'].includes(state)) return 'none'; return 'call-service'; ]]]",
                                       'service': 'button.press',
                                       'service_data': {
-                                        'entity_id': "[[[ if (entity.state === 'claimed') return entity.attributes.approve_button_eid; return entity.attributes.claim_button_eid; ]]]"
+                                        'entity_id': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'claimed') return entity.attributes.disapprove_button_eid || entity.attributes.approve_button_eid; const claimButton = entity.attributes.claim_button_eid; if (claimButton) return claimButton; return entity.attributes.approve_button_eid; ]]]"
                                       }
                                     }
                                   }

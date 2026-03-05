@@ -1407,6 +1407,213 @@ class TestRaceConditionPrevention:
         )
 
 
+class TestOverdueNotificationRouting:
+    """Tests for payload-driven overdue notification routing and key selection."""
+
+    @pytest.mark.asyncio
+    async def test_overdue_routes_only_payload_user_id(
+        self,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Rotation chores still notify only payload user_id for overdue events."""
+        coordinator = scenario_notifications.coordinator
+        notification_manager = coordinator.notification_manager
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        other_assignee_id = scenario_notifications.assignee_ids["Max!"]
+        chore_id = scenario_notifications.chore_ids["Walk the dog"]
+
+        chore_info = coordinator.chores_data[chore_id]
+        chore_info[const.DATA_CHORE_NOTIFY_ON_OVERDUE] = True
+        chore_info[const.DATA_CHORE_COMPLETION_CRITERIA] = (
+            const.COMPLETION_CRITERIA_ROTATION_SIMPLE
+        )
+        chore_info[const.DATA_CHORE_ASSIGNED_USER_IDS] = [
+            assignee_id,
+            other_assignee_id,
+        ]
+
+        assignee_calls: list[str] = []
+
+        async def capture_assignee(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            assignee_calls.append(assignee_id_arg)
+
+        with (
+            patch.object(
+                notification_manager,
+                "_should_send_chore_notification",
+                return_value=True,
+            ),
+            patch.object(
+                notification_manager,
+                "notify_assignee_translated",
+                new=capture_assignee,
+            ),
+            patch.object(
+                notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ),
+            patch.object(
+                notification_manager,
+                "_record_chore_notification_sent",
+                return_value=None,
+            ),
+        ):
+            await notification_manager._handle_chore_overdue(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Walk the dog",
+                    "due_date": "2026-01-01T00:00:00+00:00",
+                    const.CHORE_OVERDUE_EVENT_MESSAGE_TYPE: const.CHORE_OVERDUE_NOTIFICATION_TYPE_DEFAULT,
+                }
+            )
+
+        assert assignee_calls == [assignee_id]
+
+    @pytest.mark.asyncio
+    async def test_overdue_message_key_uses_steal_available_type(
+        self,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Overdue assignee message key is selected from emitted message type."""
+        coordinator = scenario_notifications.coordinator
+        notification_manager = coordinator.notification_manager
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+        coordinator.chores_data[chore_id][const.DATA_CHORE_NOTIFY_ON_OVERDUE] = True
+
+        assignee_calls: list[dict[str, Any]] = []
+
+        async def capture_assignee(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            assignee_calls.append(
+                {
+                    "assignee_id": assignee_id_arg,
+                    "title_key": title_key,
+                    "message_key": message_key,
+                }
+            )
+
+        with (
+            patch.object(
+                notification_manager,
+                "_should_send_chore_notification",
+                return_value=True,
+            ),
+            patch.object(
+                notification_manager,
+                "notify_assignee_translated",
+                new=capture_assignee,
+            ),
+            patch.object(
+                notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ),
+            patch.object(
+                notification_manager,
+                "_record_chore_notification_sent",
+                return_value=None,
+            ),
+        ):
+            await notification_manager._handle_chore_overdue(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "due_date": "2026-01-01T00:00:00+00:00",
+                    const.CHORE_OVERDUE_EVENT_MESSAGE_TYPE: const.CHORE_OVERDUE_NOTIFICATION_TYPE_STEAL_AVAILABLE,
+                }
+            )
+
+        assert len(assignee_calls) == 1
+        assert (
+            assignee_calls[0]["message_key"]
+            == const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_STEAL_AVAILABLE
+        )
+
+    @pytest.mark.asyncio
+    async def test_overdue_message_key_falls_back_to_default_for_missing_or_unknown_type(
+        self,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Missing or unknown overdue_message_type falls back to existing overdue key."""
+        coordinator = scenario_notifications.coordinator
+        notification_manager = coordinator.notification_manager
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+        coordinator.chores_data[chore_id][const.DATA_CHORE_NOTIFY_ON_OVERDUE] = True
+
+        assignee_message_keys: list[str] = []
+
+        async def capture_assignee(
+            assignee_id_arg: str,
+            title_key: str,
+            message_key: str,
+            **kwargs: Any,
+        ) -> None:
+            assignee_message_keys.append(message_key)
+
+        with (
+            patch.object(
+                notification_manager,
+                "_should_send_chore_notification",
+                return_value=True,
+            ),
+            patch.object(
+                notification_manager,
+                "notify_assignee_translated",
+                new=capture_assignee,
+            ),
+            patch.object(
+                notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ),
+            patch.object(
+                notification_manager,
+                "_record_chore_notification_sent",
+                return_value=None,
+            ),
+        ):
+            await notification_manager._handle_chore_overdue(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "due_date": "2026-01-01T00:00:00+00:00",
+                }
+            )
+            await notification_manager._handle_chore_overdue(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "due_date": "2026-01-01T00:00:00+00:00",
+                    const.CHORE_OVERDUE_EVENT_MESSAGE_TYPE: "unexpected_type",
+                }
+            )
+
+        assert assignee_message_keys == [
+            const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE,
+            const.TRANS_KEY_NOTIF_MESSAGE_CHORE_OVERDUE_ASSIGNEE,
+        ]
+
+
 class TestConcurrentNotifications:
     """Tests for concurrent approver notification sending (v0.5.0+)."""
 

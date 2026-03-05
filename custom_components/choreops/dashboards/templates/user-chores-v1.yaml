@@ -1,9 +1,9 @@
 <#-- ============================================= --#>
-<#-- ChoreOps Dashboard Template - MINIMAL  --#>
+<#-- ChoreOps Dashboard Template - CHORES --#>
 <#-- Template Schema Version: 1                  --#>
 <#-- ============================================= --#>
 <#--                                             --#>
-<#-- Minimal dashboard: Welcome + Chores only  --#>
+<#-- Chores dashboard: welcome summary + full shared-row chore UX/logic --#>
 <#--                                             --#>
 <#-- Injection variables (Python << >>):         --#>
 <#--   << user.name >> - User's display name      --#>
@@ -18,11 +18,14 @@
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
 
+button_card_templates:
+  << template_shared.button_card_template_user_chores_row_v1 >>
 views:
-- max_columns: 4
-  title: << user.name >> Chores
-  path: << user.slug >>
-  sections:
+  - max_columns: 4
+    title: << user.name >> Chores
+    path: << user.slug >>
+    type: sections
+    sections:
     - type: grid
       column_span: 4
       cards:
@@ -60,9 +63,9 @@ views:
 
                     {#-- 3. Collect Data --#}
                     {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
-                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
@@ -70,33 +73,66 @@ views:
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
                     {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
-                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
-                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
-                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
+                    {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
 
-                    {#-- 4. Build Display --#}
-                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
-                      {%- if points_multiplier > 1 -%}
-                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ " (x" ~ points_multiplier|string ~ ")  \n" -%}
-                      {%- else -%}
-                        {%- set badge_display = "<ha-icon icon='" ~ highest_badge_icon ~ "'></ha-icon> " ~ highest_badge ~ "  \n" -%}
-                      {%- endif -%}
-                    {%- else -%}
-                      {%- set badge_display = "" -%}
+                    {#-- 4. Build Display - essentials minimal --#}
+                    {%- set p_icon = points_icon | default('mdi:star', true) -%}
+
+                    {%- set left_col =
+                      "<div style='text-align: left; flex-grow: 1; min-width: 0;'>"
+                      ~ "<div style='font-size: 18px; font-weight: 600; margin-bottom: 8px; line-height: 1.2;'>👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "!</div>"
+                      ~ "<div style='font-size: 12px; color: var(--secondary-text-color); display: flex; flex-direction: column; gap: 5px; line-height: 1.15;'>"
+                      ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:alert-octagon-outline' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('overdue', 'err-overdue') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--primary-text-color)') ~ ";'>" ~ overdue_now ~ "</b></span>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:calendar-clock' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('due_today', 'err-due_today') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--primary-text-color)') ~ ";'>" ~ due_today_open ~ "</b></span>"
+                      ~ "</div>"
+                      ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap;'><ha-icon icon='mdi:calendar-today' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('todays_completed', 'err-todays_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ todays_completed ~ "</b></span>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap;'><ha-icon icon='mdi:calendar-week' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ weekly_completed ~ "</b></span>"
+                      ~ "</div>"
+                      ~ "</div></div>"
+                    -%}
+
+                    {%- set right_col = "" -%}
+                    {%- if gamification_enabled -%}
+                      {%- set right_col =
+                        "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; margin-left: 14px;'>"
+                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(0px);'></ha-icon>" ~ points ~ "</div>"
+                        ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
+                        ~ "</div>"
+                      -%}
                     {%- endif -%}
 
-                    {%- set content =
-                      "## 👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "! \n"
-                      "#### <ha-icon icon=" ~ points_icon ~ "></ha-icon>&nbsp;&nbsp;" ~ points_label ~ ": &nbsp;&nbsp;" ~ points ~ "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" ~ badge_display ~ " \n"
-                      "**📅 " ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ":** &nbsp;&nbsp;" ~ weekly_completed ~ "  \n"
-                      "**☀️ " ~ ui.get('todays_completed', 'err-todays_completed') ~ ":** &nbsp;&nbsp;" ~ todays_completed ~ "  \n\n"
-                    -%}
+                    {%- set content_html = "<div style='display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px;'>" ~ left_col ~ right_col ~ "</div>" if gamification_enabled else left_col -%}
 
                     {#-- 5. Render --#}
                     {{
                       {
-                        'type': 'markdown',
-                        'content': content
+                        'type': 'custom:button-card',
+                        'entity': points_sensor if gamification_enabled and points_sensor else total_sensor,
+                        'show_name': false,
+                        'show_icon': false,
+                        'tap_action': {'action': 'more-info'},
+                        'styles': {
+                          'card': [
+                            {'padding': '16px 20px'},
+                            {'border-radius': '16px'},
+                            {'border': '1px solid var(--divider-color)'},
+                            {'background-color': 'var(--card-background-color)'},
+                            {'box-shadow': 'none'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"content"'},
+                            {'grid-template-columns': '1fr'}
+                          ],
+                          'custom_fields': {
+                            'content': [{'width': '100%'}]
+                          }
+                        },
+                        'custom_fields': {
+                          'content': content_html
+                        }
                       }
                     }},
 
@@ -124,7 +160,7 @@ views:
 
                   << template_snippets.user_override_helper >>
 
-                  {%- set pref_column_count = 4 -%}
+                  {%- set pref_column_count = 3 -%}
 
                   {%- set pref_use_overdue_grouping = true -%}
 
@@ -138,26 +174,35 @@ views:
 
                   {%- set pref_exclude_completed = false -%}
 
+                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
+
                   {%- set pref_use_label_grouping = false -%}
 
                   {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
 
                   {%- set pref_label_display_order = [] -%}  {#-- Example: ['Kitchen', 'Bedroom', 'Outdoor'] --#}
 
-                  {%- set pref_sort_within_groups = 'default' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc' --#}
+                  {%- set pref_sort_within_groups = 'by_state_and_date' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc', 'by_state_and_date' --#}
+
+                  {%- set pref_show_chore_description = true -%}
 
 
                   {#-- Type coercion for preferences --#}
                   {%- set pref_column_count = pref_column_count | int(default=2) -%}
-                  {%- set pref_use_overdue_grouping = (pref_use_overdue_grouping | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_use_today_grouping = (pref_use_today_grouping | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_include_daily_recurring_in_today = (pref_include_daily_recurring_in_today | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_use_this_week_grouping = (pref_use_this_week_grouping | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_include_weekly_recurring_in_this_week = (pref_include_weekly_recurring_in_this_week | default('true') | string | lower) == 'true' -%}
-                  {%- set pref_exclude_completed = (pref_exclude_completed | default('false') | string | lower) == 'true' -%}
-                  {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
-                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
-                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
+                  {%- set pref_use_overdue_grouping = pref_use_overdue_grouping | default(true, true) -%}
+                  {%- set pref_use_today_grouping = pref_use_today_grouping | default(true, true) -%}
+                  {%- set pref_include_daily_recurring_in_today = pref_include_daily_recurring_in_today | default(true, true) -%}
+                  {%- set pref_use_this_week_grouping = pref_use_this_week_grouping | default(true, true) -%}
+                  {%- set pref_include_weekly_recurring_in_this_week = pref_include_weekly_recurring_in_this_week | default(true, true) -%}
+                  {%- set pref_exclude_completed = pref_exclude_completed | default(false, true) -%}
+                  {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable else [] -%}
+                  {%- set pref_exclude_states = pref_exclude_states | map('lower') | list -%}
+                  {%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
+                    {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
+                  {%- endif -%}
+                  {%- set pref_use_label_grouping = pref_use_label_grouping | default(false, true) -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable else [] -%}
 
                   {#-- 2. Dynamic Lookups & Validations --#}
 
@@ -201,8 +246,8 @@ views:
                       {#-- Step 1: Skip if chore labels match exclude list --#}
                       {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
 
-                        {#-- Step 2: Skip completed chores if preference set --#}
-                        {%- if chore_status == 'completed' and pref_exclude_completed -%}
+                        {#-- Step 2: Skip chores by excluded states preference --#}
+                        {%- if chore_status in pref_exclude_states -%}
                           {#-- Skip this chore --#}
 
                         {#-- Step 3: Handle overdue chores (highest priority) --#}
@@ -331,9 +376,9 @@ views:
                             {#-- Build list of (due_date_timestamp, eid) tuples for sorting --#}
                             {%- set ns.temp_list = [] -%}
                             {%- for eid in group.buttons -%}
-                              {%- set due_date_str = state_attr(eid, 'due_date') | string -%}
-                              {%- if due_date_str not in ['None', 'unknown', 'unavailable'] -%}
-                                {%- set due_timestamp = as_timestamp(due_date_str) | default(9999999999, true) -%}
+                              {%- set due_date_value = state_attr(eid, 'due_date') -%}
+                              {%- if due_date_value is not none and due_date_value not in ['unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_value) | default(9999999999, true) -%}
                               {%- else -%}
                                 {%- set due_timestamp = 9999999999 -%}
                               {%- endif -%}
@@ -347,6 +392,44 @@ views:
                             {#-- Extract just the entity IDs --#}
                             {%- set sorted_buttons = sorted_list | map('last') | list -%}
                             {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- elif pref_sort_within_groups == 'by_state_and_date' -%}
+                            {#-- Actionability sort: overdue, due, pending, waiting, claimed, completed, completed_by_other, not_my_turn, missed --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set chore_state = states(eid) | lower -%}
+                              {%- if chore_state == 'overdue' -%}
+                                {%- set state_priority = 0 -%}
+                              {%- elif chore_state == 'due' -%}
+                                {%- set state_priority = 1 -%}
+                              {%- elif chore_state == 'pending' -%}
+                                {%- set state_priority = 2 -%}
+                              {%- elif chore_state == 'waiting' -%}
+                                {%- set state_priority = 3 -%}
+                              {%- elif chore_state == 'claimed' -%}
+                                {%- set state_priority = 4 -%}
+                              {%- elif chore_state in ['completed', 'approved'] -%}
+                                {%- set state_priority = 5 -%}
+                              {%- elif chore_state == 'completed_by_other' -%}
+                                {%- set state_priority = 6 -%}
+                              {%- elif chore_state == 'not_my_turn' -%}
+                                {%- set state_priority = 7 -%}
+                              {%- elif chore_state == 'missed' -%}
+                                {%- set state_priority = 8 -%}
+                              {%- else -%}
+                                {%- set state_priority = 50 -%}
+                              {%- endif -%}
+                              {%- set due_date_value = state_attr(eid, 'due_date') -%}
+                              {%- if due_date_value is not none and due_date_value not in ['unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_value) | default(9999999999, true) -%}
+                              {%- else -%}
+                                {%- set due_timestamp = 9999999999 -%}
+                              {%- endif -%}
+                              {%- set chore_name = state_attr(eid, 'chore_name') | default('zzz', true) | lower -%}
+                              {%- set ns.temp_list = ns.temp_list + [[state_priority, due_timestamp, chore_name, eid]] -%}
+                            {%- endfor -%}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
                           {%- else -%}
                             {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
                           {%- endif -%}
@@ -357,136 +440,98 @@ views:
                       {%- set button_groups = ns.sorted_groups -%}
                     {%- endif -%}
 
-                    {#-- 6. Render --#}
+                    {#-- 6. Render (production-aligned button-card layout) --#}
                     {{
                       {
-                        'type': 'heading',
+                        'type': 'custom:button-card',
+                        'name': ui.get('chores', 'err-chores'),
                         'icon': 'mdi:broom',
-                        'heading': ui.get('chores', 'err-chores'),
-                        'heading_style': 'title',
+                        'show_name': true,
+                        'show_icon': true,
+                        'styles': {
+                          'card': [
+                            {'background': 'transparent'},
+                            {'box-shadow': 'none'},
+                            {'border': 'none'},
+                            {'padding': '0px 0px 2px 0px'},
+                            {'min-height': 'unset'},
+                            {'margin-bottom': '-10px'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"i n"'},
+                            {'grid-template-columns': 'min-content 1fr'},
+                            {'gap': '1px'},
+                            {'align-items': 'center'}
+                          ],
+                          'icon': [
+                            {'width': '22px'},
+                            {'color': 'var(--primary-color)'}
+                          ],
+                          'name': [
+                            {'justify-self': 'start'},
+                            {'font-size': '20px'},
+                            {'font-weight': 'bold'},
+                            {'color': 'var(--primary-text-color)'}
+                          ]
+                        }
                       }
                     }},
 
-                    {#-- Loop through the button groups and create all claim buttons --#}
                     {%- for group in button_groups -%}
-                    {%- set ns.group_cards = [] -%}
-                    {%- if group.buttons | length > 0 -%}
-                      {%- set heading_card =
-                        {
-                          'type': 'heading',
-                          'icon': group.icon,
-                          'heading': group.name,
-                          'heading_style': 'title',
-                        }
-                      -%}
-                      {{- heading_card -}},
+                      {%- set ns.group_cards = [] -%}
+                      {%- if group.buttons | length > 0 -%}
+                        {%- set g_name = group.name | replace('!!!!!!!!!!! ', '') | replace(' !!!!!!!!!!!', '') -%}
+                        {%- set is_overdue = 'alert' in group.icon or 'overdue' in g_name | lower -%}
 
-                      {%- for chore_sensor_id in group.buttons -%}
-                        {%- set claim_button_eid = state_attr(chore_sensor_id, 'claim_button_eid') | default('', true) -%}
-                        {%- set approve_button_eid = state_attr(chore_sensor_id, 'approve_button_eid') | default('', true) -%}
-                        {%- set disapprove_button_eid = state_attr(chore_sensor_id, 'disapprove_button_eid') | default('', true) -%}
-                        {%- set chore_name = state_attr(chore_sensor_id, 'chore_name') | default('Unknown') -%}
-                        {%- set shared_chore = state_attr(chore_sensor_id, 'completion_criteria') != 'independent' -%}
-                        {%- set primary = chore_name ~ (' (S)' if shared_chore else '') -%}
-                        {%- set due_date_str = state_attr(chore_sensor_id, 'due_date') | string -%}
-                        {%- set due_date = as_datetime(due_date_str).astimezone(now().tzinfo) if due_date_str not in ['None', 'unknown', 'unavailable'] else None -%}
-                        {%- set recurring = state_attr(chore_sensor_id, 'recurring_frequency') -%}
-                        {%- set today = now().astimezone(now().tzinfo).date() -%}
-                        {%- set due_date_short =
-                            ui.get('daily', 'err-daily') if recurring == 'daily' and not due_date else
-                            ui.get('weekly', 'err-weekly') if recurring == 'weekly' and not due_date else
-                            ui.get('no_due_date', 'err-no_due_date') if not due_date else
-                            (due_date.strftime('%-I:%M %p') if due_date.date() == today else as_timestamp(due_date) | timestamp_custom('%a %b %-d', true))
-                        -%}
-
-                        {%- set approval_reset_type = state_attr(chore_sensor_id, 'approval_reset_type') -%}
-                        {%- set multi_approve = approval_reset_type and '_multi' in approval_reset_type -%}
-                        {%- set chore_state = states(chore_sensor_id) -%}
-                        {%- set state_map = {
-                            'pending': ui.get('pending', 'err-pending'),
-                            'due': ui.get('due', 'err-due'),
-                          'waiting': ui.get('waiting', 'err-waiting'),
-                            'claimed': ui.get('claimed', 'err-claimed'),
-                            'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
-                          'completed': ui.get('completed', 'err-completed'),
-                          'completed_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
-                            'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
-                          'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
-                          'missed': ui.get('missed', 'err-missed'),
-                            'overdue': ui.get('overdue', 'err-overdue'),
-                          'approved': ui.get('completed', 'err-completed'),
-                          'approved_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
-                            'independent': ui.get('independent', 'err-independent'),
-                            'shared_all': ui.get('shared_all', 'err-shared_all'),
-                            'shared_first': ui.get('shared_first', 'err-shared_first')
-                        } -%}
-                        {%- set chore_state_display = (state_map[chore_state] if chore_state in state_map else chore_state) ~ ' (M)' if multi_approve == true else (state_map[chore_state] if chore_state in state_map else chore_state) -%}
-                        {%- set points = state_attr(chore_sensor_id, 'default_points') | string -%}
-                        {%- set global_chore_state = state_attr(chore_sensor_id, 'global_state') -%}
-                        {%- set streak = state_attr(chore_sensor_id, 'chore_current_streak') | string -%}
-                        {%- set secondary = points_label ~ ': ' + points + '\n' + ui.get('streak', 'err-streak') + ': ' + streak + '\n \n' + ui.get('status', 'err-status') + ': ' + chore_state_display + '\n' + ui.get('due', 'err-due') + ': ' + due_date_short -%}
-                        {%- set icon_color = (
-                          'blue' if chore_state in ['completed', 'approved'] and multi_approve == true else
-                          'green' if chore_state in ['completed', 'approved'] else
-                          'yellow' if chore_state in ['completed_in_part', 'approved_in_part'] else
-                              'orange' if chore_state == 'claimed' else
-                              'red' if chore_state == 'overdue' else
-                              'purple' if '_in_part' in global_chore_state else
-                              'grey' if chore_state == 'completed_by_other' else
-                              'grey'
-                            ) -%}
-                        {%- set badge_color = (
-                          'blue' if chore_state in ['completed', 'approved'] and multi_approve == true else
-                          'green' if chore_state in ['completed', 'approved'] else
-                          'green' if chore_state in ['completed_in_part', 'approved_in_part'] else
-                              'green' if chore_state == 'claimed' else
-                              'red' if chore_state == 'overdue' else
-                              'purple' if '_in_part' in global_chore_state else
-                              'blue' if chore_state == 'completed_by_other' else
-                              'grey'
-                            ) -%}
-                        {%- set badge_icon = (
-                          'mdi:check-bold' if chore_state in ['completed', 'approved'] else
-                          'mdi:check-bold' if chore_state in ['completed_in_part', 'approved_in_part'] else
-                              'mdi:check-bold' if chore_state == 'claimed' else
-                              'mdi:exclamation-thick' if chore_state == 'overdue' else
-                              'mdi:account-group' if '_in_part' in global_chore_state else
-                              'mdi:lock' if chore_state == 'completed_by_other' else
-                              ''
-                            ) -%}
-                        {#-- Select button entity based on chore state --#}
-                        {#-- For non-workflow chores, claim_button_eid may be empty; fallback to approve_button_eid --#}
-                        {%- if chore_state in ['claimed', 'claimed_in_part'] -%}
-                          {%- set active_button_eid = disapprove_button_eid or claim_button_eid or approve_button_eid -%}
-                        {%- else -%}
-                          {%- set active_button_eid = claim_button_eid or approve_button_eid -%}
-                        {%- endif -%}
-                        {#-- Add chore card to the group_cards list --#}
-                        {%- set chore_icon = state_attr(chore_sensor_id, 'icon') | default('mdi:broom', true) -%}
-                        {%- set ns.group_cards = ns.group_cards + [{
-                            'type': 'custom:mushroom-template-card',
-                            'entity': chore_sensor_id,
-                            'primary': primary,
-                            'multiline_secondary': 'false',
-                            'secondary': secondary,
-                            'layout': 'horizontal',
-                            'icon': chore_icon,
-                            'icon_color': icon_color,
-                            'badge_color': badge_color,
-                            'badge_icon': badge_icon,
-                            'tap_action': {
-                              'action': 'call-service',
-                              'service': 'button.press',
-                              'target': {
-                                'entity_id': active_button_eid
-                              }
-                            },
-                            'hold_action': {
-                              'action': 'more-info'
+                        {{
+                          {
+                            'type': 'custom:button-card',
+                            'name': g_name,
+                            'icon': group.icon,
+                            'show_name': true,
+                            'show_icon': true,
+                            'styles': {
+                              'card': [
+                                {'background': 'rgba(244, 67, 54, 0.1)' if is_overdue else 'var(--secondary-background-color)'},
+                                {'box-shadow': 'none'},
+                                {'border': '2px solid rgba(244, 67, 54, 0.3)' if is_overdue else '2px solid var(--divider-color)'},
+                                {'border-radius': '6px'},
+                                {'padding': '6px 16px'},
+                                {'min-height': 'unset'},
+                                {'margin': '0px 0px 0px 0px'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"i n"'},
+                                {'grid-template-columns': 'min-content 1fr'},
+                                {'gap': '0px'},
+                                {'align-items': 'center'}
+                              ],
+                              'icon': [
+                                {'width': '18px'},
+                                {'color': 'var(--error-color)' if is_overdue else 'var(--primary-color)'}
+                              ],
+                              'name': [
+                                {'justify-self': 'right'},
+                                {'font-size': '12px'},
+                                {'font-weight': '800'},
+                                {'text-transform': 'uppercase'},
+                                {'letter-spacing': '0.9px'},
+                                {'color': 'var(--error-color)' if is_overdue else 'var(--primary-text-color)'}
+                              ]
                             }
-                        }] -%}
-                      {%- endfor -%}
-                      {#-- Display the grid card for this group --#}
+                          }
+                        }},
+
+                        {%- for chore_sensor_id in group.buttons -%}
+                            {%- set ns.group_cards = ns.group_cards + [
+                              {
+                                'type': 'custom:button-card',
+                                'template': 'choreops_chore_row_v1',
+                                'entity': chore_sensor_id
+                              }
+                            ] -%}
+                        {%- endfor -%}
+
                         {{
                           {
                             'type': 'grid',

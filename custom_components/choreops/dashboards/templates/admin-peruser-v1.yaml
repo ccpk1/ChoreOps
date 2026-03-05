@@ -18,6 +18,7 @@
 <#-- All HA Jinja2 {{ }} syntax preserved       --#>
 <#-- ============================================= --#>
 
+views:
 - title: ChoreOps Admin
   path: admin
   sections:

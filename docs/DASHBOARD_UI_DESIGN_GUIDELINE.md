@@ -1,6 +1,6 @@
 # Dashboard UI Design Guideline
 
-**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-03-02
+**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-03-04
 
 This guide defines the visual system for standard ChoreOps dashboards. Use it with `docs/DASHBOARD_TEMPLATE_GUIDE.md`: the template guide defines build/runtime contracts, while this document defines consistent presentation.
 
@@ -32,7 +32,7 @@ frontend-derived calculation:
 
 1. `global_state` (preferred for shared/global status presentation)
 2. `state` (fallback when `global_state` is unavailable)
-3. `can_claim` + `block_reason` (action gating and blocker semantics)
+3. `can_claim` + `claim_mode` (action gating and blocker semantics)
 
 Derived UI calculations are allowed only when a canonical attribute does not exist
 (for example, rendering a shared-all progress fraction from
@@ -108,23 +108,23 @@ For blocked or exception states (`waiting`, `missed`, `not_my_turn`, `completed_
 - Disable primary action button
 - Replace action button with status indicator icon
 
-### Claim blocker contract (`can_claim` + `block_reason`)
+### Claim mode contract (`can_claim` + `claim_mode`)
 
 Use claim capability as the single action truth for claim buttons:
 
-- If `can_claim` is `true`, claim action is enabled and `block_reason` should be `null`.
-- If `can_claim` is `false`, claim action is disabled and `block_reason` should be one of:
-  - `completed_by_other`
-  - `already_approved`
-  - `pending_claim`
-  - `waiting`
-  - `not_my_turn`
-  - `missed_locked`
+- If `can_claim` is `true`, claim action is enabled and `claim_mode` should be an actionable mode (`claimable` or `steal_available`).
+- If `can_claim` is `false`, claim action is disabled and `claim_mode` should be one of:
+  - `blocked_completed_by_other`
+  - `blocked_already_approved`
+  - `blocked_pending_claim`
+  - `blocked_waiting_window`
+  - `blocked_not_my_turn`
+  - `blocked_missed_locked`
 
 UI behavior rule:
 
 - Disable claim action whenever `can_claim` is `false`.
-- Show a localized blocker label derived from `block_reason` only for blocked/exception presentation.
+- Show a localized blocker label derived from `claim_mode` only for blocked/exception presentation.
 - Treat `state` as display semantics only (color/icon/text), not as claim-action gating.
 - Keep terminal completion display state as `completed` (there is no separate `approved` display state).
 
@@ -132,6 +132,7 @@ For high-attention states (`due`, `overdue`):
 
 - Apply state color to icon and border accent
 - Keep contrast high for label legibility
+- For `overdue`, tie the action affordance icon and outline to `var(--error-color)`
 
 ## Metadata stamp presentation
 
@@ -150,13 +151,13 @@ Placement and visual rules:
 
 ## Core per-user states (actionable)
 
-| State       | Display label | Standard hex | Lovelace CSS variable       | Action button icon  | Standard behavior                 |
-| ----------- | ------------- | ------------ | --------------------------- | ------------------- | --------------------------------- |
-| `pending`   | Upcoming      | `#4A4A4A`    | `var(--primary-text-color)` | `mdi:arrow-right`   | Neutral icon; start affordance    |
-| `due`       | Due           | `#FF9800`    | `var(--warning-color)`      | `mdi:arrow-right`   | Orange highlight on icon/accent   |
-| `claimed`   | In Progress   | `#A957FA`    | `var(--primary-color)`\*    | `mdi:check-all`     | Solid action button; undo visible |
-| `completed` | Done          | `#4CAF50`    | `var(--success-color)`      | `mdi:check`         | Success styling; action disabled  |
-| `overdue`   | Overdue       | `#F44336`    | `var(--error-color)`        | `mdi:alert-octagon` | Strong alert styling              |
+| State       | Display label | Standard hex | Lovelace CSS variable       | Action button icon  | Standard behavior                                   |
+| ----------- | ------------- | ------------ | --------------------------- | ------------------- | --------------------------------------------------- |
+| `pending`   | Upcoming      | `#4A4A4A`    | `var(--primary-text-color)` | `mdi:arrow-right`   | Neutral icon; start affordance                      |
+| `due`       | Due           | `#FF9800`    | `var(--warning-color)`      | `mdi:arrow-right`   | Orange highlight on icon/accent                     |
+| `claimed`   | In Progress   | `#A957FA`    | `var(--primary-color)`\*    | `mdi:check-all`     | Solid action button; undo visible                   |
+| `completed` | Done          | `#4CAF50`    | `var(--success-color)`      | `mdi:check`         | Green check icon + neutral outline; action disabled |
+| `overdue`   | Overdue       | `#F44336`    | `var(--error-color)`        | `mdi:alert-octagon` | Error-colored action icon + outline                 |
 
 \* Optional theme override for claimed purple:
 
@@ -172,6 +173,13 @@ choreops-claimed-color: "#A957FA"
 | `missed`             | Missed        | `#F44336`    | `var(--error-color)`         | `mdi:lock-outline`          | Window closed; locked               |
 | `not_my_turn`        | Not Your Turn | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-lock-outline`  | Show `Currently: [Sibling Name]`    |
 | `completed_by_other` | Done by Other | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-check-outline` | Show `Completed by: [Sibling Name]` |
+
+### Action affordance style defaults (chore rows)
+
+- Use `var(--primary-text-color)` as the default action icon color when no state-specific override applies
+- Use a `2px` actionable outline for default claimable states (commonly `var(--primary-color)`)
+- For `completed`, keep action button background transparent, icon `var(--success-color)`, and a neutral outline (`1px` disabled-text)
+- For `steal_available`, use gold emphasis (`#F2C94C`) for the button treatment and keep icon color theme-adaptive (`var(--primary-text-color)`)
 
 ## Collaborative mode behaviors
 
@@ -197,14 +205,20 @@ choreops-claimed-color: "#A957FA"
 
 ## UI modifiers and badges
 
-| Modifier type  | Description                   | Standard hex | Lovelace CSS variable        | Icon                         | Placement                   |
-| -------------- | ----------------------------- | ------------ | ---------------------------- | ---------------------------- | --------------------------- |
-| Shared (All)   | All assignees must complete   | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-group`          | Appended to chore name      |
-| Shared (First) | First assignee to claim wins  | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:flag-checkered`         | Appended to chore name      |
-| Rotating       | Assignment shifts by schedule | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-sync`           | Appended to chore name      |
-| Recurring      | Chore repeats automatically   | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:repeat`                 | Prepended to frequency text |
-| Bonus          | Positive admin points         | `#4CAF50`    | `var(--success-color)`       | `mdi:star-plus` / `mdi:gift` | Admin action grids          |
-| Penalty        | Negative admin points         | `#F44336`    | `var(--error-color)`         | `mdi:alert-octagon`          | Admin action grids          |
+| Modifier type   | Description                                    | Standard hex | Lovelace CSS variable        | Icon                          | Placement                            |
+| --------------- | ---------------------------------------------- | ------------ | ---------------------------- | ----------------------------- | ------------------------------------ |
+| Steal Available | Claim window can be stolen by another assignee | `#F2C94C`    | `var(--warning-color)`       | `mdi:hand-back-right-outline` | Secondary status + action affordance |
+| Shared (All)    | All assignees must complete                    | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-group`           | Appended to chore name               |
+| Shared (First)  | First assignee to claim wins                   | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:flag-checkered`          | Appended to chore name               |
+| Rotating        | Assignment shifts by schedule                  | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:account-sync`            | Appended to chore name               |
+| Recurring       | Chore repeats automatically                    | `#9E9E9E`    | `var(--disabled-text-color)` | `mdi:repeat`                  | Prepended to frequency text          |
+| Bonus           | Positive admin points                          | `#4CAF50`    | `var(--success-color)`       | `mdi:star-plus` / `mdi:gift`  | Admin action grids                   |
+| Penalty         | Negative admin points                          | `#F44336`    | `var(--error-color)`         | `mdi:alert-octagon`           | Admin action grids                   |
+
+Steal color application rule:
+
+- Apply the gold steal treatment only when `claim_mode` is `steal_available`
+- Do not apply steal styling for generic blocked states
 
 ## Implementation checklist (template authors)
 

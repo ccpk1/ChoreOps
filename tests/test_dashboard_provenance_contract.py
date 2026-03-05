@@ -28,6 +28,29 @@ def test_build_multi_view_dashboard_stamps_provenance() -> None:
     assert config[const.DASHBOARD_CONFIG_KEY_PROVENANCE] == provenance
 
 
+def test_build_multi_view_dashboard_preserves_view_local_button_card_templates() -> (
+    None
+):
+    """Builder preserves view-local button-card templates without hoisting."""
+    views = [
+        {
+            "title": "Zoe",
+            "path": "zoe",
+            "cards": [],
+            "button_card_templates": {
+                "choreops_chore_row_v1": {"show_name": True},
+            },
+        }
+    ]
+
+    config = builder.build_multi_view_dashboard(views)
+
+    assert "button_card_templates" not in config
+    assert config["views"][0]["button_card_templates"] == {
+        "choreops_chore_row_v1": {"show_name": True}
+    }
+
+
 def test_build_dashboard_provenance_includes_required_metadata_keys() -> None:
     """Provenance builder returns required metadata keys for stamped dashboards."""
     provenance = builder._build_dashboard_provenance(

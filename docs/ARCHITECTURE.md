@@ -413,6 +413,7 @@ Integration manifest version contract (`custom_components/choreops/manifest.json
 - The integration repository and dashboard registry repository are versioned independently.
 - Numeric version equality between repositories is not required.
 - Compatibility is defined by explicit contracts (manifest compatibility fields, schema versions, dependency declarations), not by shared version numbers.
+- Dashboard shared-fragment contract fields (`shared_contract_version`, `shared_fragments_required`) are registry asset metadata and do not modify `.storage/choreops/choreops_data` schema/version.
 
 Practical implication:
 
@@ -799,6 +800,7 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 - Manifest-driven template IDs and source paths are the runtime contract
 - Bundled fallback assets live in `custom_components/choreops/dashboards/`
 - Canonical authoring source is `choreops-dashboards`; vendored assets are synced via parity workflow
+- Shared-fragment contract fields (`shared_contract_version`, `shared_fragments_required`, `shared_fragments_optional`) are validation metadata and release-prepare closure hints
 
 **Generation Flow** (`options_flow.py` → `dashboard_helpers.py`):
 
@@ -808,6 +810,9 @@ The Options Flow provides automated dashboard generation, creating fully-functio
 - Update path applies changes in place to the selected dashboard URL path
 - Build-time rendering: Python Jinja2 populates `user.*` + `integration.entry_id` context with `<< >>` delimiters
 - Runtime rendering: Home Assistant Jinja2 fetches live data with `{{ }}` delimiters
+- Templates render as full dashboard documents (`views` root, optional root `button_card_templates`)
+- Builder extracts rendered views and merges root template blocks deterministically without view hoisting
+- Shared marker composition is executed in runtime compile paths (prepared-assets compile / local fetch), not in sync/apply disk writes
 - Output: Lovelace storage dashboard config persisted through the dashboard builder helpers
 
 **System Dashboard Selector**:
@@ -826,6 +831,7 @@ flow session:
 - Step 1 prepares release assets (registry, templates, translations, preferences)
 - Prepared assets are applied to local vendored dashboard paths as the active
   baseline for generation/runtime reads
+- Apply preserves canonical template source text (including shared markers and `templates/shared/*`) for strict canonical↔vendored parity
 - Manifest template-definition cache is reset and re-primed immediately after
   apply so same-flow selectors stay populated
 - Dashboard translation caches are cleared after apply so translation sensors can

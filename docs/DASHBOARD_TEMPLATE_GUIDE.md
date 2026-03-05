@@ -122,6 +122,48 @@ When canonical dashboard changes must be available to integration runtime for te
 3. Run `python utils/sync_dashboard_assets.py --check`.
 4. Run relevant dashboard tests in `choreops`.
 
+### Shared-template contract (hard fork)
+
+Shared fragments are authoring-only source assets under:
+
+- `choreops-dashboards/templates/shared/*.yaml`
+
+Include markers in non-shared templates use this syntax:
+
+- `<< template_shared.<fragment_id> >>`
+
+`fragment_id` mapping rules:
+
+- Relative path from `templates/shared/` without `.yaml`
+- Examples:
+  - `templates/shared/chore_row_user_chores_v1.yaml` → `<< template_shared.chore_row_user_chores_v1 >>`
+  - `templates/shared/rows/chore/action_v1.yaml` → `<< template_shared.rows/chore/action_v1 >>`
+
+Naming/version conventions:
+
+- Use descriptive snake_case ids with explicit suffixes for versioned contract blocks (for example `_v1`, `_v2`).
+- Treat shared fragments as reusable source modules; do not write business logic variants that differ only by whitespace or formatting.
+
+Runtime and sync rules:
+
+- Canonical and vendored template assets are kept byte-identical by sync/parity checks.
+- `templates/shared/*` is part of the vendored runtime mirror and must be present on disk.
+- Marker composition happens in generator/runtime compile paths (prepared-assets compile and local template fetch), not during sync or release-apply writes.
+- Missing or circular fragment references are hard failures in compile paths.
+
+Registry contract fields for shared fragments (Phase 3C):
+
+- `shared_contract_version`: contract parser version for shared fragment metadata.
+- `shared_fragments_required`: required fragment ids used for release-prepare closure checks.
+- `shared_fragments_optional`: optional fragment ids reserved for non-blocking governance.
+
+Field rules:
+
+- The shared contract object is optional for legacy templates (backward compatible).
+- When any shared contract field is present, `shared_contract_version` must be `1`.
+- Fragment ids must match the same marker id namespace as `template_shared.<id>`.
+- Duplicate ids and overlap between required/optional sets are invalid.
+
 ### Optional local preload loop (UX iteration)
 
 When iterating on dashboard UX and you need realistic local test data quickly:
@@ -258,25 +300,26 @@ custom_components/choreops/dashboards/templates/
 
 ### Output Format (CRITICAL)
 
-**All templates must output a SINGLE VIEW object, not a full dashboard.**
+**All templates must output a full dashboard document.**
 
 ```yaml
-# ✅ CORRECT - Single view (list item)
-- max_columns: 4
-  title: << user.name >> Chores
-  path: << user.slug >>
-  sections:
-    - type: grid
-      cards: [...]
-
-# ❌ WRONG - Full dashboard with views wrapper
+# ✅ CORRECT - Full dashboard document
+button_card_templates:
+  << template_shared.button_card_template_user_chores_row_v1 >>
 views:
   - max_columns: 4
     title: << user.name >> Chores
-    ...
-```
+    path: << user.slug >>
+    sections:
+      - type: grid
+        cards: [...]
 
-The builder combines multiple single-view outputs into `{"views": [...]}`.
+# ❌ WRONG - Bare top-level single-view list item
+- max_columns: 4
+  title: << user.name >> Chores
+  path: << user.slug >>
+  sections: [...]
+```
 
 ---
 
@@ -482,7 +525,7 @@ Every template MUST start with this header block:
 <#-- ============================================= --#>
 <#--                                               --#>
 <#-- [Brief description of this template]          --#>
-<#-- OUTPUT: Single view object (combined by builder) --#>
+<#-- OUTPUT: Full dashboard document with root keys --#>
 <#--                                               --#>
 <#-- Injection variables (Python Jinja2 << >>):    --#>
 <#--   << user.name >> - User display name           --#>
@@ -493,8 +536,11 @@ Every template MUST start with this header block:
 <#-- All HA Jinja2 {{ }} syntax is preserved as-is --#>
 <#-- ============================================= --#>
 
-- max_columns: 4
-  title: ...
+button_card_templates:
+  << template_shared.<fragment_id> >>
+views:
+  - max_columns: 4
+    title: ...
 ```
 
 For admin templates, omit the injection variables section and note "No injection needed".
@@ -590,16 +636,19 @@ template = env.from_string(template_str)
 rendered = template.render(**context)
 
 config = yaml.safe_load(rendered)
-if isinstance(config, list) and len(config) > 0:
-    print(f"✅ Valid: Parsed as list, first item keys: {list(config[0].keys())[:5]}")
+if isinstance(config, dict) and isinstance(config.get("views"), list) and len(config["views"]) > 0:
+  print(f"✅ Valid: Parsed as dashboard dict, root keys: {list(config.keys())[:5]}")
 else:
-    print(f"❌ Invalid: Expected list, got {type(config)}")
+  print(f"❌ Invalid: Expected dict with views list, got {type(config)}")
 EOF
 ```
 
 ### 3. View Structure Check
 
 Ensure output has required keys:
+
+- `views` - Top-level list of rendered views
+- optional `button_card_templates` - Top-level template contract block
 
 - `title` - View tab title
 - `path` - URL path segment (unique per view)

@@ -49,6 +49,7 @@ from .dashboard_helpers import (
     async_prime_manifest_template_definitions,
     build_admin_dashboard_context,
     build_dashboard_context,
+    compile_prepared_template_assets,
     get_default_admin_template_id,
     get_default_assignee_template_id,
     get_template_source_path,
@@ -531,7 +532,26 @@ async def _fetch_local_template(
     template_path = manifest_dir / source_path
 
     def read_template() -> str:
-        return template_path.read_text(encoding="utf-8")
+        template_content = template_path.read_text(encoding="utf-8")
+        if "<< template_shared." not in template_content:
+            return template_content
+
+        shared_root = manifest_dir / "templates" / "shared"
+        template_assets: dict[str, str] = {
+            source_path: template_content,
+        }
+        if shared_root.exists():
+            for shared_path in sorted(shared_root.rglob("*.yaml")):
+                relative_shared_path = shared_path.relative_to(manifest_dir).as_posix()
+                template_assets[relative_shared_path] = shared_path.read_text(
+                    encoding="utf-8"
+                )
+
+        compiled_assets = compile_prepared_template_assets(template_assets)
+        compiled_template = compiled_assets.get(source_path)
+        if isinstance(compiled_template, str):
+            return compiled_template
+        return template_content
 
     # Run file I/O in executor to avoid blocking
     return await hass.async_add_executor_job(read_template)
@@ -557,7 +577,7 @@ def render_dashboard_template(
             with assignee.name and assignee.slug. For admin, use empty dict {}.
 
     Returns:
-        Parsed YAML as dict (single view object).
+        Parsed YAML as dict (full dashboard template document).
 
     Raises:
         DashboardRenderError: If template rendering or YAML parsing fails.
@@ -603,19 +623,56 @@ def render_dashboard_template(
         const.LOGGER.error("YAML parsing failed: %s", err)
         raise DashboardRenderError(f"YAML parsing failed: {err}") from err
 
-    # Template now produces a single view (list with one item) or a dict
-    # Handle both cases for flexibility
-    if isinstance(config, list) and len(config) > 0:
-        # Template is a list (starts with '- '), return first item
-        return config[0]
     if isinstance(config, dict):
         return config
 
-    raise DashboardRenderError("Template did not produce a valid view config")
+    raise DashboardRenderError("Template did not produce a valid dashboard config")
+
+
+def _extract_rendered_template_view_and_root_templates(
+    rendered_template: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Extract a single view and optional root template block from rendered output."""
+    root_templates = rendered_template.get("button_card_templates")
+    if not isinstance(root_templates, dict):
+        root_templates = None
+
+    views_value = rendered_template.get("views")
+    if not isinstance(views_value, list):
+        raise DashboardRenderError("Template must render root 'views' list")
+
+    views = [view for view in views_value if isinstance(view, dict)]
+    if len(views) != 1:
+        raise DashboardRenderError(
+            "Template with root 'views' must render exactly one view"
+        )
+    return views[0], root_templates
+
+
+def _merge_root_button_card_templates(
+    merged_templates: dict[str, Any],
+    new_templates: dict[str, Any] | None,
+) -> None:
+    """Merge root button-card templates with deterministic conflict handling."""
+    if not isinstance(new_templates, dict):
+        return
+
+    for template_name, template_value in new_templates.items():
+        if not isinstance(template_name, str):
+            continue
+        existing_value = merged_templates.get(template_name)
+        if existing_value is not None and existing_value != template_value:
+            const.LOGGER.warning(
+                "Conflicting root button-card template definition for %s; keeping first definition",
+                template_name,
+            )
+            continue
+        merged_templates[template_name] = template_value
 
 
 def build_multi_view_dashboard(
     views: list[dict[str, Any]],
+    root_button_card_templates: dict[str, Any] | None = None,
     provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a complete dashboard config from multiple views.
@@ -626,7 +683,9 @@ def build_multi_view_dashboard(
     Returns:
         Complete Lovelace dashboard config with views array.
     """
-    dashboard_config: dict[str, Any] = {"views": views}
+    dashboard_config: dict[str, Any] = {"views": [dict(view) for view in views]}
+    if isinstance(root_button_card_templates, dict) and root_button_card_templates:
+        dashboard_config["button_card_templates"] = dict(root_button_card_templates)
     if provenance:
         dashboard_config[const.DASHBOARD_CONFIG_KEY_PROVENANCE] = provenance
     return dashboard_config
@@ -926,11 +985,26 @@ async def create_choreops_dashboard(
     if isinstance(prepared_release_assets, dict):
         raw_template_assets = prepared_release_assets.get("template_assets")
         if isinstance(raw_template_assets, dict):
-            prepared_template_assets = {
-                path: content
-                for path, content in raw_template_assets.items()
-                if isinstance(path, str) and isinstance(content, str)
-            }
+            prepared_template_definitions = prepared_release_assets.get(
+                "template_definitions"
+            )
+            try:
+                prepared_template_assets = compile_prepared_template_assets(
+                    {
+                        path: content
+                        for path, content in raw_template_assets.items()
+                        if isinstance(path, str) and isinstance(content, str)
+                    },
+                    template_definitions=(
+                        prepared_template_definitions
+                        if isinstance(prepared_template_definitions, list)
+                        else None
+                    ),
+                )
+            except HomeAssistantError as err:
+                raise DashboardTemplateError(
+                    f"Prepared release template assets are invalid: {err}"
+                ) from err
         strict_pin = bool(prepared_release_assets.get("strict_pin", False))
 
     async def _get_template(target_style: str) -> str:
@@ -982,6 +1056,7 @@ async def create_choreops_dashboard(
 
     # Build views for each assignee
     views: list[dict[str, Any]] = []
+    root_button_card_templates: dict[str, Any] = {}
 
     for assignee_name in assignee_names:
         assignee_id = (
@@ -1007,7 +1082,13 @@ async def create_choreops_dashboard(
             generated_at=generated_at,
         )
         # Convert TypedDict to regular dict for generic render function
-        assignee_view = render_dashboard_template(template_str, dict(assignee_context))
+        rendered_template = render_dashboard_template(
+            template_str, dict(assignee_context)
+        )
+        assignee_view, root_templates = (
+            _extract_rendered_template_view_and_root_templates(rendered_template)
+        )
+        _merge_root_button_card_templates(root_button_card_templates, root_templates)
         views.append(assignee_view)
         const.LOGGER.debug(
             "Built view for assignee: %s (template_profile=%s)",
@@ -1048,7 +1129,7 @@ async def create_choreops_dashboard(
 
         if include_global_admin:
             global_admin_template = await _get_admin_template(global_admin_template_id)
-            global_admin_view = render_dashboard_template(
+            rendered_admin_template = render_dashboard_template(
                 global_admin_template,
                 build_admin_dashboard_context(
                     integration_entry_id=integration_entry_id,
@@ -1057,6 +1138,14 @@ async def create_choreops_dashboard(
                     release_version=local_release_version,
                     generated_at=generated_at,
                 ),
+            )
+            global_admin_view, root_templates = (
+                _extract_rendered_template_view_and_root_templates(
+                    rendered_admin_template
+                )
+            )
+            _merge_root_button_card_templates(
+                root_button_card_templates, root_templates
             )
             global_admin_view.setdefault("title", "ChoreOps Admin")
             global_admin_view["path"] = "admin"
@@ -1089,9 +1178,18 @@ async def create_choreops_dashboard(
                     release_version=local_release_version,
                     generated_at=generated_at,
                 )
-                per_assignee_admin_view = render_dashboard_template(
+                rendered_admin_template = render_dashboard_template(
                     per_assignee_admin_template,
                     dict(per_assignee_context),
+                )
+                per_assignee_admin_view, root_templates = (
+                    _extract_rendered_template_view_and_root_templates(
+                        rendered_admin_template
+                    )
+                )
+                _merge_root_button_card_templates(
+                    root_button_card_templates,
+                    root_templates,
                 )
                 per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
                 per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
@@ -1110,6 +1208,7 @@ async def create_choreops_dashboard(
     # Combine all views into dashboard config
     dashboard_config = build_multi_view_dashboard(
         views,
+        root_button_card_templates=root_button_card_templates,
         provenance=_build_dashboard_provenance(
             integration_entry_id=integration_entry_id,
             template_id=style,
@@ -1281,11 +1380,26 @@ async def update_choreops_dashboard_views(
     if isinstance(prepared_release_assets, dict):
         raw_template_assets = prepared_release_assets.get("template_assets")
         if isinstance(raw_template_assets, dict):
-            prepared_template_assets = {
-                path: content
-                for path, content in raw_template_assets.items()
-                if isinstance(path, str) and isinstance(content, str)
-            }
+            prepared_template_definitions = prepared_release_assets.get(
+                "template_definitions"
+            )
+            try:
+                prepared_template_assets = compile_prepared_template_assets(
+                    {
+                        path: content
+                        for path, content in raw_template_assets.items()
+                        if isinstance(path, str) and isinstance(content, str)
+                    },
+                    template_definitions=(
+                        prepared_template_definitions
+                        if isinstance(prepared_template_definitions, list)
+                        else None
+                    ),
+                )
+            except HomeAssistantError as err:
+                raise DashboardTemplateError(
+                    f"Prepared release template assets are invalid: {err}"
+                ) from err
         strict_pin = bool(prepared_release_assets.get("strict_pin", False))
 
     async def _get_template(target_style: str) -> str:
@@ -1327,6 +1441,7 @@ async def update_choreops_dashboard_views(
         return template_cache[target_style]
 
     updated_assignee_views_by_path: dict[str, dict[str, Any]] = {}
+    root_button_card_templates: dict[str, Any] = {}
     for assignee_name in assignee_names:
         assignee_id = (
             assignee_ids_by_name.get(assignee_name)
@@ -1345,9 +1460,13 @@ async def update_choreops_dashboard_views(
             release_version=local_release_version,
             generated_at=generated_at,
         )
-        assignee_view = render_dashboard_template(
+        rendered_template = render_dashboard_template(
             assignee_template, dict(assignee_context)
         )
+        assignee_view, root_templates = (
+            _extract_rendered_template_view_and_root_templates(rendered_template)
+        )
+        _merge_root_button_card_templates(root_button_card_templates, root_templates)
         assignee_path = assignee_view.get("path")
         if isinstance(assignee_path, str):
             updated_assignee_views_by_path[assignee_path] = assignee_view
@@ -1406,7 +1525,7 @@ async def update_choreops_dashboard_views(
 
         if include_global_admin:
             global_admin_template = await _get_admin_template(global_admin_template_id)
-            global_admin_view = render_dashboard_template(
+            rendered_admin_template = render_dashboard_template(
                 global_admin_template,
                 build_admin_dashboard_context(
                     integration_entry_id=integration_entry_id,
@@ -1415,6 +1534,14 @@ async def update_choreops_dashboard_views(
                     release_version=local_release_version,
                     generated_at=generated_at,
                 ),
+            )
+            global_admin_view, root_templates = (
+                _extract_rendered_template_view_and_root_templates(
+                    rendered_admin_template
+                )
+            )
+            _merge_root_button_card_templates(
+                root_button_card_templates, root_templates
             )
             global_admin_view.setdefault("title", "ChoreOps Admin")
             global_admin_view["path"] = "admin"
@@ -1447,9 +1574,18 @@ async def update_choreops_dashboard_views(
                     release_version=local_release_version,
                     generated_at=generated_at,
                 )
-                per_assignee_admin_view = render_dashboard_template(
+                rendered_admin_template = render_dashboard_template(
                     per_assignee_admin_template,
                     dict(per_assignee_context),
+                )
+                per_assignee_admin_view, root_templates = (
+                    _extract_rendered_template_view_and_root_templates(
+                        rendered_admin_template
+                    )
+                )
+                _merge_root_button_card_templates(
+                    root_button_card_templates,
+                    root_templates,
                 )
                 per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
                 per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
@@ -1462,8 +1598,7 @@ async def update_choreops_dashboard_views(
     elif existing_admin_view is not None:
         const.LOGGER.debug("Removed admin view from dashboard: %s", url_path)
 
-    new_config = dict(existing_config)
-    new_config[const.DASHBOARD_CONFIG_KEY_PROVENANCE] = _build_dashboard_provenance(
+    dashboard_provenance = _build_dashboard_provenance(
         integration_entry_id=integration_entry_id,
         template_id=template_profile,
         requested_release_selection=requested_release_selection,
@@ -1473,7 +1608,19 @@ async def update_choreops_dashboard_views(
         include_prereleases=include_prereleases,
         generated_at=generated_at,
     )
-    new_config["views"] = merged_views
+
+    rebuilt_config = build_multi_view_dashboard(
+        merged_views,
+        root_button_card_templates=root_button_card_templates,
+        provenance=dashboard_provenance,
+    )
+
+    new_config = {
+        key: value
+        for key, value in existing_config.items()
+        if key not in ("views", const.DASHBOARD_CONFIG_KEY_PROVENANCE)
+    }
+    new_config.update(rebuilt_config)
 
     try:
         await dashboard.async_save(new_config)

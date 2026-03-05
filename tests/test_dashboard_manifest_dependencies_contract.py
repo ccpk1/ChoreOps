@@ -7,10 +7,13 @@ from pathlib import Path
 import re
 from typing import Any
 
+from custom_components.choreops.helpers import dashboard_helpers as dh
+
 VALID_TEMPLATE_ID_RE = re.compile(r"^[a-z0-9]+-[a-z0-9-]+-v[0-9]+$")
 VALID_LIFECYCLE_STATES = {"active", "deprecated", "archived"}
 VALID_AUDIENCES = {"user", "approver", "mixed"}
 VALID_SOURCE_TYPES = {"vendored", "remote"}
+VALID_SHARED_FRAGMENT_ID_RE = re.compile(r"^[a-z0-9_][a-z0-9_./-]*$")
 
 
 def _project_root() -> Path:
@@ -151,3 +154,130 @@ def test_manifest_required_dependencies_cover_custom_cards_in_templates() -> Non
         assert not missing, (
             f"Template '{template_id}' missing required dependency declarations: {missing}"
         )
+
+
+def test_manifest_shared_contract_fields_are_valid_when_present() -> None:
+    """Shared template contract fields are optional and validated when present."""
+    manifest = _load_dashboard_manifest()
+    templates = manifest.get("templates")
+
+    assert isinstance(templates, list)
+    assert templates
+
+    for template in templates:
+        assert isinstance(template, dict)
+        template_id = template.get("template_id")
+        assert isinstance(template_id, str) and template_id
+
+        has_shared_contract = any(
+            field in template
+            for field in (
+                "shared_contract_version",
+                "shared_fragments_required",
+                "shared_fragments_optional",
+            )
+        )
+        if not has_shared_contract:
+            continue
+
+        assert template.get("shared_contract_version") == 1
+
+        required_fragments = template.get("shared_fragments_required")
+        optional_fragments = template.get("shared_fragments_optional", [])
+        assert isinstance(required_fragments, list)
+        assert isinstance(optional_fragments, list)
+
+        required_seen: set[str] = set()
+        for fragment_id in required_fragments:
+            assert isinstance(fragment_id, str) and fragment_id
+            assert VALID_SHARED_FRAGMENT_ID_RE.match(fragment_id)
+            assert fragment_id not in required_seen
+            required_seen.add(fragment_id)
+
+        optional_seen: set[str] = set()
+        for fragment_id in optional_fragments:
+            assert isinstance(fragment_id, str) and fragment_id
+            assert VALID_SHARED_FRAGMENT_ID_RE.match(fragment_id)
+            assert fragment_id not in optional_seen
+            assert fragment_id not in required_seen
+            optional_seen.add(fragment_id)
+
+
+def test_manifest_parser_allows_legacy_templates_without_shared_contract_fields() -> (
+    None
+):
+    """Parser keeps backward compatibility when shared contract fields are omitted."""
+    manifest = _load_dashboard_manifest()
+    templates = manifest.get("templates")
+    assert isinstance(templates, list)
+
+    legacy_template = next(
+        (
+            template
+            for template in templates
+            if isinstance(template, dict)
+            and "shared_contract_version" not in template
+            and "shared_fragments_required" not in template
+            and "shared_fragments_optional" not in template
+        ),
+        None,
+    )
+    assert isinstance(legacy_template, dict)
+
+    normalized = dh._validate_and_normalize_template_definition(
+        legacy_template,
+        seen_template_ids=set(),
+    )
+    assert normalized is not None
+    assert "shared_contract_version" not in normalized
+    assert "shared_fragments_required" not in normalized
+    assert "shared_fragments_optional" not in normalized
+
+
+def test_manifest_parser_rejects_invalid_shared_contract_shapes() -> None:
+    """Parser rejects invalid shared contract field combinations."""
+    manifest = _load_dashboard_manifest()
+    templates = manifest.get("templates")
+    assert isinstance(templates, list)
+
+    base_template = next(
+        template
+        for template in templates
+        if isinstance(template, dict)
+        and template.get("template_id") == "user-chores-v1"
+    )
+
+    missing_version_template = dict(base_template)
+    missing_version_template.pop("shared_contract_version", None)
+    assert (
+        dh._validate_and_normalize_template_definition(
+            missing_version_template,
+            seen_template_ids=set(),
+        )
+        is None
+    )
+
+    invalid_fragment_id_template = dict(base_template)
+    invalid_fragment_id_template["shared_fragments_required"] = ["Bad Fragment"]
+    assert (
+        dh._validate_and_normalize_template_definition(
+            invalid_fragment_id_template,
+            seen_template_ids=set(),
+        )
+        is None
+    )
+
+    overlapping_fragment_ids_template = dict(base_template)
+    overlapping_fragment_ids_template["shared_fragments_required"] = [
+        "rows/chore/action_v1"
+    ]
+    overlapping_fragment_ids_template["shared_fragments_optional"] = [
+        "rows/chore/action_v1"
+    ]
+    assert (
+        dh._validate_and_normalize_template_definition(
+            overlapping_fragment_ids_template,
+            seen_template_ids=set(),
+        )
+        is None
+    )

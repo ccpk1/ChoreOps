@@ -66,6 +66,17 @@ chores:
     completion_criteria: "rotation_simple"
     recurring_frequency: "daily"
 
+  - name: "UX-ROT-004 | Rotation Overdue Steal Available"
+    assigned_to: ["Max!", "Lila", "Zoë"]
+    points: 14
+    icon: "mdi:rotate-3d-variant"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date_allow_steal"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "now+5s"
+
   - name: "UX-SF-001 | Shared First Claimed"
     assigned_to: ["Zoë", "Max!", "Lila"]
     points: 9

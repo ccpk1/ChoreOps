@@ -9,20 +9,29 @@
 
 ## Summary & immediate steps
 
-| Phase / Step                                | Description                                                                                    | % complete | Quick notes                                                   |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------: | ------------------------------------------------------------- |
-| Phase 1 – UX foundation + tooling           | Create UX-focused dashboard builder agent and standardize template naming/version strategy     |        100 | Completed: agent created, boundaries codified, toolkit linked |
-| Phase 2 – Dev preload workflow              | Make rapid local dashboard testing easy using scenario-based live preload tooling              |        100 | Completed: script modernized + docs + targeted tests          |
-| Phase 3 – User template modernization       | Build new user-essential-v1 first (header + chores), then expand to additional user profile(s) |         15 | Step 1 started from existing template baseline                |
-| Phase 4 – Admin modernization + docs/polish | Modernize admin templates and finalize docs/contracts/validation checklist                     |          0 | Align with template and UI guidelines                         |
+| Phase / Step                                | Description                                                                                                          | % complete | Quick notes                                                                                                          |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------: | -------------------------------------------------------------------------------------------------------------------- |
+| Phase 1 – UX foundation + tooling           | Create UX-focused dashboard builder agent and standardize template naming/version strategy                           |        100 | Completed: agent created, boundaries codified, toolkit linked                                                        |
+| Phase 2 – Dev preload workflow              | Make rapid local dashboard testing easy using scenario-based live preload tooling                                    |        100 | Completed: script modernized + docs + targeted tests                                                                 |
+| Phase 3 – User template modernization       | Build lightweight inline chore-essentials first, then full-featured chores template from the v2 shared-row reference |        100 | Essentials + chores v1 drafted and composition-ready                                                                 |
+| Phase 3A – Template composition parity      | Ensure shared-template composition behaves identically in local sync and remote release apply                        |        100 | Shared contract + sync/release parity + safety tests complete                                                        |
+| Phase 3B – Row template parity recovery     | Rebuild `user-chores-v1` around true `button_card_templates` semantics and prove behavior parity                     |         75 | B2 complete; parser-contract remediation/tests complete; remaining row behavior parity items pending                 |
+| Phase 3C – Single-path contract enforcement | Unify create/update/release template handling under one compile path with registry-backed shared contract validation |        100 | Hard-fork path complete: no hoist, root-template contract, strict canonical↔vendored parity, targeted suites passing |
+| Phase 4 – Admin modernization + docs/polish | Modernize admin templates and finalize docs/contracts/validation checklist                                           |          0 | Align with template and UI guidelines                                                                                |
 
-1. **Key objective** – Deliver modern, app-like dashboards while preserving existing templates and runtime stability.
-2. **Summary of recent work** – Completed Phase 2 preload workflow: modernized live scenario loader, added seeded UX state-driver scenario coverage (waiting/due/overdue), and updated utility/dashboard documentation for repeatable local UX loops.
-3. **Next steps (short term)** – Continue Phase 3 with `user-essential-v1` render modernization while preserving existing template contracts.
+1. **Key objective** – Deliver modern, app-like dashboards with strong runtime stability.
+2. **Summary of recent work** – Phase 3B now includes true row-template architecture wiring (`button_card_templates` + row template references), no builder hoist behavior, sync parity confirmation, and targeted validation pass.
+3. **Next steps (short term)** – Close remaining Phase 3B row-behavior parity items or explicitly defer them, then begin Phase 4 admin modernization + docs polish.
 4. **Risks / blockers**
    - Home Assistant dashboard constraints (no custom card authoring in this initiative) can limit advanced interaction patterns.
    - Dependency drift risk when introducing new custom card usage across templates.
    - Rapid design iteration may create contract drift unless canonical-vendored sync is enforced each cycle.
+     - Architecture mismatch risk: include-marker composition alone does not prove true `button_card_templates` behavior parity.
+     - Composition drift risk: if shared-template composition runs in sync flow but not remote release-apply flow, local and downloaded dashboards can diverge.
+     - Runtime failure risk: unresolved fragment markers in published templates can break generator rendering at runtime.
+       - Dual-path risk remains until create/update/release ingestion all consume compiled assets through one helper path.
+       - Verification drift risk: existing tests do not currently assert template-definition semantics.
+       - Parser-contract drift risk: documented nested shared fragment ids (with `/`) were not explicitly validated in Phase 3B, allowing sync/release parsers to diverge from docs.
 5. **References**
    - `docs/ARCHITECTURE.md`
    - `docs/DEVELOPMENT_STANDARDS.md`
@@ -33,10 +42,14 @@
    - `docs/DASHBOARD_UI_DESIGN_GUIDELINE.md`
    - `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_DASHBOARD_BUILDER_AGENT_DRAFT.md`
    - `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_CARD_TOOLKIT.md`
+     - `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3A.md`
+       - `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3B.md`
+       - `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3C.md`
+       - `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_PHASE3C_SCHEMA_APPENDIX.md`
 6. **Decisions & completion check**
    - **Decisions captured**:
-     - Keep all current template IDs and files unchanged (v1 remains supported).
-     - Introduce new templates as additive v2 IDs, validated by existing registry/runtime contracts.
+     - Since templates are not yet user-released, prioritize UX clarity over backward compatibility in template naming and structure.
+     - Introduce `chore-essentials` as the lightweight inline baseline and a separate full-featured chores template for richer UX.
      - Prioritize reusable card fragments/patterns from minimal-v2 into gamification-v2.
      - Do not build a new custom card in this initiative; rely on existing ecosystem cards only.
    - **Completion confirmation**: `[ ]` All follow-up items completed (agent + preload + templates + docs + parity + validation) before owner sign-off.
@@ -110,7 +123,7 @@
 
 ### Phase 3 – User template modernization
 
-- **Goal**: Deliver additive modern user templates starting with `user-essential-v1`, then expand to additional user profile template(s).
+- **Goal**: Deliver a modern lightweight inline chores template first (`chore-essentials`), then deliver a full-featured chores template based on the v2 shared-row reference patterns.
 - **Critical template integrity gate (mandatory for every new template completion)**
   - Preserve template header format, snippet contracts, and metadata stamp placement exactly as defined in the guides.
   - Preserve translation and graceful error-handling patterns (no regressions in fallback behavior, helper validation, or missing-entity handling).
@@ -119,28 +132,109 @@
   - **Completion gate question (must be explicitly answered for each new template):**
     - "Did this template keep headers, translation wiring, graceful error handling, and logical sectioning intact while limiting scope mainly to render changes?"
 - **Steps / detailed work items**
-  1. [x] Create new canonical essential template variant (`user-essential-v1.yaml`) as additive file; keep existing user templates unchanged.
-         **Files**: `choreops-dashboards/templates/user-minimal-v1.yaml`, `choreops-dashboards/templates/user-essential-v1.yaml` (new).
-         **Line anchors**: existing minimal template header/card structure lines 1-50.
-  2. [ ] Implement modernized **header card** and **chores card** in `user-essential-v1` using guideline state channels, preserving dynamic helper lookup/snippet contracts and metadata stamp placement.
-         **Files**: `choreops-dashboards/templates/user-essential-v1.yaml`, `docs/DASHBOARD_UI_DESIGN_GUIDELINE.md`.
-         **Line anchors**: snippet/stamp rules in template guide lines 212-260; UI state model lines 17-101.
-  3. [ ] Register `user-essential-v1` in canonical registry with accurate dependency declarations (required/recommended) and preference doc linkage.
-         **Files**: `choreops-dashboards/dashboard_registry.json`, `choreops-dashboards/preferences/user-essential-v1.md` (new).
-         **Line anchors**: existing template registry contract lines 1-125.
-  4. [ ] Define and implement the second user template profile naming/intent, then build the additive template from existing baseline with render-focused changes first.
-         **Files**: `choreops-dashboards/templates/user-gamification-v1.yaml`, `choreops-dashboards/templates/user-<tbd>-v1.yaml` (new).
-         **Line anchors**: current gamification template baseline lines 1-50.
-  5. [ ] Register second user profile template + preferences and ensure dependency declarations cover all `custom:*` usage.
-         **Files**: `choreops-dashboards/dashboard_registry.json`, `choreops-dashboards/preferences/user-<tbd>-v1.md` (new).
+  1. [x] Establish baseline from current essential/minimal user template structure for modern chores-card iteration.
+         **Files**: `choreops-dashboards/templates/user-minimal-v1.yaml`, `choreops-dashboards/templates/user-essential-v1.yaml`.
+         **Line anchors**: existing user template header/card structure lines 1-50. 2. [x] Build `chore-essentials` lightweight inline chores template using production state/claim/color semantics with minimal presentation layers.
+         **Files**: `choreops-dashboards/templates/user-chore-essentials-v1.yaml` (new), `docs/DASHBOARD_UI_DESIGN_GUIDELINE.md`.
+         **Scope constraints**: no progress bar, reduced secondary context, no heavy decorative effects, keep optional chore description preference.
+  2. [x] Register `user-chore-essentials-v1` in canonical registry with accurate dependency declarations (required/recommended) and preference doc linkage.
+         **Files**: `choreops-dashboards/dashboard_registry.json`, `choreops-dashboards/preferences/user-chore-essentials-v1.md` (new).
+         **Line anchors**: existing template registry contract lines 1-125. 3. [x] Build full-featured chores template from v2 shared-row reference patterns (welcome/header + richer shared context + full chore UX semantics).
+         **Files**: `choreops-dashboards/templates/user-chores-v1.yaml` (new), `docs/DASHBOARD_UI_DESIGN_GUIDELINE.md`.
+         **Line anchors**: row reference `choreops-dashboards/docs/shared_button_card_dashboard_reference_v2.yaml` and guideline state channels.
+  3. [x] Register full-featured chores template + preferences and ensure dependency declarations cover all `custom:*` usage.
+         **Files**: `choreops-dashboards/dashboard_registry.json`, `choreops-dashboards/preferences/user-chores-v1.md` (new).
          **Line anchors**: dependency contract expectations in test file lines 33-152.
-  6. [ ] Sync canonical assets into vendored runtime mirror and verify parity before any integration-side flow/testing updates.
+  4. [x] Sync canonical assets into vendored runtime mirror and verify parity before any integration-side flow/testing updates.
          **Files**: `utils/sync_dashboard_assets.py` (execution), `custom_components/choreops/dashboards/*` (synced outputs).
          **Line anchors**: required sync/parity workflow in template guide lines 67-85.
+- **Key issues** - Must keep all templates as single-view outputs and preserve dual Jinja delimiter rules. - Headers, translations, graceful error handling, and clear template organization are non-negotiable quality gates for every new template. - Lightweight template should prioritize readability and fast render path (minimal visual layers). - Full template should preserve shared-row reference behavior while avoiding drift from canonical state/claim semantics.
+
+### Phase 3A – Template composition parity (sync + release apply)
+
+- **Goal**: Ensure modular/shared template authoring composes into identical final runtime assets in both local sync and remote release-download apply paths.
+- **Why this sub-phase exists**: Current user-chores draft carries full row UX semantics, but architecture alignment is required so builder/runtime behavior is deterministic regardless of asset source.
+- **Steps / detailed work items** 1. [x] Define shared-template source contract (`templates/shared/*`) and include-marker syntax, plus naming/version conventions.
+  **Files**: `choreops-dashboards/templates/shared/*` (new), `docs/DASHBOARD_TEMPLATE_GUIDE.md`.
+  **Acceptance**: contract is explicit about source vs published assets. 2. [x] Add composition to canonical→vendored sync flow with fail-fast handling for unresolved markers.
+  **Files**: `utils/sync_dashboard_assets.py` (+ helper module if needed).
+  **Acceptance**: parity check validates composed canonical output against vendored runtime output. 3. [x] Add equivalent composition behavior to remote release-asset apply path.
+  **Files**: `custom_components/choreops/helpers/dashboard_helpers.py` (`_replace_managed_dashboard_assets_from_release`, `async_apply_prepared_dashboard_release_assets`).
+  **Acceptance**: composed runtime files are produced before dashboard generation reads templates. 4. [x] Add tests proving composition parity and safety for both paths.
+  **Files**: `tests/test_dashboard_release_asset_apply.py`, composition-focused tests, and any required contract tests.
+  **Acceptance**: same source inputs produce byte-identical composed outputs in both flows. 5. [x] Finalize `user-chores-v1` against the shared-template architecture and re-run dashboard quality gates.
+  **Files**: `choreops-dashboards/templates/user-chores-v1.yaml`, `choreops-dashboards/preferences/user-chores-v1.md`, `choreops-dashboards/dashboard_registry.json`.
+  **Acceptance**: full-featured chores template passes render/contract/dependency/size gates on final architecture.
+- **Traps (analysis)**
+  - Composition implemented in only one path (sync or release-apply) causes local-vs-remote drift.
+  - Unresolved include markers reaching runtime templates can cause generator render failures.
+  - Composition logic that bypasses existing release-apply path guards may reintroduce path traversal or stale-asset issues.
+  - Ambiguous ownership of generated files can lead to manual edits in vendored runtime outputs.
+- **Opportunities (analysis)**
+  - Centralize complex row logic once, reducing duplicate maintenance across templates.
+  - Increase iteration speed by editing shared building blocks while preserving deterministic published artifacts.
+  - Strengthen confidence with parity tests that enforce identical outcomes across both ingestion paths.
+- **Guiding design decisions (to ratify before Builder execution)**
+  - Runtime generator must consume fully composed templates only (no runtime fragment merge in render path).
+  - Composition is a pre-runtime asset concern and must be applied uniformly in sync and release-apply flows.
+  - Unresolved marker tokens are hard failures, not warnings.
+  - Rollout should be incremental: migrate one shared row block first (`user-chores-v1`), then expand.
+
+### Phase 3B – Button-card-template parity recovery
+
+- **Goal**: Rebuild `user-chores-v1` so its row behavior follows true `button_card_templates` semantics and prove parity with objective tests/evidence.
+- **Gap analysis update (added)**
+  - Phase 3B originally concentrated on row behavior and template semantics, but did not include an explicit parser-compatibility gate for shared-fragment marker ids.
+  - As a result, the documented nested-fragment contract (`template_shared.<path/segment>`) was not covered by regression tests.
+  - The same parser pattern exists in both local sync and online release-download apply paths, so this is a dual-path risk.
+- **Steps / detailed work items** 1. [x] Build a parity matrix of the v2 row contract vs current `user-chores-v1` behavior (states, icons, actions, fields, translation labels).
+  **Files**: `choreops-dashboards/docs/shared_button_card_dashboard_reference_v2.yaml` (anchors: `button_card_templates` lines 2-3), `choreops-dashboards/templates/user-chores-v1.yaml` (anchors: chores card section line 150, render section line 439).
+  **Acceptance**: every row behavior is mapped to one explicit implementation target or justified deviation. 2. [x] Rename and wire shared row helper for production naming.
+  **Files**: `choreops-dashboards/templates/shared/chore_row_user_chores_v1.yaml`, `choreops-dashboards/templates/user-chores-v1.yaml`, `choreops-dashboards/preferences/user-chores-v1.md`.
+  **Acceptance**: `user-chores-v1` references `template_shared.chore_row_user_chores_v1` and production helper names use release-ready terminology. 3. [x] Introduce template-level `button_card_templates` block in `user-chores-v1` and move row logic there (instead of inline row object assembly).
+  **Files**: `choreops-dashboards/templates/user-chores-v1.yaml` (row include anchor line 522), optional shared helper source in `choreops-dashboards/templates/shared/`.
+  **Acceptance**: chore row instances reference the template (`template: ...`) and pass variables for translation/prefs instead of duplicating row logic inline. 4. [ ] Align claim/undo/action behavior exactly with row-reference semantics and block-state fallbacks.
+  **Files**: `choreops-dashboards/templates/user-chores-v1.yaml` (row action wiring region), `choreops-dashboards/docs/shared_button_card_dashboard_reference_v2.yaml` (action block near row definition).
+  **Acceptance**: claimed, completed, blocked, steal-window, and in-part states produce equivalent action/icon/tap outcomes. 5. [x] Expand template contract tests to assert template-definition semantics (not only snippet markers).
+  **Files**: `tests/test_dashboard_template_contract.py` (existing marker test anchor line 57), `tests/test_dashboard_template_render_smoke.py` (user render test anchor line 20).
+  **Acceptance**: tests verify presence/use of button-card templates and ensure render output remains parse-valid. 6. [ ] Add behavior regression tests for row-state mapping and action routing parity.
+  **Files**: new focused test module under `tests/test_dashboard_*`, plus `tests/test_dashboard_manifest_dependencies_contract.py` (dependency coverage anchor line 115) as needed.
+  **Acceptance**: test cases cover all row-reference-relevant states (`claimed`, `completed`, `completed_in_part`, `overdue`, blocked claim modes, `steal_available`). 7. [x] Re-sync canonical to vendored outputs and verify parity remains deterministic in local sync + release-apply paths.
+  **Files**: `utils/sync_dashboard_assets.py` (compose anchors lines 71 and 110), `custom_components/choreops/helpers/dashboard_helpers.py` (release apply anchors lines 103 and 201).
+  **Acceptance**: no unresolved markers in runtime templates; same source yields deterministic vendored outputs. 8. [x] Run targeted validation suite and capture parity evidence before re-closing Phase 3.
+  **Files**: `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3B.md` (execution evidence log), this plan file.
+  **Acceptance**: all Phase 3B commands pass; parity matrix has zero unresolved `partial/missing` rows; summary table updated with evidence references.
+
+9. [x] Add parser-contract remediation in **local sync** so nested shared fragment ids (`/`) are accepted per guide contract.
+       **Files**: `utils/sync_dashboard_assets.py`, `tests/test_sync_dashboard_assets.py` (new/updated).
+       **Acceptance**: sync compose + `--check` pass with nested fragment-id fixture inputs.
+10. [x] Add parser-contract remediation in **online release-download apply** with matching nested-fragment-id behavior.
+        **Files**: `custom_components/choreops/helpers/dashboard_helpers.py`, `tests/test_dashboard_release_asset_apply.py`.
+        **Acceptance**: release-apply compose path passes nested fragment-id fixture inputs before write.
+11. [x] Add dual-path parser parity tests and closure evidence in 3B handoff.
+        **Files**: `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3B.md`, targeted test modules above.
+        **Acceptance**: explicit evidence shows both local sync and online release-download apply paths pass the same nested-fragment-id cases.
+
+- **Key issues** - Existing “composition complete” status does not guarantee button-card template parity.
+  - Current tests are strong on syntax/contracts but weak on row template semantics and state-to-action parity assertions.
+  - Current 3B closeout must also prove parser-contract parity across both ingestion paths (local sync + online release download), not row behavior alone.
+  - Phase 4 must remain blocked until Phase 3B acceptance is explicitly met.
+
+### Phase 3C – Single-path contract enforcement
+
+- **Goal**: Remove remaining template ingestion divergence by enforcing one compile pipeline across create/update/release paths with registry-backed shared-contract validation.
+- **Steps / detailed work items**
+  1. [x] Execute Phase 3C Phase 1 (contract and source-of-truth lock) from `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3C.md`.
+         **Files**: `choreops-dashboards/dashboard_registry.json`, `custom_components/choreops/helpers/dashboard_helpers.py`, `docs/DASHBOARD_TEMPLATE_GUIDE.md`.
+  2. [x] Execute Phase 3C Phase 2 (single compile pipeline) from `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3C.md`.
+         **Files**: `custom_components/choreops/helpers/dashboard_helpers.py`, `custom_components/choreops/helpers/dashboard_builder.py`, `utils/sync_dashboard_assets.py`.
+  3. [x] Execute Phase 3C Phase 3 (validation and parity gates) from `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3C.md`.
+         **Files**: `tests/test_dashboard_release_asset_apply.py`, `tests/test_sync_dashboard_assets.py`, `tests/test_dashboard_manifest_dependencies_contract.py`, `tests/test_options_flow_dashboard_release_selection.py`.
+  4. [x] Execute Phase 3C Phase 4 (docs and rollout closure) and capture evidence.
+         **Files**: `docs/DASHBOARD_TEMPLATE_GUIDE.md`, `docs/RELEASE_CHECKLIST.md`, `docs/in-process/DASHBOARD_UX_MODERNIZATION_SUP_BUILDER_HANDOFF_PHASE3C.md`.
 - **Key issues**
-  - Must keep all templates as single-view outputs and preserve dual Jinja delimiter rules.
-  - Headers, translations, graceful error handling, and clear template organization are non-negotiable quality gates for every new template.
-  - New visual complexity must remain performant in HA dashboard runtime.
+  - Registry contract fields must be validator metadata, not a second composition source.
+  - No `.storage` schema changes are expected for 3C; avoid mixing dashboard contract work with data model migrations.
 
 ### Phase 4 – Admin modernization + docs/polish
 
@@ -184,7 +278,7 @@ Run during implementation phases (Builder/UX Builder):
 
 - **Storage schema change required**: **No**.
 - **`meta.schema_version` increment required**: **No** (dashboard/templates/docs/utilities only; no `.storage/choreops/choreops_data` schema changes).
-- **Compatibility note**: Maintain template ID regex compatibility (`^[a-z0-9]+-[a-z0-9-]+-v[0-9]+$`) and additive template introduction strategy.
+- **Compatibility note**: Template IDs must still satisfy regex compatibility (`^[a-z0-9]+-[a-z0-9-]+-v[0-9]+$`); backward compatibility with prior user-facing template naming is not required yet because this UX feature set is not released.
 
 ## Translation keys (planned usage)
 
@@ -205,9 +299,10 @@ If new user-facing options/status text is introduced for UX iteration workflow, 
 
 - [x] New agent spec created for dashboard UX implementation (`.github/agents/dashboard-ux-builder.agent.md`)
 - [x] Live preload utility modernized for scenario-based local testing
-- [ ] New additive user templates: user-essential-v1 + second user profile template
+- [x] New user templates: user-chore-essentials-v1 + user-chores-v1
+- [x] Shared-template composition parity implemented for sync + release-apply flows
 - [ ] New additive admin templates: shared-v2 + peruser-v2
 - [ ] Registry/preferences/translations updated in canonical dashboard repo
-- [ ] Vendored assets synced + parity verified
-- [ ] Dashboard tests updated and passing
+- [x] Vendored assets synced + parity verified
+- [x] Dashboard tests updated and passing
 - [x] Dashboard docs updated (template guide + UI guideline + release notes) — foundational boundary/contract updates completed in Phase 1

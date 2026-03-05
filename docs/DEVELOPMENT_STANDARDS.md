@@ -72,9 +72,13 @@ To keep editor diagnostics stable across contributors, this repository uses a lo
 - **Single source of truth**: Dashboard authoring assets live in `choreops-dashboards`.
 - **Registry filename contract**: Use `dashboard_registry.json` for dashboard template metadata.
 - **Vendored runtime mirror**: Runtime assets in `custom_components/choreops/dashboards/` are sync outputs, not hand-edited sources.
+- **Sync parity contract**: Canonical and vendored dashboard assets must remain byte-identical after sync (including `templates/shared/*`).
 - **No hardcoded registry filename strings**: Use constants/path derivation in runtime code.
 - **Required update flow**: canonical edit → `python utils/sync_dashboard_assets.py` → `python utils/sync_dashboard_assets.py --check` → integration validation.
+- **Template shape contract**: Dashboard templates are full documents with root `views` and optional root `button_card_templates` (not bare single-view list items).
 - **Release apply contract**: Dashboard generator Options Flow Step 1 must prepare selected release assets and apply them to local vendored runtime paths (`dashboards/templates`, `dashboards/translations`, `dashboards/preferences`, and local `dashboard_registry.json`) before Step 3 execution.
+- **Composition contract**: Shared markers are composed in generator runtime compile paths, not during sync/apply file writes.
+- **Builder merge contract**: Root `button_card_templates` blocks are merged deterministically from rendered templates; view-level hoist behavior is not allowed.
 - **Cache lifecycle contract**: After local release apply, reset and re-prime manifest caches and clear dashboard translation caches before continuing flow execution.
 - **Selection policy contract**: Explicit tags are strict-pin; latest modes resolve once and reuse the resolved ref; current-installed mode uses local registry `release_version`.
 - **Dependency review UX contract**: Step 4 keeps plain translated section headers for required/recommended dependencies and prefixes each missing dependency line with `❌`.
