@@ -63,11 +63,15 @@ views:
                     {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
                     {%- set points_sensor = core_sensors.get('points_eid') -%}
                     {%- set total_sensor = core_sensors.get('chores_eid') -%}
+                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
                     {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
                     {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
                     {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
+                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
+                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
                     {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
                     {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
                     {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
@@ -75,6 +79,13 @@ views:
 
                     {#-- 4. Build Display - essentials minimal --#}
                     {%- set p_icon = points_icon | default('mdi:star', true) -%}
+                    {%- set multiplier_display = points_multiplier | int if points_multiplier == (points_multiplier | int) else points_multiplier -%}
+
+                    {%- set badge_pill = '' -%}
+                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
+                      {%- set mult_text = " <span style='color: var(--warning-color);'>(x" ~ multiplier_display|string ~ ")</span>" if points_multiplier > 1 else '' -%}
+                      {%- set badge_pill = "<div style='margin-top: 7px; font-size: 12px; background: var(--secondary-background-color); padding: 4px 12px; border-radius: 14px; border: 1px solid var(--divider-color); display: inline-flex; align-items: center; justify-content: center;'><ha-icon icon='" ~ highest_badge_icon ~ "' style='width: 18px; height: 14px; margin-right: 5px; color: var(--warning-color);'></ha-icon><span style='font-weight: 600; color: var(--primary-text-color);'>" ~ highest_badge ~ mult_text ~ "</span></div>" -%}
+                    {%- endif -%}
 
                     {%- set left_col =
                       "<div style='text-align: left; flex-grow: 1; min-width: 0;'>"
@@ -97,6 +108,7 @@ views:
                         "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; margin-left: 14px;'>"
                         ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(0px);'></ha-icon>" ~ points ~ "</div>"
                         ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
+                        ~ badge_pill
                         ~ "</div>"
                       -%}
                     {%- endif -%}
@@ -461,12 +473,12 @@ views:
                             {'align-items': 'center'}
                           ],
                           'icon': [
-                            {'width': '22px'},
+                            {'width': '20px'},
                             {'color': 'var(--primary-color)'}
                           ],
                           'name': [
                             {'justify-self': 'start'},
-                            {'font-size': '20px'},
+                            {'font-size': '18px'},
                             {'font-weight': 'bold'},
                             {'color': 'var(--primary-text-color)'}
                           ]

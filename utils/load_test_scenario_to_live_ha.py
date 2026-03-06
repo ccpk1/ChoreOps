@@ -30,6 +30,7 @@ MANAGE_ACTION_ADD = "add"
 
 MENU_MANAGE_USER = "manage_user"
 MENU_MANAGE_CHORE = "manage_chore"
+MENU_MANAGE_BADGE = "manage_badge"
 MENU_MANAGE_REWARD = "manage_reward"
 MENU_MANAGE_BONUS = "manage_bonus"
 MENU_MANAGE_PENALTY = "manage_penalty"
@@ -137,8 +138,9 @@ def extract_scenario_collections(
     list[dict[str, Any]],
     list[dict[str, Any]],
     list[dict[str, Any]],
+    list[dict[str, Any]],
 ]:
-    """Return assignees, approvers, chores, rewards, bonuses, and penalties.
+    """Return assignees, approvers, chores, badges, rewards, bonuses, and penalties.
 
     Supports both modern (`assignees` / `approvers`) and legacy (`family` keys).
     """
@@ -159,10 +161,11 @@ def extract_scenario_collections(
             approvers = _as_list(family.get("parents"))
 
     chores = _as_list(scenario.get("chores"))
+    badges = _as_list(scenario.get("badges"))
     rewards = _as_list(scenario.get("rewards"))
     bonuses = _as_list(scenario.get("bonuses"))
     penalties = _as_list(scenario.get("penalties"))
-    return assignees, approvers, chores, rewards, bonuses, penalties
+    return assignees, approvers, chores, badges, rewards, bonuses, penalties
 
 
 def extract_state_seed_actions(scenario: dict[str, Any]) -> list[dict[str, Any]]:
@@ -279,6 +282,39 @@ def build_reward_payload(reward: dict[str, Any]) -> dict[str, Any]:
         "reward_labels": list(reward.get("labels", [])),
         "cost": float(reward.get("cost", 50.0)),
         "icon": reward.get("icon", "mdi:gift"),
+    }
+
+
+def build_badge_payload(badge: dict[str, Any]) -> dict[str, Any]:
+    """Build options-flow payload for a badge item.
+
+    This payload is submitted after badge type selection in the options flow.
+    """
+    award_items: list[str] = []
+    award_points = float(badge.get("award_points", 0.0))
+    if award_points > 0:
+        award_items.append("points")
+
+    points_multiplier_raw = badge.get("points_multiplier")
+    points_multiplier: float | None = None
+    if points_multiplier_raw is not None:
+        points_multiplier = float(points_multiplier_raw)
+        if points_multiplier > 0:
+            award_items.append("multiplier")
+
+    threshold_value = badge.get(
+        "threshold_value", badge.get("target_threshold_value", 10)
+    )
+
+    return {
+        "badge_name": badge["name"],
+        "icon": badge.get("icon", "mdi:medal"),
+        "assigned_user_ids": list(badge.get("assigned_to", [])),
+        "award_items": award_items,
+        "award_points": award_points,
+        "points_multiplier": points_multiplier,
+        "threshold_value": threshold_value,
+        "maintenance_rules": badge.get("maintenance_rules", 0),
     }
 
 
@@ -450,7 +486,10 @@ async def add_entity_via_options_flow(
         payload,
     )
     if status != 200:
-        print(f"   ❌ Submit failed for {entity_name}")  # noqa: T201
+        print(  # noqa: T201
+            f"   ❌ Submit failed for {entity_name}: "
+            f"status={status}, response={flow_result}"
+        )
         return ENTITY_ADD_STATUS_FAILED
 
     step_id = flow_result.get("step_id")
@@ -481,6 +520,130 @@ async def add_entity_via_options_flow(
         if status != 200:
             print(f"   ❌ Daily multi helper failed for {entity_name}")  # noqa: T201
             return ENTITY_ADD_STATUS_FAILED
+
+    if flow_result.get("type") == "form" and flow_result.get("step_id") == STEP_INIT:
+        return ENTITY_ADD_STATUS_ADDED
+
+    if is_duplicate_flow_result(flow_result):
+        return ENTITY_ADD_STATUS_SKIPPED
+
+    error_details = flow_result.get("errors")
+    if error_details is not None:
+        print(  # noqa: T201
+            f"   ℹ️ Flow validation errors for {entity_name}: {error_details}"
+        )
+    else:
+        print(  # noqa: T201
+            f"   ℹ️ Unexpected flow response for {entity_name}: {flow_result}"
+        )
+
+    return ENTITY_ADD_STATUS_FAILED
+
+
+async def add_badge_via_options_flow(
+    session: aiohttp.ClientSession,
+    ha_url: str,
+    entry_id: str,
+    entity_name: str,
+    payload: dict[str, Any],
+    badge_type: str,
+) -> str:
+    """Add one badge through options flow and return status string."""
+    status, flow_start = await _request_json(
+        session,
+        "POST",
+        f"{ha_url}/api/config/config_entries/options/flow",
+        {"handler": entry_id},
+    )
+    if status != 200:
+        print(f"   ❌ Failed to start options flow for {entity_name}")  # noqa: T201
+        return ENTITY_ADD_STATUS_FAILED
+
+    flow_id = flow_start.get("flow_id")
+    if not isinstance(flow_id, str):
+        print(f"   ❌ Flow did not return flow_id for {entity_name}")  # noqa: T201
+        return ENTITY_ADD_STATUS_FAILED
+
+    status, _ = await _request_json(
+        session,
+        "POST",
+        f"{ha_url}/api/config/config_entries/options/flow/{flow_id}",
+        {MENU_SELECTION: MENU_MANAGE_BADGE},
+    )
+    if status != 200:
+        print(f"   ❌ Menu selection failed for {entity_name}")  # noqa: T201
+        return ENTITY_ADD_STATUS_FAILED
+
+    status, _ = await _request_json(
+        session,
+        "POST",
+        f"{ha_url}/api/config/config_entries/options/flow/{flow_id}",
+        {MANAGE_ACTION: MANAGE_ACTION_ADD},
+    )
+    if status != 200:
+        print(f"   ❌ Add action selection failed for {entity_name}")  # noqa: T201
+        return ENTITY_ADD_STATUS_FAILED
+
+    status, badge_form = await _request_json(
+        session,
+        "POST",
+        f"{ha_url}/api/config/config_entries/options/flow/{flow_id}",
+        {"badge_type": badge_type},
+    )
+    if status != 200:
+        print(  # noqa: T201
+            f"   ❌ Badge type selection failed for {entity_name}: "
+            f"status={status}, response={badge_form}"
+        )
+        return ENTITY_ADD_STATUS_FAILED
+
+    resolved_payload = dict(payload)
+    raw_assigned = resolved_payload.get("assigned_user_ids")
+    if isinstance(raw_assigned, list) and raw_assigned:
+        label_to_value: dict[str, str] = {}
+        data_schema = badge_form.get("data_schema")
+        if isinstance(data_schema, list):
+            for field in data_schema:
+                if (
+                    not isinstance(field, dict)
+                    or field.get("name") != "assigned_user_ids"
+                ):
+                    continue
+                selector = field.get("selector")
+                if not isinstance(selector, dict):
+                    continue
+                select_def = selector.get("select")
+                if not isinstance(select_def, dict):
+                    continue
+                options = select_def.get("options")
+                if not isinstance(options, list):
+                    continue
+                for option in options:
+                    if not isinstance(option, dict):
+                        continue
+                    label = option.get("label")
+                    value = option.get("value")
+                    if isinstance(label, str) and isinstance(value, str):
+                        label_to_value[label] = value
+                break
+
+        if label_to_value:
+            resolved_payload["assigned_user_ids"] = [
+                label_to_value.get(str(item), str(item)) for item in raw_assigned
+            ]
+
+    status, flow_result = await _request_json(
+        session,
+        "POST",
+        f"{ha_url}/api/config/config_entries/options/flow/{flow_id}",
+        resolved_payload,
+    )
+    if status != 200:
+        print(  # noqa: T201
+            f"   ❌ Submit failed for {entity_name}: "
+            f"status={status}, response={flow_result}"
+        )
+        return ENTITY_ADD_STATUS_FAILED
 
     if flow_result.get("type") == "form" and flow_result.get("step_id") == STEP_INIT:
         return ENTITY_ADD_STATUS_ADDED
@@ -691,7 +854,7 @@ async def load_scenario_to_live_instance(args: argparse.Namespace) -> None:
         raise FileNotFoundError(f"Scenario file not found: {scenario_path}")
 
     scenario = load_scenario_file(scenario_path)
-    assignees, approvers, chores, rewards, bonuses, penalties = (
+    assignees, approvers, chores, badges, rewards, bonuses, penalties = (
         extract_scenario_collections(scenario)
     )
     state_seed_actions = extract_state_seed_actions(scenario)
@@ -702,6 +865,7 @@ async def load_scenario_to_live_instance(args: argparse.Namespace) -> None:
         f"{len(assignees)} assignees, "
         f"{len(approvers)} approvers, "
         f"{len(chores)} chores, "
+        f"{len(badges)} badges, "
         f"{len(rewards)} rewards, "
         f"{len(bonuses)} bonuses, "
         f"{len(penalties)} penalties"
@@ -797,6 +961,31 @@ async def load_scenario_to_live_instance(args: argparse.Namespace) -> None:
         await _bulk_add(
             "🧹 Adding chores...", MENU_MANAGE_CHORE, chores, build_chore_payload
         )
+
+        print("\n🏅 Adding badges...")  # noqa: T201
+        for badge in badges:
+            name = str(badge.get("name", "(unnamed)"))
+            badge_payload = build_badge_payload(badge)
+            badge_type = str(badge.get("type", "cumulative"))
+            total_attempted += 1
+            add_status = await add_badge_via_options_flow(
+                session,
+                args.ha_url,
+                entry_id,
+                name,
+                badge_payload,
+                badge_type,
+            )
+            if add_status == ENTITY_ADD_STATUS_ADDED:
+                total_added += 1
+                print(f"   ✅ {name}")  # noqa: T201
+            elif add_status == ENTITY_ADD_STATUS_SKIPPED:
+                total_skipped += 1
+                print(f"   ⏭️ {name} (already exists)")  # noqa: T201
+            else:
+                total_failed += 1
+                print(f"   ❌ {name}")  # noqa: T201
+            await asyncio.sleep(args.delay)
 
         if args.reset:
             rotation_chores_present = [

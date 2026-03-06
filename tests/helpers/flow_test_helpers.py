@@ -291,6 +291,13 @@ class FlowTestHelper:
         if award_points and float(award_points) > 0:
             award_items.append("points")  # AWARD_ITEMS_KEY_POINTS
 
+        points_multiplier = yaml_badge.get("points_multiplier")
+        multiplier_value: float | None = None
+        if points_multiplier is not None:
+            multiplier_value = float(points_multiplier)
+            if multiplier_value > 0:
+                award_items.append("multiplier")  # AWARD_ITEMS_KEY_POINTS_MULTIPLIER
+
         form_data = {
             CFOF_BADGES_INPUT_NAME: yaml_badge["name"],
             CFOF_BADGES_INPUT_ICON: yaml_badge.get("icon", "mdi:medal"),
@@ -299,6 +306,7 @@ class FlowTestHelper:
             ),
             CFOF_BADGES_INPUT_AWARD_POINTS: float(award_points),
             CFOF_BADGES_INPUT_AWARD_ITEMS: award_items,
+            "points_multiplier": multiplier_value,
         }
 
         if badge_type == BADGE_TYPE_CUMULATIVE:

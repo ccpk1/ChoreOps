@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "release_version": "0.0.1-beta.3",
+  "release_version": "0.0.1-beta.4",
   "repo": "ccpk1/ChoreOps-Dashboards",
   "title": "ChoreOps Dashboard Registry",
   "description": "Registry manifest for ChoreOps dashboard templates",
@@ -102,6 +102,43 @@
       }
     },
     {
+      "template_id": "user-kids-chores-v1",
+      "display_name": "Kids Chores (User)",
+      "description": "Kid-focused chores dashboard with larger, friendlier chore tiles and simplified interactions",
+      "audience": "user",
+      "category": "minimal",
+      "lifecycle_state": "active",
+      "min_integration_version": "0.5.0-beta.5",
+      "maintainer": "ccpk1",
+      "source": {
+        "type": "vendored",
+        "path": "templates/user-kids-chores-v1.yaml"
+      },
+      "shared_contract_version": 1,
+      "shared_fragments_required": [
+        "button_card_template_user_kids_chores_row_v1"
+      ],
+      "shared_fragments_optional": [],
+      "dependencies": {
+        "required": [
+          {
+            "id": "ha-card:auto-entities",
+            "name": "Auto-Entities",
+            "url": "https://github.com/thomasloven/lovelace-auto-entities"
+          },
+          {
+            "id": "ha-card:button-card",
+            "name": "Button Card",
+            "url": "https://github.com/custom-cards/button-card"
+          }
+        ],
+        "recommended": []
+      },
+      "preferences": {
+        "doc_asset_path": "preferences/user-kids-chores-v1.md"
+      }
+    },
+    {
       "template_id": "user-chores-v1",
       "display_name": "Chores (User)",
       "description": "User dashboard focused on welcome and chores with full production chore-row UX and claim-mode nuance",
@@ -134,6 +171,41 @@
       },
       "preferences": {
         "doc_asset_path": "preferences/user-chores-v1.md"
+      }
+    },
+    {
+      "template_id": "user-game-full-v1",
+      "display_name": "Game Full (User)",
+      "description": "Modern full user dashboard flow using button-card design and shared production chore-row behavior",
+      "audience": "user",
+      "category": "full",
+      "lifecycle_state": "active",
+      "min_integration_version": "0.5.0-beta.5",
+      "maintainer": "ccpk1",
+      "source": {
+        "type": "vendored",
+        "path": "templates/user-game-full-v1.yaml"
+      },
+      "shared_contract_version": 1,
+      "shared_fragments_required": ["button_card_template_user_chores_row_v1"],
+      "shared_fragments_optional": [],
+      "dependencies": {
+        "required": [
+          {
+            "id": "ha-card:auto-entities",
+            "name": "Auto-Entities",
+            "url": "https://github.com/thomasloven/lovelace-auto-entities"
+          },
+          {
+            "id": "ha-card:button-card",
+            "name": "Button Card",
+            "url": "https://github.com/custom-cards/button-card"
+          }
+        ],
+        "recommended": []
+      },
+      "preferences": {
+        "doc_asset_path": "preferences/user-game-full-v1.md"
       }
     },
     {

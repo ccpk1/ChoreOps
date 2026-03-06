@@ -52,18 +52,20 @@ def test_extract_scenario_collections_modern_shape() -> None:
         "assignees": [{"name": "A"}],
         "approvers": [{"name": "P"}],
         "chores": [{"name": "C"}],
+        "badges": [{"name": "G"}],
         "rewards": [{"name": "R"}],
         "bonuses": [{"name": "B"}],
         "penalties": [{"name": "N"}],
     }
 
-    assignees, approvers, chores, rewards, bonuses, penalties = (
+    assignees, approvers, chores, badges, rewards, bonuses, penalties = (
         module.extract_scenario_collections(scenario)
     )
 
     assert len(assignees) == 1
     assert len(approvers) == 1
     assert len(chores) == 1
+    assert len(badges) == 1
     assert len(rewards) == 1
     assert len(bonuses) == 1
     assert len(penalties) == 1
@@ -80,13 +82,14 @@ def test_extract_scenario_collections_legacy_family_shape() -> None:
         "chores": [{"name": "Chore 1"}],
     }
 
-    assignees, approvers, chores, rewards, bonuses, penalties = (
+    assignees, approvers, chores, badges, rewards, bonuses, penalties = (
         module.extract_scenario_collections(scenario)
     )
 
     assert [item["name"] for item in assignees] == ["Kid 1"]
     assert [item["name"] for item in approvers] == ["Parent 1"]
     assert [item["name"] for item in chores] == ["Chore 1"]
+    assert badges == []
     assert rewards == []
     assert bonuses == []
     assert penalties == []

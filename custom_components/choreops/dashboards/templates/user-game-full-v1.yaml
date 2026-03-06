@@ -1,0 +1,1482 @@
+<#-- ============================================= --#>
+<#-- ChoreOps Dashboard Template - GAME FULL --#>
+<#-- Template Schema Version: 1                  --#>
+<#-- ============================================= --#>
+<#--                                             --#>
+<#-- Game Full dashboard: modern full user flow with button-card UX --#>
+<#--                                             --#>
+<#-- Injection variables (Python << >>):         --#>
+<#--   << user.name >> - User's display name      --#>
+<#--   << user.slug >> - URL-safe slug            --#>
+<#--                                             --#>
+<#-- Snippet tokens: template_snippets.user_setup,                       --#>
+<#-- template_snippets.user_validation,                                  --#>
+<#-- template_snippets.user_override_helper, template_snippets.meta_stamp --#>
+<#-- Stamp format (canonical): META STAMP: {templse} • {generated_at} --#>
+<#-- Stamp placement: first line inside each card template block after card header comment --#>
+<#--                                             --#>
+<#-- All HA Jinja2 {{ }} syntax preserved       --#>
+<#-- ============================================= --#>
+
+button_card_templates:
+  << template_shared.button_card_template_user_chores_row_v1 >>
+views:
+  - max_columns: 2
+    title: << user.name >> Game Full
+    path: << user.slug >>
+    type: sections
+    sections:
+    - type: grid
+      column_span: 1
+      cards:
+        - type: grid
+          square: false
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: |-
+                  {#-- ===== WELCOME CARD ===== --#}
+
+                  << template_snippets.meta_stamp >>
+
+
+                  {#-- 1. User Configuration --#}
+
+                  << template_snippets.user_override_helper >>
+
+
+                  {#-- 2. Dynamic Lookups & Validations --#}
+
+                  << template_snippets.user_setup >>
+
+                  << template_snippets.user_validation >>
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set total_sensor = core_sensors.get('chores_eid') -%}
+                    {%- set highest_badge_entity = core_sensors.get('badges_eid') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
+                    {%- set highest_badge = ((states(highest_badge_entity) if highest_badge_entity else 'None') or 'None') -%}
+                    {%- set highest_badge_icon = (state_attr(highest_badge_entity, 'icon') if highest_badge_entity else None) or 'mdi:medal-outline' -%}
+                    {%- set weekly_completed = (state_attr(total_sensor, 'chore_stat_approved_week') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set todays_completed = (state_attr(total_sensor, 'chore_stat_approved_today') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set overdue_now = (state_attr(total_sensor, 'chore_stat_current_overdue') | int(default=0)) if total_sensor else 0 -%}
+                    {%- set due_today_open = (state_attr(total_sensor, 'chore_stat_current_due_today') | int(default=0)) if total_sensor else 0 -%}
+
+                    {#-- 4. Build Display - essentials minimal --#}
+                    {%- set p_icon = points_icon | default('mdi:star', true) -%}
+                    {%- set multiplier_display = points_multiplier | int if points_multiplier == (points_multiplier | int) else points_multiplier -%}
+
+                    {%- set badge_pill = '' -%}
+                    {%- if highest_badge not in ['None', 'unknown', 'Unknown', 'unavailable'] -%}
+                      {%- set mult_text = " <span style='color: var(--warning-color);'>(x" ~ multiplier_display|string ~ ")</span>" if points_multiplier > 1 else '' -%}
+                      {%- set badge_pill = "<div style='margin-top: 7px; font-size: 12px; background: var(--secondary-background-color); padding: 4px 12px; border-radius: 14px; border: 1px solid var(--divider-color); display: inline-flex; align-items: center; justify-content: center;'><ha-icon icon='" ~ highest_badge_icon ~ "' style='width: 18px; height: 14px; margin-right: 5px; color: var(--warning-color);'></ha-icon><span style='font-weight: 600; color: var(--primary-text-color);'>" ~ highest_badge ~ mult_text ~ "</span></div>" -%}
+                    {%- endif -%}
+
+                    {%- set left_col =
+                      "<div style='text-align: left; flex-grow: 1; min-width: 0;'>"
+                      ~ "<div style='font-size: 18px; font-weight: 600; margin-bottom: 8px; line-height: 1.2;'>👋 " ~ ui.get('welcome', 'err-welcome') ~ ", " ~ name ~ "!</div>"
+                      ~ "<div style='font-size: 12px; color: var(--secondary-text-color); display: flex; flex-direction: column; gap: 5px; line-height: 1.15;'>"
+                      ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:alert-octagon-outline' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('overdue', 'err-overdue') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--error-color)' if overdue_now > 0 else 'var(--primary-text-color)') ~ ";'>" ~ overdue_now ~ "</b></span>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--secondary-text-color)') ~ ";'><ha-icon icon='mdi:calendar-clock' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('due_today', 'err-due_today') ~ ": <b style='margin-left: 4px; color: " ~ ('var(--warning-color)' if due_today_open > 0 else 'var(--primary-text-color)') ~ ";'>" ~ due_today_open ~ "</b></span>"
+                      ~ "</div>"
+                      ~ "<div style='display: flex; flex-wrap: wrap; gap: 10px 18px;'>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap;'><ha-icon icon='mdi:calendar-today' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('todays_completed', 'err-todays_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ todays_completed ~ "</b></span>"
+                      ~ "<span style='display: inline-flex; align-items: center; white-space: nowrap;'><ha-icon icon='mdi:calendar-week' style='width: 14px; height: 14px; margin-right: 5px; transform: translateY(-1px);'></ha-icon>" ~ ui.get('weekly_completed', 'err-weekly_completed') ~ ": <b style='margin-left: 4px; color: var(--primary-text-color);'>" ~ weekly_completed ~ "</b></span>"
+                      ~ "</div>"
+                      ~ "</div></div>"
+                    -%}
+
+                    {%- set right_col = "" -%}
+                    {%- if gamification_enabled -%}
+                      {%- set right_col =
+                        "<div style='text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; margin-left: 14px;'>"
+                        ~ "<div style='display: inline-flex; align-items: center; color: var(--primary-color); font-size: 22px; font-weight: 800; line-height: 1;'><ha-icon icon='" ~ p_icon ~ "' style='width: 22px; height: 24px; margin-right: 6px; transform: translateY(-2px);'></ha-icon>" ~ points ~ "</div>"
+                        ~ "<div style='font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px;'>" ~ points_label ~ "</div>"
+                        ~ badge_pill
+                        ~ "</div>"
+                      -%}
+                    {%- endif -%}
+
+                    {%- set content_html = "<div style='display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px;'>" ~ left_col ~ right_col ~ "</div>" if gamification_enabled else left_col -%}
+
+                    {#-- 5. Render --#}
+                    {{
+                      {
+                        'type': 'custom:button-card',
+                        'entity': points_sensor if gamification_enabled and points_sensor else total_sensor,
+                        'show_name': false,
+                        'show_icon': false,
+                        'tap_action': {'action': 'more-info'},
+                        'styles': {
+                          'card': [
+                            {'padding': '16px 20px'},
+                            {'border-radius': '16px'},
+                            {'border': '1px solid var(--divider-color)'},
+                            {'background-color': 'var(--card-background-color)'},
+                            {'box-shadow': 'none'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"content"'},
+                            {'grid-template-columns': '1fr'}
+                          ],
+                          'custom_fields': {
+                            'content': [{'width': '100%'}]
+                          }
+                        },
+                        'custom_fields': {
+                          'content': content_html
+                        }
+                      }
+                    }},
+
+                  {%- endif -%}
+
+        - type: grid
+          square: false
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: |-
+                  {#-- ===== CHORES CARD ===== --#}
+
+                  << template_snippets.meta_stamp >>
+
+
+                  {#-- 1. User Configuration --#}
+
+                  << template_snippets.user_override_helper >>
+
+                  {%- set pref_column_count = 1 -%}
+
+                  {%- set pref_use_overdue_grouping = true -%}
+
+                  {%- set pref_use_today_grouping = true -%}
+
+                  {%- set pref_include_daily_recurring_in_today = true -%}
+
+                  {%- set pref_use_this_week_grouping = true -%}
+
+                  {%- set pref_include_weekly_recurring_in_this_week = true -%}
+
+                  {%- set pref_exclude_completed = false -%}
+
+                  {%- set pref_exclude_states = [] -%}  {#-- Example: ['completed', 'completed_by_other', 'not_my_turn', 'missed'] --#}
+
+                  {%- set pref_use_label_grouping = false -%}
+
+                  {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
+
+                  {%- set pref_label_display_order = [] -%}  {#-- Example: ['Kitchen', 'Bedroom', 'Outdoor'] --#}
+
+                  {%- set pref_sort_within_groups = 'by_state_and_date' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'date_asc', 'date_desc', 'by_state_and_date' --#}
+
+                  {%- set pref_show_chore_description = false -%}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_column_count = pref_column_count | int(default=1) -%}
+                  {%- set pref_use_overdue_grouping = pref_use_overdue_grouping | default(true, true) -%}
+                  {%- set pref_use_today_grouping = pref_use_today_grouping | default(true, true) -%}
+                  {%- set pref_include_daily_recurring_in_today = pref_include_daily_recurring_in_today | default(true, true) -%}
+                  {%- set pref_use_this_week_grouping = pref_use_this_week_grouping | default(true, true) -%}
+                  {%- set pref_include_weekly_recurring_in_this_week = pref_include_weekly_recurring_in_this_week | default(true, true) -%}
+                  {%- set pref_exclude_completed = pref_exclude_completed | default(false, true) -%}
+                  {%- set pref_exclude_states = pref_exclude_states if pref_exclude_states is iterable else [] -%}
+                  {%- set pref_exclude_states = pref_exclude_states | map('lower') | list -%}
+                  {%- if pref_exclude_completed and 'completed' not in pref_exclude_states -%}
+                    {%- set pref_exclude_states = pref_exclude_states + ['completed'] -%}
+                  {%- endif -%}
+                  {%- set pref_use_label_grouping = pref_use_label_grouping | default(false, true) -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable else [] -%}
+
+                  {#-- 2. Dynamic Lookups & Validations --#}
+
+                  << template_snippets.user_setup >>
+
+                  << template_snippets.user_validation >>
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Initialize Variables --#}
+
+                  {%- set ns = namespace(
+                    overdue_buttons=[],
+                    am_buttons=[],
+                    today_buttons=[],
+                    this_week_buttons=[],
+                    other_buttons=[],
+                    label_button_groups=[],
+                    label_order=[],
+                    group_cards=[]
+                  ) -%}
+
+                    {#-- 4. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set chore_list = state_attr(dashboard_helper, 'chores') | default([], true) -%}
+                    {%- set chores_by_label_raw = state_attr(dashboard_helper, 'chores_by_label') | default({}, true) -%}
+
+                    {#-- 5. Build Display --#}
+                    {%- for chore in chore_list -%}
+                      {%- set chore_sensor_id = chore.eid if chore is mapping else chore -%}
+                      {%- set chore_status = chore.state if chore is mapping else states(chore_sensor_id) -%}
+                      {%- set chore_labels = chore.labels if chore is mapping else state_attr(chore_sensor_id, 'labels') | default([], true) -%}
+                      {%- set chore_primary_group = chore.primary_group if chore is mapping else state_attr(chore_sensor_id, 'primary_group') | default('other') -%}
+                      {%- set chore_is_today_am = chore.is_today_am if chore is mapping else state_attr(chore_sensor_id, 'is_today_am') -%}
+
+                      {#-- Step 1: Skip if chore labels match exclude list --#}
+                      {%- if not (chore_labels | select('in', pref_exclude_label_list) | list | count > 0) -%}
+
+                        {#-- Step 2: Skip chores by excluded states preference --#}
+                        {%- if chore_status in pref_exclude_states -%}
+                          {#-- Skip this chore --#}
+
+                        {#-- Step 3: Handle overdue chores (highest priority) --#}
+                        {%- elif chore_status == 'overdue' and pref_use_overdue_grouping -%}
+                          {%- set ns.overdue_buttons = ns.overdue_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 4: Skip chores with labels when label grouping is enabled (they're processed separately) --#}
+                        {%- elif pref_use_label_grouping and (chore_labels | default([], true) | list | length > 0) -%}
+                          {#-- Labels take priority; processed in label grouping section below --#}
+
+                        {#-- Step 5: Handle recurring filters BEFORE primary_group logic (override primary_group assignment) --#}
+                        {#-- If a chore is in 'today' group without specific date, it's daily recurring --#}
+                        {%- elif chore_primary_group == 'today' and not pref_include_daily_recurring_in_today -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- If a chore is in 'this_week' group without specific date, it's weekly recurring --#}
+                        {%- elif chore_primary_group == 'this_week' and not pref_include_weekly_recurring_in_this_week -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 6: Categorize by primary_group (time-based) --#}
+                        {%- elif chore_primary_group == 'today' and pref_use_today_grouping and chore_is_today_am == true -%}
+                          {%- set ns.am_buttons = ns.am_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'today' and pref_use_today_grouping and chore_is_today_am != true -%}
+                          {%- set ns.today_buttons = ns.today_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'today' and not pref_use_today_grouping -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'this_week' and pref_use_this_week_grouping -%}
+                          {%- set ns.this_week_buttons = ns.this_week_buttons + [chore_sensor_id] -%}
+
+                        {%- elif chore_primary_group == 'this_week' and not pref_use_this_week_grouping -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+
+                        {#-- Step 7: Default fallback --#}
+                        {%- else -%}
+                          {%- set ns.other_buttons = ns.other_buttons + [chore_sensor_id] -%}
+                        {%- endif -%}
+
+                      {%- endif -%}
+                    {%- endfor -%}
+
+                    {#-- Build Label Groups from chores_by_label --#}
+                    {%- if pref_use_label_grouping -%}
+                      {#-- Determine label order: use pref_label_display_order if provided, else all labels alphabetically --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set ns.label_order = pref_label_display_order -%}
+                      {%- else -%}
+                        {%- set ns.label_order = chores_by_label_raw.keys() | list | sort -%}
+                      {%- endif -%}
+
+                      {#-- Build label button groups in order --#}
+                      {%- for label in ns.label_order -%}
+                        {%- if label not in pref_exclude_label_list and label in chores_by_label_raw -%}
+                          {%- set label_eids = chores_by_label_raw[label] | default([], true) -%}
+                          {%- set ns.temp_label_buttons = [] -%}
+                          {%- for eid in label_eids -%}
+                            {%- if eid not in (ns.overdue_buttons | list) -%}
+                              {%- set ns.temp_label_buttons = ns.temp_label_buttons + [eid] -%}
+                            {%- endif -%}
+                          {%- endfor -%}
+                          {%- if ns.temp_label_buttons | length > 0 -%}
+                            {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                          {%- endif -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+
+                      {#-- Add any remaining labels not in pref_label_display_order (alphabetically sorted) --#}
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set remaining_labels = chores_by_label_raw.keys() | list | sort | reject('in', pref_label_display_order) | list -%}
+                        {%- for label in remaining_labels -%}
+                          {%- if label not in pref_exclude_label_list -%}
+                            {%- set label_eids = chores_by_label_raw[label] | default([], true) -%}
+                            {%- set ns.temp_label_buttons = [] -%}
+                            {%- for eid in label_eids -%}
+                              {%- if eid not in (ns.overdue_buttons | list) -%}
+                                {%- set ns.temp_label_buttons = ns.temp_label_buttons + [eid] -%}
+                              {%- endif -%}
+                            {%- endfor -%}
+                            {%- if ns.temp_label_buttons | length > 0 -%}
+                              {%- set ns.label_button_groups = ns.label_button_groups + [{'name': label, 'buttons': ns.temp_label_buttons, 'icon': 'mdi:label'}] -%}
+                            {%- endif -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                      {%- endif -%}
+                    {%- endif -%}
+
+                    {#-- Build the button groups --#}
+                    {%- set button_groups = [
+                        {'name': "!!!!!!!!!!! " ~ ui.get('overdue', 'err-overdue') ~ " !!!!!!!!!!!", 'buttons': ns.overdue_buttons, 'icon': 'mdi:alert-octagon'},
+                        {'name': ui.get('due_this_morning', 'err-due_this_morning'), 'buttons': ns.am_buttons, 'icon': 'mdi:alarm'},
+                        {'name': ui.get('due_today', 'err-due_today'), 'buttons': ns.today_buttons, 'icon': 'mdi:calendar-today'},
+                        {'name': ui.get('due_this_week', 'err-due_this_week'), 'buttons': ns.this_week_buttons, 'icon': 'mdi:calendar-week'}
+                    ] -%}
+
+                    {#-- Insert label-based groups --#}
+                    {%- set button_groups = button_groups + ns.label_button_groups -%}
+
+                    {#-- Continue with bonus group --#}
+                    {%- set button_groups = button_groups + [
+                        {'name': ui.get('upcoming_bonus', 'err-upcoming_bonus'), 'buttons': ns.other_buttons, 'icon': 'mdi:calendar-clock'}
+                    ] -%}
+
+                    {#-- Sort chores within each group based on preference --#}
+                    {%- if pref_sort_within_groups != 'default' -%}
+                      {%- set ns.sorted_groups = [] -%}
+                      {%- for group in button_groups -%}
+                        {%- if group.buttons | length > 0 -%}
+                          {%- if pref_sort_within_groups in ['name_asc', 'name_desc'] -%}
+                            {#-- Build list of (name, eid) tuples for sorting --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set chore_name = state_attr(eid, 'chore_name') | default('zzz', true) | lower -%}
+                              {%- set ns.temp_list = ns.temp_list + [[chore_name, eid]] -%}
+                            {%- endfor -%}
+                            {#-- Sort the list --#}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- if pref_sort_within_groups == 'name_desc' -%}
+                              {%- set sorted_list = sorted_list | reverse | list -%}
+                            {%- endif -%}
+                            {#-- Extract just the entity IDs --#}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- elif pref_sort_within_groups in ['date_asc', 'date_desc'] -%}
+                            {#-- Build list of (due_date_timestamp, eid) tuples for sorting --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set due_date_value = state_attr(eid, 'due_date') -%}
+                              {%- if due_date_value is not none and due_date_value not in ['unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_value) | default(9999999999, true) -%}
+                              {%- else -%}
+                                {%- set due_timestamp = 9999999999 -%}
+                              {%- endif -%}
+                              {%- set ns.temp_list = ns.temp_list + [[due_timestamp, eid]] -%}
+                            {%- endfor -%}
+                            {#-- Sort the list --#}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- if pref_sort_within_groups == 'date_desc' -%}
+                              {%- set sorted_list = sorted_list | reverse | list -%}
+                            {%- endif -%}
+                            {#-- Extract just the entity IDs --#}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- elif pref_sort_within_groups == 'by_state_and_date' -%}
+                            {#-- Actionability sort: overdue, due, pending, waiting, claimed, completed, completed_by_other, not_my_turn, missed --#}
+                            {%- set ns.temp_list = [] -%}
+                            {%- for eid in group.buttons -%}
+                              {%- set chore_state = states(eid) | lower -%}
+                              {%- if chore_state == 'overdue' -%}
+                                {%- set state_priority = 0 -%}
+                              {%- elif chore_state == 'due' -%}
+                                {%- set state_priority = 1 -%}
+                              {%- elif chore_state == 'pending' -%}
+                                {%- set state_priority = 2 -%}
+                              {%- elif chore_state == 'waiting' -%}
+                                {%- set state_priority = 3 -%}
+                              {%- elif chore_state == 'claimed' -%}
+                                {%- set state_priority = 4 -%}
+                              {%- elif chore_state in ['completed', 'approved'] -%}
+                                {%- set state_priority = 5 -%}
+                              {%- elif chore_state == 'completed_by_other' -%}
+                                {%- set state_priority = 6 -%}
+                              {%- elif chore_state == 'not_my_turn' -%}
+                                {%- set state_priority = 7 -%}
+                              {%- elif chore_state == 'missed' -%}
+                                {%- set state_priority = 8 -%}
+                              {%- else -%}
+                                {%- set state_priority = 50 -%}
+                              {%- endif -%}
+                              {%- set due_date_value = state_attr(eid, 'due_date') -%}
+                              {%- if due_date_value is not none and due_date_value not in ['unknown', 'unavailable'] -%}
+                                {%- set due_timestamp = as_timestamp(due_date_value) | default(9999999999, true) -%}
+                              {%- else -%}
+                                {%- set due_timestamp = 9999999999 -%}
+                              {%- endif -%}
+                              {%- set chore_name = state_attr(eid, 'chore_name') | default('zzz', true) | lower -%}
+                              {%- set ns.temp_list = ns.temp_list + [[state_priority, due_timestamp, chore_name, eid]] -%}
+                            {%- endfor -%}
+                            {%- set sorted_list = ns.temp_list | sort -%}
+                            {%- set sorted_buttons = sorted_list | map('last') | list -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'buttons': sorted_buttons, 'icon': group.icon}] -%}
+                          {%- else -%}
+                            {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                          {%- endif -%}
+                        {%- else -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set button_groups = ns.sorted_groups -%}
+                    {%- endif -%}
+
+                    {#-- 6. Render (production-aligned button-card layout) --#}
+                    {{
+                      {
+                        'type': 'custom:button-card',
+                        'name': ui.get('chores', 'err-chores'),
+                        'icon': 'mdi:broom',
+                        'show_name': true,
+                        'show_icon': true,
+                        'styles': {
+                          'card': [
+                            {'background': 'transparent'},
+                            {'box-shadow': 'none'},
+                            {'border': 'none'},
+                            {'padding': '0px 0px 2px 0px'},
+                            {'min-height': 'unset'},
+                            {'margin-bottom': '-20px'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"i n"'},
+                            {'grid-template-columns': 'min-content 1fr'},
+                            {'gap': '5px'},
+                            {'align-items': 'center'}
+                          ],
+                          'icon': [
+                            {'width': '20px'},
+                            {'color': 'var(--primary-color)'}
+                          ],
+                          'name': [
+                            {'justify-self': 'start'},
+                            {'font-size': '18px'},
+                            {'font-weight': 'bold'},
+                            {'color': 'var(--primary-text-color)'}
+                          ]
+                        }
+                      }
+                    }},
+
+                    {%- for group in button_groups -%}
+                      {%- set ns.group_cards = [] -%}
+                      {%- if group.buttons | length > 0 -%}
+                        {%- set g_name = group.name | replace('!!!!!!!!!!! ', '') | replace(' !!!!!!!!!!!', '') -%}
+                        {%- set is_overdue = 'alert' in group.icon or 'overdue' in g_name | lower -%}
+
+                        {{
+                          {
+                            'type': 'custom:button-card',
+                            'name': g_name,
+                            'icon': group.icon,
+                            'show_name': true,
+                            'show_icon': true,
+                            'styles': {
+                              'card': [
+                                {'background': 'rgba(244, 67, 54, 0.1)' if is_overdue else 'var(--secondary-background-color)'},
+                                {'box-shadow': 'none'},
+                                {'border': '2px solid rgba(244, 67, 54, 0.3)' if is_overdue else '2px solid var(--divider-color)'},
+                                {'border-radius': '6px'},
+                                {'padding': '6px 16px'},
+                                {'min-height': 'unset'},
+                                {'margin': '0px 0px 0px 0px'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"i n"'},
+                                {'grid-template-columns': 'min-content 1fr'},
+                                {'gap': '0px'},
+                                {'align-items': 'center'}
+                              ],
+                              'icon': [
+                                {'width': '18px'},
+                                {'color': 'var(--error-color)' if is_overdue else 'var(--primary-color)'}
+                              ],
+                              'name': [
+                                {'justify-self': 'right'},
+                                {'font-size': '12px'},
+                                {'font-weight': '800'},
+                                {'text-transform': 'uppercase'},
+                                {'letter-spacing': '0.9px'},
+                                {'color': 'var(--error-color)' if is_overdue else 'var(--primary-text-color)'}
+                              ]
+                            }
+                          }
+                        }},
+
+                        {%- for chore_sensor_id in group.buttons -%}
+                            {%- set ns.group_cards = ns.group_cards + [
+                              {
+                                'type': 'custom:button-card',
+                                'template': 'choreops_chore_row_v1',
+                                'entity': chore_sensor_id,
+                                'variables': {
+                                  'pref_show_chore_description': pref_show_chore_description,
+                                  'gamification_enabled': gamification_enabled,
+                                  'points_label': points_label,
+                                  'ui_labels': {
+                                    'pending': ui.get('pending', 'err-pending'),
+                                    'due': ui.get('due', 'err-due'),
+                                    'claimed': ui.get('claimed', 'err-claimed'),
+                                    'claimed_in_part': ui.get('claimed_in_part', 'err-claimed_in_part'),
+                                    'completed': ui.get('completed', 'err-completed'),
+                                    'completed_in_part': ui.get('completed_in_part', 'err-completed_in_part'),
+                                    'overdue': ui.get('overdue', 'err-overdue'),
+                                    'waiting': ui.get('waiting', 'err-waiting'),
+                                    'missed': ui.get('missed', 'err-missed'),
+                                    'completed_by_other': ui.get('completed_by_other', 'err-completed_by_other'),
+                                    'not_my_turn': ui.get('not_my_turn', 'err-not_my_turn'),
+                                    'missed_locked': ui.get('missed_locked', 'err-missed_locked'),
+                                    'steal_available': ui.get('steal_available', 'err-steal_available'),
+                                    'date': ui.get('date', 'err-date'),
+                                    'due_date': ui.get('due_date', 'err-due_date'),
+                                    'steal_window_open': ui.get('steal_window_open', 'err-steal_window_open'),
+                                    'current_turn': ui.get('current_turn', 'err-current_turn'),
+                                    'currently': ui.get('currently', 'err-currently'),
+                                    'available_in': ui.get('available_in', 'err-available_in'),
+                                    'overdue_in': ui.get('overdue_in', 'err-overdue_in'),
+                                    'progress': ui.get('progress', 'err-progress'),
+                                    'by': ui.get('by', 'err-by'),
+                                    'last': ui.get('last', 'err-last'),
+                                    'never': ui.get('never', 'err-never'),
+                                    'daily': ui.get('daily', 'err-daily'),
+                                    'daily_multi': ui.get('daily_multi', 'err-daily_multi'),
+                                    'weekly': ui.get('weekly', 'err-weekly'),
+                                    'biweekly': ui.get('biweekly', 'err-biweekly'),
+                                    'monthly': ui.get('monthly', 'err-monthly'),
+                                    'quarterly': ui.get('quarterly', 'err-quarterly'),
+                                    'yearly': ui.get('yearly', 'err-yearly'),
+                                    'custom': ui.get('custom', 'err-custom'),
+                                    'custom_from_complete': ui.get('custom_from_complete', 'err-custom_from_complete'),
+                                    'custom_1_week': ui.get('custom_1_week', 'err-custom_1_week'),
+                                    'custom_1_month': ui.get('custom_1_month', 'err-custom_1_month'),
+                                    'custom_1_quarter': ui.get('custom_1_quarter', 'err-custom_1_quarter'),
+                                    'custom_1_year': ui.get('custom_1_year', 'err-custom_1_year')
+                                  }
+                                }
+                              }
+                            ] -%}
+                        {%- endfor -%}
+
+                        {{
+                          {
+                            'type': 'grid',
+                            'columns': pref_column_count,
+                            'square': false,
+                            'cards': ns.group_cards
+                          }
+                        }},
+                      {%- endif -%}
+                    {%- endfor -%}
+                  {%- endif -%}
+
+    - type: grid
+      column_span: 1
+      cards:
+        - type: grid
+          square: false
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: |-
+                  {#-- ===== REWARDS CARD ===== --#}
+
+                  << template_snippets.meta_stamp >>
+
+
+                  {#-- 1. User Configuration --#}
+
+                  << template_snippets.user_override_helper >>
+
+                  {%- set pref_column_count = 1 -%}
+
+                  {%- set pref_use_label_grouping = false -%}
+
+                  {%- set pref_exclude_label_list = [] -%}  {#-- Example: ['junk_label', 'skip_this'] --#}
+
+                  {%- set pref_label_display_order = [] -%}  {#-- Example: ['Toys', 'Snacks', 'Activities'] --#}
+
+                  {%- set pref_sort_rewards = 'default' -%}  {#-- Options: 'default', 'name_asc', 'name_desc', 'cost_asc', 'cost_desc' --#}
+
+                  {%- set pref_show_reward_description = true -%}
+
+
+                  {#-- Type coercion for preferences --#}
+                  {%- set pref_column_count = pref_column_count | int(default=1) -%}
+                  {%- set pref_use_label_grouping = (pref_use_label_grouping | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
+                  {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
+                  {%- set pref_show_reward_description = (pref_show_reward_description | default('true') | string | lower) == 'true' -%}
+
+                  {#-- 2. Dynamic Lookups & Validations --#}
+
+                  << template_snippets.user_setup >>
+
+                  << template_snippets.user_validation >>
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Initialize Variables --#}
+
+                  {%- set ns = namespace(
+                    all_labels=[],
+                    label_order=[],
+                    label_groups=[],
+                    temp_label_rewards=[],
+                    sorted_groups=[],
+                    temp_list=[],
+                    filtered_rewards=[],
+                    group_cards=[]
+                  ) -%}
+
+                    {#-- 4. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+                    {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                    {%- set reward_list = state_attr(dashboard_helper, 'rewards') | default([], true) -%}
+                    {%- set current_points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+
+                    {#-- Apply label exclusion filter (works regardless of grouping setting) --#}
+                    {%- if pref_exclude_label_list | length > 0 -%}
+                      {%- for reward in reward_list -%}
+                        {%- set reward_labels = reward.labels | default([], true) if reward is mapping else [] -%}
+                        {%- set has_excluded = reward_labels | select('in', pref_exclude_label_list) | list | length > 0 -%}
+                        {%- if not has_excluded -%}
+                          {%- set ns.filtered_rewards = ns.filtered_rewards + [reward] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set reward_list = ns.filtered_rewards -%}
+                    {%- endif -%}
+
+                    {#-- 5. Build Display Groups --#}
+                    {%- if pref_use_label_grouping and reward_list | length > 0 -%}
+                      {%- for reward in reward_list -%}
+                        {%- set reward_labels = reward.labels | default([], true) if reward is mapping else [] -%}
+                        {%- if reward_labels | length == 0 -%}
+                          {%- set ns.all_labels = ns.all_labels + ['-No Label-'] -%}
+                        {%- else -%}
+                          {%- set ns.all_labels = ns.all_labels + reward_labels -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set ns.all_labels = ns.all_labels | unique | list | sort -%}
+
+                      {%- if pref_label_display_order | length > 0 -%}
+                        {%- set ns.label_order = pref_label_display_order -%}
+                        {%- set remaining = ns.all_labels | reject('in', pref_label_display_order) | reject('eq', '-No Label-') | list -%}
+                        {%- set ns.label_order = ns.label_order + remaining -%}
+                        {%- if '-No Label-' in ns.all_labels and '-No Label-' not in pref_label_display_order -%}
+                          {%- set ns.label_order = ns.label_order + ['-No Label-'] -%}
+                        {%- endif -%}
+                      {%- else -%}
+                        {%- set ns.label_order = ns.all_labels | reject('eq', '-No Label-') | list -%}
+                        {%- if '-No Label-' in ns.all_labels -%}
+                          {%- set ns.label_order = ns.label_order + ['-No Label-'] -%}
+                        {%- endif -%}
+                      {%- endif -%}
+
+                      {%- set ns.label_order = ns.label_order | reject('in', pref_exclude_label_list) | list -%}
+
+                      {%- for label in ns.label_order -%}
+                        {%- set ns.temp_label_rewards = [] -%}
+                        {%- for reward in reward_list -%}
+                          {%- set reward_labels = reward.labels | default([], true) if reward is mapping else [] -%}
+                          {%- set reward_label_check = reward_labels if reward_labels | length > 0 else ['-No Label-'] -%}
+                          {%- if label in reward_label_check -%}
+                            {%- set ns.temp_label_rewards = ns.temp_label_rewards + [reward] -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                        {%- if ns.temp_label_rewards | length > 0 -%}
+                          {%- set ns.label_groups = ns.label_groups + [{'name': label, 'rewards': ns.temp_label_rewards, 'icon': 'mdi:gift'}] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {%- if ns.label_groups | length == 0 and reward_list | length > 0 -%}
+                      {%- set ns.label_groups = [{'name': ui.get('rewards', 'err-rewards'), 'rewards': reward_list, 'icon': 'mdi:gift'}] -%}
+                    {%- endif -%}
+
+                    {#-- Apply sorting to each group (ported from gamification rewards card) --#}
+                    {%- if pref_sort_rewards != 'default' -%}
+                      {%- set ns.sorted_groups = [] -%}
+                      {%- for group in ns.label_groups -%}
+                        {%- if pref_sort_rewards in ['name_asc', 'name_desc'] -%}
+                          {%- set ns.temp_list = [] -%}
+                          {%- for reward in group.rewards -%}
+                            {%- set reward_name = (reward.name | default('zzz') | lower) if reward is mapping else 'zzz' -%}
+                            {%- set ns.temp_list = ns.temp_list + [[reward_name, reward]] -%}
+                          {%- endfor -%}
+                          {%- set sorted_list = ns.temp_list | sort -%}
+                          {%- if pref_sort_rewards == 'name_desc' -%}
+                            {%- set sorted_list = sorted_list | reverse | list -%}
+                          {%- endif -%}
+                          {%- set sorted_rewards = sorted_list | map('last') | list -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'rewards': sorted_rewards, 'icon': group.icon}] -%}
+                        {%- elif pref_sort_rewards in ['cost_asc', 'cost_desc'] -%}
+                          {%- set ns.temp_list = [] -%}
+                          {%- for reward in group.rewards -%}
+                            {%- set reward_cost = (reward.cost | int(default=999999)) if reward is mapping else 999999 -%}
+                            {%- set ns.temp_list = ns.temp_list + [[reward_cost, reward]] -%}
+                          {%- endfor -%}
+                          {%- set sorted_list = ns.temp_list | sort -%}
+                          {%- if pref_sort_rewards == 'cost_desc' -%}
+                            {%- set sorted_list = sorted_list | reverse | list -%}
+                          {%- endif -%}
+                          {%- set sorted_rewards = sorted_list | map('last') | list -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [{'name': group.name, 'rewards': sorted_rewards, 'icon': group.icon}] -%}
+                        {%- else -%}
+                          {%- set ns.sorted_groups = ns.sorted_groups + [group] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {%- set ns.label_groups = ns.sorted_groups -%}
+                    {%- endif -%}
+
+                    {#-- 6. Render --#}
+                    {%- if gamification_enabled -%}
+                      {{
+                        {
+                          'type': 'custom:button-card',
+                          'name': ui.get('rewards', 'err-rewards'),
+                          'icon': 'mdi:gift-outline',
+                          'show_name': true,
+                          'show_icon': true,
+                          'styles': {
+                            'card': [
+                              {'background': 'transparent'},
+                              {'box-shadow': 'none'},
+                              {'border': 'none'},
+                              {'padding': '0px 0px 2px 0px'},
+                              {'min-height': 'unset'},
+                              {'margin-bottom': '-20px'}
+                            ],
+                            'grid': [
+                              {'grid-template-areas': '"i n"'},
+                              {'grid-template-columns': 'min-content 1fr'},
+                              {'gap': '5px'},
+                              {'align-items': 'center'}
+                            ],
+                            'icon': [
+                              {'width': '20px'},
+                              {'color': 'var(--primary-color)'}
+                            ],
+                            'name': [
+                              {'justify-self': 'start'},
+                              {'font-size': '18px'},
+                              {'font-weight': 'bold'},
+                              {'color': 'var(--primary-text-color)'}
+                            ]
+                          }
+                        }
+                      }},
+
+                      {%- if ns.label_groups | length == 0 -%}
+                        {{
+                          {
+                            'type': 'custom:button-card',
+                            'name': ui.get('no_rewards', 'err-no_rewards'),
+                            'icon': 'mdi:gift-off-outline',
+                            'show_name': true,
+                            'show_icon': true,
+                            'tap_action': {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'background': 'var(--secondary-background-color)'},
+                                {'box-shadow': 'none'},
+                                {'border': '1px solid var(--divider-color)'},
+                                {'border-radius': '12px'},
+                                {'padding': '10px 12px'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"i n"'},
+                                {'grid-template-columns': 'min-content 1fr'},
+                                {'gap': '8px'},
+                                {'align-items': 'center'}
+                              ],
+                              'icon': [
+                                {'width': '18px'},
+                                {'color': 'var(--secondary-text-color)'}
+                              ],
+                              'name': [
+                                {'justify-self': 'start'},
+                                {'font-size': '13px'},
+                                {'font-weight': '600'},
+                                {'color': 'var(--secondary-text-color)'}
+                              ]
+                            }
+                          }
+                        }},
+                      {%- else -%}
+                        {%- for group in ns.label_groups -%}
+                          {%- set ns.group_cards = [] -%}
+                          {%- set show_group_chip = (ns.label_groups | length > 1) or (group.name != ui.get('rewards', 'err-rewards')) -%}
+
+                          {%- if show_group_chip -%}
+                            {{
+                              {
+                                'type': 'custom:button-card',
+                                'name': group.name,
+                                'icon': group.icon,
+                                'show_name': true,
+                                'show_icon': true,
+                                'tap_action': {'action': 'none'},
+                                'styles': {
+                                  'card': [
+                                    {'background': 'var(--secondary-background-color)'},
+                                    {'box-shadow': 'none'},
+                                    {'border': '2px solid var(--divider-color)'},
+                                    {'border-radius': '6px'},
+                                    {'padding': '6px 16px'},
+                                    {'min-height': 'unset'},
+                                    {'margin': '0px 0px 0px 0px'}
+                                  ],
+                                  'grid': [
+                                    {'grid-template-areas': '"i n"'},
+                                    {'grid-template-columns': 'min-content 1fr'},
+                                    {'gap': '0px'},
+                                    {'align-items': 'center'}
+                                  ],
+                                  'icon': [
+                                    {'width': '18px'},
+                                    {'color': 'var(--primary-color)'}
+                                  ],
+                                  'name': [
+                                    {'justify-self': 'right'},
+                                    {'font-size': '12px'},
+                                    {'font-weight': '800'},
+                                    {'text-transform': 'uppercase'},
+                                    {'letter-spacing': '0.9px'},
+                                    {'color': 'var(--primary-text-color)'}
+                                  ]
+                                }
+                              }
+                            }},
+                          {%- endif -%}
+
+                          {%- for reward in group.rewards -%}
+                            {%- set reward_name = reward.name if reward is mapping else 'Unknown' -%}
+                            {%- set reward_cost = (reward.cost | int(default=0)) if reward is mapping else 0 -%}
+                            {%- set reward_claims = (reward.claims | int(default=0)) if reward is mapping else 0 -%}
+                            {%- set reward_approvals = (reward.approvals | int(default=0)) if reward is mapping else 0 -%}
+                            {%- set reward_sensor_eid = reward.eid if reward is mapping else '' -%}
+                            {%- set reward_icon = state_attr(reward_sensor_eid, 'icon') | default('mdi:gift', true) -%}
+                            {%- set reward_description = state_attr(reward_sensor_eid, 'description') | default('', true) -%}
+                            {%- set reward_description_clean = reward_description | string | trim -%}
+                            {%- set reward_description_safe = reward_description_clean | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
+                            {%- set claim_button_eid = state_attr(reward_sensor_eid, 'claim_button_eid') | default('', true) -%}
+                            {%- set approve_button_eid = state_attr(reward_sensor_eid, 'approve_button_eid') | default('', true) -%}
+                            {%- set disapprove_button_eid = state_attr(reward_sensor_eid, 'disapprove_button_eid') | default('', true) -%}
+                            {%- set reward_claimed_month = (state_attr(reward_sensor_eid, 'claimed_month') | int(default=0)) -%}
+                            {%- set reward_claimed_all_time = (state_attr(reward_sensor_eid, 'claimed_all_time') | int(default=0)) -%}
+                            {%- set reward_last_claimed = state_attr(reward_sensor_eid, 'last_claimed') | default('', true) -%}
+                            {%- set reward_last_claimed_text = (as_timestamp(reward_last_claimed) | timestamp_custom('%b %d')) if reward_last_claimed not in ['', 'unknown', 'unavailable', none] else ui.get('never', 'err-never') -%}
+
+                            {%- set reward_state = states(reward_sensor_eid) -%}
+                            {%- set state_map = {
+                                'locked': ui.get('locked', 'err-locked'),
+                                'available': ui.get('available', 'err-available'),
+                                'requested': ui.get('requested', 'err-requested'),
+                                'approved': ui.get('approved', 'err-approved')
+                            } -%}
+                            {%- set reward_state_display = state_map.get(reward_state, reward_state) -%}
+
+                            {%- set primary_button_eid = '' -%}
+                            {%- set primary_button_icon = 'mdi:arrow-right' -%}
+                            {%- set secondary_button_eid = '' -%}
+                            {%- if reward_state == 'requested' -%}
+                              {%- set primary_button_eid = approve_button_eid or claim_button_eid -%}
+                              {%- set primary_button_icon = 'mdi:check-bold' -%}
+                              {%- set secondary_button_eid = disapprove_button_eid -%}
+                            {%- elif reward_state == 'available' -%}
+                              {%- set primary_button_eid = claim_button_eid -%}
+                              {%- set primary_button_icon = 'mdi:arrow-right' -%}
+                            {%- endif -%}
+
+                            {%- set row_icon_color = (
+                              '#a957fa' if reward_state == 'requested' else
+                              'var(--primary-color)' if reward_state == 'available' else
+                              'var(--success-color)' if reward_state == 'approved' else
+                                'var(--secondary-text-color)'
+                            ) -%}
+                            {%- set row_border_color = (
+                              '#a957fa' if reward_state == 'requested' else
+                              'var(--divider-color)' if reward_state == 'available' else
+                              'var(--success-color)' if reward_state == 'approved' else
+                                'var(--divider-color)'
+                            ) -%}
+                            {%- set row_background = (
+                              'color-mix(in srgb, #a957fa 10%, var(--card-background-color))' if reward_state == 'requested' else
+                              'var(--card-background-color)' if reward_state in ['available', 'approved'] else
+                                'var(--secondary-background-color)'
+                            ) -%}
+                            {%- set reward_state_html = "<b style='color:" ~ row_icon_color ~ ";'>" ~ reward_state_display | upper ~ "</b> <span style='opacity:0.7;'>•</span> <span>" ~ ui.get('cost', 'err-cost') ~ ": " ~ reward_cost|string ~ " <ha-icon icon='" ~ points_icon ~ "' style='width:12px;height:12px;color:var(--secondary-text-color);transform:translateY(-1px);'></ha-icon></span>" -%}
+                            {%- set reward_description_html = "<span>" ~ reward_description_safe ~ "</span>" -%}
+                            {%- set reward_stats_html = "<span>" ~ ui.get('last', 'err-last') ~ ": " ~ reward_last_claimed_text ~ "</span> <span style='opacity:0.7;'>•</span> <span>" ~ reward_claimed_month|string ~ " " ~ ui.get('this_month', 'err-this_month') ~ "</span> <span style='opacity:0.7;'>•</span> <span>" ~ reward_claimed_all_time|string ~ " " ~ ui.get('total', 'err-total') ~ "</span>" -%}
+
+                            {%- set ns.group_cards = ns.group_cards + [{
+                              'type': 'custom:button-card',
+                              'entity': reward_sensor_eid,
+                              'name': reward_name,
+                              'icon': reward_icon,
+                              'show_name': true,
+                              'show_label': false,
+                              'show_icon': true,
+                              'custom_fields': {
+                                'state': reward_state_html,
+                                'description': reward_description_html,
+                                'stats': reward_stats_html,
+                                'btn_secondary': {
+                                  'card': {
+                                    'type': 'custom:button-card',
+                                    'show_name': false,
+                                    'show_icon': true,
+                                    'icon': 'mdi:undo-variant',
+                                    'styles': {
+                                      'card': [
+                                        {'width': '30px'},
+                                        {'height': '30px'},
+                                        {'border-radius': '50%'},
+                                        {'background-color': 'transparent'},
+                                        {'border': '1px solid #a957fa'},
+                                        {'box-shadow': 'none'}
+                                      ],
+                                      'icon': [
+                                        {'width': '17px'},
+                                        {'color': '#a957fa'}
+                                      ]
+                                    },
+                                    'tap_action': ({ 'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': secondary_button_eid } } if secondary_button_eid else { 'action': 'none' })
+                                  }
+                                },
+                                'btn_primary': {
+                                  'card': {
+                                    'type': 'custom:button-card',
+                                    'show_name': false,
+                                    'show_icon': true,
+                                    'icon': primary_button_icon,
+                                    'styles': {
+                                      'card': [
+                                        {'width': '30px'},
+                                        {'height': '30px'},
+                                        {'border-radius': '50%'},
+                                        {'background-color': 'color-mix(in srgb, #a957fa 14%, var(--card-background-color))' if reward_state == 'requested' else 'transparent'},
+                                        {'border': '2px solid #a957fa' if reward_state == 'requested' else '2px solid var(--primary-color)'},
+                                        {'box-shadow': 'none'}
+                                      ],
+                                      'icon': [
+                                        {'width': '17px'},
+                                        {'color': '#a957fa' if reward_state == 'requested' else 'var(--primary-color)'}
+                                      ]
+                                    },
+                                    'tap_action': ({ 'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': primary_button_eid } } if primary_button_eid else { 'action': 'none' })
+                                  }
+                                },
+                              },
+                              'tap_action': { 'action': 'more-info' },
+                              'hold_action': { 'action': 'none' },
+                              'styles': {
+                                'card': [
+                                  {'background': row_background},
+                                  {'box-shadow': 'none'},
+                                  {'border': '1px solid ' ~ row_border_color},
+                                  {'border-radius': '12px'},
+                                  {'padding': '10px 12px'}
+                                ],
+                                'grid': [
+                                  {'grid-template-areas': '"i n btn_secondary btn_primary" "i state btn_secondary btn_primary" "i description btn_secondary btn_primary" "i stats btn_secondary btn_primary"'},
+                                  {'grid-template-columns': 'min-content 1fr min-content min-content'},
+                                  {'column-gap': '8px'},
+                                  {'row-gap': '2px'},
+                                  {'align-items': 'center'}
+                                ],
+                                'icon': [
+                                  {'width': '28px'},
+                                  {'color': row_icon_color}
+                                ],
+                                'name': [
+                                  {'justify-self': 'start'},
+                                  {'font-size': '14px'},
+                                  {'font-weight': '600'},
+                                  {'color': 'var(--primary-text-color)'}
+                                ],
+                                'custom_fields': {
+                                  'state': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '11px'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'white-space': 'normal'},
+                                    {'line-height': '1.2'}
+                                  ],
+                                  'description': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '10px'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'white-space': 'normal'},
+                                    {'line-height': '1.2'},
+                                    {'display': 'block' if pref_show_reward_description and reward_description_clean | length > 0 else 'none'}
+                                  ],
+                                  'stats': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '10px'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'white-space': 'normal'},
+                                    {'line-height': '1.2'}
+                                  ],
+                                  'btn_secondary': [
+                                    {'align-self': 'center'},
+                                    {'justify-self': 'end'},
+                                    {'margin-right': '6px'},
+                                    {'display': 'block' if secondary_button_eid not in ['', none] else 'none'}
+                                  ],
+                                  'btn_primary': [
+                                    {'align-self': 'center'},
+                                    {'justify-self': 'end'},
+                                    {'display': 'block' if primary_button_eid not in ['', none] else 'none'}
+                                  ]
+                                }
+                              }
+                            }] -%}
+                          {%- endfor -%}
+
+                          {{
+                            {
+                              'type': 'grid',
+                              'columns': pref_column_count,
+                              'square': false,
+                              'cards': ns.group_cards if ns.group_cards | length > 0 else [{
+                                'type': 'custom:button-card',
+                                'name': ui.get('no_rewards', 'err-no_rewards'),
+                                'icon': 'mdi:gift-off-outline',
+                                'show_name': true,
+                                'show_icon': true,
+                                'tap_action': {'action': 'none'},
+                                'styles': {
+                                  'card': [
+                                    {'background': 'var(--secondary-background-color)'},
+                                    {'box-shadow': 'none'},
+                                    {'border': '1px solid var(--divider-color)'},
+                                    {'border-radius': '12px'},
+                                    {'padding': '10px 12px'}
+                                  ],
+                                  'grid': [
+                                    {'grid-template-areas': '"i n"'},
+                                    {'grid-template-columns': 'min-content 1fr'},
+                                    {'gap': '8px'},
+                                    {'align-items': 'center'}
+                                  ],
+                                  'icon': [
+                                    {'width': '18px'},
+                                    {'color': 'var(--secondary-text-color)'}
+                                  ],
+                                  'name': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '13px'},
+                                    {'font-weight': '600'},
+                                    {'color': 'var(--secondary-text-color)'}
+                                  ]
+                                }
+                              }]
+                            }
+                          }},
+                        {%- endfor -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endif -%}
+        - type: grid
+          square: false
+          columns: 1
+          grid_options:
+            columns: full
+          cards:
+            - type: custom:auto-entities
+              card:
+                square: false
+                type: grid
+                columns: 1
+              card_param: cards
+              filter:
+                template: |-
+                  {#-- ===== CUMULATIVE BADGES CARD ===== --#}
+
+                  << template_snippets.meta_stamp >>
+
+
+                  {#-- 1. User Configuration --#}
+
+                  << template_snippets.user_override_helper >>
+
+
+                  {#-- 2. Dynamic Lookups & Validations --#}
+
+                  << template_snippets.user_setup >>
+
+                  << template_snippets.user_validation >>
+
+                  {%- if not skip_render -%}
+
+                    {#-- 3. Initialize --#}
+                    {%- set ns = namespace(
+                      badges=[],
+                      points_earned_all_time=0,
+                      points_label='Points',
+                      m_status='active',
+                      m_cycle_pts=0,
+                      m_end_date='',
+                      m_grace_end='',
+                      m_remaining=0,
+                      m_required=0,
+                      m_last_awarded='',
+                      m_award_count=0,
+                      points_to_next=0,
+                      current_badge_eid='',
+                      highest_earned_badge_eid='',
+                      next_higher_badge_eid='',
+                      next_lower_badge_eid='',
+                      has_earned_any=false
+                    ) -%}
+
+                    {#-- 4. Collect Data --#}
+                    {%- set core_sensors = state_attr(dashboard_helper, 'core_sensors') or {} -%}
+                    {%- set points_sensor = core_sensors.get('points_eid') -%}
+                    {%- set badges_sensor = core_sensors.get('badges_eid') -%}
+                    {%- set translation_sensor = (state_attr(dashboard_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
+                    {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
+                    {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
+                    {%- set ns.points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
+                    {%- set ns.points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
+
+                    {%- if badges_sensor -%}
+                      {%- set hb_attrs = states[badges_sensor].attributes | default({}, true) -%}
+                      {%- set ns.points_to_next = hb_attrs.get('points_to_next_badge', 0) | int(default=0) -%}
+                      {%- set ns.m_status = hb_attrs.get('badge_status', 'active') | default('active') -%}
+                      {%- set ns.m_cycle_pts = hb_attrs.get('cycle_points', 0) | int(default=0) -%}
+                      {%- set ns.m_end_date = hb_attrs.get('maintenance_end_date') | default('', true) -%}
+                      {%- set ns.m_grace_end = hb_attrs.get('maintenance_grace_end_date') | default('', true) -%}
+                      {%- set ns.m_required = hb_attrs.get('maintenance_points_required', 0) | int(default=0) -%}
+                      {%- set ns.m_remaining = hb_attrs.get('maintenance_points_remaining', 0) | int(default=0) -%}
+                      {%- set ns.m_last_awarded = hb_attrs.get('last_awarded_date') | default('', true) -%}
+                      {%- set ns.m_award_count = hb_attrs.get('award_count', 0) | int(default=0) -%}
+                      {%- set ns.current_badge_eid = hb_attrs.get('current_badge_eid') | default('', true) -%}
+                      {%- set ns.highest_earned_badge_eid = hb_attrs.get('highest_earned_badge_eid') | default('', true) -%}
+                      {%- set ns.next_higher_badge_eid = hb_attrs.get('next_higher_badge_eid') | default('', true) -%}
+                      {%- set ns.next_lower_badge_eid = hb_attrs.get('next_lower_badge_eid') | default('', true) -%}
+                      {%- set ns.has_earned_any = ns.current_badge_eid not in ['', 'None', 'unknown', 'unavailable', none] -%}
+
+                      {%- set middle_badge_eid = ns.current_badge_eid -%}
+                      {%- if ns.m_status == 'demoted' and ns.highest_earned_badge_eid not in ['', 'None', 'unknown', 'unavailable', none] -%}
+                        {%- set middle_badge_eid = ns.highest_earned_badge_eid -%}
+                      {%- endif -%}
+                      {%- if ns.next_lower_badge_eid == middle_badge_eid -%}
+                        {%- set ns.next_lower_badge_eid = '' -%}
+                      {%- endif -%}
+
+                      {%- set badge_entries = [
+                        {'eid': ns.next_higher_badge_eid, 'role': 'next_higher', 'earned': false},
+                        {'eid': middle_badge_eid, 'role': 'current', 'earned': true},
+                        {'eid': ns.next_lower_badge_eid, 'role': 'next_lower', 'earned': true}
+                      ] -%}
+
+                      {%- for entry in badge_entries -%}
+                        {%- set badge_eid = entry.eid -%}
+                        {%- if badge_eid not in ['', 'None', 'unknown', 'unavailable', none] and states(badge_eid) not in ['unknown', 'unavailable'] -%}
+                          {%- set target_data = state_attr(badge_eid, 'target') -%}
+                          {%- set threshold_val = 0 -%}
+                          {%- set maintenance_points = 0 -%}
+                          {%- if target_data is mapping -%}
+                            {%- set threshold_val = target_data.threshold_value | float(default=0) -%}
+                            {%- set maintenance_points = target_data.maintenance_rules | int(default=0) -%}
+                          {%- else -%}
+                            {%- set threshold_val = state_attr(badge_eid, 'threshold_value') | float(default=0) -%}
+                          {%- endif -%}
+
+                          {%- set awards_data = state_attr(badge_eid, 'awards') -%}
+                          {%- set award_items_list = [] -%}
+                          {%- if awards_data is mapping -%}
+                            {%- set award_items_raw = awards_data.get('award_items') -%}
+                            {%- if award_items_raw is iterable and award_items_raw is not string and award_items_raw is not none -%}
+                              {%- set award_items_list = award_items_raw -%}
+                            {%- endif -%}
+                          {%- elif awards_data is iterable and awards_data is not string and awards_data is not none -%}
+                            {%- set award_items_list = awards_data -%}
+                          {%- endif -%}
+
+                          {%- set raw_earned = state_attr(badge_eid, 'assignees_earned') -%}
+                          {%- set earned_list = [] -%}
+                          {%- if raw_earned is string -%}
+                            {%- set earned_list = [raw_earned] -%}
+                          {%- elif raw_earned is iterable and raw_earned is not string and raw_earned is not none -%}
+                            {%- set earned_list = raw_earned -%}
+                          {%- endif -%}
+
+                          {%- set badge_info = {
+                            'entity_id': badge_eid,
+                            'name': (state_attr(badge_eid, 'badge_name') or state_attr(badge_eid, 'friendly_name') or '') | regex_replace('^Badge - ', ''),
+                            'icon': state_attr(badge_eid, 'icon') | default('mdi:medal-outline', true),
+                            'description': (state_attr(badge_eid, 'description') or '') | string,
+                            'threshold': threshold_val | int,
+                            'award_items': award_items_list,
+                            'assignees_earned': earned_list,
+                            'maintenance': maintenance_points,
+                            'role': entry.role,
+                            'earned': entry.earned
+                          } -%}
+                          {%- set ns.badges = ns.badges + [badge_info] -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                    {%- endif -%}
+
+                    {#-- 5. Render --#}
+                    {%- if gamification_enabled -%}
+                      {{
+                        {
+                          'type': 'custom:button-card',
+                          'name': ui.get('cumulative', 'err-cumulative') ~ ' ' ~ ui.get('badge', 'err-badge'),
+                          'icon': 'mdi:medal',
+                          'show_name': true,
+                          'show_icon': true,
+                          'styles': {
+                            'card': [
+                              {'background': 'transparent'},
+                              {'box-shadow': 'none'},
+                              {'border': 'none'},
+                              {'padding': '0px 0px 2px 0px'},
+                              {'min-height': 'unset'},
+                              {'margin-bottom': '-10px'}
+                            ],
+                            'grid': [
+                              {'grid-template-areas': '"i n"'},
+                              {'grid-template-columns': 'min-content 1fr'},
+                              {'gap': '1px'},
+                              {'align-items': 'center'}
+                            ],
+                            'icon': [
+                              {'width': '20px'},
+                              {'color': 'var(--primary-color)'}
+                            ],
+                            'name': [
+                              {'justify-self': 'start'},
+                              {'font-size': '18px'},
+                              {'font-weight': 'bold'},
+                              {'color': 'var(--primary-text-color)'}
+                            ]
+                          }
+                        }
+                      }},
+
+                      {%- if ns.badges | length == 0 -%}
+                        {{
+                          {
+                            'type': 'custom:button-card',
+                            'name': ui.get('no_badges_found', 'err-no_badges_found'),
+                            'icon': 'mdi:medal-outline',
+                            'show_name': true,
+                            'show_icon': true,
+                            'tap_action': {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'background': 'var(--secondary-background-color)'},
+                                {'box-shadow': 'none'},
+                                {'border': '1px solid var(--divider-color)'},
+                                {'border-radius': '12px'},
+                                {'padding': '10px 12px'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"i n"'},
+                                {'grid-template-columns': 'min-content 1fr'},
+                                {'gap': '8px'},
+                                {'align-items': 'center'}
+                              ],
+                              'icon': [
+                                {'width': '18px'},
+                                {'color': 'var(--secondary-text-color)'}
+                              ],
+                              'name': [
+                                {'justify-self': 'start'},
+                                {'font-size': '13px'},
+                                {'font-weight': '600'},
+                                {'color': 'var(--secondary-text-color)'}
+                              ]
+                            }
+                          }
+                        }},
+                      {%- else -%}
+                        {%- for badge in ns.badges -%}
+                          {%- set is_current = badge.role == 'current' -%}
+                          {%- set is_target = badge.role == 'next_higher' -%}
+                          {%- set req_pts = ns.m_required if ns.m_required > 0 else badge.maintenance -%}
+                          {%- set badge_desc = badge.description | trim -%}
+                          {%- set badge_desc_safe = badge_desc | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
+                          {%- set earned_names = badge.assignees_earned | default([], true) -%}
+                          {%- set awards_text = badge.award_items | join(', ') if badge.award_items | length > 0 else '' -%}
+
+                          {%- set status_text = ("✅ " ~ ui.get('earned', 'err-earned')) if badge.earned else ("🔒 " ~ ui.get('future_goal', 'err-future_goal')) -%}
+                          {%- set status_color = 'var(--success-color)' if badge.earned else 'var(--secondary-text-color)' -%}
+                          {%- set current_state_label = ui.get('active', 'err-active') if ns.m_status == 'active' else (ui.get('demoted', 'err-demoted') if ns.m_status == 'demoted' else ui.get('grace_period', 'err-grace_period')) -%}
+                          {%- set current_state_color = 'var(--success-color)' if ns.m_status == 'active' else ('var(--error-color)' if ns.m_status == 'demoted' else 'var(--warning-color)') -%}
+                          {%- if is_current -%}
+                            {%- set details_html = "<b style='color:" ~ current_state_color ~ ";'>🛡️ " ~ ui.get('current_status', 'err-current_status') ~ ": " ~ current_state_label | upper ~ "</b>" -%}
+                            {%- set details_html = details_html ~ "<br><span>🎯 " ~ ui.get('threshold', 'err-threshold') ~ ": " ~ badge.threshold|string ~ " " ~ ns.points_label ~ "</span>" -%}
+                          {%- else -%}
+                            {%- set details_html = "<b style='color:" ~ status_color ~ ";'>" ~ status_text | upper ~ "</b> <span style='opacity:0.7;'>•</span> <span>🎯 " ~ ui.get('threshold', 'err-threshold') ~ ": " ~ badge.threshold|string ~ " " ~ ns.points_label ~ "</span>" -%}
+                          {%- endif -%}
+                          {%- if awards_text | length > 0 -%}
+                            {%- set details_html = details_html ~ "<br><span>💎 " ~ ui.get('awards', 'err-awards') ~ ": " ~ awards_text ~ "</span>" -%}
+                          {%- endif -%}
+                          {%- set description_html = "<span>" ~ badge_desc_safe ~ "</span>" -%}
+
+                          {%- set progress_html = '' -%}
+                          {%- if is_current and req_pts > 0 -%}
+                            {%- set pct = (ns.m_cycle_pts / req_pts * 100) | round(0) | int -%}
+                            {%- if pct > 100 -%}{%- set pct = 100 -%}{%- endif -%}
+                            {%- if pct < 0 -%}{%- set pct = 0 -%}{%- endif -%}
+                            {%- set bar_color = 'var(--warning-color)' if ns.m_status == 'grace' else ('var(--success-color)' if ns.m_remaining <= 0 else ('var(--warning-color)' if ns.m_status == 'demoted' else 'var(--primary-color)')) -%}
+                            {%- set maint_due = ("📅 " ~ ui.get('due', 'err-due') ~ ": " ~ ns.m_end_date) if ns.m_end_date not in ['', none] else '' -%}
+                            {%- set maint_grace = ("⏳ " ~ ui.get('grace_period', 'err-grace_period') ~ ": " ~ ns.m_grace_end) if ns.m_status == 'grace' and ns.m_grace_end not in ['', none] else '' -%}
+                            {%- set maint_dates = maint_due ~ (" • " ~ maint_grace if maint_due | length > 0 and maint_grace | length > 0 else maint_grace) -%}
+                            {%- set maint_need = ("🎉 " ~ ui.get('requirement_met', 'err-requirement_met')) if ns.m_remaining <= 0 else ("🔥 " ~ ui.get('need', 'err-need') ~ ": " ~ ns.m_remaining|string ~ " " ~ ns.points_label) -%}
+                            {%- set progress_html = "<div style='margin-top:2px;padding:8px 10px;border-radius:8px;background:var(--secondary-background-color);border:1px solid var(--divider-color);'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;'><span><ha-icon icon='mdi:shield-sync' style='width:14px;height:14px;color:" ~ bar_color ~ ";transform:translateY(-1px);'></ha-icon> " ~ ui.get('maintenance', 'err-maintenance') ~ "</span><span style='font-weight:600;'>" ~ ns.m_cycle_pts|string ~ "/" ~ req_pts|string ~ "</span></div><div style='margin-top:6px;display:flex;align-items:center;gap:6px;'><div style='flex:1;height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ pct|string ~ "%;height:100%;background:" ~ bar_color ~ ";border-radius:999px;'></div></div><span style='font-size:10px;color:var(--secondary-text-color);line-height:1;'>" ~ pct|string ~ "%</span></div><div style='margin-top:6px;font-size:10px;color:var(--secondary-text-color);display:flex;justify-content:space-between;gap:8px;'><span style='color:" ~ ('var(--warning-color)' if ns.m_status == 'grace' else 'var(--secondary-text-color)') ~ ";'>" ~ maint_dates ~ "</span><span style='font-weight:600;color:" ~ ('var(--warning-color)' if ns.m_status == 'grace' and ns.m_remaining > 0 else 'var(--secondary-text-color)') ~ ";'>" ~ maint_need ~ "</span></div></div>" -%}
+                          {%- elif is_target and badge.threshold > 0 -%}
+                            {%- set pts_to_unlock = ns.points_to_next if ns.has_earned_any else (((badge.threshold - ns.points_earned_all_time) | float(default=0) | round(0, 'ceil')) | int) -%}
+                            {%- if pts_to_unlock < 0 -%}{%- set pts_to_unlock = 0 -%}{%- endif -%}
+                            {%- set current_prog = badge.threshold - pts_to_unlock -%}
+                            {%- if current_prog < 0 -%}{%- set current_prog = 0 -%}{%- endif -%}
+                            {%- set pct = (current_prog / badge.threshold * 100) | round(0) | int -%}
+                            {%- if pct > 100 -%}{%- set pct = 100 -%}{%- endif -%}
+                            {%- set progress_html = "<div style='margin-top:2px;padding:8px 10px;border-radius:8px;background:var(--secondary-background-color);border:1px solid var(--divider-color);'><div style='display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;'><span><ha-icon icon='mdi:rocket-launch' style='width:14px;height:14px;color:var(--primary-color);transform:translateY(-1px);'></ha-icon> " ~ ui.get('to_unlock', 'err-to_unlock') ~ "</span><span style='font-weight:600;'>" ~ current_prog|string ~ "/" ~ badge.threshold|string ~ "</span></div><div style='margin-top:6px;display:flex;align-items:center;gap:6px;'><div style='flex:1;height:6px;background:var(--divider-color);border-radius:999px;overflow:hidden;'><div style='width:" ~ pct|string ~ "%;height:100%;background:var(--primary-color);border-radius:999px;'></div></div><span style='font-size:10px;color:var(--secondary-text-color);line-height:1;'>" ~ pct|string ~ "%</span></div><div style='margin-top:6px;font-size:10px;color:var(--secondary-text-color);text-align:right;'><span style='font-weight:600;'>🔥 " ~ ui.get('need', 'err-need') ~ ": " ~ pts_to_unlock|string ~ " " ~ ns.points_label ~ "</span></div></div>" -%}
+                          {%- endif -%}
+
+                          {%- set stats_parts = [] -%}
+                          {%- if is_current -%}
+                            {%- set stats_parts = stats_parts + ["⭐ " ~ ui.get('last_earned', 'err-last_earned') ~ ": " ~ (ns.m_last_awarded if ns.m_last_awarded else ui.get('never', 'err-never'))] -%}
+                            {%- set stats_parts = stats_parts + ["🎖️ " ~ ui.get('earned_count', 'err-earned_count') ~ ": " ~ ns.m_award_count|string] -%}
+                          {%- endif -%}
+                          {%- if earned_names | length > 0 -%}
+                            {%- set stats_parts = stats_parts + ["👥 " ~ ui.get('earned_by', 'err-earned_by') ~ ": " ~ (earned_names | join(', '))] -%}
+                          {%- endif -%}
+                          {%- set stats_html = stats_parts | join(" <span style='opacity:0.7;'>•</span> ") -%}
+
+                          {{
+                            {
+                              'type': 'custom:button-card',
+                              'entity': badge.entity_id,
+                              'name': badge.name,
+                              'icon': badge.icon,
+                              'show_name': true,
+                              'show_icon': true,
+                              'show_label': false,
+                              'tap_action': {'action': 'more-info'},
+                              'custom_fields': {
+                                'details': details_html,
+                                'description': description_html,
+                                'progress': progress_html,
+                                'stats': stats_html
+                              },
+                              'styles': {
+                                'card': [
+                                  {'padding': '12px 14px'},
+                                  {'border-radius': '14px'},
+                                  {'background-color': 'var(--card-background-color)'},
+                                  {'border': '2px solid var(--primary-color)' if is_current else '1px solid var(--divider-color)'},
+                                  {'opacity': '0.72' if not badge.earned else '1.0'},
+                                  {'box-shadow': '0 2px 6px rgba(0,0,0,0.08)' if is_current else 'none'}
+                                ],
+                                'grid': [
+                                  {'grid-template-areas': '"i n" "i details" "i description" "progress progress" "stats stats"'},
+                                  {'grid-template-columns': '34px 1fr'},
+                                  {'row-gap': '4px'},
+                                  {'column-gap': '10px'}
+                                ],
+                                'icon': [
+                                  {'width': '28px'},
+                                  {'height': '28px'},
+                                  {'color': 'var(--warning-color)' if is_current else 'var(--secondary-text-color)'}
+                                ],
+                                'name': [
+                                  {'justify-self': 'start'},
+                                  {'font-size': '16px'},
+                                  {'font-weight': '600'},
+                                  {'color': 'var(--primary-text-color)'}
+                                ],
+                                'custom_fields': {
+                                  'details': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '12px'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'text-align': 'left'},
+                                    {'white-space': 'normal'},
+                                    {'line-height': '1.3'}
+                                  ],
+                                  'description': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '11px'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'text-align': 'left'},
+                                    {'white-space': 'normal'},
+                                    {'line-height': '1.3'},
+                                    {'display': 'block' if badge_desc | length > 0 else 'none'}
+                                  ],
+                                  'progress': [
+                                    {'width': '100%'},
+                                    {'text-align': 'left'},
+                                    {'display': 'block' if progress_html | length > 0 else 'none'}
+                                  ],
+                                  'stats': [
+                                    {'justify-self': 'start'},
+                                    {'font-size': '11px'},
+                                    {'color': 'var(--secondary-text-color)'},
+                                    {'text-align': 'left'},
+                                    {'white-space': 'normal'},
+                                    {'line-height': '1.3'},
+                                    {'display': 'block' if stats_html | length > 0 else 'none'},
+                                    {'margin-top': '2px'}
+                                  ]
+                                }
+                              }
+                            }
+                          }},
+                        {%- endfor -%}
+                      {%- endif -%}
+                    {%- endif -%}
+                  {%- endif -%}

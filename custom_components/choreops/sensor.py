@@ -1805,6 +1805,10 @@ class AssigneeBadgesSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.CUMULATIVE_BADGE_PROGRESS_NEXT_HIGHER_POINTS_NEEDED,
             const.DEFAULT_ZERO,
         )
+        if isinstance(points_to_next_badge, int | float):
+            points_to_next_badge = round(
+                points_to_next_badge, const.DATA_FLOAT_PRECISION
+            )
         cycle_points = cumulative_badge_progress_info.get(
             const.CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, const.DEFAULT_ZERO
         )

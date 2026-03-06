@@ -17,12 +17,12 @@
 | Phase 3A – Template composition parity      | Ensure shared-template composition behaves identically in local sync and remote release apply                        |        100 | Shared contract + sync/release parity + safety tests complete                                                        |
 | Phase 3B – Row template parity recovery     | Rebuild `user-chores-v1` around true `button_card_templates` semantics and prove behavior parity                     |        100 | Closed as migration closeout; remaining user-template scope moved to Phase 4A                                        |
 | Phase 3C – Single-path contract enforcement | Unify create/update/release template handling under one compile path with registry-backed shared contract validation |        100 | Hard-fork path complete: no hoist, root-template contract, strict canonical↔vendored parity, targeted suites passing |
-| Phase 4A – User template UX completion      | Complete remaining user-template behavior parity and modernization follow-up                                         |         40 | Steps 1-2 complete (`user-chore-essentials-v1`, `user-chores-v1` + `user-essential-v1` removal); next Step 3         |
+| Phase 4A – User template UX completion      | Complete remaining user-template behavior parity and modernization follow-up                                         |         80 | Steps 1-3 and 5 complete; next Step 4 (gamification modernization)                                                   |
 | Phase 4 – Admin modernization + docs/polish | Modernize admin templates and finalize docs/contracts/validation checklist                                           |          0 | Align with template and UI guidelines                                                                                |
 
 1. **Key objective** – Deliver modern, app-like dashboards with strong runtime stability.
 2. **Summary of recent work** – Phase 3B now includes true row-template architecture wiring (`button_card_templates` + row template references), no builder hoist behavior, sync parity confirmation, and targeted validation pass.
-3. **Next steps (short term)** – Execute Phase 4A Step 3 (young-kids chores template), then Step 4 (gamification modernization), then continue Phase 4A closure evidence and Phase 4 admin modernization.
+3. **Next steps (short term)** – Execute Phase 4A Step 4 (gamification modernization), then continue Phase 4 admin modernization.
 4. **Risks / blockers**
    - Home Assistant dashboard constraints (no custom card authoring in this initiative) can limit advanced interaction patterns.
    - Dependency drift risk when introducing new custom card usage across templates.
@@ -230,11 +230,11 @@
   **Files**: `choreops-dashboards/templates/user-chore-essentials-v1.yaml`, `choreops-dashboards/preferences/user-chore-essentials-v1.md`, `choreops-dashboards/dashboard_registry.json`.
   **Finalization gate (required for this step)**: parity tests, translation coverage, and post-change sync/contract validation. 2. [x] Finalize design of `user-chores-v1`, then remove `user-essential-v1.yaml`.
   **Files**: `choreops-dashboards/templates/user-chores-v1.yaml`, `choreops-dashboards/templates/user-essential-v1.yaml` (remove), `choreops-dashboards/preferences/user-chores-v1.md`, `choreops-dashboards/preferences/user-essential-v1.md` (deprecate/remove), `choreops-dashboards/dashboard_registry.json`.
-  **Finalization gate (required for this step)**: parity tests, translation coverage, and post-change sync/contract validation. 3. [ ] Create and finalize a kid-focused chores template version (stripped-down `user-chores` variant with larger/friendlier button-card tiles, while keeping baseline color/state/action semantics aligned to `user-chores-v1`).
+  **Finalization gate (required for this step)**: parity tests, translation coverage, and post-change sync/contract validation. 3. [x] Create and finalize a kid-focused chores template version (stripped-down `user-chores` variant with larger/friendlier button-card tiles, while keeping baseline color/state/action semantics aligned to `user-chores-v1`).
   **Files**: `choreops-dashboards/templates/user-kids-chores-v1.yaml` (new), `choreops-dashboards/preferences/user-kids-chores-v1.md` (new), `choreops-dashboards/dashboard_registry.json`, related docs in `docs/DASHBOARD_TEMPLATE_GUIDE.md`.
   **Finalization gate (required for this step)**: parity tests, translation coverage, and post-change sync/contract validation. 4. [ ] Create and finalize a modern gamification template version.
   **Files**: `choreops-dashboards/templates/user-gamification-v2.yaml` (new), `choreops-dashboards/preferences/user-gamification-v2.md` (new), `choreops-dashboards/dashboard_registry.json`, related docs in `docs/DASHBOARD_TEMPLATE_GUIDE.md`.
-  **Finalization gate (required for this step)**: parity tests, translation coverage, and post-change sync/contract validation. 5. [ ] Capture 4A closure evidence and release readiness notes.
+  **Finalization gate (required for this step)**: parity tests, translation coverage, and post-change sync/contract validation. 5. [x] Capture 4A closure evidence and release readiness notes.
   **Files**: `docs/in-process/DASHBOARD_UX_MODERNIZATION_IN-PROCESS.md`, `docs/RELEASE_CHECKLIST.md`.
 - **Key issues**
   - Preserve strict template contract and dependency declarations as user templates evolve.

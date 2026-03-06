@@ -251,6 +251,31 @@ chores:
     approval_reset_pending_claim_action: "clear_pending"
     due_date: "now+7d"
 
+badges:
+  - name: "Bronze"
+    type: "cumulative"
+    assigned_to: ["Lila", "Zoë", "Max!"]
+    award_points: 0
+    points_multiplier: 1.0
+    threshold_value: 50
+    icon: "mdi:medal-outline"
+
+  - name: "Silver"
+    type: "cumulative"
+    assigned_to: ["Lila", "Zoë", "Max!"]
+    award_points: 0
+    points_multiplier: 1.1
+    threshold_value: 100
+    icon: "mdi:medal"
+
+  - name: "Gold"
+    type: "cumulative"
+    assigned_to: ["Lila", "Zoë", "Max!"]
+    award_points: 0
+    points_multiplier: 1.2
+    threshold_value: 300
+    icon: "mdi:medal"
+
 rewards:
   - name: "UX-RWD-001 | Pending Redeem"
     description: "Used to seed pending reward state"

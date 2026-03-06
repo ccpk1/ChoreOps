@@ -46,6 +46,7 @@ if TYPE_CHECKING:
         AchievementData,
         AchievementProgress,
         AssigneeBadgeProgress,
+        AssigneeCumulativeBadgeProgress,
         BadgeData,
         CanonicalTargetDefinition,
         ChallengeData,
@@ -245,6 +246,7 @@ class GamificationManager(BaseManager):
         """
         assignee_id = payload.get("user_id")
         source = payload.get("source", "")
+        gamification_originated = bool(payload.get("gamification_originated", False))
 
         # Skip gamification-originated point changes to prevent loops
         gamification_sources = {
@@ -260,14 +262,20 @@ class GamificationManager(BaseManager):
             )
             return
 
+        if gamification_originated:
+            const.LOGGER.debug(
+                "GamificationManager: Skipping points_changed from source %s "
+                "(gamification-originated payload)",
+                source,
+            )
+            return
+
         # Update cumulative badge progress (for positive deltas only)
         delta = payload.get("delta", 0.0)
         if delta > 0 and assignee_id:
             assignee_info = self.coordinator.assignees_data.get(assignee_id)
             if assignee_info:
-                progress = assignee_info.get(
-                    const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
-                )
+                progress = self._ensure_cumulative_progress_container(assignee_info)
                 cycle_points = progress.get(
                     const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS, 0.0
                 )
@@ -943,7 +951,7 @@ class GamificationManager(BaseManager):
             return  # No maintenance = always ACTIVE
 
         # Read maintenance state from cumulative_badge_progress
-        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = self._ensure_cumulative_progress_container(assignee_data)
         progress_dict = cast("dict[str, Any]", progress)
         status = progress_dict.get(
             const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
@@ -1000,7 +1008,7 @@ class GamificationManager(BaseManager):
         # 5. Not met — check current state for grace/demotion
         if status == const.CUMULATIVE_BADGE_STATE_GRACE:
             # In grace period — check if grace expired
-            if grace_end_str and today_iso >= grace_end_str:
+            if grace_end_str and today_iso > grace_end_str:
                 self._apply_cumulative_demotion(
                     assignee_id,
                     badge_id,
@@ -1723,7 +1731,7 @@ class GamificationManager(BaseManager):
         )
 
         # Initialize cumulative badge progress
-        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = self._ensure_cumulative_progress_container(assignee_data)
         progress_dict = cast("dict[str, Any]", progress)
         progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 0.0
         progress_dict[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
@@ -1930,7 +1938,7 @@ class GamificationManager(BaseManager):
         if not assignee_data:
             return
 
-        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {})
+        progress = self._ensure_cumulative_progress_container(assignee_data)
         progress_dict = cast("dict[str, Any]", progress)
         current_status = progress_dict.get(
             const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS,
@@ -2032,6 +2040,21 @@ class GamificationManager(BaseManager):
             const.FREQUENCY_NONE,
         )
         return recurring_frequency != const.FREQUENCY_NONE and maintenance_threshold > 0
+
+    def _ensure_cumulative_progress_container(
+        self, assignee_data: UserData
+    ) -> AssigneeCumulativeBadgeProgress:
+        """Ensure assignee has a cumulative badge progress container.
+
+        Returns a typed mapping that can be safely mutated by cumulative
+        badge maintenance workflows.
+        """
+        progress = assignee_data.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS)
+        if not isinstance(progress, dict):
+            default_progress: AssigneeCumulativeBadgeProgress = {}
+            progress = default_progress
+            assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS] = progress
+        return progress
 
     # =========================================================================
     # PERIODIC BADGE OPERATIONS

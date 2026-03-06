@@ -1,6 +1,6 @@
 # Dashboard Template Guide
 
-**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-03-02
+**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-03-06
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
@@ -319,6 +319,54 @@ views:
   title: << user.name >> Chores
   path: << user.slug >>
   sections: [...]
+```
+
+### YAML anchors and responsive column controls
+
+Use YAML anchors when they improve readability for repeated static maps, but keep responsive column behavior explicit and preference-driven.
+
+YAML anchor rules:
+
+- Allowed: standard YAML anchor/alias/merge syntax (`&anchor`, `*anchor`, `<<: *anchor`) inside template files.
+- Scope: treat anchors as local-document helpers; keep anchor names descriptive and close to where they are used.
+- Prefer anchors for static style/map reuse only (for example shared style blocks), not for dynamic runtime state logic.
+- Do not replace shared fragment contracts (`templates/shared/*` + `<< template_shared.* >>`) with anchors; anchors are complementary, not a substitute for shared-template reuse.
+
+Responsive column control rules:
+
+- Prefer two explicit user-configurable prefs in chore/grid cards:
+  - `pref_column_count_mobile` (for narrow screens)
+  - `pref_column_count_wide` (for wider screens)
+- Render separate grid cards using screen conditionals:
+  - mobile: `(max-width: 768px)`
+  - wide: `(min-width: 769px)`
+- Keep both branches functionally equivalent except for column count.
+
+Reference pattern:
+
+```jinja
+{%- set pref_column_count_mobile = 1 -%}
+{%- set pref_column_count_wide = 3 -%}
+{%- set pref_column_count_mobile = pref_column_count_mobile | int(default=1) -%}
+{%- set pref_column_count_wide = pref_column_count_wide | int(default=3) -%}
+
+{{
+  {
+    'type': 'vertical-stack',
+    'cards': [
+      {
+        'type': 'conditional',
+        'conditions': [{'condition': 'screen', 'media_query': '(max-width: 768px)'}],
+        'card': {'type': 'grid', 'columns': pref_column_count_mobile, 'square': false, 'cards': ns.group_cards}
+      },
+      {
+        'type': 'conditional',
+        'conditions': [{'condition': 'screen', 'media_query': '(min-width: 769px)'}],
+        'card': {'type': 'grid', 'columns': pref_column_count_wide, 'square': false, 'cards': ns.group_cards}
+      }
+    ]
+  }
+}},
 ```
 
 ---

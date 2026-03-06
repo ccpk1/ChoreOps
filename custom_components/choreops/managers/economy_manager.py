@@ -211,6 +211,7 @@ class EconomyManager(BaseManager):
                     "Badge Award",
                     assignee_id,
                     bonus_id,
+                    gamification_originated=True,
                 )
 
         # 4. Penalties - apply each penalty
@@ -488,6 +489,7 @@ class EconomyManager(BaseManager):
         reference_id: str | None = None,
         item_name: str | None = None,
         apply_multiplier: bool = False,
+        gamification_originated: bool = False,
     ) -> float:
         """Add points to a assignee's balance.
 
@@ -498,6 +500,9 @@ class EconomyManager(BaseManager):
             reference_id: Optional related entity ID (chore_id, etc.)
             item_name: Optional human-readable name of related item (Phase 4C)
             apply_multiplier: If True, apply assignee's points_multiplier
+            gamification_originated: If True, this point change came from
+                gamification award composition and should not increment
+                cumulative maintenance cycle points
 
         Returns:
             New balance after deposit
@@ -568,6 +573,7 @@ class EconomyManager(BaseManager):
             delta=actual_amount,
             source=source,
             reference_id=reference_id,
+            gamification_originated=gamification_originated,
         )
 
         const.LOGGER.debug(
@@ -899,7 +905,12 @@ class EconomyManager(BaseManager):
     # =========================================================================
 
     async def apply_bonus(
-        self, approver_name: str, assignee_id: str, bonus_id: str
+        self,
+        approver_name: str,
+        assignee_id: str,
+        bonus_id: str,
+        *,
+        gamification_originated: bool = False,
     ) -> float:
         """Apply bonus to assignee - adds points via deposit().
 
@@ -914,6 +925,8 @@ class EconomyManager(BaseManager):
             approver_name: Name of approver applying bonus (for audit trail)
             assignee_id: The assignee's internal ID
             bonus_id: The bonus's internal ID
+            gamification_originated: True when bonus application is a sub-award
+                of gamification (for example, from badge award manifests)
 
         Returns:
             New balance after bonus
@@ -954,6 +967,7 @@ class EconomyManager(BaseManager):
             reference_id=bonus_id,
             item_name=bonus_name,
             apply_multiplier=False,  # Bonuses don't use multiplier
+            gamification_originated=gamification_originated,
         )
 
         # Landlord: Ensure bonus_applies entry exists with periods structure

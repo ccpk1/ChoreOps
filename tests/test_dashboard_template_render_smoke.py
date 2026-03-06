@@ -89,3 +89,37 @@ def test_user_chores_template_renders_with_button_card_templates() -> None:
     assert isinstance(rendered["views"][0].get("sections"), list)
     assert isinstance(rendered.get("button_card_templates"), dict)
     assert "choreops_chore_row_v1" in rendered["button_card_templates"]
+
+
+def test_user_game_full_template_renders_with_button_card_templates() -> None:
+    """Game full template renders as full dashboard with root templates."""
+    template_str = _read_template("user-game-full-v1.yaml")
+    shared_template_str = _read_template(
+        "shared/button_card_template_user_chores_row_v1.yaml"
+    )
+    template_str = dh.compile_prepared_template_assets(
+        {
+            "templates/user-game-full-v1.yaml": template_str,
+            "templates/shared/button_card_template_user_chores_row_v1.yaml": (
+                shared_template_str
+            ),
+        }
+    )["templates/user-game-full-v1.yaml"]
+    context = dh.build_dashboard_context(
+        "Zoe",
+        assignee_id="user-123",
+        integration_entry_id="entry-123",
+        template_profile="user-game-full-v1",
+        release_ref="0.0.1-beta.4",
+        generated_at="2026-03-06T00:00:00+00:00",
+    )
+
+    rendered = builder.render_dashboard_template(template_str, dict(context))
+
+    assert isinstance(rendered.get("views"), list)
+    assert len(rendered["views"]) == 1
+    assert rendered["views"][0]["title"] == "Zoe Game Full"
+    assert rendered["views"][0]["path"] == "zoe"
+    assert isinstance(rendered["views"][0].get("sections"), list)
+    assert isinstance(rendered.get("button_card_templates"), dict)
+    assert "choreops_chore_row_v1" in rendered["button_card_templates"]

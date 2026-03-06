@@ -4,8 +4,11 @@ This template has configurable `pref_*` values in the chores card.
 
 ## Card: Chores
 
-- `pref_column_count` (default: `4`)
-  - Grid columns for chore buttons.
+- `pref_column_count_mobile` (default: `2`)
+  - Grid columns for chore buttons on mobile-width screens.
+  - Allowed: positive integer.
+- `pref_column_count_wide` (default: `5`)
+  - Grid columns for chore buttons on wide screens.
   - Allowed: positive integer.
 - `pref_use_overdue_grouping` (default: `true`)
   - Show a dedicated overdue group.

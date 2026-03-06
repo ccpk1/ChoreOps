@@ -288,6 +288,47 @@ class TestCumulativeBadgeProgress:
         zoe_points = coordinator.assignees_data[zoe_id].get(DATA_USER_POINTS, 0)
         assert zoe_points == 10, f"Expected 10 points, got {zoe_points}"
 
+    async def test_points_changed_creates_missing_cumulative_progress_container(
+        self,
+        setup_badges,  # noqa: F811
+    ) -> None:
+        """Ensure POINTS_CHANGED initializes and increments cycle points.
+
+        Regression guard for storage records that do not yet contain
+        `cumulative_badge_progress`.
+        """
+        coordinator = setup_badges.coordinator
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
+
+        assignee_data = coordinator.assignees_data[zoe_id]
+        assignee_data.pop(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, None)
+
+        coordinator.gamification_manager._on_points_changed(
+            {
+                "user_id": zoe_id,
+                "delta": 5.0,
+                "source": const.POINTS_SOURCE_CHORES,
+            }
+        )
+        coordinator.gamification_manager._on_points_changed(
+            {
+                "user_id": zoe_id,
+                "delta": 2.25,
+                "source": const.POINTS_SOURCE_CHORES,
+            }
+        )
+
+        cumulative_progress = assignee_data.get(
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS
+        )
+        assert isinstance(cumulative_progress, dict)
+        assert (
+            cumulative_progress.get(
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
+            )
+            == 7.25
+        )
+
     async def test_demoted_current_badge_multiplier_is_applied(
         self,
         hass: HomeAssistant,
@@ -341,6 +382,36 @@ class TestCumulativeBadgeProgress:
         assert multiplier == 1.25, (
             f"Expected multiplier from demotion-aware current badge, got {multiplier}"
         )
+
+    async def test_points_changed_skips_gamification_originated_bonus_points(
+        self,
+        setup_badges,  # noqa: F811
+    ) -> None:
+        """Do not count badge sub-award bonuses toward cumulative cycle points."""
+        coordinator = setup_badges.coordinator
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
+
+        assignee_data = coordinator.assignees_data[zoe_id]
+        assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS] = {
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS: 0.0,
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS: (
+                const.CUMULATIVE_BADGE_STATE_ACTIVE
+            ),
+        }
+
+        coordinator.gamification_manager._on_points_changed(
+            {
+                "user_id": zoe_id,
+                "delta": 20.0,
+                "source": const.POINTS_SOURCE_BONUSES,
+                "gamification_originated": True,
+            }
+        )
+
+        cycle_points = assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS].get(
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS
+        )
+        assert cycle_points == 0.0
 
 
 # ============================================================================
@@ -1023,4 +1094,75 @@ class TestCumulativeBadgeMultiplierTransitions:
                 const.DATA_USER_BADGES_EARNED_LAST_AWARDED
             ]
             == "2026-02-01"
+        )
+
+    async def test_grace_end_date_is_inclusive_before_demotion(
+        self,
+        setup_badges,  # noqa: F811
+        monkeypatch,
+    ) -> None:
+        """Keep GRACE status through grace_end_date and demote only after it."""
+        coordinator = setup_badges.coordinator
+        gamification_manager = coordinator.gamification_manager
+        zoe_id = get_assignee_by_name(coordinator, "Zoë")
+        badge_id = get_badge_by_name(coordinator, "Chore Stär Champion")
+
+        badge_data = coordinator.badges_data[badge_id]
+        badge_target = badge_data.setdefault(const.DATA_BADGE_TARGET, {})
+        badge_target[const.DATA_BADGE_MAINTENANCE_RULES] = 1000.0
+        badge_schedule = badge_data.setdefault(const.DATA_BADGE_RESET_SCHEDULE, {})
+        badge_schedule[const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY] = (
+            const.FREQUENCY_WEEKLY
+        )
+        badge_schedule[const.DATA_BADGE_RESET_SCHEDULE_GRACE_PERIOD_DAYS] = 1
+
+        assignee_data = coordinator.assignees_data[zoe_id]
+        assignee_badges_earned = assignee_data.setdefault(
+            const.DATA_USER_BADGES_EARNED, {}
+        )
+        assignee_badges_earned[badge_id] = {
+            const.DATA_USER_BADGES_EARNED_NAME: badge_data.get(
+                const.DATA_BADGE_NAME, ""
+            ),
+            const.DATA_USER_BADGES_EARNED_LAST_AWARDED: "2026-03-01",
+            const.DATA_USER_BADGES_EARNED_PERIODS: {},
+        }
+
+        assignee_progress = assignee_data.setdefault(
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS, {}
+        )
+        assignee_progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS] = (
+            const.CUMULATIVE_BADGE_STATE_GRACE
+        )
+        assignee_progress[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_CYCLE_POINTS] = 1.0
+        assignee_progress[
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_END_DATE
+        ] = "2026-03-05"
+        assignee_progress[
+            const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_MAINTENANCE_GRACE_END_DATE
+        ] = "2026-03-06"
+
+        monkeypatch.setattr(
+            gamification_manager,
+            "get_cumulative_badge_levels",
+            lambda _: (badge_data, None, None, 0.0, 1.0),
+        )
+        monkeypatch.setattr(
+            "custom_components.choreops.managers.gamification_manager.dt_today_iso",
+            lambda: "2026-03-06",
+        )
+
+        context = gamification_manager._build_evaluation_context(zoe_id)
+        assert context is not None
+
+        await gamification_manager._evaluate_cumulative_badge(
+            zoe_id,
+            badge_id,
+            badge_data,
+            context,
+        )
+
+        assert (
+            assignee_progress.get(const.DATA_USER_CUMULATIVE_BADGE_PROGRESS_STATUS)
+            == const.CUMULATIVE_BADGE_STATE_GRACE
         )

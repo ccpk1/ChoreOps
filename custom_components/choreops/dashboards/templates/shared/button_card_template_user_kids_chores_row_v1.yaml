@@ -1,0 +1,136 @@
+choreops_kids_chore_row_v1:
+  {
+    'type': 'custom:button-card',
+    'show_name': true,
+    'show_icon': true,
+    'hold_action': {'action': 'more-info'},
+    'tap_action': {
+      'action': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; const blocked = ['waiting', 'missed', 'completed_by_other', 'not_my_turn', 'completed', 'completed_in_part']; if ((!canClaim && state !== 'claimed') || blocked.includes(state)) return 'none'; return 'call-service'; ]]]",
+      'service': 'button.press',
+      'service_data': {
+        'entity_id': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'claimed') return entity.attributes.approve_button_eid || entity.attributes.claim_button_eid; return entity.attributes.claim_button_eid || entity.attributes.approve_button_eid; ]]]"
+      }
+    },
+    'name': "[[[ return entity.attributes.chore_name || entity.attributes.friendly_name || entity.entity_id; ]]]",
+    'icon': "[[[ return entity.attributes.icon || 'mdi:broom'; ]]]",
+    'styles': {
+      'card': [
+        {'padding': '14px 10px 18px 10px'},
+        {'border-radius': '22px'},
+        {'position': 'relative'},
+        {'opacity': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; return (!canClaim && state !== 'claimed') ? '0.65' : '1.0'; ]]]"},
+        {'border': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(state)) return '4px solid #ff4444'; if (state === 'due') return '4px solid #ff9800'; if (state === 'claimed' || state === 'claimed_in_part') return '4px solid #a957fa'; if (['completed', 'completed_in_part'].includes(state)) return '4px solid var(--success-color)'; return '4px solid transparent'; ]]]"},
+        {'background-color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'claimed' || state === 'claimed_in_part') return 'color-mix(in srgb, #a957fa 10%, var(--card-background-color))'; if (['completed', 'completed_in_part'].includes(state)) return 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'; return 'var(--card-background-color)'; ]]]"}
+      ],
+      'grid': [
+        {'grid-template-areas': '"badge_type i badge_state" "n n n" "reward reward reward" "kid_status kid_status kid_status"'},
+        {'grid-template-columns': '30px 1fr 26px'},
+        {'grid-template-rows': '58px min-content min-content min-content'},
+        {'row-gap': '3px'},
+        {'column-gap': '6px'},
+        {'align-items': 'center'}
+      ],
+      'name': [
+        {'justify-self': 'center'},
+        {'text-align': 'center'},
+        {'font-weight': '800'},
+        {'font-size': '14px'},
+        {'line-height': '1.2'},
+        {'white-space': 'normal'}
+      ],
+      'icon': [
+        {'width': '56px'},
+        {'height': '56px'},
+        {'justify-self': 'center'},
+        {'align-self': 'end'},
+        {'margin-top': '-2px'},
+        {'color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(state)) return '#ff4444'; if (state === 'due') return '#ff9800'; if (state === 'claimed' || state === 'claimed_in_part') return '#a957fa'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; return 'var(--primary-color)'; ]]]"}
+      ],
+      'custom_fields': {
+        'badge_state': [
+          {'justify-self': 'end'},
+          {'align-self': 'start'},
+          {'margin-top': '-4px'},
+          {'width': '26px'},
+          {'height': '26px'},
+          {'border-radius': '50%'},
+          {'display': 'flex'},
+          {'align-items': 'center'},
+          {'justify-content': 'center'},
+          {'background-color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'claimed' || state === 'claimed_in_part') return '#a957fa'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (['missed', 'not_my_turn', 'completed_by_other', 'waiting'].includes(state)) return 'var(--disabled-text-color)'; return 'transparent'; ]]]"},
+          {'color': '#ffffff'}
+        ],
+        'badge_type': [
+          {'justify-self': 'start'},
+          {'align-self': 'start'},
+          {'margin-top': '-6px'},
+          {'width': '28px'},
+          {'height': '28px'},
+          {'border-radius': '50%'},
+          {'display': 'flex'},
+          {'align-items': 'center'},
+          {'justify-content': 'center'},
+          {'background-color': 'var(--secondary-background-color)'},
+          {'color': 'var(--primary-text-color)'},
+          {'display': "[[[ const type = entity.attributes.completion_criteria || 'independent'; return type === 'independent' ? 'none' : 'flex'; ]]]"}
+        ],
+        'reward': [
+          {'justify-self': 'center'},
+          {'font-size': '12px'},
+          {'font-weight': '700'},
+          {'color': 'var(--warning-color)'}
+        ],
+        'btn_undo': [
+          {'position': 'absolute'},
+          {'right': '8px'},
+          {'bottom': '8px'},
+          {'z-index': '2'},
+          {'display': "[[[ return entity.state === 'claimed' ? 'block' : 'none'; ]]]"}
+        ],
+        'kid_status': [
+          {'justify-self': 'center'},
+          {'text-align': 'center'},
+          {'font-size': '10px'},
+          {'font-weight': '700'},
+          {'line-height': '1.2'},
+          {'color': 'var(--secondary-text-color)'}
+        ]
+      }
+    },
+    'custom_fields': {
+      'badge_state': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); let icon = ''; if (state === 'claimed' || state === 'claimed_in_part') icon = 'mdi:check'; else if (['completed', 'completed_in_part'].includes(state)) icon = 'mdi:check-all'; else if (state === 'waiting') icon = 'mdi:clock-outline'; else if (['missed', 'not_my_turn'].includes(state)) icon = 'mdi:lock-outline'; else if (state === 'completed_by_other') icon = 'mdi:account-check-outline'; if (!icon) return ''; return `<ha-icon icon=\"${icon}\" style=\"width:16px;height:16px;transform:translateY(-4px);\"></ha-icon>`; ]]]",
+      'badge_type': "[[[ const type = entity.attributes.completion_criteria || 'independent'; let icon = ''; if (type === 'shared_all') icon = 'mdi:account-group'; else if (type === 'shared_first') icon = 'mdi:flag-checkered'; else if (type.includes('rotation')) icon = 'mdi:account-sync'; if (!icon) return ''; return `<ha-icon icon=\"${icon}\" style=\"width:18px;height:18px;transform:translateY(-2px);\"></ha-icon>`; ]]]",
+      'reward': "[[[ const pointsEnabled = (typeof variables !== 'undefined' && variables && variables.points_enabled === true); if (!pointsEnabled) return ''; const rawPoints = entity.attributes.default_points; const points = (rawPoints === undefined || rawPoints === null || rawPoints === '') ? '--' : `${rawPoints}`; const pIcon = (typeof variables !== 'undefined' && variables && typeof variables.points_icon === 'string' && variables.points_icon.trim().length > 0) ? variables.points_icon : 'mdi:star'; const pLabel = (typeof variables !== 'undefined' && variables && typeof variables.points_label === 'string' && variables.points_label.trim().length > 0) ? variables.points_label : 'Points'; return `<ha-icon icon=\"${pIcon}\" style=\"width:18px;height:18px;margin-right:4px;transform:translateY(-1px);\"></ha-icon>${points} ${pLabel}`; ]]]",
+      'btn_undo': {
+        'card': {
+          'type': 'custom:button-card',
+          'entity': "[[[ return entity.entity_id; ]]]",
+          'icon': 'mdi:undo',
+          'show_name': false,
+          'show_icon': true,
+          'styles': {
+            'card': [
+              {'width': '26px'},
+              {'height': '26px'},
+              {'border-radius': '50%'},
+              {'background-color': 'rgba(0, 0, 0, 0.72)'},
+              {'border': '1px solid rgba(255, 255, 255, 0.28)'},
+              {'box-shadow': '0 1px 2px rgba(0, 0, 0, 0.35)'}
+            ],
+            'icon': [
+              {'width': '15px'},
+              {'color': '#ffffff'}
+            ]
+          },
+          'tap_action': {
+            'action': 'call-service',
+            'service': 'button.press',
+            'service_data': {
+              'entity_id': "[[[ return entity.attributes.disapprove_button_eid; ]]]"
+            }
+          }
+        }
+      },
+      'kid_status': "[[[ const i18n = (key, fallback) => { const labels = (typeof variables !== 'undefined' && variables && typeof variables.state_map === 'object') ? variables.state_map : null; const value = labels && typeof labels[key] === 'string' ? labels[key].trim() : ''; return value.length > 0 ? value : ((typeof fallback === 'string' && fallback.startsWith('err-')) ? fallback : `err-${key}`); }; const rawState = entity.state; const state = rawState === 'approved_in_part' ? 'completed_in_part' : rawState; const label = i18n(state, `err-${state}`); const dateLabel = (typeof variables !== 'undefined' && variables && typeof variables.date_label === 'string' && variables.date_label.trim().length > 0) ? variables.date_label : 'err-date'; const streak = Number(entity.attributes.chore_current_streak || 0); const dueValue = entity.attributes.due_date || entity.attributes.due_window_start; const formatDateWithOrdinal = (value) => { if (!value) return ''; const dt = new Date(value); if (Number.isNaN(dt.getTime())) return ''; const day = dt.getDate(); const mod10 = day % 10; const mod100 = day % 100; let suffix = 'th'; if (mod10 === 1 && mod100 !== 11) suffix = 'st'; else if (mod10 === 2 && mod100 !== 12) suffix = 'nd'; else if (mod10 === 3 && mod100 !== 13) suffix = 'rd'; const month = dt.toLocaleString(undefined, { month: 'short' }); const time = dt.toLocaleString(undefined, { hour: 'numeric', minute: '2-digit' }); return `${month} ${day}${suffix}, ${time}`; }; const dueText = formatDateWithOrdinal(dueValue); const duePart = dueText ? `<span>${dateLabel}: ${dueText}</span>` : ''; const streakPart = streak > 0 ? `<span><ha-icon icon=\"mdi:fire\" style=\"width:12px;height:12px;color:var(--warning-color);margin:0 2px 0 0;transform:translateY(-1px);\"></ha-icon><span style=\"color:var(--warning-color);\">${streak}</span></span>` : ''; const extraLine = (duePart || streakPart) ? `<br><span style=\"display:inline-flex;align-items:center;gap:8px;\">${duePart}${streakPart}</span>` : ''; return `${String(label).toUpperCase()}${extraLine}`; ]]]"
+    }
+  }

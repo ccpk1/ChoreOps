@@ -1,6 +1,6 @@
-# user-chores-v1 preferences
+# user-game-full-v1 preferences
 
-`user-chores-v1` is a chore-focused layout that keeps the welcome summary from chore essentials and brings over the richer production chore-row behavior.
+`user-game-full-v1` is a modern full user layout that starts with the welcome + chores flow and reuses the production shared chore-row behavior.
 
 ## Quick overview
 
@@ -12,12 +12,8 @@
 
 ## Card: Chores
 
-- `pref_column_count_mobile` (default: `1`)
-  - Grid columns for chore cards on mobile-width screens.
-  - Allowed: positive integer.
-
-- `pref_column_count_wide` (default: `3`)
-  - Grid columns for chore cards on wide screens.
+- `pref_column_count` (default: `1`)
+  - Grid columns for chore cards.
   - Allowed: positive integer.
 
 - `pref_use_overdue_grouping` (default: `true`)
@@ -75,9 +71,41 @@
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
 
+## Card: Rewards
+
+- `pref_column_count` (default: `1`)
+  - Grid columns for reward cards.
+  - Allowed: positive integer.
+
+- `pref_use_label_grouping` (default: `false`)
+  - Groups rewards by label.
+  - When `false`, rewards render in a single group.
+  - Allowed: `true`, `false`.
+
+- `pref_exclude_label_list` (default: `[]`)
+  - Excludes rewards containing any listed labels.
+  - Works with or without label grouping enabled.
+  - Allowed: array of label strings.
+
+- `pref_label_display_order` (default: `[]`)
+  - Optional explicit label-group order when label grouping is enabled.
+  - Any labels not listed still appear afterward.
+  - Allowed: array of label strings.
+
+- `pref_sort_rewards` (default: `default`)
+  - Sorting mode inside each rendered reward group.
+  - Allowed: `default`, `name_asc`, `name_desc`, `cost_asc`, `cost_desc`.
+
+- `pref_show_reward_description` (default: `true`)
+  - Shows reward description as a dedicated row when description text exists.
+  - When `false`, description row is hidden even if reward has description.
+  - Allowed: `true`, `false`.
+
 ## Practical tuning examples
 
-- Keep it minimal: set only `pref_column_count_mobile` / `pref_column_count_wide`, leave everything else as default.
+- Keep it minimal: set only `pref_column_count`, leave everything else as default.
 - Hide done chores: add `completed` to `pref_exclude_states` (for example `['completed']`).
 - Build a label board: set `pref_use_label_grouping: true` and define `pref_label_display_order`.
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.
+- Sort rewards by price: set `pref_sort_rewards: cost_asc`.
+- Group rewards by labels: set `pref_use_label_grouping: true` and optionally define `pref_label_display_order`.
