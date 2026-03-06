@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Beskrivning"
+          },
+          "labels": {
+            "name": "Etiketter"
+          },
+          "target": {
+            "name": "Mål"
+          },
+          "required_chores": {
+            "name": "Obligatoriska sysslor"
+          },
+          "tracked_chores": {
+            "name": "Spårade sysslor"
+          },
+          "awards": {
+            "name": "Utmärkelser"
+          },
+          "reset_schedule": {
+            "name": "Återställ schema"
+          },
+          "associated_achievement": {
+            "name": "Associerad prestation"
+          },
+          "associated_challenge": {
+            "name": "Associerad utmaning"
+          },
+          "occasion_type": {
+            "name": "Tillfällestyp"
+          },
+          "system_badge_eid": {
+            "name": "Systemmärkes-ID"
           }
         }
       },

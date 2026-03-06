@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Descripció"
+          },
+          "labels": {
+            "name": "Etiquetes"
+          },
+          "target": {
+            "name": "Objectiu"
+          },
+          "required_chores": {
+            "name": "Tasques obligatòries"
+          },
+          "tracked_chores": {
+            "name": "Tasques controlades"
+          },
+          "awards": {
+            "name": "Premis"
+          },
+          "reset_schedule": {
+            "name": "Restableix la programació"
+          },
+          "associated_achievement": {
+            "name": "Assoliment associat"
+          },
+          "associated_challenge": {
+            "name": "Repte associat"
+          },
+          "occasion_type": {
+            "name": "Tipus d'ocasió"
+          },
+          "system_badge_eid": {
+            "name": "ID d'entitat de distintiu del sistema"
           }
         }
       },
