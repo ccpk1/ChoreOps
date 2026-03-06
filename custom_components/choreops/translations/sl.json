@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Opis"
+          },
+          "labels": {
+            "name": "Oznake"
+          },
+          "target": {
+            "name": "Cilj"
+          },
+          "required_chores": {
+            "name": "Obvezna opravila"
+          },
+          "tracked_chores": {
+            "name": "Sledena opravila"
+          },
+          "awards": {
+            "name": "Nagrade"
+          },
+          "reset_schedule": {
+            "name": "Ponastavi urnik"
+          },
+          "associated_achievement": {
+            "name": "Povezan dosežek"
+          },
+          "associated_challenge": {
+            "name": "Povezan izziv"
+          },
+          "occasion_type": {
+            "name": "Vrsta priložnosti"
+          },
+          "system_badge_eid": {
+            "name": "ID entitete sistemske značke"
           }
         }
       },

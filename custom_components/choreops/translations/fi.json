@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Kuvaus"
+          },
+          "labels": {
+            "name": "Tarrat"
+          },
+          "target": {
+            "name": "Kohde"
+          },
+          "required_chores": {
+            "name": "Pakolliset askareet"
+          },
+          "tracked_chores": {
+            "name": "Seurattavat askareet"
+          },
+          "awards": {
+            "name": "Palkinnot"
+          },
+          "reset_schedule": {
+            "name": "Nollaa aikataulu"
+          },
+          "associated_achievement": {
+            "name": "Liittyvä saavutus"
+          },
+          "associated_challenge": {
+            "name": "Liittyvä haaste"
+          },
+          "occasion_type": {
+            "name": "Tilaisuuden tyyppi"
+          },
+          "system_badge_eid": {
+            "name": "Järjestelmämerkin yksikön tunnus"
           }
         }
       },

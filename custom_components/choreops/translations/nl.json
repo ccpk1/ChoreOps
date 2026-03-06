@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Beschrijving"
+          },
+          "labels": {
+            "name": "Labels"
+          },
+          "target": {
+            "name": "Doel"
+          },
+          "required_chores": {
+            "name": "Vereiste klusjes"
+          },
+          "tracked_chores": {
+            "name": "Bijgehouden klusjes"
+          },
+          "awards": {
+            "name": "Prijzen"
+          },
+          "reset_schedule": {
+            "name": "Schema opnieuw instellen"
+          },
+          "associated_achievement": {
+            "name": "Gerelateerde prestatie"
+          },
+          "associated_challenge": {
+            "name": "Geassocieerde uitdaging"
+          },
+          "occasion_type": {
+            "name": "Gelegenheidstype"
+          },
+          "system_badge_eid": {
+            "name": "Systeembadge entiteits-ID"
           }
         }
       },

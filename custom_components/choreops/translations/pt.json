@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Descrição"
+          },
+          "labels": {
+            "name": "Etiquetas"
+          },
+          "target": {
+            "name": "Objetivo"
+          },
+          "required_chores": {
+            "name": "Tarefas obrigatórias"
+          },
+          "tracked_chores": {
+            "name": "Tarefas rastreadas"
+          },
+          "awards": {
+            "name": "Prémios"
+          },
+          "reset_schedule": {
+            "name": "Redefinir agendamento"
+          },
+          "associated_achievement": {
+            "name": "Conquista Associada"
+          },
+          "associated_challenge": {
+            "name": "Desafio Associado"
+          },
+          "occasion_type": {
+            "name": "Tipo de ocasião"
+          },
+          "system_badge_eid": {
+            "name": "ID da entidade do crachá do sistema"
           }
         }
       },
