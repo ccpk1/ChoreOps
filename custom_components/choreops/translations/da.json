@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Beskrivelse"
+          },
+          "labels": {
+            "name": "Etiketter"
+          },
+          "target": {
+            "name": "Mål"
+          },
+          "required_chores": {
+            "name": "Obligatoriske pligter"
+          },
+          "tracked_chores": {
+            "name": "Sporede pligter"
+          },
+          "awards": {
+            "name": "Priser"
+          },
+          "reset_schedule": {
+            "name": "Nulstil tidsplan"
+          },
+          "associated_achievement": {
+            "name": "Tilknyttet præstation"
+          },
+          "associated_challenge": {
+            "name": "Tilknyttet udfordring"
+          },
+          "occasion_type": {
+            "name": "Anledningstype"
+          },
+          "system_badge_eid": {
+            "name": "System badge-enheds-ID"
           }
         }
       },

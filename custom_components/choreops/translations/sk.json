@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Popis"
+          },
+          "labels": {
+            "name": "Štítky"
+          },
+          "target": {
+            "name": "Cieľ"
+          },
+          "required_chores": {
+            "name": "Požadované domáce práce"
+          },
+          "tracked_chores": {
+            "name": "Sledované domáce práce"
+          },
+          "awards": {
+            "name": "Ocenenia"
+          },
+          "reset_schedule": {
+            "name": "Obnoviť plán"
+          },
+          "associated_achievement": {
+            "name": "Súvisiaci úspech"
+          },
+          "associated_challenge": {
+            "name": "Súvisiaca výzva"
+          },
+          "occasion_type": {
+            "name": "Typ príležitosti"
+          },
+          "system_badge_eid": {
+            "name": "ID entity systémového odznaku"
           }
         }
       },

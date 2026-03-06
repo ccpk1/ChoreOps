@@ -3926,6 +3926,36 @@
           },
           "description": {
             "name": "Beschreibung"
+          },
+          "labels": {
+            "name": "Etiketten"
+          },
+          "target": {
+            "name": "Zielwert"
+          },
+          "required_chores": {
+            "name": "Benötigte Hausarbeiten"
+          },
+          "tracked_chores": {
+            "name": "Erfasste Aufgaben"
+          },
+          "awards": {
+            "name": "Auszeichnungen"
+          },
+          "reset_schedule": {
+            "name": "Zurücksetzplan"
+          },
+          "associated_achievement": {
+            "name": "Zugehörige Errungenschaft"
+          },
+          "associated_challenge": {
+            "name": "Zugehörige Herausforderung"
+          },
+          "occasion_type": {
+            "name": "Art des Anlasses"
+          },
+          "system_badge_eid": {
+            "name": "System-Badge-Entitäts-ID"
           }
         }
       },
