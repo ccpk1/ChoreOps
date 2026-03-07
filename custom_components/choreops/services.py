@@ -337,6 +337,18 @@ RESET_OVERDUE_CHORES_SCHEMA = vol.Schema(
     )
 )
 
+MANAGE_UI_CONTROL_SCHEMA = vol.Schema(
+    _with_service_target_fields(
+        {
+            vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
+            vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
+            vol.Required(const.SERVICE_FIELD_UI_CONTROL_ACTION): cv.string,
+            vol.Optional(const.SERVICE_FIELD_UI_CONTROL_KEY, default=""): cv.string,
+            vol.Optional(const.SERVICE_FIELD_UI_CONTROL_VALUE): object,
+        }
+    )
+)
+
 REMOVE_AWARDED_BADGES_SCHEMA = vol.Schema(
     _with_service_target_fields(
         {
@@ -2901,6 +2913,26 @@ def async_setup_services(hass: HomeAssistant):
         schema=RESET_OVERDUE_CHORES_SCHEMA,
     )
 
+    async def handle_manage_ui_control(call: ServiceCall) -> dict[str, Any]:
+        """Handle manage_ui_control service call."""
+        entry_id = _resolve_target_entry_id(hass, dict(call.data))
+        if not entry_id:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND,
+            )
+
+        coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        return await coordinator.user_manager.async_manage_ui_control(dict(call.data))
+
+    hass.services.async_register(
+        const.DOMAIN,
+        const.SERVICE_MANAGE_UI_CONTROL,
+        handle_manage_ui_control,
+        schema=MANAGE_UI_CONTROL_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
     # ==========================================================================
     # UNIFIED DATA RESET SERVICE (V2)
     # ==========================================================================
@@ -2961,6 +2993,7 @@ async def async_unload_services(hass: HomeAssistant) -> None:
         const.SERVICE_APPLY_BONUS,
         const.SERVICE_MANUAL_ADJUST_POINTS,
         const.SERVICE_APPROVE_REWARD,
+        const.SERVICE_MANAGE_UI_CONTROL,
         const.SERVICE_RESET_CHORES_TO_PENDING_STATE,  # Renamed from SERVICE_RESET_ALL_CHORES
         const.SERVICE_RESET_OVERDUE_CHORES,
         const.SERVICE_RESET_TRANSACTIONAL_DATA,

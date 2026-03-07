@@ -43,6 +43,26 @@ DATA_ASSIGNEE_POINTS_BY_SOURCE_ALL_TIME_LEGACY: Final = (
     "points_by_source_all_time"  # Use periods.all_time.all_time.by_source
 )
 
+DATA_USER_BADGE_PROGRESS_TYPE_LEGACY: Final = "badge_type"
+
+DATA_USER_BADGE_PROGRESS_TARGET_TYPE_LEGACY: Final = "target_type"
+
+DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE_LEGACY: Final = "threshold_value"
+
+DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED_LEGACY: Final = "chores_completed"
+
+DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED_LEGACY: Final = "days_completed"
+
+DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY: Final = "assigned_user_ids"
+
+DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY: Final = "tracked_chores"
+
+DATA_USER_BADGE_PROGRESS_OCCASION_TYPE_LEGACY: Final = "occasion_type"
+
+DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY: Final = "associated_achievement"
+
+DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY: Final = "associated_challenge"
+
 CONF_SCHEMA_VERSION_LEGACY: Final = "schema_version"
 
 CONF_ACHIEVEMENTS_LEGACY: Final = "achievements"

@@ -65,20 +65,52 @@ class TestGamificationPendingQueueEvents:
         hass: HomeAssistant,
         setup_minimal: SetupResult,
     ) -> None:
-        """Midnight rollover uses recalculate-all path and queues all assignees."""
+        """Midnight rollover drains the global pending queue immediately."""
         coordinator = setup_minimal.coordinator
         manager = coordinator.gamification_manager
+        expected_assignees = set(coordinator.assignees_data.keys())
+
+        evaluated: list[str] = []
+
+        async def _capture_evaluation(assignee_id: str) -> None:
+            evaluated.append(assignee_id)
+
+        manager._evaluate_assignee = _capture_evaluation
 
         await manager._on_midnight_rollover({})
         await hass.async_block_till_done()
 
-        expected_assignees = set(coordinator.assignees_data.keys())
-        assert manager._pending_evaluations == expected_assignees
+        assert manager._pending_evaluations == set()
+        assert set(evaluated) == expected_assignees
 
-        await manager._evaluate_pending_assignees()
+        pending_meta = coordinator._data.get(const.DATA_META, {}).get(
+            const.DATA_META_PENDING_EVALUATIONS,
+            [],
+        )
+        assert pending_meta == []
+
+    async def test_midnight_catchup_payload_uses_same_immediate_drain_path(
+        self,
+        hass: HomeAssistant,
+        setup_minimal: SetupResult,
+    ) -> None:
+        """Startup catch-up payload reuses the same immediate midnight drain path."""
+        coordinator = setup_minimal.coordinator
+        manager = coordinator.gamification_manager
+        expected_assignees = set(coordinator.assignees_data.keys())
+
+        evaluated: list[str] = []
+
+        async def _capture_evaluation(assignee_id: str) -> None:
+            evaluated.append(assignee_id)
+
+        manager._evaluate_assignee = _capture_evaluation
+
+        await manager._on_midnight_rollover({"catch_up": True})
         await hass.async_block_till_done()
 
         assert manager._pending_evaluations == set()
+        assert set(evaluated) == expected_assignees
 
     async def test_challenge_lifecycle_wrapper_skips_future_window(
         self,

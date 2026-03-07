@@ -463,6 +463,67 @@ generate_activity_report:
             - "html"
             - "both"
 
+manage_ui_control:
+  name: "Manage UI Control"
+  description: >
+    Create, update, or remove a per-user UI control value stored in the user's
+    persisted ui_preferences bucket. Use an empty key with the remove action to
+    clear all stored UI preferences for the targeted user.
+  fields:
+    config_entry_id:
+      name: "Config Entry ID (Optional)"
+      description: "Use this if you have more than one ChoreOps setup. It targets one specific setup."
+      required: false
+      example: "abc123def456"
+      selector:
+        text:
+    config_entry_title:
+      name: "Config Entry Name (Optional)"
+      description: "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID."
+      required: false
+      example: "Family Chores"
+      selector:
+        text:
+    user_id:
+      name: "User ID"
+      description: "Optional internal user ID target. Advanced users only. If both user_id and user_name are provided, user_id wins."
+      required: false
+      advanced: true
+      example: "abc123-def456"
+      selector:
+        text:
+    user_name:
+      name: "User Name"
+      description: "Optional user name target. Required when user_id is not provided."
+      required: false
+      example: "Alice"
+      selector:
+        text:
+    ui_control_action:
+      name: "UI Control Action"
+      description: "Choose whether to create, update, or remove a stored UI control value."
+      required: true
+      example: "update"
+      selector:
+        select:
+          options:
+            - "create"
+            - "update"
+            - "remove"
+    key:
+      name: "Key Path"
+      description: "Slash-delimited UI control path such as gamification/rewards/header_collapse. Leave empty only with the remove action to clear all stored UI preferences for the user."
+      required: false
+      example: "gamification/rewards/header_collapse"
+      selector:
+        text:
+    value:
+      name: "Value"
+      description: "Value to store for create or update. This field is ignored for remove."
+      required: false
+      selector:
+        object:
+
 reset_chores_to_pending_state:
   name: "Reset Chores To Pending State"
   description: "Manually reset all chores to pending state, removing claims and approvals."

@@ -1604,7 +1604,7 @@ class TestCompletionCriteria:
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Test SHARED_FIRST completion updates other assignees' completed_by."""
+        """Test SHARED_FIRST completion stores ownership at chore level."""
         # Change to SHARED_FIRST
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
@@ -1617,18 +1617,21 @@ class TestCompletionCriteria:
         # Handle completion
         chore_manager._handle_completion_criteria("chore-1", "assignee-1", "Alice")
 
-        # Bob's completed_by should show Alice
+        assert mock_coordinator.chores_data["chore-1"].get(
+            const.DATA_CHORE_COMPLETED_BY
+        ) == ["Alice"]
+
         assignee2_data = mock_coordinator.assignees_data["assignee-2"][
             const.DATA_USER_CHORE_DATA
         ]["chore-1"]
-        assert assignee2_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
+        assert const.DATA_CHORE_COMPLETED_BY not in assignee2_data
 
     def test_shared_completion_appends_to_list(
         self,
         chore_manager: ChoreManager,
         mock_coordinator: MagicMock,
     ) -> None:
-        """Test SHARED completion appends to completed_by list."""
+        """Test SHARED completion appends to chore-level completed_by list."""
         # Change to SHARED
         mock_coordinator.chores_data["chore-1"][
             const.DATA_CHORE_COMPLETION_CRITERIA
@@ -1641,23 +1644,28 @@ class TestCompletionCriteria:
         # First completion
         chore_manager._handle_completion_criteria("chore-1", "assignee-1", "Alice")
 
-        # Both assignees should have Alice in their list
         assignee1_data = mock_coordinator.assignees_data["assignee-1"][
             const.DATA_USER_CHORE_DATA
         ]["chore-1"]
-        assert assignee1_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
-
         assignee2_data = mock_coordinator.assignees_data["assignee-2"][
             const.DATA_USER_CHORE_DATA
         ]["chore-1"]
-        assert assignee2_data.get(const.DATA_CHORE_COMPLETED_BY) == ["Alice"]
+
+        assert mock_coordinator.chores_data["chore-1"].get(
+            const.DATA_CHORE_COMPLETED_BY
+        ) == ["Alice"]
+        assert const.DATA_CHORE_COMPLETED_BY not in assignee1_data
+        assert const.DATA_CHORE_COMPLETED_BY not in assignee2_data
 
         # Second completion by Bob
         chore_manager._handle_completion_criteria("chore-1", "assignee-2", "Bob")
 
-        # Both should now have both names
-        assert "Alice" in assignee1_data.get(const.DATA_CHORE_COMPLETED_BY, [])
-        assert "Bob" in assignee1_data.get(const.DATA_CHORE_COMPLETED_BY, [])
+        completed_by = mock_coordinator.chores_data["chore-1"].get(
+            const.DATA_CHORE_COMPLETED_BY,
+            [],
+        )
+        assert "Alice" in completed_by
+        assert "Bob" in completed_by
 
 
 class TestCriteriaTransitions:

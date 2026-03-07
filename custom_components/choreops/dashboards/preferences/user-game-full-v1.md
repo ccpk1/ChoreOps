@@ -10,6 +10,34 @@
 - Friendly for drag-and-drop workflows: keep defaults for a simple setup, then tune behavior with `pref_*` values.
 - Supports practical organization controls (time buckets, labels, sorting, and state filtering).
 
+## Header tint preference
+
+- `pref_primary_tint_mix_pct` (default: `14`)
+  - Controls the percent of `var(--primary-color)` mixed into the background fill when header background fill is enabled.
+  - Applies only to the welcome card and the main headers for Chores, Rewards, Cumulative, and Periodic.
+  - Does not affect reward rows, chore rows, group chips, or other card surfaces.
+  - Allowed: integer from `0` to `100`.
+
+- `pref_show_header_background` (default: `true`)
+  - Controls whether the welcome card and the main section headers render a background fill.
+  - When `false`, those surfaces use a transparent background.
+  - Applies only to the welcome card and the main headers for Chores, Rewards, Cumulative, and Periodic.
+  - Does not affect reward rows, chore rows, group chips, or other card surfaces.
+  - Allowed: `true`, `false`.
+
+- `pref_show_header_thin_border` (default: `true`)
+  - Controls whether the thin outer border line is shown on the welcome card and the main section headers.
+  - When `false`, only the thin line is removed.
+  - Left and bottom accent borders on section headers remain visible.
+  - Applies only to the welcome card and the main headers for Chores, Rewards, Cumulative, and Periodic.
+  - Allowed: `true`, `false`.
+
+Recommended ranges:
+
+- `0` = no primary tint
+- `10` to `18` = subtle themed tint
+- `25+` = much stronger emphasis
+
 ## Card: Chores
 
 - `pref_column_count` (default: `1`)
@@ -71,6 +99,18 @@
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
 
+- `pref_primary_tint_mix_pct` (default: `14`)
+  - Tints the main Chores section header background.
+  - Allowed: integer from `0` to `100`.
+
+- `pref_show_header_background` (default: `true`)
+  - When `false`, the main Chores section header background becomes transparent.
+  - Allowed: `true`, `false`.
+
+- `pref_show_header_thin_border` (default: `true`)
+  - When `false`, the thin outer border line is removed from the main Chores section header.
+  - Allowed: `true`, `false`.
+
 ## Card: Rewards
 
 - `pref_column_count` (default: `1`)
@@ -101,6 +141,52 @@
   - When `false`, description row is hidden even if reward has description.
   - Allowed: `true`, `false`.
 
+- `pref_primary_tint_mix_pct` (default: `14`)
+  - Tints the main Rewards section header background.
+  - Allowed: integer from `0` to `100`.
+
+- `pref_show_header_background` (default: `true`)
+  - When `false`, the main Rewards section header background becomes transparent.
+  - Allowed: `true`, `false`.
+
+- `pref_show_header_thin_border` (default: `true`)
+  - When `false`, the thin outer border line is removed from the main Rewards section header.
+  - Allowed: `true`, `false`.
+
+- Rewards header collapse state
+  - The Rewards section header supports a persisted per-user collapse toggle.
+  - The dashboard reads `state_attr(dashboard_helper, 'ui_control')` and uses the reviewed path `gamification/rewards/header_collapse`.
+  - Default behavior is expanded when no stored override exists.
+  - Expanding again removes the stored override so the card falls back to the default expanded state.
+
+## Card: Cumulative badges
+
+- `pref_primary_tint_mix_pct` (default: `14`)
+  - Tints the main Cumulative section header background.
+  - Allowed: integer from `0` to `100`.
+
+- `pref_show_header_background` (default: `true`)
+  - When `false`, the main Cumulative section header background becomes transparent.
+  - Allowed: `true`, `false`.
+
+- `pref_show_header_thin_border` (default: `true`)
+  - When `false`, the thin outer border line is removed from the main Cumulative section header.
+  - Allowed: `true`, `false`.
+
+## Card: Periodic badges
+
+- `pref_primary_tint_mix_pct` (default: `14`)
+  - Tints the main Periodic section header background.
+  - Allowed: integer from `0` to `100`.
+
+- `pref_show_header_background` (default: `true`)
+  - When `false`, the main Periodic section header background becomes transparent.
+  - Allowed: `true`, `false`.
+
+- `pref_show_header_thin_border` (default: `true`)
+  - When `false`, the thin outer border line is removed from the main Periodic section header.
+  - Allowed: `true`, `false`.
+
 ## Practical tuning examples
 
 - Keep it minimal: set only `pref_column_count`, leave everything else as default.
@@ -109,3 +195,6 @@
 - Prioritize urgent work: keep `pref_use_overdue_grouping: true` and use `pref_sort_within_groups: by_state_and_date`.
 - Sort rewards by price: set `pref_sort_rewards: cost_asc`.
 - Group rewards by labels: set `pref_use_label_grouping: true` and optionally define `pref_label_display_order`.
+- Reduce header tint: set `pref_primary_tint_mix_pct: 8`.
+- Remove welcome/header fill entirely: set `pref_show_header_background: false`.
+- Keep accent borders but remove the thin line: set `pref_show_header_thin_border: false`.

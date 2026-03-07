@@ -52,8 +52,21 @@ views:
 
                   << template_snippets.user_override_helper >>
 
+                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the welcome-card background when fill is enabled. Allowed: 0-100. --#}
+                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the welcome-card background fill and leave it transparent. Allowed: true, false. --#}
+                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
+
 
                   {#-- 2. Dynamic Lookups & Validations --#}
+
+                  {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
+                  {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+                  {%- if pref_primary_tint_mix_pct < 0 -%}
+                    {%- set pref_primary_tint_mix_pct = 0 -%}
+                  {%- elif pref_primary_tint_mix_pct > 100 -%}
+                    {%- set pref_primary_tint_mix_pct = 100 -%}
+                  {%- endif -%}
 
                   << template_snippets.user_setup >>
 
@@ -130,8 +143,8 @@ views:
                           'card': [
                             {'padding': '16px 20px'},
                             {'border-radius': '16px'},
-                            {'border': '1px solid var(--divider-color)'},
-                            {'background-color': 'var(--card-background-color)'},
+                            {'border': '1px solid var(--divider-color)' if pref_show_header_thin_border else 'none'},
+                            {'background-color': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_show_header_background else 'transparent'},
                             {'box-shadow': 'none'}
                           ],
                           'grid': [
@@ -199,6 +212,10 @@ views:
 
                   {%- set pref_show_chore_description = false -%}
 
+                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Chores header background when fill is enabled. Allowed: 0-100. --#}
+                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the main Chores header background fill and leave it transparent. Allowed: true, false. --#}
+                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
+
 
                   {#-- Type coercion for preferences --#}
                   {%- set pref_column_count = pref_column_count | int(default=1) -%}
@@ -216,6 +233,14 @@ views:
                   {%- set pref_use_label_grouping = pref_use_label_grouping | default(false, true) -%}
                   {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable else [] -%}
                   {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable else [] -%}
+                  {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
+                  {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+                  {%- if pref_primary_tint_mix_pct < 0 -%}
+                    {%- set pref_primary_tint_mix_pct = 0 -%}
+                  {%- elif pref_primary_tint_mix_pct > 100 -%}
+                    {%- set pref_primary_tint_mix_pct = 100 -%}
+                  {%- endif -%}
 
                   {#-- 2. Dynamic Lookups & Validations --#}
 
@@ -466,9 +491,9 @@ views:
                         'hold_action': {'action': 'none'},
                         'styles': {
                           'card': [
-                            {'background': 'var(--secondary-background-color)'},
+                            {'background': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_show_header_background else 'transparent'},
                             {'box-shadow': 'none'},
-                            {'border': '1px solid var(--divider-color)'},
+                            {'border': '1px solid var(--divider-color)' if pref_show_header_thin_border else 'none'},
                             {'border-left': '3px solid var(--primary-color)'},
                             {'border-bottom': '3px solid var(--primary-color)'},
                             {'border-radius': '10px'},
@@ -555,6 +580,7 @@ views:
                                   'pref_show_chore_description': pref_show_chore_description,
                                   'gamification_enabled': gamification_enabled,
                                   'points_label': points_label,
+                                  'points_icon': points_icon,
                                   'ui_labels': {
                                     'pending': ui.get('pending', 'err-pending'),
                                     'due': ui.get('due', 'err-due'),
@@ -649,6 +675,10 @@ views:
 
                   {%- set pref_show_reward_description = true -%}
 
+                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Rewards header background when fill is enabled. Allowed: 0-100. --#}
+                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the main Rewards header background fill and leave it transparent. Allowed: true, false. --#}
+                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
+
 
                   {#-- Type coercion for preferences --#}
                   {%- set pref_column_count = pref_column_count | int(default=1) -%}
@@ -656,6 +686,14 @@ views:
                   {%- set pref_exclude_label_list = pref_exclude_label_list if pref_exclude_label_list is iterable and pref_exclude_label_list is not string else [] -%}
                   {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
                   {%- set pref_show_reward_description = (pref_show_reward_description | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
+                  {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+                  {%- if pref_primary_tint_mix_pct < 0 -%}
+                    {%- set pref_primary_tint_mix_pct = 0 -%}
+                  {%- elif pref_primary_tint_mix_pct > 100 -%}
+                    {%- set pref_primary_tint_mix_pct = 100 -%}
+                  {%- endif -%}
 
                   {#-- 2. Dynamic Lookups & Validations --#}
 
@@ -688,6 +726,14 @@ views:
                     {%- set gamification_enabled = state_attr(dashboard_helper, 'gamification_enabled') | default(false, true) -%}
                     {%- set reward_list = state_attr(dashboard_helper, 'rewards') | default([], true) -%}
                     {%- set current_points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
+                    {%- set ui_control = state_attr(dashboard_helper, 'ui_control') | default({}, true) -%}
+                    {%- set ui_control_gamification = ui_control.get('gamification', {}) if ui_control is mapping else {} -%}
+                    {%- set ui_control_rewards = ui_control_gamification.get('rewards', {}) if ui_control_gamification is mapping else {} -%}
+                    {%- set rewards_header_collapsed = ui_control_rewards.get('header_collapse', false) if ui_control_rewards is mapping else false -%}
+                    {%- set rewards_header_collapsed = rewards_header_collapsed | default(false, true) -%}
+                    {%- set ui_control_key_rewards_header_collapse = 'gamification/rewards/header_collapse' -%}
+                    {%- set integration_entry_id = state_attr(dashboard_helper, 'integration_entry_id') -%}
+                    {%- set dashboard_helper_user_id = state_attr(dashboard_helper, 'user_id') -%}
 
                     {#-- Apply label exclusion filter (works regardless of grouping setting) --#}
                     {%- if pref_exclude_label_list | length > 0 -%}
@@ -792,13 +838,38 @@ views:
                           'icon': 'mdi:gift-outline',
                           'show_name': true,
                           'show_icon': true,
-                          'tap_action': {'action': 'none'},
+                          'show_label': false,
+                          'tap_action': ({
+                            'action': 'call-service',
+                            'service': 'choreops.manage_ui_control',
+                            'data': {
+                              'config_entry_id': integration_entry_id,
+                              'user_id': dashboard_helper_user_id,
+                              'ui_control_action': 'remove',
+                              'key': ui_control_key_rewards_header_collapse
+                            }
+                          } if rewards_header_collapsed and integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                            'action': 'call-service',
+                            'service': 'choreops.manage_ui_control',
+                            'data': {
+                              'config_entry_id': integration_entry_id,
+                              'user_id': dashboard_helper_user_id,
+                              'ui_control_action': 'create',
+                              'key': ui_control_key_rewards_header_collapse,
+                              'value': true
+                            }
+                          } if integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                            'action': 'none'
+                          }),
                           'hold_action': {'action': 'none'},
+                          'custom_fields': {
+                            'toggle': "<ha-icon icon='" ~ ('mdi:chevron-down' if rewards_header_collapsed else 'mdi:chevron-up') ~ "' style='width:18px;height:18px;color: var(--primary-color);'></ha-icon>"
+                          },
                           'styles': {
                             'card': [
-                              {'background': 'var(--secondary-background-color)'},
+                              {'background': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_show_header_background else 'transparent'},
                               {'box-shadow': 'none'},
-                              {'border': '1px solid var(--divider-color)'},
+                              {'border': '1px solid var(--divider-color)' if pref_show_header_thin_border else 'none'},
                               {'border-left': '3px solid var(--primary-color)'},
                               {'border-bottom': '3px solid var(--primary-color)'},
                               {'border-radius': '10px'},
@@ -808,8 +879,8 @@ views:
                               {'margin-bottom': '0px'}
                             ],
                             'grid': [
-                              {'grid-template-areas': '"i n"'},
-                              {'grid-template-columns': 'min-content 1fr'},
+                              {'grid-template-areas': '"i n toggle"'},
+                              {'grid-template-columns': 'min-content 1fr min-content'},
                               {'column-gap': '5px'},
                               {'align-items': 'center'}
                             ],
@@ -825,11 +896,18 @@ views:
                               {'text-transform': 'uppercase'},
                               {'letter-spacing': '0.4px'},
                               {'color': 'var(--primary-text-color)'}
-                            ]
+                            ],
+                            'custom_fields': {
+                              'toggle': [
+                                {'justify-self': 'end'},
+                                {'align-self': 'center'}
+                              ]
+                            }
                           }
                         }
                       }},
 
+                      {%- if not rewards_header_collapsed -%}
                       {%- if ns.label_groups | length == 0 -%}
                         {{
                           {
@@ -1040,11 +1118,11 @@ views:
                                   {'box-shadow': 'none'},
                                   {'border': '1px solid ' ~ row_border_color},
                                   {'border-radius': '12px'},
-                                  {'padding': '10px 12px'}
+                                    {'padding': '5px 12px'}
                                 ],
                                 'grid': [
                                   {'grid-template-areas': '"i n btn_secondary btn_primary" "i state btn_secondary btn_primary" "i description btn_secondary btn_primary" "i stats btn_secondary btn_primary"'},
-                                  {'grid-template-columns': 'min-content 1fr min-content min-content'},
+                                  {'grid-template-columns': 'min-content minmax(0, 1fr) min-content min-content'},
                                   {'column-gap': '8px'},
                                   {'row-gap': '2px'},
                                   {'align-items': 'center'}
@@ -1055,31 +1133,48 @@ views:
                                 ],
                                 'name': [
                                   {'justify-self': 'start'},
+                                  {'min-width': '0'},
+                                  {'width': '100%'},
                                   {'font-size': '14px'},
                                   {'font-weight': '600'},
+                                  {'overflow': 'hidden'},
+                                  {'text-overflow': 'ellipsis'},
+                                  {'white-space': 'nowrap'},
                                   {'color': 'var(--primary-text-color)'}
                                 ],
                                 'custom_fields': {
                                   'state': [
                                     {'justify-self': 'start'},
+                                    {'min-width': '0'},
+                                    {'width': '100%'},
                                     {'font-size': '11px'},
                                     {'color': 'var(--secondary-text-color)'},
-                                    {'white-space': 'normal'},
+                                    {'white-space': 'nowrap'},
+                                    {'overflow': 'hidden'},
+                                    {'text-overflow': 'ellipsis'},
                                     {'line-height': '1.2'}
                                   ],
                                   'description': [
                                     {'justify-self': 'start'},
+                                    {'min-width': '0'},
+                                    {'width': '100%'},
                                     {'font-size': '10px'},
                                     {'color': 'var(--secondary-text-color)'},
-                                    {'white-space': 'normal'},
+                                    {'white-space': 'nowrap'},
+                                    {'overflow': 'hidden'},
+                                    {'text-overflow': 'ellipsis'},
                                     {'line-height': '1.2'},
                                     {'display': 'block' if pref_show_reward_description and reward_description_clean | length > 0 else 'none'}
                                   ],
                                   'stats': [
                                     {'justify-self': 'start'},
+                                    {'min-width': '0'},
+                                    {'width': '100%'},
                                     {'font-size': '10px'},
                                     {'color': 'var(--secondary-text-color)'},
-                                    {'white-space': 'normal'},
+                                    {'white-space': 'nowrap'},
+                                    {'overflow': 'hidden'},
+                                    {'text-overflow': 'ellipsis'},
                                     {'line-height': '1.2'}
                                   ],
                                   'btn_secondary': [
@@ -1139,6 +1234,391 @@ views:
                             }
                           }},
                         {%- endfor -%}
+
+                        {{
+                          {
+                            'type': 'custom:button-card',
+                            'name': ui.get('rewards', 'err-rewards'),
+                            'icon': 'mdi:view-grid-outline',
+                            'show_name': true,
+                            'show_icon': true,
+                            'tap_action': {'action': 'none'},
+                            'hold_action': {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'background': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_show_header_background else 'transparent'},
+                                {'box-shadow': 'none'},
+                                {'border': '1px solid var(--divider-color)' if pref_show_header_thin_border else 'none'},
+                                {'border-left': '3px solid var(--primary-color)'},
+                                {'border-bottom': '3px solid var(--primary-color)'},
+                                {'border-radius': '10px'},
+                                {'padding': '10px 12px'},
+                                {'min-height': 'unset'},
+                                {'margin-top': '12px'},
+                                {'margin-bottom': '0px'}
+                              ],
+                              'grid': [
+                                {'grid-template-areas': '"i n"'},
+                                {'grid-template-columns': 'min-content 1fr'},
+                                {'column-gap': '5px'},
+                                {'align-items': 'center'}
+                              ],
+                              'icon': [
+                                {'width': '18px'},
+                                {'transform': 'translateY(-2px)'},
+                                {'color': 'var(--primary-color)'}
+                              ],
+                              'name': [
+                                {'justify-self': 'start'},
+                                {'font-size': '14px'},
+                                {'font-weight': '700'},
+                                {'text-transform': 'uppercase'},
+                                {'letter-spacing': '0.4px'},
+                                {'color': 'var(--primary-text-color)'}
+                              ]
+                            }
+                          }
+                        }},
+
+                        {%- if ns.label_groups | length == 0 -%}
+                          {{
+                            {
+                              'type': 'custom:button-card',
+                              'name': ui.get('no_rewards', 'err-no_rewards'),
+                              'icon': 'mdi:gift-off-outline',
+                              'show_name': true,
+                              'show_icon': true,
+                              'tap_action': {'action': 'none'},
+                              'styles': {
+                                'card': [
+                                  {'background': 'var(--secondary-background-color)'},
+                                  {'box-shadow': 'none'},
+                                  {'border': '1px solid var(--divider-color)'},
+                                  {'border-radius': '12px'},
+                                  {'padding': '10px 12px'}
+                                ],
+                                'grid': [
+                                  {'grid-template-areas': '"i n"'},
+                                  {'grid-template-columns': 'min-content 1fr'},
+                                  {'gap': '8px'},
+                                  {'align-items': 'center'}
+                                ],
+                                'icon': [
+                                  {'width': '18px'},
+                                  {'color': 'var(--secondary-text-color)'}
+                                ],
+                                'name': [
+                                  {'justify-self': 'start'},
+                                  {'font-size': '13px'},
+                                  {'font-weight': '600'},
+                                  {'color': 'var(--secondary-text-color)'}
+                                ]
+                              }
+                            }
+                          }},
+                        {%- else -%}
+                          {%- for group in ns.label_groups -%}
+                            {%- set ns.group_cards = [] -%}
+                            {%- set show_group_chip = (ns.label_groups | length > 1) or (group.name != ui.get('rewards', 'err-rewards')) -%}
+
+                            {%- if show_group_chip -%}
+                              {{
+                                {
+                                  'type': 'custom:button-card',
+                                  'name': group.name,
+                                  'icon': group.icon,
+                                  'show_name': true,
+                                  'show_icon': true,
+                                  'tap_action': {'action': 'none'},
+                                  'styles': {
+                                    'card': [
+                                      {'background': 'var(--secondary-background-color)'},
+                                      {'box-shadow': 'none'},
+                                      {'border': '2px solid var(--divider-color)'},
+                                      {'border-radius': '6px'},
+                                      {'padding': '6px 16px'},
+                                      {'min-height': 'unset'},
+                                      {'margin': '0px 0px 0px 0px'}
+                                    ],
+                                    'grid': [
+                                      {'grid-template-areas': '"i n"'},
+                                      {'grid-template-columns': 'min-content 1fr'},
+                                      {'gap': '0px'},
+                                      {'align-items': 'center'}
+                                    ],
+                                    'icon': [
+                                      {'width': '18px'},
+                                      {'color': 'var(--primary-color)'}
+                                    ],
+                                    'name': [
+                                      {'justify-self': 'right'},
+                                      {'font-size': '12px'},
+                                      {'font-weight': '800'},
+                                      {'text-transform': 'uppercase'},
+                                      {'letter-spacing': '0.9px'},
+                                      {'color': 'var(--primary-text-color)'}
+                                    ]
+                                  }
+                                }
+                              }},
+                            {%- endif -%}
+
+                            {%- for reward in group.rewards -%}
+                              {%- set reward_name = reward.name if reward is mapping else 'Unknown' -%}
+                              {%- set reward_cost = (reward.cost | int(default=0)) if reward is mapping else 0 -%}
+                              {%- set reward_sensor_eid = reward.eid if reward is mapping else '' -%}
+                              {%- set reward_icon = state_attr(reward_sensor_eid, 'icon') | default('mdi:gift', true) -%}
+                              {%- set reward_description = state_attr(reward_sensor_eid, 'description') | default('', true) -%}
+                              {%- set reward_description_clean = reward_description | string | trim -%}
+                              {%- set reward_description_safe = reward_description_clean | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
+                              {%- set claim_button_eid = state_attr(reward_sensor_eid, 'claim_button_eid') | default('', true) -%}
+                              {%- set approve_button_eid = state_attr(reward_sensor_eid, 'approve_button_eid') | default('', true) -%}
+                              {%- set disapprove_button_eid = state_attr(reward_sensor_eid, 'disapprove_button_eid') | default('', true) -%}
+                              {%- set reward_claimed_month = (state_attr(reward_sensor_eid, 'claimed_month') | int(default=0)) -%}
+                              {%- set reward_claimed_all_time = (state_attr(reward_sensor_eid, 'claimed_all_time') | int(default=0)) -%}
+                              {%- set reward_last_claimed = state_attr(reward_sensor_eid, 'last_claimed') | default('', true) -%}
+                              {%- set reward_last_claimed_text = (as_timestamp(reward_last_claimed) | timestamp_custom('%b %d')) if reward_last_claimed not in ['', 'unknown', 'unavailable', none] else ui.get('never', 'err-never') -%}
+
+                              {%- set reward_state = states(reward_sensor_eid) -%}
+                              {%- set state_map = {
+                                  'locked': ui.get('locked', 'err-locked'),
+                                  'available': ui.get('available', 'err-available'),
+                                  'requested': ui.get('requested', 'err-requested'),
+                                  'approved': ui.get('approved', 'err-approved')
+                              } -%}
+                              {%- set reward_state_display = state_map.get(reward_state, reward_state) -%}
+
+                              {%- set primary_button_eid = '' -%}
+                              {%- set primary_button_icon = 'mdi:arrow-right' -%}
+                              {%- set secondary_button_eid = '' -%}
+                              {%- set primary_button_is_locked = false -%}
+                              {%- if reward_state == 'requested' -%}
+                                {%- set primary_button_eid = approve_button_eid or claim_button_eid -%}
+                                {%- set primary_button_icon = 'mdi:check-bold' -%}
+                                {%- set secondary_button_eid = disapprove_button_eid -%}
+                              {%- elif reward_state == 'available' -%}
+                                {%- set primary_button_eid = claim_button_eid -%}
+                                {%- set primary_button_icon = 'mdi:arrow-right' -%}
+                              {%- elif reward_state == 'locked' -%}
+                                {%- set primary_button_icon = 'mdi:lock-outline' -%}
+                                {%- set primary_button_is_locked = true -%}
+                              {%- endif -%}
+
+                              {%- set row_icon_color = (
+                                '#a957fa' if reward_state == 'requested' else
+                                'var(--primary-color)' if reward_state == 'available' else
+                                'var(--success-color)' if reward_state == 'approved' else
+                                  'var(--secondary-text-color)'
+                              ) -%}
+                              {%- set row_border_color = (
+                                '#a957fa' if reward_state == 'requested' else
+                                'var(--divider-color)' if reward_state == 'available' else
+                                'var(--success-color)' if reward_state == 'approved' else
+                                  'var(--divider-color)'
+                              ) -%}
+                              {%- set row_background = (
+                                'color-mix(in srgb, #a957fa 10%, var(--card-background-color))' if reward_state == 'requested' else
+                                'var(--card-background-color)' if reward_state in ['available', 'approved'] else
+                                  'var(--secondary-background-color)'
+                              ) -%}
+                              {%- set reward_state_html = "<b style='color:" ~ row_icon_color ~ ";'>" ~ reward_state_display | upper ~ "</b> <span style='opacity:0.7;'>•</span> <span>" ~ ui.get('cost', 'err-cost') ~ ": " ~ reward_cost|string ~ " <ha-icon icon='" ~ points_icon ~ "' style='width:12px;height:12px;color:var(--secondary-text-color);transform:translateY(-1px);'></ha-icon></span>" -%}
+                              {%- set reward_description_html = "<span>" ~ reward_description_safe ~ "</span>" -%}
+                              {%- set reward_stats_html = "<span>" ~ ui.get('last', 'err-last') ~ ": " ~ reward_last_claimed_text ~ "</span> <span style='opacity:0.7;'>•</span> <span>" ~ reward_claimed_month|string ~ " " ~ ui.get('this_month', 'err-this_month') ~ "</span> <span style='opacity:0.7;'>•</span> <span>" ~ reward_claimed_all_time|string ~ " " ~ ui.get('total', 'err-total') ~ "</span>" -%}
+
+                              {%- set ns.group_cards = ns.group_cards + [{
+                                'type': 'custom:button-card',
+                                'entity': reward_sensor_eid,
+                                'name': reward_name,
+                                'icon': reward_icon,
+                                'show_name': true,
+                                'show_label': false,
+                                'show_icon': true,
+                                'custom_fields': {
+                                  'state': reward_state_html,
+                                  'description': reward_description_html,
+                                  'stats': reward_stats_html,
+                                  'btn_secondary': {
+                                    'card': {
+                                      'type': 'custom:button-card',
+                                      'show_name': false,
+                                      'show_icon': true,
+                                      'icon': 'mdi:undo-variant',
+                                      'styles': {
+                                        'card': [
+                                          {'width': '30px'},
+                                          {'height': '30px'},
+                                          {'border-radius': '50%'},
+                                          {'background-color': 'transparent'},
+                                          {'border': '1px solid #a957fa'},
+                                          {'box-shadow': 'none'}
+                                        ],
+                                        'icon': [
+                                          {'width': '17px'},
+                                          {'color': '#a957fa'}
+                                        ]
+                                      },
+                                      'tap_action': ({ 'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': secondary_button_eid } } if secondary_button_eid else { 'action': 'none' })
+                                    }
+                                  },
+                                  'btn_primary': {
+                                    'card': {
+                                      'type': 'custom:button-card',
+                                      'show_name': false,
+                                      'show_icon': true,
+                                      'icon': primary_button_icon,
+                                      'styles': {
+                                        'card': [
+                                          {'width': '30px'},
+                                          {'height': '30px'},
+                                          {'border-radius': '50%'},
+                                          {'background-color': 'transparent' if primary_button_is_locked else ('color-mix(in srgb, #a957fa 14%, var(--card-background-color))' if reward_state == 'requested' else 'transparent')},
+                                          {'border': '1px solid var(--disabled-text-color)' if primary_button_is_locked else ('2px solid #a957fa' if reward_state == 'requested' else '2px solid var(--primary-color)')},
+                                          {'box-shadow': 'none'}
+                                        ],
+                                        'icon': [
+                                          {'width': '17px'},
+                                          {'color': 'var(--disabled-text-color)' if primary_button_is_locked else 'var(--primary-text-color)'}
+                                        ]
+                                      },
+                                      'tap_action': ({ 'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': primary_button_eid } } if primary_button_eid and not primary_button_is_locked else { 'action': 'none' })
+                                    }
+                                  },
+                                },
+                                'tap_action': { 'action': 'more-info' },
+                                'hold_action': { 'action': 'none' },
+                                'styles': {
+                                  'card': [
+                                    {'background': row_background},
+                                    {'box-shadow': 'none'},
+                                    {'border': '1px solid ' ~ row_border_color},
+                                    {'border-radius': '12px'},
+                                    {'padding': '7px 10px'}
+                                  ],
+                                  'grid': [
+                                    {'grid-template-areas': '"btn_secondary i btn_primary" "n n n" "state state state" "description description description" "stats stats stats"'},
+                                    {'grid-template-columns': '30px 1fr 30px'},
+                                    {'column-gap': '8px'},
+                                    {'row-gap': '4px'},
+                                    {'align-items': 'start'}
+                                  ],
+                                  'icon': [
+                                    {'width': '30px'},
+                                    {'justify-self': 'center'},
+                                    {'align-self': 'start'},
+                                    {'margin-top': '2px'},
+                                    {'margin-bottom': '2px'},
+                                    {'color': row_icon_color}
+                                  ],
+                                  'name': [
+                                    {'justify-self': 'center'},
+                                    {'text-align': 'center'},
+                                    {'min-width': '0'},
+                                    {'width': '100%'},
+                                    {'font-size': '14px'},
+                                    {'font-weight': '600'},
+                                    {'line-height': '1.2'},
+                                    {'overflow': 'hidden'},
+                                    {'text-overflow': 'ellipsis'},
+                                    {'white-space': 'nowrap'},
+                                    {'color': 'var(--primary-text-color)'}
+                                  ],
+                                  'custom_fields': {
+                                    'state': [
+                                      {'justify-self': 'stretch'},
+                                      {'text-align': 'center'},
+                                      {'min-width': '0'},
+                                      {'width': '100%'},
+                                      {'font-size': '11px'},
+                                      {'color': 'var(--secondary-text-color)'},
+                                      {'line-height': '1.2'}
+                                    ],
+                                    'description': [
+                                      {'justify-self': 'stretch'},
+                                      {'text-align': 'center'},
+                                      {'min-width': '0'},
+                                      {'width': '100%'},
+                                      {'font-size': '10px'},
+                                      {'color': 'var(--secondary-text-color)'},
+                                      {'line-height': '1.2'},
+                                      {'display': 'block' if pref_show_reward_description and reward_description_clean | length > 0 else 'none'}
+                                    ],
+                                    'stats': [
+                                      {'justify-self': 'stretch'},
+                                      {'text-align': 'center'},
+                                      {'min-width': '0'},
+                                      {'width': '100%'},
+                                      {'font-size': '10px'},
+                                      {'color': 'var(--secondary-text-color)'},
+                                      {'line-height': '1.2'}
+                                    ],
+                                    'btn_secondary': [
+                                      {'width': '30px'},
+                                      {'height': '30px'},
+                                      {'align-self': 'start'},
+                                      {'justify-self': 'start'},
+                                      {'margin-top': '2px'},
+                                      {'display': 'block'},
+                                      {'visibility': 'visible' if secondary_button_eid not in ['', none] else 'hidden'},
+                                      {'pointer-events': 'auto' if secondary_button_eid not in ['', none] else 'none'}
+                                    ],
+                                    'btn_primary': [
+                                      {'width': '30px'},
+                                      {'height': '30px'},
+                                      {'align-self': 'start'},
+                                      {'justify-self': 'end'},
+                                      {'margin-top': '2px'},
+                                      {'display': 'block'},
+                                      {'visibility': 'visible' if primary_button_eid not in ['', none] or primary_button_is_locked else 'hidden'},
+                                      {'pointer-events': 'auto' if primary_button_eid not in ['', none] or primary_button_is_locked else 'none'}
+                                    ]
+                                  }
+                                }
+                              }] -%}
+                            {%- endfor -%}
+
+                            {{
+                              {
+                                'type': 'grid',
+                                'columns': 2,
+                                'square': false,
+                                'cards': ns.group_cards if ns.group_cards | length > 0 else [{
+                                  'type': 'custom:button-card',
+                                  'name': ui.get('no_rewards', 'err-no_rewards'),
+                                  'icon': 'mdi:gift-off-outline',
+                                  'show_name': true,
+                                  'show_icon': true,
+                                  'tap_action': {'action': 'none'},
+                                  'styles': {
+                                    'card': [
+                                      {'background': 'var(--secondary-background-color)'},
+                                      {'box-shadow': 'none'},
+                                      {'border': '1px solid var(--divider-color)'},
+                                      {'border-radius': '12px'},
+                                      {'padding': '10px 12px'}
+                                    ],
+                                    'grid': [
+                                      {'grid-template-areas': '"i n"'},
+                                      {'grid-template-columns': 'min-content 1fr'},
+                                      {'gap': '8px'},
+                                      {'align-items': 'center'}
+                                    ],
+                                    'icon': [
+                                      {'width': '18px'},
+                                      {'color': 'var(--secondary-text-color)'}
+                                    ],
+                                    'name': [
+                                      {'justify-self': 'start'},
+                                      {'font-size': '13px'},
+                                      {'font-weight': '600'},
+                                      {'color': 'var(--secondary-text-color)'}
+                                    ]
+                                  }
+                                }]
+                              }
+                            }},
+                          {%- endfor -%}
+                        {%- endif -%}
+                      {%- endif -%}
                       {%- endif -%}
                     {%- endif -%}
                   {%- endif -%}
@@ -1166,8 +1646,21 @@ views:
 
                   << template_snippets.user_override_helper >>
 
+                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Cumulative header background when fill is enabled. Allowed: 0-100. --#}
+                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the main Cumulative header background fill and leave it transparent. Allowed: true, false. --#}
+                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
+
 
                   {#-- 2. Dynamic Lookups & Validations --#}
+
+                  {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
+                  {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+                  {%- if pref_primary_tint_mix_pct < 0 -%}
+                    {%- set pref_primary_tint_mix_pct = 0 -%}
+                  {%- elif pref_primary_tint_mix_pct > 100 -%}
+                    {%- set pref_primary_tint_mix_pct = 100 -%}
+                  {%- endif -%}
 
                   << template_snippets.user_setup >>
 
@@ -1308,9 +1801,9 @@ views:
                           'hold_action': {'action': 'none'},
                           'styles': {
                             'card': [
-                              {'background': 'var(--secondary-background-color)'},
+                              {'background': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_show_header_background else 'transparent'},
                               {'box-shadow': 'none'},
-                              {'border': '1px solid var(--divider-color)'},
+                              {'border': '1px solid var(--divider-color)' if pref_show_header_thin_border else 'none'},
                               {'border-left': '3px solid var(--primary-color)'},
                               {'border-bottom': '3px solid var(--primary-color)'},
                               {'border-radius': '10px'},
@@ -1644,8 +2137,21 @@ views:
 
                   << template_snippets.user_override_helper >>
 
+                  {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Periodic header background when fill is enabled. Allowed: 0-100. --#}
+                  {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the main Periodic header background fill and leave it transparent. Allowed: true, false. --#}
+                  {%- set pref_show_header_thin_border = true -%}  {#-- Set to false to remove the thin outer border line. Accent borders are unaffected. Allowed: true, false. --#}
+
 
                   {#-- 2. Dynamic Lookups & Validations --#}
+
+                  {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
+                  {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
+                  {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
+                  {%- if pref_primary_tint_mix_pct < 0 -%}
+                    {%- set pref_primary_tint_mix_pct = 0 -%}
+                  {%- elif pref_primary_tint_mix_pct > 100 -%}
+                    {%- set pref_primary_tint_mix_pct = 100 -%}
+                  {%- endif -%}
 
                   << template_snippets.user_setup >>
 
@@ -1745,9 +2251,9 @@ views:
                           'hold_action': {'action': 'none'},
                           'styles': {
                             'card': [
-                              {'background': 'var(--secondary-background-color)'},
+                              {'background': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_show_header_background else 'transparent'},
                               {'box-shadow': 'none'},
-                              {'border': '1px solid var(--divider-color)'},
+                              {'border': '1px solid var(--divider-color)' if pref_show_header_thin_border else 'none'},
                               {'border-left': '3px solid var(--primary-color)'},
                               {'border-bottom': '3px solid var(--primary-color)'},
                               {'border-radius': '10px'},

@@ -407,6 +407,9 @@ class TestPeriodicBadgeTargetTypes:
         assert const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET in badge_progress
         assert const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT in badge_progress
         assert const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY in badge_progress
+        assert const.DATA_BADGE_ASSIGNED_USER_IDS not in badge_progress
+        assert "chores_completed" not in badge_progress
+        assert "days_completed" not in badge_progress
 
     async def test_periodic_badge_all_scope_does_not_materialize_all_chores(
         self,
@@ -441,9 +444,13 @@ class TestPeriodicBadgeTargetTypes:
         badge_progress = coordinator.assignees_data[assignee_id][
             DATA_USER_BADGE_PROGRESS
         ][badge_id]
-        assert (
-            badge_progress.get(const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES, []) == []
-        )
+
+        assert const.DATA_USER_BADGE_PROGRESS_NAME in badge_progress
+        assert const.DATA_BADGE_ASSIGNED_USER_IDS not in badge_progress
+        assert "chores_completed" not in badge_progress
+        assert "days_completed" not in badge_progress
+        assert "tracked_chores" not in badge_progress
+        assert const.DATA_BADGE_TRACKED_CHORES not in badge_progress
 
     async def test_periodic_badge_rollover_updates_stale_end_date(
         self,
@@ -486,7 +493,12 @@ class TestPeriodicBadgeTargetTypes:
             delta=-2,
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = stale_end
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+        ] = stale_end
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+        ] = stale_end
         badge_progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 42.0
 
         changed = coordinator.gamification_manager._advance_non_cumulative_badge_cycle_if_needed(
@@ -497,9 +509,25 @@ class TestPeriodicBadgeTargetTypes:
         )
 
         assert changed is True
-        assert str(badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE]) >= today_iso
-        assert badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] == today_iso
+        assert (
+            str(
+                badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                    const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+                ]
+            )
+            >= today_iso
+        )
+        assert (
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+            ]
+            == today_iso
+        )
         assert badge_progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] == 0.0
+        assert const.DATA_USER_BADGE_PROGRESS_START_DATE not in badge_progress
+        assert const.DATA_USER_BADGE_PROGRESS_END_DATE not in badge_progress
+        assert "chores_completed" not in badge_progress
+        assert "days_completed" not in badge_progress
 
     async def test_points_badge_persist_sets_last_update_day_and_rounds_progress(
         self,
@@ -664,11 +692,13 @@ class TestPeriodicBadgeTargetTypes:
             assignee_id, badge_id
         )
 
-        badge_progress = coordinator.assignees_data[assignee_id][
-            DATA_USER_BADGE_PROGRESS
-        ][badge_id]
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = today_iso
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = today_iso
+        badge_info = coordinator.badges_data[badge_id]
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+        ] = today_iso
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+        ] = today_iso
 
         assert (
             coordinator.gamification_manager._is_periodic_award_recorded_for_current_cycle(
@@ -714,11 +744,13 @@ class TestPeriodicBadgeTargetTypes:
             assignee_id, badge_id
         )
 
-        badge_progress = coordinator.assignees_data[assignee_id][
-            DATA_USER_BADGE_PROGRESS
-        ][badge_id]
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = None
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = today_iso
+        badge_info = coordinator.badges_data[badge_id]
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+        ] = None
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+        ] = today_iso
 
         assert (
             coordinator.gamification_manager._is_periodic_award_recorded_for_current_cycle(
@@ -733,7 +765,7 @@ class TestPeriodicBadgeTargetTypes:
         hass: HomeAssistant,
         setup_minimal: SetupResult,
     ) -> None:
-        """Sync assigns missing start_date while preserving existing cycle end_date."""
+        """Sync backfills badge schedule start_date and preserves end_date."""
         config_entry = setup_minimal.config_entry
         coordinator = setup_minimal.coordinator
 
@@ -760,24 +792,33 @@ class TestPeriodicBadgeTargetTypes:
         badge_id, _ = get_badge_by_name(coordinator, "Cycle Start Backfill Guard")
         today_iso = dt_today_iso()
 
-        badge_progress = coordinator.assignees_data[assignee_id][
-            DATA_USER_BADGE_PROGRESS
-        ][badge_id]
+        badge_info = coordinator.badges_data[badge_id]
 
         original_end = str(
-            badge_progress.get(const.DATA_USER_BADGE_PROGRESS_END_DATE, "")
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE].get(
+                const.DATA_BADGE_RESET_SCHEDULE_END_DATE,
+                "",
+            )
         )
         assert original_end
 
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = None
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+        ] = None
 
         coordinator.gamification_manager.sync_badge_progress_for_assignee(assignee_id)
 
         assert (
-            badge_progress.get(const.DATA_USER_BADGE_PROGRESS_START_DATE) == today_iso
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE].get(
+                const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+            )
+            == today_iso
         )
         assert (
-            badge_progress.get(const.DATA_USER_BADGE_PROGRESS_END_DATE) == original_end
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE].get(
+                const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+            )
+            == original_end
         )
 
     async def test_periodic_without_recurrence_awards_only_once(
@@ -815,14 +856,16 @@ class TestPeriodicBadgeTargetTypes:
             assignee_id, badge_id
         )
 
-        badge_progress = coordinator.assignees_data[assignee_id][
-            DATA_USER_BADGE_PROGRESS
-        ][badge_id]
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
-            const.FREQUENCY_NONE
-        )
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = None
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = None
+        badge_info = coordinator.badges_data[badge_id]
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY
+        ] = const.FREQUENCY_NONE
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+        ] = None
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+        ] = None
 
         badges_earned = coordinator.assignees_data[assignee_id][
             const.DATA_USER_BADGES_EARNED
@@ -877,14 +920,16 @@ class TestPeriodicBadgeTargetTypes:
                 assignee_id, badge_id
             )
 
-            badge_progress = coordinator.assignees_data[assignee_id][
-                DATA_USER_BADGE_PROGRESS
-            ][badge_id]
-            badge_progress[const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
-                const.FREQUENCY_WEEKLY
-            )
-            badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = "2026-03-06"
-            badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = "2026-03-06"
+            badge_info = coordinator.badges_data[badge_id]
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY
+            ] = const.FREQUENCY_WEEKLY
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+            ] = "2026-03-06"
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+            ] = "2026-03-06"
 
             badges_earned = coordinator.assignees_data[assignee_id][
                 const.DATA_USER_BADGES_EARNED
@@ -902,50 +947,6 @@ class TestPeriodicBadgeTargetTypes:
             )
         finally:
             set_default_timezone(original_tz)
-
-    async def test_normalize_all_scope_tracked_chores_legacy_storage(
-        self,
-        hass: HomeAssistant,
-        setup_minimal: SetupResult,
-    ) -> None:
-        """Legacy all-scope tracked chore snapshots are normalized to empty list."""
-        config_entry = setup_minimal.config_entry
-        coordinator = setup_minimal.coordinator
-
-        assignee_id = next(iter(coordinator.assignees_data.keys()))
-
-        badge_data = {
-            CFOF_BADGES_INPUT_NAME: "Legacy Scope Normalize Guard",
-            CFOF_BADGES_INPUT_ICON: "mdi:restore-alert",
-            CFOF_BADGES_INPUT_TARGET_TYPE: "points",
-            CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 100,
-            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
-            CFOF_BADGES_INPUT_SELECTED_CHORES: [],
-            CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
-            CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
-        }
-
-        await add_badge_via_options_flow(
-            hass,
-            config_entry.entry_id,
-            BADGE_TYPE_PERIODIC,
-            badge_data,
-        )
-
-        badge_id, _ = get_badge_by_name(coordinator, "Legacy Scope Normalize Guard")
-        badge_progress = coordinator.assignees_data[assignee_id][
-            DATA_USER_BADGE_PROGRESS
-        ][badge_id]
-
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = [
-            "legacy-1",
-            "legacy-2",
-        ]
-
-        normalized = coordinator.gamification_manager._normalize_all_scope_tracked_chores_storage()
-
-        assert normalized == 1
-        assert badge_progress[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] == []
 
     async def test_scope_filter_empty_selected_includes_all_assigned(
         self,
@@ -1191,8 +1192,16 @@ class TestSpecialOccasionBadgeTargetTypes:
             badge_data,
         )
 
-        _, badge_info = get_badge_by_name(coordinator, "Birthday Trigger Visible")
+        badge_id, badge_info = get_badge_by_name(
+            coordinator, "Birthday Trigger Visible"
+        )
         assert badge_info[const.DATA_BADGE_OCCASION_TYPE] == const.OCCASION_BIRTHDAY
+
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_USER_BADGE_PROGRESS
+        ][badge_id]
+        badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = "1900-01-01"
+        badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = "1900-01-02"
 
         await coordinator.async_refresh()
         await hass.async_block_till_done()
@@ -1219,8 +1228,8 @@ class TestSpecialOccasionBadgeTargetTypes:
         # Self-contained badge-definition fields for UI (single-sensor consumption)
         assert const.ATTR_DESCRIPTION in attrs
         assert const.ATTR_LABELS in attrs
-        assert const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE in attrs
-        assert const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE in attrs
+        assert const.DATA_BADGE_TARGET_TYPE in attrs
+        assert const.DATA_BADGE_TARGET_THRESHOLD_VALUE in attrs
         assert const.ATTR_TARGET in attrs
         assert const.ATTR_REQUIRED_CHORES in attrs
         assert const.ATTR_BADGE_AWARDS in attrs
@@ -1252,6 +1261,24 @@ class TestSpecialOccasionBadgeTargetTypes:
         assert const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY in reset_schedule
         assert const.DATA_BADGE_RESET_SCHEDULE_START_DATE in reset_schedule
         assert const.DATA_BADGE_RESET_SCHEDULE_END_DATE in reset_schedule
+        assert (
+            reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY]
+            == badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY
+            ]
+        )
+        assert (
+            reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_START_DATE]
+            == badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+            ]
+        )
+        assert (
+            reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_END_DATE]
+            == badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+            ]
+        )
 
     async def test_special_occasion_yearly_cycle_window_is_single_day(
         self,
@@ -1291,12 +1318,6 @@ class TestSpecialOccasionBadgeTargetTypes:
             delta=-400,
             return_type=const.HELPER_RETURN_ISO_DATE,
         )
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
-            const.FREQUENCY_YEARLY
-        )
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = stale_end
-        badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = stale_end
-
         badge_info = coordinator.badges_data[badge_id]
         badge_info[const.DATA_BADGE_RESET_SCHEDULE] = {
             const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY: const.FREQUENCY_YEARLY,
@@ -1313,9 +1334,15 @@ class TestSpecialOccasionBadgeTargetTypes:
 
         assert changed is True
         assert (
-            badge_progress[const.DATA_USER_BADGE_PROGRESS_START_DATE]
-            == badge_progress[const.DATA_USER_BADGE_PROGRESS_END_DATE]
+            badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+            ]
+            == badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+                const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+            ]
         )
+        assert const.DATA_USER_BADGE_PROGRESS_START_DATE not in badge_progress
+        assert const.DATA_USER_BADGE_PROGRESS_END_DATE not in badge_progress
 
 
 # ============================================================================

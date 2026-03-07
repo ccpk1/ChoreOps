@@ -140,6 +140,11 @@ class UserManager(BaseManager):
 
         normalized_user = dict(normalized_assignment)
         normalized_user.update(user_data)
+        normalized_user[const.DATA_USER_UI_PREFERENCES] = dict(
+            user_data.get(const.DATA_USER_UI_PREFERENCES, {})
+            if isinstance(user_data.get(const.DATA_USER_UI_PREFERENCES), dict)
+            else {}
+        )
         normalized_user[const.DATA_USER_ASSOCIATED_USER_IDS] = list(
             user_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, [])
         )
@@ -157,6 +162,293 @@ class UserManager(BaseManager):
             user_data.get(const.DATA_USER_CAN_MANAGE, False)
         )
         return normalized_user
+
+    async def async_manage_ui_control(
+        self,
+        call_data: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Create, update, or remove persisted per-user UI control state."""
+        action = str(call_data.get(const.SERVICE_FIELD_UI_CONTROL_ACTION, "")).strip()
+        if action not in const.UI_CONTROL_ACTIONS:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_INVALID_ACTION,
+                translation_placeholders={"action": action or "<empty>"},
+            )
+
+        user_id, user_record = self._resolve_ui_control_target_user(call_data)
+        key_path = self._validate_ui_control_key_path(
+            action,
+            str(call_data.get(const.SERVICE_FIELD_UI_CONTROL_KEY, "")),
+        )
+        user_name = str(user_record.get(const.DATA_USER_NAME, user_id))
+
+        if (
+            action
+            in (
+                const.UI_CONTROL_ACTION_CREATE,
+                const.UI_CONTROL_ACTION_UPDATE,
+            )
+            and const.SERVICE_FIELD_UI_CONTROL_VALUE not in call_data
+        ):
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_VALUE_REQUIRED,
+                translation_placeholders={"action": action},
+            )
+
+        cleared_all = False
+        if action == const.UI_CONTROL_ACTION_CREATE:
+            self._set_ui_control_value(
+                user_record,
+                key_path,
+                call_data.get(const.SERVICE_FIELD_UI_CONTROL_VALUE),
+                create_only=True,
+            )
+        elif action == const.UI_CONTROL_ACTION_UPDATE:
+            self._set_ui_control_value(
+                user_record,
+                key_path,
+                call_data.get(const.SERVICE_FIELD_UI_CONTROL_VALUE),
+                update_only=True,
+            )
+        elif key_path:
+            self._clear_ui_control_value(user_record, key_path)
+        else:
+            self._clear_all_ui_control_values(user_record)
+            cleared_all = True
+
+        self.coordinator._persist_and_update()
+
+        const.LOGGER.debug(
+            "Managed ui_control for user %s with action %s and key %s",
+            user_id,
+            action,
+            key_path or "<all>",
+        )
+
+        return {
+            const.SERVICE_FIELD_USER_ID: user_id,
+            const.SERVICE_FIELD_UI_CONTROL_ACTION: action,
+            const.SERVICE_FIELD_UI_CONTROL_KEY: key_path,
+            "cleared_all": cleared_all,
+            "user_name": user_name,
+        }
+
+    def _resolve_ui_control_target_user(
+        self,
+        call_data: dict[str, Any],
+    ) -> tuple[str, dict[str, Any]]:
+        """Resolve one target user record from id and/or name."""
+        provided_user_id = str(call_data.get(const.SERVICE_FIELD_USER_ID, "")).strip()
+        provided_user_name = str(
+            call_data.get(const.SERVICE_FIELD_USER_NAME, "")
+        ).strip()
+
+        if not provided_user_id and not provided_user_name:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_TARGET_REQUIRED,
+            )
+
+        user_records = self._user_records()
+
+        if provided_user_id:
+            user_record = user_records.get(provided_user_id)
+            if not isinstance(user_record, dict):
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                    translation_placeholders={
+                        "entity_type": const.ITEM_TYPE_USER,
+                        "name": provided_user_id,
+                    },
+                )
+
+            if provided_user_name:
+                matched_user_id = self._find_user_id_by_name(provided_user_name)
+                if matched_user_id and matched_user_id != provided_user_id:
+                    const.LOGGER.warning(
+                        "Manage UI control: user_id '%s' and user_name '%s' mismatch; using user_id",
+                        provided_user_id,
+                        provided_user_name,
+                    )
+
+            return provided_user_id, user_record
+
+        matched_user_id = self._find_user_id_by_name(provided_user_name)
+        if matched_user_id is None:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_NOT_FOUND,
+                translation_placeholders={
+                    "entity_type": const.ITEM_TYPE_USER,
+                    "name": provided_user_name,
+                },
+            )
+
+        return matched_user_id, user_records[matched_user_id]
+
+    def _find_user_id_by_name(self, user_name: str) -> str | None:
+        """Return the user id for an exact user name match."""
+        for user_id, user_record in self._user_records().items():
+            if not isinstance(user_record, dict):
+                continue
+            if str(user_record.get(const.DATA_USER_NAME, "")).strip() == user_name:
+                return user_id
+        return None
+
+    def _validate_ui_control_key_path(self, action: str, key_path: str) -> str:
+        """Validate and normalize a slash-delimited UI control key path."""
+        normalized_key_path = key_path.strip()
+        if action == const.UI_CONTROL_ACTION_REMOVE and not normalized_key_path:
+            return ""
+
+        if not normalized_key_path:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_INVALID_KEY,
+                translation_placeholders={"key": key_path or "<empty>"},
+            )
+
+        if (
+            "\\" in normalized_key_path
+            or normalized_key_path.startswith(const.UI_CONTROL_KEY_PATH_DELIMITER)
+            or normalized_key_path.endswith(const.UI_CONTROL_KEY_PATH_DELIMITER)
+            or f"{const.UI_CONTROL_KEY_PATH_DELIMITER}{const.UI_CONTROL_KEY_PATH_DELIMITER}"
+            in normalized_key_path
+        ):
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_INVALID_KEY,
+                translation_placeholders={"key": normalized_key_path},
+            )
+
+        segments = [
+            segment.strip()
+            for segment in normalized_key_path.split(
+                const.UI_CONTROL_KEY_PATH_DELIMITER
+            )
+        ]
+        if any(not segment for segment in segments):
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_INVALID_KEY,
+                translation_placeholders={"key": normalized_key_path},
+            )
+
+        return const.UI_CONTROL_KEY_PATH_DELIMITER.join(segments)
+
+    def _get_ui_preferences_bucket(
+        self,
+        user_record: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return the mutable UI preferences bucket for a user."""
+        ui_preferences = user_record.get(const.DATA_USER_UI_PREFERENCES)
+        if isinstance(ui_preferences, dict):
+            return ui_preferences
+
+        user_record[const.DATA_USER_UI_PREFERENCES] = {}
+        return user_record[const.DATA_USER_UI_PREFERENCES]
+
+    def _set_ui_control_value(
+        self,
+        user_record: dict[str, Any],
+        key_path: str,
+        value: Any,
+        *,
+        create_only: bool = False,
+        update_only: bool = False,
+    ) -> None:
+        """Set a UI control value at a nested key path."""
+        ui_preferences = self._get_ui_preferences_bucket(user_record)
+        segments = key_path.split(const.UI_CONTROL_KEY_PATH_DELIMITER)
+        current = ui_preferences
+
+        for segment in segments[:-1]:
+            child = current.get(segment)
+            if child is None:
+                current[segment] = {}
+                child = current[segment]
+
+            if not isinstance(child, dict):
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_INVALID_KEY,
+                    translation_placeholders={"key": key_path},
+                )
+
+            current = child
+
+        leaf_key = segments[-1]
+        leaf_exists = leaf_key in current
+        user_name = str(user_record.get(const.DATA_USER_NAME, "unknown"))
+
+        if create_only and leaf_exists:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_KEY_ALREADY_EXISTS,
+                translation_placeholders={"key": key_path, "user_name": user_name},
+            )
+
+        if update_only and not leaf_exists:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_KEY_NOT_FOUND,
+                translation_placeholders={"key": key_path, "user_name": user_name},
+            )
+
+        current[leaf_key] = value
+
+    def _clear_ui_control_value(
+        self,
+        user_record: dict[str, Any],
+        key_path: str,
+    ) -> None:
+        """Remove a nested UI control value and prune empty parent dicts."""
+        ui_preferences = self._get_ui_preferences_bucket(user_record)
+        segments = key_path.split(const.UI_CONTROL_KEY_PATH_DELIMITER)
+        current = ui_preferences
+        parents: list[tuple[dict[str, Any], str]] = []
+
+        for segment in segments[:-1]:
+            child = current.get(segment)
+            if not isinstance(child, dict):
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_KEY_NOT_FOUND,
+                    translation_placeholders={
+                        "key": key_path,
+                        "user_name": str(
+                            user_record.get(const.DATA_USER_NAME, "unknown")
+                        ),
+                    },
+                )
+
+            parents.append((current, segment))
+            current = child
+
+        leaf_key = segments[-1]
+        if leaf_key not in current:
+            raise HomeAssistantError(
+                translation_domain=const.DOMAIN,
+                translation_key=const.TRANS_KEY_ERROR_UI_CONTROL_KEY_NOT_FOUND,
+                translation_placeholders={
+                    "key": key_path,
+                    "user_name": str(user_record.get(const.DATA_USER_NAME, "unknown")),
+                },
+            )
+
+        del current[leaf_key]
+
+        for parent, segment in reversed(parents):
+            child = parent.get(segment)
+            if isinstance(child, dict) and not child:
+                del parent[segment]
+
+    def _clear_all_ui_control_values(self, user_record: dict[str, Any]) -> None:
+        """Clear all UI control values for a user."""
+        user_record[const.DATA_USER_UI_PREFERENCES] = {}
 
     def create_user(
         self,

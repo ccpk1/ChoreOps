@@ -222,6 +222,9 @@ SIGNAL_SUFFIX_GAMIFICATION_READY: Final = (
 SIGNAL_SUFFIX_PERIODIC_UPDATE: Final = "periodic_update"  # 5-minute refresh pulse
 SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER: Final = "midnight_rollover"  # Daily reset broadcast
 
+# UI control updates intentionally reuse coordinator listener refreshes via
+# _persist_and_update(); no dedicated UI control signal suffix is defined in phase 2.
+
 # Economy Events (EconomyManager)
 SIGNAL_SUFFIX_POINTS_CHANGED: Final = "points_changed"
 SIGNAL_SUFFIX_TRANSACTION_FAILED: Final = "transaction_failed"
@@ -340,7 +343,7 @@ SCHEMA_VERSION_STORAGE_ONLY: Final = (
     # Pre-storage-only migrations are hardcoded to produce this version.
 )
 SCHEMA_VERSION_BETA4: Final = 44  # Post-migration schema checkpoint.
-SCHEMA_VERSION_BETA5: Final = 45  # Users capability-model schema checkpoint.
+SCHEMA_VERSION_BETA5: Final = 45  # Users capability-model + UI preferences checkpoint.
 
 # Float precision for stored numeric values (points, chore stats, etc.)
 # Prevents Python float arithmetic drift (e.g., 27.499999999999996 → 27.5)
@@ -995,17 +998,16 @@ DATA_USER_BADGES_EARNED_AWARD_COUNT: Final = "award_count"
 DATA_USER_BADGES_EARNED: Final = "badges_earned"
 DATA_USER_BADGES_EARNED_PERIODS: Final = "periods"
 DATA_USER_BADGES_EARNED_PERIODS_ALL_TIME: Final = "all_time"
+DATA_USER_UI_PREFERENCES: Final = "ui_preferences"
 
 
 # Badge Progress Data Structure
 DATA_USER_BADGE_PROGRESS: Final = "badge_progress"
 
 # Common Badge Progress Fields
-DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED: Final = "chores_completed"
 DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT: Final = "chores_cycle_count"
 DATA_USER_BADGE_PROGRESS_CRITERIA_MET: Final = "criteria_met"
 DATA_USER_BADGE_PROGRESS_CYCLE_COUNT: Final = "cycle_count"
-DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED: Final = "days_completed"
 DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT: Final = "days_cycle_count"
 DATA_USER_BADGE_PROGRESS_END_DATE: Final = "end_date"
 DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY: Final = "last_update_day"
@@ -1015,10 +1017,6 @@ DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT: Final = "points_cycle_count"
 DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY: Final = "recurring_frequency"
 DATA_USER_BADGE_PROGRESS_START_DATE: Final = "start_date"
 DATA_USER_BADGE_PROGRESS_STATUS: Final = "status"
-DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE: Final = "threshold_value"
-DATA_USER_BADGE_PROGRESS_TARGET_TYPE: Final = "target_type"
-DATA_USER_BADGE_PROGRESS_TRACKED_CHORES: Final = "tracked_chores"
-DATA_USER_BADGE_PROGRESS_TYPE: Final = "badge_type"
 
 # Note: Shared fields already defined above in Common Badge Progress Fields section
 
@@ -2501,6 +2499,7 @@ ATTR_CHORE_DUE_DATE: Final = "due_date"
 ATTR_CHORE_IS_TODAY_AM: Final = "is_today_am"
 ATTR_CHORE_LABELS: Final = "labels"
 ATTR_CHORE_PRIMARY_GROUP: Final = "primary_group"
+ATTR_UI_CONTROL: Final = "ui_control"
 
 # Rotation and availability dashboard attributes
 ATTR_CHORE_CLAIM_MODE: Final = "claim_mode"
@@ -2699,6 +2698,7 @@ SERVICE_OPEN_ROTATION_CYCLE: Final = "open_rotation_cycle"
 SERVICE_UPDATE_CHORE: Final = "update_chore"
 SERVICE_UPDATE_REWARD: Final = "update_reward"
 SERVICE_GENERATE_ACTIVITY_REPORT: Final = "generate_activity_report"
+SERVICE_MANAGE_UI_CONTROL: Final = "manage_ui_control"
 
 
 # ------------------------------------------------------------------------------------------------
@@ -2744,9 +2744,25 @@ SERVICE_FIELD_CONFIG_ENTRY_ID: Final = "config_entry_id"
 SERVICE_FIELD_CONFIG_ENTRY_TITLE: Final = "config_entry_title"
 SERVICE_FIELD_USER_NAME: Final = "user_name"
 SERVICE_FIELD_USER_ID: Final = "user_id"
+UI_CONTROL_KEY_PATH_DELIMITER: Final = "/"
+UI_CONTROL_PATH_GAMIFICATION_REWARDS_HEADER_COLLAPSE: Final = (
+    "gamification/rewards/header_collapse"
+)
+SERVICE_FIELD_UI_CONTROL_ACTION: Final = "ui_control_action"
+SERVICE_FIELD_UI_CONTROL_KEY: Final = "key"
+SERVICE_FIELD_UI_CONTROL_VALUE: Final = "value"
 SERVICE_FIELD_APPROVER_NAME: Final = "approver_name"
 SERVICE_FIELD_REASON: Final = "reason"
 SERVICE_FIELD_POINTS_AMOUNT: Final = "amount"
+
+UI_CONTROL_ACTION_CREATE: Final = "create"
+UI_CONTROL_ACTION_UPDATE: Final = "update"
+UI_CONTROL_ACTION_REMOVE: Final = "remove"
+UI_CONTROL_ACTIONS: Final = (
+    UI_CONTROL_ACTION_CREATE,
+    UI_CONTROL_ACTION_UPDATE,
+    UI_CONTROL_ACTION_REMOVE,
+)
 
 # Chore service fields (workflow)
 SERVICE_FIELD_CHORE_NAME: Final = "chore_name"
@@ -3124,6 +3140,12 @@ ERROR_ACTION_REMOVE_BADGES: Final = "remove_badges"
 TRANS_KEY_ERROR_MSG_NO_ENTRY_FOUND: Final = "error_msg_no_entry_found"
 TRANS_KEY_ERROR_SERVICE_TARGET_AMBIGUOUS: Final = "service_target_ambiguous"
 TRANS_KEY_ERROR_SERVICE_TARGET_TITLE_NOT_FOUND: Final = "service_target_title_not_found"
+TRANS_KEY_ERROR_UI_CONTROL_TARGET_REQUIRED: Final = "ui_control_target_required"
+TRANS_KEY_ERROR_UI_CONTROL_INVALID_ACTION: Final = "ui_control_invalid_action"
+TRANS_KEY_ERROR_UI_CONTROL_INVALID_KEY: Final = "ui_control_invalid_key"
+TRANS_KEY_ERROR_UI_CONTROL_VALUE_REQUIRED: Final = "ui_control_value_required"
+TRANS_KEY_ERROR_UI_CONTROL_KEY_ALREADY_EXISTS: Final = "ui_control_key_already_exists"
+TRANS_KEY_ERROR_UI_CONTROL_KEY_NOT_FOUND: Final = "ui_control_key_not_found"
 
 # Config flow and options flow translation keys
 # Generic templates for validation errors across config/options flows

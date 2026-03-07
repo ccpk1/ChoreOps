@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Manage UI Control",
+      "description": "Create, update, or remove a per-user UI control value stored in the user's persisted ui_preferences bucket. Use an empty key with the remove action to clear all stored UI preferences for the targeted user.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup. It targets one specific setup.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Config Entry Name (Optional)",
+          "description": "Use this if you have more than one ChoreOps setup and they each have unique names. If names repeat, use Config Entry ID.",
+          "example": "Family Chores"
+        },
+        "user_id": {
+          "name": "User ID",
+          "description": "Optional internal user ID target. Advanced users only. If both user_id and user_name are provided, user_id wins.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "User Name",
+          "description": "Optional user name target. Required when user_id is not provided.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "UI Control Action",
+          "description": "Choose whether to create, update, or remove a stored UI control value.",
+          "example": "update"
+        },
+        "key": {
+          "name": "Key Path",
+          "description": "Slash-delimited UI control path such as gamification/rewards/header_collapse. Leave empty only with the remove action to clear all stored UI preferences for the user.",
+          "example": "gamification/rewards/header_collapse"
+        },
+        "value": {
+          "name": "Value",
+          "description": "Value to store for create or update. This field is ignored for remove."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Reset Chores To Pending State",
       "description": "Manually reset all chores to pending state, removing claims and approvals.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Rewards"
           },
+          "ui_control": {
+            "name": "UI Control"
+          },
           "badges": {
             "name": "Badges"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "No matching entry found in configuration."
+    },
+    "ui_control_target_required": {
+      "message": "Provide user_id or user_name to target one user."
+    },
+    "ui_control_invalid_action": {
+      "message": "Invalid UI control action {action}. Allowed actions: create, update, remove."
+    },
+    "ui_control_invalid_key": {
+      "message": "Invalid UI control key path {key}. Use slash-delimited paths like gamification/rewards/header_collapse. Empty key is allowed only with remove."
+    },
+    "ui_control_value_required": {
+      "message": "The value field is required for the {action} action."
+    },
+    "ui_control_key_already_exists": {
+      "message": "UI control key {key} already exists for user {user_name}. Use update instead."
+    },
+    "ui_control_key_not_found": {
+      "message": "UI control key {key} was not found for user {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Multiple ChoreOps entries are loaded. Provide config_entry_id. Available entries: {available_entries}"

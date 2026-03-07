@@ -481,48 +481,25 @@ are stored in a separate DATA_NOTIFICATIONS bucket owned by NotificationManager
 class AssigneeBadgeProgress(TypedDict, total=False):
     """Per-badge progress tracking for a assignee.
 
-    Created dynamically in _manage_badge_maintenance().
+    Minimal runtime-only per-user badge progress state.
+
+    Badge configuration, linked metadata, and schedule authority live on the
+    badge record. Assignee progress retains only current-cycle scalar counters,
+    evaluation state, and the denormalized `name` troubleshooting field.
     """
 
     name: NotRequired[str]  # Denormalized badge name
-    badge_type: NotRequired[str]  # PERIODIC or CUMULATIVE
     status: NotRequired[str]  # active, grace, demoted, earned
 
     # Progress counters
-    cycle_count: NotRequired[int]
     days_cycle_count: NotRequired[int]
-    days_completed: NotRequired[int]
-    chores_completed: NotRequired[int]
     chores_cycle_count: NotRequired[int]
-    chores_today: NotRequired[int]
     points_cycle_count: NotRequired[float]
-    points_today: NotRequired[float]
-    approved_count: NotRequired[int]
-    total_count: NotRequired[int]
 
-    # Target info (denormalized from badge)
-    target_type: NotRequired[str]
-    threshold_value: NotRequired[float]
+    # Evaluation state
     overall_progress: NotRequired[float]  # 0.0 to 1.0
     criteria_met: NotRequired[bool]
-
-    # Schedule info
-    recurring_frequency: NotRequired[str]
-    start_date: NotRequired[str]  # ISO date
-    end_date: NotRequired[str]  # ISO date
     last_update_day: NotRequired[str]  # ISO date
-    last_awarded: NotRequired[str]  # ISO datetime
-
-    # Chore tracking
-    tracked_chores: NotRequired[list[str]]  # Chore UUIDs
-    today_completed: NotRequired[list[str]]  # Chore UUIDs completed today
-
-    # Special occasion fields
-    occasion_type: NotRequired[str]  # Birthday, holiday, etc.
-
-    # Linked entity fields
-    associated_achievement: NotRequired[str]  # Achievement UUID
-    associated_challenge: NotRequired[str]  # Challenge UUID
 
 
 class AssigneeCumulativeBadgeProgress(TypedDict, total=False):
@@ -643,6 +620,7 @@ class AssigneeData(TypedDict):
     mobile_notify_service: str
     use_persistent_notifications: bool
     dashboard_language: NotRequired[str]
+    ui_preferences: NotRequired[dict[str, Any]]
 
     # Badge tracking
     badges_earned: dict[str, BadgesEarnedEntry]  # badge_id -> entry

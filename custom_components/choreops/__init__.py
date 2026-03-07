@@ -14,7 +14,7 @@ Key Features:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 
@@ -125,7 +125,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
     )
 
     if has_pending_storage_handoff:
-        pending_store = ChoreOpsStore(hass, pending_storage_key)
+        pending_storage_key_str = cast("str", pending_storage_key)
+        pending_store = ChoreOpsStore(hass, pending_storage_key_str)
         await pending_store.async_initialize(allow_legacy_fallback=False)
         pending_data = dict(pending_store.data)
 
@@ -133,7 +134,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
         if await store.async_adopt_data_if_empty(pending_data):
             const.LOGGER.info(
                 "Moved pending flow storage %s into scoped key %s",
-                pending_storage_key,
+                pending_storage_key_str,
                 scoped_storage_key,
             )
 

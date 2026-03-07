@@ -368,14 +368,17 @@ async def async_setup_entry(
             assignee_id,
         ):
             badge_progress_data = assignee_info.get(const.DATA_USER_BADGE_PROGRESS, {})
-            for badge_id, progress_info in badge_progress_data.items():
-                badge_type = progress_info.get(const.DATA_USER_BADGE_PROGRESS_TYPE)
+            for badge_id in badge_progress_data:
+                badge_info_raw: dict[str, Any] = cast(
+                    "dict[str, Any]", coordinator.badges_data.get(badge_id, {})
+                )
+                badge_type = badge_info_raw.get(const.DATA_BADGE_TYPE)
                 if badge_type != const.BADGE_TYPE_CUMULATIVE:
                     badge_name = get_item_name_or_log_error(
                         "badge",
                         badge_id,
-                        progress_info,
-                        const.DATA_USER_BADGE_PROGRESS_NAME,
+                        badge_info_raw,
+                        const.DATA_BADGE_NAME,
                     )
                     if not badge_name:
                         continue
@@ -2184,23 +2187,16 @@ class AssigneeBadgeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             reset_schedule_raw = {}
 
         recurring_frequency = str(
-            badge_progress.get(
-                const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY,
-                reset_schedule_raw.get(
-                    const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
-                    const.FREQUENCY_NONE,
-                ),
+            reset_schedule_raw.get(
+                const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
             )
         )
-        start_date_raw = badge_progress.get(
-            const.DATA_USER_BADGE_PROGRESS_START_DATE,
-            reset_schedule_raw.get(const.DATA_BADGE_RESET_SCHEDULE_START_DATE),
+        start_date_raw = reset_schedule_raw.get(
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
         )
         start_date = start_date_raw if isinstance(start_date_raw, str) else None
-        end_date_raw = badge_progress.get(
-            const.DATA_USER_BADGE_PROGRESS_END_DATE,
-            reset_schedule_raw.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE),
-        )
+        end_date_raw = reset_schedule_raw.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE)
         end_date = end_date_raw if isinstance(end_date_raw, str) else None
         reset_schedule = {
             const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY: recurring_frequency,
@@ -2235,9 +2231,7 @@ class AssigneeBadgeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.DATA_USER_BADGE_PROGRESS_STATUS: badge_progress.get(
                 const.DATA_USER_BADGE_PROGRESS_STATUS
             ),
-            const.DATA_USER_BADGE_PROGRESS_TYPE: badge_progress.get(
-                const.DATA_USER_BADGE_PROGRESS_TYPE
-            ),
+            const.DATA_BADGE_TYPE: badge_info.get(const.DATA_BADGE_TYPE),
             const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS: badge_progress.get(
                 const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS
             ),
@@ -2248,11 +2242,9 @@ class AssigneeBadgeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY
             ),
             # Group 3: Target definition
-            const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE: badge_progress.get(
-                const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE
-            ),
-            const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE: badge_progress.get(
-                const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
+            const.DATA_BADGE_TARGET_TYPE: target.get(const.DATA_BADGE_TARGET_TYPE),
+            const.DATA_BADGE_TARGET_THRESHOLD_VALUE: target.get(
+                const.DATA_BADGE_TARGET_THRESHOLD_VALUE
             ),
             const.ATTR_TARGET: target,
             const.ATTR_REQUIRED_CHORES: required_chores,
@@ -2278,16 +2270,14 @@ class AssigneeBadgeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_SYSTEM_BADGE_EID: system_badge_eid,
         }
 
-        occasion_type = badge_progress.get(
-            const.DATA_BADGE_OCCASION_TYPE,
-            badge_info.get(const.DATA_BADGE_OCCASION_TYPE),
-        )
+        occasion_type = badge_info.get(const.DATA_BADGE_OCCASION_TYPE)
         if isinstance(occasion_type, str) and occasion_type:
             attributes[const.ATTR_OCCASION_TYPE] = occasion_type
 
         # Convert tracked chore IDs to friendly names and add to attributes
-        tracked_chore_ids_raw: list[str] | Any = badge_progress.get(
-            const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES, []
+        tracked_chores_cfg = badge_info.get(const.DATA_BADGE_TRACKED_CHORES, {})
+        tracked_chore_ids_raw: list[str] | Any = tracked_chores_cfg.get(
+            const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
         )
         tracked_chore_ids: list[str] = (
             tracked_chore_ids_raw if isinstance(tracked_chore_ids_raw, list) else []
@@ -2302,9 +2292,9 @@ class AssigneeBadgeProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 )
                 for chore_id in tracked_chore_ids
             ]
-            attributes[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = chore_names
+            attributes[const.DATA_BADGE_TRACKED_CHORES] = chore_names
         else:
-            attributes[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = []
+            attributes[const.DATA_BADGE_TRACKED_CHORES] = []
 
         return attributes
 
@@ -4990,11 +4980,17 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         # Build dashboard helpers dict (used by dashboard to avoid slug construction)
         dashboard_helpers = self._build_dashboard_helpers(entity_registry)
 
+        # Build resolved UI control payload for reviewed dashboard consumers only
+        ui_control = self.coordinator.ui_manager.get_dashboard_ui_control(
+            self._assignee_id
+        )
+
         return {
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DASHBOARD_HELPER,
             "chores": chores_attr,
             const.ATTR_CHORES_BY_LABEL: chores_by_label,
             "rewards": rewards_attr,
+            const.ATTR_UI_CONTROL: ui_control,
             "badges": badges_attr,
             "bonuses": bonuses_attr,
             "penalties": penalties_attr,

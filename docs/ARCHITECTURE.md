@@ -222,7 +222,7 @@ async def _update_system_settings_and_reload(self):
 
 **File**: `.storage/choreops/choreops_data`
 **Format**: JSON
-**Version**: `STORAGE_VERSION = 1` (Home Assistant Store format), `meta.schema_version = 42` (ChoreOps data structure)
+**Version**: `STORAGE_VERSION = 1` (Home Assistant Store format), `meta.schema_version = 45` (current ChoreOps data structure baseline via `SCHEMA_VERSION_BETA5`)
 
 #### Storage Structure
 
@@ -233,7 +233,7 @@ async def _update_system_settings_and_reload(self):
     "key": "choreops_data",
     "data": {
         "meta": {
-            "schema_version": 42,
+            "schema_version": 45,
             "last_migration_date": "2025-12-18T10:00:00+00:00",
             "migrations_applied": [
                 "datetime_utc",
@@ -253,6 +253,13 @@ async def _update_system_settings_and_reload(self):
                 "points": 150,
                 "ha_user_id": "user_123",
                 "mobile_notify_service": "notify.mobile_app_sarah",
+                "ui_preferences": {
+                    "gamification": {
+                        "rewards": {
+                            "header_collapse": true
+                        }
+                    }
+                },
                 "badges_earned": {...},
                 "point_stats": {...},
                 "chore_data": {...},
@@ -340,16 +347,18 @@ ChoreOps uses a **dual versioning system**:
 
 ### 2. ChoreOps Schema Version (Data Structure)
 
-The **`meta.schema_version`** field in storage data determines the integration's operational mode. Schema 42 is the current version:
+The **`meta.schema_version`** field in storage data determines the integration's operational mode. Schema 45 is the current baseline and includes the durable user `ui_preferences` contract:
 
-| Schema Version | Mode                  | Behavior                                                        |
-| -------------- | --------------------- | --------------------------------------------------------------- |
-| < 42           | Legacy (Pre-0.5.0)    | Reads entity data from `config_entry.options` or legacy storage |
-| ≥ 42           | Storage-Only (0.5.0+) | Reads entity data exclusively from storage with meta section    |
+| Schema Version | Mode                     | Behavior                                                             |
+| -------------- | ------------------------ | -------------------------------------------------------------------- |
+| < 42           | Legacy (Pre-0.5.0)       | Reads entity data from `config_entry.options` or legacy storage      |
+| 42-44          | Storage-only checkpoints | Reads entity data from storage while post-migration contracts mature |
+| 45             | Beta 5 baseline          | Users capability-model schema checkpoint including `ui_preferences`  |
+| > 45           | Future checkpoints       | Reserved for later durable storage contract changes                  |
 
 **Key Files**:
 
-- `custom_components/choreops/const.py`: `SCHEMA_VERSION_STORAGE_ONLY = 42`
+- `custom_components/choreops/const.py`: `SCHEMA_VERSION_BETA5 = 45`
 - `custom_components/choreops/coordinator.py`: Main coordinator (7,591 lines), uses multiple inheritance
 - `custom_components/choreops/coordinator_chore_operations.py`: Chore operations class (3,852 lines), 43 methods in 11 sections
 - `custom_components/choreops/__init__.py`: Lines 45-51 (migration detection)
@@ -377,7 +386,7 @@ The **`meta.schema_version`** field in storage data determines the integration's
 {
     "data": {
         "meta": {
-            "schema_version": 42,                    // Nested in meta section
+            "schema_version": 45,                    // Nested in meta section
             "last_migration_date": "2025-12-18...",
             "migrations_applied": ["badge_restructure", ...]
         },
@@ -490,7 +499,7 @@ Interaction lane contract (hard fork v1):
 - Interaction lane uses `claim_mode` as canonical reason taxonomy and `can_claim`
   as the single action gate.
 - Canonical derivation rule: `can_claim = claim_mode in {claimable,
-  steal_available}`.
+steal_available}`.
 
 | Priority | Engine workflow state | Assignee UI state (Option A) | Meaning / Effect                                             |
 | -------- | --------------------- | ---------------------------- | ------------------------------------------------------------ |
@@ -742,7 +751,14 @@ The integration maintains two distinct systems to balance core HA requirements w
 These systems handle content requiring specific per-assignee customization or frontend-accessible strings.
 
 - **Notification System**: Managed via `translations_custom/en_notifications.json` for chore, reward, and challenge updates.
-- **Dashboard System**: Managed via `translations_custom/en_dashboard.json` for the Assignee Dashboard UI.
+- **Integration-owned dashboard helper strings**: Managed via `custom_components/choreops/translations/en.json` for helper attributes, service strings, and exception text.
+- **Dashboard-visible card copy**: Authored in `choreops-dashboards/translations/en_dashboard.json` and then synced into runtime dashboard assets for the Assignee Dashboard UI.
+
+#### Dashboard UI control translation ownership split
+
+- Integration-owned strings cover service descriptions, helper attribute labels, and user-facing exception messages.
+- Dashboard-owned strings cover visible card labels, helper hints, and expand/collapse copy rendered inside dashboard templates.
+- Templates must not hardcode new visible UX copy when a translation-backed dashboard string is required.
 
 ### 2. Dashboard Translation Sensor Architecture
 
@@ -761,6 +777,7 @@ The dashboard translation system uses **system-level translation sensors** to ef
 - **Indirection**: Dashboard helper returns a pointer (e.g., `"sensor.kc_ui_dashboard_lang_en"`) instead of embedding translations
 - **Lookup Pattern**: Dashboard YAML fetches translations via `state_attr(translation_sensor, 'ui_translations')`
 - **Size Benefit**: Reduces dashboard helper size by ~4.7KB (99% reduction in translation overhead)
+- **UI control contract**: Future `ui_control` helper data must be exposed as a resolved helper attribute for templates, never as a raw dump of `users[*].ui_preferences`
 
 #### Lifecycle Management
 

@@ -32,7 +32,17 @@ from .migration_pre_v50_constants import (
     DATA_ASSIGNEE_POINT_STATS_BY_SOURCE_ALL_TIME_LEGACY,
     DATA_ASSIGNEE_POINT_STATS_EARNED_ALL_TIME_LEGACY,
     DATA_ASSIGNEE_POINT_STATS_SPENT_ALL_TIME_LEGACY,
+    DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY,
+    DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY,
+    DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY,
+    DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED_LEGACY,
+    DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED_LEGACY,
+    DATA_USER_BADGE_PROGRESS_OCCASION_TYPE_LEGACY,
     DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TARGET_TYPE_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TYPE_LEGACY,
 )
 from .utils.dt_utils import (
     dt_add_interval,
@@ -476,9 +486,26 @@ def _remove_schema45_legacy_badge_progress_fields(
     """Remove schema45-legacy fields from users.badge_progress records."""
     users_raw = data.get(const.DATA_USERS, {})
     if not isinstance(users_raw, dict):
-        return {"removed_penalty_applied_fields": 0}
+        return {
+            "removed_penalty_applied_fields": 0,
+            "removed_retired_badge_progress_fields": 0,
+        }
 
     removed_penalty_applied_fields = 0
+    removed_retired_badge_progress_fields = 0
+    removed_retired_badge_progress_fields = 0
+    retired_keys = (
+        DATA_USER_BADGE_PROGRESS_TYPE_LEGACY,
+        DATA_USER_BADGE_PROGRESS_TARGET_TYPE_LEGACY,
+        DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE_LEGACY,
+        DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED_LEGACY,
+        DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED_LEGACY,
+        DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY,
+        DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY,
+        DATA_USER_BADGE_PROGRESS_OCCASION_TYPE_LEGACY,
+        DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY,
+        DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY,
+    )
     for user_raw in users_raw.values():
         if not isinstance(user_raw, dict):
             continue
@@ -494,7 +521,17 @@ def _remove_schema45_legacy_badge_progress_fields(
                 progress_raw.pop(DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED_LEGACY, None)
                 removed_penalty_applied_fields += 1
 
-    return {"removed_penalty_applied_fields": removed_penalty_applied_fields}
+            for retired_key in retired_keys:
+                if retired_key in progress_raw:
+                    progress_raw.pop(retired_key, None)
+                    removed_retired_badge_progress_fields += 1
+
+    return {
+        "removed_penalty_applied_fields": removed_penalty_applied_fields,
+        "removed_retired_badge_progress_fields": (
+            removed_retired_badge_progress_fields
+        ),
+    }
 
 
 async def async_apply_schema45_user_contract(
@@ -715,6 +752,7 @@ async def async_apply_schema45_user_contract(
     skipped_challenges_invalid_type = 0
     removed_challenge_linked_badges = 0
     removed_penalty_applied_fields = 0
+    removed_retired_badge_progress_fields = 0
 
     if challenge_conv_marker not in applied:
         conversion_summary = _migrate_schema45_challenges_to_periodic_badges(data)
@@ -736,6 +774,9 @@ async def async_apply_schema45_user_contract(
         removed_penalty_applied_fields += cleanup_summary[
             "removed_penalty_applied_fields"
         ]
+        removed_retired_badge_progress_fields += cleanup_summary[
+            "removed_retired_badge_progress_fields"
+        ]
         applied.append(legacy_progress_cleanup_marker)
 
     _clear_schema45_challenges_container(data)
@@ -755,6 +796,9 @@ async def async_apply_schema45_user_contract(
         "skipped_challenges_invalid_type": skipped_challenges_invalid_type,
         "removed_challenge_linked_badges": removed_challenge_linked_badges,
         "removed_penalty_applied_fields": removed_penalty_applied_fields,
+        "removed_retired_badge_progress_fields": (
+            removed_retired_badge_progress_fields
+        ),
         "kid_key_remaps": kid_key_remaps,
     }
     meta["schema45_last_summary"] = summary
@@ -6575,8 +6619,12 @@ class PreV50Migrator:
             badge_progress_data = self.coordinator.assignees_data[assignee_id].get(
                 const.DATA_USER_BADGE_PROGRESS, {}
             )
-            for badge_id, progress_info in badge_progress_data.items():
-                badge_type = progress_info.get(const.DATA_USER_BADGE_PROGRESS_TYPE)
+            for badge_id in badge_progress_data:
+                badge_info: dict[str, Any] = cast(
+                    "dict[str, Any]",
+                    self.coordinator.badges_data.get(badge_id, {}),
+                )
+                badge_type = badge_info.get(const.DATA_BADGE_TYPE)
                 if badge_type != const.BADGE_TYPE_CUMULATIVE:
                     uid = f"{self.coordinator.config_entry.entry_id}_{assignee_id}_{badge_id}{const.SENSOR_KC_UID_SUFFIX_BADGE_PROGRESS_SENSOR}"
                     allowed_uids.add(uid)

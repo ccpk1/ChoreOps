@@ -3688,10 +3688,6 @@ class ChoreManager(BaseManager):
             due_window_start=due_window_start,
         )
 
-        completion_criteria = chore_data.get(
-            const.DATA_CHORE_COMPLETION_CRITERIA,
-            const.COMPLETION_CRITERIA_INDEPENDENT,
-        )
         assigned_assignees = chore_data.get(const.DATA_CHORE_ASSIGNED_USER_IDS, [])
 
         # Per-user context contract (Option A): assignee state can expose personal
@@ -3702,7 +3698,7 @@ class ChoreManager(BaseManager):
 
         other_assignee_states = None
         is_completed_by_other = False
-        if completion_criteria == const.COMPLETION_CRITERIA_SHARED_FIRST:
+        if ChoreEngine.is_single_claimer_mode(chore_data):
             other_assignee_states = {}
             for other_assignee_id in assigned_assignees:
                 if other_assignee_id != assignee_id and other_assignee_id:

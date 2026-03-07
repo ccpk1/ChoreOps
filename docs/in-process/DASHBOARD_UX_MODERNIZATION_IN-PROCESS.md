@@ -96,6 +96,29 @@
 - **Dev instance token (sandbox)**:
   `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJkMTg1MzVmMWRkOTg0OGUyOTNiNmI5OWY4ODc2NTc1MyIsImlhdCI6MTc3MjU1OTc0NywiZXhwIjoyMDg3OTE5NzQ3fQ.Bk0f4R062GzJifL_It2ybOd7Eu5iGRrOhZPoQHIAJEM`
 
+- **Verified local reload workflow**:
+
+```bash
+cd /workspaces/choreops && TOKEN="$(python - <<'PY'
+from pathlib import Path
+import re
+
+text = Path('docs/in-process/DASHBOARD_UX_MODERNIZATION_IN-PROCESS.md').read_text(
+  encoding='utf-8'
+)
+match = re.search(
+  r"Dev instance token \(sandbox\)\*\*:\s*\n\s*`([^`]+)`",
+  text,
+)
+if not match:
+  raise SystemExit('Sandbox token block not found')
+print(match.group(1))
+PY
+)" && /workspaces/choreops/.venv/bin/python utils/load_test_scenario_to_live_ha.py --scenario tests/scenarios/scenario_ux_states.yaml --ha-url http://localhost:8123 --reset --seed-states --token "$TOKEN"
+```
+
+This avoids prompt handling and reuses the documented sandbox token without hardcoding a line number.
+
 ### Phase 2 – Dev preload workflow
 
 - **Goal**: Enable one-command(ish) local data preloading for dashboard UX testing using existing scenario logic.

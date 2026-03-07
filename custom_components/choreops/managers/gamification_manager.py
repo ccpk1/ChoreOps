@@ -151,68 +151,10 @@ class GamificationManager(BaseManager):
             self._pending_evaluations.update(pending)
             self._schedule_evaluation()
 
-        normalized_count = self._normalize_all_scope_tracked_chores_storage()
-        if normalized_count > 0:
-            const.LOGGER.info(
-                "GamificationManager: Normalized %d legacy all-scope tracked_chores entries",
-                normalized_count,
-            )
-            self.coordinator._persist_and_update()
-
         const.LOGGER.debug(
             "GamificationManager initialized with %s second debounce",
             self._debounce_seconds,
         )
-
-    def _normalize_all_scope_tracked_chores_storage(self) -> int:
-        """Normalize legacy all-scope tracked_chores storage to empty selection lists.
-
-        For tracked-chores badge types, an empty selected_chores configuration
-        means "all chores". Older data may have materialized all chore UUIDs into
-        assignee badge progress, which becomes stale as chores are added/removed.
-
-        Returns:
-            Number of assignee badge_progress records normalized.
-        """
-        normalized = 0
-
-        for assignee_info in self.coordinator.assignees_data.values():
-            badge_progress = assignee_info.get(const.DATA_USER_BADGE_PROGRESS)
-            if not isinstance(badge_progress, dict):
-                continue
-
-            for badge_id, progress in badge_progress.items():
-                if not isinstance(progress, dict):
-                    continue
-
-                badge_info = self.coordinator.badges_data.get(badge_id)
-                if not badge_info:
-                    continue
-
-                badge_type = badge_info.get(const.DATA_BADGE_TYPE)
-                if badge_type not in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES:
-                    continue
-                if badge_type in const.INCLUDE_SPECIAL_OCCASION_BADGE_TYPES:
-                    continue
-
-                tracked_chores_cfg = badge_info.get(const.DATA_BADGE_TRACKED_CHORES, {})
-                selected_chores = tracked_chores_cfg.get(
-                    const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
-                )
-                tracked_chores = progress.get(
-                    const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES
-                )
-
-                if (
-                    isinstance(selected_chores, list)
-                    and len(selected_chores) == 0
-                    and isinstance(tracked_chores, list)
-                    and len(tracked_chores) > 0
-                ):
-                    progress[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = []
-                    normalized += 1
-
-        return normalized
 
     def _on_stats_ready(self, payload: dict[str, Any]) -> None:
         """Handle startup cascade - initialize badge references after stats ready.
@@ -391,7 +333,8 @@ class GamificationManager(BaseManager):
             "GamificationManager: Processing midnight rollover - "
             "recalculating all badges"
         )
-        self.recalculate_all_badges()
+        self._mark_all_assignees_pending()
+        await self._drain_pending_evaluations_now()
 
     # =========================================================================
     # PUBLIC API
@@ -404,11 +347,15 @@ class GamificationManager(BaseManager):
         logic will handle persistence when changes are actually made.
         """
         const.LOGGER.info("Recalculate All Badges - Starting recalculation")
-        for assignee_id in self.coordinator.assignees_data:
-            self._mark_pending(assignee_id)
+        self._mark_all_assignees_pending()
         const.LOGGER.info(
             "Recalculate All Badges - All assignees marked for evaluation"
         )
+
+    def _mark_all_assignees_pending(self) -> None:
+        """Mark every assignee as pending using the normal persisted queue path."""
+        for assignee_id in self.coordinator.assignees_data:
+            self._mark_pending(assignee_id)
 
     async def award_achievement(self, assignee_id: str, achievement_id: str) -> None:
         """Award the achievement to the assignee.
@@ -781,6 +728,14 @@ class GamificationManager(BaseManager):
             self._debounce_seconds,
             lambda: self.hass.add_job(self._evaluate_pending_assignees()),
         )
+
+    async def _drain_pending_evaluations_now(self) -> None:
+        """Cancel debounce and evaluate the current pending queue immediately."""
+        if self._eval_timer:
+            self._eval_timer.cancel()
+            self._eval_timer = None
+
+        await self._evaluate_pending_assignees()
 
     async def _evaluate_pending_assignees(self) -> None:
         """Evaluate all pending assignees in batch.
@@ -1266,13 +1221,14 @@ class GamificationManager(BaseManager):
             return False
         last_awarded_date = last_awarded_local.date()
 
-        badge_progress_all = cast(
-            "dict[str, Any]", assignee_data.get(const.DATA_USER_BADGE_PROGRESS, {})
+        badge_data = cast("BadgeData", self.coordinator.badges_data.get(badge_id, {}))
+        reset_schedule = cast(
+            "dict[str, Any]",
+            badge_data.get(const.DATA_BADGE_RESET_SCHEDULE, {}),
         )
-        progress = cast("dict[str, Any]", badge_progress_all.get(badge_id, {}))
         recurring_frequency = str(
-            progress.get(
-                const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY,
+            reset_schedule.get(
+                const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
                 const.FREQUENCY_NONE,
             )
         )
@@ -1280,8 +1236,8 @@ class GamificationManager(BaseManager):
         if recurring_frequency == const.FREQUENCY_NONE:
             return True
 
-        start_raw = progress.get(const.DATA_USER_BADGE_PROGRESS_START_DATE)
-        end_raw = progress.get(const.DATA_USER_BADGE_PROGRESS_END_DATE)
+        start_raw = reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_START_DATE)
+        end_raw = reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE)
         start_date = dt_parse_date(start_raw if isinstance(start_raw, str) else None)
         end_date = dt_parse_date(end_raw if isinstance(end_raw, str) else None)
 
@@ -1360,6 +1316,32 @@ class GamificationManager(BaseManager):
         runtime_context["today_completion_due"] = today_completion_due
         return runtime_context
 
+    def _reset_non_cumulative_badge_progress_runtime_fields(
+        self,
+        assignee_id: str,
+        badge_id: str,
+        progress: dict[str, Any],
+    ) -> None:
+        """Reset runtime-only periodic badge progress for a new cycle."""
+        assignee_info: UserData | dict[str, Any] = self.coordinator.assignees_data.get(
+            assignee_id, {}
+        )
+        badges_earned = cast(
+            "dict[str, Any]",
+            assignee_info.get(const.DATA_USER_BADGES_EARNED, {}),
+        )
+        progress[const.DATA_USER_BADGE_PROGRESS_STATUS] = (
+            const.BADGE_STATE_ACTIVE_CYCLE
+            if badge_id in badges_earned
+            else const.BADGE_STATE_IN_PROGRESS
+        )
+        progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 0.0
+        progress[const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = 0
+        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = 0
+        progress[const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS] = 0.0
+        progress[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] = False
+        progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = ""
+
     def _ensure_assignee_periodic_badge_structures(
         self,
         assignee_id: str,
@@ -1388,32 +1370,18 @@ class GamificationManager(BaseManager):
         )
         entry = cast("dict[str, Any]", badge_progress.setdefault(badge_id, {}))
 
-        badge_type = badge_data.get(const.DATA_BADGE_TYPE)
-        target = cast("dict[str, Any]", badge_data.get(const.DATA_BADGE_TARGET, {}))
-
         entry.setdefault(
             const.DATA_USER_BADGE_PROGRESS_NAME,
             badge_data.get(const.DATA_BADGE_NAME),
         )
-        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_TYPE, badge_type)
         entry.setdefault(
             const.DATA_USER_BADGE_PROGRESS_STATUS,
             const.BADGE_STATE_IN_PROGRESS,
-        )
-        entry.setdefault(
-            const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE,
-            target.get(const.DATA_BADGE_TARGET_TYPE),
-        )
-        entry.setdefault(
-            const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE,
-            float(target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0.0)),
         )
 
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0)
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT, 0)
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0)
-        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED, {})
-        entry.setdefault(const.DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED, {})
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS, 0.0)
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET, False)
         entry.setdefault(const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY, "")
@@ -1448,16 +1416,23 @@ class GamificationManager(BaseManager):
         if not progress:
             return False
 
+        reset_schedule_raw = badge_data.get(const.DATA_BADGE_RESET_SCHEDULE)
+        if not isinstance(reset_schedule_raw, dict):
+            reset_schedule_raw = {}
+            badge_data[const.DATA_BADGE_RESET_SCHEDULE] = reset_schedule_raw
+        reset_schedule = cast("dict[str, Any]", reset_schedule_raw)
         recurring_frequency = str(
-            progress.get(
-                const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY,
+            reset_schedule.get(
+                const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
                 const.FREQUENCY_NONE,
             )
         )
         if recurring_frequency == const.FREQUENCY_NONE:
             return False
 
-        end_date_iso = str(progress.get(const.DATA_USER_BADGE_PROGRESS_END_DATE, ""))
+        end_date_iso = str(
+            reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE, "")
+        )
         if not end_date_iso:
             return False
 
@@ -1483,10 +1458,6 @@ class GamificationManager(BaseManager):
 
         badge_type = badge_data.get(const.DATA_BADGE_TYPE)
         is_special_occasion = badge_type in const.INCLUDE_SPECIAL_OCCASION_BADGE_TYPES
-        reset_schedule = cast(
-            "dict[str, Any]",
-            badge_data.get(const.DATA_BADGE_RESET_SCHEDULE, {}),
-        )
         is_custom_1_day = (
             recurring_frequency == const.FREQUENCY_CUSTOM
             and reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_CUSTOM_INTERVAL) == 1
@@ -1511,21 +1482,34 @@ class GamificationManager(BaseManager):
             if isinstance(candidate_start, str):
                 next_start = candidate_start
 
-        progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = current_end
-        progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = next_start
-        progress[const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT] = (
-            int(progress.get(const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT, 0))
-            + rolled_cycles
-        )
+        reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_START_DATE] = next_start
+        reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_END_DATE] = current_end
 
-        progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 0.0
-        progress[const.DATA_USER_BADGE_PROGRESS_CHORES_CYCLE_COUNT] = 0
-        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT] = 0
-        progress[const.DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED] = {}
-        progress[const.DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED] = {}
-        progress[const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS] = 0.0
-        progress[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] = False
-        progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = ""
+        assigned_to = cast(
+            "list[str]",
+            badge_data.get(const.DATA_BADGE_ASSIGNED_USER_IDS, []) or [assignee_id],
+        )
+        for assigned_assignee_id in assigned_to:
+            if assigned_assignee_id not in self.coordinator.assignees_data:
+                continue
+            self._ensure_assignee_periodic_badge_structures(
+                assigned_assignee_id,
+                badge_id,
+                badge_data,
+            )
+            assigned_progress = cast(
+                "dict[str, Any]",
+                self.coordinator.assignees_data[assigned_assignee_id]
+                .get(const.DATA_USER_BADGE_PROGRESS, {})
+                .get(badge_id, {}),
+            )
+            if not assigned_progress:
+                continue
+            self._reset_non_cumulative_badge_progress_runtime_fields(
+                assigned_assignee_id,
+                badge_id,
+                assigned_progress,
+            )
 
         return True
 
@@ -4235,6 +4219,71 @@ class GamificationManager(BaseManager):
                 return today_local_iso
             return current_iso
 
+        def _sync_badge_reset_schedule_window(badge_data: BadgeData) -> None:
+            """Normalize canonical badge reset schedule for active non-cumulative windows."""
+            reset_schedule_raw = badge_data.get(const.DATA_BADGE_RESET_SCHEDULE)
+            if not isinstance(reset_schedule_raw, dict):
+                reset_schedule_raw = {}
+                badge_data[const.DATA_BADGE_RESET_SCHEDULE] = reset_schedule_raw
+            reset_schedule = cast("dict[str, Any]", reset_schedule_raw)
+            recurring_frequency = str(
+                reset_schedule.get(
+                    const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
+                    const.FREQUENCY_NONE,
+                )
+            )
+            reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY] = (
+                recurring_frequency
+            )
+
+            start_date_raw = reset_schedule.get(
+                const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+            )
+            end_date_raw = reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE)
+            start_date = dt_parse_date(
+                start_date_raw if isinstance(start_date_raw, str) else None
+            )
+            end_date = dt_parse_date(
+                end_date_raw if isinstance(end_date_raw, str) else None
+            )
+            start_date_iso = start_date.isoformat() if start_date else ""
+            end_date_iso = end_date.isoformat() if end_date else ""
+
+            if recurring_frequency == const.FREQUENCY_NONE:
+                reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_START_DATE] = (
+                    start_date_iso or None
+                )
+                reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_END_DATE] = (
+                    end_date_iso or None
+                )
+                return
+
+            today_local_iso = dt_today_iso()
+            resolved_end = end_date_iso or _resolve_initial_cycle_end(
+                recurring_frequency,
+                reset_schedule,
+                today_local_iso,
+            )
+            resolved_start = start_date_iso or today_local_iso
+
+            if _is_single_day_cycle_mode(
+                badge_data.get(const.DATA_BADGE_TYPE),
+                recurring_frequency,
+                reset_schedule,
+            ):
+                candidate_date = resolved_start or resolved_end
+                window_date = _resolve_single_day_window_date(
+                    badge_data,
+                    candidate_date,
+                    recurring_frequency,
+                    today_local_iso,
+                )
+                resolved_start = window_date
+                resolved_end = window_date
+
+            reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_START_DATE] = resolved_start
+            reset_schedule[const.DATA_BADGE_RESET_SCHEDULE_END_DATE] = resolved_end
+
         assignee_info: UserData | None = self.coordinator.assignees_data.get(
             assignee_id
         )
@@ -4283,17 +4332,6 @@ class GamificationManager(BaseManager):
 
             # --- Set flags based on badge type ---
             has_target = badge_type in const.INCLUDE_TARGET_BADGE_TYPES
-            has_special_occasion = (
-                badge_type in const.INCLUDE_SPECIAL_OCCASION_BADGE_TYPES
-            )
-            has_achievement_linked = (
-                badge_type in const.INCLUDE_ACHIEVEMENT_LINKED_BADGE_TYPES
-            )
-            has_challenge_linked = (
-                badge_type in const.INCLUDE_CHALLENGE_LINKED_BADGE_TYPES
-            )
-            has_tracked_chores = badge_type in const.INCLUDE_TRACKED_CHORES_BADGE_TYPES
-            has_assigned_to = badge_type in const.INCLUDE_ASSIGNED_USER_IDS_BADGE_TYPES
             has_reset_schedule = badge_type in const.INCLUDE_RESET_SCHEDULE_BADGE_TYPES
 
             # ===============================================================
@@ -4306,25 +4344,11 @@ class GamificationManager(BaseManager):
                     const.DATA_USER_BADGE_PROGRESS_NAME: badge_info.get(
                         const.DATA_BADGE_NAME
                     ),
-                    const.DATA_USER_BADGE_PROGRESS_TYPE: badge_type,
                     const.DATA_USER_BADGE_PROGRESS_STATUS: const.BADGE_STATE_IN_PROGRESS,
                 }
 
                 # --- Target fields ---
                 if has_target:
-                    target_type = badge_info.get(const.DATA_BADGE_TARGET, {}).get(
-                        const.DATA_BADGE_TARGET_TYPE
-                    )
-                    threshold_value = float(
-                        badge_info.get(const.DATA_BADGE_TARGET, {}).get(
-                            const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0
-                        )
-                    )
-                    progress[const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE] = target_type
-                    progress[const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE] = (
-                        threshold_value
-                    )
-
                     # Initialize all possible progress fields to their defaults
                     progress.setdefault(
                         const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0.0
@@ -4335,134 +4359,10 @@ class GamificationManager(BaseManager):
                     progress.setdefault(
                         const.DATA_USER_BADGE_PROGRESS_DAYS_CYCLE_COUNT, 0
                     )
-                    progress.setdefault(
-                        const.DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED, {}
-                    )
-                    progress.setdefault(
-                        const.DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED, {}
-                    )
-
-                # --- Achievement Linked fields ---
-                if has_achievement_linked:
-                    achievement_id = badge_info.get(
-                        const.DATA_BADGE_ASSOCIATED_ACHIEVEMENT
-                    )
-                    if achievement_id:
-                        progress[const.DATA_BADGE_ASSOCIATED_ACHIEVEMENT] = (
-                            achievement_id
-                        )
-
-                # --- Challenge Linked fields ---
-                if has_challenge_linked:
-                    challenge_id = badge_info.get(const.DATA_BADGE_ASSOCIATED_CHALLENGE)
-                    if challenge_id:
-                        progress[const.DATA_BADGE_ASSOCIATED_CHALLENGE] = challenge_id
-
-                # --- Tracked Chores fields ---
-                if has_tracked_chores and not has_special_occasion:
-                    tracked_chores_cfg = badge_info.get(
-                        const.DATA_BADGE_TRACKED_CHORES, {}
-                    )
-                    selected_chores = tracked_chores_cfg.get(
-                        const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
-                    )
-                    progress[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = list(
-                        selected_chores
-                    )
-
-                # --- Assigned To fields ---
-                if has_assigned_to:
-                    assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
-                    progress[const.DATA_BADGE_ASSIGNED_USER_IDS] = assigned_to
 
                 # --- Reset Schedule fields ---
                 if has_reset_schedule:
-                    reset_schedule = badge_info.get(const.DATA_BADGE_RESET_SCHEDULE, {})
-                    recurring_frequency = reset_schedule.get(
-                        const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
-                        const.FREQUENCY_NONE,
-                    )
-                    start_date_raw = reset_schedule.get(
-                        const.DATA_BADGE_RESET_SCHEDULE_START_DATE
-                    )
-                    end_date_raw = reset_schedule.get(
-                        const.DATA_BADGE_RESET_SCHEDULE_END_DATE
-                    )
-                    start_date = dt_parse_date(
-                        start_date_raw if isinstance(start_date_raw, str) else None
-                    )
-                    end_date = dt_parse_date(
-                        end_date_raw if isinstance(end_date_raw, str) else None
-                    )
-                    start_date_iso = start_date.isoformat() if start_date else ""
-                    end_date_iso = end_date.isoformat() if end_date else ""
-                    progress[const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY] = (
-                        recurring_frequency
-                    )
-
-                    # Set initial schedule if there is a frequency and no end date
-                    if recurring_frequency != const.FREQUENCY_NONE:
-                        today_local_iso = dt_today_iso()
-
-                        if end_date_iso:
-                            progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
-                                start_date_iso or today_local_iso
-                            )
-                            progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
-                                end_date_iso
-                            )
-                            progress[const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT] = (
-                                const.DEFAULT_ZERO
-                            )
-                        else:
-                            new_end_date_iso = _resolve_initial_cycle_end(
-                                recurring_frequency,
-                                cast("dict[str, Any]", reset_schedule),
-                                today_local_iso,
-                            )
-
-                            progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
-                                start_date_iso or today_local_iso
-                            )
-                            progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
-                                new_end_date_iso
-                            )
-                            progress[const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT] = (
-                                const.DEFAULT_ZERO
-                            )
-
-                        if _is_single_day_cycle_mode(
-                            badge_type,
-                            str(recurring_frequency),
-                            cast("dict[str, Any]", reset_schedule),
-                        ):
-                            candidate_date = str(
-                                progress.get(
-                                    const.DATA_USER_BADGE_PROGRESS_START_DATE,
-                                    progress.get(
-                                        const.DATA_USER_BADGE_PROGRESS_END_DATE,
-                                        start_date_iso,
-                                    ),
-                                )
-                            )
-                            window_date = _resolve_single_day_window_date(
-                                badge_info,
-                                candidate_date,
-                                str(recurring_frequency),
-                                today_local_iso,
-                            )
-                            progress[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
-                                window_date
-                            )
-                            progress[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
-                                window_date
-                            )
-
-                # --- Special Occasion fields ---
-                if has_special_occasion:
-                    occasion_type = badge_info.get(const.DATA_BADGE_OCCASION_TYPE)
-                    if occasion_type:
-                        progress[const.DATA_BADGE_OCCASION_TYPE] = occasion_type
+                    _sync_badge_reset_schedule_window(badge_info)
 
                 # Store the progress data
                 assignee_info[const.DATA_USER_BADGE_PROGRESS][badge_id] = cast(  # pyright: ignore[reportTypedDictNotRequiredAccess]
@@ -4498,153 +4398,10 @@ class GamificationManager(BaseManager):
                 progress_sync[const.DATA_USER_BADGE_PROGRESS_NAME] = badge_info.get(
                     const.DATA_BADGE_NAME, "Unknown Badge"
                 )
-                progress_sync[const.DATA_USER_BADGE_PROGRESS_TYPE] = badge_type
-
-                # --- Target fields ---
-                if has_target:
-                    target_type = badge_info.get(const.DATA_BADGE_TARGET, {}).get(
-                        const.DATA_BADGE_TARGET_TYPE,
-                        const.BADGE_TARGET_THRESHOLD_TYPE_POINTS,
-                    )
-                    progress_sync[const.DATA_USER_BADGE_PROGRESS_TARGET_TYPE] = (
-                        target_type
-                    )
-
-                    progress_sync[
-                        const.DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE
-                    ] = badge_info.get(const.DATA_BADGE_TARGET, {}).get(
-                        const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0
-                    )
-
-                # --- Special Occasion fields ---
-                if has_special_occasion:
-                    occasion_type = badge_info.get(const.DATA_BADGE_OCCASION_TYPE)
-                    if occasion_type:
-                        progress_sync[const.DATA_BADGE_OCCASION_TYPE] = occasion_type
-
-                # --- Achievement Linked fields ---
-                if has_achievement_linked:
-                    achievement_id = badge_info.get(
-                        const.DATA_BADGE_ASSOCIATED_ACHIEVEMENT
-                    )
-                    if achievement_id:
-                        progress_sync[const.DATA_BADGE_ASSOCIATED_ACHIEVEMENT] = (
-                            achievement_id
-                        )
-
-                # --- Challenge Linked fields ---
-                if has_challenge_linked:
-                    challenge_id = badge_info.get(const.DATA_BADGE_ASSOCIATED_CHALLENGE)
-                    if challenge_id:
-                        progress_sync[const.DATA_BADGE_ASSOCIATED_CHALLENGE] = (
-                            challenge_id
-                        )
-
-                # --- Tracked Chores fields ---
-                if has_tracked_chores and not has_special_occasion:
-                    tracked_chores_cfg = badge_info.get(
-                        const.DATA_BADGE_TRACKED_CHORES, {}
-                    )
-                    selected_chores = tracked_chores_cfg.get(
-                        const.DATA_BADGE_TRACKED_CHORES_SELECTED_CHORES, []
-                    )
-                    progress_sync[const.DATA_USER_BADGE_PROGRESS_TRACKED_CHORES] = list(
-                        selected_chores
-                    )
-
-                # --- Assigned To fields ---
-                if has_assigned_to:
-                    assigned_to = badge_info.get(const.DATA_BADGE_ASSIGNED_USER_IDS, [])
-                    progress_sync[const.DATA_BADGE_ASSIGNED_USER_IDS] = assigned_to
 
                 # --- Reset Schedule fields ---
                 if has_reset_schedule:
-                    reset_schedule = badge_info.get(const.DATA_BADGE_RESET_SCHEDULE, {})
-                    recurring_frequency = reset_schedule.get(
-                        const.DATA_BADGE_RESET_SCHEDULE_RECURRING_FREQUENCY,
-                        const.FREQUENCY_NONE,
-                    )
-                    start_date_raw = reset_schedule.get(
-                        const.DATA_BADGE_RESET_SCHEDULE_START_DATE
-                    )
-                    end_date_raw = reset_schedule.get(
-                        const.DATA_BADGE_RESET_SCHEDULE_END_DATE
-                    )
-                    start_date = dt_parse_date(
-                        start_date_raw if isinstance(start_date_raw, str) else None
-                    )
-                    end_date = dt_parse_date(
-                        end_date_raw if isinstance(end_date_raw, str) else None
-                    )
-                    start_date_iso = start_date.isoformat() if start_date else ""
-                    end_date_iso = end_date.isoformat() if end_date else ""
-                    progress_sync[
-                        const.DATA_USER_BADGE_PROGRESS_RECURRING_FREQUENCY
-                    ] = recurring_frequency
-                    if recurring_frequency != const.FREQUENCY_NONE:
-                        today_local_iso = dt_today_iso()
-                        existing_start_raw = progress_sync.get(
-                            const.DATA_USER_BADGE_PROGRESS_START_DATE
-                        )
-                        existing_end_raw = progress_sync.get(
-                            const.DATA_USER_BADGE_PROGRESS_END_DATE
-                        )
-                        existing_start_date = dt_parse_date(
-                            existing_start_raw
-                            if isinstance(existing_start_raw, str)
-                            else None
-                        )
-                        existing_end_date = dt_parse_date(
-                            existing_end_raw
-                            if isinstance(existing_end_raw, str)
-                            else None
-                        )
-                        existing_start = (
-                            existing_start_date.isoformat()
-                            if existing_start_date
-                            else ""
-                        )
-                        existing_end = (
-                            existing_end_date.isoformat() if existing_end_date else ""
-                        )
-
-                        resolved_end = end_date_iso or existing_end
-                        if not resolved_end:
-                            resolved_end = _resolve_initial_cycle_end(
-                                recurring_frequency,
-                                cast("dict[str, Any]", reset_schedule),
-                                today_local_iso,
-                            )
-
-                        resolved_start = (
-                            start_date_iso or existing_start or today_local_iso
-                        )
-
-                        if _is_single_day_cycle_mode(
-                            badge_type,
-                            str(recurring_frequency),
-                            cast("dict[str, Any]", reset_schedule),
-                        ):
-                            candidate_date = resolved_start or resolved_end
-                            window_date = _resolve_single_day_window_date(
-                                badge_info,
-                                candidate_date,
-                                str(recurring_frequency),
-                                today_local_iso,
-                            )
-                            resolved_start = window_date
-                            resolved_end = window_date
-
-                        progress_sync[const.DATA_USER_BADGE_PROGRESS_START_DATE] = (
-                            resolved_start
-                        )
-                        progress_sync[const.DATA_USER_BADGE_PROGRESS_END_DATE] = (
-                            resolved_end
-                        )
-                        progress_sync.setdefault(
-                            const.DATA_USER_BADGE_PROGRESS_CYCLE_COUNT,
-                            const.DEFAULT_ZERO,
-                        )
+                    _sync_badge_reset_schedule_window(badge_info)
 
     # =========================================================================
     # CRUD METHODS (Manager-owned create/update/delete)

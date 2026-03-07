@@ -39,6 +39,9 @@ python utils/load_test_scenario_to_live_ha.py --scenario tests/scenarios/scenari
 
 # Recommended UX loop: reset + load + seed with state-driver scenario
 HASS_TOKEN="<token>" python utils/load_test_scenario_to_live_ha.py --scenario tests/scenarios/scenario_ux_states.yaml --ha-url http://localhost:8123 --reset --seed-states
+
+# Use a one-off shell variable instead of exporting HASS_TOKEN
+TOKEN="<token>" python utils/load_test_scenario_to_live_ha.py --scenario tests/scenarios/scenario_ux_states.yaml --ha-url http://localhost:8123 --reset --seed-states --token "$TOKEN"
 ```
 
 **Requirements**:
@@ -63,6 +66,12 @@ HASS_TOKEN="<token>" python utils/load_test_scenario_to_live_ha.py --scenario te
 - Test dashboard UI with realistic entities
 - Verify options flow works end-to-end
 - Manual integration testing
+
+**UI control verification tip**:
+
+- After loading a scenario, inspect the dashboard helper entity attributes in Developer Tools → States.
+- Confirm `ui_control` appears on the helper payload for the active user.
+- For the current reviewed contract, verify the Rewards header toggle updates `ui_control.gamification.rewards.header_collapse` and returns to the default expanded state when the stored override is removed.
 
 **Not for**:
 

@@ -11,7 +11,17 @@ from custom_components.choreops.migration_pre_v50 import (
     async_apply_schema45_user_contract,
 )
 from custom_components.choreops.migration_pre_v50_constants import (
+    DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY,
+    DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY,
+    DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY,
+    DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED_LEGACY,
+    DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED_LEGACY,
+    DATA_USER_BADGE_PROGRESS_OCCASION_TYPE_LEGACY,
     DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TARGET_TYPE_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY,
+    DATA_USER_BADGE_PROGRESS_TYPE_LEGACY,
 )
 from custom_components.choreops.store import ChoreOpsStore
 
@@ -462,7 +472,7 @@ async def test_schema45_challenge_conversion_idempotent_no_duplicate_badges() ->
 async def test_schema45_migration_removes_legacy_penalty_applied_from_badge_progress() -> (
     None
 ):
-    """Schema45 strips legacy penalty_applied from users.badge_progress entries."""
+    """Schema45 strips retired legacy fields from users.badge_progress entries."""
     coordinator = _DummyCoordinator(
         _data={
             const.DATA_META: {
@@ -475,6 +485,22 @@ async def test_schema45_migration_removes_legacy_penalty_applied_from_badge_prog
                     const.DATA_USER_BADGE_PROGRESS: {
                         "badge-1": {
                             const.DATA_USER_BADGE_PROGRESS_NAME: "Legacy Badge",
+                            DATA_USER_BADGE_PROGRESS_TYPE_LEGACY: const.BADGE_TYPE_PERIODIC,
+                            DATA_USER_BADGE_PROGRESS_TARGET_TYPE_LEGACY: "points",
+                            DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE_LEGACY: 10,
+                            DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED_LEGACY: {
+                                "chore-1": True
+                            },
+                            DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED_LEGACY: {
+                                "2026-03-07": True
+                            },
+                            DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY: [
+                                "assignee-1"
+                            ],
+                            DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY: ["chore-1"],
+                            DATA_USER_BADGE_PROGRESS_OCCASION_TYPE_LEGACY: "birthday",
+                            DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY: "achievement-1",
+                            DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY: "challenge-1",
                             DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED_LEGACY: False,
                         }
                     },
@@ -491,8 +517,19 @@ async def test_schema45_migration_removes_legacy_penalty_applied_from_badge_prog
     progress = coordinator._data[const.DATA_USERS]["assignee-1"][
         const.DATA_USER_BADGE_PROGRESS
     ]["badge-1"]
+    assert DATA_USER_BADGE_PROGRESS_TYPE_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_TARGET_TYPE_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_TARGET_THRESHOLD_VALUE_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_CHORES_COMPLETED_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_DAYS_COMPLETED_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_ASSIGNED_USER_IDS_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_TRACKED_CHORES_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_OCCASION_TYPE_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_ASSOCIATED_ACHIEVEMENT_LEGACY not in progress
+    assert DATA_USER_BADGE_PROGRESS_ASSOCIATED_CHALLENGE_LEGACY not in progress
     assert DATA_USER_BADGE_PROGRESS_PENALTY_APPLIED_LEGACY not in progress
     assert summary["removed_penalty_applied_fields"] == 1
+    assert summary["removed_retired_badge_progress_fields"] == 10
 
 
 def test_store_default_structure_uses_users_bucket() -> None:

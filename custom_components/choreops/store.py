@@ -354,6 +354,24 @@ class ChoreOpsStore:
                 if internal_id_value != item_key:
                     item_value[internal_id_key] = item_key
 
+        users_bucket = normalized_data.get(const.DATA_USERS)
+        if isinstance(users_bucket, dict):
+            for user_id, user_value in users_bucket.items():
+                if not isinstance(user_value, dict):
+                    continue
+
+                ui_preferences = user_value.get(const.DATA_USER_UI_PREFERENCES)
+                if isinstance(ui_preferences, dict):
+                    user_value[const.DATA_USER_UI_PREFERENCES] = dict(ui_preferences)
+                    continue
+
+                user_value[const.DATA_USER_UI_PREFERENCES] = {}
+                const.LOGGER.debug(
+                    "Normalized missing or invalid %s for user %s",
+                    const.DATA_USER_UI_PREFERENCES,
+                    user_id,
+                )
+
         return True, normalized_data, None
 
     def set_data(self, new_data: dict[str, Any]) -> bool:

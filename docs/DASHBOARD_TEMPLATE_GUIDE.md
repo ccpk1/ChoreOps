@@ -186,6 +186,12 @@ For dashboard UX state testing (for example waiting/due/overdue), use the UX dri
 HASS_TOKEN="<token>" python utils/load_test_scenario_to_live_ha.py --scenario tests/scenarios/scenario_ux_states.yaml --ha-url http://localhost:8123 --reset --seed-states
 ```
 
+If you prefer not to export `HASS_TOKEN`, pass the token directly for a one-off local run:
+
+```bash
+python utils/load_test_scenario_to_live_ha.py --scenario tests/scenarios/scenario_ux_states.yaml --ha-url http://localhost:8123 --reset --seed-states --token "<token>"
+```
+
 3. For a clean reload cycle, reset transactional data first:
 
 ```bash
@@ -759,6 +765,26 @@ Note: Some runtime payload keys still use legacy names for backward compatibilit
 | `lock_reason`    | string\|null | Why chore is locked (null = not locked)                    | `"waiting"`, `"not_my_turn"`, `"missed"` |
 | `turn_user_name` | string\|null | Current turn holder user name                              | `"Bob"`, `null`                          |
 | `available_at`   | string\|null | ISO timestamp when chore becomes available (waiting state) | `"2026-02-10T17:30:00Z"`, `null`         |
+
+### Dashboard helper UI control fields
+
+The dashboard helper also exposes resolved UI control state for reviewed, dashboard-safe preferences:
+
+| Field        | Type | Description |
+| ------------ | ---- | ----------- |
+| `ui_control` | dict | Resolved per-user UI control payload for dashboard rendering |
+
+Authoring rules:
+
+- Read this surface with `state_attr(dashboard_helper, 'ui_control')`.
+- Treat it as read-only.
+- Use reviewed nested keys only.
+- Treat missing keys as the default UI state.
+- Do not read or rely on raw stored `ui_preferences` from backend storage shape.
+
+Current reviewed path support:
+
+- `gamification/rewards/header_collapse`
 
 ### Jinja2 Template Examples
 

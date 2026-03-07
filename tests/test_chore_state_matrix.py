@@ -836,7 +836,7 @@ class TestGlobalStateConsistency:
         hass: HomeAssistant,
         scenario_shared: SetupResult,
     ) -> None:
-        """Rotation chore keeps one pending turn holder and global independent on claim."""
+        """Closed rotation follows the turn-holder claim in global state."""
         coordinator = scenario_shared.coordinator
         chore_id = scenario_shared.chore_ids["Dishes Rotation"]
         assigned_assignees = coordinator.chores_data[chore_id][
@@ -862,7 +862,7 @@ class TestGlobalStateConsistency:
                 turn_holder, chore_id, "Turn Assignee"
             )
 
-        assert get_global_chore_state(coordinator, chore_id) == CHORE_STATE_INDEPENDENT
+        assert get_global_chore_state(coordinator, chore_id) == CHORE_STATE_CLAIMED
 
     @pytest.mark.asyncio
     async def test_shared_all_context_state_never_emits_approved_in_part(

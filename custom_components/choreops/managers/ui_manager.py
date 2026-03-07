@@ -156,6 +156,59 @@ class UIManager(BaseManager):
         self._pending_chore_changed = False
         self._pending_reward_changed = False
 
+    def get_dashboard_ui_control(self, user_id: str) -> dict[str, Any]:
+        """Return resolved dashboard UI control values for one user.
+
+        This exposes only reviewed helper-facing controls, not the raw persisted
+        `ui_preferences` structure.
+        """
+        return {
+            "gamification": {
+                "rewards": {
+                    "header_collapse": self._get_ui_control_bool(
+                        user_id,
+                        const.UI_CONTROL_PATH_GAMIFICATION_REWARDS_HEADER_COLLAPSE,
+                        default=False,
+                    )
+                }
+            }
+        }
+
+    def _get_user_ui_preferences(self, user_id: str) -> dict[str, Any]:
+        """Return the persisted UI preferences bucket for one user."""
+        user_record: Any = self.coordinator.assignees_data.get(user_id, {})
+        if not isinstance(user_record, dict):
+            return {}
+
+        ui_preferences = user_record.get(const.DATA_USER_UI_PREFERENCES)
+        if not isinstance(ui_preferences, dict):
+            return {}
+
+        return ui_preferences
+
+    def _get_ui_control_value(self, user_id: str, key_path: str) -> Any:
+        """Return a nested UI control value by slash-delimited key path."""
+        current: Any = self._get_user_ui_preferences(user_id)
+        for segment in key_path.split(const.UI_CONTROL_KEY_PATH_DELIMITER):
+            if not isinstance(current, dict) or segment not in current:
+                return None
+            current = current[segment]
+
+        return current
+
+    def _get_ui_control_bool(
+        self,
+        user_id: str,
+        key_path: str,
+        *,
+        default: bool,
+    ) -> bool:
+        """Return a reviewed boolean UI control value with fallback default."""
+        value = self._get_ui_control_value(user_id, key_path)
+        if isinstance(value, bool):
+            return value
+        return default
+
     # -------------------------------------------------------------------------------------
     # Translation Sensor Lifecycle Management
     # -------------------------------------------------------------------------------------

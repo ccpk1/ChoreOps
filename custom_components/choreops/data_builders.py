@@ -842,6 +842,15 @@ def build_user_assignment_profile(
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
+        const.DATA_USER_UI_PREFERENCES: _normalize_dict_field(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.DATA_USER_UI_PREFERENCES,
+                const.DATA_USER_UI_PREFERENCES,
+                {},
+            )
+        ),
         # Badge tracking (runtime initialized)
         const.DATA_USER_BADGES_EARNED: (
             existing.get(const.DATA_USER_BADGES_EARNED, {}) if existing else {}
@@ -1102,6 +1111,15 @@ def build_user_profile(
                 const.DEFAULT_DASHBOARD_LANGUAGE,
             )
         ),
+        const.DATA_USER_UI_PREFERENCES: _normalize_dict_field(
+            _resolve_user_input_field(
+                user_input,
+                existing_data,
+                const.DATA_USER_UI_PREFERENCES,
+                const.DATA_USER_UI_PREFERENCES,
+                {},
+            )
+        ),
         const.DATA_USER_CAN_BE_ASSIGNED: bool(
             _resolve_user_input_field(
                 user_input,
@@ -1166,6 +1184,7 @@ _USER_MANAGER_PROFILE_PRESERVE_FIELDS: frozenset[str] = frozenset(
         const.DATA_USER_MOBILE_NOTIFY_SERVICE,
         const.DATA_USER_USE_PERSISTENT_NOTIFICATIONS,
         const.DATA_USER_DASHBOARD_LANGUAGE,
+        const.DATA_USER_UI_PREFERENCES,
     }
 )
 
