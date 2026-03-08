@@ -3496,6 +3496,10 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         errors: dict[str, str] = {}
         achievements_dict = coordinator.achievements_data
         chores_dict = coordinator.chores_data
+        assignees_dict = {
+            assignee_data[const.DATA_USER_NAME]: assignee_id
+            for assignee_id, assignee_data in coordinator.assignees_data.items()
+        }
 
         if user_input is not None:
             # Layer 2: UI validation (uniqueness + type-specific checks)
@@ -3503,33 +3507,18 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
             if not errors:
                 try:
-                    # Build assignees name to ID mapping for options flow
-                    assignees_name_to_id = {
-                        assignee[const.DATA_USER_NAME]: assignee[
-                            const.DATA_USER_INTERNAL_ID
-                        ]
-                        for assignee in coordinator.data.get(
-                            const.DATA_USERS, {}
-                        ).values()
-                    }
-
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_achievement_data(user_input)
 
-                    # Convert assigned assignees from names to IDs (options flow uses names)
-                    assigned_assignees_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
-                    )
-                    if not isinstance(assigned_assignees_names, list):
-                        assigned_assignees_names = (
-                            [assigned_assignees_names]
-                            if assigned_assignees_names
-                            else []
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = (
+                        fh.normalize_selected_user_ids(
+                            data_input.get(
+                                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
+                                [],
+                            ),
+                            assignees_dict,
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = [
-                        assignees_name_to_id.get(name, name)
-                        for name in assigned_assignees_names
-                    ]
+                    )
 
                     # Use GamificationManager for achievement creation
                     internal_id = coordinator.gamification_manager.create_achievement(
@@ -3550,11 +3539,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 except EntityValidationError as err:
                     errors[err.field] = err.translation_key
 
-        assignees_dict = {
-            assignee_data[const.DATA_USER_NAME]: assignee_id
-            for assignee_id, assignee_data in coordinator.assignees_data.items()
-        }
-
         # Build schema without defaults
         schema = fh.build_achievement_schema(
             assignees_dict=assignees_dict, chores_dict=chores_dict
@@ -3562,7 +3546,17 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
 
         # On validation error, preserve user's attempted input
         if user_input:
-            schema = self.add_suggested_values_to_schema(schema, user_input)
+            suggested_values = dict(user_input)
+            suggested_values[const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS] = (
+                fh.normalize_selected_user_ids(
+                    suggested_values.get(
+                        const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS,
+                        [],
+                    ),
+                    assignees_dict,
+                )
+            )
+            schema = self.add_suggested_values_to_schema(schema, suggested_values)
 
         return self.async_show_form(
             step_id=const.OPTIONS_FLOW_STEP_ADD_ACHIEVEMENT,
@@ -3596,12 +3590,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 if eid != internal_id
             }
 
-            # Build assignees name to ID mapping for options flow
-            assignees_name_to_id = {
-                assignee[const.DATA_USER_NAME]: assignee[const.DATA_USER_INTERNAL_ID]
-                for assignee in coordinator.data.get(const.DATA_USERS, {}).values()
-            }
-
             # Layer 2: UI validation (uniqueness + type-specific checks)
             errors = fh.validate_achievements_inputs(
                 user_input,
@@ -3614,20 +3602,19 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_achievement_data(user_input)
 
-                    # Convert assigned assignees from names to IDs (options flow uses names)
-                    assigned_assignees_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
-                    )
-                    if not isinstance(assigned_assignees_names, list):
-                        assigned_assignees_names = (
-                            [assigned_assignees_names]
-                            if assigned_assignees_names
-                            else []
+                    assignees_dict = {
+                        assignee_data[const.DATA_USER_NAME]: assignee_id
+                        for assignee_id, assignee_data in coordinator.assignees_data.items()
+                    }
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = (
+                        fh.normalize_selected_user_ids(
+                            data_input.get(
+                                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
+                                [],
+                            ),
+                            assignees_dict,
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = [
-                        assignees_name_to_id.get(name, name)
-                        for name in assigned_assignees_names
-                    ]
+                    )
 
                     # Use GamificationManager for achievement update
                     coordinator.gamification_manager.update_achievement(
@@ -3652,25 +3639,13 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
         }
         chores_dict = coordinator.chores_data
 
-        # Create reverse mapping from internal_id to name
-        id_to_name = {
-            assignee_id: assignee_data[const.DATA_USER_NAME]
-            for assignee_id, assignee_data in coordinator.assignees_data.items()
-        }
-
-        # Convert assigned user IDs to names for display
-        assigned_user_ids = achievement_data.get(
-            const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
+        # Normalize stored assignee values to selector IDs for display.
+        assigned_user_ids = fh.normalize_selected_user_ids(
+            achievement_data.get(const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []),
+            assignees_dict,
         )
-        valid_assignee_names = set(assignees_dict.keys())
+        valid_assignee_ids = set(assignees_dict.values())
         valid_chore_ids = set(chores_dict.keys())
-        assigned_user_names = [
-            assignee_name
-            for assignee_id in assigned_user_ids
-            if isinstance(assignee_id, str)
-            if (assignee_name := id_to_name.get(assignee_id))
-            if assignee_name in valid_assignee_names
-        ]
 
         # Build suggested values for form (CFOF keys → existing DATA values)
         suggested_values = {
@@ -3686,7 +3661,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             const.CFOF_ACHIEVEMENTS_INPUT_ICON: achievement_data.get(
                 const.DATA_ACHIEVEMENT_ICON
             ),
-            const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: assigned_user_names,
+            const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS: assigned_user_ids,
             const.CFOF_ACHIEVEMENTS_INPUT_TYPE: achievement_data.get(
                 const.DATA_ACHIEVEMENT_TYPE, const.ACHIEVEMENT_TYPE_STREAK
             ),
@@ -3710,9 +3685,16 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
             suggested_values.update(user_input)
 
         suggested_values[const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS] = (
+            fh.normalize_selected_user_ids(
+                suggested_values.get(const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS),
+                assignees_dict,
+            )
+        )
+
+        suggested_values[const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS] = (
             _sanitize_select_values(
                 suggested_values.get(const.CFOF_ACHIEVEMENTS_INPUT_ASSIGNED_USER_IDS),
-                valid_assignee_names,
+                valid_assignee_ids,
             )
         )
 

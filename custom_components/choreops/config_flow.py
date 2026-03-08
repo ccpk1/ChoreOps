@@ -1273,8 +1273,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
             if not errors:
                 try:
-                    # Config flow uses names directly (no name-to-ID mapping needed)
-                    assignees_name_to_id = {
+                    assignees_dict = {
                         assignee_data[const.DATA_USER_NAME]: assignee_id
                         for assignee_id, assignee_data in self._assignees_temp.items()
                     }
@@ -1282,20 +1281,15 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
                     # Layer 3: Convert CFOF_* to DATA_* keys
                     data_input = db.map_cfof_to_achievement_data(user_input)
 
-                    # Convert assigned assignees from names to IDs
-                    assigned_assignees_names = data_input.get(
-                        const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS, []
-                    )
-                    if not isinstance(assigned_assignees_names, list):
-                        assigned_assignees_names = (
-                            [assigned_assignees_names]
-                            if assigned_assignees_names
-                            else []
+                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = (
+                        fh.normalize_selected_user_ids(
+                            data_input.get(
+                                const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS,
+                                [],
+                            ),
+                            assignees_dict,
                         )
-                    data_input[const.DATA_ACHIEVEMENT_ASSIGNED_USER_IDS] = [
-                        assignees_name_to_id.get(name, name)
-                        for name in assigned_assignees_names
-                    ]
+                    )
 
                     # Build complete achievement structure
                     achievement = db.build_achievement(data_input)

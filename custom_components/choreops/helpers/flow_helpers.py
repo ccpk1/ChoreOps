@@ -2857,6 +2857,49 @@ def build_achievement_schema(assignees_dict, chores_dict, default=None):
     )
 
 
+def normalize_selected_user_ids(
+    selected_values: Any,
+    assignees_dict: dict[str, str],
+) -> list[str]:
+    """Normalize selected assignee values to internal IDs.
+
+    Achievement flows historically mixed user names and internal IDs. The UI
+    selector now uses internal IDs like periodic badges do, but this helper
+    still accepts legacy name-based values so older stored data can be reopened
+    and resaved safely.
+
+    Args:
+        selected_values: Raw selector value or values from flow input/storage.
+        assignees_dict: Mapping of assignee names to internal IDs.
+
+    Returns:
+        List of valid assignee internal IDs with duplicates removed.
+    """
+    if not isinstance(selected_values, list):
+        selected_values = [selected_values] if selected_values else []
+
+    valid_assignee_ids = set(assignees_dict.values())
+    normalized_ids: list[str] = []
+    seen_ids: set[str] = set()
+
+    for selected_value in selected_values:
+        if not isinstance(selected_value, str) or not selected_value:
+            continue
+
+        assignee_id = (
+            selected_value
+            if selected_value in valid_assignee_ids
+            else assignees_dict.get(selected_value)
+        )
+        if assignee_id is None or assignee_id in seen_ids:
+            continue
+
+        normalized_ids.append(assignee_id)
+        seen_ids.add(assignee_id)
+
+    return normalized_ids
+
+
 def validate_achievements_inputs(
     user_input: dict[str, Any],
     existing_achievements: dict[str, Any] | None = None,
