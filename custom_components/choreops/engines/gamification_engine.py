@@ -794,21 +794,20 @@ class GamificationEngine:
         """
         threshold = target.get(const.DATA_BADGE_TARGET_THRESHOLD_VALUE, 0)
 
-        # PERIODIC BADGES ONLY: Use per-badge cycle count
-        badge_progress = context.get("current_badge_progress") or {}
-        cycle_count = badge_progress.get(
-            const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
-        )
-
-        # Get chore-specific points from pre-computed stats
         today_stats = context.get("today_stats") or {}
-        total_earned = today_stats.get("total_earned", 0)
+        window_points = today_stats.get("window_points")
 
-        # For chore-specific points, calculate delta from cycle_count
-        today_chore_points = (
-            total_earned - cycle_count if total_earned > cycle_count else 0
-        )
-        current_value = cycle_count + today_chore_points
+        if window_points is not None:
+            current_value = float(window_points)
+        else:
+            # Backward-compatible fallback for contexts that only provide
+            # the current day's chore points.
+            badge_progress = context.get("current_badge_progress") or {}
+            cycle_count = badge_progress.get(
+                const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT, 0
+            )
+            today_chore_points = today_stats.get("today_points", 0)
+            current_value = cycle_count + today_chore_points
 
         progress = min(1.0, current_value / threshold) if threshold > 0 else 0.0
         criteria_met = current_value >= threshold

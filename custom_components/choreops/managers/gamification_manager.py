@@ -1347,6 +1347,26 @@ class GamificationManager(BaseManager):
             today_iso=today_iso,
             current_badge_progress=current_badge_progress,
         )
+        reset_schedule = cast(
+            "dict[str, Any]",
+            badge_data.get(const.DATA_BADGE_RESET_SCHEDULE, {}),
+        )
+        start_date_iso = str(
+            reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_START_DATE, "")
+        )
+        end_date_iso = str(
+            reset_schedule.get(const.DATA_BADGE_RESET_SCHEDULE_END_DATE, "")
+        )
+        if (
+            canonical_target.get("source_raw_type")
+            == const.BADGE_TARGET_THRESHOLD_TYPE_POINTS_CHORES
+        ):
+            today_stats["window_points"] = self._get_tracked_window_points_total(
+                assignee_id,
+                tracked_chores,
+                start_date_iso or today_iso,
+                end_date_iso or today_iso,
+            )
         today_completion = (
             self.coordinator.statistics_manager.get_badge_scoped_today_completion(
                 assignee_id,
@@ -2773,6 +2793,50 @@ class GamificationManager(BaseManager):
                 )
 
         return total_approved
+
+    def _get_tracked_window_points_total(
+        self,
+        assignee_id: str,
+        tracked_chores: list[str],
+        start_date_iso: str,
+        end_date_iso: str,
+    ) -> float:
+        """Return chore points total for tracked chores within date window."""
+        assignee_data = cast(
+            "dict[str, Any]",
+            self.coordinator.assignees_data.get(assignee_id, {}),
+        )
+        assignee_chore_data = cast(
+            "dict[str, Any]",
+            assignee_data.get(const.DATA_USER_CHORE_DATA, {}),
+        )
+
+        chore_ids = tracked_chores or list(assignee_chore_data.keys())
+        total_points = 0.0
+
+        for chore_id in chore_ids:
+            chore_entry = cast("dict[str, Any]", assignee_chore_data.get(chore_id, {}))
+            periods = cast(
+                "dict[str, Any]",
+                chore_entry.get(const.DATA_USER_CHORE_DATA_PERIODS, {}),
+            )
+            daily_periods = cast(
+                "dict[str, Any]",
+                periods.get(const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {}),
+            )
+
+            for day_iso, day_bucket in daily_periods.items():
+                if not isinstance(day_iso, str) or not isinstance(day_bucket, dict):
+                    continue
+                if start_date_iso and day_iso < start_date_iso:
+                    continue
+                if end_date_iso and day_iso > end_date_iso:
+                    continue
+                total_points += float(
+                    day_bucket.get(const.DATA_USER_CHORE_DATA_PERIOD_POINTS, 0.0)
+                )
+
+        return total_points
 
     async def _apply_challenge_result(
         self,
