@@ -144,8 +144,10 @@ def test_shared_chore_engine_fragment_contains_ui_control_contract() -> None:
     assert "'/sort_within_groups'" in template_str
 
 
-def test_user_game_full_template_renders_with_button_card_templates() -> None:
-    """Game full template renders as full dashboard with root templates."""
+def test_user_gamification_premier_template_renders_with_button_card_templates() -> (
+    None
+):
+    """Gamification Premier template renders as full dashboard with root templates."""
     template_str = _read_template("user-gamification-premier-v1.yaml")
     chore_engine_context = _read_template("shared/chore_engine/context_v1.yaml")
     chore_engine_prepare_groups = _read_template(
@@ -205,8 +207,8 @@ def test_user_game_full_template_renders_with_button_card_templates() -> None:
     assert "chore_row_kids_v1" in rendered["button_card_templates"]
 
 
-def test_user_game_full_template_contains_ui_control_contract() -> None:
-    """Game full template should reference the reviewed UI control contract."""
+def test_user_gamification_premier_template_contains_ui_control_contract() -> None:
+    """Gamification Premier template should reference the reviewed UI control contract."""
     template_str = _read_template("user-gamification-premier-v1.yaml")
 
     assert f"{const.DOMAIN}.{const.SERVICE_MANAGE_UI_CONTROL}" in _read_template(

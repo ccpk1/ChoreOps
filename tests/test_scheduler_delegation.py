@@ -13,6 +13,7 @@ Tests verify:
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -259,6 +260,19 @@ class TestOverdueEventEmission:
 class TestRecurringResetEventEmission:
     """Tests for CHORE_STATUS_RESET event emission through scheduler delegation."""
 
+    @staticmethod
+    def _install_emit_tracker(coordinator: Any) -> list[tuple[str, dict[str, Any]]]:
+        """Install an emit tracker and return the captured events list."""
+        emitted_events: list[tuple[str, dict[str, Any]]] = []
+        original_emit = coordinator.chore_manager.emit
+
+        def tracking_emit(suffix: str, **kwargs: Any) -> None:
+            emitted_events.append((suffix, kwargs))
+            original_emit(suffix, **kwargs)
+
+        coordinator.chore_manager.emit = tracking_emit
+        return emitted_events
+
     @pytest.mark.asyncio
     async def test_recurring_reset_emits_status_reset_event(
         self,
@@ -280,14 +294,7 @@ class TestRecurringResetEventEmission:
         await coordinator.chore_manager.approve_chore("TestApprover", zoe_id, chore_id)
 
         # Track emitted events
-        emitted_events: list[tuple[str, dict[str, Any]]] = []
-        original_emit = coordinator.chore_manager.emit
-
-        def tracking_emit(suffix: str, **kwargs: Any) -> None:
-            emitted_events.append((suffix, kwargs))
-            original_emit(suffix, **kwargs)
-
-        coordinator.chore_manager.emit = tracking_emit
+        emitted_events = self._install_emit_tracker(coordinator)
 
         # Directly call the Manager method (simulating what timer would do)
         # Note: In production, this goes through Coordinator → Manager
@@ -307,7 +314,7 @@ class TestRecurringResetEventEmission:
         # The important thing is that the delegation path works
         if reset_events:
             event_payload = reset_events[0][1]
-            assert "assignee_id" in event_payload
+            assert "user_id" in event_payload
             assert "chore_id" in event_payload
 
     @pytest.mark.asyncio
@@ -325,14 +332,7 @@ class TestRecurringResetEventEmission:
         await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
 
         # Track emitted events
-        emitted_events: list[tuple[str, dict[str, Any]]] = []
-        original_emit = coordinator.chore_manager.emit
-
-        def tracking_emit(suffix: str, **kwargs: Any) -> None:
-            emitted_events.append((suffix, kwargs))
-            original_emit(suffix, **kwargs)
-
-        coordinator.chore_manager.emit = tracking_emit
+        emitted_events = self._install_emit_tracker(coordinator)
 
         # Call _transition_chore_state (master method for state changes)
         coordinator.chore_manager._transition_chore_state(
@@ -356,6 +356,120 @@ class TestRecurringResetEventEmission:
         assert event_payload["user_id"] == zoe_id
         assert event_payload["chore_id"] == chore_id
         assert "chore_name" in event_payload
+
+    @pytest.mark.asyncio
+    async def test_set_due_date_emits_reset_event_after_persist(
+        self,
+        hass: HomeAssistant,
+        scheduling_scenario: SetupResult,
+    ) -> None:
+        """Test: set_due_date emits CHORE_STATUS_RESET for reset-to-pending paths."""
+        from datetime import timedelta
+
+        from homeassistant.util import dt as dt_util
+
+        coordinator = scheduling_scenario.coordinator
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
+        chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
+
+        emitted_events = self._install_emit_tracker(coordinator)
+
+        await coordinator.chore_manager.set_due_date(
+            chore_id,
+            dt_util.utcnow() + timedelta(days=7),
+            zoe_id,
+        )
+
+        reset_events = [
+            event
+            for event in emitted_events
+            if event[0] == const.SIGNAL_SUFFIX_CHORE_STATUS_RESET
+            and event[1].get("user_id") == zoe_id
+            and event[1].get("chore_id") == chore_id
+        ]
+        assert len(reset_events) == 1
+
+    @pytest.mark.asyncio
+    async def test_skip_due_date_emits_reset_event_after_persist(
+        self,
+        hass: HomeAssistant,
+        scheduling_scenario: SetupResult,
+    ) -> None:
+        """Test: skip_due_date emits CHORE_STATUS_RESET for reset-to-pending paths."""
+        coordinator = scheduling_scenario.coordinator
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
+        chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
+
+        emitted_events = self._install_emit_tracker(coordinator)
+
+        await coordinator.chore_manager.skip_due_date(chore_id, zoe_id)
+
+        reset_events = [
+            event
+            for event in emitted_events
+            if event[0] == const.SIGNAL_SUFFIX_CHORE_STATUS_RESET
+            and event[1].get("user_id") == zoe_id
+            and event[1].get("chore_id") == chore_id
+        ]
+        assert len(reset_events) == 1
+
+    @pytest.mark.asyncio
+    async def test_reset_all_chore_states_to_pending_emits_reset_events(
+        self,
+        hass: HomeAssistant,
+        scheduling_scenario: SetupResult,
+    ) -> None:
+        """Test: bulk manual reset emits CHORE_STATUS_RESET for affected chores."""
+        coordinator = scheduling_scenario.coordinator
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
+        chore_id = scheduling_scenario.chore_ids["Reset Midnight Once"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(zoe_id, chore_id, "Zoë")
+
+        emitted_events = self._install_emit_tracker(coordinator)
+
+        await coordinator.chore_manager.reset_all_chore_states_to_pending()
+
+        reset_events = [
+            event
+            for event in emitted_events
+            if event[0] == const.SIGNAL_SUFFIX_CHORE_STATUS_RESET
+            and event[1].get("user_id") == zoe_id
+            and event[1].get("chore_id") == chore_id
+        ]
+        assert len(reset_events) == 1
+
+    @pytest.mark.asyncio
+    async def test_reset_overdue_chores_emits_reset_event_after_persist(
+        self,
+        hass: HomeAssistant,
+        scheduling_scenario: SetupResult,
+    ) -> None:
+        """Test: reset_overdue_chores emits CHORE_STATUS_RESET for overdue resets."""
+        coordinator = scheduling_scenario.coordinator
+        zoe_id = scheduling_scenario.assignee_ids["Zoë"]
+        chore_id = scheduling_scenario.chore_ids["Overdue At Due Date"]
+
+        set_chore_due_date_to_past(coordinator, chore_id, zoe_id, days_ago=1)
+        await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
+        emitted_events = self._install_emit_tracker(coordinator)
+
+        await coordinator.chore_manager.reset_overdue_chores(
+            chore_id=chore_id,
+            assignee_id=zoe_id,
+        )
+
+        reset_events = [
+            event
+            for event in emitted_events
+            if event[0] == const.SIGNAL_SUFFIX_CHORE_STATUS_RESET
+            and event[1].get("user_id") == zoe_id
+            and event[1].get("chore_id") == chore_id
+        ]
+        assert len(reset_events) == 1
 
 
 class TestDelegationPath:

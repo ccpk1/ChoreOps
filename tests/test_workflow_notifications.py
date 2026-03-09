@@ -25,7 +25,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, call, patch
 
 from homeassistant.core import Context
 from homeassistant.exceptions import HomeAssistantError
@@ -869,6 +869,62 @@ class TestDueDateReminders:
         assert last_notified < new_period_start, (
             "Old notification timestamp should be before new period (auto-invalidated)"
         )
+
+    @pytest.mark.asyncio
+    async def test_reset_clears_due_window_overdue_and_approver_status_notifications(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Reset emits notification cleanup for stale device notifications."""
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager.claim_chore(assignee_id, chore_id, "Zoë")
+
+        overdue_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_OVERDUE,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+        due_window_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_DUE_WINDOW,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+
+        with (
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_approvers",
+                new=AsyncMock(),
+            ) as clear_approvers,
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_assignee",
+                new=AsyncMock(),
+            ) as clear_assignee,
+        ):
+            coordinator.chore_manager.reset_chore_to_pending(chore_id)
+            await hass.async_block_till_done()
+
+        assert (
+            call(
+                assignee_id,
+                const.NOTIFY_TAG_TYPE_STATUS,
+                chore_id,
+            )
+            in clear_approvers.await_args_list
+        )
+        assert clear_assignee.await_count >= 2
+        assert call(assignee_id, overdue_tag) in clear_assignee.await_args_list
+        assert call(assignee_id, due_window_tag) in clear_assignee.await_args_list
 
     @pytest.mark.asyncio
     async def test_due_window_notification_sent_on_pending_to_due_transition(

@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from .. import const
-from ..utils.dt_utils import dt_parse_duration, dt_to_utc
+from ..utils.dt_utils import as_utc, dt_parse_duration, dt_to_utc, start_of_local_day
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -1299,6 +1299,9 @@ class ChoreEngine:
         frequency = chore_data.get(
             const.DATA_CHORE_RECURRING_FREQUENCY, const.FREQUENCY_NONE
         )
+        interval_unit = chore_data.get(
+            const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
+        )
 
         # No schedule (manual/one-time chore) = simple daily logic
         if frequency == const.FREQUENCY_NONE:
@@ -1310,6 +1313,27 @@ class ChoreEngine:
                 if days_diff <= 1:
                     return current_streak + 1
             return 1  # Broke streak
+
+        # Parse timestamps once so the same normalized window is used for both
+        # recurrence evaluation and fallback checks.
+        prev_dt = dt_to_utc(previous_last_completed_iso)
+        current_dt = dt_to_utc(current_work_date_iso)
+
+        if not prev_dt or not current_dt:
+            return 1  # Can't calculate, reset streak
+
+        schedule_prev_dt = prev_dt
+        schedule_current_dt = current_dt
+
+        # Streak continuity is based on work dates, not exact wall-clock deltas.
+        # Normalize day-based schedules to local day boundaries so DST shifts do
+        # not create phantom missed occurrences between consecutive dates.
+        if frequency != const.FREQUENCY_DAILY_MULTI and interval_unit not in (
+            const.TIME_UNIT_HOURS,
+            const.TIME_UNIT_MINUTES,
+        ):
+            schedule_prev_dt = as_utc(start_of_local_day(prev_dt))
+            schedule_current_dt = as_utc(start_of_local_day(current_dt))
 
         # Build schedule config for RecurrenceEngine
         applicable_days = chore_data.get(const.DATA_CHORE_APPLICABLE_DAYS, [])
@@ -1334,7 +1358,7 @@ class ChoreEngine:
             "interval_unit": str(interval_unit_raw)
             if interval_unit_raw
             else const.TIME_UNIT_DAYS,
-            "base_date": previous_last_completed_iso,
+            "base_date": schedule_prev_dt.isoformat(),
             "applicable_days": applicable_days_int,
             "daily_multi_times": str(daily_multi_raw) if daily_multi_raw else "",
         }
@@ -1342,15 +1366,8 @@ class ChoreEngine:
         try:
             engine = RecurrenceEngine(schedule_config)
 
-            # Parse timestamps to datetime for engine
-            prev_dt = dt_to_utc(previous_last_completed_iso)
-            current_dt = dt_to_utc(current_work_date_iso)
-
-            if not prev_dt or not current_dt:
-                return 1  # Can't calculate, reset streak
-
             # Check if any scheduled occurrences were missed
-            if engine.has_missed_occurrences(prev_dt, current_dt):
+            if engine.has_missed_occurrences(schedule_prev_dt, schedule_current_dt):
                 return 1  # Broke streak
 
             return current_streak + 1  # On-time, continue streak

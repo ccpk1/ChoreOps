@@ -7,6 +7,7 @@ requiring any Home Assistant mocking or integration setup.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from custom_components.choreops import const
 from custom_components.choreops.engines.chore_engine import (
@@ -17,6 +18,10 @@ from custom_components.choreops.engines.chore_engine import (
     CHORE_ACTION_RESET,
     CHORE_ACTION_UNDO,
     ChoreEngine,
+)
+from custom_components.choreops.utils.dt_utils import (
+    get_default_timezone,
+    set_default_timezone,
 )
 
 # =============================================================================
@@ -222,6 +227,60 @@ class TestCalculateTransitionApprove:
         assert actor_effect.points == 20.0
         assert actor_effect.update_stats is True
         assert actor_effect.set_completed_by == "Sarah"
+
+
+class TestCalculateStreak:
+    """Test schedule-aware streak calculation."""
+
+    def test_daily_streak_continues_across_dst_boundary(self) -> None:
+        """Daily streak should not break across DST when local dates are consecutive."""
+        original_tz = get_default_timezone()
+        set_default_timezone(ZoneInfo("America/Los_Angeles"))
+
+        try:
+            chore_data = {
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+                const.DATA_CHORE_APPLICABLE_DAYS: [],
+                const.DATA_CHORE_CUSTOM_INTERVAL: None,
+                const.DATA_CHORE_CUSTOM_INTERVAL_UNIT: None,
+                const.DATA_CHORE_DAILY_MULTI_TIMES: None,
+            }
+
+            result = ChoreEngine.calculate_streak(
+                current_streak=5,
+                previous_last_completed_iso="2026-03-08T02:18:14.884857+00:00",
+                current_work_date_iso="2026-03-09T02:18:14.885231+00:00",
+                chore_data=chore_data,
+            )
+
+            assert result == 6
+        finally:
+            set_default_timezone(original_tz)
+
+    def test_weekly_streak_continues_across_dst_boundary(self) -> None:
+        """Weekly streak should not break across DST on the next scheduled week."""
+        original_tz = get_default_timezone()
+        set_default_timezone(ZoneInfo("America/Los_Angeles"))
+
+        try:
+            chore_data = {
+                const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+                const.DATA_CHORE_APPLICABLE_DAYS: [],
+                const.DATA_CHORE_CUSTOM_INTERVAL: None,
+                const.DATA_CHORE_CUSTOM_INTERVAL_UNIT: None,
+                const.DATA_CHORE_DAILY_MULTI_TIMES: None,
+            }
+
+            result = ChoreEngine.calculate_streak(
+                current_streak=3,
+                previous_last_completed_iso="2026-03-02T02:18:14.884857+00:00",
+                current_work_date_iso="2026-03-09T02:18:14.885231+00:00",
+                chore_data=chore_data,
+            )
+
+            assert result == 4
+        finally:
+            set_default_timezone(original_tz)
 
 
 # =============================================================================

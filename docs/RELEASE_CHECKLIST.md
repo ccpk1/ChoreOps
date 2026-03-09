@@ -7,8 +7,8 @@ The goal is predictable releases with safe migrations, stable translations, and 
 ## 1) Version and schema readiness
 
 - [ ] Update integration version metadata (`manifest.json`, release notes, docs as needed).
-- [ ] Use `v`-prefixed SemVer tags for release publication (`vX.Y.Z`).
-- [ ] If prerelease, use SemVer prerelease suffixes (`vX.Y.Z-beta.N`, `vX.Y.Z-rc.N`).
+- [ ] Use SemVer tags without a `v` prefix for release publication (`X.Y.Z`).
+- [ ] If prerelease, use SemVer prerelease suffixes (`X.Y.Z-beta.N`, `X.Y.Z-rc.N`).
 - [ ] Keep integration and dashboard registry release versions explicit and traceable; do not assume they must match numerically.
 - [ ] If storage shape changed, increment schema constant in `const.py`.
 - [ ] Ensure migration logic exists for schema transitions.
@@ -70,7 +70,7 @@ Checklist:
 ## 8) Release and post-release checks
 
 - [ ] Tag and publish release artifacts.
-- [ ] Verify published tag format matches policy (`vX.Y.Z`, or prerelease `vX.Y.Z-beta.N` / `vX.Y.Z-rc.N`).
+- [ ] Verify published tag format matches policy (`X.Y.Z`, or prerelease `X.Y.Z-beta.N` / `X.Y.Z-rc.N`).
 - [ ] If dashboard registry artifacts are part of the release, verify matching channel intent (dev/beta/stable) and compatibility notes.
 - [ ] Confirm integration loads in Home Assistant.
 - [ ] Confirm primary entities and services operate in a clean environment.
@@ -88,12 +88,12 @@ Compatibility matrix template:
 
 | Integration release | Dashboard registry release | Channel | Compatibility status | Notes                                    |
 | ------------------- | -------------------------- | ------- | -------------------- | ---------------------------------------- |
-| `v0.5.0-beta.5`     | `v0.1.0-beta.1`            | beta    | verified             | Initial dual-repo compatibility baseline |
+| `0.5.0-beta.5`      | `0.1.0-beta.1`             | beta    | verified             | Initial dual-repo compatibility baseline |
 
 Minimum matrix fields for each new row:
 
-- Integration release tag (`vX.Y.Z` or prerelease)
-- Dashboard registry release tag (`vX.Y.Z` or prerelease)
+- Integration release tag (`X.Y.Z` or prerelease)
+- Dashboard registry release tag (`X.Y.Z` or prerelease)
 - Channel (`dev`, `beta`, `stable`)
 - Compatibility outcome (`verified`, `partial`, `blocked`)
 - Brief note on constraints or required minimum versions

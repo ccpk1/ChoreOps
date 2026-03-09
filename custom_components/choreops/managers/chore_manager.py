@@ -1184,8 +1184,11 @@ class ChoreManager(BaseManager):
                         const.DATA_USER_CHORE_DATA_LAST_COMPLETED
                     )
                     # Get streak from last completion date (not yesterday - schedule-aware!)
-                    assigned_previous_streak = 0
-                    if assigned_last_completed:
+                    assigned_previous_streak = assigned_chore_data.get(
+                        const.DATA_USER_CHORE_DATA_CURRENT_STREAK,
+                        0,
+                    )
+                    if not assigned_previous_streak and assigned_last_completed:
                         # Convert UTC timestamp to local timezone for bucket lookup
                         assigned_local_dt = dt_parse(
                             assigned_last_completed,

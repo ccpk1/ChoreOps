@@ -593,6 +593,106 @@ class TestPeriodicBadgeTargetTypes:
         )
         assert badge_progress[const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS] == 0.57
 
+    async def test_points_chores_rollover_does_not_reuse_all_time_points(
+        self,
+        hass: HomeAssistant,
+        setup_minimal: SetupResult,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Daily points-from-chores badges do not refill from yesterday totals."""
+        config_entry = setup_minimal.config_entry
+        coordinator = setup_minimal.coordinator
+
+        assignee_id = next(iter(coordinator.assignees_data.keys()))
+
+        badge_data = {
+            CFOF_BADGES_INPUT_NAME: "Good Day Rollover Guard",
+            CFOF_BADGES_INPUT_ICON: "mdi:weather-sunny",
+            CFOF_BADGES_INPUT_TARGET_TYPE: "points_chores",
+            CFOF_BADGES_INPUT_TARGET_THRESHOLD_VALUE: 40,
+            CFOF_BADGES_INPUT_ASSIGNED_USER_IDS: [assignee_id],
+            CFOF_BADGES_INPUT_SELECTED_CHORES: [],
+            CFOF_BADGES_INPUT_AWARD_POINTS: 5.0,
+            CFOF_BADGES_INPUT_AWARD_ITEMS: ["points"],
+        }
+
+        await add_badge_via_options_flow(
+            hass,
+            config_entry.entry_id,
+            BADGE_TYPE_DAILY,
+            badge_data,
+        )
+
+        badge_id, badge_info = get_badge_by_name(coordinator, "Good Day Rollover Guard")
+        badge_progress = coordinator.assignees_data[assignee_id][
+            DATA_USER_BADGE_PROGRESS
+        ][badge_id]
+
+        coordinator.gamification_manager.update_badges_earned_for_assignee(
+            assignee_id, badge_id
+        )
+
+        today_iso = dt_today_iso()
+        stale_end = dt_add_interval(
+            today_iso,
+            interval_unit=const.TIME_UNIT_DAYS,
+            delta=-1,
+            return_type=const.HELPER_RETURN_ISO_DATE,
+        )
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_START_DATE
+        ] = stale_end
+        badge_info[const.DATA_BADGE_RESET_SCHEDULE][
+            const.DATA_BADGE_RESET_SCHEDULE_END_DATE
+        ] = stale_end
+        badge_progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] = 120.5
+        badge_progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] = stale_end
+        badge_progress[const.DATA_USER_BADGE_PROGRESS_STATUS] = const.BADGE_STATE_EARNED
+
+        def _mock_today_stats(*_: Any, **__: Any) -> dict[str, Any]:
+            return {
+                "today_points": 0.0,
+                "today_approved": 0,
+                "total_earned": 120.5,
+                "streak_yesterday": False,
+            }
+
+        def _mock_window_points(*_: Any, **__: Any) -> float:
+            return 0.0
+
+        monkeypatch.setattr(
+            coordinator.statistics_manager,
+            "get_badge_scoped_today_stats",
+            _mock_today_stats,
+        )
+        monkeypatch.setattr(
+            coordinator.gamification_manager,
+            "_get_tracked_window_points_total",
+            _mock_window_points,
+        )
+
+        context = coordinator.gamification_manager._build_evaluation_context(
+            assignee_id
+        )
+
+        assert context is not None
+
+        await coordinator.gamification_manager._evaluate_periodic_badge(
+            assignee_id,
+            badge_id,
+            badge_info,
+            context,
+        )
+
+        assert badge_progress[const.DATA_USER_BADGE_PROGRESS_POINTS_CYCLE_COUNT] == 0.0
+        assert badge_progress[const.DATA_USER_BADGE_PROGRESS_OVERALL_PROGRESS] == 0.0
+        assert badge_progress[const.DATA_USER_BADGE_PROGRESS_CRITERIA_MET] is False
+        assert (
+            badge_progress[const.DATA_USER_BADGE_PROGRESS_STATUS]
+            == const.BADGE_STATE_ACTIVE_CYCLE
+        )
+        assert badge_progress[const.DATA_USER_BADGE_PROGRESS_LAST_UPDATE_DAY] == ""
+
     async def test_periodic_badge_status_earned_when_criteria_met(
         self,
         hass: HomeAssistant,

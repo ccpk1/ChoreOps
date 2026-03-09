@@ -30,7 +30,7 @@ Born from the popular _KidsChores_ integration, ChoreOps evolves that foundation
 
 #### **🎮 The Gamified Home**
 
-- Lean into the native **XP, Badges, Achievements, and Streaks**. Turn household participation into an engaging loop that motivates everyone to chase high scores and earn rewards.
+- Lean into the native **XP, Badges, Achievements, and Streaks**. Turn household participation into an engaging loop that motivates everyone to chase high scores, level up through **Ranks** (cumulative badges), and complete **Quests** (periodic badges).
 
 #### **⚙️ The Utility Home**
 
@@ -76,12 +76,15 @@ Born from the popular _KidsChores_ integration, ChoreOps evolves that foundation
 - **Chores**: individual, shared, first-complete, and rotation models with advanced recurrence and overdue handling
 - **Points/XP**: use any home assistant icon and any term to configure the currency in your household
 - **Rewards**: claim-and-approve redemption workflows with automatic point accounting
-- **Badges**: cumulative and periodic systems with streaks and multipliers
+- **Badges**: cumulative rank-style systems and periodic quest-style systems with streaks and multipliers
 - **Bonuses and penalties**: transparent manual or automated adjustments
 - **Challenges and achievements**: time-bound goals and milestone tracking
 - **Calendar visibility**: scheduled chores and challenge windows in Home Assistant calendar contexts
 - **Statistics**: daily/weekly/monthly/yearly/all-time period tracking and analytics sensors
 - **Weekly activity reports**: generate detailed 7-day progress reports via service, copy as markdown, or deliver through Home Assistant notify/email services
+
+> [!NOTE]
+> In kid-facing dashboard language, ChoreOps may refer to badge families as **Ranks** and **Quests**. In Home Assistant configuration screens and technical docs, the underlying setup terms remain **Cumulative Badges** and **Periodic Badges**.
 
 ### For power users
 
