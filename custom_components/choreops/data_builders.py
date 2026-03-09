@@ -869,6 +869,48 @@ def build_user_assignment_profile(
         # NOTE: DATA_KID_OVERDUE_CHORES removed - dead code, overdue tracked in chore_data[chore_id].state
     }
 
+    if existing:
+        if const.DATA_USER_BADGE_PROGRESS in existing:
+            assignee_data[const.DATA_USER_BADGE_PROGRESS] = existing.get(
+                const.DATA_USER_BADGE_PROGRESS,
+                {},
+            )
+        if const.DATA_USER_CUMULATIVE_BADGE_PROGRESS in existing:
+            assignee_data[const.DATA_USER_CUMULATIVE_BADGE_PROGRESS] = existing.get(
+                const.DATA_USER_CUMULATIVE_BADGE_PROGRESS,
+                {},
+            )
+        if const.DATA_USER_CHORE_DATA in existing:
+            assignee_data[const.DATA_USER_CHORE_DATA] = existing.get(
+                const.DATA_USER_CHORE_DATA,
+                {},
+            )
+        if const.DATA_USER_CHORE_PERIODS in existing:
+            assignee_data[const.DATA_USER_CHORE_PERIODS] = existing.get(
+                const.DATA_USER_CHORE_PERIODS,
+                {},
+            )
+        if const.DATA_USER_REWARD_STATS in existing:
+            assignee_data[const.DATA_USER_REWARD_STATS] = existing.get(
+                const.DATA_USER_REWARD_STATS,
+                {},
+            )
+        if const.DATA_USER_POINT_PERIODS in existing:
+            assignee_data[const.DATA_USER_POINT_PERIODS] = existing.get(
+                const.DATA_USER_POINT_PERIODS,
+                {},
+            )
+        if const.DATA_USER_CURRENT_STREAK in existing:
+            assignee_data[const.DATA_USER_CURRENT_STREAK] = existing.get(
+                const.DATA_USER_CURRENT_STREAK,
+                0,
+            )
+        if const.DATA_USER_LAST_STREAK_DATE in existing:
+            assignee_data[const.DATA_USER_LAST_STREAK_DATE] = existing.get(
+                const.DATA_USER_LAST_STREAK_DATE,
+                "",
+            )
+
     return assignee_data
 
 
