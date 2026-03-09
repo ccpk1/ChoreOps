@@ -162,6 +162,10 @@ class NotificationManager(BaseManager):
         )
         self.listen(const.SIGNAL_SUFFIX_CHORE_APPROVED, self._handle_chore_approved)
         self.listen(
+            const.SIGNAL_SUFFIX_CHORE_STATUS_RESET,
+            self._handle_chore_status_reset,
+        )
+        self.listen(
             const.SIGNAL_SUFFIX_CHORE_POINTS_AWARDED,
             self._handle_chore_points_awarded,
         )
@@ -202,7 +206,7 @@ class NotificationManager(BaseManager):
         self.listen(const.SIGNAL_SUFFIX_USER_DELETED, self._handle_assignee_deleted)
 
         const.LOGGER.debug(
-            "NotificationManager initialized with 17 event subscriptions for entry %s",
+            "NotificationManager initialized with 18 event subscriptions for entry %s",
             self.entry_id,
         )
 
@@ -268,10 +272,17 @@ class NotificationManager(BaseManager):
     #    data for the Schedule-Lock comparison (query, not mutation).
     #
     # 3. AUTOMATIC INVALIDATION: When chore resets, approval_period_start
-    #    advances. Any old notification timestamps become obsolete because
-    #    last_notified < new_period_start.
+    #    advances. Any old notification timestamps become obsolete for
+    #    resend-suppression decisions because last_notified < new_period_start.
+    #    This invalidates old lock records, but it does NOT clear any device
+    #    notifications that were already delivered.
     #
-    # 4. CLEANUP VIA SIGNALS: CHORE_DELETED and KID_DELETED signals trigger
+    # 4. EXPLICIT DEVICE CLEAR: Reset and delete lifecycle events are what
+    #    clear stale delivered notifications from devices. Reset cleanup is
+    #    handled via CHORE_STATUS_RESET; delete cleanup removes records from
+    #    our bucket and clears ghost notifications.
+
+    # 5. CLEANUP VIA SIGNALS: CHORE_DELETED and KID_DELETED signals trigger
     #    cleanup in our notifications bucket (choreographed janitor pattern).
     #
     # Structure: notifications[assignee_id][chore_id] = {
@@ -1575,6 +1586,29 @@ class NotificationManager(BaseManager):
                 ex,
             )
 
+    async def _clear_reset_chore_notifications(
+        self,
+        assignee_id: str,
+        chore_id: str,
+    ) -> None:
+        """Clear notifications invalidated by a reset back to pending."""
+        overdue_tag = self.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
+        )
+        due_window_tag = self.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, assignee_id
+        )
+
+        await asyncio.gather(
+            self.clear_notification_for_approvers(
+                assignee_id,
+                const.NOTIFY_TAG_TYPE_STATUS,
+                chore_id,
+            ),
+            self.clear_notification_for_assignee(assignee_id, overdue_tag),
+            self.clear_notification_for_assignee(assignee_id, due_window_tag),
+        )
+
     async def remind_in_minutes(
         self,
         assignee_id: str,
@@ -2282,6 +2316,23 @@ class NotificationManager(BaseManager):
 
         const.LOGGER.debug(
             "NotificationManager: Cleared notifications for approved chore=%s, assignee=%s",
+            chore_name,
+            assignee_id,
+        )
+
+    async def _handle_chore_status_reset(self, payload: dict[str, Any]) -> None:
+        """Handle CHORE_STATUS_RESET by clearing stale device notifications."""
+        assignee_id = payload.get("user_id", "")
+        chore_id = payload.get("chore_id", "")
+        chore_name = payload.get("chore_name", "Unknown Chore")
+
+        if not assignee_id or not chore_id:
+            return
+
+        await self._clear_reset_chore_notifications(assignee_id, chore_id)
+
+        const.LOGGER.debug(
+            "NotificationManager: Cleared reset-invalidated notifications for chore=%s, assignee=%s",
             chore_name,
             assignee_id,
         )

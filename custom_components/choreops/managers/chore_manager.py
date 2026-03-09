@@ -2652,6 +2652,8 @@ class ChoreManager(BaseManager):
 
         # Reset chore state to PENDING for all assigned assignees
         # Use persist=False since we persist once at the end
+        chore_name = str(chore_info.get(const.DATA_CHORE_NAME, chore_id))
+        reset_events: set[tuple[str, str, str]] = set()
         for assigned_assignee_id in chore_info.get(
             const.DATA_CHORE_ASSIGNED_USER_IDS, []
         ):
@@ -2664,13 +2666,15 @@ class ChoreManager(BaseManager):
                     clear_ownership=True,
                     persist=False,
                 )
+                reset_events.add((assigned_assignee_id, chore_id, chore_name))
 
         const.LOGGER.info(
             "Due date set for chore '%s'",
-            chore_info.get(const.DATA_CHORE_NAME, chore_id),
+            chore_name,
         )
 
         self._coordinator._persist()
+        self._emit_reset_events(reset_events)
         self._coordinator.async_set_updated_data(self._coordinator._data)
 
     async def skip_due_date(
@@ -2708,6 +2712,8 @@ class ChoreManager(BaseManager):
             const.DATA_CHORE_COMPLETION_CRITERIA,
             const.COMPLETION_CRITERIA_SHARED,
         )
+        chore_name = str(chore_info.get(const.DATA_CHORE_NAME, chore_id))
+        reset_events: set[tuple[str, str, str]] = set()
 
         if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
             # INDEPENDENT: skip per-assignee due dates
@@ -2741,6 +2747,7 @@ class ChoreManager(BaseManager):
                     clear_ownership=True,
                     persist=False,
                 )
+                reset_events.add((assignee_id, chore_id, chore_name))
             else:
                 # Skip all assigned assignees
                 self._reschedule_chore_next_due(chore_info)
@@ -2762,6 +2769,7 @@ class ChoreManager(BaseManager):
                             clear_ownership=True,
                             persist=False,
                         )
+                        reset_events.add((assigned_assignee_id, chore_id, chore_name))
         else:
             # SHARED: skip chore-level due date
             if not chore_info.get(const.DATA_CHORE_DUE_DATE):
@@ -2789,14 +2797,58 @@ class ChoreManager(BaseManager):
                         clear_ownership=True,
                         persist=False,
                     )
+                    reset_events.add((assigned_assignee_id, chore_id, chore_name))
 
         const.LOGGER.info(
             "Skipped due date for chore '%s'",
-            chore_info.get(const.DATA_CHORE_NAME, chore_id),
+            chore_name,
         )
 
         self._coordinator._persist()
+        self._emit_reset_events(reset_events)
         self._coordinator.async_set_updated_data(self._coordinator._data)
+
+    def _reset_chore_to_pending_internal(
+        self, chore_id: str
+    ) -> set[tuple[str, str, str]]:
+        """Reset a chore to pending and return deferred reset events."""
+        chore_info = self._coordinator.chores_data.get(chore_id)
+        if not chore_info:
+            const.LOGGER.warning("Cannot reset chore %s - not found", chore_id)
+            return set()
+
+        chore_name = str(chore_info.get(const.DATA_CHORE_NAME, chore_id))
+        reset_events: set[tuple[str, str, str]] = set()
+
+        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
+            if assignee_id:
+                self._transition_chore_state(
+                    assignee_id,
+                    chore_id,
+                    const.CHORE_STATE_PENDING,
+                    reset_approval_period=True,
+                    clear_ownership=True,
+                    persist=False,
+                )
+                reset_events.add((assignee_id, chore_id, chore_name))
+
+        const.LOGGER.debug(
+            "Reset chore '%s' to pending for %d assignees",
+            chore_name,
+            len(reset_events),
+        )
+
+        return reset_events
+
+    def _emit_reset_events(self, reset_events: set[tuple[str, str, str]]) -> None:
+        """Emit deferred reset events after the enclosing persist succeeds."""
+        for assignee_id, chore_id, chore_name in sorted(reset_events):
+            self.emit(
+                const.SIGNAL_SUFFIX_CHORE_STATUS_RESET,
+                user_id=assignee_id,
+                chore_id=chore_id,
+                chore_name=chore_name,
+            )
 
     def reset_chore_to_pending(self, chore_id: str, *, persist: bool = True) -> None:
         """Reset a specific chore to pending state for all assigned assignees.
@@ -2811,33 +2863,12 @@ class ChoreManager(BaseManager):
         - Approval period start time
         - Ownership claims
         """
-        chore_info = self._coordinator.chores_data.get(chore_id)
-        if not chore_info:
-            const.LOGGER.warning("Cannot reset chore %s - not found", chore_id)
-            return
+        reset_events = self._reset_chore_to_pending_internal(chore_id)
 
-        reset_count = 0
-        for assignee_id in chore_info.get(const.DATA_CHORE_ASSIGNED_USER_IDS, []):
-            if assignee_id:
-                self._transition_chore_state(
-                    assignee_id,
-                    chore_id,
-                    const.CHORE_STATE_PENDING,
-                    reset_approval_period=True,
-                    clear_ownership=True,
-                    persist=False,
-                )
-                reset_count += 1
-
-        if persist and reset_count > 0:
+        if persist and reset_events:
             self._coordinator._persist()
+            self._emit_reset_events(reset_events)
             self._coordinator.async_set_updated_data(self._coordinator._data)
-
-        const.LOGGER.debug(
-            "Reset chore '%s' to pending for %d assignees",
-            chore_info.get(const.DATA_CHORE_NAME, chore_id),
-            reset_count,
-        )
 
     async def reset_all_chore_states_to_pending(self) -> None:
         """Reset all chores to pending state, clearing claims/approvals.
@@ -2848,11 +2879,14 @@ class ChoreManager(BaseManager):
         - Emits SIGNAL_SUFFIX_CHORE_STATUS_RESET for each chore
         """
         chore_ids = list(self._coordinator.chores_data.keys())
+        reset_events: set[tuple[str, str, str]] = set()
         for chore_id in chore_ids:
-            self.reset_chore_to_pending(chore_id, persist=False)
+            reset_events.update(self._reset_chore_to_pending_internal(chore_id))
 
-        self._coordinator._persist()
-        self._coordinator.async_set_updated_data(self._coordinator._data)
+        if reset_events:
+            self._coordinator._persist()
+            self._emit_reset_events(reset_events)
+            self._coordinator.async_set_updated_data(self._coordinator._data)
 
         const.LOGGER.info("Manually reset all chores to pending")
 
@@ -2870,6 +2904,7 @@ class ChoreManager(BaseManager):
         - SHARED chores: Reschedule chore-level due date (affects all assignees)
         """
         reset_count = 0
+        reset_events: set[tuple[str, str, str]] = set()
 
         for (
             iter_assignee_id,
@@ -2894,6 +2929,13 @@ class ChoreManager(BaseManager):
                 persist=False,
             )
             reset_count += 1
+            reset_events.add(
+                (
+                    iter_assignee_id,
+                    iter_chore_id,
+                    str(chore_info.get(const.DATA_CHORE_NAME, iter_chore_id)),
+                )
+            )
 
             # Reschedule based on completion criteria
             if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
@@ -2905,6 +2947,7 @@ class ChoreManager(BaseManager):
 
         if reset_count > 0:
             self._coordinator._persist()
+            self._emit_reset_events(reset_events)
             self._coordinator.async_set_updated_data(self._coordinator._data)
             const.LOGGER.debug("Reset %d overdue chore assignment(s)", reset_count)
 
@@ -3020,13 +3063,15 @@ class ChoreManager(BaseManager):
         # Store updated chore
         self._coordinator._data[const.DATA_CHORES][chore_id] = updated_chore
 
+        reset_events: set[tuple[str, str, str]] = set()
+
         # Reset states to PENDING if due dates are being updated
         # Handles both SHARED (DATA_CHORE_DUE_DATE) and INDEPENDENT (DATA_CHORE_PER_ASSIGNEE_DUE_DATES)
         if (
             const.DATA_CHORE_DUE_DATE in updates
             or const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES in updates
         ):
-            self.reset_chore_to_pending(chore_id, persist=False)
+            reset_events = self._reset_chore_to_pending_internal(chore_id)
 
         # NOTE: Badge recalculation is handled by GamificationManager via
         # SIGNAL_SUFFIX_CHORE_UPDATED event (Platinum Architecture: event-driven)
@@ -3035,6 +3080,7 @@ class ChoreManager(BaseManager):
 
         # Persist then emit (transactional integrity: signal only after persist)
         self._coordinator._persist(immediate=immediate_persist)
+        self._emit_reset_events(reset_events)
         self._coordinator.async_update_listeners()
 
         self.emit(
