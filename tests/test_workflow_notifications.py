@@ -892,6 +892,12 @@ class TestDueDateReminders:
             chore_id,
             assignee_id,
         )
+        status_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_STATUS,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
         due_window_tag = coordinator.notification_manager.build_notification_tag(
             const.NOTIFY_TAG_TYPE_DUE_WINDOW,
             coordinator.notification_manager.entry_id,
@@ -922,7 +928,8 @@ class TestDueDateReminders:
             )
             in clear_approvers.await_args_list
         )
-        assert clear_assignee.await_count >= 2
+        assert clear_assignee.await_count >= 3
+        assert call(assignee_id, status_tag) in clear_assignee.await_args_list
         assert call(assignee_id, overdue_tag) in clear_assignee.await_args_list
         assert call(assignee_id, due_window_tag) in clear_assignee.await_args_list
 

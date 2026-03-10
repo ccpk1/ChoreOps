@@ -33,6 +33,7 @@ from tests.helpers import (
     CHORE_STATE_APPROVED,
     CHORE_STATE_CLAIMED,
     # Phase 2: CHORE_STATE_COMPLETED_BY_OTHER removed - use "completed_by_other" string literal
+    CHORE_STATE_MISSED,
     CHORE_STATE_OVERDUE,
     CHORE_STATE_PENDING,
     COMPLETION_CRITERIA_INDEPENDENT,
@@ -812,6 +813,35 @@ class TestResetOverdueChoresService:
         if new_due:
             new_due_dt = datetime.fromisoformat(new_due)
             assert new_due_dt > datetime.now(UTC), "New due date should be in future"
+
+    @pytest.mark.asyncio
+    async def test_reset_missed_independent_chore(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """Test resetting missed independent chore through reset_overdue_chores."""
+        coordinator = setup_chore_services_scenario.coordinator
+        zoe_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Independent Daily Task"]
+
+        set_chore_due_date_to_past(coordinator, chore_id, assignee_id=zoe_id)
+        coordinator.assignees_data[zoe_id][DATA_USER_CHORE_DATA][chore_id][
+            DATA_USER_CHORE_DATA_STATE
+        ] = CHORE_STATE_MISSED
+        coordinator._persist()
+
+        await coordinator.chore_manager.reset_overdue_chores(chore_id, zoe_id)
+
+        assert (
+            coordinator.assignees_data[zoe_id][DATA_USER_CHORE_DATA][chore_id][
+                DATA_USER_CHORE_DATA_STATE
+            ]
+            == CHORE_STATE_PENDING
+        )
+        new_due = get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id)
+        assert new_due is not None
+        assert datetime.fromisoformat(new_due) > datetime.now(UTC)
 
 
 # ============================================================================

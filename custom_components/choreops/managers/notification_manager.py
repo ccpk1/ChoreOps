@@ -1592,6 +1592,9 @@ class NotificationManager(BaseManager):
         chore_id: str,
     ) -> None:
         """Clear notifications invalidated by a reset back to pending."""
+        status_tag = self.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_STATUS, self.entry_id, chore_id, assignee_id
+        )
         overdue_tag = self.build_notification_tag(
             const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
         )
@@ -1605,6 +1608,7 @@ class NotificationManager(BaseManager):
                 const.NOTIFY_TAG_TYPE_STATUS,
                 chore_id,
             ),
+            self.clear_notification_for_assignee(assignee_id, status_tag),
             self.clear_notification_for_assignee(assignee_id, overdue_tag),
             self.clear_notification_for_assignee(assignee_id, due_window_tag),
         )

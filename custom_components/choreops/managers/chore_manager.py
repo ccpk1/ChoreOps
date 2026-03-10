@@ -2896,7 +2896,7 @@ class ChoreManager(BaseManager):
     async def reset_overdue_chores(
         self, chore_id: str | None = None, assignee_id: str | None = None
     ) -> None:
-        """Reset overdue chore(s) to Pending state and reschedule.
+        """Reset overdue or missed chore(s) to Pending state and reschedule.
 
         Args:
             chore_id: Optional specific chore to reset (all assignees if None)
@@ -2916,7 +2916,7 @@ class ChoreManager(BaseManager):
         ) in self._iter_assignee_chore_pairs(
             chore_id=chore_id,
             assignee_id=assignee_id,
-            filter_fn=self.chore_is_overdue,
+            filter_fn=self.chore_is_resettable,
         ):
             criteria = chore_info.get(
                 const.DATA_CHORE_COMPLETION_CRITERIA,
@@ -3248,6 +3248,18 @@ class ChoreManager(BaseManager):
         """Check if a chore is in overdue state. Manager provides data, Engine provides verdict."""
         return ChoreEngine.chore_is_overdue(
             self._get_assignee_chore_data(assignee_id, chore_id)
+        )
+
+    def chore_is_resettable(self, assignee_id: str, chore_id: str) -> bool:
+        """Check if a chore can be reset by the overdue reset service."""
+        assignee_chore_data = self._get_assignee_chore_data(assignee_id, chore_id)
+        current_state = assignee_chore_data.get(
+            const.DATA_USER_CHORE_DATA_STATE,
+            const.CHORE_STATE_PENDING,
+        )
+        return current_state in (
+            const.CHORE_STATE_OVERDUE,
+            const.CHORE_STATE_MISSED,
         )
 
     def chore_is_due(self, assignee_id: str | None, chore_id: str) -> bool:
