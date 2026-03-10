@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Gérer le contrôle de l'interface utilisateur",
+      "description": "Créez, mettez à jour ou supprimez une valeur de contrôle d'interface utilisateur spécifique à un utilisateur, stockée dans le compartiment ui_preferences persistant de l'utilisateur. Utilisez une clé vide avec l'action de suppression pour effacer toutes les préférences d'interface utilisateur stockées pour l'utilisateur ciblé.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps. Elle cible une configuration spécifique.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrée de configuration (facultatif)",
+          "description": "Utilisez cette option si vous avez plusieurs configurations ChoreOps et que chacune possède un nom unique. Si des noms se répètent, utilisez l'ID d'entrée de configuration.",
+          "example": "Tâches familiales"
+        },
+        "user_id": {
+          "name": "ID de l'utilisateur",
+          "description": "Cible d'identifiant utilisateur interne optionnelle. Réservée aux utilisateurs avancés. Si user_id et user_name sont tous deux fournis, user_id est prioritaire.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Nom d'utilisateur",
+          "description": "Nom d'utilisateur cible facultatif. Requis si l'identifiant utilisateur n'est pas fourni.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "Action de contrôle d'interface utilisateur",
+          "description": "Choisissez si vous souhaitez créer, mettre à jour ou supprimer une valeur de contrôle d'interface utilisateur enregistrée.",
+          "example": "mise à jour"
+        },
+        "key": {
+          "name": "Chemin clé",
+          "description": "Chemin d'accès aux paramètres d'interface utilisateur délimité par des barres obliques, par exemple : gamification/rewards/header_collapse. Ne laissez ce champ vide que pour l'action de suppression, qui efface toutes les préférences d'interface utilisateur enregistrées.",
+          "example": "gamification/récompenses/réduire_l'en-tête"
+        },
+        "value": {
+          "name": "Valeur",
+          "description": "Valeur à enregistrer pour la création ou la mise à jour. Ce champ est ignoré lors de la suppression."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Réinitialiser les tâches à l'état en attente",
       "description": "Réinitialisez manuellement toutes les tâches à l'état « en attente », en supprimant les demandes et les approbations.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Récompenses"
           },
+          "ui_control": {
+            "name": "Contrôle de l'interface utilisateur"
+          },
           "badges": {
             "name": "badges"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Aucune entrée correspondante trouvée dans la configuration."
+    },
+    "ui_control_target_required": {
+      "message": "Fournissez l'identifiant ou le nom d'utilisateur pour cibler un utilisateur."
+    },
+    "ui_control_invalid_action": {
+      "message": "Action de contrôle d'interface utilisateur invalide {action}. Actions autorisées : créer, mettre à jour, supprimer."
+    },
+    "ui_control_invalid_key": {
+      "message": "Chemin d'accès à une touche de contrôle d'interface utilisateur invalide {key}. Utilisez des chemins séparés par des barres obliques, comme gamification/rewards/header_collapse. Une touche vide est autorisée uniquement avec la commande remove."
+    },
+    "ui_control_value_required": {
+      "message": "Le champ valeur est obligatoire pour l'action {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "La touche de contrôle d'interface utilisateur {key} existe déjà pour l'utilisateur {user_name}. Utilisez plutôt la fonction de mise à jour."
+    },
+    "ui_control_key_not_found": {
+      "message": "La touche de contrôle d'interface utilisateur {key} n'a pas été trouvée pour l'utilisateur {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Plusieurs entrées ChoreOps sont chargées. Veuillez fournir config_entry_id. Entrées disponibles : {available_entries}"

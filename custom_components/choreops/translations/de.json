@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "UI-Steuerung verwalten",
+      "description": "Erstellen, aktualisieren oder entfernen Sie einen benutzerspezifischen UI-Steuerelementwert, der im persistenten UI-Preferences-Bucket des Benutzers gespeichert ist. Verwenden Sie einen leeren Schlüssel bei der Aktion „Entfernen“, um alle gespeicherten UI-Einstellungen für den betreffenden Benutzer zu löschen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationseintrags-ID (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups haben. Sie ist auf ein bestimmtes Setup ausgerichtet.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Name des Konfigurationseintrags (optional)",
+          "description": "Verwenden Sie diese Option, wenn Sie mehrere ChoreOps-Setups mit jeweils eindeutigen Namen haben. Bei sich wiederholenden Namen verwenden Sie die Konfigurationseintrags-ID.",
+          "example": "Familienaufgaben"
+        },
+        "user_id": {
+          "name": "Benutzer-ID",
+          "description": "Optionale interne Benutzer-ID. Nur für fortgeschrittene Benutzer. Wenn sowohl Benutzer-ID als auch Benutzername angegeben werden, hat die Benutzer-ID Vorrang.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Benutzername",
+          "description": "Optionaler Benutzername. Erforderlich, wenn keine Benutzer-ID angegeben wird.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "UI-Steuerelementaktion",
+          "description": "Wählen Sie aus, ob ein gespeicherter UI-Steuerelementwert erstellt, aktualisiert oder entfernt werden soll.",
+          "example": "aktualisieren"
+        },
+        "key": {
+          "name": "Schlüsselpfad",
+          "description": "Durch Schrägstriche getrennter Pfad zur Benutzeroberfläche, z. B. gamification/rewards/header_collapse. Nur bei der Aktion „Entfernen“ leer lassen, um alle gespeicherten Benutzeroberflächeneinstellungen zu löschen.",
+          "example": "Gamifizierung/Belohnungen/Header_Collapse"
+        },
+        "value": {
+          "name": "Wert",
+          "description": "Wert, der beim Erstellen oder Aktualisieren gespeichert werden soll. Dieses Feld wird beim Löschen ignoriert."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Aufgaben auf den Status „Ausstehend“ zurücksetzen",
       "description": "Alle Aufgaben wurden manuell auf den Status „Ausstehend“ zurückgesetzt, wodurch Ansprüche und Genehmigungen entfernt wurden.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Prämien"
           },
+          "ui_control": {
+            "name": "UI-Steuerung"
+          },
           "badges": {
             "name": "{kid_name} - Abzeichen"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "In der Konfiguration wurde kein passender Eintrag gefunden."
+    },
+    "ui_control_target_required": {
+      "message": "Geben Sie user_id oder user_name an, um einen bestimmten Benutzer anzusprechen."
+    },
+    "ui_control_invalid_action": {
+      "message": "Ungültige UI-Steuerelementaktion {action}. Zulässige Aktionen: Erstellen, Aktualisieren, Entfernen."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ungültiger Pfad für UI-Steuerelementschlüssel: {key}. Verwenden Sie durch Schrägstriche getrennte Pfade wie gamification/rewards/header_collapse. Ein leerer Schlüssel ist nur bei der Funktion „remove“ zulässig."
+    },
+    "ui_control_value_required": {
+      "message": "Das Wertfeld ist für die Aktion {action} erforderlich."
+    },
+    "ui_control_key_already_exists": {
+      "message": "Die UI-Steuerungstaste {key} ist bereits für den Benutzer {user_name}vorhanden. Verwenden Sie stattdessen die Aktualisierungsfunktion."
+    },
+    "ui_control_key_not_found": {
+      "message": "Die UI-Steuerungstaste {key} wurde für Benutzer {user_name} nicht gefunden."
     },
     "service_target_ambiguous": {
       "message": "Es wurden mehrere ChoreOps-Einträge geladen. Geben Sie die Konfigurationseintrags-ID an. Verfügbare Einträge: {available_entries}"

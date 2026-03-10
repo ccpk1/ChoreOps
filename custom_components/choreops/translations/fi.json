@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Käyttöliittymän hallinta",
+      "description": "Luo, päivitä tai poista käyttäjäkohtainen käyttöliittymän ohjausarvo, joka on tallennettu käyttäjän pysyvään ui_preferences-säilöön. Käytä tyhjää avainta poistotoiminnon kanssa tyhjentääksesi kaikki tallennetut käyttöliittymän asetukset kohdekäyttäjältä.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-kokoonpano. Se kohdistuu yhteen tiettyyn kokoonpanoon.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfiguraatiomerkinnän nimi (valinnainen)",
+          "description": "Käytä tätä, jos sinulla on useampi kuin yksi ChoreOps-asetus ja niillä jokaisella on yksilölliset nimet. Jos nimet toistuvat, käytä määritysmerkinnän tunnusta.",
+          "example": "Perheen askareita"
+        },
+        "user_id": {
+          "name": "Käyttäjätunnus",
+          "description": "Valinnainen sisäinen käyttäjätunnuskohde. Vain kokeneille käyttäjille. Jos sekä käyttäjätunnus että käyttäjänimi annetaan, käyttäjätunnus voittaa.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Käyttäjänimi",
+          "description": "Valinnainen käyttäjätunnuskohde. Pakollinen, kun käyttäjätunnusta ei ole annettu.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "Käyttöliittymän ohjaustoiminto",
+          "description": "Valitse, haluatko luoda, päivittää vai poistaa tallennetun käyttöliittymän ohjausobjektin arvon.",
+          "example": "päivittää"
+        },
+        "key": {
+          "name": "Avainpolku",
+          "description": "Viivalla eroteltu käyttöliittymän ohjauspolku, kuten gamification/rewards/header_collapse. Jätä tyhjäksi vain poistotoiminnon kanssa, jos haluat tyhjentää kaikki käyttäjän tallennetut käyttöliittymäasetukset.",
+          "example": "pelillistäminen/palkinnot/otsikon_kutistus"
+        },
+        "value": {
+          "name": "Arvo",
+          "description": "Luontia tai päivitystä varten tallennettava arvo. Tätä kenttää ei huomioida poistossa."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Palauta tehtävät odottavaan tilaan",
       "description": "Palauta kaikki tehtävät manuaalisesti odottavaan tilaan, poistaen vaatimukset ja hyväksynnät.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Palkinnot"
           },
+          "ui_control": {
+            "name": "Käyttöliittymän hallinta"
+          },
           "badges": {
             "name": "Merkit"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Kokoonpanosta ei löytynyt vastaavaa merkintää."
+    },
+    "ui_control_target_required": {
+      "message": "Anna käyttäjätunnus tai käyttäjänimi kohdistaaksesi yhden käyttäjän."
+    },
+    "ui_control_invalid_action": {
+      "message": "Virheellinen käyttöliittymän ohjaustoiminto {action}. Sallitut toiminnot: luonti, päivitys, poistaminen."
+    },
+    "ui_control_invalid_key": {
+      "message": "Virheellinen käyttöliittymän ohjausavaimen polku {key}. Käytä kauttaviivalla eroteltuja polkuja, kuten gamification/rewards/header_collapse. Tyhjä avain sallitaan vain poiston yhteydessä."
+    },
+    "ui_control_value_required": {
+      "message": "Arvokenttä on pakollinen {action} -toiminnolle."
+    },
+    "ui_control_key_already_exists": {
+      "message": "Käyttöliittymän ohjausavain {key} on jo olemassa käyttäjälle {user_name}. Käytä sen sijaan päivitystä."
+    },
+    "ui_control_key_not_found": {
+      "message": "Käyttäjälle {user_name} ei löytynyt käyttöliittymän ohjausnäppäintä {key}."
     },
     "service_target_ambiguous": {
       "message": "Useita ChoreOps-merkintöjä on ladattu. Anna config_entry_id. Käytettävissä olevat merkinnät: {available_entries}"

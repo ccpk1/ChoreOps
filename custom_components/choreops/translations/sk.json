@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Správa ovládania používateľského rozhrania",
+      "description": "Vytvorte, aktualizujte alebo odstráňte hodnotu ovládacieho prvku používateľského rozhrania pre daného používateľa uloženú v trvalom kontajneri ui_preferences používateľa. Na vymazanie všetkých uložených preferencií používateľského rozhrania pre cieľového používateľa použite prázdny kľúč s akciou odstránenia.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viac ako jedno nastavenie ChoreOps. Zameriava sa na jedno konkrétne nastavenie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Názov konfiguračnej položky (voliteľné)",
+          "description": "Použite toto, ak máte viacero nastavení ChoreOps a každé z nich má jedinečný názov. Ak sa názvy opakujú, použite ID položky konfigurácie.",
+          "example": "Rodinné práce"
+        },
+        "user_id": {
+          "name": "ID používateľa",
+          "description": "Voliteľný interný cieľ ID používateľa. Len pre pokročilých používateľov. Ak je zadané ID používateľa aj meno používateľa, prejde ID používateľa.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Používateľské meno",
+          "description": "Voliteľné cieľové meno používateľa. Povinné, ak nie je zadané user_id.",
+          "example": "Alica"
+        },
+        "ui_control_action": {
+          "name": "Akcia ovládania používateľského rozhrania",
+          "description": "Vyberte, či chcete vytvoriť, aktualizovať alebo odstrániť uloženú hodnotu ovládacieho prvku používateľského rozhrania.",
+          "example": "aktualizácia"
+        },
+        "key": {
+          "name": "Kľúčová cesta",
+          "description": "Cesta k ovládacím prvkom používateľského rozhrania oddelená lomkou, napríklad gamification/rewards/header_collapse. Ponechajte prázdne iba pri akcii odstránenia, ktorá vymaže všetky uložené nastavenia používateľského rozhrania pre používateľa.",
+          "example": "gamifikácia/odmeny/zbalenie_hlavičky"
+        },
+        "value": {
+          "name": "Hodnota",
+          "description": "Hodnota, ktorá sa má uložiť pri vytváraní alebo aktualizácii. Toto pole sa ignoruje pri odstraňovaní."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Obnoviť úlohy do stavu čakania",
       "description": "Manuálne resetovať všetky úlohy do stavu čakajúceho, čím sa odstránia nároky a schválenia.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Odmeny"
           },
+          "ui_control": {
+            "name": "Ovládanie používateľského rozhrania"
+          },
           "badges": {
             "name": "Odznaky"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "V konfigurácii sa nenašiel žiadny zodpovedajúci záznam."
+    },
+    "ui_control_target_required": {
+      "message": "Zadajte user_id alebo user_name pre zacielenie na jedného používateľa."
+    },
+    "ui_control_invalid_action": {
+      "message": "Neplatná akcia ovládacieho prvku používateľského rozhrania {action}. Povolené akcie: vytvoriť, aktualizovať, odstrániť."
+    },
+    "ui_control_invalid_key": {
+      "message": "Neplatná cesta ku kľúču ovládania používateľského rozhrania {key}. Použite cesty oddelené lomítkami, ako napríklad gamification/rewards/header_collapse. Prázdny kľúč je povolený iba s príkazom remove."
+    },
+    "ui_control_value_required": {
+      "message": "Pole hodnoty je povinné pre akciu {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "Ovládací kľúč používateľského rozhrania {key} už existuje pre používateľa {user_name}. Použite namiesto toho aktualizáciu."
+    },
+    "ui_control_key_not_found": {
+      "message": "Ovládací kláves používateľského rozhrania {key} sa pre používateľa {user_name} nenašiel."
     },
     "service_target_ambiguous": {
       "message": "Načítalo sa viacero záznamov ChoreOps. Zadajte config_entry_id. Dostupné záznamy: {available_entries}"

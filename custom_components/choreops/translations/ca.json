@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Gestiona el control de la interfície d'usuari",
+      "description": "Crea, actualitza o elimina un valor de control d'IU per usuari emmagatzemat al contenidor ui_preferences persistent de l'usuari. Utilitza una clau buida amb l'acció d'eliminació per esborrar totes les preferències d'IU emmagatzemades per a l'usuari de destinació.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID d'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració de ChoreOps. Està dirigit a una configuració específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nom de l'entrada de configuració (opcional)",
+          "description": "Feu servir això si teniu més d'una configuració ChoreOps i cadascuna té noms únics. Si els noms es repeteixen, feu servir l'ID d'entrada de configuració.",
+          "example": "Tasques familiars"
+        },
+        "user_id": {
+          "name": "ID d'usuari",
+          "description": "Destinació d'ID d'usuari intern opcional. Només per a usuaris avançats. Si es proporcionen tant user_id com user_name, user_id guanya.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Nom d'usuari",
+          "description": "Nom d'usuari objectiu opcional. Obligatori quan no es proporciona user_id.",
+          "example": "Alícia"
+        },
+        "ui_control_action": {
+          "name": "Acció de control de la interfície d'usuari",
+          "description": "Trieu si voleu crear, actualitzar o eliminar un valor de control de la interfície d'usuari emmagatzemat.",
+          "example": "actualització"
+        },
+        "key": {
+          "name": "Camí clau",
+          "description": "Ruta de control de la interfície d'usuari delimitada per barres inclinades, com ara gamification/rewards/header_collapse. Deixeu-ho en blanc només amb l'acció d'eliminació per esborrar totes les preferències de la interfície d'usuari emmagatzemades per a l'usuari.",
+          "example": "gamificació/recompenses/capçalera_replegada"
+        },
+        "value": {
+          "name": "Valor",
+          "description": "Valor que s'ha d'emmagatzemar per crear o actualitzar. Aquest camp s'ignora per eliminar-lo."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Restableix les tasques a l'estat pendent",
       "description": "Restableix manualment totes les tasques a l'estat pendent, eliminant reclamacions i aprovacions.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Recompenses"
           },
+          "ui_control": {
+            "name": "Control de la interfície d'usuari"
+          },
           "badges": {
             "name": "Insígnies"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "No s'ha trobat cap entrada coincident a la configuració."
+    },
+    "ui_control_target_required": {
+      "message": "Proporcioneu user_id o user_name per orientar-vos a un usuari."
+    },
+    "ui_control_invalid_action": {
+      "message": "Acció de control de la interfície d'usuari no vàlida {action}. Accions permeses: crear, actualitzar, eliminar."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ruta de clau de control de la IU no vàlida {key}. Utilitzeu rutes delimitades per barra com ara gamification/rewards/header_collapse. Només es permet una clau buida amb l'opció remove."
+    },
+    "ui_control_value_required": {
+      "message": "El camp de valor és obligatori per a l'acció {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "La clau de control de la IU {key} ja existeix per a l'usuari {user_name}. Feu servir l'actualització en comptes d'això."
+    },
+    "ui_control_key_not_found": {
+      "message": "No s'ha trobat la tecla de control de la IU {key} per a l'usuari {user_name}."
     },
     "service_target_ambiguous": {
       "message": "S'han carregat diverses entrades de ChoreOps. Proporcioneu config_entry_id. Entrades disponibles: {available_entries}"

@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Administrer brukergrensesnittkontroll",
+      "description": "Opprett, oppdater eller fjern en brukergrensesnittkontrollverdi som er lagret i brukerens vedvarende ui_preferences-bøtte. Bruk en tom nøkkel med fjern-handlingen for å fjerne alle lagrede brukergrensesnittpreferanser for den aktuelle brukeren.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurasjonsoppførings-ID (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett. Det er rettet mot ett spesifikt oppsett.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurasjonsoppføring (valgfritt)",
+          "description": "Bruk dette hvis du har mer enn ett ChoreOps-oppsett, og hvert av dem har unike navn. Hvis navnene gjentas, bruk Config Entry ID.",
+          "example": "Familiearbeid"
+        },
+        "user_id": {
+          "name": "Bruker-ID",
+          "description": "Valgfritt internt bruker-ID-mål. Kun avanserte brukere. Hvis både bruker-ID og brukernavn oppgis, vinner bruker-ID.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Brukernavn",
+          "description": "Valgfritt brukernavnmål. Obligatorisk når bruker-ID ikke er oppgitt.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "UI-kontrollhandling",
+          "description": "Velg om du vil opprette, oppdatere eller fjerne en lagret UI-kontrollverdi.",
+          "example": "oppdatering"
+        },
+        "key": {
+          "name": "Nøkkelsti",
+          "description": "Skråstrekeavgrenset UI-kontrollbane, for eksempel gamification/rewards/header_collapse. La bare feltet stå tomt med fjern-handlingen for å fjerne alle lagrede UI-preferanser for brukeren.",
+          "example": "gamification/rewards/header_collapse"
+        },
+        "value": {
+          "name": "Verdi",
+          "description": "Verdi som skal lagres for oppretting eller oppdatering. Dette feltet ignoreres for fjerning."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Tilbakestill gjøremål til ventende tilstand",
       "description": "Tilbakestill alle gjøremål manuelt til ventende status, og fjern krav og godkjenninger.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Belønninger"
           },
+          "ui_control": {
+            "name": "UI-kontroll"
+          },
           "badges": {
             "name": "Merker"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Ingen samsvarende oppføring funnet i konfigurasjonen."
+    },
+    "ui_control_target_required": {
+      "message": "Oppgi bruker-ID eller brukernavn for å målrette én bruker."
+    },
+    "ui_control_invalid_action": {
+      "message": "Ugyldig UI-kontrollhandling {action}. Tillatte handlinger: opprett, oppdater, fjern."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ugyldig UI-kontrollnøkkelsti {key}. Bruk skråstrekseparerte stier som gamification/rewards/header_collapse. Tom nøkkel er bare tillatt med remove."
+    },
+    "ui_control_value_required": {
+      "message": "Verdifeltet er obligatorisk for handlingen {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "Kontrollnøkkelen for brukergrensesnittet {key} finnes allerede for bruker {user_name}. Bruk oppdatering i stedet."
+    },
+    "ui_control_key_not_found": {
+      "message": "Kontrolltasten {key} ble ikke funnet for bruker {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Flere ChoreOps-oppføringer er lastet inn. Oppgi config_entry_id. Tilgjengelige oppføringer: {available_entries}"

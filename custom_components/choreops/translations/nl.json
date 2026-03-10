@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Beheer UI-besturingselementen",
+      "description": "Hiermee kunt u een gebruikersspecifieke UI-besturingselementwaarde aanmaken, bijwerken of verwijderen die is opgeslagen in de opgeslagen ui_preferences-bucket van de gebruiker. Gebruik een lege sleutel bij de actie 'verwijderen' om alle opgeslagen UI-voorkeuren voor de betreffende gebruiker te wissen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Configuratie-item-ID (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt. Het is gericht op één specifieke configuratie.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Configuratie-itemnaam (optioneel)",
+          "description": "Gebruik dit als u meer dan één ChoreOps-configuratie hebt en deze elk een unieke naam hebben. Als de namen zich herhalen, gebruik dan de configuratie-item-ID.",
+          "example": "Huishoudelijke klusjes"
+        },
+        "user_id": {
+          "name": "Gebruikers-ID",
+          "description": "Optioneel intern gebruikers-ID-doel. Alleen voor gevorderde gebruikers. Als zowel user_id als user_name worden opgegeven, heeft user_id voorrang.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Gebruikersnaam",
+          "description": "Optioneel doelgebruikersnaam. Vereist wanneer user_id niet is opgegeven.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "UI-besturingsactie",
+          "description": "Kies of u een opgeslagen UI-besturingselementwaarde wilt aanmaken, bijwerken of verwijderen.",
+          "example": "update"
+        },
+        "key": {
+          "name": "Sleutelpad",
+          "description": "Een pad voor UI-besturingselementen, gescheiden door schuine strepen, zoals gamification/rewards/header_collapse. Laat dit veld alleen leeg bij de actie 'verwijderen' om alle opgeslagen UI-voorkeuren voor de gebruiker te wissen.",
+          "example": "gamification/rewards/header_collapse"
+        },
+        "value": {
+          "name": "Waarde",
+          "description": "Waarde die wordt opgeslagen bij aanmaken of bijwerken. Dit veld wordt genegeerd bij verwijderen."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Taken terugzetten naar de status 'In behandeling'",
       "description": "Zet handmatig alle taken terug naar de status 'in behandeling' en verwijder claims en goedkeuringen.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Beloningen"
           },
+          "ui_control": {
+            "name": "UI-besturingselement"
+          },
           "badges": {
             "name": "Badges"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Geen overeenkomende vermelding gevonden in de configuratie."
+    },
+    "ui_control_target_required": {
+      "message": "Geef de user_id of user_name op om één specifieke gebruiker te selecteren."
+    },
+    "ui_control_invalid_action": {
+      "message": "Ongeldige UI-besturingselementactie {action}. Toegestane acties: aanmaken, bijwerken, verwijderen."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ongeldig UI-besturingselement-sleutelpad {key}. Gebruik paden gescheiden door schuine strepen, zoals gamification/rewards/header_collapse. Een lege sleutel is alleen toegestaan bij verwijderen."
+    },
+    "ui_control_value_required": {
+      "message": "Het waardeveld is vereist voor de actie {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "De UI-besturingstoets {key} bestaat al voor gebruiker {user_name}. Gebruik in plaats daarvan de update-functie."
+    },
+    "ui_control_key_not_found": {
+      "message": "UI-besturingstoets {key} is niet gevonden voor gebruiker {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Er zijn meerdere ChoreOps-items geladen. Geef de config_entry_id op. Beschikbare items: {available_entries}"

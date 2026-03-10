@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Administrar el control de la interfaz de usuario",
+      "description": "Cree, actualice o elimine un valor de control de IU por usuario almacenado en el contenedor ui_preferences persistente del usuario. Use una clave vacía con la acción \"eliminar\" para borrar todas las preferencias de IU almacenadas para el usuario objetivo.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de entrada de configuración (opcional)",
+          "description": "Úselo si tiene más de una configuración de ChoreOps. Se centra en una configuración específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nombre de la entrada de configuración (opcional)",
+          "description": "Use esto si tiene varias configuraciones de ChoreOps y cada una tiene un nombre único. Si los nombres se repiten, use el ID de entrada de configuración.",
+          "example": "Tareas familiares"
+        },
+        "user_id": {
+          "name": "ID de usuario",
+          "description": "Objetivo de ID de usuario interno opcional. Solo para usuarios avanzados. Si se proporcionan tanto user_id como user_name, prevalece user_id.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Nombre de usuario",
+          "description": "Nombre de usuario de destino opcional. Obligatorio si no se proporciona el ID de usuario.",
+          "example": "Alicia"
+        },
+        "ui_control_action": {
+          "name": "Acción de control de IU",
+          "description": "Elija si desea crear, actualizar o eliminar un valor de control de IU almacenado.",
+          "example": "actualizar"
+        },
+        "key": {
+          "name": "Ruta clave",
+          "description": "Ruta de control de IU delimitada por barras, como gamification/rewards/header_collapse. Déjela vacía solo con la acción de eliminar para borrar todas las preferencias de IU almacenadas para el usuario.",
+          "example": "gamificación/recompensas/collapse_de_encabezado"
+        },
+        "value": {
+          "name": "Valor",
+          "description": "Valor que se almacena al crear o actualizar. Este campo se ignora al eliminar."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Restablecer tareas al estado pendiente",
       "description": "Restablecer manualmente todas las tareas al estado pendiente, eliminando reclamos y aprobaciones.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Recompensas"
           },
+          "ui_control": {
+            "name": "Control de interfaz de usuario"
+          },
           "badges": {
             "name": "Insignias"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "No se encontró ninguna entrada coincidente en la configuración."
+    },
+    "ui_control_target_required": {
+      "message": "Proporcione user_id o user_name para apuntar a un usuario."
+    },
+    "ui_control_invalid_action": {
+      "message": "Acción de control de IU no válida {action}. Acciones permitidas: crear, actualizar, eliminar."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ruta de clave de control de IU no válida {key}. Use rutas delimitadas por barras, como gamification/rewards/header_collapse. Las claves vacías solo se permiten con la función \"eliminar\"."
+    },
+    "ui_control_value_required": {
+      "message": "El campo de valor es obligatorio para la acción {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "La tecla de control de la interfaz de usuario {key} ya existe para el usuario {user_name}. Use la actualización en su lugar."
+    },
+    "ui_control_key_not_found": {
+      "message": "No se encontró la tecla de control de UI {key} para el usuario {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Se han cargado varias entradas de ChoreOps. Proporcione el id de la entrada de configuración. Entradas disponibles: {available_entries}"
