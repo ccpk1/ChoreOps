@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Hantera UI-kontroll",
+      "description": "Skapa, uppdatera eller ta bort ett kontrollvärde per användare för användargränssnittet som lagras i användarens beständiga ui_preferences-bucket. Använd en tom nyckel med åtgärden remove för att rensa alla lagrade användargränssnittsinställningar för den aktuella användaren.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationspost-ID (valfritt)",
+          "description": "Använd detta om du har mer än en ChoreOps-inställning. Den riktar sig mot en specifik inställning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Konfigurationspostnamn (valfritt)",
+          "description": "Använd detta om du har fler än en ChoreOps-konfiguration och de har unika namn. Om namnen upprepas, använd Config Entry ID.",
+          "example": "Familjesysslor"
+        },
+        "user_id": {
+          "name": "Användar-ID",
+          "description": "Valfritt internt användar-ID-mål. Endast avancerade användare. Om både user_id och user_name anges vinner user_id.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Användarnamn",
+          "description": "Valfritt användarnamnsmål. Obligatoriskt när user_id inte anges.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "UI-kontrollåtgärd",
+          "description": "Välj om du vill skapa, uppdatera eller ta bort ett lagrat UI-kontrollvärde.",
+          "example": "uppdatera"
+        },
+        "key": {
+          "name": "Nyckelväg",
+          "description": "Snedstreckavgränsad UI-kontrollväg, till exempel gamification/rewards/header_collapse. Lämna tomt endast med åtgärden ta bort för att rensa alla lagrade UI-inställningar för användaren.",
+          "example": "gamification/rewards/header_collapse"
+        },
+        "value": {
+          "name": "Värde",
+          "description": "Värde att lagra för att skapa eller uppdatera. Detta fält ignoreras vid borttagning."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Återställ sysslor till väntande tillstånd",
       "description": "Återställ alla sysslor manuellt till väntande tillstånd, vilket tar bort anspråk och godkännanden.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Belöningar"
           },
+          "ui_control": {
+            "name": "UI-kontroll"
+          },
           "badges": {
             "name": "Märken"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Ingen matchande post hittades i konfigurationen."
+    },
+    "ui_control_target_required": {
+      "message": "Ange användar-id eller användarnamn för att rikta in sig på en användare."
+    },
+    "ui_control_invalid_action": {
+      "message": "Ogiltig UI-kontrollåtgärd {action}. Tillåtna åtgärder: skapa, uppdatera, ta bort."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ogiltig sökväg för UI-kontrollnyckel {key}. Använd snedstreckavgränsade sökvägar som gamification/rewards/header_collapse. Tom nyckel är endast tillåten med remove."
+    },
+    "ui_control_value_required": {
+      "message": "Värdefältet är obligatoriskt för åtgärden {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "Kontrollnyckeln {key} finns redan för användaren {user_name}. Använd uppdatering istället."
+    },
+    "ui_control_key_not_found": {
+      "message": "Kontrolltangenten {key} hittades inte för användaren {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Flera ChoreOps-poster har laddats. Ange config_entry_id. Tillgängliga poster: {available_entries}"

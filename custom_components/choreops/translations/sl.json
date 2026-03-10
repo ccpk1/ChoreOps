@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Upravljanje nadzora uporabniškega vmesnika",
+      "description": "Ustvarite, posodobite ali odstranite vrednost kontrolnika uporabniškega vmesnika za vsakega uporabnika, shranjeno v uporabnikovem trajnem vedru ui_preferences. Za brisanje vseh shranjenih nastavitev uporabniškega vmesnika za ciljnega uporabnika uporabite prazen ključ z dejanjem odstranitve.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps. Cilja na eno specifično nastavitev.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Ime vnosa konfiguracije (neobvezno)",
+          "description": "Uporabite to možnost, če imate več kot eno nastavitev ChoreOps in ima vsaka edinstveno ime. Če se imena ponavljajo, uporabite ID vnosa konfiguracije.",
+          "example": "Družinska opravila"
+        },
+        "user_id": {
+          "name": "ID uporabnika",
+          "description": "Neobvezen cilj internega uporabniškega ID-ja. Samo za napredne uporabnike. Če sta podana tako user_id kot user_name, prevlada user_id.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Uporabniško ime",
+          "description": "Neobvezno uporabniško ime. Obvezno, če uporabniški_id ni naveden.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "Dejanje nadzora uporabniškega vmesnika",
+          "description": "Izberite, ali želite ustvariti, posodobiti ali odstraniti shranjeno vrednost kontrolnika uporabniškega vmesnika.",
+          "example": "posodobitev"
+        },
+        "key": {
+          "name": "Ključna pot",
+          "description": "S poševnico ločena pot do kontrolnikov uporabniškega vmesnika, kot je gamification/rewards/header_collapse. Pustite prazno samo pri dejanju odstranitve, da počistite vse shranjene nastavitve uporabniškega vmesnika za uporabnika.",
+          "example": "gamifikacija/nagrade/strni_glavo"
+        },
+        "value": {
+          "name": "Vrednost",
+          "description": "Vrednost, ki jo je treba shraniti za ustvarjanje ali posodabljanje. To polje se pri odstranjevanju prezre."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Ponastavi opravila na stanje čakanja",
       "description": "Ročno ponastavite vsa opravila na čakajoče stanje, s čimer odstranite zahtevke in odobritve.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Nagrade"
           },
+          "ui_control": {
+            "name": "Nadzor uporabniškega vmesnika"
+          },
           "badges": {
             "name": "Značke"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "V konfiguraciji ni bilo mogoče najti ustreznega vnosa."
+    },
+    "ui_control_target_required": {
+      "message": "Za ciljanje na enega uporabnika navedite user_id ali user_name."
+    },
+    "ui_control_invalid_action": {
+      "message": "Neveljavno dejanje kontrolnika uporabniškega vmesnika {action}. Dovoljena dejanja: ustvari, posodobi, odstrani."
+    },
+    "ui_control_invalid_key": {
+      "message": "Neveljavna pot do kontrolnega ključa uporabniškega vmesnika {key}. Uporabite poti, ločene s poševnico, kot je gamification/rewards/header_collapse. Prazen ključ je dovoljen samo z odstranitvijo."
+    },
+    "ui_control_value_required": {
+      "message": "Polje z vrednostjo je obvezno za dejanje {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "Kontrolni ključ uporabniškega vmesnika {key} že obstaja za uporabnika {user_name}. Namesto tega uporabite posodobitev."
+    },
+    "ui_control_key_not_found": {
+      "message": "Kontrolna tipka uporabniškega vmesnika {key} za uporabnika {user_name} ni bila najdena."
     },
     "service_target_ambiguous": {
       "message": "Naloženih je več vnosov ChoreOps. Navedite config_entry_id. Razpoložljivi vnosi: {available_entries}"

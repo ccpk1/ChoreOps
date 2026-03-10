@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Administrer brugergrænsefladekontrol",
+      "description": "Opret, opdater eller fjern en brugergrænsefladekontrolværdi, der er gemt i brugerens permanente ui_preferences-bucket. Brug en tom nøgle med fjern-handlingen for at rydde alle gemte brugergrænsefladepræferencer for den pågældende bruger.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Konfigurationsindgangs-ID (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning. Den er rettet mod én specifik opsætning.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Navn på konfigurationspost (valgfrit)",
+          "description": "Brug dette, hvis du har mere end én ChoreOps-opsætning, og de hver især har unikke navne. Hvis navnene gentages, skal du bruge Config Entry ID.",
+          "example": "Familiepligter"
+        },
+        "user_id": {
+          "name": "Bruger-ID",
+          "description": "Valgfrit internt bruger-ID-mål. Kun for avancerede brugere. Hvis både bruger-id og brugernavn angives, vinder bruger-id.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Brugernavn",
+          "description": "Valgfrit brugernavnsmål. Påkrævet, når user_id ikke er angivet.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "UI-kontrolhandling",
+          "description": "Vælg, om du vil oprette, opdatere eller fjerne en gemt UI-kontrolværdi.",
+          "example": "opdatering"
+        },
+        "key": {
+          "name": "Nøglesti",
+          "description": "Skråstregsepareret UI-kontrolsti, f.eks. gamification/rewards/header_collapse. Lad kun feltet stå tomt med fjern-handlingen for at rydde alle gemte UI-præferencer for brugeren.",
+          "example": "gamification/belønninger/header_collapse"
+        },
+        "value": {
+          "name": "Værdi",
+          "description": "Værdi, der skal gemmes til oprettelse eller opdatering. Dette felt ignoreres ved fjernelse."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Nulstil pligter til ventende tilstand",
       "description": "Nulstil manuelt alle opgaver til afventende tilstand, fjern krav og godkendelser.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Belønninger"
           },
+          "ui_control": {
+            "name": "UI-kontrol"
+          },
           "badges": {
             "name": "Badges"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Ingen matchende post fundet i konfigurationen."
+    },
+    "ui_control_target_required": {
+      "message": "Angiv bruger-id eller brugernavn for at målrette én bruger."
+    },
+    "ui_control_invalid_action": {
+      "message": "Ugyldig UI-kontrolhandling {action}. Tilladte handlinger: oprette, opdatere, fjerne."
+    },
+    "ui_control_invalid_key": {
+      "message": "Ugyldig UI-kontrolnøglesti {key}. Brug skråstregseparerede stier som gamification/rewards/header_collapse. Tomme nøgler er kun tilladt med remove."
+    },
+    "ui_control_value_required": {
+      "message": "Værdifeltet er påkrævet for handlingen {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "UI-kontroltasten {key} findes allerede for bruger {user_name}. Brug opdatering i stedet."
+    },
+    "ui_control_key_not_found": {
+      "message": "UI-kontroltasten {key} blev ikke fundet for bruger {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Flere ChoreOps-poster er indlæst. Angiv config_entry_id. Tilgængelige poster: {available_entries}"

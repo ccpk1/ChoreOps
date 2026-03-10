@@ -2878,6 +2878,46 @@
         }
       }
     },
+    "manage_ui_control": {
+      "name": "Gerir o controlo da interface do usuário",
+      "description": "Crie, atualize ou remova um valor de controlo de UI por utilizador armazenado no bucket `ui_preferences` persistente do utilizador. Utilize uma chave vazia com a ação de remoção para limpar todas as preferências de UI armazenadas para o utilizador em questão.",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps. É direcionada para uma configuração específica.",
+          "example": "abc123def456"
+        },
+        "config_entry_title": {
+          "name": "Nome da entrada de configuração (opcional)",
+          "description": "Utilize esta opção se tiver mais do que uma configuração do ChoreOps e cada uma delas tiver um nome único. Se os nomes se repetirem, utilize o ID da entrada de configuração.",
+          "example": "Tarefas familiares"
+        },
+        "user_id": {
+          "name": "ID do utilizador",
+          "description": "ID de utilizador interno opcional. Apenas para utilizadores avançados. Se o user_id e o user_name forem fornecidos, o user_id terá prioridade.",
+          "example": "abc123-def456"
+        },
+        "user_name": {
+          "name": "Nome de utilizador",
+          "description": "Nome de utilizador opcional. Obrigatório quando o user_id não é fornecido.",
+          "example": "Alice"
+        },
+        "ui_control_action": {
+          "name": "Ação de controlo da interface do utilizador",
+          "description": "Escolha se pretende criar, atualizar ou remover um valor de controlo de UI armazenado.",
+          "example": "atualização"
+        },
+        "key": {
+          "name": "Caminho principal",
+          "description": "Caminho de controlo da interface do utilizador delimitado por barras, como gamificação/recompensas/recolhimento_do_cabeçalho. Deixe vazio apenas na ação de remoção para limpar todas as preferências de UI armazenadas para o utilizador.",
+          "example": "gamificação/recompensas/recolha_do_cabeçalho"
+        },
+        "value": {
+          "name": "Valor",
+          "description": "Valor a armazenar para criação ou atualização. Este campo é ignorado para remoção."
+        }
+      }
+    },
     "reset_chores_to_pending_state": {
       "name": "Repor tarefas para o estado pendente",
       "description": "Reponha manualmente todas as tarefas para o estado pendente, removendo pedidos e aprovações.",
@@ -4579,6 +4619,9 @@
           "rewards": {
             "name": "Recompensas"
           },
+          "ui_control": {
+            "name": "Controlo de interface do utilizador"
+          },
           "badges": {
             "name": "Distintivos"
           },
@@ -4934,6 +4977,24 @@
     },
     "error_msg_no_entry_found": {
       "message": "Nenhuma entrada correspondente encontrada na configuração."
+    },
+    "ui_control_target_required": {
+      "message": "Forneça o user_id ou user_name para selecionar um utilizador específico."
+    },
+    "ui_control_invalid_action": {
+      "message": "Ação de controlo da IU inválida {action}. Ações permitidas: criar, atualizar, remover."
+    },
+    "ui_control_invalid_key": {
+      "message": "Caminho de chave de controlo de UI inválido {key}. Utilize caminhos delimitados por barras, como gamification/rewards/header_collapse. As chaves vazias são permitidas apenas com a opção remove."
+    },
+    "ui_control_value_required": {
+      "message": "O campo de valor é obrigatório para a ação {action}."
+    },
+    "ui_control_key_already_exists": {
+      "message": "A chave de controlo da interface do utilizador {key} já existe para o utilizador {user_name}. Utilize a opção \"atualizar\" em vez disso."
+    },
+    "ui_control_key_not_found": {
+      "message": "A tecla de controlo da interface do utilizador {key} não foi encontrada para o utilizador {user_name}."
     },
     "service_target_ambiguous": {
       "message": "Várias entradas do ChoreOps foram carregadas. Forneça o config_entry_id. Entradas disponíveis: {available_entries}"
