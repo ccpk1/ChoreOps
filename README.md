@@ -10,12 +10,6 @@
   <img src="https://raw.githubusercontent.com/ccpk1/choreops/main/custom_components/choreops/brand/logo.png" alt="ChoreOps - Level Up your Household Tasks" width="500">
 </p>
 
-<p align="center">
-  <a href="https://buymeacoffee.com/ccpk1" target="_blank">
-    <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee"  width="125">
-  </a>
-</p>
-
 ---
 
 ### ChoreOps helps keep your home running smoothly... _Level Up your Household Tasks_
@@ -23,6 +17,17 @@
 Whether you are staying on top of a busy lifestyle, sharing duties with a housemate, or trying to motivate your kids, ChoreOps fills a gap in the ecosystem. Users often need something more powerful than a simple to-do list, but more integrated and private than external cloud services.
 
 Born from the popular _KidsChores_ integration, ChoreOps evolves that foundation into a sophisticated **Household Operations Platform**. It recognizes that while the high-quality gamification at its core is a powerful motivator for many, others just want the trash taken out on time.
+
+---
+
+### ❤️ Support the Project
+
+If ChoreOps helps keep your household running smoothly, consider fueling its development! Your support is a token of appreciation that keeps the fire burning and prevents open-source burnout.
+
+[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?style=for-the-badge&logo=github)](https://github.com/sponsors/ccpk1)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/ccpk1)
+
+---
 
 ### Run It Your Way
 

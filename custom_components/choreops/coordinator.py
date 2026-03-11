@@ -343,9 +343,9 @@ class ChoreOpsDataCoordinator(DataUpdateCoordinator):
         schema_version = meta.get(const.DATA_META_SCHEMA_VERSION)
         if (
             not isinstance(schema_version, int)
-            or schema_version < const.SCHEMA_VERSION_BETA5
+            or schema_version < const.SCHEMA_VERSION_CURRENT
         ):
-            meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_BETA5
+            meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_CURRENT
 
         self._data[const.DATA_META] = meta
         self._data.pop(const.DATA_SCHEMA_VERSION, None)

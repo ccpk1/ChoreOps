@@ -64,6 +64,32 @@ if TYPE_CHECKING:
 TEMPLATE_FETCH_TIMEOUT = 10
 
 
+def _compose_inline_template_shared_markers(template_str: str) -> str:
+    """Compose local shared template fragments for direct render paths."""
+    if "<< template_shared." not in template_str:
+        return template_str
+
+    component_root = Path(__file__).parent.parent
+    dashboards_root = component_root / Path(const.DASHBOARD_MANIFEST_PATH).parent
+    shared_root = dashboards_root / "templates" / "shared"
+
+    template_assets: dict[str, str] = {
+        "templates/__inline__.yaml": template_str,
+    }
+    if shared_root.exists():
+        for shared_path in sorted(shared_root.rglob("*.yaml")):
+            relative_shared_path = shared_path.relative_to(dashboards_root).as_posix()
+            template_assets[relative_shared_path] = shared_path.read_text(
+                encoding="utf-8"
+            )
+
+    compiled_assets = compile_prepared_template_assets(template_assets)
+    compiled_template = compiled_assets.get("templates/__inline__.yaml")
+    if isinstance(compiled_template, str):
+        return compiled_template
+    return template_str
+
+
 @dataclass(frozen=True, slots=True)
 class DashboardReleaseSelection:
     """Resolved dashboard release selection result."""
@@ -582,6 +608,11 @@ def render_dashboard_template(
     Raises:
         DashboardRenderError: If template rendering or YAML parsing fails.
     """
+    try:
+        template_str = _compose_inline_template_shared_markers(template_str)
+    except HomeAssistantError as err:
+        raise DashboardRenderError(f"Template composition failed: {err}") from err
+
     render_context = dict(context)
 
     if "<< user." in template_str and not isinstance(render_context.get("user"), dict):
@@ -1191,7 +1222,7 @@ async def create_choreops_dashboard(
                     root_button_card_templates,
                     root_templates,
                 )
-                per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
+                per_assignee_admin_view["title"] = f"{assignee_name} OpsCenter"
                 per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
                 if visible_entries := _build_admin_visible_users(
                     admin_view_visibility,
@@ -1587,7 +1618,7 @@ async def update_choreops_dashboard_views(
                     root_button_card_templates,
                     root_templates,
                 )
-                per_assignee_admin_view["title"] = f"Admin - {assignee_name}"
+                per_assignee_admin_view["title"] = f"{assignee_name} OpsCenter"
                 per_assignee_admin_view["path"] = f"admin-{slugify(assignee_name)}"
                 if visible_entries := _build_admin_visible_users(
                     admin_view_visibility,

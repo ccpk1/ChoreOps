@@ -632,6 +632,7 @@ class AssigneeData(TypedDict):
     # Chore tracking (the big nested structure)
     chore_data: NotRequired[dict[str, AssigneeChoreDataEntry]]  # chore_id -> entry
     chore_stats: NotRequired[AssigneeChoreStats]
+    chore_periods: NotRequired[dict[str, Any]]  # Aggregated chore period stats
 
     # Reward tracking
     reward_data: dict[str, AssigneeRewardDataEntry]  # reward_id -> entry
@@ -646,7 +647,7 @@ class AssigneeData(TypedDict):
 
     # Current streak (daily approval streak)
     current_streak: NotRequired[int]
-    last_streak_date: NotRequired[str]  # ISO date
+    last_date: NotRequired[str]  # ISO date
 
     # Overdue tracking
     overdue_chores: NotRequired[list[str]]  # Chore UUIDs

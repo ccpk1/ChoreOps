@@ -744,7 +744,7 @@ The integration maintains two distinct systems to balance core HA requirements w
 - **Location**: `custom_components/choreops/translations/en.json`.
 - **Scope**: Governs exception messages, config flow UI, entity names/states, and service descriptions.
 - **Implementation**: Utilizes the standard Home Assistant translation system via `hass.localize()` and `translation_key` attributes.
-- **Coordinator Notifications**: The Coordinator uses the `async_get_translations()` API to manage 36 dynamic notification keys for chore approvals, reward redemptions, and system reminders.
+- **NotificationManager translations**: `NotificationManager` resolves dynamic notification copy through the translation helpers and managed notification translation files rather than treating notification text as coordinator-owned UI strings.
 
 #### Custom Managed Translations (Notifications & Dashboard)
 

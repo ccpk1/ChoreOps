@@ -1,0 +1,176 @@
+{#-- Shared fragment: system administration support links for admin dashboards. --#}
+
+{%- if not skip_render and has_selected_user -%}
+
+  {%- set ui = shared_admin_ui -%}
+  [
+  {{ {
+    'type': 'custom:button-card',
+    'entity': admin_selector_eid,
+    'show_name': True,
+    'show_label': True,
+    'show_state': False,
+    'show_icon': True,
+    'icon': 'mdi:cog-outline',
+    'name': ui.get('system_administration', 'err-system_administration'),
+    'label': ui.get('link_to_choreops_integration_configuration', 'err-link_to_choreops_integration_configuration'),
+    'tap_action': {
+      'action': 'url',
+      'url_path': '/config/integrations/integration/choreops'
+    },
+    'hold_action': {'action': 'more-info'},
+    "styles": {
+      "card": [
+        {"margin-top": "12px"},
+        {"padding": "14px 16px"},
+        {"border-radius": "16px"},
+        {"background-color": "var(--card-background-color)"},
+        {"border": "1px solid var(--divider-color)"}
+      ],
+      "grid": [
+        {"grid-template-areas": "'i n' 'i l'"},
+        {"grid-template-columns": "32px 1fr"},
+        {"align-items": "center"},
+        {"column-gap": "14px"}
+      ],
+      "icon": [
+        {"width": "24px"},
+        {"height": "24px"},
+        {"align-self": "center"},
+        {"color": "var(--primary-color)"}
+      ],
+      "name": [
+        {"justify-self": "start"},
+        {"width": "100%"},
+        {"text-align": "left"},
+        {"font-size": "14px"},
+        {"font-weight": "700"},
+        {"line-height": "1.2"},
+        {"text-transform": "uppercase"},
+        {"letter-spacing": "0.05em"}
+      ],
+      "label": [
+        {"justify-self": "start"},
+        {"width": "100%"},
+        {"text-align": "left"},
+        {"font-size": "12px"},
+        {"line-height": "1.35"},
+        {"white-space": "normal"},
+        {"color": "var(--secondary-text-color)"}
+      ]
+    }
+  } }},
+  {{ {
+    'type': 'custom:button-card',
+    'entity': admin_selector_eid,
+    'show_name': True,
+    'show_label': True,
+    'show_state': False,
+    'show_icon': True,
+    'icon': 'mdi:information-outline',
+    'name': ui.get('documentation_and_help', 'err-documentation_and_help'),
+    'label': ui.get('documentation_and_help_description', 'err-documentation_and_help_description'),
+    'tap_action': {
+      'action': 'url',
+      'url_path': 'https://github.com/ccpk1/ChoreOps/wiki'
+    },
+    'hold_action': {'action': 'none'},
+    "styles": {
+      "card": [
+        {"margin-top": "8px"},
+        {"padding": "14px 16px"},
+        {"border-radius": "16px"},
+        {"background-color": "var(--card-background-color)"},
+        {"border": "1px solid var(--divider-color)"}
+      ],
+      "grid": [
+        {"grid-template-areas": "'i n' 'i l'"},
+        {"grid-template-columns": "32px 1fr"},
+        {"align-items": "center"},
+        {"column-gap": "14px"}
+      ],
+      "icon": [
+        {"width": "24px"},
+        {"height": "24px"},
+        {"align-self": "center"},
+        {"color": "var(--primary-color)"}
+      ],
+      "name": [
+        {"justify-self": "start"},
+        {"width": "100%"},
+        {"text-align": "left"},
+        {"font-size": "14px"},
+        {"font-weight": "700"},
+        {"line-height": "1.2"},
+        {"text-transform": "uppercase"},
+        {"letter-spacing": "0.05em"}
+      ],
+      "label": [
+        {"justify-self": "start"},
+        {"width": "100%"},
+        {"text-align": "left"},
+        {"font-size": "12px"},
+        {"line-height": "1.35"},
+        {"white-space": "normal"},
+        {"color": "var(--secondary-text-color)"}
+      ]
+    }
+  } }},
+  {{ {
+    'type': 'custom:button-card',
+    'entity': admin_selector_eid,
+    'show_name': True,
+    'show_label': True,
+    'show_state': False,
+    'show_icon': True,
+    'icon': 'mdi:heart',
+    'name': ui.get('support_the_project', 'err-support_the_project'),
+    'label': ui.get('support_the_project_description', 'err-support_the_project_description'),
+    'tap_action': {
+      'action': 'url',
+      'url_path': 'https://github.com/sponsors/ccpk1'
+    },
+    'hold_action': {'action': 'none'},
+    "styles": {
+      "card": [
+        {"margin-top": "8px"},
+        {"padding": "14px 16px"},
+        {"border-radius": "16px"},
+        {"background-color": "var(--card-background-color)"},
+        {"border": "1px solid var(--divider-color)"}
+      ],
+      "grid": [
+        {"grid-template-areas": "'i n' 'i l'"},
+        {"grid-template-columns": "32px 1fr"},
+        {"align-items": "center"},
+        {"column-gap": "14px"}
+      ],
+      "icon": [
+        {"width": "24px"},
+        {"height": "24px"},
+        {"align-self": "center"},
+        {"color": "var(--primary-color)"}
+      ],
+      "name": [
+        {"justify-self": "start"},
+        {"width": "100%"},
+        {"text-align": "left"},
+        {"font-size": "14px"},
+        {"font-weight": "700"},
+        {"line-height": "1.2"},
+        {"text-transform": "uppercase"},
+        {"letter-spacing": "0.05em"}
+      ],
+      "label": [
+        {"justify-self": "start"},
+        {"width": "100%"},
+        {"text-align": "left"},
+        {"font-size": "12px"},
+        {"line-height": "1.35"},
+        {"white-space": "normal"},
+        {"color": "var(--secondary-text-color)"}
+      ]
+    }
+  } }}
+  ]
+{%- endif -%}

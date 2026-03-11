@@ -166,6 +166,18 @@ class UIManager(BaseManager):
         """
         return deepcopy(self._get_user_ui_preferences(user_id))
 
+    def get_shared_admin_ui_control(self) -> dict[str, Any]:
+        """Return resolved dashboard UI control values for the shared admin view."""
+        data_meta = self.coordinator._data.get(const.DATA_META, {})
+        if not isinstance(data_meta, dict):
+            return {}
+
+        shared_admin_ui_control = data_meta.get(const.DATA_META_SHARED_ADMIN_UI_CONTROL)
+        if not isinstance(shared_admin_ui_control, dict):
+            return {}
+
+        return deepcopy(shared_admin_ui_control)
+
     def _get_user_ui_preferences(self, user_id: str) -> dict[str, Any]:
         """Return the persisted UI preferences bucket for one user."""
         user_record: Any = self.coordinator.assignees_data.get(user_id, {})

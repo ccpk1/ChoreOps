@@ -47,7 +47,18 @@ async def test_async_initialize_creates_default_structure(
     # Verify default values (meta section contains schema_version)
     assert data[const.DATA_USERS] == {}
     meta = data[const.DATA_META]
-    assert meta[const.DATA_META_SCHEMA_VERSION] == const.SCHEMA_VERSION_BETA5
+    assert meta[const.DATA_META_SCHEMA_VERSION] == const.SCHEMA_VERSION_CURRENT
+    assert meta[const.DATA_META_SHARED_ADMIN_UI_CONTROL] == {}
+
+
+def test_get_default_structure_includes_shared_admin_ui_control_bucket() -> None:
+    """Default structure should seed the shared-admin UI control bucket."""
+    default_structure = ChoreOpsStore.get_default_structure()
+
+    assert (
+        default_structure[const.DATA_META][const.DATA_META_SHARED_ADMIN_UI_CONTROL]
+        == {}
+    )
 
 
 async def test_async_initialize_loads_existing_data(
@@ -82,7 +93,7 @@ async def test_set_data_normalizes_missing_user_ui_preferences(
                 }
             },
             const.DATA_META: {
-                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA5,
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_CURRENT,
             },
         }
     )
@@ -112,7 +123,7 @@ async def test_set_data_preserves_user_ui_preferences_mapping(
                 }
             },
             const.DATA_META: {
-                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA5,
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_CURRENT,
             },
         }
     )

@@ -46,6 +46,7 @@ def test_manage_ui_control_contracts_stay_aligned() -> None:
         const.SERVICE_FIELD_CONFIG_ENTRY_TITLE,
         const.SERVICE_FIELD_USER_ID,
         const.SERVICE_FIELD_USER_NAME,
+        const.SERVICE_FIELD_UI_CONTROL_TARGET,
         const.SERVICE_FIELD_UI_CONTROL_ACTION,
         const.SERVICE_FIELD_UI_CONTROL_KEY,
         const.SERVICE_FIELD_UI_CONTROL_VALUE,
@@ -59,6 +60,9 @@ def test_manage_ui_control_contracts_stay_aligned() -> None:
     assert documented_fields[const.SERVICE_FIELD_UI_CONTROL_ACTION]["selector"][
         "select"
     ]["options"] == list(const.UI_CONTROL_ACTIONS)
+    assert documented_fields[const.SERVICE_FIELD_UI_CONTROL_TARGET]["selector"][
+        "select"
+    ]["options"] == list(const.UI_CONTROL_TARGETS)
 
 
 def test_dashboard_helper_ui_control_attribute_contract_stays_translated() -> None:

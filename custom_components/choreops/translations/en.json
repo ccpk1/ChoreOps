@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Welcome to ChoreOps",
-        "description": "This wizard will guide you through setting up ChoreOps.\n\n[📖 Quick Start Guide]({documentation_url})"
+        "description": "This wizard will guide you through setting up ChoreOps.\n\n ℹ️ [Quick Start Guide]({documentation_url})"
       },
       "data_recovery": {
         "title": "Data Recovery Options",
-        "description": "Existing ChoreOps data found in:\n{storage_path}\n\nFound {backup_count} backup files.\n\nWhat would you like to do?\n\n[📖 Learn more about Backup & Restore]({documentation_url})",
+        "description": "Existing ChoreOps data found in:\n{storage_path}\n\nFound {backup_count} backup files.\n\nWhat would you like to do?\n\n ℹ️ [Learn more about Backup & Restore]({documentation_url})",
         "data": {
           "backup_selection": "Select Option"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Add Cumulative Badge",
-        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n[📖 Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "ChoreOps Options",
-        "description": "Manage users, chores, badges, rewards, penalties, bonuses, or finish.\n\n[📖 View Documentation]({documentation_url})",
+        "description": "Manage your household operations, gamification engine, and system preferences.\n\n ℹ️ [View Documentation]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Support ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Select an Option"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Challenges coming soon",
-        "description": "Challenges will be made available in future update.\n\nDuring migration, existing Challenge records are converted to equivalent Periodic Badge tracking to preserve intent and progress behavior where possible. Challenge-linked badges are removed in this release.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Challenges will be made available in future update.\n\nDuring migration, existing Challenge records are converted to equivalent Periodic Badge tracking to preserve intent and progress behavior where possible. Challenge-linked badges are removed in this release.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Edit points settings",
-        "description": "Change the label, icon, and default points per chore used throughout ChoreOps.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Change the label, icon, and default points per chore used throughout ChoreOps.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "points_label": "Points Label",
           "points_icon": "Points Icon",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Add User",
-        "description": "Provide the details for the new user profile.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Provide the details for the new user profile.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identity and profile",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Add Chore",
-        "description": "Create a new chore with points, assignments, and recurring schedule.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Create a new chore with points, assignments, and recurring schedule.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definition",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Add Cumulative Badge",
-        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Add Daily Badge",
-        "description": "Configure the details for a daily badge. These badges reward assignees for completing daily tasks or reaching daily thresholds.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a daily badge. These badges reward assignees for completing daily tasks or reaching daily thresholds.\n\n ℹ️ [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Add Periodic Badge",
-        "description": "Configure the details for a periodic badge. These badges reward assignees for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a periodic badge. These badges reward assignees for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Add Achievement-Linked Badge",
-        "description": "Configure the details for a badge linked to an achievement. These badges reward assignees for completing specific achievements.\n\n[📖 Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge linked to an achievement. These badges reward assignees for completing specific achievements.\n\n ℹ️ [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Add Special Occasion Badge",
-        "description": "Configure the details for a badge created for special occasions. These badges reward assignees for events like birthdays or holidays.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge created for special occasions. These badges reward assignees for events like birthdays or holidays.\n\n ℹ️ [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Add Reward",
-        "description": "Provide the details for the new reward.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Provide the details for the new reward.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Reward Name",
           "internal_id": "Internal ID",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Add Penalty",
-        "description": "Provide the details for the new penalty.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Provide the details for the new penalty.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Penalty Name",
           "penalty_description": "Description (optional)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Add Bonus",
-        "description": "Provide the details for the new bonus.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Provide the details for the new bonus.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Bonus Name",
           "bonus_description": "Description (optional)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Define Achievement",
-        "description": "Enter details for each achievement.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Enter details for each achievement.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Achievement Name",
           "description": "Description (optional)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Define Challenge",
-        "description": "Enter details for each challenge.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Enter details for each challenge.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Challenge Name",
           "description": "Description (optional)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Edit User",
-        "description": "Modify the details of the selected user profile.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Modify the details of the selected user profile.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identity and profile",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Edit Chore",
-        "description": "Modify the details of the selected chore.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Modify the details of the selected chore.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definition",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Edit Per-User Due Dates: {chore_name}",
-        "description": "Set individual due dates for each assigned user. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all users via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {assignee_names}. Leave blank for no deadline.{template_date}\n\n📖 [Advanced Guide]({documentation_url})",
+        "description": "Set individual due dates for each assigned user. The date field on the main edit form acts as a **template** for convenience—use it to quickly apply the same date to all users via the checkbox below, or leave it blank and set dates individually here.\n\nFields are shown for: {assignee_names}. Leave blank for no deadline.{template_date}\n\n ℹ️ [Advanced Guide]({documentation_url})",
         "data": {
           "apply_template_to_all": "Apply template date to all users"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Per-Assignee Schedule: {chore_name}",
-        "description": "Configure individual schedule settings for each assignee assigned to this chore. The main form values act as **templates**—use the checkboxes to apply them to all assignees, or customize each assignee's settings individually.\n\n**Note:** Not all fields below apply to every chore. The form dynamically shows relevant options based on completion mode, frequency, and whether due dates are set.\n\n**Daily (Multi) Times format:** If shown, enter 2-6 times in 24-hour format separated by | (pipe). Example: 08:00|17:00\n\nAssignees: {assignee_names}{template_info}\n\n📖 [Advanced Guide]({documentation_url})",
+        "description": "Configure individual schedule settings for each assignee assigned to this chore. The main form values act as **templates**—use the checkboxes to apply them to all assignees, or customize each assignee's settings individually.\n\n**Note:** Not all fields below apply to every chore. The form dynamically shows relevant options based on completion mode, frequency, and whether due dates are set.\n\n**Daily (Multi) Times format:** If shown, enter 2-6 times in 24-hour format separated by | (pipe). Example: 08:00|17:00\n\nAssignees: {assignee_names}{template_info}\n\n ℹ️ [Advanced Guide]({documentation_url})",
         "data": {
           "apply_days_to_all": "Apply template days to all assignees",
           "apply_times_to_all": "Apply template times to all assignees",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Edit Cumulative Badge",
-        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a cumulative badge. These badges reward assignees for reaching lifetime point thresholds and support maintenance cycles to encourage ongoing performance.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Edit Daily Badge",
-        "description": "Configure the details for a daily badge. These badges reward assignees for completing daily tasks or reaching daily thresholds.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a daily badge. These badges reward assignees for completing daily tasks or reaching daily thresholds.\n\n ℹ️ [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Edit Periodic Badge",
-        "description": "Configure the details for a periodic badge. These badges reward assignees for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Configure the details for a periodic badge. These badges reward assignees for meeting thresholds within a defined time period and support reset cycles for ongoing performance.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Edit Achievement-Linked Badge",
-        "description": "Configure the details for a badge linked to an achievement. These badges reward assignees for completing specific achievements.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge linked to an achievement. These badges reward assignees for completing specific achievements.\n\n ℹ️ [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Edit Special Occasion Badge",
-        "description": "Configure the details for a badge created for special occasions. These badges reward assignees for events like birthdays or holidays.\n\n📖 [Badges Overview]({documentation_url})",
+        "description": "Configure the details for a badge created for special occasions. These badges reward assignees for events like birthdays or holidays.\n\n ℹ️ [Badges Overview]({documentation_url})",
         "data": {
           "badge_name": "Badge Name",
           "badge_description": "Badge Description (Optional)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Edit Reward",
-        "description": "Modify the details of the selected reward.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Modify the details of the selected reward.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Reward Name",
           "internal_id": "Internal ID",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Edit Penalty",
-        "description": "Modify the details of the selected penalty.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Modify the details of the selected penalty.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Penalty Name",
           "penalty_description": "Description (optional)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Edit Bonus",
-        "description": "Modify the details of the selected bonus.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Modify the details of the selected bonus.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Bonus Name",
           "bonus_description": "Description (optional)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Define Achievement",
-        "description": "Enter details for each achievement.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Enter details for each achievement.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Achievement Name",
           "description": "Description (optional)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Define Challenge",
-        "description": "Enter details for each challenge.\n\n📖 [Configuration Guide]({documentation_url})",
+        "description": "Enter details for each challenge.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "name": "Challenge Name",
           "description": "Description (optional)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Dashboard Actions",
-        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\n[Dashboard configuration guide]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Create, update, or delete ChoreOps Lovelace dashboards.\n\n ℹ️ [Dashboard configuration guide]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Action",
           "dashboard_release_selection": "Dashboard Release Version"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Review dashboard changes",
-        "description": "Review dependency status and template preferences for your selected templates before applying dashboard changes.\n\n[Dashboard configuration guide]({documentation_url})\n\n**Available Customizations**\n{dashboard_template_preferences}\n\n**Missing required dependencies**\n{dashboard_missing_required_dependencies}\n\n**Missing recommended dependencies**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Review dependency status and template preferences for your selected templates before applying dashboard changes.\n\n ℹ️ [Dashboard configuration guide]({documentation_url})\n\n**Available Customizations**\n{dashboard_template_preferences}\n\n**Missing required dependencies**\n{dashboard_missing_required_dependencies}\n\n**Missing recommended dependencies**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Continue anyway (requirements are missing)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Create Dashboard",
-        "description": "Enter a dashboard name, then continue to configuration.\n\n[Configuration Guide]({documentation_url})",
+        "description": "Enter a dashboard name, then continue to configuration.\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "data": {
           "dashboard_name": "Dashboard Name"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Configure Dashboard",
-        "description": "Configure dashboard sections for **{dashboard}** (mode: {mode}).\n\n[Configuration Guide]({documentation_url})",
+        "description": "Configure dashboard sections for **{dashboard}** (mode: {mode}).\n\n ℹ️ [Configuration Guide]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "User views",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "General Options",
-        "description": "Manage general settings for the ChoreOps integration.\n\n[📖 Learn more about General Options]({documentation_url})",
+        "description": "Manage general settings for the ChoreOps integration.\n\n ℹ️ [Learn more about General Options]({documentation_url})",
         "data": {
           "default_chore_points": "Default Points per Chore",
           "points_adjust_values": "Manual Points Adjustment Button Values",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Manage UI Control",
-      "description": "Create, update, or remove a per-user UI control value stored in the user's persisted ui_preferences bucket. Use an empty key with the remove action to clear all stored UI preferences for the targeted user.",
+      "description": "Create, update, or remove a persisted UI control value. By default this targets one user's ui_preferences bucket. Use ui_control_target: shared_admin to write to the shared admin UI control bucket under data/meta. Use an empty key with the remove action to clear all stored values for the selected target.",
       "fields": {
         "config_entry_id": {
           "name": "Config Entry ID (Optional)",
@@ -2902,6 +2902,11 @@
           "description": "Optional user name target. Required when user_id is not provided.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "UI Control Target",
+          "description": "Choose whether to target one user or the shared admin UI control bucket. When shared_admin is selected, do not provide user_id or user_name.",
+          "example": "user"
+        },
         "ui_control_action": {
           "name": "UI Control Action",
           "description": "Choose whether to create, update, or remove a stored UI control value.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Key Path",
-          "description": "Slash-delimited UI control path such as gamification/rewards/header_collapse. Leave empty only with the remove action to clear all stored UI preferences for the user.",
+          "description": "Slash-delimited UI control path such as gamification/rewards/header_collapse. Leave empty only with the remove action to clear all stored values for the selected target.",
           "example": "gamification/rewards/header_collapse"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Dashboard Helper",
+        "state_attributes": {
+          "purpose": {
+            "name": "Purpose",
+            "state": {
+              "purpose_system_dashboard_helper": "Aggregates shared-admin dashboard state for shared admin cards"
+            }
+          },
+          "ui_control": {
+            "name": "UI Control"
+          },
+          "integration_entry_id": {
+            "name": "Integration Entry ID"
+          },
+          "dashboard_lookup_key": {
+            "name": "Dashboard Lookup Key"
+          },
+          "user_dashboard_helpers": {
+            "name": "User Dashboard Helpers"
+          },
+          "language": {
+            "name": "Language"
+          },
+          "translation_sensor_eid": {
+            "name": "Translation Sensor Entity ID"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "UI Dashboard Helper",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Provide user_id or user_name to target one user."
+    },
+    "ui_control_invalid_target": {
+      "message": "Invalid ui_control_target {target}. Allowed targets: user, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Do not provide user_id or user_name when ui_control_target is shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Invalid UI control action {action}. Allowed actions: create, update, remove."

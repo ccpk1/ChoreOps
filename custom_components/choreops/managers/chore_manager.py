@@ -2903,6 +2903,7 @@ class ChoreManager(BaseManager):
             assignee_id: Optional specific assignee to reset (all overdue if None)
 
         Branching logic:
+        - Non-recurring chores with a past due date: Clear the stale due date
         - INDEPENDENT chores: Reschedule per-assignee due dates individually
         - SHARED chores: Reschedule chore-level due date (affects all assignees)
         """
@@ -2922,6 +2923,10 @@ class ChoreManager(BaseManager):
                 const.DATA_CHORE_COMPLETION_CRITERIA,
                 const.COMPLETION_CRITERIA_SHARED,
             )
+            frequency = chore_info.get(
+                const.DATA_CHORE_RECURRING_FREQUENCY,
+                const.FREQUENCY_NONE,
+            )
 
             self._transition_chore_state(
                 iter_assignee_id,
@@ -2939,6 +2944,36 @@ class ChoreManager(BaseManager):
                     str(chore_info.get(const.DATA_CHORE_NAME, iter_chore_id)),
                 )
             )
+
+            due_assignee_id = (
+                iter_assignee_id
+                if criteria == const.COMPLETION_CRITERIA_INDEPENDENT
+                else None
+            )
+            due_dt = self.get_due_date(iter_chore_id, due_assignee_id)
+
+            if (
+                frequency == const.FREQUENCY_NONE
+                and due_dt is not None
+                and dt_util.utcnow() > due_dt
+            ):
+                if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
+                    per_assignee_due_dates = chore_info.get(
+                        const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES,
+                        {},
+                    )
+                    per_assignee_due_dates.pop(iter_assignee_id, None)
+                    chore_info[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = (
+                        per_assignee_due_dates
+                    )
+                else:
+                    chore_info.pop(const.DATA_CHORE_DUE_DATE, None)
+
+                const.LOGGER.debug(
+                    "Cleared stale due date for non-recurring overdue chore %s during manual reset",
+                    iter_chore_id,
+                )
+                continue
 
             # Reschedule based on completion criteria
             if criteria == const.COMPLETION_CRITERIA_INDEPENDENT:

@@ -14,7 +14,7 @@ Key Features:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 
@@ -295,6 +295,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ChoreOpsConfigEntry) -> 
     except Exception as err:
         const.LOGGER.warning(
             "System manager setup failed (some cleanup may not work): %s", err
+        )
+
+    meta_raw = coordinator._data.get(const.DATA_META)
+    meta: dict[str, Any] = meta_raw if isinstance(meta_raw, dict) else {}
+    schema_version = meta.get(const.DATA_META_SCHEMA_VERSION)
+    if (
+        not isinstance(schema_version, int)
+        or schema_version < const.SCHEMA_VERSION_CURRENT
+    ):
+        meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_CURRENT
+        coordinator._data[const.DATA_META] = meta
+        coordinator._data.pop(const.DATA_SCHEMA_VERSION, None)
+        coordinator.store.set_data(coordinator._data)
+        await coordinator.store.async_save()
+        const.LOGGER.info(
+            "Updated ChoreOps storage schema metadata to %s",
+            const.SCHEMA_VERSION_CURRENT,
         )
 
     # Dashboard storage dedupe (v0.5.0 migration safety)

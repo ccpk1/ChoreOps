@@ -1,0 +1,405 @@
+# Test Scenario: Starblum Showcase
+# =============================================================================
+# Purpose: Readme/release screenshot data with realistic chore names, strong
+# visual variety, and seeded progress for dashboard cards.
+#
+# Highlights:
+#   - Starblum family with accent-rich names
+#   - Roughly 8-9 visible chores per child through a mix of solo + shared work
+#   - Rotation, shared-first, shared-all, due-window, overdue, and steal states
+#   - Bronze / Silver / Gold cumulative badges + 2 periodic badges
+#   - Seeded points and approvals so badges show earned + in-progress states
+# =============================================================================
+
+system:
+  points_label: "Bloom Points"
+  points_icon: "mdi:flower-star"
+
+assignees:
+  - name: "Zoë"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Màx!"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+  - name: "Lïla"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+
+approvers:
+  - name: "Môm Astrid Stârblüm"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+    enable_chore_workflow: false
+    enable_gamification: false
+
+  - name: "Dåd Leo Stârblüm"
+    dashboard_language: "en"
+    mobile_notify_service: ""
+    enable_chore_workflow: false
+    enable_gamification: false
+
+chores:
+  - name: "Morning Tåble"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    points: 10
+    icon: "mdi:table-furniture"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+
+  - name: "Mail Rùn"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    points: 12
+    icon: "mdi:mailbox-up"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+
+  - name: "Compost Spin"
+    assigned_to: ["Màx!", "Lïla", "Zoë"]
+    points: 14
+    icon: "mdi:compost"
+    completion_criteria: "rotation_simple"
+    recurring_frequency: "daily"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date_allow_steal"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "now+1m"
+
+  - name: "Trash Trek"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    points: 9
+    icon: "mdi:trash-can-outline"
+    completion_criteria: "shared_first"
+    recurring_frequency: "daily"
+
+  - name: "Dinner Crew"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    points: 10
+    icon: "mdi:silverware-fork-knife"
+    completion_criteria: "shared_all"
+    recurring_frequency: "daily"
+
+  - name: "Feed Cåts"
+    assigned_to: ["Zoë"]
+    points: 10
+    icon: "mdi:cat"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Plant Mïst"
+    assigned_to: ["Zoë"]
+    points: 9
+    icon: "mdi:spray-bottle"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Pack Bäg"
+    assigned_to: ["Zoë"]
+    points: 8
+    icon: "mdi:bag-personal"
+    completion_criteria: "independent"
+    recurring_frequency: "none"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    chore_due_window_offset: "1h"
+    chore_claim_lock_until_window: true
+    due_date: "now+20m"
+
+  - name: "Lego Bïn"
+    assigned_to: ["Màx!"]
+    points: 8
+    icon: "mdi:lego"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Røbot Dock"
+    assigned_to: ["Màx!"]
+    points: 12
+    icon: "mdi:robot-vacuum"
+    completion_criteria: "independent"
+    recurring_frequency: "none"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "now+1m"
+
+  - name: "Shöe Line"
+    assigned_to: ["Màx!"]
+    points: 8
+    icon: "mdi:shoe-print"
+    completion_criteria: "independent"
+    recurring_frequency: "none"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    chore_due_window_offset: "1h"
+    chore_claim_lock_until_window: true
+    due_date: "now+6h"
+
+  - name: "Bunny Greens"
+    assigned_to: ["Lïla"]
+    points: 8
+    icon: "mdi:rabbit"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Porch Sweep"
+    assigned_to: ["Lïla"]
+    points: 10
+    icon: "mdi:broom"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Read Nöök"
+    assigned_to: ["Lïla"]
+    points: 7
+    icon: "mdi:bookshelf"
+    completion_criteria: "independent"
+    recurring_frequency: "none"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "now+7d"
+
+  - name: "Wåter Ferns"
+    assigned_to: ["Môm Astrid Stârblüm"]
+    points: 6
+    icon: "mdi:watering-can"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  - name: "Herb Trïm"
+    assigned_to: ["Môm Astrid Stârblüm"]
+    points: 7
+    icon: "mdi:leaf-maple"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  - name: "Lunch Nötes"
+    assigned_to: ["Môm Astrid Stârblüm"]
+    points: 5
+    icon: "mdi:notebook-heart"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Pantry Check"
+    assigned_to: ["Môm Astrid Stârblüm"]
+    points: 6
+    icon: "mdi:cupboard"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  - name: "Rose Soåk"
+    assigned_to: ["Môm Astrid Stârblüm"]
+    points: 8
+    icon: "mdi:flower-pollen"
+    completion_criteria: "independent"
+    recurring_frequency: "none"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "now+1m"
+
+  - name: "Porch Pøts"
+    assigned_to: ["Dåd Leo Stârblüm"]
+    points: 6
+    icon: "mdi:flower"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  - name: "Tool Bënch"
+    assigned_to: ["Dåd Leo Stârblüm"]
+    points: 7
+    icon: "mdi:hammer"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  - name: "Grill Cøver"
+    assigned_to: ["Dåd Leo Stârblüm"]
+    points: 5
+    icon: "mdi:grill"
+    completion_criteria: "independent"
+    recurring_frequency: "weekly"
+
+  - name: "Mail Sørt"
+    assigned_to: ["Dåd Leo Stârblüm"]
+    points: 5
+    icon: "mdi:mailbox-open-up"
+    completion_criteria: "independent"
+    recurring_frequency: "daily"
+
+  - name: "Garage Bïn"
+    assigned_to: ["Dåd Leo Stârblüm"]
+    points: 8
+    icon: "mdi:garage-variant"
+    completion_criteria: "independent"
+    recurring_frequency: "none"
+    approval_reset_type: "at_midnight_once"
+    overdue_handling_type: "at_due_date"
+    approval_reset_pending_claim_action: "clear_pending"
+    due_date: "now+1m"
+
+badges:
+  - name: "Bronze"
+    type: "cumulative"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    award_points: 0
+    points_multiplier: 1.0
+    threshold_value: 40
+    icon: "mdi:medal-outline"
+
+  - name: "Silver"
+    type: "cumulative"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    award_points: 0
+    points_multiplier: 1.1
+    threshold_value: 90
+    icon: "mdi:medal"
+
+  - name: "Gold"
+    type: "cumulative"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    award_points: 0
+    points_multiplier: 1.2
+    threshold_value: 180
+    icon: "mdi:medal-star"
+
+  - name: "Week Spark"
+    type: "periodic"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    award_points: 15
+    target_type: "points_chores"
+    target_threshold_value: 20
+    recurring_frequency: "weekly"
+    start_date: "2026-03-01"
+    icon: "mdi:star-four-points"
+
+  - name: "Streak Sprout"
+    type: "periodic"
+    assigned_to: ["Zoë", "Màx!", "Lïla"]
+    award_points: 10
+    target_type: "chore_count"
+    target_threshold_value: 3
+    recurring_frequency: "weekly"
+    start_date: "2026-03-01"
+    icon: "mdi:sprout"
+
+rewards:
+  - name: "Cocoa Dáte"
+    description: "Warm cocoa and a story pick"
+    cost: 35
+    icon: "mdi:cup"
+
+  - name: "Arcade Høur"
+    description: "Pick the family game for an hour"
+    cost: 70
+    icon: "mdi:gamepad-variant"
+
+bonuses:
+  - name: "Helping Hånd"
+    description: "Jumped in without being asked"
+    points: 8
+    icon: "mdi:hand-heart"
+
+penalties:
+  - name: "Missed Tïmer"
+    description: "Forgot the after-school timer"
+    points: -5
+    icon: "mdi:timer-alert"
+
+state_seed_actions:
+  - service: "claim_chore"
+    data:
+      user_name: "Zoë"
+      chore_name: "Mail Rùn"
+
+  - service: "approve_chore"
+    data:
+      approver_name: "Môm Astrid Stârblüm"
+      user_name: "Zoë"
+      chore_name: "Mail Rùn"
+
+  - service: "claim_chore"
+    data:
+      user_name: "Màx!"
+      chore_name: "Trash Trek"
+
+  - service: "claim_chore"
+    data:
+      user_name: "Zoë"
+      chore_name: "Dinner Crew"
+
+  - service: "approve_chore"
+    data:
+      approver_name: "Dåd Leo Stârblüm"
+      user_name: "Zoë"
+      chore_name: "Dinner Crew"
+
+  - service: "claim_chore"
+    data:
+      user_name: "Zoë"
+      chore_name: "Feed Cåts"
+
+  - service: "claim_chore"
+    data:
+      user_name: "Zoë"
+      chore_name: "Plant Mïst"
+
+  - service: "approve_chore"
+    data:
+      approver_name: "Dåd Leo Stârblüm"
+      user_name: "Zoë"
+      chore_name: "Plant Mïst"
+
+  - service: "claim_chore"
+    data:
+      user_name: "Lïla"
+      chore_name: "Porch Sweep"
+
+  - service: "approve_chore"
+    data:
+      approver_name: "Môm Astrid Stârblüm"
+      user_name: "Lïla"
+      chore_name: "Porch Sweep"
+
+  - service: "manual_adjust_points"
+    data:
+      approver_name: "Dåd Leo Stârblüm"
+      user_name: "Zoë"
+      amount: 70
+      reason: "Showcase seed - badge progress"
+
+  - service: "manual_adjust_points"
+    data:
+      approver_name: "Môm Astrid Stârblüm"
+      user_name: "Màx!"
+      amount: 45
+      reason: "Showcase seed - bronze badge"
+
+  - service: "manual_adjust_points"
+    data:
+      approver_name: "Dåd Leo Stârblüm"
+      user_name: "Lïla"
+      amount: 18
+      reason: "Showcase seed - partial progress"
+
+  - service: "redeem_reward"
+    data:
+      approver_name: "Môm Astrid Stârblüm"
+      user_name: "Zoë"
+      reward_name: "Cocoa Dáte"
+
+  - service: "apply_bonus"
+    data:
+      approver_name: "Dåd Leo Stârblüm"
+      user_name: "Màx!"
+      bonus_name: "Helping Hånd"
+
+  - service: "apply_penalty"
+    data:
+      approver_name: "Dåd Leo Stârblüm"
+      user_name: "Lïla"
+      penalty_name: "Missed Tïmer"

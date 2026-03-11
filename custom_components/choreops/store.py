@@ -57,9 +57,10 @@ class ChoreOpsStore:
         """
         return {
             const.DATA_META: {
-                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_BETA5,
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_CURRENT,
                 const.DATA_META_PENDING_EVALUATIONS: [],
                 const.DATA_META_LAST_MIDNIGHT_PROCESSED: None,
+                const.DATA_META_SHARED_ADMIN_UI_CONTROL: {},
             },
             const.DATA_USERS: {},
             const.DATA_CHORES: {},

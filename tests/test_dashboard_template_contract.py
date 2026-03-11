@@ -57,6 +57,21 @@ def test_admin_templates_include_required_snippet_markers() -> None:
     for marker in peruser_required_markers:
         assert marker in peruser_content
 
+    assert "template_shared.admin_system_administration_links_v1" in shared_content
+    assert "template_shared.admin_system_administration_links_v1" in peruser_content
+
+
+def test_admin_shared_template_keeps_ui_control_ownership_split() -> None:
+    """Shared admin template preserves shared-admin and selected-user roots."""
+    content = _read_template("admin-shared-v1.yaml")
+
+    assert "ui_root.shared_admin" in content
+    assert "ui_root.selected_user" in content
+    assert "integration_entities('choreops')" not in content
+    assert "for helper_pair in user_dashboard_helpers | dictsort" not in content
+    assert "'ui_control_target': 'shared_admin'" in content
+    assert "'ui_control_target': 'user'" in content
+
 
 def test_templates_keep_card_header_and_section_markers() -> None:
     """Templates preserve required card-header and numbered-section comments."""

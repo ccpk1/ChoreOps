@@ -82,8 +82,52 @@ async def test_schema45_migration_moves_assignees_to_users_and_sets_defaults() -
     assert user_data[const.DATA_USER_HA_USER_ID] == "ha-assignee-1"
 
     meta = coordinator._data[const.DATA_META]
-    assert meta[const.DATA_META_SCHEMA_VERSION] == const.SCHEMA_VERSION_BETA5
+    assert meta[const.DATA_META_SCHEMA_VERSION] == const.SCHEMA_VERSION_CURRENT
+    assert meta[const.DATA_META_SHARED_ADMIN_UI_CONTROL] == {}
     assert "schema45_user_contract_hook" in meta[const.DATA_META_MIGRATIONS_APPLIED]
+    assert (
+        const.MIGRATION_SCHEMA45_SHARED_ADMIN_UI_CONTROL
+        in meta[const.DATA_META_MIGRATIONS_APPLIED]
+    )
+    assert summary["shared_admin_ui_control_backfilled"] == 1
+
+
+async def test_schema45_migration_backfills_shared_admin_bucket_idempotently() -> None:
+    """Schema45 backfills shared-admin UI control once and preserves existing data."""
+    coordinator = _DummyCoordinator(
+        _data={
+            const.DATA_META: {
+                const.DATA_META_SCHEMA_VERSION: const.SCHEMA_VERSION_CURRENT,
+                const.DATA_META_MIGRATIONS_APPLIED: [
+                    "schema45_user_contract_hook",
+                ],
+            },
+            const.DATA_USERS: {
+                "user-1": {
+                    const.DATA_USER_NAME: "Alex",
+                    const.DATA_USER_UI_PREFERENCES: {},
+                }
+            },
+        }
+    )
+
+    first_summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+    coordinator._data[const.DATA_META][const.DATA_META_SHARED_ADMIN_UI_CONTROL] = {
+        "admin": {"header_collapse": True}
+    }
+
+    second_summary = await async_apply_schema45_user_contract(coordinator)  # type: ignore[arg-type]
+
+    meta = coordinator._data[const.DATA_META]
+    assert meta[const.DATA_META_SHARED_ADMIN_UI_CONTROL] == {
+        "admin": {"header_collapse": True}
+    }
+    assert (
+        const.MIGRATION_SCHEMA45_SHARED_ADMIN_UI_CONTROL
+        in meta[const.DATA_META_MIGRATIONS_APPLIED]
+    )
+    assert first_summary["shared_admin_ui_control_backfilled"] == 1
+    assert second_summary["shared_admin_ui_control_backfilled"] == 0
 
 
 async def test_schema45_migration_merges_linked_approver_into_existing_user() -> None:
@@ -541,5 +585,5 @@ def test_store_default_structure_uses_users_bucket() -> None:
     assert const.DATA_APPROVERS not in default_structure
     assert (
         default_structure[const.DATA_META][const.DATA_META_SCHEMA_VERSION]
-        == const.SCHEMA_VERSION_BETA5
+        == const.SCHEMA_VERSION_CURRENT
     )

@@ -1537,7 +1537,7 @@ class ChoreOpsConfigFlow(config_entries.ConfigFlow, domain=const.DOMAIN):
 
         const.LOGGER.info(
             "INFO: Config Flow saved storage with schema version %s (%d assignees, %d approvers, %d chores, %d badges, %d rewards, %d bonuses, %d penalties)",
-            const.SCHEMA_VERSION_STORAGE_ONLY,
+            const.SCHEMA_VERSION_CURRENT,
             len(self._assignees_temp),
             len(self._approvers_temp),
             len(self._chores_temp),

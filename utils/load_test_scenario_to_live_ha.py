@@ -302,20 +302,85 @@ def build_badge_payload(badge: dict[str, Any]) -> dict[str, Any]:
         if points_multiplier > 0:
             award_items.append("multiplier")
 
-    threshold_value = badge.get(
-        "threshold_value", badge.get("target_threshold_value", 10)
-    )
-
-    return {
+    badge_type = str(badge.get("type", "cumulative"))
+    payload: dict[str, Any] = {
         "badge_name": badge["name"],
         "icon": badge.get("icon", "mdi:medal"),
         "assigned_user_ids": list(badge.get("assigned_to", [])),
         "award_items": award_items,
         "award_points": award_points,
-        "points_multiplier": points_multiplier,
-        "threshold_value": threshold_value,
-        "maintenance_rules": badge.get("maintenance_rules", 0),
     }
+
+    if points_multiplier is not None:
+        payload["points_multiplier"] = points_multiplier
+
+    if badge_type == "cumulative":
+        payload["threshold_value"] = badge.get(
+            "threshold_value", badge.get("target_threshold_value", 10)
+        )
+        payload["maintenance_rules"] = badge.get("maintenance_rules", 0)
+        return payload
+
+    if badge_type in {"periodic", "daily"}:
+        payload["target_type"] = badge.get("target_type", "chore_count")
+        payload["threshold_value"] = badge.get(
+            "target_threshold_value", badge.get("threshold_value", 10)
+        )
+        if "selected_chores" in badge:
+            payload["selected_chores"] = list(badge.get("selected_chores", []))
+        if "recurring_frequency" in badge:
+            payload["recurring_frequency"] = badge["recurring_frequency"]
+        if "custom_interval" in badge:
+            payload["custom_interval"] = badge["custom_interval"]
+        if "custom_interval_unit" in badge:
+            payload["custom_interval_unit"] = badge["custom_interval_unit"]
+        if "start_date" in badge:
+            payload["start_date"] = badge["start_date"]
+        if "end_date" in badge:
+            payload["end_date"] = badge["end_date"]
+        return payload
+
+    return payload
+
+
+def map_select_field_labels_to_values(
+    data_schema: Any,
+    field_name: str,
+    raw_values: list[Any],
+) -> list[Any]:
+    """Map selector labels to stored values for a multi-select field."""
+    if not isinstance(raw_values, list) or not raw_values:
+        return raw_values
+
+    if not isinstance(data_schema, list):
+        return raw_values
+
+    label_to_value: dict[str, str] = {}
+    for field in data_schema:
+        if not isinstance(field, dict) or field.get("name") != field_name:
+            continue
+        selector = field.get("selector")
+        if not isinstance(selector, dict):
+            break
+        select_def = selector.get("select")
+        if not isinstance(select_def, dict):
+            break
+        options = select_def.get("options")
+        if not isinstance(options, list):
+            break
+        for option in options:
+            if not isinstance(option, dict):
+                continue
+            label = option.get("label")
+            value = option.get("value")
+            if isinstance(label, str) and isinstance(value, str):
+                label_to_value[label] = value
+        break
+
+    if not label_to_value:
+        return raw_values
+
+    return [label_to_value.get(str(item), item) for item in raw_values]
 
 
 def build_bonus_payload(bonus: dict[str, Any]) -> dict[str, Any]:
@@ -598,39 +663,22 @@ async def add_badge_via_options_flow(
         return ENTITY_ADD_STATUS_FAILED
 
     resolved_payload = dict(payload)
+    data_schema = badge_form.get("data_schema")
     raw_assigned = resolved_payload.get("assigned_user_ids")
     if isinstance(raw_assigned, list) and raw_assigned:
-        label_to_value: dict[str, str] = {}
-        data_schema = badge_form.get("data_schema")
-        if isinstance(data_schema, list):
-            for field in data_schema:
-                if (
-                    not isinstance(field, dict)
-                    or field.get("name") != "assigned_user_ids"
-                ):
-                    continue
-                selector = field.get("selector")
-                if not isinstance(selector, dict):
-                    continue
-                select_def = selector.get("select")
-                if not isinstance(select_def, dict):
-                    continue
-                options = select_def.get("options")
-                if not isinstance(options, list):
-                    continue
-                for option in options:
-                    if not isinstance(option, dict):
-                        continue
-                    label = option.get("label")
-                    value = option.get("value")
-                    if isinstance(label, str) and isinstance(value, str):
-                        label_to_value[label] = value
-                break
+        resolved_payload["assigned_user_ids"] = map_select_field_labels_to_values(
+            data_schema,
+            "assigned_user_ids",
+            raw_assigned,
+        )
 
-        if label_to_value:
-            resolved_payload["assigned_user_ids"] = [
-                label_to_value.get(str(item), str(item)) for item in raw_assigned
-            ]
+    raw_selected_chores = resolved_payload.get("selected_chores")
+    if isinstance(raw_selected_chores, list) and raw_selected_chores:
+        resolved_payload["selected_chores"] = map_select_field_labels_to_values(
+            data_schema,
+            "selected_chores",
+            raw_selected_chores,
+        )
 
     status, flow_result = await _request_json(
         session,

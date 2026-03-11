@@ -377,7 +377,8 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 }
             ),
             description_placeholders={
-                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_MAIN_WIKI
+                const.PLACEHOLDER_DOCUMENTATION_URL: const.DOC_URL_MAIN_WIKI,
+                const.PLACEHOLDER_SPONSOR_URL: const.DOC_URL_SPONSOR,
             },
         )
 

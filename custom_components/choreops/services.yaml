@@ -466,9 +466,11 @@ generate_activity_report:
 manage_ui_control:
   name: "Manage UI Control"
   description: >
-    Create, update, or remove a per-user UI control value stored in the user's
-    persisted ui_preferences bucket. Use an empty key with the remove action to
-    clear all stored UI preferences for the targeted user.
+    Create, update, or remove a persisted UI control value. By default this
+    targets one user's ui_preferences bucket. Use ui_control_target:
+    shared_admin to write to the shared admin UI control bucket under data/meta.
+    Use an empty key with the remove action to clear all stored values for the
+    selected target.
   fields:
     config_entry_id:
       name: "Config Entry ID (Optional)"
@@ -499,6 +501,16 @@ manage_ui_control:
       example: "Alice"
       selector:
         text:
+    ui_control_target:
+      name: "UI Control Target"
+      description: "Choose whether to target one user or the shared admin UI control bucket. When shared_admin is selected, do not provide user_id or user_name."
+      required: false
+      example: "user"
+      selector:
+        select:
+          options:
+            - "user"
+            - "shared_admin"
     ui_control_action:
       name: "UI Control Action"
       description: "Choose whether to create, update, or remove a stored UI control value."
@@ -512,7 +524,7 @@ manage_ui_control:
             - "remove"
     key:
       name: "Key Path"
-      description: "Slash-delimited UI control path such as gamification/rewards/header_collapse. Leave empty only with the remove action to clear all stored UI preferences for the user."
+      description: "Slash-delimited UI control path such as gamification/rewards/header_collapse. Leave empty only with the remove action to clear all stored values for the selected target."
       required: false
       example: "gamification/rewards/header_collapse"
       selector:

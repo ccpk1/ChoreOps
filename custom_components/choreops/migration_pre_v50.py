@@ -76,6 +76,20 @@ SCHEMA45_MARKER_REMOVE_CHALLENGE_LINKED_BADGES = (
 )
 
 
+def _ensure_schema45_shared_admin_ui_control_bucket(data: dict[str, Any]) -> bool:
+    """Ensure schema45+ payloads contain the shared-admin UI control bucket."""
+    meta_raw = data.get(const.DATA_META)
+    meta: dict[str, Any] = meta_raw if isinstance(meta_raw, dict) else {}
+    data[const.DATA_META] = meta
+
+    shared_admin_ui_control = meta.get(const.DATA_META_SHARED_ADMIN_UI_CONTROL)
+    if isinstance(shared_admin_ui_control, dict):
+        return False
+
+    meta[const.DATA_META_SHARED_ADMIN_UI_CONTROL] = {}
+    return True
+
+
 def has_legacy_migration_performed_marker(data: dict[str, Any]) -> bool:
     """Return True when pre-v50 legacy migration marker is present."""
     return LEGACY_MIGRATION_PERFORMED_KEY in data
@@ -743,6 +757,8 @@ async def async_apply_schema45_user_contract(
     challenge_linked_rm_marker = SCHEMA45_MARKER_REMOVE_CHALLENGE_LINKED_BADGES
     legacy_progress_cleanup_marker = "schema45_remove_legacy_badge_progress_fields"
     contract_marker = "schema45_user_contract_hook"
+    shared_admin_ui_control_marker = const.MIGRATION_SCHEMA45_SHARED_ADMIN_UI_CONTROL
+    midnight_processed_marker = "schema45_seed_last_midnight_processed"
     if contract_marker not in applied:
         applied.append(contract_marker)
 
@@ -753,6 +769,8 @@ async def async_apply_schema45_user_contract(
     removed_challenge_linked_badges = 0
     removed_penalty_applied_fields = 0
     removed_retired_badge_progress_fields = 0
+    shared_admin_ui_control_backfilled = 0
+    midnight_processed_backfilled = 0
 
     if challenge_conv_marker not in applied:
         conversion_summary = _migrate_schema45_challenges_to_periodic_badges(data)
@@ -779,9 +797,25 @@ async def async_apply_schema45_user_contract(
         ]
         applied.append(legacy_progress_cleanup_marker)
 
+    if shared_admin_ui_control_marker not in applied:
+        if _ensure_schema45_shared_admin_ui_control_bucket(data):
+            shared_admin_ui_control_backfilled += 1
+        applied.append(shared_admin_ui_control_marker)
+    else:
+        _ensure_schema45_shared_admin_ui_control_bucket(data)
+
+    if midnight_processed_marker not in applied:
+        from homeassistant.util import dt as dt_util
+
+        meta[const.DATA_META_LAST_MIDNIGHT_PROCESSED] = datetime.now(
+            dt_util.UTC
+        ).isoformat()
+        midnight_processed_backfilled += 1
+        applied.append(midnight_processed_marker)
+
     _clear_schema45_challenges_container(data)
 
-    meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_BETA5
+    meta[const.DATA_META_SCHEMA_VERSION] = const.SCHEMA_VERSION_CURRENT
 
     summary = {
         "users_migrated": users_migrated,
@@ -800,6 +834,8 @@ async def async_apply_schema45_user_contract(
             removed_retired_badge_progress_fields
         ),
         "kid_key_remaps": kid_key_remaps,
+        "shared_admin_ui_control_backfilled": shared_admin_ui_control_backfilled,
+        "midnight_processed_backfilled": midnight_processed_backfilled,
     }
     meta["schema45_last_summary"] = summary
     const.LOGGER.debug(

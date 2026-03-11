@@ -15,7 +15,7 @@
 ## Card: Approval Center
 
 - `pref_ui_control_key_root` (default: `admin-shared/approval-center`)
-  - Sets the `ui_control` branch used by the shared Approval Center header.
+  - Sets the shared-admin `ui_control` branch used by the shared Approval Center header.
   - Override this only when you intentionally want another shared-admin instance to store its collapse state separately.
   - Example custom values: `admin-shared/approval-center`, `admin-shared/approval-center-compact`, `dashboards/admin/main/approval-center`.
   - Use slash-delimited segments without relying on a leading slash.
@@ -45,7 +45,7 @@
 ## Card: Management
 
 - `pref_selector_ui_control_key_root` (default: `admin-shared/admin-target-selector`)
-  - Sets the `ui_control` branch used by the selector header collapse state.
+  - Sets the shared-admin `ui_control` branch used by the selector header collapse state.
   - Override this only when you intentionally want another shared-admin instance to store its selector-collapse state separately.
   - Allowed: slash-delimited string path.
 
@@ -74,6 +74,7 @@
 
 - Management behavior
   - The selector section is separate from the Approval Center and uses the system admin selector entity resolved by the shared admin setup snippet.
+  - Its collapse state is shared page chrome and persists under the shared-admin helper, not under any selected user.
   - It is intended to set the current admin-action target for downstream admin cards.
   - The Approval Center continues to show all approvals and does not use this selector as a filter.
   - The section uses an Approval Center-style clickable summary header with a persisted collapse toggle and inline chips for `None` and each available user.
@@ -83,7 +84,7 @@
 ## Card: Chore management
 
 - `pref_chore_management_ui_control_key_root` (default: `admin-shared/chore-management`)
-  - Sets the `ui_control` branch used by the Chore Management header collapse state.
+  - Sets the selected-user `ui_control` branch used by the Chore Management header collapse state.
   - Allowed: slash-delimited string path.
 
 - `pref_chore_management_default_header_collapsed` (default: `false`)
@@ -117,6 +118,7 @@
 - Chore management behavior
   - The Chore Management card currently provides a stable baseline shell for the shared admin chore workflow.
   - It depends on the selected profile from the Admin target selector and uses that profile's `chore_select_eid` helper.
+  - Its collapse state follows the currently selected user, so each user can keep an independent open or closed state.
   - The header follows the same clickable summary pattern as the Approval Center and Management section.
   - When expanded, the section renders only the selected profile's chore selector entity.
   - If no profile is selected, the card renders a single guidance card instead of broken child cards.
@@ -133,4 +135,4 @@ Recommended ranges:
   - The shared Approval Center header supports a persisted collapse toggle.
   - The template uses the branch from `pref_ui_control_key_root` and stores the state at `header-collapse` under that root.
   - Expanding from a stored collapsed state removes the saved override so the card falls back to the template default behavior.
-  - This state is stored through `choreops.manage_ui_control` using the shared helper context.
+  - This state is stored through `choreops.manage_ui_control` using the `shared_admin` target.

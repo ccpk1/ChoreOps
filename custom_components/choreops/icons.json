@@ -162,6 +162,9 @@
       "system_dashboard_translation_sensor": {
         "default": "mdi:translate"
       },
+      "system_dashboard_helper_sensor": {
+        "default": "mdi:view-dashboard-edit-outline"
+      },
       "assignee_dashboard_helper_sensor": {
         "default": "mdi:view-dashboard-outline"
       }

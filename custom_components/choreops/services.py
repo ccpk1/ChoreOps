@@ -340,6 +340,10 @@ RESET_OVERDUE_CHORES_SCHEMA = vol.Schema(
 MANAGE_UI_CONTROL_SCHEMA = vol.Schema(
     _with_service_target_fields(
         {
+            vol.Optional(
+                const.SERVICE_FIELD_UI_CONTROL_TARGET,
+                default=const.UI_CONTROL_TARGET_USER,
+            ): cv.string,
             vol.Optional(const.SERVICE_FIELD_USER_ID): cv.string,
             vol.Optional(const.SERVICE_FIELD_USER_NAME): cv.string,
             vol.Required(const.SERVICE_FIELD_UI_CONTROL_ACTION): cv.string,
@@ -2915,7 +2919,8 @@ def async_setup_services(hass: HomeAssistant):
 
     async def handle_manage_ui_control(call: ServiceCall) -> dict[str, Any]:
         """Handle manage_ui_control service call."""
-        entry_id = _resolve_target_entry_id(hass, dict(call.data))
+        call_data = dict(call.data)
+        entry_id = _resolve_target_entry_id(hass, call_data)
         if not entry_id:
             raise HomeAssistantError(
                 translation_domain=const.DOMAIN,
@@ -2923,7 +2928,7 @@ def async_setup_services(hass: HomeAssistant):
             )
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
-        return await coordinator.user_manager.async_manage_ui_control(dict(call.data))
+        return await coordinator.user_manager.async_manage_ui_control(call_data)
 
     hass.services.async_register(
         const.DOMAIN,

@@ -897,12 +897,12 @@ class NotificationManager(BaseManager):
 
     async def async_setup(self) -> None:
         """Set up listeners for notification triggers."""
-        # Listen for chore approvals to send congratulations
+        # Listen for chore approvals to send outcome notifications
         self.listen(const.SIGNAL_SUFFIX_CHORE_APPROVED, self._on_chore_approved)
 
     async def _on_chore_approved(self, event: ChoreApprovedEvent) -> None:
         """Handle chore approval - send notification to assignee."""
-        await self.send_assignee_notification(
+        await self.notify_assignee_translated(
             event["assignee_id"],
             title_key="chore_approved_title",
             message_key="chore_approved_message",

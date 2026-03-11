@@ -11,7 +11,7 @@ Legacy/optional sensors are imported from sensor_legacy.py.
 
 Module-level functions for dynamic entity creation (used by services).
 
-Sensors Defined in This File (14):
+Sensors Defined in This File (15):
 
 # Modern Assignee-Specific Sensors (9)
 01. AssigneeChoreStatusSensor
@@ -24,12 +24,13 @@ Sensors Defined in This File (14):
 08. AssigneeChallengeProgressSensor
 09. AssigneeDashboardHelperSensor
 
-# Modern System-Level Sensors (5)
+# Modern System-Level Sensors (6)
 10. SystemBadgeSensor
 11. SystemChoreSharedStateSensor
 12. SystemAchievementSensor
 13. SystemChallengeSensor
 14. SystemDashboardTranslationSensor
+15. SystemDashboardHelperSensor
 
 Legacy Sensors Imported from sensor_legacy.py (13):
     Assignee Chore Completion Sensors (4):
@@ -558,6 +559,8 @@ async def async_setup_entry(
     for lang_code in languages_in_use:
         entities.append(SystemDashboardTranslationSensor(coordinator, entry, lang_code))
         coordinator.ui_manager.mark_translation_sensor_created(lang_code)
+
+    entities.append(SystemDashboardHelperSensor(coordinator, entry))
 
     # Dashboard helper sensors: Created last to ensure all referenced entities exist
     # This prevents entity ID lookup failures during initial setup
@@ -1468,9 +1471,7 @@ class AssigneeChoresSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
         # Use get_period_total for all_time approved count
-        chore_periods: dict[str, Any] = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
-        )
+        chore_periods = assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
         period_key_mapping = {
             const.PERIOD_ALL_TIME: const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME
         }
@@ -1507,9 +1508,7 @@ class AssigneeChoresSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
         # Use get_period_total for persistent all-time stats
-        chore_periods: dict[str, Any] = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
-        )
+        chore_periods = assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
         period_key_mapping = {
             const.PERIOD_ALL_TIME: const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME
         }
@@ -3015,10 +3014,7 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 assignee_data = cast(
                     "AssigneeData", self.coordinator.assignees_data.get(assignee_id, {})
                 )
-                chore_periods: dict[str, Any] = cast(
-                    "dict[str, Any]",
-                    assignee_data.get(const.DATA_USER_CHORE_PERIODS, {}),
-                )
+                chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
                 all_time_container: dict[str, Any] = cast(
                     "dict[str, Any]",
                     chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
@@ -3484,10 +3480,7 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
                 "AssigneeData",
                 self.coordinator.assignees_data.get(self._assignee_id, {}),
             )
-            chore_periods: dict[str, Any] = cast(
-                "dict[str, Any]",
-                assignee_data.get(const.DATA_USER_CHORE_PERIODS, {}),
-            )
+            chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
             all_time_container: dict[str, Any] = cast(
                 "dict[str, Any]",
                 chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),
@@ -3948,6 +3941,151 @@ class SystemDashboardTranslationSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_DASHBOARD_TRANSLATION,
             "ui_translations": self._ui_translations,
             const.TRANS_KEY_ATTR_LANGUAGE: self._language_code,
+        }
+
+    @property
+    def icon(self) -> str | None:
+        """Return None for icons.json fallback."""
+        return None
+
+
+# ------------------------------------------------------------------------------------------
+class SystemDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
+    """System-level helper sensor for shared admin dashboard state."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = const.TRANS_KEY_SENSOR_SYSTEM_DASHBOARD_HELPER
+
+    def __init__(
+        self,
+        coordinator: ChoreOpsDataCoordinator,
+        entry: ChoreOpsConfigEntry,
+    ):
+        """Initialize the system dashboard helper sensor."""
+        super().__init__(coordinator)
+        self._entry = entry
+        self._attr_unique_id = (
+            f"{entry.entry_id}{const.SENSOR_KC_UID_SUFFIX_SYSTEM_DASHBOARD_HELPER}"
+        )
+        self._attr_device_info = create_system_device_info(entry)
+
+    def _get_admin_selector_eid(self) -> str | None:
+        """Return the admin selector entity ID for this config entry."""
+        entity_registry = async_get(self.hass)
+        unique_id = (
+            f"{self._entry.entry_id}"
+            f"{const.SELECT_KC_UID_SUFFIX_SYSTEM_DASHBOARD_ADMIN_ASSIGNEE_SELECT}"
+        )
+        return entity_registry.async_get_entity_id("select", const.DOMAIN, unique_id)
+
+    def _get_selected_user(self) -> tuple[str | None, AssigneeData | None]:
+        """Return the selected user record from the admin selector, if available."""
+        selector_eid = self._get_admin_selector_eid()
+        if selector_eid is None:
+            return None, None
+
+        selector_state = self.hass.states.get(selector_eid)
+        if selector_state is None:
+            return None, None
+
+        selected_user_name = selector_state.state
+        if selected_user_name in {
+            const.SENTINEL_NONE_TEXT,
+            "",
+            "unavailable",
+            "unknown",
+        }:
+            return None, None
+
+        for user_id, user_data in self.coordinator.assignees_data.items():
+            if user_data.get(const.DATA_USER_NAME) == selected_user_name:
+                return user_id, user_data
+
+        return None, None
+
+    def _resolve_dashboard_language(self) -> str:
+        """Resolve the shared admin dashboard language for page-level chrome."""
+        selected_user_id, selected_user = self._get_selected_user()
+        if selected_user is not None:
+            selected_language = selected_user.get(const.DATA_USER_DASHBOARD_LANGUAGE)
+            if isinstance(selected_language, str) and selected_language:
+                return selected_language
+
+            if selected_user_id is not None:
+                linked_admins = sorted(
+                    (
+                        (
+                            str(approver_data.get(const.DATA_USER_NAME, "")).lower(),
+                            approver_id,
+                            approver_data,
+                        )
+                        for approver_id, approver_data in self.coordinator.approvers_data.items()
+                        if selected_user_id
+                        in cast(
+                            "list[str]",
+                            approver_data.get(const.DATA_USER_ASSOCIATED_USER_IDS, []),
+                        )
+                    ),
+                    key=lambda item: (item[0], item[1]),
+                )
+                for _, _, approver_data in linked_admins:
+                    approver_language = approver_data.get(
+                        const.DATA_USER_DASHBOARD_LANGUAGE
+                    )
+                    if isinstance(approver_language, str) and approver_language:
+                        return approver_language
+
+        return const.DEFAULT_DASHBOARD_LANGUAGE
+
+    def _get_translation_sensor_eid(self, language_code: str) -> str | None:
+        """Return the translation sensor entity ID for the resolved language."""
+        return self.coordinator.ui_manager.get_translation_sensor_eid(language_code)
+
+    def _get_user_dashboard_helpers(self) -> dict[str, str]:
+        """Return a minimal user-to-helper entity map for shared admin templates."""
+        entity_registry = async_get(self.hass)
+        helper_map: dict[str, str] = {}
+
+        sorted_assignees = sorted(
+            self.coordinator.assignees_data.items(),
+            key=lambda item: (
+                str(item[1].get(const.DATA_USER_NAME, "")).lower(),
+                item[0],
+            ),
+        )
+        for user_id, _user_data in sorted_assignees:
+            unique_id = (
+                f"{self._entry.entry_id}_{user_id}"
+                f"{const.SENSOR_KC_UID_SUFFIX_UI_DASHBOARD_HELPER}"
+            )
+            if entity_id := entity_registry.async_get_entity_id(
+                "sensor", const.DOMAIN, unique_id
+            ):
+                helper_map[user_id] = entity_id
+
+        return helper_map
+
+    @property
+    def native_value(self) -> Any:
+        """Return a simple helper state for dashboard availability checks."""
+        return "available"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return shared-admin helper attributes for admin dashboard templates."""
+        language_code = self._resolve_dashboard_language()
+        return {
+            const.ATTR_PURPOSE: const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_HELPER,
+            const.ATTR_UI_CONTROL: self.coordinator.ui_manager.get_shared_admin_ui_control(),
+            const.ATTR_INTEGRATION_ENTRY_ID: self._entry.entry_id,
+            const.ATTR_DASHBOARD_LOOKUP_KEY: (
+                f"{self._entry.entry_id}:{const.ATTR_UI_ROOT_SHARED_ADMIN}"
+            ),
+            const.ATTR_USER_DASHBOARD_HELPERS: self._get_user_dashboard_helpers(),
+            const.TRANS_KEY_ATTR_LANGUAGE: language_code,
+            const.ATTR_TRANSLATION_SENSOR_EID: self._get_translation_sensor_eid(
+                language_code
+            ),
         }
 
     @property

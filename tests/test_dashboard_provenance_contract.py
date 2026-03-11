@@ -8,6 +8,7 @@ import pytest
 
 from custom_components.choreops import const
 from custom_components.choreops.helpers import dashboard_builder as builder
+from tests.helpers import SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER, construct_entity_id
 from tests.helpers.setup import SetupResult, setup_from_yaml
 
 if TYPE_CHECKING:
@@ -107,3 +108,35 @@ async def test_dashboard_helper_includes_lookup_identity_contract(
     assert attrs[const.ATTR_DASHBOARD_LOOKUP_KEY] == (
         f"{config_entry.entry_id}:{user_id}"
     )
+
+
+@pytest.mark.asyncio
+async def test_system_dashboard_helper_includes_shared_admin_identity_contract(
+    hass: HomeAssistant,
+    scenario_minimal: SetupResult,
+) -> None:
+    """System dashboard helper exposes shared-admin lookup identity fields."""
+    config_entry = scenario_minimal.config_entry
+
+    helper_states = [
+        state
+        for state in hass.states.async_all("sensor")
+        if state.attributes.get(const.ATTR_PURPOSE)
+        == const.TRANS_KEY_PURPOSE_SYSTEM_DASHBOARD_HELPER
+    ]
+
+    assert len(helper_states) == 1
+
+    attrs = helper_states[0].attributes
+    assert attrs[const.ATTR_INTEGRATION_ENTRY_ID] == config_entry.entry_id
+    assert attrs[const.ATTR_DASHBOARD_LOOKUP_KEY] == (
+        f"{config_entry.entry_id}:{const.ATTR_UI_ROOT_SHARED_ADMIN}"
+    )
+    assert isinstance(attrs[const.ATTR_UI_CONTROL], dict)
+    assert attrs[const.ATTR_USER_DASHBOARD_HELPERS] == {
+        assignee_id: construct_entity_id(
+            "sensor", user_name, SENSOR_KC_EID_SUFFIX_UI_DASHBOARD_HELPER
+        )
+        for user_name, assignee_id in scenario_minimal.assignee_ids.items()
+    }
+    assert isinstance(attrs[const.ATTR_TRANSLATION_SENSOR_EID], str)

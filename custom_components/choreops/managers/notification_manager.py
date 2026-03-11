@@ -281,8 +281,14 @@ class NotificationManager(BaseManager):
     #    clear stale delivered notifications from devices. Reset cleanup is
     #    handled via CHORE_STATUS_RESET; delete cleanup removes records from
     #    our bucket and clears ghost notifications.
+    #
+    # 5. CANONICAL TRANSIENT FAMILY: Assignee due-window, due-reminder, and
+    #    overdue notifications form one canonical transient family for mobile
+    #    push. Transient progression uses STATUS-tag replacement; invalidation
+    #    without a successor uses explicit clear of that STATUS identity.
+    #    Legacy due_window/overdue clears remain compatibility-only.
 
-    # 5. CLEANUP VIA SIGNALS: CHORE_DELETED and KID_DELETED signals trigger
+    # 6. CLEANUP VIA SIGNALS: CHORE_DELETED and KID_DELETED signals trigger
     #    cleanup in our notifications bucket (choreographed janitor pattern).
     #
     # Structure: notifications[assignee_id][chore_id] = {
@@ -419,6 +425,35 @@ class NotificationManager(BaseManager):
             assignee_id[:8],
             chore_id[:8],
             notif_type,
+        )
+
+    def _build_assignee_chore_status_tag(self, assignee_id: str, chore_id: str) -> str:
+        """Build the canonical assignee transient-family tag for a chore.
+
+        The assignee transient family is the mobile-push lifecycle contract for:
+        due window -> due reminder -> overdue
+
+        Newer valid transient states replace older ones by reusing this STATUS tag.
+        Invalidating lifecycle events clear this tag explicitly.
+        """
+        return self.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_STATUS, self.entry_id, chore_id, assignee_id
+        )
+
+    def _get_assignee_chore_transient_compatibility_tags(
+        self, assignee_id: str, chore_id: str
+    ) -> tuple[str, str]:
+        """Return legacy assignee transient tags retained for compatibility clears."""
+        return (
+            self.build_notification_tag(
+                const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
+            ),
+            self.build_notification_tag(
+                const.NOTIFY_TAG_TYPE_DUE_WINDOW,
+                self.entry_id,
+                chore_id,
+                assignee_id,
+            ),
         )
 
     def _cleanup_chore_notifications(self, chore_id: str) -> None:
@@ -1586,31 +1621,44 @@ class NotificationManager(BaseManager):
                 ex,
             )
 
+    async def _clear_assignee_chore_transient_notifications(
+        self,
+        assignee_id: str,
+        chore_id: str,
+    ) -> None:
+        """Clear invalidated assignee transient notifications for one chore.
+
+        The canonical clear path is the STATUS tag because due-window,
+        due-reminder, and overdue now share one transient family. Legacy
+        due_window/overdue tag clears remain compatibility-only so older
+        delivered notifications can still be removed if they exist.
+        """
+        status_tag = self._build_assignee_chore_status_tag(assignee_id, chore_id)
+        compatibility_tags = self._get_assignee_chore_transient_compatibility_tags(
+            assignee_id, chore_id
+        )
+
+        await asyncio.gather(
+            self.clear_notification_for_assignee(assignee_id, status_tag),
+            *[
+                self.clear_notification_for_assignee(assignee_id, tag)
+                for tag in compatibility_tags
+            ],
+        )
+
     async def _clear_reset_chore_notifications(
         self,
         assignee_id: str,
         chore_id: str,
     ) -> None:
         """Clear notifications invalidated by a reset back to pending."""
-        status_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_STATUS, self.entry_id, chore_id, assignee_id
-        )
-        overdue_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
-        )
-        due_window_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, assignee_id
-        )
-
         await asyncio.gather(
             self.clear_notification_for_approvers(
                 assignee_id,
                 const.NOTIFY_TAG_TYPE_STATUS,
                 chore_id,
             ),
-            self.clear_notification_for_assignee(assignee_id, status_tag),
-            self.clear_notification_for_assignee(assignee_id, overdue_tag),
-            self.clear_notification_for_assignee(assignee_id, due_window_tag),
+            self._clear_assignee_chore_transient_notifications(assignee_id, chore_id),
         )
 
     async def remind_in_minutes(
@@ -2039,17 +2087,9 @@ class NotificationManager(BaseManager):
         # Note: Due-soon reminder tracking is already cleared by ChoreManager.claim_chore()
         # per Cross-Manager Directive 2 (Direct Writes are FORBIDDEN)
 
-        # Auto-clear: Remove overdue and due window notifications for assignee
-        # when they claim the chore (v0.5.0+ auto-clearing functionality)
-        overdue_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
-        )
-        due_window_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, assignee_id
-        )
-
-        await self.clear_notification_for_assignee(assignee_id, overdue_tag)
-        await self.clear_notification_for_assignee(assignee_id, due_window_tag)
+        # Claim invalidates the assignee transient family. Clear the canonical
+        # STATUS identity first, then retain legacy tag clears as compatibility.
+        await self._clear_assignee_chore_transient_notifications(assignee_id, chore_id)
 
         const.LOGGER.debug(
             "NotificationManager: Sent chore claimed notification for assignee=%s, chore=%s",
@@ -2307,16 +2347,9 @@ class NotificationManager(BaseManager):
             chore_id,
         )
 
-        # Clear overdue/due window notifications for assignee
-        overdue_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_OVERDUE, self.entry_id, chore_id, assignee_id
-        )
-        due_window_tag = self.build_notification_tag(
-            const.NOTIFY_TAG_TYPE_DUE_WINDOW, self.entry_id, chore_id, assignee_id
-        )
-
-        await self.clear_notification_for_assignee(assignee_id, overdue_tag)
-        await self.clear_notification_for_assignee(assignee_id, due_window_tag)
+        # Approval invalidates the assignee transient family. Clear the canonical
+        # STATUS identity first, then retain legacy tag clears as compatibility.
+        await self._clear_assignee_chore_transient_notifications(assignee_id, chore_id)
 
         const.LOGGER.debug(
             "NotificationManager: Cleared notifications for approved chore=%s, assignee=%s",
@@ -2615,7 +2648,8 @@ class NotificationManager(BaseManager):
             )
             return
 
-        # Notify assignee with claim action
+        # Notify assignee with claim action using the canonical transient-family
+        # STATUS tag so reminder replaces due-window and is later replaced by overdue.
         await self.notify_assignee_translated(
             assignee_id,
             title_key=const.TRANS_KEY_NOTIF_TITLE_CHORE_DUE_REMINDER_ASSIGNEE,
@@ -2626,6 +2660,8 @@ class NotificationManager(BaseManager):
                 "points": points,
             },
             actions=self.build_claim_action(assignee_id, chore_id, self.entry_id),
+            tag_type=const.NOTIFY_TAG_TYPE_STATUS,
+            tag_identifiers=(chore_id, assignee_id),
         )
 
         # Record notification sent (persists to storage)
@@ -2967,11 +3003,18 @@ class NotificationManager(BaseManager):
 
         # Clear notifications for each assignee that had this chore assigned
         for assignee_id in assigned_assignees:
-            # Clear STATUS tag notifications (pending approvals, due/overdue)
-            await self.clear_notification_for_approvers(
-                assignee_id,
-                const.NOTIFY_TAG_TYPE_STATUS,
-                chore_id,
+            # Chore deletion invalidates all assignee transient prompts and any
+            # approver workflow notification referencing this chore.
+            await asyncio.gather(
+                self.clear_notification_for_approvers(
+                    assignee_id,
+                    const.NOTIFY_TAG_TYPE_STATUS,
+                    chore_id,
+                ),
+                self._clear_assignee_chore_transient_notifications(
+                    assignee_id,
+                    chore_id,
+                ),
             )
 
     async def _handle_reward_deleted(self, payload: dict[str, Any]) -> None:

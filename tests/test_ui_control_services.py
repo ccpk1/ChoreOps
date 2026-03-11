@@ -42,6 +42,15 @@ def _get_helper_ui_control(hass: HomeAssistant, assignee_slug: str) -> dict[str,
     return ui_control
 
 
+def _get_shared_admin_ui_control(scenario_full: SetupResult) -> dict[str, Any]:
+    """Return the persisted shared-admin UI control payload."""
+    shared_admin_ui_control = scenario_full.coordinator._data[const.DATA_META][
+        const.DATA_META_SHARED_ADMIN_UI_CONTROL
+    ]
+    assert isinstance(shared_admin_ui_control, dict)
+    return shared_admin_ui_control
+
+
 class TestManageUiControlService:
     """Service tests for durable per-user UI controls."""
 
@@ -72,6 +81,7 @@ class TestManageUiControlService:
 
         assert response == {
             const.SERVICE_FIELD_USER_ID: user_id,
+            const.SERVICE_FIELD_UI_CONTROL_TARGET: const.UI_CONTROL_TARGET_USER,
             const.SERVICE_FIELD_UI_CONTROL_ACTION: const.UI_CONTROL_ACTION_CREATE,
             const.SERVICE_FIELD_UI_CONTROL_KEY: REWARDS_HEADER_COLLAPSE_KEY,
             "cleared_all": False,
@@ -125,6 +135,9 @@ class TestManageUiControlService:
         assert response[const.SERVICE_FIELD_UI_CONTROL_ACTION] == (
             const.UI_CONTROL_ACTION_UPDATE
         )
+        assert response[const.SERVICE_FIELD_UI_CONTROL_TARGET] == (
+            const.UI_CONTROL_TARGET_USER
+        )
         assert (
             user_record[const.DATA_USER_UI_PREFERENCES]["gamification"]["rewards"][
                 "header_collapse"
@@ -164,6 +177,9 @@ class TestManageUiControlService:
 
         assert response[const.SERVICE_FIELD_UI_CONTROL_ACTION] == (
             const.UI_CONTROL_ACTION_UPDATE
+        )
+        assert response[const.SERVICE_FIELD_UI_CONTROL_TARGET] == (
+            const.UI_CONTROL_TARGET_USER
         )
         assert (
             scenario_full.coordinator.assignees_data[user_id][
@@ -214,6 +230,9 @@ class TestManageUiControlService:
         await hass.async_block_till_done()
 
         assert response["cleared_all"] is True
+        assert response[const.SERVICE_FIELD_UI_CONTROL_TARGET] == (
+            const.UI_CONTROL_TARGET_USER
+        )
         assert response[const.SERVICE_FIELD_UI_CONTROL_KEY] == ""
         assert (
             scenario_full.coordinator.assignees_data[user_id][
@@ -260,6 +279,9 @@ class TestManageUiControlService:
         await hass.async_block_till_done()
 
         assert response["cleared_all"] is False
+        assert response[const.SERVICE_FIELD_UI_CONTROL_TARGET] == (
+            const.UI_CONTROL_TARGET_USER
+        )
         assert response[const.SERVICE_FIELD_UI_CONTROL_KEY] == (
             REWARDS_HEADER_COLLAPSE_KEY
         )
@@ -290,3 +312,97 @@ class TestManageUiControlService:
                 blocking=True,
                 return_response=True,
             )
+
+    @pytest.mark.asyncio
+    async def test_shared_admin_target_writes_meta_bucket(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Shared-admin target should persist outside any individual user record."""
+        response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_MANAGE_UI_CONTROL,
+            {
+                const.SERVICE_FIELD_UI_CONTROL_TARGET: (
+                    const.UI_CONTROL_TARGET_SHARED_ADMIN
+                ),
+                const.SERVICE_FIELD_UI_CONTROL_ACTION: const.UI_CONTROL_ACTION_CREATE,
+                const.SERVICE_FIELD_UI_CONTROL_KEY: REWARDS_HEADER_COLLAPSE_KEY,
+                const.SERVICE_FIELD_UI_CONTROL_VALUE: True,
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+        await hass.async_block_till_done()
+
+        assert response == {
+            const.SERVICE_FIELD_UI_CONTROL_TARGET: (
+                const.UI_CONTROL_TARGET_SHARED_ADMIN
+            ),
+            const.SERVICE_FIELD_UI_CONTROL_ACTION: const.UI_CONTROL_ACTION_CREATE,
+            const.SERVICE_FIELD_UI_CONTROL_KEY: REWARDS_HEADER_COLLAPSE_KEY,
+            "cleared_all": False,
+        }
+        assert (
+            _get_shared_admin_ui_control(scenario_full)["gamification"]["rewards"][
+                "header_collapse"
+            ]
+            is True
+        )
+        assert (
+            scenario_full.coordinator.ui_manager.get_shared_admin_ui_control()[
+                "gamification"
+            ]["rewards"]["header_collapse"]
+            is True
+        )
+
+    @pytest.mark.asyncio
+    async def test_shared_admin_target_rejects_user_context(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Shared-admin target should reject calls that also include user identity."""
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_MANAGE_UI_CONTROL,
+                {
+                    const.SERVICE_FIELD_UI_CONTROL_TARGET: (
+                        const.UI_CONTROL_TARGET_SHARED_ADMIN
+                    ),
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
+                    const.SERVICE_FIELD_UI_CONTROL_ACTION: (
+                        const.UI_CONTROL_ACTION_CREATE
+                    ),
+                    const.SERVICE_FIELD_UI_CONTROL_KEY: REWARDS_HEADER_COLLAPSE_KEY,
+                    const.SERVICE_FIELD_UI_CONTROL_VALUE: True,
+                },
+                blocking=True,
+                return_response=True,
+            )
+
+    @pytest.mark.asyncio
+    async def test_shared_admin_ui_manager_returns_deep_copy(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Shared-admin UI manager accessor should not expose mutable internal state."""
+        _get_shared_admin_ui_control(scenario_full)["gamification"] = {
+            "rewards": {"header_collapse": True}
+        }
+
+        shared_admin_ui_control = (
+            scenario_full.coordinator.ui_manager.get_shared_admin_ui_control()
+        )
+        shared_admin_ui_control["gamification"]["rewards"]["header_collapse"] = False
+
+        assert (
+            _get_shared_admin_ui_control(scenario_full)["gamification"]["rewards"][
+                "header_collapse"
+            ]
+            is True
+        )

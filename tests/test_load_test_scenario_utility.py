@@ -127,6 +127,59 @@ def test_build_bonus_and_penalty_payloads_force_positive_points() -> None:
     assert penalty_payload["penalty_points"] == 9.0
 
 
+def test_build_badge_payload_periodic_fields() -> None:
+    """It includes periodic badge target and reset-schedule fields."""
+    module = _load_module()
+
+    payload = module.build_badge_payload(
+        {
+            "name": "Week Spark",
+            "type": "periodic",
+            "assigned_to": ["Zoë", "Màx!"],
+            "award_points": 15,
+            "target_type": "points_chores",
+            "target_threshold_value": 20,
+            "recurring_frequency": "weekly",
+            "start_date": "2026-03-01",
+            "icon": "mdi:star-four-points",
+        }
+    )
+
+    assert payload["badge_name"] == "Week Spark"
+    assert payload["assigned_user_ids"] == ["Zoë", "Màx!"]
+    assert payload["award_items"] == ["points"]
+    assert payload["target_type"] == "points_chores"
+    assert payload["threshold_value"] == 20
+    assert payload["recurring_frequency"] == "weekly"
+    assert payload["start_date"] == "2026-03-01"
+    assert "points_multiplier" not in payload
+
+
+def test_map_select_field_labels_to_values() -> None:
+    """It maps selector labels to the underlying stored values."""
+    module = _load_module()
+
+    mapped = module.map_select_field_labels_to_values(
+        [
+            {
+                "name": "selected_chores",
+                "selector": {
+                    "select": {
+                        "options": [
+                            {"label": "Feed Cåts", "value": "chore-1"},
+                            {"label": "Plant Mïst", "value": "chore-2"},
+                        ]
+                    }
+                },
+            }
+        ],
+        "selected_chores",
+        ["Feed Cåts", "chore-2"],
+    )
+
+    assert mapped == ["chore-1", "chore-2"]
+
+
 def test_build_chore_payload_includes_due_window_fields() -> None:
     """It forwards due-window and claim-lock fields when provided."""
     module = _load_module()

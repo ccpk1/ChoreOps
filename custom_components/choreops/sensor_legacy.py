@@ -124,10 +124,7 @@ class AssigneeChoreCompletionSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             "AssigneeData", self.coordinator.assignees_data.get(self._assignee_id, {})
         )
         # v43+: chore_stats deleted, use chore_periods.all_time
-        # Cast to dict[str, Any] since chore_periods is a runtime-added bucket
-        chore_periods: dict[str, Any] = cast(
-            "dict[str, Any]", assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
-        )
+        chore_periods = assignee_info.get(const.DATA_USER_CHORE_PERIODS, {})
         all_time: dict[str, Any] = cast(
             "dict[str, Any]",
             chore_periods.get(const.DATA_USER_CHORE_DATA_PERIODS_ALL_TIME, {}),

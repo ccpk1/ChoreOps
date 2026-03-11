@@ -933,6 +933,272 @@ class TestDueDateReminders:
         assert call(assignee_id, overdue_tag) in clear_assignee.await_args_list
         assert call(assignee_id, due_window_tag) in clear_assignee.await_args_list
 
+
+class TestNotificationLifecycleContract:
+    """Tests for the Phase 3B assignee notification lifecycle contract."""
+
+    @pytest.mark.asyncio
+    async def test_due_then_reminder_uses_shared_status_replacement_family(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Due-window and reminder use replacement, not explicit clears."""
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        with (
+            patch.object(
+                coordinator.notification_manager,
+                "notify_assignee_translated",
+                new=AsyncMock(),
+            ) as notify_assignee,
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_assignee",
+                new=AsyncMock(),
+            ) as clear_assignee,
+        ):
+            await coordinator.notification_manager._handle_chore_due_window(
+                {
+                    "user_id": assignee_id,
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "hours": 2,
+                    "points": 10,
+                }
+            )
+            await coordinator.notification_manager._handle_chore_due_reminder(
+                {
+                    "user_id": assignee_id,
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "minutes": 30,
+                    "points": 10,
+                }
+            )
+
+        assert notify_assignee.await_count == 2
+        assert clear_assignee.await_count == 0
+        for await_call in notify_assignee.await_args_list:
+            assert await_call.kwargs["tag_type"] == const.NOTIFY_TAG_TYPE_STATUS
+            assert await_call.kwargs["tag_identifiers"] == (chore_id, assignee_id)
+
+    @pytest.mark.asyncio
+    async def test_reminder_then_overdue_uses_shared_status_replacement_family(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Reminder and overdue share the canonical replacement identity."""
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+        coordinator.chores_data[chore_id][const.DATA_CHORE_NOTIFY_ON_OVERDUE] = True
+
+        with (
+            patch.object(
+                coordinator.notification_manager,
+                "notify_assignee_translated",
+                new=AsyncMock(),
+            ) as notify_assignee,
+            patch.object(
+                coordinator.notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ),
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_assignee",
+                new=AsyncMock(),
+            ) as clear_assignee,
+        ):
+            await coordinator.notification_manager._handle_chore_due_reminder(
+                {
+                    "user_id": assignee_id,
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "minutes": 15,
+                    "points": 10,
+                }
+            )
+            await coordinator.notification_manager._handle_chore_overdue(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "due_date": "2026-01-01T00:00:00+00:00",
+                }
+            )
+
+        assert notify_assignee.await_count == 2
+        assert clear_assignee.await_count == 0
+        for await_call in notify_assignee.await_args_list:
+            assert await_call.kwargs["tag_type"] == const.NOTIFY_TAG_TYPE_STATUS
+            assert await_call.kwargs["tag_identifiers"] == (chore_id, assignee_id)
+
+    @pytest.mark.asyncio
+    async def test_claim_clears_canonical_transient_family_and_compatibility_tags(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Claim clears the canonical assignee transient family and legacy tags."""
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        status_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_STATUS,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+        overdue_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_OVERDUE,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+        due_window_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_DUE_WINDOW,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+
+        with (
+            patch.object(
+                coordinator.notification_manager,
+                "notify_approvers_translated",
+                new=AsyncMock(),
+            ),
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_assignee",
+                new=AsyncMock(),
+            ) as clear_assignee,
+        ):
+            await coordinator.notification_manager._handle_chore_claimed(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                }
+            )
+
+        assert call(assignee_id, status_tag) in clear_assignee.await_args_list
+        assert call(assignee_id, overdue_tag) in clear_assignee.await_args_list
+        assert call(assignee_id, due_window_tag) in clear_assignee.await_args_list
+
+    @pytest.mark.asyncio
+    async def test_approval_clears_canonical_transient_family_and_compatibility_tags(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Approval clears the canonical assignee transient family and legacy tags."""
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+
+        status_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_STATUS,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+        overdue_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_OVERDUE,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+        due_window_tag = coordinator.notification_manager.build_notification_tag(
+            const.NOTIFY_TAG_TYPE_DUE_WINDOW,
+            coordinator.notification_manager.entry_id,
+            chore_id,
+            assignee_id,
+        )
+
+        with (
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_approvers",
+                new=AsyncMock(),
+            ) as clear_approvers,
+            patch.object(
+                coordinator.notification_manager,
+                "clear_notification_for_assignee",
+                new=AsyncMock(),
+            ) as clear_assignee,
+        ):
+            await coordinator.notification_manager._handle_chore_approved(
+                {
+                    "user_id": assignee_id,
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                }
+            )
+
+        assert (
+            call(assignee_id, const.NOTIFY_TAG_TYPE_STATUS, chore_id)
+            in clear_approvers.await_args_list
+        )
+        assert call(assignee_id, status_tag) in clear_assignee.await_args_list
+        assert call(assignee_id, overdue_tag) in clear_assignee.await_args_list
+        assert call(assignee_id, due_window_tag) in clear_assignee.await_args_list
+
+    @pytest.mark.asyncio
+    async def test_non_self_associated_self_role_does_not_get_overdue_approver_duplicate(
+        self,
+        hass: HomeAssistant,
+        scenario_notifications: SetupResult,
+    ) -> None:
+        """Approver-capable records still require association before fan-out."""
+        from custom_components.choreops.managers import notification_manager
+
+        coordinator = scenario_notifications.coordinator
+        assignee_id = scenario_notifications.assignee_ids["Zoë"]
+        chore_id = scenario_notifications.chore_ids["Feed the cat"]
+        coordinator.chores_data[chore_id][const.DATA_CHORE_NOTIFY_ON_OVERDUE] = True
+        coordinator.assignees_data[assignee_id][
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE
+        ] = "notify.mobile_app_zoe"
+
+        coordinator.approvers_data["self_role_not_associated"] = {
+            const.DATA_USER_NAME: "Zoë Approver Shadow",
+            const.DATA_USER_ASSOCIATED_USER_IDS: [],
+            const.DATA_USER_MOBILE_NOTIFY_SERVICE: "notify.mobile_app_zoe",
+            const.DATA_USER_DASHBOARD_LANGUAGE: "en",
+            const.DATA_USER_CAN_APPROVE: True,
+        }
+
+        capture = NotificationCapture()
+
+        with patch.object(
+            notification_manager,
+            "async_send_notification",
+            new=capture.capture,
+        ):
+            await coordinator.notification_manager._handle_chore_overdue(
+                {
+                    "user_id": assignee_id,
+                    "user_name": "Zoë",
+                    "chore_id": chore_id,
+                    "chore_name": "Feed the cat",
+                    "due_date": "2026-01-01T00:00:00+00:00",
+                }
+            )
+            await hass.async_block_till_done()
+
+        services = [notif["service"] for notif in capture.notifications]
+        assert services.count("notify.mobile_app_zoe") == 1
+        assert "notify.mobile_app_mom_astrid_starblum" in services
+
     @pytest.mark.asyncio
     async def test_due_window_notification_sent_on_pending_to_due_transition(
         self,

@@ -1,6 +1,6 @@
 # Dashboard Template Guide
 
-**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-03-06
+**Version**: 1.0.0 | **Last Updated**: 2026-03-11
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
@@ -583,7 +583,7 @@ Every template MUST start with this header block:
 <#-- ============================================= --#>
 <#-- ChoreOps Dashboard Template - [STYLE] Style --#>
 <#-- Template Schema Version: 1                    --#>
-<#-- Integration: 0.5.0-beta.5 (Schema 43)         --#>
+<#-- Integration: 1.0.0 (Schema 100)               --#>
 <#-- ============================================= --#>
 <#--                                               --#>
 <#-- [Brief description of this template]          --#>
@@ -718,7 +718,7 @@ Ensure output has required keys:
 
 ---
 
-## v0.5.0 Chore Attributes Reference
+## Chore Attributes Reference
 
 ### State/status source-of-truth precedence (required)
 
@@ -764,7 +764,7 @@ from `chore.eid`:
 | `block_reason` | string\|null | Canonical blocker reason label/icon selection         |
 | `state`        | string       | Fallback status when `global_state` is unavailable    |
 
-#### New v0.5.0 rotation and restriction fields
+#### Rotation and restriction fields
 
 Note: Some runtime payload keys still use legacy names for backward compatibility. In this guide, treat those fields as user-scoped semantics.
 

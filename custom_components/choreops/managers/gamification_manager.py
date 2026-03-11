@@ -2977,11 +2977,8 @@ class GamificationManager(BaseManager):
             if assignee_id in chal_progress:
                 challenge_progress[chal_id] = chal_progress[assignee_id]
 
-        # Build context (using cast pattern for TypedDict compatibility)
-        chore_periods = cast(
-            "dict[str, Any]",
-            assignee_data.get(const.DATA_USER_CHORE_PERIODS, {}),
-        )
+        # Build context using the typed chore_periods bucket on assignee data.
+        chore_periods = assignee_data.get(const.DATA_USER_CHORE_PERIODS, {})
         context: EvaluationContext = {
             "assignee_id": assignee_id,
             "assignee_name": assignee_data.get(const.DATA_USER_NAME, "Unknown"),

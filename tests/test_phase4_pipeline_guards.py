@@ -134,7 +134,7 @@ async def test_persist_enforces_canonical_schema_on_runtime_writes(
     await hass.async_block_till_done()
 
     meta = coordinator._data.get(const.DATA_META, {})
-    assert meta.get(const.DATA_META_SCHEMA_VERSION) == const.SCHEMA_VERSION_BETA5
+    assert meta.get(const.DATA_META_SCHEMA_VERSION) == const.SCHEMA_VERSION_CURRENT
     assert const.DATA_SCHEMA_VERSION not in coordinator._data
 
 

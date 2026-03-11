@@ -56,3 +56,20 @@ def test_build_admin_dashboard_context_includes_meta_and_snippets() -> None:
     assert const.DASHBOARD_SNIPPET_KEY_ADMIN_SETUP_SHARED in snippets
     assert const.DASHBOARD_SNIPPET_KEY_ADMIN_VALIDATION_MISSING_SELECTOR in snippets
     assert const.DASHBOARD_SNIPPET_KEY_META_STAMP in snippets
+
+    admin_setup = snippets[const.DASHBOARD_SNIPPET_KEY_ADMIN_SETUP_SHARED]
+    assert "shared_admin_helper_eid" in admin_setup
+    assert (
+        "shared_admin_ui = state_attr(shared_admin_translation_sensor_eid, 'ui_translations')"
+        in admin_setup
+    )
+    assert "user_dashboard_helpers" in admin_setup
+    assert "helper_sensor_entities = helper_entity_ids.values | expand" in admin_setup
+    assert "summary_helper = helper_sensor_entities[0].entity_id" in admin_setup
+    assert (
+        "selected_user_id = state_attr(selected_dashboard_helper, 'user_id')"
+        in admin_setup
+    )
+    assert "ui_root = namespace(" in admin_setup
+    assert "shared_admin=shared_admin_ui_control" in admin_setup
+    assert "selected_user=selected_user_ui_control" in admin_setup

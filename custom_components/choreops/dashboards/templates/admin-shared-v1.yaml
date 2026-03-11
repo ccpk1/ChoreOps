@@ -1,28 +1,27 @@
 <#-- ============================================= --#>
-<#-- ChoreOps Dashboard Template - ADMIN      --#>
-<#-- Template Schema Version: 1                  --#>
+<#-- ChoreOps Dashboard Template - ADMIN Style --#>
+<#-- Template Schema Version: 1                --#>
+<#-- Integration: 1.0.0 (Schema 100)           --#>
 <#-- ============================================= --#>
 <#--                                             --#>
-<#-- Admin dashboard: Shared approval board      --#>
-<#-- Uses integration.entry_id injection for     --#>
-<#-- instance-safe helper lookup                 --#>
+<#-- Shared admin dashboard with approval,       --#>
+<#-- management, chores, economy, and system     --#>
+<#-- administration sections                     --#>
+<#-- OUTPUT: Full dashboard document with root keys --#>
 <#--                                             --#>
-<#-- Snippet tokens: template_snippets.admin_setup_shared,               --#>
-<#-- template_snippets.admin_validation_missing_selector,                --#>
-<#-- template_snippets.user_override_helper, template_snippets.meta_stamp --#>
-<#-- Stamp format (canonical): META STAMP: {template_id} • {release} • {generated_at} --#>
-<#-- Stamp placement: first line inside each card template block after card header comment --#>
+<#-- No injection needed                         --#>
 <#--                                             --#>
-<#-- All HA Jinja2 {{ }} syntax preserved       --#>
+<#-- All HA Jinja2 {{ }} syntax is preserved as-is --#>
 <#-- ============================================= --#>
 
 views:
-- title: ChoreOps Admin
+- title: OpsCenter
   path: admin
   sections:
     - type: grid
       cards:
         - type: custom:auto-entities
+          show_empty: false
           card:
             type: grid
             square: false
@@ -74,25 +73,14 @@ views:
 
                 {#-- 3. Initialize Variables --#}
 
-                {%- set helper_sensor_entities = integration_entities('choreops')
-                    | select('search', '^sensor\\.')
-                    | list
-                    | expand
-                    | selectattr('attributes.purpose', 'defined')
-                    | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                    | selectattr('attributes.integration_entry_id', 'eq', entry_id)
-                    | sort(attribute='attributes.user_name')
-                    | list -%}
                 {%- set ns = namespace(
                   lanes=[],
                   total_chore_pending=0,
                   total_reward_pending=0,
                   pending_user_count=0,
-                  summary_helper=''
+                  summary_helper=summary_helper
                 ) -%}
-                {%- if helper_sensor_entities | count > 0 -%}
-                  {%- set ns.summary_helper = helper_sensor_entities[0].entity_id -%}
-                {%- else -%}
+                {%- if ns.summary_helper in ['', None, 'None'] -%}
                   {{ {
                     'type': 'markdown',
                     'content': "⚠️ **Dashboard configuration error**\n\nCannot find any dashboard helper entities for this shared admin view.\n\nCheck Settings → Integrations → ChoreOps and verify at least one user is configured."
@@ -105,25 +93,19 @@ views:
 
                 {#-- 4. Collect Data --#}
 
-                {%- set ui = {} -%}
-                {%- if ns.summary_helper not in ['', None, 'None'] -%}
-                  {%- set translation_sensor = (state_attr(ns.summary_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                  {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                {%- endif -%}
-                {%- set integration_entry_id = state_attr(ns.summary_helper, 'integration_entry_id') if ns.summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set dashboard_helper_user_id = state_attr(ns.summary_helper, 'user_id') if ns.summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set ui_control = state_attr(ns.summary_helper, 'ui_control') | default({}, true) if ns.summary_helper not in ['', None, 'None'] else {} -%}
+                {%- set ui = shared_admin_ui -%}
+                {%- set integration_entry_id = state_attr(shared_admin_helper_eid, 'integration_entry_id') if shared_admin_helper_eid not in ['', None, 'None'] else '' -%}
                 {%- set ui_control_key_root = pref_ui_control_key_root -%}
                 {%- set ui_control_key_header_collapsed = ui_control_key_root ~ '/header-collapse' -%}
-                {%- set ui_root = namespace(current=ui_control if ui_control is mapping else {}) -%}
+                {%- set shared_admin_ui_root = namespace(current=ui_root.shared_admin if ui_root.shared_admin is mapping else {}) -%}
                 {%- for segment in ui_control_key_root.split('/') -%}
-                  {%- if ui_root.current is mapping -%}
-                    {%- set ui_root.current = ui_root.current.get(segment, {}) -%}
+                  {%- if shared_admin_ui_root.current is mapping -%}
+                    {%- set shared_admin_ui_root.current = shared_admin_ui_root.current.get(segment, {}) -%}
                   {%- else -%}
-                    {%- set ui_root.current = {} -%}
+                    {%- set shared_admin_ui_root.current = {} -%}
                   {%- endif -%}
                 {%- endfor -%}
-                {%- set has_header_collapsed_override = ui_root.current is mapping and 'header-collapse' in ui_root.current -%}
+                {%- set has_header_collapsed_override = shared_admin_ui_root.current is mapping and 'header-collapse' in shared_admin_ui_root.current -%}
 
                 {#-- 5. Build Display --#}
 
@@ -528,7 +510,7 @@ views:
                 {#-- 6. Render --#}
 
                 {%- set total_pending = ns.total_chore_pending + ns.total_reward_pending -%}
-                {%- set header_collapsed = ui_root.current['header-collapse'] if has_header_collapsed_override else (false if total_pending > 0 else pref_default_header_collapsed) -%}
+                {%- set header_collapsed = shared_admin_ui_root.current['header-collapse'] if has_header_collapsed_override else (false if total_pending > 0 else pref_default_header_collapsed) -%}
                 {%- set header_collapsed = (header_collapsed | string | lower) == 'true' -%}
                 {%- set show_summary_count = header_collapsed or total_pending == 0 -%}
                 {%- set collapsed_summary = "<div style='display:flex;flex-direction:column;align-items:flex-end;justify-content:center;line-height:1;'><span style='font-size:16px;font-weight:700;'>" ~ total_pending ~ "</span><span style='margin-top:4px;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--secondary-text-color);'>" ~ ui.get('approvals', 'err-approvals') ~ "</span></div>" -%}
@@ -548,21 +530,21 @@ views:
                   'service': 'choreops.manage_ui_control',
                   'data': {
                     'config_entry_id': integration_entry_id,
-                    'user_id': dashboard_helper_user_id,
+                    'ui_control_target': 'shared_admin',
                     'ui_control_action': 'remove',
                     'key': ui_control_key_header_collapsed
                   }
-                } if header_collapsed and integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                } if header_collapsed and integration_entry_id not in ['', none] else {
                   'action': 'call-service',
                   'service': 'choreops.manage_ui_control',
                   'data': {
                     'config_entry_id': integration_entry_id,
-                    'user_id': dashboard_helper_user_id,
+                    'ui_control_target': 'shared_admin',
                     'ui_control_action': 'update',
                     'key': ui_control_key_header_collapsed,
                     'value': true
                   }
-                } if integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                } if integration_entry_id not in ['', none] else {
                   'action': 'none'
                 }),
                 'hold_action': {'action': 'more-info'} if ns.summary_helper not in ['', None, 'None'] else {'action': 'none'},
@@ -632,6 +614,7 @@ views:
               {%- endif -%}
 
         - type: custom:auto-entities
+          show_empty: false
           card:
             type: grid
             square: false
@@ -691,21 +674,8 @@ views:
 
                 {#-- 3. Initialize Variables --#}
 
-                {%- set helper_sensor_entities = integration_entities('choreops')
-                    | select('search', '^sensor\\.')
-                    | list
-                    | expand
-                    | selectattr('attributes.purpose', 'defined')
-                    | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                    | selectattr('attributes.integration_entry_id', 'eq', entry_id)
-                    | sort(attribute='attributes.user_name')
-                    | list -%}
-                {%- set summary_helper = helper_sensor_entities[0].entity_id if helper_sensor_entities | count > 0 else '' -%}
-                {%- set ui = {} -%}
-                {%- if summary_helper not in ['', None, 'None'] -%}
-                  {%- set translation_sensor = (state_attr(summary_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                  {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                {%- else -%}
+                {%- set ui = shared_admin_ui -%}
+                {%- if summary_helper in ['', None, 'None'] -%}
                   {{ {
                     'type': 'markdown',
                     'content': "⚠️ **Dashboard configuration error**\n\nCannot find any dashboard helper entities for this shared admin view.\n\nCheck Settings → Integrations → ChoreOps and verify at least one user is configured."
@@ -718,33 +688,24 @@ views:
 
                 {#-- 4. Collect Data --#}
 
-                {%- set integration_entry_id = state_attr(summary_helper, 'integration_entry_id') if summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set dashboard_helper_user_id = state_attr(summary_helper, 'user_id') if summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set ui_control = state_attr(summary_helper, 'ui_control') | default({}, true) if summary_helper not in ['', None, 'None'] else {} -%}
+                {%- set integration_entry_id = state_attr(shared_admin_helper_eid, 'integration_entry_id') if shared_admin_helper_eid not in ['', None, 'None'] else '' -%}
                 {%- set ui_control_key_root = pref_selector_ui_control_key_root -%}
                 {%- set ui_control_key_header_collapsed = ui_control_key_root ~ '/header-collapse' -%}
-                {%- set ui_root = namespace(current=ui_control if ui_control is mapping else {}) -%}
+                {%- set shared_admin_ui_root = namespace(current=ui_root.shared_admin if ui_root.shared_admin is mapping else {}) -%}
                 {%- for segment in ui_control_key_root.split('/') -%}
-                  {%- if ui_root.current is mapping -%}
-                    {%- set ui_root.current = ui_root.current.get(segment, {}) -%}
+                  {%- if shared_admin_ui_root.current is mapping -%}
+                    {%- set shared_admin_ui_root.current = shared_admin_ui_root.current.get(segment, {}) -%}
                   {%- else -%}
-                    {%- set ui_root.current = {} -%}
+                    {%- set shared_admin_ui_root.current = {} -%}
                   {%- endif -%}
                 {%- endfor -%}
-                {%- set has_header_collapsed_override = ui_root.current is mapping and 'header-collapse' in ui_root.current -%}
-                {%- set selected_user_name = states(admin_selector_eid) if admin_selector_eid not in ['', None, 'None'] else '' -%}
-                {%- set has_selected_user = selected_user_name not in ['None', 'none', '', 'unknown', 'unavailable'] -%}
+                {%- set has_header_collapsed_override = shared_admin_ui_root.current is mapping and 'header-collapse' in shared_admin_ui_root.current -%}
                 {%- set selected_user_display = selected_user_name if has_selected_user else '' -%}
-                {%- set selected_helper_matches = helper_sensor_entities | selectattr('attributes.user_name', 'eq', selected_user_name) | list if has_selected_user else [] -%}
-                {%- set selected_dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid') if has_selected_user and admin_selector_eid not in ['', None, 'None'] else '' -%}
-                {%- if selected_dashboard_helper in ['', None, 'None'] and selected_helper_matches | count > 0 -%}
-                  {%- set selected_dashboard_helper = selected_helper_matches[0].entity_id -%}
-                {%- endif -%}
                 {%- set selected_helper_chores = state_attr(selected_dashboard_helper, 'chores') | default([], true) if selected_dashboard_helper not in ['', None, 'None'] and states(selected_dashboard_helper) not in ['unknown', 'unavailable'] else [] -%}
                 {%- set overdue_chore_count = selected_helper_chores | selectattr('state', 'eq', 'overdue') | list | count -%}
                 {%- set show_reset_all_overdue_card = has_selected_user and overdue_chore_count > 0 and integration_entry_id not in ['', None, 'None'] -%}
                 {%- set ns = namespace(chips=[]) -%}
-                {%- set header_collapsed = ui_root.current['header-collapse'] if has_header_collapsed_override else pref_selector_default_header_collapsed -%}
+                {%- set header_collapsed = shared_admin_ui_root.current['header-collapse'] if has_header_collapsed_override else pref_selector_default_header_collapsed -%}
                 {%- set header_collapsed = (header_collapsed | string | lower) == 'true' -%}
                 {%- set selector_label = ui.get('viewing_selected_user', 'err-viewing_selected_user') if has_selected_user else ui.get('choose_user_for_admin_actions', 'err-choose_user_for_admin_actions') -%}
                 {%- set selector_status_label = ui.get('active', 'err-active') if has_selected_user else '' -%}
@@ -767,21 +728,21 @@ views:
                     'service': 'choreops.manage_ui_control',
                     'data': {
                       'config_entry_id': integration_entry_id,
-                      'user_id': dashboard_helper_user_id,
+                      'ui_control_target': 'shared_admin',
                       'ui_control_action': 'update',
                       'key': ui_control_key_header_collapsed,
                       'value': false
                     }
-                  } if header_collapsed and integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                  } if header_collapsed and integration_entry_id not in ['', none] else {
                     'action': 'call-service',
                     'service': 'choreops.manage_ui_control',
                     'data': {
                       'config_entry_id': integration_entry_id,
-                      'user_id': dashboard_helper_user_id,
+                      'ui_control_target': 'shared_admin',
                       'ui_control_action': 'remove',
                       'key': ui_control_key_header_collapsed
                     }
-                  } if integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                  } if integration_entry_id not in ['', none] else {
                     'action': 'none'
                   }),
                   'hold_action': {'action': 'more-info'},
@@ -791,12 +752,12 @@ views:
                   },
                   'styles': {
                     'card': [
-                      {'margin-top': '10px'},
+                      {'margin-top': '12px'},
                       {'padding': '14px 16px'},
                       {'border-radius': '16px'},
                       {'box-shadow': 'none'},
-                      {'border': 'none' if has_selected_user else ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_selector_show_header_thin_border else 'none' if header_collapsed else ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if pref_selector_show_header_thin_border else 'none'},
-                      {'background-color': 'transparent' if has_selected_user else ('color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_selector_show_header_background else 'transparent' if header_collapsed else ('color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_selector_show_header_background else 'transparent'}
+                      {'border': ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_selector_show_header_thin_border else 'none' if header_collapsed else ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if pref_selector_show_header_thin_border else 'none'},
+                      {'background-color': ('color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_selector_show_header_background else 'transparent' if header_collapsed else ('color-mix(in srgb, var(--primary-color) ' ~ pref_selector_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_selector_show_header_background else 'transparent'}
                     ],
                     'grid': [
                       {'grid-template-areas': '"i n target toggle" "i l target toggle"' if has_selected_user else '"i n toggle" "i l toggle"'},
@@ -866,7 +827,7 @@ views:
                         'service': 'choreops.manage_ui_control',
                         'data': {
                           'config_entry_id': integration_entry_id,
-                          'user_id': dashboard_helper_user_id,
+                          'ui_control_target': 'shared_admin',
                           'ui_control_action': 'remove',
                           'key': ui_control_key_header_collapsed
                         }
@@ -916,7 +877,7 @@ views:
                           'service': 'choreops.manage_ui_control',
                           'data': {
                             'config_entry_id': integration_entry_id,
-                            'user_id': dashboard_helper_user_id,
+                            'ui_control_target': 'shared_admin',
                             'ui_control_action': 'remove',
                             'key': ui_control_key_header_collapsed
                           }
@@ -1079,21 +1040,8 @@ views:
 
                 {#-- 3. Initialize Variables --#}
 
-                {%- set helper_sensor_entities = integration_entities('choreops')
-                    | select('search', '^sensor\\.')
-                    | list
-                    | expand
-                    | selectattr('attributes.purpose', 'defined')
-                    | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                    | selectattr('attributes.integration_entry_id', 'eq', entry_id)
-                    | sort(attribute='attributes.user_name')
-                    | list -%}
-                {%- set summary_helper = helper_sensor_entities[0].entity_id if helper_sensor_entities | count > 0 else '' -%}
-                {%- set ui = {} -%}
-                {%- if summary_helper not in ['', None, 'None'] -%}
-                  {%- set translation_sensor = (state_attr(summary_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                  {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                {%- else -%}
+                {%- set ui = shared_admin_ui -%}
+                {%- if summary_helper in ['', None, 'None'] -%}
                   {{ {
                     'type': 'markdown',
                     'content': "⚠️ **Dashboard configuration error**\n\nCannot find any dashboard helper entities for this shared admin view.\n\nCheck Settings → Integrations → ChoreOps and verify at least one user is configured."
@@ -1106,29 +1054,18 @@ views:
 
                 {#-- 4. Collect Data --#}
 
-                {%- set integration_entry_id = state_attr(summary_helper, 'integration_entry_id') if summary_helper not in ['', None, 'None'] else '' -%}
+                {%- set integration_entry_id = state_attr(shared_admin_helper_eid, 'integration_entry_id') if shared_admin_helper_eid not in ['', None, 'None'] else '' -%}
                 {%- set ui_control_key_root = pref_chore_management_ui_control_key_root -%}
                 {%- set ui_control_key_header_collapsed = ui_control_key_root ~ '/header-collapse' -%}
-                {%- set selected_user_name = states(admin_selector_eid) if admin_selector_eid not in ['', None, 'None'] else '' -%}
-                {%- set has_selected_user = selected_user_name not in ['None', 'none', '', 'unknown', 'unavailable'] -%}
-                {%- set selected_helper_matches = helper_sensor_entities | selectattr('attributes.user_name', 'eq', selected_user_name) | list if has_selected_user else [] -%}
-                {%- set selected_dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid') if has_selected_user and admin_selector_eid not in ['', None, 'None'] else '' -%}
-                {%- if selected_dashboard_helper in ['', None, 'None'] and selected_helper_matches | count > 0 -%}
-                  {%- set selected_dashboard_helper = selected_helper_matches[0].entity_id -%}
-                {%- endif -%}
-                {%- set has_selected_dashboard_helper = selected_dashboard_helper not in ['', None, 'None'] and states(selected_dashboard_helper) not in ['unknown', 'unavailable'] -%}
-                {%- set ui_control_source = selected_dashboard_helper if has_selected_dashboard_helper else summary_helper -%}
-                {%- set dashboard_helper_user_id = state_attr(ui_control_source, 'user_id') if ui_control_source not in ['', None, 'None'] else '' -%}
-                {%- set ui_control = state_attr(ui_control_source, 'ui_control') | default({}, true) if ui_control_source not in ['', None, 'None'] else {} -%}
-                {%- set ui_root = namespace(current=ui_control if ui_control is mapping else {}) -%}
+                {%- set selected_user_ui_root = namespace(current=ui_root.selected_user if ui_root.selected_user is mapping else {}) -%}
                 {%- for segment in ui_control_key_root.split('/') -%}
-                  {%- if ui_root.current is mapping -%}
-                    {%- set ui_root.current = ui_root.current.get(segment, {}) -%}
+                  {%- if selected_user_ui_root.current is mapping -%}
+                    {%- set selected_user_ui_root.current = selected_user_ui_root.current.get(segment, {}) -%}
                   {%- else -%}
-                    {%- set ui_root.current = {} -%}
+                    {%- set selected_user_ui_root.current = {} -%}
                   {%- endif -%}
                 {%- endfor -%}
-                {%- set has_header_collapsed_override = ui_root.current is mapping and 'header-collapse' in ui_root.current -%}
+                {%- set has_header_collapsed_override = selected_user_ui_root.current is mapping and 'header-collapse' in selected_user_ui_root.current -%}
                 {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
                 {%- set selected_core_sensors = state_attr(selected_dashboard_helper, 'core_sensors') or {} if has_selected_dashboard_helper else {} -%}
                 {%- set chore_select_entity = selected_dashboard_helpers.get('chore_select_eid') if has_selected_dashboard_helper else '' -%}
@@ -1143,10 +1080,20 @@ views:
                 {%- set helper_chore_items = state_attr(selected_dashboard_helper, 'chores') | default([], true) if has_selected_dashboard_helper else [] -%}
                 {%- set overdue_chore_items = helper_chore_items | selectattr('state', 'eq', 'overdue') | list if has_selected_dashboard_helper else [] -%}
                 {%- set overdue_chore_count = overdue_chore_items | count -%}
-                {%- set selected_chore_matches = helper_chore_items | selectattr('name', 'eq', selected_chore_name) | list if has_selected_chore else [] -%}
-                {%- set selected_chore_sensor = selected_chore_matches[0].eid if selected_chore_matches | count > 0 else '' -%}
+                {%- set selected_chore_lookup_name = selected_chore_name | string | trim if has_selected_chore else '' -%}
+                {%- set selected_chore_sensor_ns = namespace(entity_id='') -%}
+                {%- if has_selected_chore -%}
+                  {%- for helper_chore in helper_chore_items -%}
+                    {%- set helper_chore_name = helper_chore.name | default('', true) | string | trim -%}
+                    {%- if selected_chore_sensor_ns.entity_id == '' and helper_chore_name == selected_chore_lookup_name -%}
+                      {%- set selected_chore_sensor_ns.entity_id = helper_chore.eid | default('', true) -%}
+                    {%- endif -%}
+                  {%- endfor -%}
+                {%- endif -%}
+                {%- set selected_chore_sensor = selected_chore_sensor_ns.entity_id -%}
                 {%- set has_selected_chore_sensor = selected_chore_sensor not in ['', None, 'None'] and states(selected_chore_sensor) not in ['unknown', 'unavailable'] -%}
-                {%- set header_collapsed = (ui_root.current['header-collapse'] if has_header_collapsed_override else pref_chore_management_default_header_collapsed) | default(pref_chore_management_default_header_collapsed, true) -%}
+                {%- set has_resolved_selected_chore = has_selected_chore and has_selected_chore_sensor -%}
+                {%- set header_collapsed = selected_user_ui_root.current['header-collapse'] if has_header_collapsed_override else pref_chore_management_default_header_collapsed -%}
                 {%- set header_collapsed = (header_collapsed | string | lower) == 'true' -%}
                 {%- set management_label = ui.get('viewing_selected_chore', 'err-viewing_selected_chore') if has_selected_chore else ui.get('choose_chore_for_admin_actions', 'err-choose_chore_for_admin_actions') if has_chore_selector else ui.get('chore_selector_unavailable', 'err-chore_selector_unavailable') if has_selected_dashboard_helper else ui.get('select_user_to_manage_chores_first', 'err-select_user_to_manage_chores_first') -%}
                 {%- set management_label_html = (
@@ -1171,21 +1118,23 @@ views:
                     'service': 'choreops.manage_ui_control',
                     'data': {
                       'config_entry_id': integration_entry_id,
-                      'user_id': dashboard_helper_user_id,
+                      'user_id': selected_user_id,
+                      'ui_control_target': 'user',
                       'ui_control_action': 'update',
                       'key': ui_control_key_header_collapsed,
                       'value': false
                     }
-                  } if header_collapsed and integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                  } if header_collapsed and integration_entry_id not in ['', none] and selected_user_id not in ['', none] else {
                     'action': 'call-service',
                     'service': 'choreops.manage_ui_control',
                     'data': {
                       'config_entry_id': integration_entry_id,
-                      'user_id': dashboard_helper_user_id,
+                      'user_id': selected_user_id,
+                      'ui_control_target': 'user',
                       'ui_control_action': 'remove',
                       'key': ui_control_key_header_collapsed
                     }
-                  } if integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                  } if integration_entry_id not in ['', none] and selected_user_id not in ['', none] else {
                     'action': 'none'
                   }),
                   'hold_action': {'action': 'more-info'} if chore_select_entity not in ['', None, 'None'] else {'action': 'none'},
@@ -1199,8 +1148,9 @@ views:
                       {'padding': '8px 16px'},
                       {'border-radius': '16px'},
                       {'box-shadow': 'none'},
-                      {'border': ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_chore_management_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_chore_management_show_header_thin_border else 'none' if header_collapsed else ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_chore_management_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if has_selected_chore and pref_chore_management_show_header_thin_border else 'none' if has_selected_chore else '1px solid var(--divider-color)'},
-                      {'background-color': ('color-mix(in srgb, var(--primary-color) ' ~ pref_chore_management_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_chore_management_show_header_background else 'transparent' if header_collapsed else ('color-mix(in srgb, var(--primary-color) ' ~ pref_chore_management_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if has_selected_chore and pref_chore_management_show_header_background else 'transparent'}
+                      {'border': 'none' if has_selected_chore and not header_collapsed else ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_chore_management_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_chore_management_show_header_thin_border else 'none' if header_collapsed else '1px solid var(--divider-color)'},
+                      {'background-color': 'transparent' if has_selected_chore and not header_collapsed else ('color-mix(in srgb, var(--primary-color) ' ~ pref_chore_management_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_chore_management_show_header_background else 'transparent'},
+                      {'margin-top': '12px' if header_collapsed else '20px'}
                     ],
                     'grid': [
                       {'grid-template-areas': '"i n target toggle" "i subtitle target toggle"' if has_selected_chore else '"i n toggle" "i subtitle toggle"'},
@@ -1359,6 +1309,10 @@ views:
                 {%- set chore_selector_error_card = {
                   'type': 'markdown',
                   'content': "⚠️ **Dashboard configuration error**\n\nThe selected profile does not expose a chore selector helper for this shared admin view.\n\nReopen the profile from the Management section or verify the ChoreOps dashboard helper entities are available for that user."
+                } -%}
+                {%- set selected_chore_resolution_error_card = {
+                  'type': 'markdown',
+                  'content': "⚠️ **Dashboard configuration error**\n\nThe selected chore could not be resolved for this shared admin view.\n\nClear the chore selection and choose it again. If the problem persists, reopen the profile from the Management section and verify the ChoreOps chore helper entities are available for that user."
                 } -%}
                 {%- set chore_select_card = {
                   'type': 'entities',
@@ -2086,14 +2040,215 @@ views:
                 {%- if not header_collapsed -%}
                   {%- if has_chore_selector and chore_select_card not in [none, None] -%}
                     {{ chore_select_card }},
-                    {%- if has_selected_chore and chore_overview_card not in [none, None] -%}
+                    {%- if has_resolved_selected_chore and chore_overview_card not in [none, None] -%}
                       {{ chore_overview_card }},
+                    {%- elif has_selected_chore -%}
+                      {{ selected_chore_resolution_error_card }},
                     {%- endif -%}
                   {%- else -%}
                     {{ chore_selector_error_card }},
                   {%- endif -%}
                 {%- endif -%}
               {%- endif -%}
+              {%- endif -%}
+
+        - type: custom:auto-entities
+          card:
+            type: grid
+            square: false
+            columns: 1
+          card_param: cards
+          filter:
+            template: |-
+              {#-- ===== SYSTEM ADMINISTRATION ===== --#}
+
+              << template_snippets.meta_stamp >>
+
+
+              {#-- 1. User Configuration --#}
+
+              << template_snippets.user_override_helper >>
+
+
+              {#-- 2. Dynamic Lookups & Validations --#}
+
+              << template_snippets.admin_setup_shared >>
+
+              << template_snippets.admin_validation_missing_selector >>
+
+              {%- if not skip_render and not has_selected_user -%}
+
+                {%- set ui = shared_admin_ui -%}
+                [
+                {{ {
+                  'type': 'custom:button-card',
+                  'entity': admin_selector_eid,
+                  'show_name': True,
+                  'show_label': True,
+                  'show_state': False,
+                  'show_icon': True,
+                  'icon': 'mdi:cog-outline',
+                  'name': ui.get('system_administration', 'err-system_administration'),
+                  'label': ui.get('link_to_choreops_integration_configuration', 'err-link_to_choreops_integration_configuration'),
+                  'tap_action': {
+                    'action': 'url',
+                    'url_path': '/config/integrations/integration/choreops'
+                  },
+                  'hold_action': {'action': 'more-info'},
+                  "styles": {
+                    "card": [
+                      {"margin-top": "12px"},
+                      {"padding": "14px 16px"},
+                      {"border-radius": "16px"},
+                      {"background-color": "var(--card-background-color)"},
+                      {"border": "1px solid var(--divider-color)"}
+                    ],
+                    "grid": [
+                      {"grid-template-areas": "'i n' 'i l'"},
+                      {"grid-template-columns": "32px 1fr"},
+                      {"align-items": "center"},
+                      {"column-gap": "14px"}
+                    ],
+                    "icon": [
+                      {"width": "24px"},
+                      {"height": "24px"},
+                      {"align-self": "center"},
+                      {"color": "var(--primary-color)"}
+                    ],
+                    "name": [
+                      {"justify-self": "start"},
+                      {"width": "100%"},
+                      {"text-align": "left"},
+                      {"font-size": "14px"},
+                      {"font-weight": "700"},
+                      {"line-height": "1.2"},
+                      {"text-transform": "uppercase"},
+                      {"letter-spacing": "0.05em"}
+                    ],
+                    "label": [
+                      {"justify-self": "start"},
+                      {"width": "100%"},
+                      {"text-align": "left"},
+                      {"font-size": "12px"},
+                      {"line-height": "1.35"},
+                      {"white-space": "normal"},
+                      {"color": "var(--secondary-text-color)"}
+                    ]
+                  }
+                } }},
+                {{ {
+                  'type': 'custom:button-card',
+                  'entity': admin_selector_eid,
+                  'show_name': True,
+                  'show_label': True,
+                  'show_state': False,
+                  'show_icon': True,
+                  'icon': 'mdi:information-outline',
+                  'name': ui.get('documentation_and_help', 'err-documentation_and_help'),
+                  'label': ui.get('documentation_and_help_description', 'err-documentation_and_help_description'),
+                  'tap_action': {
+                    'action': 'url',
+                    'url_path': 'https://github.com/ccpk1/ChoreOps/wiki'
+                  },
+                  'hold_action': {'action': 'none'},
+                  "styles": {
+                    "card": [
+                      {"margin-top": "8px"},
+                      {"padding": "14px 16px"},
+                      {"border-radius": "16px"},
+                      {"background-color": "var(--card-background-color)"},
+                      {"border": "1px solid var(--divider-color)"}
+                    ],
+                    "grid": [
+                      {"grid-template-areas": "'i n' 'i l'"},
+                      {"grid-template-columns": "32px 1fr"},
+                      {"align-items": "center"},
+                      {"column-gap": "14px"}
+                    ],
+                    "icon": [
+                      {"width": "24px"},
+                      {"height": "24px"},
+                      {"align-self": "center"},
+                      {"color": "var(--primary-color)"}
+                    ],
+                    "name": [
+                      {"justify-self": "start"},
+                      {"width": "100%"},
+                      {"text-align": "left"},
+                      {"font-size": "14px"},
+                      {"font-weight": "700"},
+                      {"line-height": "1.2"},
+                      {"text-transform": "uppercase"},
+                      {"letter-spacing": "0.05em"}
+                    ],
+                    "label": [
+                      {"justify-self": "start"},
+                      {"width": "100%"},
+                      {"text-align": "left"},
+                      {"font-size": "12px"},
+                      {"line-height": "1.35"},
+                      {"white-space": "normal"},
+                      {"color": "var(--secondary-text-color)"}
+                    ]
+                  }
+                } }},
+                {{ {
+                  'type': 'custom:button-card',
+                  'entity': admin_selector_eid,
+                  'show_name': True,
+                  'show_label': True,
+                  'show_state': False,
+                  'show_icon': True,
+                  'icon': 'mdi:heart',
+                  'name': ui.get('support_the_project', 'err-support_the_project'),
+                  'label': ui.get('support_the_project_description', 'err-support_the_project_description'),
+                  'tap_action': {
+                    'action': 'url',
+                    'url_path': 'https://github.com/sponsors/ccpk1'
+                  },
+                  'hold_action': {'action': 'none'},
+                  "styles": {
+                    "card": [
+                      {"margin-top": "8px"},
+                      {"padding": "14px 16px"},
+                      {"border-radius": "16px"},
+                      {"background-color": "var(--card-background-color)"},
+                      {"border": "1px solid var(--divider-color)"}
+                    ],
+                    "grid": [
+                      {"grid-template-areas": "'i n' 'i l'"},
+                      {"grid-template-columns": "32px 1fr"},
+                      {"align-items": "center"},
+                      {"column-gap": "14px"}
+                    ],
+                    "icon": [
+                      {"width": "24px"},
+                      {"height": "24px"},
+                      {"align-self": "center"},
+                      {"color": "var(--primary-color)"}
+                    ],
+                    "name": [
+                      {"justify-self": "start"},
+                      {"width": "100%"},
+                      {"text-align": "left"},
+                      {"font-size": "14px"},
+                      {"font-weight": "700"},
+                      {"line-height": "1.2"},
+                      {"text-transform": "uppercase"},
+                      {"letter-spacing": "0.05em"}
+                    ],
+                    "label": [
+                      {"justify-self": "start"},
+                      {"width": "100%"},
+                      {"text-align": "left"},
+                      {"font-size": "12px"},
+                      {"line-height": "1.35"},
+                      {"white-space": "normal"},
+                      {"color": "var(--secondary-text-color)"}
+                    ]
+                  }
+                } }}
+                ]
               {%- endif -%}
 
         - type: custom:auto-entities
@@ -2150,21 +2305,8 @@ views:
 
                 {#-- 3. Initialize Variables --#}
 
-                {%- set helper_sensor_entities = integration_entities('choreops')
-                    | select('search', '^sensor\\.')
-                    | list
-                    | expand
-                    | selectattr('attributes.purpose', 'defined')
-                    | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                    | selectattr('attributes.integration_entry_id', 'eq', entry_id)
-                    | sort(attribute='attributes.user_name')
-                    | list -%}
-                {%- set summary_helper = helper_sensor_entities[0].entity_id if helper_sensor_entities | count > 0 else '' -%}
-                {%- set ui = {} -%}
-                {%- if summary_helper not in ['', None, 'None'] -%}
-                  {%- set translation_sensor = (state_attr(summary_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') -%}
-                  {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor else {} -%}
-                {%- else -%}
+                {%- set ui = shared_admin_ui -%}
+                {%- if summary_helper in ['', None, 'None'] -%}
                   {{ {
                     'type': 'markdown',
                     'content': "⚠️ **Dashboard configuration error**\n\nCannot find any dashboard helper entities for this shared admin view.\n\nCheck Settings → Integrations → ChoreOps and verify at least one user is configured."
@@ -2177,46 +2319,710 @@ views:
 
                 {#-- 4. Collect Data --#}
 
-                {%- set integration_entry_id = state_attr(summary_helper, 'integration_entry_id') if summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set dashboard_helper_user_id = state_attr(summary_helper, 'user_id') if summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set ui_control = state_attr(summary_helper, 'ui_control') | default({}, true) if summary_helper not in ['', None, 'None'] else {} -%}
+                {%- set integration_entry_id = state_attr(shared_admin_helper_eid, 'integration_entry_id') if shared_admin_helper_eid not in ['', None, 'None'] else '' -%}
                 {%- set ui_control_key_root = pref_economy_management_ui_control_key_root -%}
                 {%- set ui_control_key_header_collapsed = ui_control_key_root ~ '/header-collapse' -%}
-                {%- set ui_root = namespace(current=ui_control if ui_control is mapping else {}) -%}
+                {%- set selected_user_ui_root = namespace(current=ui_root.selected_user if ui_root.selected_user is mapping else {}) -%}
                 {%- for segment in ui_control_key_root.split('/') -%}
-                  {%- if ui_root.current is mapping -%}
-                    {%- set ui_root.current = ui_root.current.get(segment, {}) -%}
+                  {%- if selected_user_ui_root.current is mapping -%}
+                    {%- set selected_user_ui_root.current = selected_user_ui_root.current.get(segment, {}) -%}
                   {%- else -%}
-                    {%- set ui_root.current = {} -%}
+                    {%- set selected_user_ui_root.current = {} -%}
                   {%- endif -%}
                 {%- endfor -%}
-                {%- set has_header_collapsed_override = ui_root.current is mapping and 'header-collapse' in ui_root.current -%}
-                {%- set selected_user_name = states(admin_selector_eid) if admin_selector_eid not in ['', None, 'None'] else '' -%}
-                {%- set has_selected_user = selected_user_name not in ['None', 'none', '', 'unknown', 'unavailable'] -%}
-                {%- set selected_helper_matches = helper_sensor_entities | selectattr('attributes.user_name', 'eq', selected_user_name) | list if has_selected_user else [] -%}
-                {%- set selected_dashboard_helper = state_attr(admin_selector_eid, 'dashboard_helper_eid') if has_selected_user and admin_selector_eid not in ['', None, 'None'] else '' -%}
-                {%- if selected_dashboard_helper in ['', None, 'None'] and selected_helper_matches | count > 0 -%}
-                  {%- set selected_dashboard_helper = selected_helper_matches[0].entity_id -%}
-                {%- endif -%}
-                {%- set has_selected_dashboard_helper = selected_dashboard_helper not in ['', None, 'None'] and states(selected_dashboard_helper) not in ['unknown', 'unavailable'] -%}
+                {%- set has_header_collapsed_override = selected_user_ui_root.current is mapping and 'header-collapse' in selected_user_ui_root.current -%}
                 {%- set selected_dashboard_helpers = state_attr(selected_dashboard_helper, 'dashboard_helpers') or {} if has_selected_dashboard_helper else {} -%}
                 {%- set selected_core_sensors = state_attr(selected_dashboard_helper, 'core_sensors') or {} if has_selected_dashboard_helper else {} -%}
                 {%- set points_sensor = selected_core_sensors.get('points_eid') if has_selected_dashboard_helper else '' -%}
                 {%- set selected_translation_sensor = selected_dashboard_helpers.get('translation_sensor_eid') if has_selected_dashboard_helper else '' -%}
                 {%- set ui = state_attr(selected_translation_sensor, 'ui_translations') if selected_translation_sensor else ui -%}
                 {%- set selected_gamification_enabled = state_attr(selected_dashboard_helper, 'gamification_enabled') | default(false, true) if has_selected_dashboard_helper else false -%}
+                {%- set point_buttons = state_attr(selected_dashboard_helper, 'points_buttons') | default([], true) if has_selected_dashboard_helper else [] -%}
+                {%- set bonus_list = state_attr(selected_dashboard_helper, 'bonuses') | default([], true) if has_selected_dashboard_helper else [] -%}
+                {%- set penalty_list = state_attr(selected_dashboard_helper, 'penalties') | default([], true) if has_selected_dashboard_helper else [] -%}
                 {%- set has_points_sensor = points_sensor not in ['', None, 'None'] and states(points_sensor) not in ['unknown', 'unavailable'] -%}
                 {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if has_points_sensor else None) or 'Points' -%}
                 {%- set points_icon = (state_attr(points_sensor, 'icon') if has_points_sensor else None) or 'mdi:star-outline' -%}
                 {%- set points_total_display = states(points_sensor) if has_points_sensor and states(points_sensor) not in ['unknown', 'unavailable', 'None', ''] else '0' -%}
-                {%- set header_collapsed = (ui_root.current['header-collapse'] if has_header_collapsed_override else pref_economy_management_default_header_collapsed) | default(pref_economy_management_default_header_collapsed, true) -%}
+                {%- set header_collapsed = selected_user_ui_root.current['header-collapse'] if has_header_collapsed_override else pref_economy_management_default_header_collapsed -%}
                 {%- set header_collapsed = (header_collapsed | string | lower) == 'true' -%}
-                {%- set economy_label = (ui.get('viewing_selected_user', 'err-viewing_selected_user') ~ ': ' ~ selected_user_name) if has_selected_user else ui.get('select_user_first', 'err-select_user_first') -%}
-                {%- set economy_label_html = (
-                  "<span style='color:var(--secondary-text-color);'>" ~ ui.get('viewing_selected_user', 'err-viewing_selected_user') ~ ":</span> <span style='font-weight:700;color:var(--primary-text-color);'>" ~ (selected_user_name | e) ~ "</span>"
-                  if has_selected_user
-                  else economy_label
-                ) -%}
+                {%- set economy_label = ui.get('manage_manual_adjustments', 'err-manage_manual_adjustments') if has_selected_user else ui.get('select_user_first', 'err-select_user_first') -%}
+                {%- set economy_label_html = economy_label -%}
+                {%- set points_total_numeric = points_total_display | float(default=0) -%}
+                {%- set points_total_compact = points_total_numeric | round(0) | int | string -%}
+                {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if has_points_sensor else 1 -%}
+                {%- set points_multiplier_text = (points_multiplier | round(2)) | string -%}
+                {%- set points_week_earned = (state_attr(points_sensor, 'point_stat_points_earned_week') | float(default=0)) if has_points_sensor else 0 -%}
+                {%- set points_week_earned_text = (points_week_earned | round(0) | int) | string -%}
+                {%- set points_avg_per_day_week = (state_attr(points_sensor, 'point_stat_avg_points_per_day_week') | float(default=0)) if has_points_sensor else 0 -%}
+                {%- set points_avg_per_day_text = (points_avg_per_day_week | round(0) | int) | string -%}
+                {%- set button_grid_columns = 6 -%}
+                {%- set bonus_ns = namespace(rows_html='', top_count=0, total_points=0, total_applied=0) -%}
+                {%- for bonus in bonus_list | sort(attribute='applied', reverse=true) -%}
+                  {%- if bonus is mapping -%}
+                    {%- set bonus_applied = bonus.get('applied', 0) | int(default=0) -%}
+                    {%- set bonus_points = bonus.get('points', 0) | int(default=0) -%}
+                    {%- if bonus_applied > 0 -%}
+                      {%- set bonus_ns.total_applied = bonus_ns.total_applied + bonus_applied -%}
+                      {%- set bonus_ns.total_points = bonus_ns.total_points + (bonus_points * bonus_applied) -%}
+                    {%- endif -%}
+                    {%- if bonus_ns.top_count < 3 -%}
+                      {%- set bonus_name = ((bonus.get('name') or ui.get('bonus', 'err-bonus')) | string | trim) -%}
+                      {%- set bonus_name_safe = bonus_name | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
+                      {%- set bonus_button_eid = bonus.get('eid') if bonus is mapping else none -%}
+                      {%- set bonus_icon = (state_attr(bonus_button_eid, 'icon') if bonus_button_eid else none) | default('mdi:gift-outline', true) -%}
+                      {%- set bonus_applied_label = (" x" ~ bonus_applied|string) if bonus_applied > 0 else '' -%}
+                      {%- set bonus_ns.top_count = bonus_ns.top_count + 1 -%}
+                      {%- set bonus_ns.rows_html = bonus_ns.rows_html ~ "<div style='display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:5px 0;'><span style='width:18px;height:18px;display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ bonus_icon ~ "' style='width:14px;height:14px;color:var(--success-color);transform:translateY(-3px);'></ha-icon></span><div style='min-width:0;font-size:12px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ bonus_name_safe ~ "</div><div style='display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;'><span style='color:var(--success-color);'>+" ~ bonus_points|string ~ "</span><span style='color:var(--secondary-text-color);'>" ~ (bonus_applied_label if bonus_applied_label | length > 0 else '•') ~ "</span></div></div>" -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- set penalty_ns = namespace(rows_html='', top_count=0, total_points=0, total_applied=0) -%}
+                {%- for penalty in penalty_list | sort(attribute='applied', reverse=true) -%}
+                  {%- if penalty is mapping -%}
+                    {%- set penalty_applied = penalty.get('applied', 0) | int(default=0) -%}
+                    {%- set penalty_points = penalty.get('points', 0) | int(default=0) -%}
+                    {%- if penalty_applied > 0 -%}
+                      {%- set penalty_ns.total_applied = penalty_ns.total_applied + penalty_applied -%}
+                      {%- set penalty_ns.total_points = penalty_ns.total_points + (penalty_points * penalty_applied) -%}
+                    {%- endif -%}
+                    {%- if penalty_ns.top_count < 3 -%}
+                      {%- set penalty_name = ((penalty.get('name') or ui.get('penalty', 'err-penalty')) | string | trim) -%}
+                      {%- set penalty_name_safe = penalty_name | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
+                      {%- set penalty_button_eid = penalty.get('eid') if penalty is mapping else none -%}
+                      {%- set penalty_icon = (state_attr(penalty_button_eid, 'icon') if penalty_button_eid else none) | default('mdi:alert-octagon-outline', true) -%}
+                      {%- set penalty_applied_label = (" x" ~ penalty_applied|string) if penalty_applied > 0 else '' -%}
+                      {%- set penalty_ns.top_count = penalty_ns.top_count + 1 -%}
+                      {%- set penalty_ns.rows_html = penalty_ns.rows_html ~ "<div style='display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:8px;align-items:center;padding:5px 0;'><span style='width:18px;height:18px;display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ penalty_icon ~ "' style='width:14px;height:14px;color:var(--error-color);transform:translateY(-3px);'></ha-icon></span><div style='min-width:0;font-size:12px;font-weight:600;color:var(--primary-text-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;'>" ~ penalty_name_safe ~ "</div><div style='display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;white-space:nowrap;'><span style='color:var(--error-color);'>" ~ penalty_points|string ~ "</span><span style='color:var(--secondary-text-color);'>" ~ (penalty_applied_label if penalty_applied_label | length > 0 else '•') ~ "</span></div></div>" -%}
+                    {%- endif -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- set points_per_day_compact = (ui.get('points_per_day', 'Points / Day') | replace(' / ', '/') | replace(' /', '/') | replace('/ ', '/')) -%}
+                {%- set hero_metrics_html = "<div style='display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;'><span style='display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--primary-color) 10%, var(--card-background-color));font-size:11px;font-weight:700;color:var(--primary-text-color);'>⚡ x" ~ points_multiplier_text ~ " " ~ ui.get('active', 'err-active') ~ "</span><span style='display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--success-color) 8%, var(--card-background-color));font-size:11px;font-weight:700;color:var(--primary-text-color);'>📅 +" ~ points_week_earned_text ~ " " ~ ui.get('this_week', 'This Week') ~ "</span><span style='display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:color-mix(in srgb, var(--warning-color) 9%, var(--card-background-color));font-size:11px;font-weight:700;color:var(--primary-text-color);'>📈 " ~ points_avg_per_day_text ~ " " ~ points_per_day_compact ~ "</span></div>" -%}
+                {%- set points_hero_card = {
+                  'type': 'custom:button-card',
+                  'entity': points_sensor if has_points_sensor else selected_dashboard_helper,
+                  'show_name': False,
+                  'show_label': False,
+                  'show_state': False,
+                  'show_icon': False,
+                  'tap_action': {'action': 'none'},
+                  'hold_action': {'action': 'more-info'} if has_points_sensor else {'action': 'none'},
+                  'custom_fields': {
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='display:flex;align-items:flex-start;justify-content:space-between;gap:14px;'><div style='min-width:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>" ~ ui.get('available', 'err-available') ~ "</div><div style='margin-top:6px;font-size:30px;font-weight:800;line-height:1;color:var(--primary-text-color);'>" ~ points_total_compact ~ "</div><div style='margin-top:5px;font-size:13px;font-weight:600;color:var(--secondary-text-color);'>" ~ points_label ~ "</div>" ~ hero_metrics_html ~ "</div><div style='display:flex;align-items:center;justify-content:center;flex:0 0 auto;'><ha-icon icon='" ~ points_icon ~ "' style='width:30px;height:30px;color:var(--primary-color);'></ha-icon></div></div></div>"
+                  },
+                  'styles': {
+                    'card': [
+                      {'padding': '0'},
+                      {'border-radius': '0'},
+                      {'box-shadow': 'none'},
+                      {'border': 'none'},
+                      {'background': 'transparent'}
+                    ],
+                    'grid': [
+                      {'grid-template-areas': '"content"'},
+                      {'grid-template-columns': '1fr'}
+                    ],
+                    'custom_fields': {
+                      'content': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'text-align': 'left'}
+                      ]
+                    }
+                  }
+                } -%}
+                {%- set points_button_cards = namespace(items=[]) -%}
+                {%- for button_data in point_buttons -%}
+                  {%- set button_eid = button_data.eid if button_data is mapping else button_data -%}
+                  {%- set button_name = button_data.name if button_data is mapping else '' -%}
+                  {%- set button_name_short = button_name[7:] if button_name[:7] == 'Points ' else button_name -%}
+                  {%- set button_icon = (state_attr(button_eid, 'icon') if button_eid else none) | default('mdi:star-four-points-outline', true) -%}
+                  {%- set button_delta_value = button_name_short | float(default=0) -%}
+                  {%- set button_delta_abs = (button_delta_value | abs | round(0) | int) | string -%}
+                  {%- set button_name_display = ('+' ~ button_delta_abs) if button_delta_value > 0 else ('-' ~ button_delta_abs) if button_delta_value < 0 else button_name_short -%}
+                  {%- set is_positive = button_delta_value > 0 -%}
+                  {%- set button_card = {
+                    'type': 'custom:button-card',
+                    'entity': button_eid,
+                    'show_icon': True,
+                    'show_name': True,
+                    'show_label': False,
+                    'show_state': False,
+                    'icon': button_icon,
+                    'name': button_name_display if button_name_display not in ['', none] else button_name,
+                    'tap_action': {
+                      'action': 'call-service',
+                      'service': 'button.press',
+                      'data': {'entity_id': button_eid}
+                    } if button_eid not in ['', none] else {'action': 'none'},
+                    'hold_action': {'action': 'more-info'} if button_eid not in ['', none] else {'action': 'none'},
+                    'styles': {
+                      'card': [
+                        {'padding': '8px 4px'},
+                        {'border-radius': '12px'},
+                        {'box-shadow': 'none'},
+                        {'border': ('1px solid color-mix(in srgb, var(--success-color) 22%, var(--divider-color))') if is_positive else ('1px solid color-mix(in srgb, var(--error-color) 22%, var(--divider-color))')},
+                        {'background': ('color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))') if is_positive else ('color-mix(in srgb, var(--error-color) 7%, var(--card-background-color))')}
+                      ],
+                      'grid': [
+                        {'grid-template-areas': '"i" "n"'},
+                        {'grid-template-columns': '1fr'},
+                        {'row-gap': '4px'}
+                      ],
+                      'icon': [
+                        {'width': '16px'},
+                        {'color': 'var(--success-color)' if is_positive else 'var(--error-color)'}
+                      ],
+                      'name': [
+                        {'font-size': '11px'},
+                        {'font-weight': '700'},
+                        {'line-height': '1.2'},
+                        {'color': 'var(--primary-text-color)'}
+                      ]
+                    }
+                  } -%}
+                  {%- set points_button_cards.items = points_button_cards.items + [button_card] -%}
+                {%- endfor -%}
+                {%- set points_buttons_grid_card = {
+                  'type': 'grid',
+                  'columns': button_grid_columns,
+                  'square': False,
+                  'cards': points_button_cards.items
+                } -%}
+                {%- set bonus_action_cards = namespace(items=[]) -%}
+                {%- for bonus in bonus_list -%}
+                  {%- if bonus is mapping -%}
+                    {%- set bonus_eid = bonus.get('eid') -%}
+                    {%- set bonus_name = (bonus.get('name') or ui.get('bonus', 'err-bonus')) | string -%}
+                    {%- set bonus_points = bonus.get('points', 0) | int(default=0) -%}
+                    {%- set bonus_applied = bonus.get('applied', 0) | int(default=0) -%}
+                    {%- set bonus_points_display = ((bonus_points | abs) | round(0) | int) | string -%}
+                    {%- set bonus_icon = (state_attr(bonus_eid, 'icon') if bonus_eid else none) | default('mdi:gift-outline', true) -%}
+                    {%- set bonus_action_cards.items = bonus_action_cards.items + [{
+                      'type': 'custom:button-card',
+                      'entity': bonus_eid if bonus_eid not in ['', none] else selected_dashboard_helper,
+                      'show_icon': False,
+                      'show_name': False,
+                      'show_label': False,
+                      'show_state': False,
+                      'tap_action': {'action': 'none'},
+                      'hold_action': {'action': 'more-info'} if bonus_eid not in ['', none] else {'action': 'none'},
+                      'custom_fields': {
+                        'kind': "<div style='width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--success-color) 10%, transparent);border:1px solid color-mix(in srgb, var(--success-color) 22%, var(--divider-color));'><ha-icon icon='" ~ bonus_icon ~ "' style='width:16px;height:16px;color:var(--success-color);transform:translateY(-3px);'></ha-icon></div>",
+                        'title': bonus_name,
+                        'meta': '+' ~ bonus_points_display ~ (' • ' ~ bonus_applied|string ~ ' ' ~ ui.get('applied', 'err-applied') if bonus_applied > 0 else ''),
+                        'btn_clear': {
+                          'card': {
+                            'type': 'custom:button-card',
+                            'entity': bonus_eid if bonus_eid not in ['', none] else selected_dashboard_helper,
+                            'icon': 'mdi:eraser',
+                            'show_name': False,
+                            'show_icon': True,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.reset_transactional_data',
+                              'data': {
+                                'config_entry_id': integration_entry_id,
+                                'confirm_destructive': True,
+                                'scope': 'user',
+                                'user_name': selected_user_name,
+                                'item_type': 'bonuses',
+                                'item_name': bonus_name
+                              }
+                            },
+                            'hold_action': {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'width': '32px'},
+                                {'height': '32px'},
+                                {'border-radius': '50%'},
+                                {'background-color': 'color-mix(in srgb, var(--secondary-background-color) 74%, transparent)'},
+                                {'border': '1px solid color-mix(in srgb, var(--divider-color) 88%, transparent)'},
+                                {'box-shadow': 'none'},
+                                {'display': 'flex' if bonus_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] else 'none'}
+                              ],
+                              'icon': [
+                                {'width': '15px'},
+                                {'color': 'var(--secondary-text-color)'}
+                              ]
+                            }
+                          }
+                        },
+                        'btn_apply': {
+                          'card': {
+                            'type': 'custom:button-card',
+                            'entity': bonus_eid if bonus_eid not in ['', none] else selected_dashboard_helper,
+                            'icon': 'mdi:plus',
+                            'show_name': False,
+                            'show_icon': True,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'button.press',
+                              'data': {'entity_id': bonus_eid}
+                            } if bonus_eid not in ['', none] else {'action': 'none'},
+                            'hold_action': {'action': 'more-info'} if bonus_eid not in ['', none] else {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'width': '32px'},
+                                {'height': '32px'},
+                                {'border-radius': '50%'},
+                                {'background-color': 'color-mix(in srgb, var(--success-color) 10%, transparent)'},
+                                {'border': '1px solid color-mix(in srgb, var(--success-color) 22%, var(--divider-color))'},
+                                {'box-shadow': 'none'}
+                              ],
+                              'icon': [
+                                {'width': '15px'},
+                                {'color': 'var(--success-color)'}
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      'styles': {
+                        'card': [
+                          {'padding': '8px 0'},
+                          {'border-radius': '0'},
+                          {'box-shadow': 'none'},
+                          {'border': 'none'},
+                          {'border-top': '1px solid color-mix(in srgb, var(--success-color) 12%, var(--divider-color))'},
+                          {'background': 'transparent'}
+                        ],
+                        'grid': [
+                          {'grid-template-areas': '"kind title btn_clear btn_apply" "kind meta btn_clear btn_apply"'},
+                          {'grid-template-columns': '28px minmax(0,1fr) min-content min-content'},
+                          {'column-gap': '10px'},
+                          {'row-gap': '2px'},
+                          {'align-items': 'center'}
+                        ],
+                        'custom_fields': {
+                          'kind': [
+                            {'justify-self': 'start'},
+                            {'align-self': 'start'}
+                          ],
+                          'title': [
+                            {'justify-self': 'start'},
+                            {'text-align': 'left'},
+                            {'font-size': '13px'},
+                            {'font-weight': '700'},
+                            {'line-height': '1.25'},
+                            {'white-space': 'normal'}
+                          ],
+                          'meta': [
+                            {'justify-self': 'start'},
+                            {'text-align': 'left'},
+                            {'font-size': '11px'},
+                            {'font-weight': '600'},
+                            {'line-height': '1.2'},
+                            {'color': 'var(--secondary-text-color)'}
+                          ],
+                          'btn_clear': [
+                            {'justify-self': 'end'},
+                            {'align-self': 'center'}
+                          ],
+                          'btn_apply': [
+                            {'justify-self': 'end'},
+                            {'align-self': 'center'}
+                          ]
+                        }
+                      }
+                    }] -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- set bonus_actions_grid_card = {
+                  'type': 'grid',
+                  'columns': 1,
+                  'square': False,
+                  'cards': bonus_action_cards.items
+                } -%}
+                {%- set penalty_action_cards = namespace(items=[]) -%}
+                {%- for penalty in penalty_list -%}
+                  {%- if penalty is mapping -%}
+                    {%- set penalty_eid = penalty.get('eid') -%}
+                    {%- set penalty_name = (penalty.get('name') or ui.get('penalty', 'err-penalty')) | string -%}
+                    {%- set penalty_points = penalty.get('points', 0) | int(default=0) -%}
+                    {%- set penalty_applied = penalty.get('applied', 0) | int(default=0) -%}
+                    {%- set penalty_icon = (state_attr(penalty_eid, 'icon') if penalty_eid else none) | default('mdi:alert-octagon-outline', true) -%}
+                    {%- set penalty_points_abs = penalty_points | abs -%}
+                    {%- set penalty_points_display = (penalty_points_abs | round(0) | int) | string -%}
+                    {%- set penalty_action_cards.items = penalty_action_cards.items + [{
+                      'type': 'custom:button-card',
+                      'entity': penalty_eid if penalty_eid not in ['', none] else selected_dashboard_helper,
+                      'show_icon': False,
+                      'show_name': False,
+                      'show_label': False,
+                      'show_state': False,
+                      'tap_action': {'action': 'none'},
+                      'hold_action': {'action': 'more-info'} if penalty_eid not in ['', none] else {'action': 'none'},
+                      'custom_fields': {
+                        'kind': "<div style='width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--error-color) 10%, transparent);border:1px solid color-mix(in srgb, var(--error-color) 22%, var(--divider-color));'><ha-icon icon='" ~ penalty_icon ~ "' style='width:16px;height:16px;color:var(--error-color);transform:translateY(-3px);'></ha-icon></div>",
+                        'title': penalty_name,
+                        'meta': '-' ~ penalty_points_display ~ (' • ' ~ penalty_applied|string ~ ' ' ~ ui.get('applied', 'err-applied') if penalty_applied > 0 else ''),
+                        'btn_clear': {
+                          'card': {
+                            'type': 'custom:button-card',
+                            'entity': penalty_eid if penalty_eid not in ['', none] else selected_dashboard_helper,
+                            'icon': 'mdi:eraser',
+                            'show_name': False,
+                            'show_icon': True,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'choreops.reset_transactional_data',
+                              'data': {
+                                'config_entry_id': integration_entry_id,
+                                'confirm_destructive': True,
+                                'scope': 'user',
+                                'user_name': selected_user_name,
+                                'item_type': 'penalties',
+                                'item_name': penalty_name
+                              }
+                            },
+                            'hold_action': {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'width': '32px'},
+                                {'height': '32px'},
+                                {'border-radius': '50%'},
+                                {'background-color': 'color-mix(in srgb, var(--secondary-background-color) 74%, transparent)'},
+                                {'border': '1px solid color-mix(in srgb, var(--divider-color) 88%, transparent)'},
+                                {'box-shadow': 'none'},
+                                {'display': 'flex' if penalty_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] else 'none'}
+                              ],
+                              'icon': [
+                                {'width': '15px'},
+                                {'color': 'var(--secondary-text-color)'}
+                              ]
+                            }
+                          }
+                        },
+                        'btn_apply': {
+                          'card': {
+                            'type': 'custom:button-card',
+                            'entity': penalty_eid if penalty_eid not in ['', none] else selected_dashboard_helper,
+                            'icon': 'mdi:minus',
+                            'show_name': False,
+                            'show_icon': True,
+                            'tap_action': {
+                              'action': 'call-service',
+                              'service': 'button.press',
+                              'data': {'entity_id': penalty_eid}
+                            } if penalty_eid not in ['', none] else {'action': 'none'},
+                            'hold_action': {'action': 'more-info'} if penalty_eid not in ['', none] else {'action': 'none'},
+                            'styles': {
+                              'card': [
+                                {'width': '32px'},
+                                {'height': '32px'},
+                                {'border-radius': '50%'},
+                                {'background-color': 'color-mix(in srgb, var(--error-color) 10%, transparent)'},
+                                {'border': '1px solid color-mix(in srgb, var(--error-color) 22%, var(--divider-color))'},
+                                {'box-shadow': 'none'}
+                              ],
+                              'icon': [
+                                {'width': '15px'},
+                                {'color': 'var(--error-color)'}
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      'styles': {
+                        'card': [
+                          {'padding': '8px 0'},
+                          {'border-radius': '0'},
+                          {'box-shadow': 'none'},
+                          {'border': 'none'},
+                          {'border-top': '1px solid color-mix(in srgb, var(--error-color) 12%, var(--divider-color))'},
+                          {'background': 'transparent'}
+                        ],
+                        'grid': [
+                          {'grid-template-areas': '"kind title btn_clear btn_apply" "kind meta btn_clear btn_apply"'},
+                          {'grid-template-columns': '28px minmax(0,1fr) min-content min-content'},
+                          {'column-gap': '10px'},
+                          {'row-gap': '2px'},
+                          {'align-items': 'center'}
+                        ],
+                        'custom_fields': {
+                          'kind': [
+                            {'justify-self': 'start'},
+                            {'align-self': 'start'}
+                          ],
+                          'title': [
+                            {'justify-self': 'start'},
+                            {'text-align': 'left'},
+                            {'font-size': '13px'},
+                            {'font-weight': '700'},
+                            {'line-height': '1.25'},
+                            {'white-space': 'normal'}
+                          ],
+                          'meta': [
+                            {'justify-self': 'start'},
+                            {'text-align': 'left'},
+                            {'font-size': '11px'},
+                            {'font-weight': '600'},
+                            {'line-height': '1.2'},
+                            {'color': 'var(--secondary-text-color)'}
+                          ],
+                          'btn_clear': [
+                            {'justify-self': 'end'},
+                            {'align-self': 'center'}
+                          ],
+                          'btn_apply': [
+                            {'justify-self': 'end'},
+                            {'align-self': 'center'}
+                          ]
+                        }
+                      }
+                    }] -%}
+                  {%- endif -%}
+                {%- endfor -%}
+                {%- set penalty_actions_grid_card = {
+                  'type': 'grid',
+                  'columns': 1,
+                  'square': False,
+                  'cards': penalty_action_cards.items
+                } -%}
+                {%- set bonus_showcase_card = {
+                  'type': 'custom:button-card',
+                  'entity': selected_dashboard_helper,
+                  'show_icon': False,
+                  'show_name': False,
+                  'show_state': False,
+                  'show_label': False,
+                  'tap_action': {'action': 'none'},
+                  'hold_action': {'action': 'none'},
+                  'custom_fields': {
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>✨ " ~ ui.get('bonus', 'err-bonus') ~ "</div><div style='margin-top:8px;font-size:24px;font-weight:800;line-height:1;color:var(--success-color);'>+" ~ ((bonus_ns.total_points | abs | round(0) | int) | string) ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ bonus_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
+                    'action': ({
+                      'card': {
+                        'type': 'custom:button-card',
+                            'icon': 'mdi:eraser',
+                        'name': ui.get('clear_applied', 'Clear applied'),
+                        'show_icon': True,
+                        'show_name': True,
+                        'tap_action': {
+                          'action': 'call-service',
+                          'service': 'choreops.reset_transactional_data',
+                          'data': {
+                            'config_entry_id': integration_entry_id,
+                            'confirm_destructive': True,
+                            'scope': 'user',
+                            'user_name': selected_user_name,
+                            'item_type': 'bonuses'
+                          }
+                        },
+                        'hold_action': {'action': 'none'},
+                        'styles': {
+                          'card': [
+                            {'padding': '6px 10px'},
+                            {'border-radius': '999px'},
+                            {'box-shadow': 'none'},
+                            {'border': '1px solid color-mix(in srgb, var(--success-color) 22%, var(--divider-color))'},
+                            {'background': 'color-mix(in srgb, var(--success-color) 9%, var(--card-background-color))'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"i n"'},
+                            {'grid-template-columns': 'min-content min-content'},
+                            {'column-gap': '6px'},
+                            {'align-items': 'center'}
+                          ],
+                          'icon': [
+                            {'width': '13px'},
+                            {'color': 'var(--success-color)'}
+                          ],
+                          'name': [
+                            {'font-size': '10px'},
+                            {'font-weight': '700'},
+                            {'color': 'var(--primary-text-color)'}
+                          ]
+                        }
+                      }
+                    } if bonus_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] else ''),
+                    'items': ({
+                      'card': bonus_actions_grid_card
+                    } if bonus_action_cards.items | length > 0 else '')
+                  },
+                  'styles': {
+                    'card': [
+                      {'padding': '14px 0 0 0'},
+                      {'margin-top': '10px'},
+                      {'border-radius': '0'},
+                      {'box-shadow': 'none'},
+                      {'border': 'none'},
+                      {'border-top': '1px solid color-mix(in srgb, var(--success-color) 14%, var(--divider-color))'},
+                      {'background': 'transparent'}
+                    ],
+                    'grid': [
+                      {'grid-template-areas': '"content action" "items items"'},
+                      {'grid-template-columns': '1fr min-content'},
+                      {'column-gap': '10px'},
+                      {'row-gap': '12px'},
+                      {'align-items': 'start'}
+                    ],
+                    'custom_fields': {
+                      'content': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'text-align': 'left'}
+                      ],
+                      'action': [
+                        {'justify-self': 'end'},
+                        {'align-self': 'start'}
+                      ],
+                      'items': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'text-align': 'left'}
+                      ]
+                    }
+                  }
+                } -%}
+                {%- set penalty_showcase_card = {
+                  'type': 'custom:button-card',
+                  'entity': selected_dashboard_helper,
+                  'show_icon': False,
+                  'show_name': False,
+                  'show_state': False,
+                  'show_label': False,
+                  'tap_action': {'action': 'none'},
+                  'hold_action': {'action': 'none'},
+                  'custom_fields': {
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>💥 " ~ ui.get('penalty', 'err-penalty') ~ "</div><div style='margin-top:8px;font-size:24px;font-weight:800;line-height:1;color:var(--error-color);'>-" ~ ((penalty_ns.total_points | abs | round(0) | int) | string) ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ penalty_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
+                    'action': ({
+                      'card': {
+                        'type': 'custom:button-card',
+                            'icon': 'mdi:eraser',
+                        'name': ui.get('clear_applied', 'Clear applied'),
+                        'show_icon': True,
+                        'show_name': True,
+                        'tap_action': {
+                          'action': 'call-service',
+                          'service': 'choreops.reset_transactional_data',
+                          'data': {
+                            'config_entry_id': integration_entry_id,
+                            'confirm_destructive': True,
+                            'scope': 'user',
+                            'user_name': selected_user_name,
+                            'item_type': 'penalties'
+                          }
+                        },
+                        'hold_action': {'action': 'none'},
+                        'styles': {
+                          'card': [
+                            {'padding': '6px 10px'},
+                            {'border-radius': '999px'},
+                            {'box-shadow': 'none'},
+                            {'border': '1px solid color-mix(in srgb, var(--error-color) 22%, var(--divider-color))'},
+                            {'background': 'color-mix(in srgb, var(--error-color) 8%, var(--card-background-color))'}
+                          ],
+                          'grid': [
+                            {'grid-template-areas': '"i n"'},
+                            {'grid-template-columns': 'min-content min-content'},
+                            {'column-gap': '6px'},
+                            {'align-items': 'center'}
+                          ],
+                          'icon': [
+                            {'width': '13px'},
+                            {'color': 'var(--error-color)'}
+                          ],
+                          'name': [
+                            {'font-size': '10px'},
+                            {'font-weight': '700'},
+                            {'color': 'var(--primary-text-color)'}
+                          ]
+                        }
+                      }
+                    } if penalty_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] else ''),
+                    'items': ({
+                      'card': penalty_actions_grid_card
+                    } if penalty_action_cards.items | length > 0 else '')
+                  },
+                  'styles': {
+                    'card': [
+                      {'padding': '14px 0 0 0'},
+                      {'margin-top': '10px'},
+                      {'border-radius': '0'},
+                      {'box-shadow': 'none'},
+                      {'border': 'none'},
+                      {'border-top': '1px solid color-mix(in srgb, var(--error-color) 14%, var(--divider-color))'},
+                      {'background': 'transparent'}
+                    ],
+                    'grid': [
+                      {'grid-template-areas': '"content action" "items items"'},
+                      {'grid-template-columns': '1fr min-content'},
+                      {'column-gap': '10px'},
+                      {'row-gap': '12px'},
+                      {'align-items': 'start'}
+                    ],
+                    'custom_fields': {
+                      'content': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'text-align': 'left'}
+                      ],
+                      'action': [
+                        {'justify-self': 'end'},
+                        {'align-self': 'start'}
+                      ],
+                      'items': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'text-align': 'left'}
+                      ]
+                    }
+                  }
+                } -%}
+                {%- set adjustments_grid_card = {
+                  'type': 'grid',
+                  'columns': 1,
+                  'square': False,
+                  'cards': [bonus_showcase_card, penalty_showcase_card]
+                } -%}
+                {%- set economy_detail_card = {
+                  'type': 'custom:button-card',
+                  'entity': points_sensor if has_points_sensor else selected_dashboard_helper,
+                  'show_name': False,
+                  'show_label': False,
+                  'show_state': False,
+                  'show_icon': False,
+                  'tap_action': {'action': 'none'},
+                  'hold_action': {'action': 'more-info'} if has_points_sensor else {'action': 'none'},
+                  'custom_fields': {
+                    'hero': {'card': points_hero_card},
+                    'actions': ({'card': points_buttons_grid_card} if point_buttons | length > 0 else ''),
+                    'ledger': ({'card': adjustments_grid_card} if bonus_list | length > 0 or penalty_list | length > 0 else '')
+                  },
+                  'styles': {
+                    'card': [
+                      {'padding': '14px 16px'},
+                      {'border-radius': '16px'},
+                      {'box-shadow': 'none'},
+                      {'border': '1px solid color-mix(in srgb, var(--primary-color) 20%, var(--divider-color))'},
+                      {'border-left': '4px solid var(--primary-color)'},
+                      {'background-color': 'color-mix(in srgb, var(--secondary-background-color) 72%, var(--card-background-color))'}
+                    ],
+                    'grid': [
+                      {'grid-template-areas': '"hero" "actions" "ledger"'},
+                      {'grid-template-columns': '1fr'},
+                      {'row-gap': '14px'}
+                    ],
+                    'custom_fields': {
+                      'hero': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'}
+                      ],
+                      'actions': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'display': 'block' if point_buttons | length > 0 else 'none'}
+                      ],
+                      'ledger': [
+                        {'justify-self': 'stretch'},
+                        {'width': '100%'},
+                        {'display': 'block' if bonus_list | length > 0 or penalty_list | length > 0 else 'none'}
+                      ]
+                    }
+                  }
+                } -%}
 
                 {#-- 5. Build Display --#}
 
@@ -2235,21 +3041,23 @@ views:
                     'service': 'choreops.manage_ui_control',
                     'data': {
                       'config_entry_id': integration_entry_id,
-                      'user_id': dashboard_helper_user_id,
+                      'user_id': selected_user_id,
+                      'ui_control_target': 'user',
                       'ui_control_action': 'update',
                       'key': ui_control_key_header_collapsed,
                       'value': false
                     }
-                  } if header_collapsed and integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                  } if header_collapsed and integration_entry_id not in ['', none] and selected_user_id not in ['', none] else {
                     'action': 'call-service',
                     'service': 'choreops.manage_ui_control',
                     'data': {
                       'config_entry_id': integration_entry_id,
-                      'user_id': dashboard_helper_user_id,
+                      'user_id': selected_user_id,
+                      'ui_control_target': 'user',
                       'ui_control_action': 'remove',
                       'key': ui_control_key_header_collapsed
                     }
-                  } if integration_entry_id not in ['', none] and dashboard_helper_user_id not in ['', none] else {
+                  } if integration_entry_id not in ['', none] and selected_user_id not in ['', none] else {
                     'action': 'none'
                   }),
                   'hold_action': {'action': 'more-info'} if has_points_sensor else {'action': 'none'},
@@ -2263,8 +3071,9 @@ views:
                       {'padding': '8px 16px'},
                       {'border-radius': '16px'},
                       {'box-shadow': 'none'},
-                      {'border': ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_economy_management_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_economy_management_show_header_thin_border else 'none' if header_collapsed else ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_economy_management_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if pref_economy_management_show_header_thin_border else 'none'},
-                      {'background-color': ('color-mix(in srgb, var(--primary-color) ' ~ pref_economy_management_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_economy_management_show_header_background else 'transparent' if header_collapsed else ('color-mix(in srgb, var(--primary-color) ' ~ pref_economy_management_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if pref_economy_management_show_header_background else 'transparent'}
+                      {'border': ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_economy_management_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_economy_management_show_header_thin_border else 'none'},
+                      {'background-color': ('color-mix(in srgb, var(--primary-color) ' ~ pref_economy_management_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_economy_management_show_header_background else 'transparent'},
+                      {'margin-top': '12px' if header_collapsed else '12px'}
                     ],
                     'grid': [
                       {'grid-template-areas': '"i n target toggle" "i subtitle target toggle"'},
@@ -2319,9 +3128,11 @@ views:
 
               {%- if has_selected_dashboard_helper and selected_gamification_enabled -%}
                 {{ economy_summary_card }},
+                {%- if not header_collapsed and has_points_sensor -%}
+                  {{ economy_detail_card }},
+                {%- endif -%}
               {%- endif -%}
               {%- endif -%}
-
 
         - type: custom:auto-entities
           card:
@@ -2347,71 +3158,4 @@ views:
 
               << template_snippets.admin_validation_missing_selector >>
 
-              {%- if not skip_render -%}
-
-                {%- set helper_sensor_entities = integration_entities('choreops')
-                    | select('search', '^sensor\\.')
-                    | list
-                    | expand
-                    | selectattr('attributes.purpose', 'defined')
-                    | selectattr('attributes.purpose', 'eq', 'purpose_dashboard_helper')
-                    | selectattr('attributes.integration_entry_id', 'eq', entry_id)
-                    | sort(attribute='attributes.user_name')
-                    | list -%}
-                {%- set summary_helper = helper_sensor_entities[0].entity_id if helper_sensor_entities | count > 0 else '' -%}
-                {%- set translation_sensor = (state_attr(summary_helper, 'dashboard_helpers') or {}).get('translation_sensor_eid') if summary_helper not in ['', None, 'None'] else '' -%}
-                {%- set ui = state_attr(translation_sensor, 'ui_translations') if translation_sensor not in ['', None, 'None'] else {} -%}
-
-                {{ {
-                  'type': 'custom:button-card',
-                  'entity': admin_selector_eid,
-                  'show_name': True,
-                  'show_label': True,
-                  'show_state': False,
-                  'show_icon': True,
-                  'icon': 'mdi:wrench-outline',
-                  'name': ui.get('system_administration', 'err-system_administration'),
-                  'label': ui.get('link_to_choreops_integration_configuration', 'err-link_to_choreops_integration_configuration'),
-                  'tap_action': {
-                    'action': 'url',
-                    'url_path': '/config/integrations/integration/choreops'
-                  },
-                  'hold_action': {'action': 'more-info'},
-                  "styles": {
-                    "card": [
-                      {"margin-top": "8px"},
-                      {"padding": "14px 16px"},
-                      {"border-radius": "16px"},
-                      {"background-color": "var(--card-background-color)"},
-                      {"border": "1px solid var(--divider-color)"}
-                    ],
-                    "grid": [
-                      {"grid-template-areas": "'i n' 'i l'"},
-                      {"grid-template-columns": "32px 1fr"},
-                      {"align-items": "center"},
-                      {"column-gap": "14px"}
-                    ],
-                    "icon": [
-                      {"width": "24px"},
-                      {"height": "24px"},
-                      {"align-self": "center"},
-                      {"color": "var(--primary-color)"}
-                    ],
-                    "name": [
-                      {"justify-self": "start"},
-                      {"font-size": "14px"},
-                      {"font-weight": "700"},
-                      {"line-height": "1.2"},
-                      {"text-transform": "uppercase"},
-                      {"letter-spacing": "0.05em"}
-                    ],
-                    "label": [
-                      {"justify-self": "start"},
-                      {"font-size": "12px"},
-                      {"line-height": "1.35"},
-                      {"white-space": "normal"},
-                      {"color": "var(--secondary-text-color)"}
-                    ]
-                  }
-                } }},
-              {%- endif -%}
+              << template_shared.admin_system_administration_links_v1 >>

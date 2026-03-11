@@ -843,6 +843,55 @@ class TestResetOverdueChoresService:
         assert new_due is not None
         assert datetime.fromisoformat(new_due) > datetime.now(UTC)
 
+    @pytest.mark.asyncio
+    async def test_reset_overdue_non_recurring_independent_clears_due_date(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """Test resetting overdue non-recurring chore clears the stale due date."""
+        coordinator = setup_chore_services_scenario.coordinator
+        zoe_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+
+        chore_response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_ADD_CHORE,
+            {
+                const.SERVICE_FIELD_NAME: "Manual Reset Non-Recurring Task",
+                const.SERVICE_FIELD_ASSIGNED_USER_IDS: ["Zoë"],
+                const.SERVICE_FIELD_FREQUENCY: const.FREQUENCY_NONE,
+                const.SERVICE_FIELD_POINTS: 10,
+                const.SERVICE_FIELD_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
+                const.SERVICE_FIELD_OVERDUE_HANDLING: const.OVERDUE_HANDLING_AT_DUE_DATE,
+            },
+            blocking=True,
+            return_response=True,
+        )
+        chore_id = chore_response[const.SERVICE_FIELD_CHORE_CRUD_ID]
+
+        set_chore_due_date_to_past(coordinator, chore_id, assignee_id=zoe_id)
+
+        with patch.object(
+            coordinator.notification_manager, "notify_assignee", new=AsyncMock()
+        ):
+            await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
+
+        assert coordinator.chore_manager.chore_is_overdue(zoe_id, chore_id)
+
+        await coordinator.chore_manager.reset_overdue_chores(chore_id, zoe_id)
+
+        assert not coordinator.chore_manager.chore_is_overdue(zoe_id, chore_id)
+        assert (
+            get_assignee_state_for_chore(coordinator, zoe_id, chore_id)
+            == CHORE_STATE_PENDING
+        )
+        assert get_assignee_due_date_for_chore(coordinator, chore_id, zoe_id) is None
+
+        await coordinator.chore_manager._on_periodic_update(now_utc=dt_now_utc())
+        await hass.async_block_till_done()
+
+        assert not coordinator.chore_manager.chore_is_overdue(zoe_id, chore_id)
+
 
 # ============================================================================
 # TEST CLASS: Reset All Chores Service

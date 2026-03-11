@@ -154,6 +154,7 @@ class TestSchemaStampFix:
             < const.SCHEMA_VERSION_TRANSITIONAL
             < const.SCHEMA_VERSION_STORAGE_ONLY
             < const.SCHEMA_VERSION_BETA4
+            < const.SCHEMA_VERSION_CURRENT
         )
 
     def test_missing_schema_is_stamped_to_legacy_baseline(self) -> None:

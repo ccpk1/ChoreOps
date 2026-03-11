@@ -1,6 +1,6 @@
 # Dashboard UI Design Guideline
 
-**Version**: 0.5.0-beta.5 | **Last Updated**: 2026-03-04
+**Version**: 1.0.0 | **Last Updated**: 2026-03-11
 
 This guide defines the visual system for standard ChoreOps dashboards. Use it with `docs/DASHBOARD_TEMPLATE_GUIDE.md`: the template guide defines build/runtime contracts, while this document defines consistent presentation.
 
