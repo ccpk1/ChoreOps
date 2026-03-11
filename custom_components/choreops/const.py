@@ -1358,6 +1358,12 @@ PRES_USER_REWARDS_APPROVED_MONTH: Final = "pres_user_rewards_approved_month"
 # --- Presentation: Cache Metadata ---
 PRES_USER_LAST_UPDATED: Final = "pres_user_last_updated"
 
+# --- Statistics cache domains ---
+CACHE_DOMAIN_META: Final = "meta"
+CACHE_DOMAIN_POINTS: Final = "points"
+CACHE_DOMAIN_CHORES: Final = "chores"
+CACHE_DOMAIN_REWARDS: Final = "rewards"
+
 
 # CHORES
 DATA_CHORE_APPROVAL_RESET_TYPE: Final = "approval_reset_type"

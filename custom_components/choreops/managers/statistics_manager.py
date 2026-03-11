@@ -88,7 +88,7 @@ class StatisticsManager(BaseManager):
         self._coordinator = coordinator
 
         # Phase 7.5: Presentation cache (memory-only, PRES_* keys)
-        # Cache structure: {assignee_id: {PRES_KID_POINTS_EARNED_TODAY: ..., ...}}
+        # Cache structure: {assignee_id: {"points": {...}, "chores": {...}, ...}}
         # This cache holds derived/temporal values that are NOT persisted to storage.
         # All values can be regenerated from period buckets (point_data.periods).
         self._stats_cache: dict[str, dict[str, Any]] = {}
@@ -2340,12 +2340,91 @@ class StatisticsManager(BaseManager):
     # Presentation Cache Methods
     # =========================================================================
 
+    def _get_cache_entry(self, assignee_id: str) -> dict[str, Any]:
+        """Return the mutable cache entry for an assignee."""
+        return self._stats_cache.setdefault(assignee_id, {})
+
+    def _get_domain_cache(self, assignee_id: str, domain: str) -> dict[str, Any]:
+        """Return the mutable domain cache for an assignee."""
+        entry = self._get_cache_entry(assignee_id)
+        domain_cache = entry.get(domain)
+        if isinstance(domain_cache, dict):
+            return domain_cache
+
+        new_domain_cache: dict[str, Any] = {}
+        entry[domain] = new_domain_cache
+        return new_domain_cache
+
+    def _has_domain_cache(self, assignee_id: str, domain: str) -> bool:
+        """Return if a domain cache exists and contains data."""
+        cache_entry = self._stats_cache.get(assignee_id, {})
+        domain_cache = cache_entry.get(domain)
+        return isinstance(domain_cache, dict) and bool(domain_cache)
+
+    def _flatten_cache_entry(self, assignee_id: str) -> dict[str, Any]:
+        """Return the legacy flattened cache view for an assignee."""
+        cache_entry = self._stats_cache.get(assignee_id, {})
+        flat_cache: dict[str, Any] = {}
+
+        for domain in (
+            const.CACHE_DOMAIN_POINTS,
+            const.CACHE_DOMAIN_CHORES,
+            const.CACHE_DOMAIN_REWARDS,
+            const.CACHE_DOMAIN_META,
+        ):
+            domain_cache = cache_entry.get(domain, {})
+            if isinstance(domain_cache, dict):
+                flat_cache.update(domain_cache)
+
+        return flat_cache
+
+    def _mark_cache_updated(self, assignee_id: str) -> None:
+        """Update cache metadata for an assignee."""
+        meta_cache = self._get_domain_cache(assignee_id, const.CACHE_DOMAIN_META)
+        meta_cache[const.PRES_USER_LAST_UPDATED] = dt_now_local().isoformat()
+
+    def _build_default_chore_stats(self) -> dict[str, Any]:
+        """Return the stable chore presentation contract with zero defaults."""
+        return {
+            const.PRES_USER_CHORES_CURRENT_OVERDUE: 0,
+            const.PRES_USER_CHORES_CURRENT_CLAIMED: 0,
+            const.PRES_USER_CHORES_CURRENT_APPROVED: 0,
+            const.PRES_USER_CHORES_CURRENT_DUE_TODAY: 0,
+            const.PRES_USER_CHORES_APPROVED_TODAY: 0,
+            const.PRES_USER_CHORES_APPROVED_WEEK: 0,
+            const.PRES_USER_CHORES_APPROVED_MONTH: 0,
+            const.PRES_USER_CHORES_APPROVED_YEAR: 0,
+            const.PRES_USER_CHORES_COMPLETED_TODAY: 0,
+            const.PRES_USER_CHORES_COMPLETED_WEEK: 0,
+            const.PRES_USER_CHORES_COMPLETED_MONTH: 0,
+            const.PRES_USER_CHORES_COMPLETED_YEAR: 0,
+            const.PRES_USER_CHORES_CLAIMED_TODAY: 0,
+            const.PRES_USER_CHORES_CLAIMED_WEEK: 0,
+            const.PRES_USER_CHORES_CLAIMED_MONTH: 0,
+            const.PRES_USER_CHORES_CLAIMED_YEAR: 0,
+            const.PRES_USER_CHORES_MISSED_TODAY: 0,
+            const.PRES_USER_CHORES_MISSED_WEEK: 0,
+            const.PRES_USER_CHORES_MISSED_MONTH: 0,
+            const.PRES_USER_CHORES_MISSED_YEAR: 0,
+            const.PRES_USER_CHORES_POINTS_TODAY: 0.0,
+            const.PRES_USER_CHORES_POINTS_WEEK: 0.0,
+            const.PRES_USER_CHORES_POINTS_MONTH: 0.0,
+            const.PRES_USER_CHORES_POINTS_YEAR: 0.0,
+            const.PRES_USER_CHORES_AVG_PER_DAY_WEEK: 0.0,
+            const.PRES_USER_CHORES_AVG_PER_DAY_MONTH: 0.0,
+            const.PRES_USER_CHORES_AVG_PER_DAY_YEAR: 0.0,
+            const.PRES_USER_TOP_CHORES_WEEK: "",
+            const.PRES_USER_TOP_CHORES_MONTH: "",
+            const.PRES_USER_TOP_CHORES_YEAR: "",
+        }
+
     def get_stats(self, assignee_id: str) -> dict[str, Any]:
         """Get presentation statistics for a assignee (Phase 7.5 Cache API).
 
         This is the primary API for sensors and dashboard helpers.
         Returns cached PRES_* values derived from period buckets.
-        If cache miss, rebuilds from buckets (lazy hydration).
+        If cache miss, or if only a partial domain refresh created the cache
+        entry, rebuilds from buckets (lazy hydration).
 
         Args:
             assignee_id: The assignee's internal ID
@@ -2353,11 +2432,29 @@ class StatisticsManager(BaseManager):
         Returns:
             Dict with PRES_* keys for presentation, or empty dict if assignee not found.
         """
-        if assignee_id not in self._stats_cache:
-            # Cache miss - rebuild from buckets
+        if not all(
+            self._has_domain_cache(assignee_id, domain)
+            for domain in (
+                const.CACHE_DOMAIN_POINTS,
+                const.CACHE_DOMAIN_CHORES,
+                const.CACHE_DOMAIN_REWARDS,
+                const.CACHE_DOMAIN_META,
+            )
+        ):
+            # Cache miss or partial domain cache - rebuild from buckets
             self._refresh_all_cache(assignee_id)
 
-        return self._stats_cache.get(assignee_id, {})
+        return self._flatten_cache_entry(assignee_id)
+
+    def get_chore_stats(self, assignee_id: str) -> dict[str, Any]:
+        """Get chore presentation statistics with a stable schema."""
+        if not self._has_domain_cache(assignee_id, const.CACHE_DOMAIN_CHORES):
+            self._refresh_chore_cache(assignee_id)
+
+        return {
+            **self._build_default_chore_stats(),
+            **self._get_domain_cache(assignee_id, const.CACHE_DOMAIN_CHORES),
+        }
 
     async def _hydrate_cache_all_assignees(self) -> None:
         """Hydrate presentation cache for all existing assignees at startup (Phase 7.5.7).
@@ -2392,9 +2489,7 @@ class StatisticsManager(BaseManager):
         self._refresh_chore_cache(assignee_id)
         self._refresh_reward_cache(assignee_id)
 
-        # Set last updated timestamp
-        cache = self._stats_cache.setdefault(assignee_id, {})
-        cache[const.PRES_USER_LAST_UPDATED] = dt_now_local().isoformat()
+        self._mark_cache_updated(assignee_id)
 
     def _refresh_point_cache(self, assignee_id: str) -> None:
         """Refresh point statistics cache for a assignee.
@@ -2409,7 +2504,7 @@ class StatisticsManager(BaseManager):
         if not assignee_info:
             return
 
-        cache = self._stats_cache.setdefault(assignee_id, {})
+        cache = self._get_domain_cache(assignee_id, const.CACHE_DOMAIN_POINTS)
         pts_periods = assignee_info.get(const.DATA_USER_POINT_PERIODS, {})
 
         now_local = dt_now_local()
@@ -2507,7 +2602,7 @@ class StatisticsManager(BaseManager):
         if not assignee_info:
             return
 
-        cache = self._stats_cache.setdefault(assignee_id, {})
+        cache = self._get_domain_cache(assignee_id, const.CACHE_DOMAIN_CHORES)
 
         # === Temporal aggregates from period buckets ===
         chore_data = assignee_info.get(const.DATA_USER_CHORE_DATA, {})
@@ -2751,7 +2846,7 @@ class StatisticsManager(BaseManager):
         if not assignee_info:
             return
 
-        cache = self._stats_cache.setdefault(assignee_id, {})
+        cache = self._get_domain_cache(assignee_id, const.CACHE_DOMAIN_REWARDS)
         reward_data = assignee_info.get(const.DATA_USER_REWARD_DATA, {})
 
         now_local = dt_now_local()

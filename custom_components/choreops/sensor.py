@@ -1514,7 +1514,9 @@ class AssigneeChoresSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         }
 
         # Get temporal stats from presentation cache
-        pres_stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
+        pres_stats = self.coordinator.statistics_manager.get_chore_stats(
+            self._assignee_id
+        )
 
         # Build unified lookup dict for easier access
         all_stats: dict[str, Any] = {}
@@ -3063,7 +3065,9 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
             for assignee_id in assigned_assignees:
                 # Use Phase 7.5 cache API for temporal stats (not storage)
-                cache_stats = self.coordinator.statistics_manager.get_stats(assignee_id)
+                cache_stats = self.coordinator.statistics_manager.get_chore_stats(
+                    assignee_id
+                )
                 daily = cache_stats.get(
                     const.PRES_USER_CHORES_APPROVED_TODAY, const.DEFAULT_ZERO
                 )
@@ -3148,7 +3152,9 @@ class SystemAchievementSensor(ChoreOpsCoordinatorEntity, SensorEntity):
                 == const.ACHIEVEMENT_TYPE_DAILY_MIN
             ):
                 # Use Phase 7.5 cache API for temporal stats (not storage)
-                cache_stats = self.coordinator.statistics_manager.get_stats(assignee_id)
+                cache_stats = self.coordinator.statistics_manager.get_chore_stats(
+                    assignee_id
+                )
                 assignees_progress[assignee_name] = cache_stats.get(
                     const.PRES_USER_CHORES_APPROVED_TODAY, const.DEFAULT_ZERO
                 )
@@ -3522,7 +3528,7 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
 
         elif ach_type == const.ACHIEVEMENT_TYPE_DAILY_MIN:
             # Use Phase 7.5 cache API for temporal stats (not storage)
-            cache_stats = self.coordinator.statistics_manager.get_stats(
+            cache_stats = self.coordinator.statistics_manager.get_chore_stats(
                 self._assignee_id
             )
             daily = cache_stats.get(
@@ -3590,7 +3596,7 @@ class AssigneeAchievementProgressSensor(ChoreOpsCoordinatorEntity, SensorEntity)
             == const.ACHIEVEMENT_TYPE_DAILY_MIN
         ):
             # Use Phase 7.5 cache API for temporal stats (not storage)
-            cache_stats = self.coordinator.statistics_manager.get_stats(
+            cache_stats = self.coordinator.statistics_manager.get_chore_stats(
                 self._assignee_id
             )
             raw_progress = cache_stats.get(

@@ -195,7 +195,7 @@ class AssigneeChoreCompletionDailySensor(ChoreOpsCoordinatorEntity, SensorEntity
 
         Phase 4.5: Uses 'completed' metric (work date) for accurate tracking.
         """
-        stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
+        stats = self.coordinator.statistics_manager.get_chore_stats(self._assignee_id)
         return stats.get(const.PRES_USER_CHORES_COMPLETED_TODAY, const.DEFAULT_ZERO)
 
     @property
@@ -260,7 +260,7 @@ class AssigneeChoreCompletionWeeklySensor(ChoreOpsCoordinatorEntity, SensorEntit
 
         Phase 4.5: Uses 'completed' metric (work date) for accurate tracking.
         """
-        stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
+        stats = self.coordinator.statistics_manager.get_chore_stats(self._assignee_id)
         return stats.get(const.PRES_USER_CHORES_COMPLETED_WEEK, const.DEFAULT_ZERO)
 
     @property
@@ -325,7 +325,7 @@ class AssigneeChoreCompletionMonthlySensor(ChoreOpsCoordinatorEntity, SensorEnti
 
         Phase 4.5: Uses 'completed' metric (work date) for accurate tracking.
         """
-        stats = self.coordinator.statistics_manager.get_stats(self._assignee_id)
+        stats = self.coordinator.statistics_manager.get_chore_stats(self._assignee_id)
         return stats.get(const.PRES_USER_CHORES_COMPLETED_MONTH, const.DEFAULT_ZERO)
 
     @property

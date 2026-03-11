@@ -5,6 +5,7 @@ from __future__ import annotations
 from types import MethodType
 from typing import Any
 
+from custom_components.choreops import const
 from custom_components.choreops.managers.statistics_manager import StatisticsManager
 
 
@@ -88,3 +89,65 @@ def test_get_report_rollup_returns_normalized_reward_keys() -> None:
     assert "all_time_points_spent" in rewards
     assert "in_range_points" not in rewards
     assert "all_time_points" not in rewards
+
+
+def test_get_stats_rehydrates_partial_cache_entry() -> None:
+    """Partial cache entries should be rebuilt before being returned."""
+    manager = StatisticsManager.__new__(StatisticsManager)
+    manager._stats_cache = {
+        "assignee-1": {
+            const.CACHE_DOMAIN_POINTS: {
+                const.PRES_USER_POINTS_EARNED_TODAY: 5.0,
+            }
+        }
+    }
+
+    def _refresh_all_cache(_self: StatisticsManager, assignee_id: str) -> None:
+        _self._stats_cache[assignee_id] = {
+            const.CACHE_DOMAIN_POINTS: {
+                const.PRES_USER_POINTS_EARNED_TODAY: 5.0,
+            },
+            const.CACHE_DOMAIN_CHORES: {
+                const.PRES_USER_CHORES_APPROVED_WEEK: 4,
+            },
+            const.CACHE_DOMAIN_REWARDS: {
+                const.PRES_USER_REWARDS_CLAIMED_TODAY: 0,
+            },
+            const.CACHE_DOMAIN_META: {
+                const.PRES_USER_LAST_UPDATED: "2026-03-11T00:00:00+00:00",
+            },
+        }
+
+    manager._refresh_all_cache = MethodType(_refresh_all_cache, manager)
+
+    stats = StatisticsManager.get_stats(manager, "assignee-1")
+
+    assert stats[const.PRES_USER_CHORES_APPROVED_WEEK] == 4
+    assert const.PRES_USER_LAST_UPDATED in stats
+
+
+def test_get_chore_stats_rehydrates_and_returns_stable_defaults() -> None:
+    """Chore stats getter should always return the full chore contract."""
+    manager = StatisticsManager.__new__(StatisticsManager)
+    manager._stats_cache = {
+        "assignee-1": {
+            const.CACHE_DOMAIN_POINTS: {
+                const.PRES_USER_POINTS_EARNED_TODAY: 5.0,
+            }
+        }
+    }
+
+    def _refresh_chore_cache(_self: StatisticsManager, assignee_id: str) -> None:
+        _self._stats_cache.setdefault(assignee_id, {})[const.CACHE_DOMAIN_CHORES] = {
+            const.PRES_USER_CHORES_APPROVED_WEEK: 4,
+            const.PRES_USER_CHORES_CURRENT_OVERDUE: 2,
+        }
+
+    manager._refresh_chore_cache = MethodType(_refresh_chore_cache, manager)
+
+    stats = StatisticsManager.get_chore_stats(manager, "assignee-1")
+
+    assert stats[const.PRES_USER_CHORES_APPROVED_WEEK] == 4
+    assert stats[const.PRES_USER_CHORES_CURRENT_OVERDUE] == 2
+    assert stats[const.PRES_USER_CHORES_COMPLETED_TODAY] == 0
+    assert stats[const.PRES_USER_TOP_CHORES_WEEK] == ""
