@@ -898,6 +898,15 @@ class SystemManager(BaseManager):
             item_type: Item type if filtered
             item_name: Item name if specific item
         """
+        if scope == const.DATA_RESET_SCOPE_USER:
+            const.LOGGER.debug(
+                "Data reset notification skipped for user scope: user_name=%s, item_type=%s, item_name=%s",
+                user_name,
+                item_type,
+                item_name,
+            )
+            return
+
         # Determine which message key to use based on what was reset
         if item_name and item_type:
             message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM
@@ -912,8 +921,7 @@ class SystemManager(BaseManager):
             message_key = const.TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_GLOBAL
             placeholders = {}
 
-        # Send notification to all users with approval capability
-        # Use a broadcast approach - notify all approvers regardless of user association
+        # Global-scope resets remain system-level announcements for all approvers.
         await self.coordinator.notification_manager.broadcast_to_all_approvers(
             title_key=const.TRANS_KEY_NOTIF_TITLE_DATA_RESET,
             message_key=message_key,

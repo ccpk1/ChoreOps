@@ -49,6 +49,24 @@ build_reward_actions = NotificationManager.build_reward_actions
 build_extra_data = NotificationManager.build_extra_data
 build_notification_tag = NotificationManager.build_notification_tag
 
+
+class TestConvertNotificationKey:
+    """Tests for _convert_notification_key()."""
+
+    def test_strips_canonical_notification_prefixes(self) -> None:
+        """Canonical notification_* keys should map to JSON notification keys."""
+        manager = object.__new__(NotificationManager)
+
+        assert (
+            manager._convert_notification_key("notification_title_data_reset")
+            == "data_reset"
+        )
+        assert (
+            manager._convert_notification_key("notification_message_data_reset_global")
+            == "data_reset_global"
+        )
+
+
 # =============================================================================
 # build_chore_actions() Tests
 # =============================================================================

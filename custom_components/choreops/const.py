@@ -2215,13 +2215,17 @@ TRANS_KEY_NOTIF_MESSAGE_MULTIPLIER_CHANGED_APPROVER: Final = (
 # ─── ADMIN/SYSTEM NOTIFICATIONS ──────────────────────────────────────────────────────────────────
 
 # System: Data Reset Notifications (admin actions)
-TRANS_KEY_NOTIF_TITLE_DATA_RESET: Final = "notif_title_data_reset"
-TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_GLOBAL: Final = "notif_message_data_reset_global"
-TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ASSIGNEE: Final = "notif_message_data_reset_assignee"
-TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM_TYPE: Final = (
-    "notif_message_data_reset_item_type"
+TRANS_KEY_NOTIF_TITLE_DATA_RESET: Final = "notification_title_data_reset"
+TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_GLOBAL: Final = (
+    "notification_message_data_reset_global"
 )
-TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM: Final = "notif_message_data_reset_item"
+TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ASSIGNEE: Final = (
+    "notification_message_data_reset_assignee"
+)
+TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM_TYPE: Final = (
+    "notification_message_data_reset_item_type"
+)
+TRANS_KEY_NOTIF_MESSAGE_DATA_RESET_ITEM: Final = "notification_message_data_reset_item"
 
 # ================================================================================================
 # End of Notification Translation Keys

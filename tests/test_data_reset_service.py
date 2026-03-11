@@ -534,11 +534,7 @@ class TestDataResetNotification:
         scenario_full: SetupResult,
     ) -> None:
         """Test notification is sent to approvers after global reset."""
-        notification_sent = False
-
-        async def mock_broadcast(*args, **kwargs):
-            nonlocal notification_sent
-            notification_sent = True
+        mock_broadcast = AsyncMock()
 
         with (
             patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
@@ -558,4 +554,72 @@ class TestDataResetNotification:
                 blocking=True,
             )
 
-        assert notification_sent, "Notification should be sent after reset"
+        mock_broadcast.assert_awaited_once_with(
+            title_key="notification_title_data_reset",
+            message_key="notification_message_data_reset_global",
+            placeholders={},
+        )
+
+    @pytest.mark.asyncio
+    async def test_notification_sent_after_global_item_type_reset(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test global item-type resets use the scoped reset translation key."""
+        mock_broadcast = AsyncMock()
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                scenario_full.coordinator.notification_manager,
+                "broadcast_to_all_approvers",
+                new=mock_broadcast,
+            ),
+        ):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_RESET_TRANSACTIONAL_DATA,
+                {
+                    FIELD_CONFIRM_DESTRUCTIVE: True,
+                    FIELD_SCOPE: SCOPE_GLOBAL,
+                    FIELD_ITEM_TYPE: "bonuses",
+                },
+                blocking=True,
+            )
+
+        mock_broadcast.assert_awaited_once_with(
+            title_key="notification_title_data_reset",
+            message_key="notification_message_data_reset_item_type",
+            placeholders={"item_type": "bonuses"},
+        )
+
+    @pytest.mark.asyncio
+    async def test_notification_skipped_for_user_scope_reset(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Test user-scope resets do not notify approvers yet."""
+        mock_broadcast = AsyncMock()
+
+        with (
+            patch.object(scenario_full.coordinator, "_persist", new=MagicMock()),
+            patch.object(
+                scenario_full.coordinator.notification_manager,
+                "broadcast_to_all_approvers",
+                new=mock_broadcast,
+            ),
+        ):
+            await hass.services.async_call(
+                DOMAIN,
+                SERVICE_RESET_TRANSACTIONAL_DATA,
+                {
+                    FIELD_CONFIRM_DESTRUCTIVE: True,
+                    FIELD_SCOPE: SCOPE_ASSIGNEE,
+                    FIELD_USER_NAME: "Zoë",
+                },
+                blocking=True,
+            )
+
+        mock_broadcast.assert_not_awaited()

@@ -720,9 +720,13 @@ class NotificationManager(BaseManager):
         - "notification_title_chore_assigned" -> "chore_assigned"
         - "notification_message_reward_claimed" -> "reward_claimed"
         """
-        return const_key.replace("notification_title_", "").replace(
-            "notification_message_", ""
-        )
+        prefixes = ("notification_title_", "notification_message_")
+
+        for prefix in prefixes:
+            if const_key.startswith(prefix):
+                return const_key.removeprefix(prefix)
+
+        return const_key
 
     def _format_notification_text(
         self,
