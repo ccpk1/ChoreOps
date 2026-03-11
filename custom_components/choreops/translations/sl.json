@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Dobrodošli v ChoreOps",
-        "description": "Ta čarovnik vas bo vodil skozi nastavitev ChoreOps.\n\n[📖 Vodnik za hiter začetek]({documentation_url})"
+        "description": "Ta čarovnik vas bo vodil skozi nastavitev ChoreOps.\n\n ℹ️ [Vodnik za hiter začetek]({documentation_url})"
       },
       "data_recovery": {
         "title": "Možnosti obnovitve podatkov",
-        "description": "Obstoječi podatki ChoreOps so bili najdeni v:\n{storage_path}\n\nNajdenih {backup_count} varnostnih kopij datotek.\n\nKaj želite storiti?\n\n[📖 Več o varnostnem kopiranju in obnavljanju]({documentation_url})",
+        "description": "Obstoječi podatki ChoreOps so bili najdeni v:\n{storage_path}\n\nNajdenih {backup_count} varnostnih kopij datotek.\n\nKaj želite storiti?\n\n ℹ️ [Več o varnostnem kopiranju in obnavljanju]({documentation_url})",
         "data": {
           "backup_selection": "Izberite možnost"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Dodaj kumulativno značko",
-        "description": "Konfigurirajte podrobnosti za kumulativno značko. Te značke nagrajujejo prejemnike za doseganje pragov točk v življenjski dobi in podpirajo vzdrževalne cikle za spodbujanje stalne uspešnosti.\n\n[📖 Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za kumulativno značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov točk v življenjski dobi in podpirajo vzdrževalne cikle za spodbujanje stalne uspešnosti.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "Možnosti gospodinjskih opravil",
-        "description": "Upravljajte uporabnike, opravila, značke, nagrade, kazni, bonuse ali zaključek.\n\n[📖 Oglejte si dokumentacijo]({documentation_url})",
+        "description": "Upravljajte svoje gospodinjske operacije, mehanizem za gamifikacijo in sistemske nastavitve.\n\n ℹ️ [Ogled dokumentacije]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Podprite gospodinjska opravila]({sponsor_url})_",
         "data": {
           "menu_selection": "Izberite možnost"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Izzivi kmalu",
-        "description": "Izzivi bodo na voljo v prihodnji posodobitvi.\n\nMed selitvijo se obstoječi zapisi izzivov pretvorijo v enakovredno periodično sledenje značk, da se ohrani namen in vedenje napredka, kjer je to mogoče. Značke, povezane z izzivi, so v tej izdaji odstranjene.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Izzivi bodo na voljo v prihodnji posodobitvi.\n\nMed selitvijo se obstoječi zapisi izzivov pretvorijo v enakovredno periodično sledenje značk, da se ohrani namen in vedenje napredka, kjer je to mogoče. Značke, povezane z izzivi, so v tej izdaji odstranjene.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Urejanje nastavitev točk",
-        "description": "Spremenite oznako, ikono in privzete točke za vsako opravilo, ki se uporablja v ChoreOps.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Spremenite oznako, ikono in privzete točke za vsako opravilo, ki se uporablja v ChoreOps.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "points_label": "Oznaka točk",
           "points_icon": "Ikona točk",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Dodaj uporabnika",
-        "description": "Navedite podrobnosti za novi uporabniški profil.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Navedite podrobnosti za novi uporabniški profil.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identiteta in profil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Dodaj opravilo",
-        "description": "Ustvari novo opravilo s točkami, nalogami in ponavljajočim se urnikom.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Ustvari novo opravilo s točkami, nalogami in ponavljajočim se urnikom.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definicija",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Dodaj kumulativno značko",
-        "description": "Konfigurirajte podrobnosti za kumulativno značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov točk v življenjski dobi in podpirajo vzdrževalne cikle za spodbujanje stalne uspešnosti.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za kumulativno značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov točk v življenjski dobi in podpirajo vzdrževalne cikle za spodbujanje stalne uspešnosti.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Dodaj dnevno značko",
-        "description": "Konfigurirajte podrobnosti za dnevno značko. Te značke nagrajujejo dodeljene osebe za opravljanje dnevnih nalog ali doseganje dnevnih pragov.\n\n📖 [Pregled značk]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za dnevno značko. Te značke nagrajujejo dodeljene osebe za opravljanje dnevnih nalog ali doseganje dnevnih pragov.\n\n ℹ️ [Pregled značk]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Dodaj periodično značko",
-        "description": "Konfigurirajte podrobnosti za periodično značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov v določenem časovnem obdobju in podpirajo cikle ponastavitve za stalno delovanje.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za periodično značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov v določenem časovnem obdobju in podpirajo cikle ponastavitve za stalno delovanje.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Dodaj značko, povezano z dosežki",
-        "description": "Konfigurirajte podrobnosti za značko, povezano z dosežkom. Te značke nagrajujejo dodeljene osebe za doseganje določenih dosežkov.\n\n[📖 Pregled značk]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za značko, povezano z dosežkom. Te značke nagrajujejo prejemnike za doseganje določenih dosežkov.\n\n ℹ️ [Pregled značk]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Dodaj značko za posebno priložnost",
-        "description": "Konfigurirajte podrobnosti za značko, ustvarjeno za posebne priložnosti. Te značke nagrajujejo prejemnike za dogodke, kot so rojstni dnevi ali prazniki.\n\n📖 [Pregled značk]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za značko, ustvarjeno za posebne priložnosti. Te značke nagrajujejo prejemnike za dogodke, kot so rojstni dnevi ali prazniki.\n\n ℹ️ [Pregled značk]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Dodaj nagrado",
-        "description": "Navedite podrobnosti za novo nagrado.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Navedite podrobnosti za novo nagrado.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime nagrade",
           "internal_id": "Notranja identifikacija",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Dodaj kazen",
-        "description": "Navedite podrobnosti za novo kazen.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Navedite podrobnosti za novo kazen.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime kazni",
           "penalty_description": "Opis (neobvezno)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Dodaj bonus",
-        "description": "Navedite podrobnosti za nov bonus.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Navedite podrobnosti za nov bonus.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime bonusa",
           "bonus_description": "Opis (neobvezno)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definiraj dosežek",
-        "description": "Vnesite podrobnosti za vsak dosežek.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Vnesite podrobnosti za vsak dosežek.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime dosežka",
           "description": "Opis (neobvezno)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Definiraj izziv",
-        "description": "Vnesite podrobnosti za vsak izziv.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Vnesite podrobnosti za vsak izziv.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime izziva",
           "description": "Opis (neobvezno)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Uredi uporabnika",
-        "description": "Spremenite podrobnosti izbranega uporabniškega profila.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Spremenite podrobnosti izbranega uporabniškega profila.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identiteta in profil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Uredi opravilo",
-        "description": "Spremenite podrobnosti izbranega opravila.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Spremenite podrobnosti izbranega opravila.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definicija",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Urejanje rokov za posameznega uporabnika: {chore_name}",
-        "description": "Za vsakega dodeljenega uporabnika nastavite posamezne roke. Polje z datumom na glavnem obrazcu za urejanje deluje kot **predloga** za udobje – uporabite ga za hitro uporabo istega datuma za vse uporabnike prek spodnjega potrditvenega polja ali pa ga pustite prazno in tukaj nastavite datume posamično.\n\nPolja so prikazana za: {assignee_names}. Pustite prazno, če roka ni.{template_date}\n\n📖 [Napredni vodnik]({documentation_url})",
+        "description": "Za vsakega dodeljenega uporabnika nastavite posamezne roke. Polje z datumom na glavnem obrazcu za urejanje deluje kot **predloga** za udobje – uporabite ga za hitro uporabo istega datuma za vse uporabnike prek spodnjega potrditvenega polja ali pa ga pustite prazno in tukaj nastavite datume posamično.\n\nPolja so prikazana za: {assignee_names}. Pustite prazno, če roka ni.{template_date}\n\n ℹ️ [Napredni vodnik]({documentation_url})",
         "data": {
           "apply_template_to_all": "Uporabi datum predloge za vse uporabnike"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Razpored na dodeljenca: {chore_name}",
-        "description": "Konfigurirajte individualne nastavitve urnika za vsakega dodeljevalca, ki mu je dodeljena ta naloga. Glavne vrednosti obrazca delujejo kot **predloge** – uporabite potrditvena polja, da jih uporabite za vse dodeljevalce ali prilagodite nastavitve vsakega dodeljevalca posebej.\n\n**Opomba:** Vsa spodnja polja ne veljajo za vsako nalogo. Obrazec dinamično prikazuje ustrezne možnosti glede na način dokončanja, pogostost in ali so nastavljeni roki.\n\n**Oblika dnevnih (več) časov:** Če je prikazano, vnesite 2–6 časov v 24-urni obliki, ločenih z | (navpično črto). Primer: 08:00|17:00\n\nDodeljevalci: {assignee_names}{template_info}\n\n📖 [Napredni vodnik]({documentation_url})",
+        "description": "Konfigurirajte individualne nastavitve urnika za vsakega dodeljevalca, ki mu je dodeljena ta naloga. Glavne vrednosti obrazca delujejo kot **predloge** – uporabite potrditvena polja, da jih uporabite za vse dodeljevalce ali prilagodite nastavitve vsakega dodeljevalca posebej.\n\n**Opomba:** Vsa spodnja polja ne veljajo za vsako nalogo. Obrazec dinamično prikazuje ustrezne možnosti glede na način dokončanja, pogostost in ali so nastavljeni roki.\n\n**Oblika dnevnih (več) časov:** Če je prikazano, vnesite 2–6 časov v 24-urni obliki, ločenih z | (navpično črto). Primer: 08:00|17:00\n\nDodeljevalci: {assignee_names}{template_info}\n\n ℹ️ [Napredni vodnik]({documentation_url})",
         "data": {
           "apply_days_to_all": "Uporabi predloge dni za vse dodeljevalce",
           "apply_times_to_all": "Uporabi predloge časov za vse dodeljevalce",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Uredi skupno značko",
-        "description": "Konfigurirajte podrobnosti za kumulativno značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov točk v življenjski dobi in podpirajo vzdrževalne cikle za spodbujanje stalne uspešnosti.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za kumulativno značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov točk v življenjski dobi in podpirajo vzdrževalne cikle za spodbujanje stalne uspešnosti.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Uredi dnevno značko",
-        "description": "Konfigurirajte podrobnosti za dnevno značko. Te značke nagrajujejo dodeljene osebe za opravljanje dnevnih nalog ali doseganje dnevnih pragov.\n\n📖 [Pregled značk]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za dnevno značko. Te značke nagrajujejo dodeljene osebe za opravljanje dnevnih nalog ali doseganje dnevnih pragov.\n\n ℹ️ [Pregled značk]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Uredi periodično značko",
-        "description": "Konfigurirajte podrobnosti za periodično značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov v določenem časovnem obdobju in podpirajo cikle ponastavitve za stalno delovanje.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za periodično značko. Te značke nagrajujejo dodeljene osebe za doseganje pragov v določenem časovnem obdobju in podpirajo cikle ponastavitve za stalno delovanje.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Uredi značko, povezano z dosežki",
-        "description": "Konfigurirajte podrobnosti za značko, povezano z dosežkom. Te značke nagrajujejo dodeljene osebe za doseganje določenih dosežkov.\n\n📖 [Pregled značk]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za značko, povezano z dosežkom. Te značke nagrajujejo dodeljene osebe za doseganje določenih dosežkov.\n\n ℹ️ [Pregled značk]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Uredi značko za posebno priložnost",
-        "description": "Konfigurirajte podrobnosti za značko, ustvarjeno za posebne priložnosti. Te značke nagrajujejo prejemnike za dogodke, kot so rojstni dnevi ali prazniki.\n\n📖 [Pregled značk]({documentation_url})",
+        "description": "Konfigurirajte podrobnosti za značko, ustvarjeno za posebne priložnosti. Te značke nagrajujejo prejemnike za dogodke, kot so rojstni dnevi ali prazniki.\n\n ℹ️ [Pregled značk]({documentation_url})",
         "data": {
           "badge_name": "Ime značke",
           "badge_description": "Opis značke (neobvezno)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Uredi nagrado",
-        "description": "Spremenite podrobnosti izbrane nagrade.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Spremenite podrobnosti izbrane nagrade.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime nagrade",
           "internal_id": "Notranja identifikacija",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Uredi kazen",
-        "description": "Spremenite podrobnosti izbrane kazni.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Spremenite podrobnosti izbrane kazni.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime kazni",
           "penalty_description": "Opis (neobvezno)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Uredi bonus",
-        "description": "Spremenite podrobnosti izbranega bonusa.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Spremenite podrobnosti izbranega bonusa.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime bonusa",
           "bonus_description": "Opis (neobvezno)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definiraj dosežek",
-        "description": "Vnesite podrobnosti za vsak dosežek.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Vnesite podrobnosti za vsak dosežek.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime dosežka",
           "description": "Opis (neobvezno)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Definiraj izziv",
-        "description": "Vnesite podrobnosti za vsak izziv.\n\n📖 [Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Vnesite podrobnosti za vsak izziv.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "name": "Ime izziva",
           "description": "Opis (neobvezno)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Dejanja na nadzorni plošči",
-        "description": "Ustvarjanje, posodabljanje ali brisanje nadzornih plošč ChoreOps Lovelace.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Ustvarjanje, posodabljanje ali brisanje nadzornih plošč ChoreOps Lovelace.\n\n ℹ️ [Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Dejanje",
           "dashboard_release_selection": "Različica izdaje nadzorne plošče"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Pregled sprememb nadzorne plošče",
-        "description": "Preden uporabite spremembe nadzorne plošče, preglejte stanje odvisnosti in nastavitve predlog za izbrane predloge.\n\n[Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n**Razpoložljive prilagoditve**\n{dashboard_template_preferences}\n\n**Manjkajoče zahtevane odvisnosti**\n{dashboard_missing_required_dependencies}\n\n**Manjkajoče priporočene odvisnosti**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Preden uporabite spremembe nadzorne plošče, preglejte stanje odvisnosti in nastavitve predlog za izbrane predloge.\n\n ℹ️ [Vodnik za konfiguracijo nadzorne plošče]({documentation_url})\n\n**Razpoložljive prilagoditve**\n{dashboard_template_preferences}\n\n**Manjkajoče zahtevane odvisnosti**\n{dashboard_missing_required_dependencies}\n\n**Manjkajoče priporočene odvisnosti**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Vseeno nadaljuj (zahteve manjkajo)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Ustvari nadzorno ploščo",
-        "description": "Vnesite ime nadzorne plošče in nadaljujte s konfiguracijo.\n\n[Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Vnesite ime nadzorne plošče in nadaljujte s konfiguracijo.\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "data": {
           "dashboard_name": "Ime nadzorne plošče"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Konfiguriraj nadzorno ploščo",
-        "description": "Konfigurirajte razdelke nadzorne plošče za **{dashboard}** (način: {mode}).\n\n[Vodnik za konfiguracijo]({documentation_url})",
+        "description": "Konfigurirajte razdelke nadzorne plošče za **{dashboard}** (način: {mode}).\n\n ℹ️ [Vodnik za konfiguracijo]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Ogledi uporabnikov",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Splošne možnosti",
-        "description": "Upravljajte splošne nastavitve za integracijo ChoreOps.\n\n[📖 Več o splošnih možnostih]({documentation_url})",
+        "description": "Upravljajte splošne nastavitve za integracijo ChoreOps.\n\n ℹ️ [Več o splošnih možnostih]({documentation_url})",
         "data": {
           "default_chore_points": "Privzete točke na opravilo",
           "points_adjust_values": "Vrednosti gumba za ročno prilagajanje točk",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Upravljanje nadzora uporabniškega vmesnika",
-      "description": "Ustvarite, posodobite ali odstranite vrednost kontrolnika uporabniškega vmesnika za vsakega uporabnika, shranjeno v uporabnikovem trajnem vedru ui_preferences. Za brisanje vseh shranjenih nastavitev uporabniškega vmesnika za ciljnega uporabnika uporabite prazen ključ z dejanjem odstranitve.",
+      "description": "Ustvarite, posodobite ali odstranite trajno vrednost kontrolnika uporabniškega vmesnika. Privzeto je to usmerjeno na vedro ui_preferences enega uporabnika. Za pisanje v vedro kontrolnika uporabniškega vmesnika za skupno rabo v mapi data/meta uporabite ui_control_target:shared_admin. Za brisanje vseh shranjenih vrednosti za izbrani cilj uporabite prazen ključ z dejanjem odstranitve.",
       "fields": {
         "config_entry_id": {
           "name": "ID vnosa konfiguracije (neobvezno)",
@@ -2902,6 +2902,11 @@
           "description": "Neobvezno uporabniško ime. Obvezno, če uporabniški_id ni naveden.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "Cilj kontrolnika uporabniškega vmesnika",
+          "description": "Izberite, ali želite ciljati na enega uporabnika ali na skupno vedro kontrolnikov uporabniškega vmesnika za skrbnike. Če je izbrana možnost »shared_admin«, ne navedite uporabniškega_id-ja ali uporabniškega_imena.",
+          "example": "uporabnik"
+        },
         "ui_control_action": {
           "name": "Dejanje nadzora uporabniškega vmesnika",
           "description": "Izberite, ali želite ustvariti, posodobiti ali odstraniti shranjeno vrednost kontrolnika uporabniškega vmesnika.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Ključna pot",
-          "description": "S poševnico ločena pot do kontrolnikov uporabniškega vmesnika, kot je gamification/rewards/header_collapse. Pustite prazno samo pri dejanju odstranitve, da počistite vse shranjene nastavitve uporabniškega vmesnika za uporabnika.",
+          "description": "S poševnico ločena pot kontrolnika uporabniškega vmesnika, kot je gamification/rewards/header_collapse. Pustite prazno samo pri dejanju odstranitve, da počistite vse shranjene vrednosti za izbrani cilj.",
           "example": "gamifikacija/nagrade/strni_glavo"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Pomočnik za nadzorno ploščo",
+        "state_attributes": {
+          "purpose": {
+            "name": "Namen",
+            "state": {
+              "purpose_system_dashboard_helper": "Združuje stanje nadzorne plošče skupnega skrbnika za kartice skupnega skrbnika"
+            }
+          },
+          "ui_control": {
+            "name": "Nadzor uporabniškega vmesnika"
+          },
+          "integration_entry_id": {
+            "name": "ID vnosa integracije"
+          },
+          "dashboard_lookup_key": {
+            "name": "Iskalni ključ nadzorne plošče"
+          },
+          "user_dashboard_helpers": {
+            "name": "Pomočniki za uporabniško nadzorno ploščo"
+          },
+          "language": {
+            "name": "Jezik"
+          },
+          "translation_sensor_eid": {
+            "name": "ID entitete senzorja prevajanja"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Pomočnik za nadzorno ploščo uporabniškega vmesnika",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Za ciljanje na enega uporabnika navedite user_id ali user_name."
+    },
+    "ui_control_invalid_target": {
+      "message": "Neveljaven ui_control_target {target}. Dovoljeni cilji: uporabnik, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Ne navajajte uporabniškega_id ali uporabniškega_imena, če je ui_control_target nastavljen na shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Neveljavno dejanje kontrolnika uporabniškega vmesnika {action}. Dovoljena dejanja: ustvari, posodobi, odstrani."

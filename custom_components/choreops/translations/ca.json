@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Benvinguts a ChoreOps",
-        "description": "Aquest assistent us guiarà a través de la configuració de ChoreOps.\n\n[📖 Guia d'inici ràpid]({documentation_url})"
+        "description": "Aquest assistent us guiarà a través de la configuració de ChoreOps.\n\n ℹ️ [Guia d'inici ràpid]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opcions de recuperació de dades",
-        "description": "Dades de ChoreOps existents trobades a:\n{storage_path}\n\nS'han trobat {backup_count} fitxers de còpia de seguretat.\n\nQuè vols fer?\n\n[📖 Més informació sobre Còpia de seguretat i restauració]({documentation_url})",
+        "description": "Dades de ChoreOps existents trobades a:\n{storage_path}\n\nS'han trobat {backup_count} fitxers de còpia de seguretat.\n\nQuè vols fer?\n\n ℹ️ [Més informació sobre Còpia de seguretat i restauració]({documentation_url})",
         "data": {
           "backup_selection": "Selecciona l'opció"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Afegeix una insígnia acumulativa",
-        "description": "Configureu els detalls d'una insígnia acumulativa. Aquestes insígnies recompensen els assignats per assolir els llindars de punts de per vida i donen suport als cicles de manteniment per fomentar el rendiment continu.\n\n[📖 Guia de configuració]({documentation_url})",
+        "description": "Configureu els detalls d'una insígnia acumulativa. Aquestes insígnies recompensen els assignats per assolir els llindars de punts de per vida i donen suport als cicles de manteniment per fomentar el rendiment continu.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "Opcions de ChoreOps",
-        "description": "Gestiona usuaris, tasques, insígnies, recompenses, penalitzacions, bonificacions o finalitzacions.\n\n[📖 Veure documentació]({documentation_url})",
+        "description": "Gestioneu les operacions de la vostra llar, el motor de gamificació i les preferències del sistema.\n\n ℹ️ [Veure la documentació]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Suport a ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Selecciona una opció"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Reptes properament",
-        "description": "Els reptes estaran disponibles en futures actualitzacions.\n\nDurant la migració, els registres de reptes existents es converteixen al seguiment equivalent de les insígnies periòdiques per preservar la intenció i el comportament de progrés sempre que sigui possible. Les insígnies vinculades als reptes s'eliminen en aquesta versió.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Els reptes estaran disponibles en futures actualitzacions.\n\nDurant la migració, els registres de reptes existents es converteixen al seguiment equivalent de les insígnies periòdiques per preservar la intenció i el comportament de progrés sempre que sigui possible. Les insígnies vinculades als reptes s'eliminen en aquesta versió.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Edita la configuració dels punts",
-        "description": "Canvia l'etiqueta, la icona i els punts predeterminats per tasca que s'utilitzen a ChoreOps.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Canvia l'etiqueta, la icona i els punts predeterminats per tasca que s'utilitzen a ChoreOps.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "points_label": "Etiqueta de punts",
           "points_icon": "Icona de punts",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Afegeix un usuari",
-        "description": "Proporcioneu els detalls del nou perfil d'usuari.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Proporcioneu els detalls del nou perfil d'usuari.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identitat i perfil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Afegeix una tasca",
-        "description": "Crea una nova tasca amb punts, assignacions i un horari recurrent.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Crea una nova tasca amb punts, assignacions i un horari recurrent.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definició",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Afegeix una insígnia acumulativa",
-        "description": "Configureu els detalls d'una insígnia acumulativa. Aquestes insígnies recompensen els assignats per assolir els llindars de punts de per vida i donen suport als cicles de manteniment per fomentar el rendiment continu.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Configureu els detalls d'una insígnia acumulativa. Aquestes insígnies recompensen els assignats per assolir els llindars de punts de per vida i donen suport als cicles de manteniment per fomentar el rendiment continu.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Afegeix una insígnia diària",
-        "description": "Configura els detalls d'una insígnia diària. Aquestes insígnies recompensen els assignats per completar tasques diàries o assolir llindars diaris.\n\n📖 [Visió general de les insígnies]({documentation_url})",
+        "description": "Configura els detalls d'una insígnia diària. Aquestes insígnies recompensen els assignats per completar tasques diàries o assolir llindars diaris.\n\n ℹ️ [Visió general de les insígnies]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Afegeix una insígnia periòdica",
-        "description": "Configureu els detalls d'una insígnia periòdica. Aquestes insígnies recompensen els assignats per assolir els llindars dins d'un període de temps definit i admeten cicles de reinici per a un rendiment continu.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Configureu els detalls d'una insígnia periòdica. Aquestes insígnies recompensen els assignats per assolir els llindars dins d'un període de temps definit i admeten cicles de reinici per a un rendiment continu.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Afegeix una insígnia vinculada a un assoliment",
-        "description": "Configura els detalls d'una insígnia vinculada a un assoliment. Aquestes insígnies recompensen els assignats per completar assoliments específics.\n\n[📖 Visió general de les insígnies]({documentation_url})",
+        "description": "Configura els detalls d'una insígnia vinculada a un assoliment. Aquestes insígnies recompensen els assignats per completar assoliments específics.\n\n ℹ️ [Visió general de les insígnies]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Afegeix una insígnia per a ocasions especials",
-        "description": "Configura els detalls d'una insígnia creada per a ocasions especials. Aquestes insígnies recompensen els assignats per esdeveniments com ara aniversaris o festius.\n\n📖 [Visió general de les insígnies]({documentation_url})",
+        "description": "Configura els detalls d'una insígnia creada per a ocasions especials. Aquestes insígnies recompensen els assignats per esdeveniments com ara aniversaris o festius.\n\n ℹ️ [Visió general de les insígnies]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Afegeix una recompensa",
-        "description": "Proporcioneu els detalls de la nova recompensa.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Proporcioneu els detalls de la nova recompensa.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de la recompensa",
           "internal_id": "ID intern",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Afegeix penalització",
-        "description": "Proporcioneu els detalls de la nova penalització.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Proporcioneu els detalls de la nova penalització.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de la penalització",
           "penalty_description": "Descripció (opcional)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Afegeix una bonificació",
-        "description": "Proporcioneu els detalls del nou bonus.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Proporcioneu els detalls del nou bonus.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de la bonificació",
           "bonus_description": "Descripció (opcional)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definir assoliment",
-        "description": "Introdueix els detalls de cada assoliment.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Introdueix els detalls de cada assoliment.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de l'assoliment",
           "description": "Descripció (opcional)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Defineix el repte",
-        "description": "Introduïu els detalls de cada repte.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Introduïu els detalls de cada repte.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom del repte",
           "description": "Descripció (opcional)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Edita l'usuari",
-        "description": "Modifiqueu els detalls del perfil d'usuari seleccionat.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Modifiqueu els detalls del perfil d'usuari seleccionat.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identitat i perfil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Edita la tasca",
-        "description": "Modifiqueu els detalls de la tasca seleccionada.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Modifiqueu els detalls de la tasca seleccionada.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definició",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Edita les dates de venciment per usuari: {chore_name}",
-        "description": "Establiu dates de venciment individuals per a cada usuari assignat. El camp de data del formulari d'edició principal actua com a **plantilla** per comoditat: utilitzeu-lo per aplicar ràpidament la mateixa data a tots els usuaris mitjançant la casella de selecció següent o deixeu-lo en blanc i definiu les dates individualment aquí.\n\nEs mostren camps per a: {assignee_names}. Deixeu-ho en blanc si no hi ha data límit.{template_date}\n\n📖 [Guia avançada]({documentation_url})",
+        "description": "Establiu dates de venciment individuals per a cada usuari assignat. El camp de data del formulari d'edició principal actua com a **plantilla** per comoditat: utilitzeu-lo per aplicar ràpidament la mateixa data a tots els usuaris mitjançant la casella de selecció següent o deixeu-lo en blanc i definiu les dates individualment aquí.\n\nEs mostren camps per a: {assignee_names}. Deixeu-ho en blanc si no hi ha data límit.{template_date}\n\n ℹ️ [Guia avançada]({documentation_url})",
         "data": {
           "apply_template_to_all": "Aplica la data de la plantilla a tots els usuaris"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Calendari per assignat: {chore_name}",
-        "description": "Configureu la configuració de la programació individual per a cada persona assignada a aquesta tasca. Els valors principals del formulari actuen com a **plantilles**: utilitzeu les caselles de selecció per aplicar-los a totes les persones assignades o personalitzeu la configuració de cada persona individualment.\n\n**Nota:** No tots els camps següents s'apliquen a totes les tasques. El formulari mostra dinàmicament les opcions rellevants en funció del mode de finalització, la freqüència i si hi ha dates de venciment definides.\n\n**Format d'hores diàries (múltiples):** Si es mostra, introduïu de 2 a 6 hores en format de 24 hores separades per | (barra vertical). Exemple: 08:00|17:00\n\nPersones assignades: {assignee_names}{template_info}\n\n📖 [Guia avançada]({documentation_url})",
+        "description": "Configureu la configuració de la programació individual per a cada persona assignada a aquesta tasca. Els valors principals del formulari actuen com a **plantilles**: utilitzeu les caselles de selecció per aplicar-les a totes les persones assignades o personalitzeu la configuració de cada persona individualment.\n\n**Nota:** No tots els camps següents s'apliquen a totes les tasques. El formulari mostra dinàmicament les opcions rellevants en funció del mode de finalització, la freqüència i si hi ha dates de venciment definides.\n\n**Format d'hores diàries (múltiples):** Si es mostra, introduïu de 2 a 6 hores en format de 24 hores separades per | (barra vertical). Exemple: 08:00|17:00\n\nPersones assignades: {assignee_names}{template_info}\n\n ℹ️ [Guia avançada]({documentation_url})",
         "data": {
           "apply_days_to_all": "Aplica els dies de plantilla a tots els assignats",
           "apply_times_to_all": "Aplica els horaris de la plantilla a tots els assignats",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Edita la insígnia acumulativa",
-        "description": "Configureu els detalls d'una insígnia acumulativa. Aquestes insígnies recompensen els assignats per assolir els llindars de punts de per vida i donen suport als cicles de manteniment per fomentar el rendiment continu.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Configureu els detalls d'una insígnia acumulativa. Aquestes insígnies recompensen els assignats per assolir els llindars de punts de per vida i donen suport als cicles de manteniment per fomentar el rendiment continu.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Edita la insígnia diària",
-        "description": "Configura els detalls d'una insígnia diària. Aquestes insígnies recompensen els assignats per completar tasques diàries o assolir llindars diaris.\n\n📖 [Visió general de les insígnies]({documentation_url})",
+        "description": "Configura els detalls d'una insígnia diària. Aquestes insígnies recompensen els assignats per completar tasques diàries o assolir llindars diaris.\n\n ℹ️ [Visió general de les insígnies]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Edita la insígnia periòdica",
-        "description": "Configureu els detalls d'una insígnia periòdica. Aquestes insígnies recompensen els assignats per assolir els llindars dins d'un període de temps definit i admeten cicles de reinici per a un rendiment continu.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Configureu els detalls d'una insígnia periòdica. Aquestes insígnies recompensen els assignats per assolir els llindars dins d'un període de temps definit i admeten cicles de reinici per a un rendiment continu.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Edita la insígnia vinculada a l'assoliment",
-        "description": "Configura els detalls d'una insígnia vinculada a un assoliment. Aquestes insígnies recompensen els assignats per completar assoliments específics.\n\n📖 [Visió general de les insígnies]({documentation_url})",
+        "description": "Configura els detalls d'una insígnia vinculada a un assoliment. Aquestes insígnies recompensen els assignats per completar assoliments específics.\n\n ℹ️ [Visió general de les insígnies]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Edita la insígnia per a ocasions especials",
-        "description": "Configura els detalls d'una insígnia creada per a ocasions especials. Aquestes insígnies recompensen els assignats per esdeveniments com ara aniversaris o festius.\n\n📖 [Visió general de les insígnies]({documentation_url})",
+        "description": "Configura els detalls d'una insígnia creada per a ocasions especials. Aquestes insígnies recompensen els assignats per esdeveniments com ara aniversaris o festius.\n\n ℹ️ [Visió general de les insígnies]({documentation_url})",
         "data": {
           "badge_name": "Nom de la insígnia",
           "badge_description": "Descripció de la insígnia (opcional)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Edita la recompensa",
-        "description": "Modifiqueu els detalls de la recompensa seleccionada.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Modifiqueu els detalls de la recompensa seleccionada.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de la recompensa",
           "internal_id": "ID intern",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Edita la penalització",
-        "description": "Modifiqueu els detalls de la penalització seleccionada.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Modifiqueu els detalls de la penalització seleccionada.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de la penalització",
           "penalty_description": "Descripció (opcional)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Edita la bonificació",
-        "description": "Modifiqueu els detalls del bonus seleccionat.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Modifiqueu els detalls del bonus seleccionat.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de la bonificació",
           "bonus_description": "Descripció (opcional)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definir assoliment",
-        "description": "Introdueix els detalls de cada assoliment.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Introdueix els detalls de cada assoliment.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom de l'assoliment",
           "description": "Descripció (opcional)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Defineix el repte",
-        "description": "Introduïu els detalls de cada repte.\n\n📖 [Guia de configuració]({documentation_url})",
+        "description": "Introduïu els detalls de cada repte.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "name": "Nom del repte",
           "description": "Descripció (opcional)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Accions del tauler de control",
-        "description": "Crea, actualitza o suprimeix els quadres de comandament de ChoreOps Lovelace.\n\n[Guia de configuració del quadre de comandament]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Crea, actualitza o elimina els quadres de comandament de ChoreOps Lovelace.\n\n ℹ️ [Guia de configuració del quadre de comandament]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Acció",
           "dashboard_release_selection": "Versió de llançament del tauler de control"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Revisa els canvis del tauler de control",
-        "description": "Reviseu l'estat de les dependències i les preferències de plantilla per a les plantilles seleccionades abans d'aplicar els canvis al tauler de control.\n\n[Guia de configuració del tauler de control]({documentation_url})\n\n**Personalitzacions disponibles**\n{dashboard_template_preferences}\n\n**Falten les dependències obligatòries**\n{dashboard_missing_required_dependencies}\n\n**Falten les dependències recomanades**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Reviseu l'estat de les dependències i les preferències de plantilla per a les plantilles seleccionades abans d'aplicar els canvis al tauler de control.\n\n ℹ️ [Guia de configuració del tauler de control]({documentation_url})\n\n**Personalitzacions disponibles**\n{dashboard_template_preferences}\n\n**Falten les dependències obligatòries**\n{dashboard_missing_required_dependencies}\n\n**Falten les dependències recomanades**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Continua igualment (falten requisits)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Crea un tauler de control",
-        "description": "Introduïu un nom per al tauler de control i continueu amb la configuració.\n\n[Guia de configuració]({documentation_url})",
+        "description": "Introduïu un nom per al tauler de control i continueu amb la configuració.\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "data": {
           "dashboard_name": "Nom del tauler de control"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Configura el tauler de control",
-        "description": "Configura les seccions del tauler de control per a **{dashboard}** (mode: {mode}).\n\n[Guia de configuració]({documentation_url})",
+        "description": "Configura les seccions del tauler de control per a **{dashboard}** (mode: {mode}).\n\n ℹ️ [Guia de configuració]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Vistes d'usuari",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Opcions generals",
-        "description": "Gestiona la configuració general per a la integració de ChoreOps.\n\n[📖 Més informació sobre les opcions generals]({documentation_url})",
+        "description": "Gestiona la configuració general per a la integració de ChoreOps.\n\n ℹ️ [Més informació sobre les opcions generals]({documentation_url})",
         "data": {
           "default_chore_points": "Punts per defecte per tasca",
           "points_adjust_values": "Valors del botó d'ajust manual de punts",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Gestiona el control de la interfície d'usuari",
-      "description": "Crea, actualitza o elimina un valor de control d'IU per usuari emmagatzemat al contenidor ui_preferences persistent de l'usuari. Utilitza una clau buida amb l'acció d'eliminació per esborrar totes les preferències d'IU emmagatzemades per a l'usuari de destinació.",
+      "description": "Crea, actualitza o elimina un valor de control d'IU persistent. Per defecte, això té com a objectiu el contenidor ui_preferences d'un usuari. Utilitza ui_control_target: shared_admin per escriure al contenidor de control d'IU d'administració compartit a data/meta. Utilitza una clau buida amb l'acció d'eliminació per esborrar tots els valors emmagatzemats per a la destinació seleccionada.",
       "fields": {
         "config_entry_id": {
           "name": "ID d'entrada de configuració (opcional)",
@@ -2902,6 +2902,11 @@
           "description": "Nom d'usuari objectiu opcional. Obligatori quan no es proporciona user_id.",
           "example": "Alícia"
         },
+        "ui_control_target": {
+          "name": "Objectiu de control de la interfície d'usuari",
+          "description": "Trieu si voleu orientar-vos a un usuari o al dipòsit de control de la interfície d'usuari d'administrador compartit. Quan se seleccioni shared_admin, no proporcioneu user_id ni user_name.",
+          "example": "usuari"
+        },
         "ui_control_action": {
           "name": "Acció de control de la interfície d'usuari",
           "description": "Trieu si voleu crear, actualitzar o eliminar un valor de control de la interfície d'usuari emmagatzemat.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Camí clau",
-          "description": "Ruta de control de la interfície d'usuari delimitada per barres inclinades, com ara gamification/rewards/header_collapse. Deixeu-ho en blanc només amb l'acció d'eliminació per esborrar totes les preferències de la interfície d'usuari emmagatzemades per a l'usuari.",
+          "description": "Ruta de control de la interfície d'usuari delimitada per barres, com ara gamification/rewards/header_collapse. Deixeu-ho en blanc només amb l'acció d'eliminació per esborrar tots els valors emmagatzemats per a l'objectiu seleccionat.",
           "example": "gamificació/recompenses/capçalera_replegada"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Assistent del tauler de control",
+        "state_attributes": {
+          "purpose": {
+            "name": "Propòsit",
+            "state": {
+              "purpose_system_dashboard_helper": "Agrega l'estat del tauler de control d'administració compartit per a les targetes d'administració compartides"
+            }
+          },
+          "ui_control": {
+            "name": "Control de la interfície d'usuari"
+          },
+          "integration_entry_id": {
+            "name": "ID d'entrada d'integració"
+          },
+          "dashboard_lookup_key": {
+            "name": "Clau de cerca del tauler de control"
+          },
+          "user_dashboard_helpers": {
+            "name": "Ajudants del tauler de control d'usuari"
+          },
+          "language": {
+            "name": "Llengua"
+          },
+          "translation_sensor_eid": {
+            "name": "ID de l'entitat del sensor de traducció"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Ajudant del tauler de control de la interfície d'usuari",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Proporcioneu user_id o user_name per orientar-vos a un usuari."
+    },
+    "ui_control_invalid_target": {
+      "message": "ui_control_target {target}no vàlid. Objectius permesos: usuari, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "No proporcioneu user_id ni user_name quan ui_control_target és shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Acció de control de la interfície d'usuari no vàlida {action}. Accions permeses: crear, actualitzar, eliminar."

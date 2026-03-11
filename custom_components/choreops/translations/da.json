@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Velkommen til ChoreOps",
-        "description": "Denne guide vil guide dig gennem opsætningen af ChoreOps.\n\n[📖 Lynstartguide]({documentation_url})"
+        "description": "Denne guide vil guide dig gennem opsætningen af ChoreOps.\n\n ℹ️ [Hurtigstartguide]({documentation_url})"
       },
       "data_recovery": {
         "title": "Muligheder for datagendannelse",
-        "description": "Eksisterende ChoreOps-data fundet i:\n{storage_path}\n\nFundet {backup_count} backupfiler.\n\nHvad vil du gerne gøre?\n\n[📖 Få mere at vide om Backup og gendannelse]({documentation_url})",
+        "description": "Eksisterende ChoreOps-data fundet i:\n{storage_path}\n\nFundet {backup_count} backupfiler.\n\nHvad vil du gerne gøre?\n\n ℹ️ [Læs mere om Backup og gendannelse]({documentation_url})",
         "data": {
           "backup_selection": "Vælg mulighed"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Tilføj kumulativt badge",
-        "description": "Konfigurer detaljerne for et kumulativt badge. Disse badges belønner tildelte personer for at nå livstidspointgrænser og understøtter vedligeholdelsescyklusser for at fremme løbende ydeevne.\n\n[📖 Konfigurationsvejledning]({documentation_url})",
+        "description": "Konfigurer detaljerne for et kumulativt badge. Disse badges belønner tildelte personer for at nå livstidspointgrænser og understøtter vedligeholdelsescyklusser for at fremme løbende ydeevne.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Badgebeskrivelse (valgfrit)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "ChoreOps-indstillinger",
-        "description": "Administrer brugere, pligter, badges, belønninger, straffe, bonusser eller afslutning.\n\n[📖 Se dokumentation]({documentation_url})",
+        "description": "Administrer din husholdningsdrift, gamification-motor og systempræferencer.\n\n ℹ️ [Se dokumentation]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Understøtter ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Vælg en mulighed"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Udfordringer kommer snart",
-        "description": "Udfordringer vil blive gjort tilgængelige i fremtidige opdateringer.\n\nUnder migreringen konverteres eksisterende udfordringsregistreringer til tilsvarende periodisk badge-sporing for at bevare intention og fremskridtsadfærd, hvor det er muligt. Udfordringsrelaterede badges fjernes i denne udgivelse.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Udfordringer vil blive gjort tilgængelige i fremtidige opdateringer.\n\nUnder migreringen konverteres eksisterende udfordringsregistreringer til tilsvarende periodisk badge-sporing for at bevare intention og fremskridtsadfærd, hvor det er muligt. Udfordringsrelaterede badges fjernes i denne udgivelse.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Rediger pointindstillinger",
-        "description": "Skift etiketten, ikonet og standardpunkterne pr. opgave, der bruges i hele ChoreOps.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Skift etiketten, ikonet og standardpunkterne pr. opgave, der bruges i hele ChoreOps.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "points_label": "Pointmærke",
           "points_icon": "Pointikon",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Tilføj bruger",
-        "description": "Angiv oplysningerne for den nye brugerprofil.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Angiv oplysningerne for den nye brugerprofil.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identitet og profil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Tilføj pligt",
-        "description": "Opret en ny opgave med point, opgaver og en tilbagevendende tidsplan.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Opret en ny opgave med point, opgaver og en tilbagevendende tidsplan.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definition",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Tilføj kumulativt badge",
-        "description": "Konfigurer detaljerne for et kumulativt badge. Disse badges belønner tildelte personer for at nå livstidspointgrænser og understøtter vedligeholdelsescyklusser for at fremme løbende ydeevne.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Konfigurer detaljerne for et kumulativt badge. Disse badges belønner tildelte personer for at nå livstidspointgrænser og understøtter vedligeholdelsescyklusser for at fremme løbende ydeevne.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Tilføj daglig badge",
-        "description": "Konfigurer detaljerne for et dagligt badge. Disse badges belønner tildelte personer for at fuldføre daglige opgaver eller nå daglige tærskler.\n\n📖 [Oversigt over badges]({documentation_url})",
+        "description": "Konfigurer detaljerne for et dagligt badge. Disse badges belønner tildelte personer for at fuldføre daglige opgaver eller nå daglige tærskler.\n\n ℹ️ [Oversigt over badges]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Tilføj periodisk badge",
-        "description": "Konfigurer detaljerne for et periodisk badge. Disse badges belønner tildelte personer for at nå tærskler inden for en defineret tidsperiode og understøtter nulstillingscyklusser for løbende ydeevne.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Konfigurer detaljerne for et periodisk badge. Disse badges belønner tildelte personer for at nå tærskler inden for en defineret tidsperiode og understøtter nulstillingscyklusser for løbende ydeevne.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Tilføj præstationsrelateret badge",
-        "description": "Konfigurer detaljerne for et badge, der er knyttet til en præstation. Disse badges belønner tildelte personer for at fuldføre specifikke præstationer.\n\n[📖 Oversigt over badges]({documentation_url})",
+        "description": "Konfigurer detaljerne for et badge, der er knyttet til en præstation. Disse badges belønner tildelte personer for at fuldføre specifikke præstationer.\n\n ℹ️ [Oversigt over badges]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Tilføj badge til særlige lejligheder",
-        "description": "Konfigurer detaljerne for et badge, der er oprettet til særlige lejligheder. Disse badges belønner tildelte personer for begivenheder som fødselsdage eller helligdage.\n\n📖 [Oversigt over badges]({documentation_url})",
+        "description": "Konfigurer detaljerne for et badge, der er oprettet til særlige lejligheder. Disse badges belønner tildelte personer for begivenheder som fødselsdage eller helligdage.\n\n ℹ️ [Oversigt over badges]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Tilføj belønning",
-        "description": "Angiv detaljerne for den nye belønning.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Angiv detaljerne for den nye belønning.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Belønningsnavn",
           "internal_id": "Internt ID",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Tilføj straf",
-        "description": "Angiv detaljerne for den nye straf.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Angiv detaljerne for den nye straf.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Strafnavn",
           "penalty_description": "Beskrivelse (valgfrit)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Tilføj bonus",
-        "description": "Angiv detaljerne for den nye bonus.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Angiv detaljerne for den nye bonus.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Bonusnavn",
           "bonus_description": "Beskrivelse (valgfrit)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definer præstation",
-        "description": "Indtast detaljer for hver præstation.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Indtast detaljer for hver præstation.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Præstationsnavn",
           "description": "Beskrivelse (valgfrit)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Definer udfordring",
-        "description": "Indtast detaljer for hver udfordring.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Indtast detaljer for hver udfordring.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Udfordringsnavn",
           "description": "Beskrivelse (valgfrit)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Rediger bruger",
-        "description": "Rediger detaljerne for den valgte brugerprofil.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Rediger detaljerne for den valgte brugerprofil.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identitet og profil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Rediger opgave",
-        "description": "Rediger detaljerne for den valgte opgave.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Rediger detaljerne for den valgte opgave.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definition",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Rediger forfaldsdatoer pr. bruger: {chore_name}",
-        "description": "Angiv individuelle forfaldsdatoer for hver tildelt bruger. Datofeltet på hovedredigeringsformularen fungerer som en **skabelon** for nemheds skyld – brug det til hurtigt at anvende den samme dato på alle brugere via afkrydsningsfeltet nedenfor, eller lad det være tomt og angiv datoer individuelt her.\n\nFelter vises for: {assignee_names}. Lad feltet være tomt, hvis der ikke er nogen deadline.{template_date}\n\n📖 [Avanceret vejledning]({documentation_url})",
+        "description": "Angiv individuelle forfaldsdatoer for hver tildelt bruger. Datofeltet på hovedredigeringsformularen fungerer som en **skabelon** for nemheds skyld – brug det til hurtigt at anvende den samme dato på alle brugere via afkrydsningsfeltet nedenfor, eller lad det være tomt og angiv datoer individuelt her.\n\nFelter vises for: {assignee_names}. Lad feltet være tomt, hvis der ikke er nogen deadline.{template_date}\n\n ℹ️ [Avanceret vejledning]({documentation_url})",
         "data": {
           "apply_template_to_all": "Anvend skabelondato på alle brugere"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Tidsplan pr. tildelt: {chore_name}",
-        "description": "Konfigurer individuelle tidsplanindstillinger for hver tildelt person, der er tildelt denne opgave. De primære formularværdier fungerer som **skabeloner** – brug afkrydsningsfelterne til at anvende dem på alle tildelte personer, eller tilpas hver tildeltes indstillinger individuelt.\n\n**Bemærk:** Ikke alle felter nedenfor gælder for alle opgaver. Formularen viser dynamisk relevante muligheder baseret på fuldførelsestilstand, hyppighed og om der er angivet forfaldsdatoer.\n\n**Dagligt (flere) tidspunktformat:** Hvis vist, indtastes 2-6 tidspunkter i 24-timers format adskilt af | (pipe). Eksempel: 08:00|17:00\n\nTildelte personer: {assignee_names}{template_info}\n\n📖 [Avanceret vejledning]({documentation_url})",
+        "description": "Konfigurer individuelle tidsplanindstillinger for hver tildelt person, der er tildelt denne opgave. De primære formularværdier fungerer som **skabeloner** – brug afkrydsningsfelterne til at anvende dem på alle tildelte personer, eller tilpas hver tildeltes indstillinger individuelt.\n\n**Bemærk:** Ikke alle felter nedenfor gælder for alle opgaver. Formularen viser dynamisk relevante muligheder baseret på fuldførelsestilstand, hyppighed og om der er angivet forfaldsdatoer.\n\n**Dagligt (flere) tidspunktformat:** Hvis vist, indtastes 2-6 tidspunkter i 24-timers format adskilt af | (pipe). Eksempel: 08:00|17:00\n\nTildelte personer: {assignee_names}{template_info}\n\n ℹ️ [Avanceret vejledning]({documentation_url})",
         "data": {
           "apply_days_to_all": "Anvend skabelondage på alle tildelte",
           "apply_times_to_all": "Anvend skabelontider på alle tildelte",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Rediger kumulativt badge",
-        "description": "Konfigurer detaljerne for et kumulativt badge. Disse badges belønner tildelte personer for at nå livstidspointgrænser og understøtter vedligeholdelsescyklusser for at fremme løbende ydeevne.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Konfigurer detaljerne for et kumulativt badge. Disse badges belønner tildelte personer for at nå livstidspointgrænser og understøtter vedligeholdelsescyklusser for at fremme løbende ydeevne.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Rediger daglig badge",
-        "description": "Konfigurer detaljerne for et dagligt badge. Disse badges belønner tildelte personer for at fuldføre daglige opgaver eller nå daglige tærskler.\n\n📖 [Oversigt over badges]({documentation_url})",
+        "description": "Konfigurer detaljerne for et dagligt badge. Disse badges belønner tildelte personer for at fuldføre daglige opgaver eller nå daglige tærskler.\n\n ℹ️ [Oversigt over badges]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Rediger periodisk badge",
-        "description": "Konfigurer detaljerne for et periodisk badge. Disse badges belønner tildelte personer for at nå tærskler inden for en defineret tidsperiode og understøtter nulstillingscyklusser for løbende ydeevne.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Konfigurer detaljerne for et periodisk badge. Disse badges belønner tildelte personer for at nå tærskler inden for en defineret tidsperiode og understøtter nulstillingscyklusser for løbende ydeevne.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Rediger præstationsrelateret badge",
-        "description": "Konfigurer detaljerne for et badge, der er knyttet til en præstation. Disse badges belønner tildelte personer for at fuldføre specifikke præstationer.\n\n📖 [Oversigt over badges]({documentation_url})",
+        "description": "Konfigurer detaljerne for et badge, der er knyttet til en præstation. Disse badges belønner tildelte personer for at fuldføre specifikke præstationer.\n\n ℹ️ [Oversigt over badges]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Rediger badge til særlige lejligheder",
-        "description": "Konfigurer detaljerne for et badge, der er oprettet til særlige lejligheder. Disse badges belønner tildelte personer for begivenheder som fødselsdage eller helligdage.\n\n📖 [Oversigt over badges]({documentation_url})",
+        "description": "Konfigurer detaljerne for et badge, der er oprettet til særlige lejligheder. Disse badges belønner tildelte personer for begivenheder som fødselsdage eller helligdage.\n\n ℹ️ [Oversigt over badges]({documentation_url})",
         "data": {
           "badge_name": "Badgenavn",
           "badge_description": "Beskrivelse af badge (valgfrit)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Rediger belønning",
-        "description": "Rediger detaljerne for den valgte belønning.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Rediger detaljerne for den valgte belønning.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Belønningsnavn",
           "internal_id": "Internt ID",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Rediger straf",
-        "description": "Rediger detaljerne for den valgte straf.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Rediger detaljerne for den valgte straf.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Strafnavn",
           "penalty_description": "Beskrivelse (valgfrit)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Rediger bonus",
-        "description": "Rediger detaljerne for den valgte bonus.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Rediger detaljerne for den valgte bonus.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Bonusnavn",
           "bonus_description": "Beskrivelse (valgfrit)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definer præstation",
-        "description": "Indtast detaljer for hver præstation.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Indtast detaljer for hver præstation.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Præstationsnavn",
           "description": "Beskrivelse (valgfrit)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Definer udfordring",
-        "description": "Indtast detaljer for hver udfordring.\n\n📖 [Konfigurationsvejledning]({documentation_url})",
+        "description": "Indtast detaljer for hver udfordring.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "name": "Udfordringsnavn",
           "description": "Beskrivelse (valgfrit)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Handlinger på dashboardet",
-        "description": "Opret, opdater eller slet ChoreOps Lovelace-dashboards.\n\n[Konfigurationsvejledning til dashboard]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Opret, opdater eller slet ChoreOps Lovelace-dashboards.\n\n ℹ️ [Konfigurationsvejledning til dashboard]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Handling",
           "dashboard_release_selection": "Dashboard-udgivelsesversion"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Gennemgå ændringer i dashboardet",
-        "description": "Gennemgå afhængighedsstatus og skabelonpræferencer for dine valgte skabeloner, før du anvender ændringer af dashboardet.\n\n[Konfigurationsvejledning til dashboard]({documentation_url})\n\n**Tilgængelige tilpasninger**\n{dashboard_template_preferences}\n\n**Mangler nødvendige afhængigheder**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalede afhængigheder**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Gennemgå afhængighedsstatus og skabelonpræferencer for dine valgte skabeloner, før du anvender ændringer af dashboardet.\n\n ℹ️ [Konfigurationsvejledning til dashboard]({documentation_url})\n\n**Tilgængelige tilpasninger**\n{dashboard_template_preferences}\n\n**Mangler nødvendige afhængigheder**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalede afhængigheder**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Fortsæt alligevel (krav mangler)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Opret dashboard",
-        "description": "Indtast et navn til dashboardet, og fortsæt derefter til konfigurationen.\n\n[Konfigurationsvejledning]({documentation_url})",
+        "description": "Indtast et navn til dashboardet, og fortsæt derefter til konfigurationen.\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "data": {
           "dashboard_name": "Navn på dashboard"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Konfigurer dashboard",
-        "description": "Konfigurer dashboardsektioner for **{dashboard}** (tilstand: {mode}).\n\n[Konfigurationsvejledning] ({documentation_url})",
+        "description": "Konfigurer dashboardsektioner for **{dashboard}** (tilstand: {mode}).\n\n ℹ️ [Konfigurationsvejledning]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Brugervisninger",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Generelle muligheder",
-        "description": "Administrer generelle indstillinger for ChoreOps-integrationen.\n\n[📖 Få mere at vide om generelle indstillinger]({documentation_url})",
+        "description": "Administrer generelle indstillinger for ChoreOps-integrationen.\n\n ℹ️ [Læs mere om generelle indstillinger]({documentation_url})",
         "data": {
           "default_chore_points": "Standardpoint pr. opgave",
           "points_adjust_values": "Værdier for knap til manuel justering af punkter",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Administrer brugergrænsefladekontrol",
-      "description": "Opret, opdater eller fjern en brugergrænsefladekontrolværdi, der er gemt i brugerens permanente ui_preferences-bucket. Brug en tom nøgle med fjern-handlingen for at rydde alle gemte brugergrænsefladepræferencer for den pågældende bruger.",
+      "description": "Opret, opdater eller fjern en vedvarende UI-kontrolværdi. Som standard er denne målrettet mod én brugers ui_preferences-bucket. Brug ui_control_target: shared_admin til at skrive til den delte admin UI-kontrolbucket under data/meta. Brug en tom nøgle med remove-handlingen for at rydde alle gemte værdier for det valgte mål.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationsindgangs-ID (valgfrit)",
@@ -2902,6 +2902,11 @@
           "description": "Valgfrit brugernavnsmål. Påkrævet, når user_id ikke er angivet.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "UI-kontrolmål",
+          "description": "Vælg, om du vil målrette mod én bruger eller den delte administratorgrænsefladekontrolgruppe. Når shared_admin er valgt, skal du ikke angive user_id eller user_name.",
+          "example": "bruger"
+        },
         "ui_control_action": {
           "name": "UI-kontrolhandling",
           "description": "Vælg, om du vil oprette, opdatere eller fjerne en gemt UI-kontrolværdi.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Nøglesti",
-          "description": "Skråstregsepareret UI-kontrolsti, f.eks. gamification/rewards/header_collapse. Lad kun feltet stå tomt med fjern-handlingen for at rydde alle gemte UI-præferencer for brugeren.",
+          "description": "Skråstregsepareret UI-kontrolsti, f.eks. gamification/rewards/header_collapse. Lad kun feltet stå tomt med fjern-handlingen for at rydde alle gemte værdier for det valgte mål.",
           "example": "gamification/belønninger/header_collapse"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Dashboard-hjælper",
+        "state_attributes": {
+          "purpose": {
+            "name": "Formål",
+            "state": {
+              "purpose_system_dashboard_helper": "Aggregerer tilstanden af delt administrator-dashboard for delte administratorkort"
+            }
+          },
+          "ui_control": {
+            "name": "UI-kontrol"
+          },
+          "integration_entry_id": {
+            "name": "Integrationspost-ID"
+          },
+          "dashboard_lookup_key": {
+            "name": "Opslagsnøgle til dashboard"
+          },
+          "user_dashboard_helpers": {
+            "name": "Hjælpere til brugerdashboards"
+          },
+          "language": {
+            "name": "Sprog"
+          },
+          "translation_sensor_eid": {
+            "name": "Enheds-ID for oversættelsessensor"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Hjælper til brugergrænsefladedashboard",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Angiv bruger-id eller brugernavn for at målrette én bruger."
+    },
+    "ui_control_invalid_target": {
+      "message": "Ugyldig ui_control_target {target}. Tilladte mål: bruger, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Angiv ikke user_id eller user_name, når ui_control_target er shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Ugyldig UI-kontrolhandling {action}. Tilladte handlinger: oprette, opdatere, fjerne."

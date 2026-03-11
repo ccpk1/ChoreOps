@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Bienvenido a ChoreOps",
-        "description": "Este asistente lo guiará a través de la configuración de ChoreOps.\n\n[📖 Guía de inicio rápido]({documentation_url})"
+        "description": "Este asistente lo guiará a través de la configuración de ChoreOps.\n\n ℹ️ [Guía de inicio rápido]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opciones de Recuperación de Datos",
-        "description": "Datos de ChoreOps existentes encontrados en:\n{storage_path}\n\nSe encontraron {backup_count} archivos de copia de seguridad.\n\n¿Qué desea hacer?\n\n[📖 Más información sobre copias de seguridad y restauración]({documentation_url})",
+        "description": "Datos de ChoreOps existentes encontrados en:\n{storage_path}\n\nSe encontraron {backup_count} archivos de copia de seguridad.\n\n¿Qué desea hacer?\n\n ℹ️ [Más información sobre copias de seguridad y restauración]({documentation_url})",
         "data": {
           "backup_selection": "Seleccionar Opción"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Definir Insignia",
-        "description": "Configura los detalles de una insignia acumulativa. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales de puntos de por vida y respaldan los ciclos de mantenimiento para fomentar el rendimiento continuo.\n\n[📖 Guía de configuración]({documentation_url})",
+        "description": "Configura los detalles de una insignia acumulativa. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales de puntos de por vida y respaldan los ciclos de mantenimiento para fomentar el rendimiento continuo.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "badge_name": "Nombre de la Insignia",
           "badge_description": "Descripción (opcional)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "Opciones de ChoreOps",
-        "description": "Administra usuarios, tareas, insignias, recompensas, penalizaciones, bonificaciones o finaliza.\n\n[📖 Ver documentación]({documentation_url})",
+        "description": "Administra las operaciones de tu hogar, el motor de gamificación y las preferencias del sistema.\n\n ℹ️ [Ver documentación]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Support ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Selecciona una opción"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Desafíos que vienen pronto",
-        "description": "Los desafíos estarán disponibles en una próxima actualización.\n\nDurante la migración, los registros de desafíos existentes se convierten al seguimiento periódico de insignias equivalente para preservar la intención y el progreso siempre que sea posible. Las insignias vinculadas a los desafíos se eliminan en esta versión.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Los desafíos estarán disponibles en una próxima actualización.\n\nDurante la migración, los registros de desafíos existentes se convierten al seguimiento periódico de insignias equivalente para preservar la intención y el progreso siempre que sea posible. Las insignias vinculadas a los desafíos se eliminan en esta versión.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Editar la configuración de puntos",
-        "description": "Cambie la etiqueta, el ícono y los puntos predeterminados por tarea utilizados en ChoreOps.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Cambie la etiqueta, el ícono y los puntos predeterminados por tarea utilizados en ChoreOps.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "points_label": "Etiqueta de Puntos",
           "points_icon": "Ícono de Puntos",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Agregar usuario",
-        "description": "Proporcione los detalles del nuevo perfil de usuario.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Proporcione los detalles del nuevo perfil de usuario.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identidad y perfil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Añadir Tarea",
-        "description": "Crea una nueva tarea con puntos, asignaciones y un cronograma recurrente.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Crea una nueva tarea con puntos, asignaciones y un cronograma recurrente.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definición",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Añadir insignia acumulativa",
-        "description": "Configura los detalles de una insignia acumulativa. Estas insignias recompensan a los usuarios asignados por alcanzar los puntos de vida útil y respaldan los ciclos de mantenimiento para fomentar el rendimiento continuo.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Configura los detalles de una insignia acumulativa. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales de puntos de por vida y respaldan los ciclos de mantenimiento para fomentar el rendimiento continuo.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "badge_name": "Nombre de la insignia",
           "badge_description": "Descripción de la insignia (opcional)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Agregar insignia diaria",
-        "description": "Configura los detalles de una insignia diaria. Estas insignias recompensan a los usuarios asignados por completar tareas diarias o alcanzar límites diarios.\n\n📖 [Resumen de insignias]({documentation_url})",
+        "description": "Configura los detalles de una insignia diaria. Estas insignias recompensan a los usuarios asignados por completar tareas diarias o alcanzar límites diarios.\n\n ℹ️ [Resumen de insignias]({documentation_url})",
         "data": {
           "badge_name": "Nombre de la insignia",
           "badge_description": "Descripción de la insignia (opcional)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Agregar insignia periódica",
-        "description": "Configura los detalles de una insignia periódica. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales dentro de un período definido y permiten ciclos de reinicio para un rendimiento continuo.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Configura los detalles de una insignia periódica. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales dentro de un período definido y permiten ciclos de reinicio para un rendimiento continuo.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "badge_name": "Nombre de la insignia",
           "badge_description": "Descripción de la insignia (opcional)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Agregar insignia vinculada a un logro",
-        "description": "Configura los detalles de una insignia vinculada a un logro. Estas insignias recompensan a los usuarios por completar logros específicos.\n\n[📖 Resumen de insignias]({documentation_url})",
+        "description": "Configura los detalles de una insignia vinculada a un logro. Estas insignias recompensan a los usuarios por completar logros específicos.\n\n ℹ️ [Resumen de insignias]({documentation_url})",
         "data": {
           "badge_name": "Nombre de la insignia",
           "badge_description": "Descripción de la insignia (opcional)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Agregar insignia para ocasiones especiales",
-        "description": "Configura los detalles de una insignia creada para ocasiones especiales. Estas insignias recompensan a los usuarios por eventos como cumpleaños o días festivos.\n\n📖 [Resumen de insignias]({documentation_url})",
+        "description": "Configura los detalles de una insignia creada para ocasiones especiales. Estas insignias recompensan a los usuarios por eventos como cumpleaños o días festivos.\n\n ℹ️ [Resumen de insignias]({documentation_url})",
         "data": {
           "badge_name": "Nombre de la insignia",
           "badge_description": "Descripción de la insignia (opcional)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Añadir recompensa",
-        "description": "Proporciona los detalles de la nueva recompensa.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Proporciona los detalles de la nueva recompensa.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre de la recompensa",
           "internal_id": "Identificación interna",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Añadir penalización",
-        "description": "Proporcione los detalles de la nueva penalización.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Proporcione los detalles de la nueva penalización.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre de la penalización",
           "penalty_description": "Descripción (opcional)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Añadir bonificación",
-        "description": "Proporciona los detalles de la nueva bonificación.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Proporciona los detalles de la nueva bonificación.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del bono",
           "bonus_description": "Descripción (opcional)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definir logro",
-        "description": "Ingresa detalles para cada logro.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Ingresa detalles para cada logro.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del logro",
           "description": "Descripción (opcional)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Definir Reto",
-        "description": "Ingresa detalles para cada desafío.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Ingresa detalles para cada desafío.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del Reto",
           "description": "Descripción (opcional)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Editar usuario",
-        "description": "Modificar los detalles del perfil de usuario seleccionado.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Modificar los detalles del perfil de usuario seleccionado.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identidad y perfil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Editar Tarea",
-        "description": "Modificar los detalles de la tarea seleccionada.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Modificar los detalles de la tarea seleccionada.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definición",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Editar fechas de vencimiento por usuario: {chore_name}",
-        "description": "Establezca fechas de vencimiento individuales para cada usuario asignado. El campo de fecha en el formulario de edición principal funciona como **plantilla** para mayor comodidad: úselo para aplicar rápidamente la misma fecha a todos los usuarios mediante la casilla de verificación a continuación, o déjelo en blanco y establezca las fechas individualmente aquí.\n\nSe muestran los campos para: {assignee_names}. Déjelo en blanco si no hay fecha límite.{template_date}\n\n📖 [Guía avanzada]({documentation_url})",
+        "description": "Establezca fechas de vencimiento individuales para cada usuario asignado. El campo de fecha en el formulario de edición principal funciona como una **plantilla** para mayor comodidad: úselo para aplicar rápidamente la misma fecha a todos los usuarios mediante la casilla de verificación a continuación, o déjelo en blanco y establezca las fechas individualmente aquí.\n\nSe muestran los campos para: {assignee_names}. Déjelo en blanco si no hay fecha límite.{template_date}\n\n ℹ️ [Guía avanzada]({documentation_url})",
         "data": {
           "apply_template_to_all": "Aplicar fecha de plantilla a todos los usuarios"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Horario por cesionario: {chore_name}",
-        "description": "Configure ajustes de horario individuales para cada persona asignada a esta tarea. Los valores del formulario principal funcionan como **plantillas**: use las casillas de verificación para aplicarlos a todas las personas asignadas o personalice la configuración de cada una individualmente.\n\n**Nota:** No todos los campos a continuación se aplican a todas las tareas. El formulario muestra dinámicamente las opciones relevantes según el modo de finalización, la frecuencia y si se han establecido fechas de vencimiento.\n\n**Formato diario (varias):** Si se muestra, ingrese de 2 a 6 horas en formato de 24 horas separadas por | (barra vertical). Ejemplo: 08:00|17:00\n\nPersonas asignadas: {assignee_names}{template_info}\n\n📖 [Guía avanzada]({documentation_url})",
+        "description": "Configure ajustes de horario individuales para cada persona asignada a esta tarea. Los valores del formulario principal funcionan como **plantillas**: use las casillas de verificación para aplicarlos a todas las personas asignadas o personalice la configuración de cada una individualmente.\n\n**Nota:** No todos los campos a continuación se aplican a todas las tareas. El formulario muestra dinámicamente las opciones relevantes según el modo de finalización, la frecuencia y si se han establecido fechas de vencimiento.\n\n**Formato diario (varias):** Si se muestra, ingrese de 2 a 6 horas en formato de 24 horas separadas por | (barra vertical). Ejemplo: 08:00|17:00\n\nPersonas asignadas: {assignee_names}{template_info}\n\n ℹ️ [Guía avanzada]({documentation_url})",
         "data": {
           "apply_days_to_all": "Aplicar días de plantilla a todos los asignados",
           "apply_times_to_all": "Aplicar horarios de plantilla a todos los asignados",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Editar Insignia Acumulativa",
-        "description": "Configura los detalles de una insignia acumulativa. Estas insignias recompensan a los usuarios asignados por alcanzar los puntos de vida útil y respaldan los ciclos de mantenimiento para fomentar el rendimiento continuo.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Configura los detalles de una insignia acumulativa. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales de puntos de por vida y respaldan los ciclos de mantenimiento para fomentar el rendimiento continuo.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "badge_name": "Nombre de Insignia",
           "badge_description": "Descripción de Insignia (Opcional)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Editar Insignia Diaria",
-        "description": "Configura los detalles de una insignia diaria. Estas insignias recompensan a los usuarios asignados por completar tareas diarias o alcanzar límites diarios.\n\n📖 [Resumen de insignias]({documentation_url})",
+        "description": "Configura los detalles de una insignia diaria. Estas insignias recompensan a los usuarios asignados por completar tareas diarias o alcanzar límites diarios.\n\n ℹ️ [Resumen de insignias]({documentation_url})",
         "data": {
           "badge_name": "Nombre de Insignia",
           "badge_description": "Descripción de Insignia (Opcional)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Editar Insignia Periódica",
-        "description": "Configura los detalles de una insignia periódica. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales dentro de un período definido y permiten ciclos de reinicio para un rendimiento continuo.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Configura los detalles de una insignia periódica. Estas insignias recompensan a los usuarios asignados por alcanzar los umbrales dentro de un período definido y permiten ciclos de reinicio para un rendimiento continuo.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "badge_name": "Nombre de Insignia",
           "badge_description": "Descripción de Insignia (Opcional)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Editar Insignia Vinculada a Logro",
-        "description": "Configura los detalles de una insignia vinculada a un logro. Estas insignias recompensan a los usuarios por completar logros específicos.\n\n📖 [Resumen de insignias]({documentation_url})",
+        "description": "Configura los detalles de una insignia vinculada a un logro. Estas insignias recompensan a los usuarios por completar logros específicos.\n\n ℹ️ [Resumen de insignias]({documentation_url})",
         "data": {
           "badge_name": "Nombre de Insignia",
           "badge_description": "Descripción de Insignia (Opcional)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Editar Insignia para Ocasión Especial",
-        "description": "Configura los detalles de una insignia creada para ocasiones especiales. Estas insignias recompensan a los usuarios por eventos como cumpleaños o días festivos.\n\n📖 [Resumen de insignias]({documentation_url})",
+        "description": "Configura los detalles de una insignia creada para ocasiones especiales. Estas insignias recompensan a los usuarios por eventos como cumpleaños o días festivos.\n\n ℹ️ [Resumen de insignias]({documentation_url})",
         "data": {
           "badge_name": "Nombre de Insignia",
           "badge_description": "Descripción de Insignia (Opcional)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Editar Recompensa",
-        "description": "Modificar los detalles de la recompensa seleccionada.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Modificar los detalles de la recompensa seleccionada.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre de la Recompensa",
           "internal_id": "ID Interno",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Editar Penalización",
-        "description": "Modificar los detalles de la penalización seleccionada.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Modificar los detalles de la penalización seleccionada.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre de la Penalización",
           "penalty_description": "Descripción (opcional)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Editar Bonificación",
-        "description": "Modificar los detalles del bono seleccionado.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Modificar los detalles del bono seleccionado.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre de la Bonificación",
           "bonus_description": "Descripción (opcional)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definir Logro",
-        "description": "Ingresa detalles para cada logro.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Ingresa detalles para cada logro.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del Logro",
           "description": "Descripción (opcional)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Definir Reto",
-        "description": "Ingresa detalles para cada desafío.\n\n📖 [Guía de configuración]({documentation_url})",
+        "description": "Ingresa detalles para cada desafío.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "name": "Nombre del Reto",
           "description": "Descripción (opcional)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Acciones del panel de control",
-        "description": "Crear, actualizar o eliminar paneles de ChoreOps Lovelace.\n\n[Guía de configuración del panel]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Crear, actualizar o eliminar paneles de ChoreOps Lovelace.\n\n ℹ️ [Guía de configuración del panel]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Acción",
           "dashboard_release_selection": "Versión de lanzamiento del panel de control"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Revisar los cambios en el panel",
-        "description": "Revise el estado de las dependencias y las preferencias de plantilla de las plantillas seleccionadas antes de aplicar los cambios en el panel.\n\n[Guía de configuración del panel]({documentation_url})\n\n**Personalizaciones disponibles**\n{dashboard_template_preferences}\n\n**Dependencias obligatorias faltantes**\n{dashboard_missing_required_dependencies}\n\n**Dependencias recomendadas faltantes**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Revise el estado de las dependencias y las preferencias de plantilla de las plantillas seleccionadas antes de aplicar los cambios en el panel.\n\n ℹ️ [Guía de configuración del panel]({documentation_url})\n\n**Personalizaciones disponibles**\n{dashboard_template_preferences}\n\n**Dependencias obligatorias faltantes**\n{dashboard_missing_required_dependencies}\n\n**Dependencias recomendadas faltantes**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Continuar de todos modos (faltan requisitos)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Crear panel de control",
-        "description": "Ingrese un nombre para el panel y luego continúe con la configuración.\n\n[Guía de configuración]({documentation_url})",
+        "description": "Ingrese un nombre para el panel y luego continúe con la configuración.\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "data": {
           "dashboard_name": "Nombre del tablero"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Configurar el panel de control",
-        "description": "Configurar secciones del panel para **{dashboard}** (modo: {mode}).\n\n[Guía de configuración]({documentation_url})",
+        "description": "Configurar secciones del panel para **{dashboard}** (modo: {mode}).\n\n ℹ️ [Guía de configuración]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Vistas de usuario",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Opciones Generales",
-        "description": "Administrar la configuración general para la integración de ChoreOps.\n\n[📖 Obtenga más información sobre las opciones generales]({documentation_url})",
+        "description": "Administrar la configuración general para la integración de ChoreOps.\n\n ℹ️ [Obtener más información sobre las opciones generales]({documentation_url})",
         "data": {
           "default_chore_points": "Puntos predeterminados por tarea",
           "points_adjust_values": "Valores de Ajuste Manual de Puntos",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Administrar el control de la interfaz de usuario",
-      "description": "Cree, actualice o elimine un valor de control de IU por usuario almacenado en el contenedor ui_preferences persistente del usuario. Use una clave vacía con la acción \"eliminar\" para borrar todas las preferencias de IU almacenadas para el usuario objetivo.",
+      "description": "Crea, actualiza o elimina un valor de control de IU persistente. De forma predeterminada, esto se dirige al contenedor ui_preferences de un usuario. Usa ui_control_target: shared_admin para escribir en el contenedor de control de IU de administración compartido, en data/meta. Usa una clave vacía con la acción \"eliminar\" para borrar todos los valores almacenados del destino seleccionado.",
       "fields": {
         "config_entry_id": {
           "name": "ID de entrada de configuración (opcional)",
@@ -2902,6 +2902,11 @@
           "description": "Nombre de usuario de destino opcional. Obligatorio si no se proporciona el ID de usuario.",
           "example": "Alicia"
         },
+        "ui_control_target": {
+          "name": "Objetivo de control de IU",
+          "description": "Seleccione si desea dirigirse a un usuario o al contenedor de control de la interfaz de usuario de administración compartida. Si selecciona shared_admin, no proporcione user_id ni user_name.",
+          "example": "usuario"
+        },
         "ui_control_action": {
           "name": "Acción de control de IU",
           "description": "Elija si desea crear, actualizar o eliminar un valor de control de IU almacenado.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Ruta clave",
-          "description": "Ruta de control de IU delimitada por barras, como gamification/rewards/header_collapse. Déjela vacía solo con la acción de eliminar para borrar todas las preferencias de IU almacenadas para el usuario.",
+          "description": "Ruta de control de IU delimitada por barras, como gamification/rewards/header_collapse. Déjela vacía solo con la acción de eliminar para borrar todos los valores almacenados del objetivo seleccionado.",
           "example": "gamificación/recompensas/collapse_de_encabezado"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Asistente del panel de control",
+        "state_attributes": {
+          "purpose": {
+            "name": "Objetivo",
+            "state": {
+              "purpose_system_dashboard_helper": "Agrega el estado del panel de administración compartida para las tarjetas de administración compartida"
+            }
+          },
+          "ui_control": {
+            "name": "Control de interfaz de usuario"
+          },
+          "integration_entry_id": {
+            "name": "ID de entrada de integración"
+          },
+          "dashboard_lookup_key": {
+            "name": "Clave de búsqueda del panel"
+          },
+          "user_dashboard_helpers": {
+            "name": "Ayudantes del panel de usuario"
+          },
+          "language": {
+            "name": "Idioma"
+          },
+          "translation_sensor_eid": {
+            "name": "ID de entidad del sensor de traducción"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Asistente del panel de interfaz de usuario",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Proporcione user_id o user_name para apuntar a un usuario."
+    },
+    "ui_control_invalid_target": {
+      "message": "ui_control_target {target}no válido. Destinos permitidos: usuario y administrador compartido."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "No proporcione user_id o user_name cuando ui_control_target sea shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Acción de control de IU no válida {action}. Acciones permitidas: crear, actualizar, eliminar."

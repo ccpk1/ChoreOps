@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Willkommen bei ChoreOps",
-        "description": "Dieser Assistent führt Sie durch die Einrichtung von ChoreOps.\n\n[📖 Schnellstartanleitung]({documentation_url})"
+        "description": "Dieser Assistent führt Sie durch die Einrichtung von ChoreOps.\n\n ℹ️ [Schnellstartanleitung]({documentation_url})"
       },
       "data_recovery": {
         "title": "Optionen zur Datenwiederherstellung",
-        "description": "Vorhandene ChoreOps-Daten gefunden in:\n{storage_path}\n\n {backup_count} Sicherungsdateien gefunden.\n\nWas möchten Sie tun?\n\n[📖 Mehr über Sicherung & Wiederherstellung erfahren]({documentation_url})",
+        "description": "Vorhandene ChoreOps-Daten gefunden in:\n{storage_path}\n\n {backup_count} Sicherungsdateien gefunden.\n\nWas möchten Sie tun?\n\n ℹ️ [Mehr über Sicherung & Wiederherstellung erfahren]({documentation_url})",
         "data": {
           "backup_selection": "Option auswählen"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Abzeichen definieren",
-        "description": "Konfigurieren Sie die Details für ein kumulatives Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen bestimmter Punktzahlen und unterstützen Wartungszyklen, um die kontinuierliche Leistung zu fördern.\n\n[📖 Konfigurationsanleitung]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein kumulatives Abzeichen. Diese Abzeichen belohnen Empfänger für das Erreichen bestimmter Punktzahlen und unterstützen Wartungszyklen, um kontinuierliche Leistung zu fördern.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "ChoreOps-Optionen",
-        "description": "Benutzer, Aufgaben, Abzeichen, Belohnungen, Strafen, Boni oder Abschlüsse verwalten.\n\n[📖 Dokumentation ansehen]({documentation_url})",
+        "description": "Verwalten Sie Ihre Haushaltsabläufe, die Gamification-Engine und die Systemeinstellungen.\n\n ℹ️ [Dokumentation ansehen]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[ChoreOps unterstützen]({sponsor_url})_",
         "data": {
           "menu_selection": "Wählen Sie eine Option"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Demnächst kommen neue Herausforderungen",
-        "description": "Herausforderungen werden in einem zukünftigen Update verfügbar sein.\n\nWährend der Migration werden bestehende Herausforderungsdatensätze in die entsprechende periodische Badge-Verfolgung umgewandelt, um Absicht und Fortschritt nach Möglichkeit beizubehalten. Herausforderungsbezogene Badges werden in dieser Version entfernt.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Herausforderungen werden in einem zukünftigen Update verfügbar sein.\n\nWährend der Migration werden bestehende Herausforderungsdatensätze in äquivalente periodische Abzeichen-Verfolgung umgewandelt, um Absicht und Fortschritt nach Möglichkeit beizubehalten. Herausforderungsbezogene Abzeichen werden in dieser Version entfernt.\n\n ℹ️ [Konfigurationsleitfaden]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Bearbeitungspunkte-Einstellungen",
-        "description": "Ändern Sie die Bezeichnung, das Symbol und die Standardpunkte pro Aufgabe in ChoreOps.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Ändern Sie die Bezeichnung, das Symbol und die Standardpunkte pro Aufgabe in ChoreOps.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "points_label": "Punkte-Etikett",
           "points_icon": "Punkte-Symbol",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Benutzer hinzufügen",
-        "description": "Geben Sie die Details für das neue Benutzerprofil an.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie die Details für das neue Benutzerprofil an.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identität und Profil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Hausarbeit hinzufügen",
-        "description": "Erstelle eine neue Aufgabe mit Punkten, Zuweisungen und einem wiederkehrenden Zeitplan.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Erstelle eine neue Aufgabe mit Punkten, Zuweisungen und einem wiederkehrenden Zeitplan.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definition",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Kumulatives Abzeichen hinzufügen",
-        "description": "Konfigurieren Sie die Details für ein kumulatives Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen bestimmter Punktzahlen und unterstützen Wartungszyklen, um die kontinuierliche Leistung zu fördern.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein kumulatives Abzeichen. Diese Abzeichen belohnen Empfänger für das Erreichen bestimmter Punktzahlen und unterstützen Wartungszyklen, um kontinuierliche Leistung zu fördern.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Tägliches Abzeichen hinzufügen",
-        "description": "Konfigurieren Sie die Details für ein tägliches Abzeichen. Diese Abzeichen belohnen die Bearbeiter für das Erledigen täglicher Aufgaben oder das Erreichen täglicher Schwellenwerte.\n\n📖 [Abzeichenübersicht]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein tägliches Abzeichen. Diese Abzeichen belohnen die Bearbeiter für das Erledigen täglicher Aufgaben oder das Erreichen täglicher Schwellenwerte.\n\n ℹ️ [Abzeichenübersicht]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Periodisches Abzeichen hinzufügen",
-        "description": "Konfigurieren Sie die Details für ein periodisches Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen von Schwellenwerten innerhalb eines definierten Zeitraums und unterstützen Reset-Zyklen für kontinuierliche Leistungsverbesserung.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein periodisches Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen von Schwellenwerten innerhalb eines definierten Zeitraums und unterstützen Reset-Zyklen für kontinuierliche Leistungsverbesserung.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Errungenschaftsgebundenes Abzeichen hinzufügen",
-        "description": "Konfigurieren Sie die Details für ein Abzeichen, das mit einer Leistung verknüpft ist. Diese Abzeichen belohnen die Beauftragten für das Erreichen bestimmter Leistungen.\n\n[📖 Abzeichenübersicht]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein Abzeichen, das mit einer Errungenschaft verknüpft ist. Diese Abzeichen belohnen die Beauftragten für das Erreichen bestimmter Errungenschaften.\n\n ℹ️ [Abzeichenübersicht]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Abzeichen für besondere Anlässe hinzufügen",
-        "description": "Konfigurieren Sie die Details für ein Abzeichen, das für besondere Anlässe erstellt wurde. Diese Abzeichen belohnen die Empfänger für Ereignisse wie Geburtstage oder Feiertage.\n\n📖 [Abzeichenübersicht]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein Abzeichen, das für besondere Anlässe erstellt wurde. Diese Abzeichen belohnen die Empfänger für Ereignisse wie Geburtstage oder Feiertage.\n\n ℹ️ [Abzeichenübersicht]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Belohnung hinzufügen",
-        "description": "Geben Sie die Details für die neue Belohnung an.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie die Details für die neue Belohnung an.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "name": "Belohnungsname",
           "internal_id": "Interne ID",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Strafe hinzufügen",
-        "description": "Geben Sie die Details für die neue Strafe an.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie die Details für die neue Strafe an.\n\n ℹ️ [Konfigurationsleitfaden]({documentation_url})",
         "data": {
           "name": "Name der Strafe",
           "penalty_description": "Beschreibung (optional)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Bonus hinzufügen",
-        "description": "Geben Sie die Details für den neuen Bonus an.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie die Details für den neuen Bonus an.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "name": "Bonusname",
           "bonus_description": "Beschreibung (optional)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Errungenschaft definieren",
-        "description": "Geben Sie die Details für jede Errungenschaft ein.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie Details für jede Errungenschaft ein.\n\n ℹ️ [Konfigurationsleitfaden]({documentation_url})",
         "data": {
           "name": "Name der Errungenschaft",
           "description": "Beschreibung (optional)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Herausforderung definieren",
-        "description": "Geben Sie die Details für jede Herausforderung ein.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie die Details für jede Herausforderung ein.\n\n ℹ️ [Konfigurationsleitfaden]({documentation_url})",
         "data": {
           "name": "Name der Herausforderung",
           "description": "Beschreibung (optional)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Benutzer bearbeiten",
-        "description": "Ändern Sie die Details des ausgewählten Benutzerprofils.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Ändern Sie die Details des ausgewählten Benutzerprofils.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identität und Profil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Hausarbeit bearbeiten",
-        "description": "Ändern Sie die Details der ausgewählten Aufgabe.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Ändern Sie die Details der ausgewählten Aufgabe.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definition",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Fälligkeitstermine pro Benutzer bearbeiten: {chore_name}",
-        "description": "Legen Sie für jeden zugewiesenen Benutzer individuelle Fälligkeitstermine fest. Das Datumsfeld im Hauptbearbeitungsformular dient als **Vorlage** – verwenden Sie es, um allen Benutzern über das Kontrollkästchen unten schnell dasselbe Datum zuzuweisen, oder lassen Sie es leer und legen Sie die Termine hier individuell fest.\n\nFelder werden angezeigt für: {assignee_names}. Für keine Frist leer lassen.{template_date}\n\n📖 [Erweiterte Anleitung]({documentation_url})",
+        "description": "Legen Sie für jeden zugewiesenen Benutzer individuelle Fälligkeitstermine fest. Das Datumsfeld im Hauptbearbeitungsformular dient als **Vorlage** – verwenden Sie es, um allen Benutzern über das Kontrollkästchen unten schnell dasselbe Datum zuzuweisen, oder lassen Sie es leer und legen Sie die Termine hier individuell fest.\n\nFelder werden angezeigt für: {assignee_names}. Für keine Frist leer lassen.{template_date}\n\n ℹ️ [Erweiterte Anleitung]({documentation_url})",
         "data": {
           "apply_template_to_all": "Vorlagedatum auf alle Benutzer anwenden"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Zeitplan pro Mitarbeiter: {chore_name}",
-        "description": "Konfigurieren Sie individuelle Zeitplaneinstellungen für jeden Bearbeiter dieser Aufgabe. Die Hauptformularwerte dienen als **Vorlagen**. Verwenden Sie die Kontrollkästchen, um sie auf alle Bearbeiter anzuwenden, oder passen Sie die Einstellungen jedes Bearbeiters individuell an.\n\n**Hinweis:** Nicht alle unten stehenden Felder gelten für jede Aufgabe. Das Formular zeigt dynamisch relevante Optionen basierend auf dem Bearbeitungsmodus, der Häufigkeit und den festgelegten Fälligkeitsterminen an.\n\n**Tägliches (Mehrere) Zeitformat:** Geben Sie, falls angezeigt, 2–6 Zeiten im 24-Stunden-Format, getrennt durch | (Pipe), ein. Beispiel: 08:00|17:00\n\nBearbeiter: {assignee_names}{template_info}\n\n📖 [Erweiterte Anleitung]({documentation_url})",
+        "description": "Konfigurieren Sie individuelle Zeitplaneinstellungen für jeden Bearbeiter, der dieser Aufgabe zugewiesen ist. Die Hauptformularwerte dienen als **Vorlagen** – verwenden Sie die Kontrollkästchen, um sie auf alle Bearbeiter anzuwenden, oder passen Sie die Einstellungen jedes Bearbeiters individuell an.\n\n**Hinweis:** Nicht alle unten stehenden Felder gelten für jede Aufgabe. Das Formular zeigt dynamisch relevante Optionen basierend auf dem Bearbeitungsmodus, der Häufigkeit und den festgelegten Fälligkeitsterminen an.\n\n**Tägliches (Mehrere) Zeitformat:** Geben Sie, falls angezeigt, 2–6 Zeiten im 24-Stunden-Format, getrennt durch | (Pipe), ein. Beispiel: 08:00|17:00\n\nBearbeiter: {assignee_names}{template_info}\n\n ℹ️ [Erweiterte Anleitung]({documentation_url})",
         "data": {
           "apply_days_to_all": "Weisen Sie die Vorlagentage allen Beauftragten zu",
           "apply_times_to_all": "Vorlagenzeiten auf alle Bearbeiter anwenden",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Bearbeiten Sie das kumulative Abzeichen",
-        "description": "Konfigurieren Sie die Details für ein kumulatives Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen bestimmter Punktzahlen und unterstützen Wartungszyklen, um die kontinuierliche Leistung zu fördern.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein kumulatives Abzeichen. Diese Abzeichen belohnen Empfänger für das Erreichen bestimmter Punktzahlen und unterstützen Wartungszyklen, um kontinuierliche Leistung zu fördern.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Tägliches Abzeichen bearbeiten",
-        "description": "Konfigurieren Sie die Details für ein tägliches Abzeichen. Diese Abzeichen belohnen die Bearbeiter für das Erledigen täglicher Aufgaben oder das Erreichen täglicher Schwellenwerte.\n\n📖 [Abzeichenübersicht]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein tägliches Abzeichen. Diese Abzeichen belohnen die Bearbeiter für das Erledigen täglicher Aufgaben oder das Erreichen täglicher Schwellenwerte.\n\n ℹ️ [Abzeichenübersicht]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Periodisches Abzeichen bearbeiten",
-        "description": "Konfigurieren Sie die Details für ein periodisches Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen von Schwellenwerten innerhalb eines definierten Zeitraums und unterstützen Reset-Zyklen für kontinuierliche Leistungsverbesserung.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein periodisches Abzeichen. Diese Abzeichen belohnen die Empfänger für das Erreichen von Schwellenwerten innerhalb eines definierten Zeitraums und unterstützen Reset-Zyklen für kontinuierliche Leistungsverbesserung.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Bearbeiten Sie das mit einer Errungenschaft verknüpfte Abzeichen",
-        "description": "Konfigurieren Sie die Details für ein Abzeichen, das mit einer Leistung verknüpft ist. Diese Abzeichen belohnen die Beauftragten für das Erreichen bestimmter Leistungen.\n\n📖 [Abzeichenübersicht]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein Abzeichen, das mit einer Errungenschaft verknüpft ist. Diese Abzeichen belohnen die Beauftragten für das Erreichen bestimmter Errungenschaften.\n\n ℹ️ [Abzeichenübersicht]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Abzeichen für besondere Anlässe bearbeiten",
-        "description": "Konfigurieren Sie die Details für ein Abzeichen, das für besondere Anlässe erstellt wurde. Diese Abzeichen belohnen die Empfänger für Ereignisse wie Geburtstage oder Feiertage.\n\n📖 [Abzeichenübersicht]({documentation_url})",
+        "description": "Konfigurieren Sie die Details für ein Abzeichen, das für besondere Anlässe erstellt wurde. Diese Abzeichen belohnen die Empfänger für Ereignisse wie Geburtstage oder Feiertage.\n\n ℹ️ [Abzeichenübersicht]({documentation_url})",
         "data": {
           "badge_name": "Abzeichenname",
           "badge_description": "Beschreibung (optional)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Belohnung bearbeiten",
-        "description": "Ändern Sie die Details der ausgewählten Belohnung.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Ändern Sie die Details der ausgewählten Belohnung.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "name": "Name der Belohnung",
           "internal_id": "Interne ID",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Strafe bearbeiten",
-        "description": "Ändern Sie die Details der ausgewählten Strafe.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Ändern Sie die Details der ausgewählten Strafe.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "name": "Strafenname",
           "penalty_description": "Beschreibung (optional)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Bonus bearbeiten",
-        "description": "Ändern Sie die Details des ausgewählten Bonus.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Ändern Sie die Details des ausgewählten Bonus.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "name": "Bonusname",
           "bonus_description": "Beschreibung (optional)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Errungenschaft definieren",
-        "description": "Geben Sie die Details für jede Errungenschaft ein.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie Details für jede Errungenschaft ein.\n\n ℹ️ [Konfigurationsleitfaden]({documentation_url})",
         "data": {
           "name": "Name der Errungenschaft",
           "description": "Beschreibung (optional)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Herausforderung definieren",
-        "description": "Geben Sie die Details für jede Herausforderung ein.\n\n📖 [Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie die Details für jede Herausforderung ein.\n\n ℹ️ [Konfigurationsleitfaden]({documentation_url})",
         "data": {
           "name": "Name der Herausforderung",
           "description": "Beschreibung (optional)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Dashboard-Aktionen",
-        "description": "ChoreOps Lovelace-Dashboards erstellen, aktualisieren oder löschen.\n\n[Anleitung zur Dashboard-Konfiguration]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Erstellen, aktualisieren oder löschen Sie ChoreOps Lovelace-Dashboards.\n\n ℹ️ [Dashboard-Konfigurationsleitfaden]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Aktion",
           "dashboard_release_selection": "Dashboard-Version"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Änderungen im Dashboard überprüfen",
-        "description": "Überprüfen Sie den Abhängigkeitsstatus und die Vorlageneinstellungen Ihrer ausgewählten Vorlagen, bevor Sie die Dashboard-Änderungen anwenden.\n\n[Dashboard-Konfigurationsanleitung]({documentation_url})\n\n**Verfügbare Anpassungen**\n{dashboard_template_preferences}\n\n**Fehlende erforderliche Abhängigkeiten**\n{dashboard_missing_required_dependencies}\n\n**Fehlende empfohlene Abhängigkeiten**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Überprüfen Sie den Abhängigkeitsstatus und die Vorlageneinstellungen Ihrer ausgewählten Vorlagen, bevor Sie Dashboard-Änderungen anwenden.\n\n ℹ️ [Dashboard-Konfigurationsleitfaden]({documentation_url})\n\n**Verfügbare Anpassungen**\n{dashboard_template_preferences}\n\n**Fehlende erforderliche Abhängigkeiten**\n{dashboard_missing_required_dependencies}\n\n**Fehlende empfohlene Abhängigkeiten**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Trotzdem fortfahren (Voraussetzungen fehlen)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Dashboard erstellen",
-        "description": "Geben Sie einen Dashboard-Namen ein und fahren Sie dann mit der Konfiguration fort.\n\n[Konfigurationsanleitung]({documentation_url})",
+        "description": "Geben Sie einen Dashboard-Namen ein und fahren Sie dann mit der Konfiguration fort.\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "data": {
           "dashboard_name": "Dashboard-Name"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Dashboard konfigurieren",
-        "description": "Konfigurieren Sie Dashboard-Abschnitte für **{dashboard}** (Modus: {mode}).\n\n[Konfigurationsanleitung]({documentation_url})",
+        "description": "Konfigurieren Sie Dashboard-Abschnitte für **{dashboard}** (Modus: {mode}).\n\n ℹ️ [Konfigurationsanleitung]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Nutzeransichten",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Allgemeine Optionen",
-        "description": "Verwalten Sie die allgemeinen Einstellungen für die ChoreOps-Integration.\n\n[📖 Mehr über die allgemeinen Optionen erfahren]({documentation_url})",
+        "description": "Allgemeine Einstellungen für die ChoreOps-Integration verwalten.\n\n ℹ️ [Mehr über allgemeine Optionen erfahren]({documentation_url})",
         "data": {
           "default_chore_points": "Standardpunkte pro Aufgabe",
           "points_adjust_values": "Manuelle Punkte-Anpassungswerte",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "UI-Steuerung verwalten",
-      "description": "Erstellen, aktualisieren oder entfernen Sie einen benutzerspezifischen UI-Steuerelementwert, der im persistenten UI-Preferences-Bucket des Benutzers gespeichert ist. Verwenden Sie einen leeren Schlüssel bei der Aktion „Entfernen“, um alle gespeicherten UI-Einstellungen für den betreffenden Benutzer zu löschen.",
+      "description": "Erstellen, aktualisieren oder entfernen Sie einen persistenten UI-Steuerelementwert. Standardmäßig wird der ui_preferences-Bucket eines Benutzers verwendet. Verwenden Sie ui_control_target: shared_admin, um in den gemeinsam genutzten Administrator-UI-Steuerelement-Bucket unter data/meta zu schreiben. Verwenden Sie einen leeren Schlüssel mit der Aktion „Entfernen“, um alle gespeicherten Werte für das ausgewählte Ziel zu löschen.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurationseintrags-ID (optional)",
@@ -2902,6 +2902,11 @@
           "description": "Optionaler Benutzername. Erforderlich, wenn keine Benutzer-ID angegeben wird.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "UI-Steuerelementziel",
+          "description": "Wählen Sie aus, ob Sie einen einzelnen Benutzer oder den gemeinsamen Admin-UI-Steuerelementbereich ansprechen möchten. Wenn „gemeinsamer Adminbereich“ ausgewählt ist, geben Sie keine Benutzer-ID oder keinen Benutzernamen an.",
+          "example": "Benutzer"
+        },
         "ui_control_action": {
           "name": "UI-Steuerelementaktion",
           "description": "Wählen Sie aus, ob ein gespeicherter UI-Steuerelementwert erstellt, aktualisiert oder entfernt werden soll.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Schlüsselpfad",
-          "description": "Durch Schrägstriche getrennter Pfad zur Benutzeroberfläche, z. B. gamification/rewards/header_collapse. Nur bei der Aktion „Entfernen“ leer lassen, um alle gespeicherten Benutzeroberflächeneinstellungen zu löschen.",
+          "description": "Durch Schrägstriche getrennter Pfad zur Benutzeroberfläche, z. B. gamification/rewards/header_collapse. Nur bei der Aktion „Entfernen“ leer lassen, um alle gespeicherten Werte für das ausgewählte Ziel zu löschen.",
           "example": "Gamifizierung/Belohnungen/Header_Collapse"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Dashboard-Assistent",
+        "state_attributes": {
+          "purpose": {
+            "name": "Zweck",
+            "state": {
+              "purpose_system_dashboard_helper": "Aggregiert den Status des gemeinsam genutzten Admin-Dashboards für gemeinsam genutzte Admin-Karten."
+            }
+          },
+          "ui_control": {
+            "name": "UI-Steuerung"
+          },
+          "integration_entry_id": {
+            "name": "Integrationseintrags-ID"
+          },
+          "dashboard_lookup_key": {
+            "name": "Dashboard-Suchschlüssel"
+          },
+          "user_dashboard_helpers": {
+            "name": "Benutzer-Dashboard-Hilfsfunktionen"
+          },
+          "language": {
+            "name": "Sprache"
+          },
+          "translation_sensor_eid": {
+            "name": "Übersetzungssensor-Entitäts-ID"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "UI-Dashboard-Helfer",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Geben Sie user_id oder user_name an, um einen bestimmten Benutzer anzusprechen."
+    },
+    "ui_control_invalid_target": {
+      "message": "Ungültiges ui_control_target {target}. Zulässige Ziele: user, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Geben Sie keine user_id oder user_name an, wenn ui_control_target auf shared_admin gesetzt ist."
     },
     "ui_control_invalid_action": {
       "message": "Ungültige UI-Steuerelementaktion {action}. Zulässige Aktionen: Erstellen, Aktualisieren, Entfernen."

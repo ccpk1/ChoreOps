@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Bem-vindo(a) ao ChoreOps",
-        "description": "Este assistente irá guiá-lo na configuração do ChoreOps.\n\n[📖 Guia de Início Rápido]({documentation_url})"
+        "description": "Este assistente irá guiá-lo na configuração do ChoreOps.\n\n ℹ️ [Guia de Início Rápido]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opções de recuperação de dados",
-        "description": "Dados existentes do ChoreOps encontrados em:\n{storage_path}\n\nEncontrados {backup_count} ficheiros de cópia de segurança.\n\nO que gostaria de fazer?\n\n[📖 Saiba mais sobre Backup e Restauro]({documentation_url})",
+        "description": "Dados existentes do ChoreOps encontrados em:\n{storage_path}\n\nEncontrados {backup_count} ficheiros de cópia de segurança.\n\nO que gostaria de fazer?\n\n ℹ️ [Saiba mais sobre Backup e Restauro]({documentation_url})",
         "data": {
           "backup_selection": "Selecione a opção"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Adicionar selo cumulativo",
-        "description": "Configure os detalhes de um distintivo cumulativo. Estes distintivos recompensam os responsáveis por atingirem limites de pontos acumulados ao longo da vida útil do produto e suportam ciclos de manutenção para incentivar o desempenho contínuo.\n\n[📖 Guia de Configuração]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo cumulativo. Estes distintivos recompensam os responsáveis por atingirem limites de pontos acumulados ao longo da vida útil da função e suportam ciclos de manutenção para incentivar o desempenho contínuo.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "Opções ChoreOps",
-        "description": "Gira utilizadores, tarefas, distintivos, recompensas, penalizações, bónus ou conclusões.\n\n[📖 Ver Documentação]({documentation_url})",
+        "description": "Faça a gestão das tarefas da sua casa, do mecanismo de gamificação e das preferências do sistema.\n\n ℹ️ [Ver Documentação]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Apoie o ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Selecione uma opção"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Desafios em breve",
-        "description": "Os desafios estarão disponíveis numa atualização futura.\n\nDurante a migração, os registos de Desafios existentes são convertidos em rastreio de Insígnias Periódicas equivalentes para preservar a intenção e o comportamento de progresso sempre que possível. As insígnias ligadas a Desafios foram removidas nesta versão.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Os desafios estarão disponíveis numa atualização futura.\n\nDurante a migração, os registos de Desafio existentes são convertidos em rastreio de Insígnias Periódicas equivalentes para preservar a intenção e o comportamento de progresso sempre que possível. As insígnias ligadas a Desafios foram removidas nesta versão.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Editar as definições de pontos",
-        "description": "Altere o rótulo, o ícone e os pontos padrão por tarefa utilizados em todo o ChoreOps.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Altere o rótulo, o ícone e os pontos padrão por tarefa utilizados em todo o ChoreOps.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "points_label": "Rótulo de Pontos",
           "points_icon": "Ícone de Pontos",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Adicionar utilizador",
-        "description": "Forneça os detalhes para o novo perfil de utilizador.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Forneça os detalhes para o novo perfil de utilizador.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identidade e perfil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Adicionar tarefa",
-        "description": "Crie uma nova tarefa com pontos, atribuições e agendamento recorrente.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Crie uma nova tarefa com pontos, atribuições e agendamento recorrente.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definição",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Adicionar selo cumulativo",
-        "description": "Configure os detalhes de um distintivo cumulativo. Estes distintivos recompensam os responsáveis por atingirem limites de pontos acumulados ao longo da vida útil da função e apoiam os ciclos de manutenção para incentivar o desempenho contínuo.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo cumulativo. Estes distintivos recompensam os responsáveis por atingirem limites de pontos acumulados ao longo da vida útil da função e suportam ciclos de manutenção para incentivar o desempenho contínuo.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Adicionar selo diário",
-        "description": "Configure os dados de um distintivo diário. Estes distintivos recompensam os responsáveis por completar tarefas diárias ou atingir metas diárias.\n\n📖 [Visão geral dos distintivos]({documentation_url})",
+        "description": "Configure os dados de um distintivo diário. Estes distintivos recompensam os responsáveis por completar tarefas diárias ou atingir metas diárias.\n\n ℹ️ [Visão geral dos distintivos]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Adicionar selo periódico",
-        "description": "Configure os detalhes para um distintivo periódico. Estes distintivos recompensam os responsáveis por atingirem os objetivos dentro de um período definido e permitem ciclos de redefinição para a avaliação contínua do desempenho.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Configure os detalhes para um distintivo periódico. Estes distintivos recompensam os responsáveis por atingirem os objetivos dentro de um período definido e permitem ciclos de redefinição para a avaliação contínua do desempenho.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Adicionar distintivo ligado à conquista",
-        "description": "Configure os detalhes de um distintivo ligado a uma conquista. Estes distintivos recompensam os responsáveis pela conclusão de conquistas específicas.\n\n[📖 Visão geral dos distintivos]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo ligado a uma conquista. Estes distintivos recompensam os responsáveis pela conclusão de conquistas específicas.\n\n ℹ️ [Visão geral dos distintivos]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Adicionar distintivo de ocasião especial",
-        "description": "Configure os detalhes de um distintivo criado para ocasiões especiais. Estes distintivos premeiam os responsáveis por eventos como aniversários ou feriados.\n\n📖 [Visão geral dos distintivos]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo criado para ocasiões especiais. Estes distintivos premeiam os responsáveis por eventos como aniversários ou feriados.\n\n ℹ️ [Visão geral dos distintivos]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Adicionar recompensa",
-        "description": "Forneça os detalhes da nova recompensa.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Forneça os detalhes da nova recompensa.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome da recompensa",
           "internal_id": "ID interno",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Adicionar penalidade",
-        "description": "Forneça os detalhes da nova penalização.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Forneça os detalhes da nova penalização.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome da penalidade",
           "penalty_description": "Descrição (opcional)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Adicionar bónus",
-        "description": "Forneça os detalhes do novo bónus.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Forneça os detalhes do novo bónus.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome do bónus",
           "bonus_description": "Descrição (opcional)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Defina Conquista",
-        "description": "Introduza os detalhes de cada conquista.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Introduza os detalhes de cada conquista.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome da Conquista",
           "description": "Descrição (opcional)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Defina o desafio",
-        "description": "Introduza os detalhes para cada desafio.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Introduza os detalhes para cada desafio.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome do desafio",
           "description": "Descrição (opcional)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Editar utilizador",
-        "description": "Modifique os detalhes do perfil de utilizador selecionado.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Modifique os detalhes do perfil de utilizador selecionado.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identidade e perfil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Editar tarefa",
-        "description": "Modifique os detalhes da tarefa selecionada.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Modifique os detalhes da tarefa selecionada.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definição",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Editar datas de vencimento por utilizador: {chore_name}",
-        "description": "Defina datas de vencimento individuais para cada utilizador atribuído. O campo de data no formulário de edição principal funciona como um **modelo** para sua conveniência — utilize-o para aplicar rapidamente a mesma data a todos os utilizadores, marcando a caixa de seleção abaixo ou deixe-o em branco e defina as datas individualmente aqui.\n\nOs campos são apresentados para: {assignee_names}. Deixe em branco se não houver prazo.{template_date}\n\n📖 [Guia Avançado]({documentation_url})",
+        "description": "Defina datas de vencimento individuais para cada utilizador atribuído. O campo de data no formulário de edição principal funciona como um **modelo** para sua conveniência — utilize-o para aplicar rapidamente a mesma data a todos os utilizadores, marcando a caixa de seleção abaixo ou deixe-o em branco e defina as datas individualmente aqui.\n\nOs campos são apresentados para: {assignee_names}. Deixe em branco se não houver prazo.{template_date}\n\n ℹ️ [Guia Avançado]({documentation_url})",
         "data": {
           "apply_template_to_all": "Aplicar data do modelo a todos os utilizadores"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Horário por funcionário designado: {chore_name}",
-        "description": "Configure as definições de agendamento individuais para cada pessoa atribuída a esta tarefa. Os valores do formulário principal funcionam como **modelos** — utilize as caixas de seleção para os aplicar a todas as pessoas atribuídas ou personalize as definições de cada pessoa individualmente.\n\n**Nota:** Nem todos os campos abaixo se aplicam a todas as tarefas. O formulário mostra dinamicamente as opções relevantes com base no modo de conclusão, na frequência e se as datas de vencimento estão definidas.\n\n**Formato de Horários Diários (Vários):** Se for apresentado, introduza 2 a 6 horários no formato de 24 horas, separados por | (barra vertical). Exemplo: 08:00|17:00\n\nPessoas Responsáveis: {assignee_names}{template_info}\n\n📖 [Guia Avançado]({documentation_url})",
+        "description": "Configure as definições de agendamento individuais para cada pessoa atribuída a esta tarefa. Os valores do formulário principal funcionam como **modelos** — utilize as caixas de seleção para os aplicar a todas as pessoas atribuídas ou personalize as definições de cada pessoa individualmente.\n\n**Nota:** Nem todos os campos abaixo se aplicam a todas as tarefas. O formulário mostra dinamicamente as opções relevantes com base no modo de conclusão, na frequência e se as datas de vencimento estão definidas.\n\n**Formato de Horários Diários (Vários):** Se for apresentado, introduza 2 a 6 horários no formato de 24 horas, separados por | (barra vertical). Exemplo: 08:00|17:00\n\nPessoas Responsáveis: {assignee_names}{template_info}\n\n ℹ️ [Guia Avançado]({documentation_url})",
         "data": {
           "apply_days_to_all": "Aplicar o modelo de dias a todos os colaboradores designados.",
           "apply_times_to_all": "Aplicar os horários do modelo a todos os encarregados de educação.",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Editar distintivo cumulativo",
-        "description": "Configure os detalhes de um distintivo cumulativo. Estes distintivos recompensam os responsáveis por atingirem limites de pontos acumulados ao longo da vida útil da função e apoiam os ciclos de manutenção para incentivar o desempenho contínuo.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo cumulativo. Estes distintivos recompensam os responsáveis por atingirem limites de pontos acumulados ao longo da vida útil da função e suportam ciclos de manutenção para incentivar o desempenho contínuo.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Editar distintivo diário",
-        "description": "Configure os dados de um distintivo diário. Estes distintivos recompensam os responsáveis por completar tarefas diárias ou atingir metas diárias.\n\n📖 [Visão geral dos distintivos]({documentation_url})",
+        "description": "Configure os dados de um distintivo diário. Estes distintivos recompensam os responsáveis por completar tarefas diárias ou atingir metas diárias.\n\n ℹ️ [Visão geral dos distintivos]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Editar selo periódico",
-        "description": "Configure os detalhes para um distintivo periódico. Estes distintivos recompensam os responsáveis por atingirem os objetivos dentro de um período definido e permitem ciclos de redefinição para a avaliação contínua do desempenho.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Configure os detalhes para um distintivo periódico. Estes distintivos recompensam os responsáveis por atingirem os objetivos dentro de um período definido e permitem ciclos de redefinição para a avaliação contínua do desempenho.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Editar distintivo ligado à conquista",
-        "description": "Configure os detalhes de um distintivo ligado a uma conquista. Estes distintivos recompensam os responsáveis pela conclusão de conquistas específicas.\n\n📖 [Visão geral dos distintivos]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo ligado a uma conquista. Estes distintivos recompensam os responsáveis pela conclusão de conquistas específicas.\n\n ℹ️ [Visão geral dos distintivos]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Editar Selo de Ocasião Especial",
-        "description": "Configure os detalhes de um distintivo criado para ocasiões especiais. Estes distintivos premeiam os responsáveis por eventos como aniversários ou feriados.\n\n📖 [Visão geral dos distintivos]({documentation_url})",
+        "description": "Configure os detalhes de um distintivo criado para ocasiões especiais. Estes distintivos premeiam os responsáveis por eventos como aniversários ou feriados.\n\n ℹ️ [Visão geral dos distintivos]({documentation_url})",
         "data": {
           "badge_name": "Nome do crachá",
           "badge_description": "Descrição do emblema (opcional)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Editar Recompensa",
-        "description": "Modifique os detalhes da recompensa selecionada.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Modifique os detalhes da recompensa selecionada.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome da recompensa",
           "internal_id": "ID interno",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Penalidade de edição",
-        "description": "Modifique os detalhes da penalização selecionada.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Modifique os detalhes da penalização selecionada.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome da penalidade",
           "penalty_description": "Descrição (opcional)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Editar Bónus",
-        "description": "Modifique os detalhes do bónus selecionado.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Modifique os detalhes do bónus selecionado.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome do bónus",
           "bonus_description": "Descrição (opcional)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Defina Conquista",
-        "description": "Introduza os detalhes de cada conquista.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Introduza os detalhes de cada conquista.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome da Conquista",
           "description": "Descrição (opcional)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Defina o desafio",
-        "description": "Introduza os detalhes para cada desafio.\n\n📖 [Guia de Configuração]({documentation_url})",
+        "description": "Introduza os detalhes para cada desafio.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "name": "Nome do desafio",
           "description": "Descrição (opcional)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Ações do painel de controlo",
-        "description": "Crie, atualize ou apague painéis do ChoreOps Lovelace.\n\n[Guia de configuração do painel]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Crie, atualize ou apague painéis do ChoreOps Lovelace.\n\n ℹ️ [Guia de configuração do painel]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Ação",
           "dashboard_release_selection": "Versão de lançamento do painel de controlo"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Analise as alterações no painel de controlo.",
-        "description": "Reveja o estado das dependências e as preferências dos modelos selecionados antes de aplicar as alterações no painel.\n\n[Guia de configuração do painel]({documentation_url})\n\n**Personalizações disponíveis**\n{dashboard_template_preferences}\n\n**Dependências obrigatórias em falta**\n{dashboard_missing_required_dependencies}\n\n**Dependências recomendadas em falta**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Reveja o estado das dependências e as preferências dos modelos selecionados antes de aplicar as alterações no painel.\n\n ℹ️ [Guia de configuração do painel]({documentation_url})\n\n**Personalizações disponíveis**\n{dashboard_template_preferences}\n\n**Dependências obrigatórias em falta**\n{dashboard_missing_required_dependencies}\n\n**Dependências recomendadas em falta**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Continue na mesma (requisitos não cumpridos)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Criar painel de controlo",
-        "description": "Introduza um nome para o painel e continue para a configuração.\n\n[Guia de Configuração]({documentation_url})",
+        "description": "Introduza um nome para o painel e continue para a configuração.\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "data": {
           "dashboard_name": "Nome do painel de controlo"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Configurar painel de controlo",
-        "description": "Configure as secções do painel para **{dashboard}** (modo: {mode}).\n\n[Guia de Configuração]({documentation_url})",
+        "description": "Configure as secções do painel para **{dashboard}** (modo: {mode}).\n\n ℹ️ [Guia de Configuração]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Visualizações do utilizador",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Opções gerais",
-        "description": "Faça a gestão das configurações gerais da integração com o ChoreOps.\n\n[📖 Saiba mais sobre as Opções Gerais]({documentation_url})",
+        "description": "Faça a gestão das configurações gerais da integração com o ChoreOps.\n\n ℹ️ [Saiba mais sobre as Opções Gerais]({documentation_url})",
         "data": {
           "default_chore_points": "Pontos padrão por tarefa",
           "points_adjust_values": "Valores do botão de regulação manual dos pontos",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Gerir o controlo da interface do usuário",
-      "description": "Crie, atualize ou remova um valor de controlo de UI por utilizador armazenado no bucket `ui_preferences` persistente do utilizador. Utilize uma chave vazia com a ação de remoção para limpar todas as preferências de UI armazenadas para o utilizador em questão.",
+      "description": "Crie, atualize ou remova um valor de controlo de UI persistido. Por defeito, isto tem como alvo o bucket `ui_preferences` de um utilizador. Utilize `ui_control_target: shared_admin` para escrever no bucket de controlo da interface do utilizador do administrador partilhado em `data/meta`. Utilize uma chave vazia com a ação de remoção para limpar todos os valores armazenados para o destino selecionado.",
       "fields": {
         "config_entry_id": {
           "name": "ID da entrada de configuração (opcional)",
@@ -2902,6 +2902,11 @@
           "description": "Nome de utilizador opcional. Obrigatório quando o user_id não é fornecido.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "Alvo de controlo da interface do utilizador",
+          "description": "Escolha se pretende direcionar um utilizador específico ou o grupo de controlos da interface de administração partilhada. Quando for seleccionado `shared_admin`, não forneça os campos `user_id` ou `user_name`.",
+          "example": "utilizador"
+        },
         "ui_control_action": {
           "name": "Ação de controlo da interface do utilizador",
           "description": "Escolha se pretende criar, atualizar ou remover um valor de controlo de UI armazenado.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Caminho principal",
-          "description": "Caminho de controlo da interface do utilizador delimitado por barras, como gamificação/recompensas/recolhimento_do_cabeçalho. Deixe vazio apenas na ação de remoção para limpar todas as preferências de UI armazenadas para o utilizador.",
+          "description": "Caminho de controlo da interface do utilizador delimitado por barras, como gamification/rewards/header_collapse. Deixe vazio apenas com a ação de remoção para limpar todos os valores armazenados para o destino selecionado.",
           "example": "gamificação/recompensas/recolha_do_cabeçalho"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Auxiliar do painel de controlo",
+        "state_attributes": {
+          "purpose": {
+            "name": "Finalidade",
+            "state": {
+              "purpose_system_dashboard_helper": "Agrega o estado do painel de administração partilhado para cartões de administração partilhados."
+            }
+          },
+          "ui_control": {
+            "name": "Controlo de interface do utilizador"
+          },
+          "integration_entry_id": {
+            "name": "ID de entrada de integração"
+          },
+          "dashboard_lookup_key": {
+            "name": "Chave de pesquisa do painel"
+          },
+          "user_dashboard_helpers": {
+            "name": "Auxiliares do painel de controlo do utilizador"
+          },
+          "language": {
+            "name": "Idioma"
+          },
+          "translation_sensor_eid": {
+            "name": "ID da entidade do sensor de tradução"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Auxiliar do painel de controlo da interface do utilizador",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Forneça o user_id ou user_name para selecionar um utilizador específico."
+    },
+    "ui_control_invalid_target": {
+      "message": "Alvo de controlo de interface inválido {target}. Alvos permitidos: user, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Não forneça user_id ou user_name quando ui_control_target for shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Ação de controlo da IU inválida {action}. Ações permitidas: criar, atualizar, remover."

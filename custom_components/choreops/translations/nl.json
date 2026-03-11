@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Welkom bij ChoreOps",
-        "description": "Deze wizard begeleidt u bij het instellen van ChoreOps.\n\n[📖 Snelstartgids]({documentation_url})"
+        "description": "Deze wizard begeleidt u bij het instellen van ChoreOps.\n\n ℹ️ [Snelstartgids]({documentation_url})"
       },
       "data_recovery": {
         "title": "Opties voor gegevensherstel",
-        "description": "Bestaande ChoreOps-gegevens gevonden in:\n{storage_path}\n\nEr zijn {backup_count} back-upbestanden gevonden.\n\nWat wilt u doen?\n\n[📖 Meer informatie over back-up en herstel]({documentation_url})",
+        "description": "Bestaande ChoreOps-gegevens gevonden in:\n{storage_path}\n\nEr zijn {backup_count} back-upbestanden gevonden.\n\nWat wilt u doen?\n\n ℹ️ [Meer informatie over back-up en herstel]({documentation_url})",
         "data": {
           "backup_selection": "Selecteer optie"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Voeg een cumulatieve badge toe",
-        "description": "Configureer de details voor een cumulatieve badge. Deze badges belonen toegewezen personen voor het behalen van een bepaald aantal punten gedurende hun levensduur en ondersteunen onderhoudscycli om voortdurende prestaties te stimuleren.\n\n[📖 Configuratiehandleiding]({documentation_url})",
+        "description": "Configureer de details voor een cumulatieve badge. Deze badges belonen toegewezen personen voor het behalen van een bepaald aantal punten gedurende hun levensduur en ondersteunen onderhoudscycli om voortdurende prestaties te stimuleren.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "ChoreOps-opties",
-        "description": "Beheer gebruikers, taken, badges, beloningen, straffen, bonussen of voltooi taken.\n\n[📖 Documentatie bekijken]({documentation_url})",
+        "description": "Beheer je huishoudelijke taken, de gamificatie-engine en je systeemvoorkeuren.\n\n ℹ️ [Documentatie bekijken]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Ondersteun ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Selecteer een optie"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Uitdagingen volgen binnenkort",
-        "description": "Uitdagingen zullen beschikbaar komen in een toekomstige update.\n\nTijdens de migratie worden bestaande uitdagingsrecords omgezet naar equivalente periodieke badge-tracking om de intentie en voortgang zoveel mogelijk te behouden. Aan uitdagingen gekoppelde badges worden in deze release verwijderd.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Uitdagingen zullen beschikbaar komen in een toekomstige update.\n\nTijdens de migratie worden bestaande uitdagingsrecords omgezet naar equivalente periodieke badge-tracking om de intentie en voortgang zoveel mogelijk te behouden. Aan uitdagingen gekoppelde badges worden in deze release verwijderd.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Instellingen voor het bewerken van punten",
-        "description": "Wijzig het label, het pictogram en de standaardpunten per taak die in ChoreOps worden gebruikt.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Wijzig het label, het pictogram en de standaardpunten per taak die in ChoreOps worden gebruikt.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "points_label": "Puntenlabel",
           "points_icon": "Puntenpictogram",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Gebruiker toevoegen",
-        "description": "Geef de gegevens voor het nieuwe gebruikersprofiel op.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Geef de gegevens voor het nieuwe gebruikersprofiel op.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identiteit en profiel",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Voeg een taak toe",
-        "description": "Maak een nieuwe taak aan met punten, opdrachten en een terugkerend schema.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Maak een nieuwe taak aan met punten, opdrachten en een terugkerend schema.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definitie",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Cumulatieve badge toevoegen",
-        "description": "Configureer de details voor een cumulatieve badge. Deze badges belonen toegewezen personen voor het behalen van een bepaald aantal punten gedurende hun levensduur en ondersteunen onderhoudscycli om voortdurende prestaties te stimuleren.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Configureer de details voor een cumulatieve badge. Deze badges belonen toegewezen personen voor het behalen van een bepaald aantal punten gedurende hun levensduur en ondersteunen onderhoudscycli om voortdurende prestaties te stimuleren.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Voeg een dagelijkse badge toe",
-        "description": "Configureer de details voor een dagelijkse badge. Deze badges belonen toegewezen personen voor het voltooien van dagelijkse taken of het behalen van dagelijkse drempelwaarden.\n\n📖 [Badgesoverzicht]({documentation_url})",
+        "description": "Configureer de details voor een dagelijkse badge. Deze badges belonen toegewezen personen voor het voltooien van dagelijkse taken of het bereiken van dagelijkse drempelwaarden.\n\n ℹ️ [Badgesoverzicht]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Periodieke badge toevoegen",
-        "description": "Configureer de details voor een periodieke badge. Deze badges belonen toegewezen personen voor het behalen van drempelwaarden binnen een bepaalde periode en ondersteunen resetcycli voor continue prestatiebeoordeling.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Configureer de details voor een periodieke badge. Deze badges belonen toegewezen personen voor het behalen van drempelwaarden binnen een bepaalde periode en ondersteunen resetcycli voor continue prestatiebeoordeling.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Voeg een prestatie-gekoppelde badge toe.",
-        "description": "Configureer de details voor een badge die is gekoppeld aan een prestatie. Deze badges belonen degenen die ze hebben behaald voor het voltooien van specifieke prestaties.\n\n[📖 Badgesoverzicht]({documentation_url})",
+        "description": "Configureer de details voor een badge die is gekoppeld aan een prestatie. Deze badges belonen degenen die ze hebben behaald voor het voltooien van specifieke prestaties.\n\n ℹ️ [Badgesoverzicht]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Voeg een badge voor speciale gelegenheden toe",
-        "description": "Configureer de details voor een badge die is aangemaakt voor speciale gelegenheden. Deze badges belonen toegewezen personen voor gebeurtenissen zoals verjaardagen of feestdagen.\n\n📖 [Badgesoverzicht]({documentation_url})",
+        "description": "Configureer de details voor een badge die is aangemaakt voor speciale gelegenheden. Deze badges belonen toegewezen personen voor gebeurtenissen zoals verjaardagen of feestdagen.\n\n ℹ️ [Badgesoverzicht]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Beloning toevoegen",
-        "description": "Geef de details voor de nieuwe beloning op.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Geef de details voor de nieuwe beloning op.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de beloning",
           "internal_id": "Interne ID",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Voeg een straf toe",
-        "description": "Geef de details voor de nieuwe boete op.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Geef de details voor de nieuwe boete op.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de straf",
           "penalty_description": "Beschrijving (optioneel)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Bonus toevoegen",
-        "description": "Geef de details voor de nieuwe bonus.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Geef de details voor de nieuwe bonus.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Bonusnaam",
           "bonus_description": "Beschrijving (optioneel)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definieer prestatie",
-        "description": "Voer details in voor elke prestatie.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Voer details in voor elke prestatie.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de prestatie",
           "description": "Beschrijving (optioneel)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Definieer de uitdaging",
-        "description": "Voer de details voor elke uitdaging in.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Voer de details voor elke uitdaging in.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Uitdagingsnaam",
           "description": "Beschrijving (optioneel)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Gebruiker bewerken",
-        "description": "Wijzig de details van het geselecteerde gebruikersprofiel.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Wijzig de details van het geselecteerde gebruikersprofiel.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identiteit en profiel",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Taak bewerken",
-        "description": "Wijzig de details van de geselecteerde taak.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Wijzig de details van de geselecteerde taak.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definitie",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Bewerk vervaldatums per gebruiker: {chore_name}",
-        "description": "Stel individuele vervaldatums in voor elke toegewezen gebruiker. Het datumveld op het hoofdbewerkingsformulier fungeert als een **sjabloon** voor het gemak. Gebruik het om snel dezelfde datum op alle gebruikers toe te passen via het selectievakje hieronder, of laat het leeg en stel hier individuele datums in.\n\nVelden worden weergegeven voor: {assignee_names}. Laat leeg voor geen deadline.{template_date}\n\n📖 [Geavanceerde handleiding]({documentation_url})",
+        "description": "Stel individuele vervaldatums in voor elke toegewezen gebruiker. Het datumveld op het hoofdbewerkingsformulier fungeert als een **sjabloon** voor het gemak. Gebruik het om snel dezelfde datum op alle gebruikers toe te passen via het selectievakje hieronder, of laat het leeg en stel hier individuele datums in.\n\nVelden worden weergegeven voor: {assignee_names}. Laat leeg voor geen deadline.{template_date}\n\n ℹ️ [Geavanceerde handleiding]({documentation_url})",
         "data": {
           "apply_template_to_all": "Pas de sjabloondatum toe op alle gebruikers."
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Schema per toegewezen persoon: {chore_name}",
-        "description": "Configureer individuele planningsinstellingen voor elke toegewezen persoon voor deze taak. De hoofdwaarden van het formulier fungeren als **sjablonen** – gebruik de selectievakjes om ze op alle toegewezen personen toe te passen, of pas de instellingen van elke toegewezen persoon afzonderlijk aan.\n\n**Opmerking:** Niet alle onderstaande velden zijn van toepassing op elke taak. Het formulier toont dynamisch relevante opties op basis van de voltooiingsmodus, frequentie en of er vervaldatums zijn ingesteld.\n\n**Dagelijkse (meerdere) tijdenindeling:** Voer, indien weergegeven, 2-6 tijden in in 24-uursformaat, gescheiden door | (pipe). Voorbeeld: 08:00|17:00\n\nToegewezen personen: {assignee_names}{template_info}\n\n📖 [Geavanceerde handleiding]({documentation_url})",
+        "description": "Configureer individuele planningsinstellingen voor elke toegewezen persoon die aan deze taak is toegewezen. De hoofdwaarden van het formulier fungeren als **sjablonen** - gebruik de selectievakjes om ze op alle toegewezen personen toe te passen, of pas de instellingen van elke toegewezen persoon afzonderlijk aan.\n\n**Opmerking:** Niet alle onderstaande velden zijn van toepassing op elke taak. Het formulier toont dynamisch relevante opties op basis van de voltooiingsmodus, frequentie en of er vervaldatums zijn ingesteld.\n\n**Dagelijkse (meerdere) tijdenindeling:** Voer, indien weergegeven, 2-6 tijden in in 24-uursformaat, gescheiden door | (pipe). Voorbeeld: 08:00|17:00\n\nToegewezen personen: {assignee_names}{template_info}\n\n ℹ️ [Geavanceerde handleiding]({documentation_url})",
         "data": {
           "apply_days_to_all": "Pas de sjabloondagen toe op alle toegewezen personen.",
           "apply_times_to_all": "Pas de sjabloontijden toe op alle toegewezen personen.",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Cumulatieve badge bewerken",
-        "description": "Configureer de details voor een cumulatieve badge. Deze badges belonen toegewezen personen voor het behalen van een bepaald aantal punten gedurende hun levensduur en ondersteunen onderhoudscycli om voortdurende prestaties te stimuleren.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Configureer de details voor een cumulatieve badge. Deze badges belonen toegewezen personen voor het behalen van een bepaald aantal punten gedurende hun levensduur en ondersteunen onderhoudscycli om voortdurende prestaties te stimuleren.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Dagelijkse badge bewerken",
-        "description": "Configureer de details voor een dagelijkse badge. Deze badges belonen toegewezen personen voor het voltooien van dagelijkse taken of het behalen van dagelijkse drempelwaarden.\n\n📖 [Badgesoverzicht]({documentation_url})",
+        "description": "Configureer de details voor een dagelijkse badge. Deze badges belonen toegewezen personen voor het voltooien van dagelijkse taken of het bereiken van dagelijkse drempelwaarden.\n\n ℹ️ [Badgesoverzicht]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Periodieke badge bewerken",
-        "description": "Configureer de details voor een periodieke badge. Deze badges belonen toegewezen personen voor het behalen van drempelwaarden binnen een bepaalde periode en ondersteunen resetcycli voor continue prestatiebeoordeling.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Configureer de details voor een periodieke badge. Deze badges belonen toegewezen personen voor het behalen van drempelwaarden binnen een bepaalde periode en ondersteunen resetcycli voor continue prestatiebeoordeling.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Bewerk de badge die gekoppeld is aan een prestatie.",
-        "description": "Configureer de details voor een badge die is gekoppeld aan een prestatie. Deze badges belonen degenen die ze hebben behaald voor het voltooien van specifieke prestaties.\n\n📖 [Badgesoverzicht]({documentation_url})",
+        "description": "Configureer de details voor een badge die is gekoppeld aan een prestatie. Deze badges belonen degenen die ze hebben behaald voor het voltooien van specifieke prestaties.\n\n ℹ️ [Badgesoverzicht]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Bewerk de badge voor speciale gelegenheden",
-        "description": "Configureer de details voor een badge die is aangemaakt voor speciale gelegenheden. Deze badges belonen toegewezen personen voor gebeurtenissen zoals verjaardagen of feestdagen.\n\n📖 [Badgesoverzicht]({documentation_url})",
+        "description": "Configureer de details voor een badge die is aangemaakt voor speciale gelegenheden. Deze badges belonen toegewezen personen voor gebeurtenissen zoals verjaardagen of feestdagen.\n\n ℹ️ [Badgesoverzicht]({documentation_url})",
         "data": {
           "badge_name": "Badgenaam",
           "badge_description": "Badgeomschrijving (optioneel)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Beloning bewerken",
-        "description": "Wijzig de details van de geselecteerde beloning.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Wijzig de details van de geselecteerde beloning.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de beloning",
           "internal_id": "Interne ID",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Bewerkingsboete",
-        "description": "Wijzig de details van de geselecteerde boete.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Wijzig de details van de geselecteerde boete.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de straf",
           "penalty_description": "Beschrijving (optioneel)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Bewerkingsbonus",
-        "description": "Wijzig de details van de geselecteerde bonus.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Wijzig de details van de geselecteerde bonus.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Bonusnaam",
           "bonus_description": "Beschrijving (optioneel)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definieer prestatie",
-        "description": "Voer details in voor elke prestatie.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Voer details in voor elke prestatie.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Naam van de prestatie",
           "description": "Beschrijving (optioneel)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Definieer de uitdaging",
-        "description": "Voer de details voor elke uitdaging in.\n\n📖 [Configuratiehandleiding]({documentation_url})",
+        "description": "Voer de details voor elke uitdaging in.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "name": "Uitdagingsnaam",
           "description": "Beschrijving (optioneel)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Dashboardacties",
-        "description": "ChoreOps Lovelace-dashboards maken, bijwerken of verwijderen.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "ChoreOps Lovelace-dashboards maken, bijwerken of verwijderen.\n\n ℹ️ [Dashboardconfiguratiehandleiding]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Actie",
           "dashboard_release_selection": "Dashboard Release Versie"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Wijzigingen in het dashboard bekijken",
-        "description": "Controleer de afhankelijkheidsstatus en sjabloonvoorkeuren voor uw geselecteerde sjablonen voordat u wijzigingen in het dashboard toepast.\n\n[Dashboardconfiguratiehandleiding]({documentation_url})\n\n**Beschikbare aanpassingen**\n{dashboard_template_preferences}\n\n**Ontbrekende vereiste afhankelijkheden**\n{dashboard_missing_required_dependencies}\n\n**Ontbrekende aanbevolen afhankelijkheden**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Controleer de afhankelijkheidsstatus en sjabloonvoorkeuren voor uw geselecteerde sjablonen voordat u wijzigingen in het dashboard toepast.\n\n ℹ️ [Dashboardconfiguratiehandleiding]({documentation_url})\n\n**Beschikbare aanpassingen**\n{dashboard_template_preferences}\n\n**Ontbrekende vereiste afhankelijkheden**\n{dashboard_missing_required_dependencies}\n\n**Ontbrekende aanbevolen afhankelijkheden**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Toch doorgaan (vereisten ontbreken)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Dashboard maken",
-        "description": "Voer een dashboardnaam in en ga vervolgens verder met de configuratie.\n\n[Configuratiehandleiding]({documentation_url})",
+        "description": "Voer een dashboardnaam in en ga vervolgens verder met de configuratie.\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "data": {
           "dashboard_name": "Dashboardnaam"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Dashboard configureren",
-        "description": "Configureer dashboardsecties voor **{dashboard}** (modus: {mode}).\n\n[Configuratiehandleiding]({documentation_url})",
+        "description": "Configureer dashboardsecties voor **{dashboard}** (modus: {mode}).\n\n ℹ️ [Configuratiehandleiding]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Gebruikersweergaven",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Algemene opties",
-        "description": "Beheer de algemene instellingen voor de ChoreOps-integratie.\n\n[📖 Meer informatie over algemene opties]({documentation_url})",
+        "description": "Beheer de algemene instellingen voor de ChoreOps-integratie.\n\n ℹ️ [Meer informatie over algemene opties]({documentation_url})",
         "data": {
           "default_chore_points": "Standaardpunten per taak",
           "points_adjust_values": "Handmatige puntaanpassingsknopwaarden",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Beheer UI-besturingselementen",
-      "description": "Hiermee kunt u een gebruikersspecifieke UI-besturingselementwaarde aanmaken, bijwerken of verwijderen die is opgeslagen in de opgeslagen ui_preferences-bucket van de gebruiker. Gebruik een lege sleutel bij de actie 'verwijderen' om alle opgeslagen UI-voorkeuren voor de betreffende gebruiker te wissen.",
+      "description": "Hiermee kunt u een opgeslagen waarde voor een UI-besturingselement maken, bijwerken of verwijderen. Standaard is dit gericht op de ui_preferences-bucket van één gebruiker. Gebruik ui_control_target: shared_admin om naar de gedeelde beheerdersbucket voor UI-besturingselementen onder data/meta te schrijven. Gebruik een lege sleutel bij de actie 'verwijderen' om alle opgeslagen waarden voor het geselecteerde doel te wissen.",
       "fields": {
         "config_entry_id": {
           "name": "Configuratie-item-ID (optioneel)",
@@ -2902,6 +2902,11 @@
           "description": "Optioneel doelgebruikersnaam. Vereist wanneer user_id niet is opgegeven.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "UI-besturingselementdoel",
+          "description": "Kies of u zich op één gebruiker of op de gedeelde beheerinterface wilt richten. Als u 'shared_admin' selecteert, hoeft u geen gebruikers-ID of gebruikersnaam op te geven.",
+          "example": "gebruiker"
+        },
         "ui_control_action": {
           "name": "UI-besturingsactie",
           "description": "Kies of u een opgeslagen UI-besturingselementwaarde wilt aanmaken, bijwerken of verwijderen.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Sleutelpad",
-          "description": "Een pad voor UI-besturingselementen, gescheiden door schuine strepen, zoals gamification/rewards/header_collapse. Laat dit veld alleen leeg bij de actie 'verwijderen' om alle opgeslagen UI-voorkeuren voor de gebruiker te wissen.",
+          "description": "Een pad voor UI-besturingselementen, gescheiden door schuine strepen, zoals gamification/rewards/header_collapse. Laat dit veld alleen leeg bij de actie 'verwijderen' om alle opgeslagen waarden voor het geselecteerde doel te wissen.",
           "example": "gamification/rewards/header_collapse"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Dashboard Helper",
+        "state_attributes": {
+          "purpose": {
+            "name": "Doel",
+            "state": {
+              "purpose_system_dashboard_helper": "Aggregeert de status van het gedeelde beheerdersdashboard voor gedeelde beheerderskaarten."
+            }
+          },
+          "ui_control": {
+            "name": "UI-besturingselement"
+          },
+          "integration_entry_id": {
+            "name": "Integratie-item-ID"
+          },
+          "dashboard_lookup_key": {
+            "name": "Dashboard opzoeksleutel"
+          },
+          "user_dashboard_helpers": {
+            "name": "Hulpmiddelen voor het gebruikersdashboard"
+          },
+          "language": {
+            "name": "Taal"
+          },
+          "translation_sensor_eid": {
+            "name": "Vertaling Sensor Entiteits-ID"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "UI Dashboard Helper",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Geef de user_id of user_name op om één specifieke gebruiker te selecteren."
+    },
+    "ui_control_invalid_target": {
+      "message": "Ongeldig ui_control_target {target}. Toegestane targets: user, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Geef geen user_id of user_name op wanneer ui_control_target shared_admin is."
     },
     "ui_control_invalid_action": {
       "message": "Ongeldige UI-besturingselementactie {action}. Toegestane acties: aanmaken, bijwerken, verwijderen."

@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Velkommen til ChoreOps",
-        "description": "Denne veiviseren vil veilede deg gjennom oppsettet av ChoreOps.\n\n[📖 Hurtigstartveiledning]({documentation_url})"
+        "description": "Denne veiviseren vil veilede deg gjennom oppsettet av ChoreOps.\n\n ℹ️ [Hurtigstartveiledning]({documentation_url})"
       },
       "data_recovery": {
         "title": "Alternativer for datagjenoppretting",
-        "description": "Eksisterende ChoreOps-data funnet i:\n{storage_path}\n\nFant {backup_count} sikkerhetskopifiler.\n\nHva vil du gjøre?\n\n[📖 Lær mer om sikkerhetskopiering og gjenoppretting]({documentation_url})",
+        "description": "Eksisterende ChoreOps-data funnet i:\n{storage_path}\n\nFant {backup_count} sikkerhetskopifiler.\n\nHva vil du gjøre?\n\n ℹ️ [Finn ut mer om sikkerhetskopiering og gjenoppretting]({documentation_url})",
         "data": {
           "backup_selection": "Velg alternativ"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Legg til kumulativt merke",
-        "description": "Konfigurer detaljene for et kumulativt merke. Disse merkene belønner tildelere for å nå livstidspoenggrenser og støtter vedlikeholdssykluser for å oppmuntre til kontinuerlig ytelse.\n\n[📖 Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Konfigurer detaljene for et kumulativt merke. Disse merkene belønner tildelere for å nå livstidspoengterskler og støtter vedlikeholdssykluser for å oppmuntre til kontinuerlig ytelse.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "ChoreOps-alternativer",
-        "description": "Administrer brukere, gjøremål, merker, belønninger, straffer, bonuser eller fullfør.\n\n[📖 Vis dokumentasjon]({documentation_url})",
+        "description": "Administrer husholdningsdriften, spillmotoren og systeminnstillingene.\n\n ℹ️ [Vis dokumentasjon]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Støtt ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Velg et alternativ"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Utfordringer kommer snart",
-        "description": "Utfordringer vil bli tilgjengelige i fremtidige oppdateringer.\n\nUnder migrering konverteres eksisterende utfordringsposter til tilsvarende periodisk merkesporing for å bevare intensjon og fremdriftsatferd der det er mulig. Utfordringskoblede merker fjernes i denne utgivelsen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Utfordringer vil bli tilgjengelige i fremtidige oppdateringer.\n\nUnder migrering konverteres eksisterende utfordringsposter til tilsvarende periodisk merkesporing for å bevare intensjon og fremdriftsatferd der det er mulig. Utfordringskoblede merker fjernes i denne utgivelsen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Rediger poenginnstillinger",
-        "description": "Endre etiketten, ikonet og standardpoengene per gjøremål som brukes i ChoreOps.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Endre etiketten, ikonet og standardpoengene per gjøremål som brukes i ChoreOps.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "points_label": "Poengetikett",
           "points_icon": "Poengikon",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Legg til bruker",
-        "description": "Oppgi detaljene for den nye brukerprofilen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Oppgi detaljene for den nye brukerprofilen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identitet og profil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Legg til husarbeid",
-        "description": "Opprett en ny gjøremålsoppgave med poeng, oppgaver og en regelmessig tidsplan.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Opprett en ny gjøremål med poeng, oppgaver og en regelmessig tidsplan.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definisjon",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Legg til kumulativt merke",
-        "description": "Konfigurer detaljene for et kumulativt merke. Disse merkene belønner tildelere for å nå livstidspoengterskler og støtter vedlikeholdssykluser for å oppmuntre til kontinuerlig ytelse.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Konfigurer detaljene for et kumulativt merke. Disse merkene belønner tildelere for å nå livstidspoengterskler og støtter vedlikeholdssykluser for å oppmuntre til kontinuerlig ytelse.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Legg til daglig merke",
-        "description": "Konfigurer detaljene for et daglig merke. Disse merkene belønner tildelere for å fullføre daglige oppgaver eller nå daglige terskler.\n\n📖 [Oversikt over merker]({documentation_url})",
+        "description": "Konfigurer detaljene for et daglig merke. Disse merkene belønner tilordnede for å fullføre daglige oppgaver eller nå daglige terskler.\n\n ℹ️ [Oversikt over merker]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Legg til periodisk merke",
-        "description": "Konfigurer detaljene for et periodisk merke. Disse merkene belønner tildelere for å oppfylle terskler innenfor en definert tidsperiode og støtter tilbakestillingssykluser for kontinuerlig ytelse.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Konfigurer detaljene for et periodisk merke. Disse merkene belønner tildelere for å oppfylle terskler innenfor en definert tidsperiode og støtter tilbakestillingssykluser for kontinuerlig ytelse.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Legg til prestasjonsrelatert merke",
-        "description": "Konfigurer detaljene for et merke knyttet til en prestasjon. Disse merkene belønner tildelte for å ha fullført bestemte prestasjoner.\n\n[📖 Merkeoversikt]({documentation_url})",
+        "description": "Konfigurer detaljene for et merke knyttet til en prestasjon. Disse merkene belønner tildelte for å ha fullført spesifikke prestasjoner.\n\n ℹ️ [Oversikt over merker]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Legg til merke for spesielle anledninger",
-        "description": "Konfigurer detaljene for et merke som er opprettet for spesielle anledninger. Disse merkene belønner tildelere for arrangementer som bursdager eller høytider.\n\n📖 [Oversikt over merker]({documentation_url})",
+        "description": "Konfigurer detaljene for et merke som er opprettet for spesielle anledninger. Disse merkene belønner tildelere for arrangementer som bursdager eller høytider.\n\n ℹ️ [Oversikt over merker]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Legg til belønning",
-        "description": "Oppgi detaljene for den nye belønningen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Oppgi detaljene for den nye belønningen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Belønningsnavn",
           "internal_id": "Intern ID",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Legg til straff",
-        "description": "Oppgi detaljene for den nye straffen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Oppgi detaljene for den nye straffen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Navn på straff",
           "penalty_description": "Beskrivelse (valgfritt)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Legg til bonus",
-        "description": "Oppgi detaljene for den nye bonusen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Oppgi detaljene for den nye bonusen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Bonusnavn",
           "bonus_description": "Beskrivelse (valgfritt)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definer prestasjon",
-        "description": "Skriv inn detaljer for hver prestasjon.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Skriv inn detaljer for hver prestasjon.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Navn på prestasjon",
           "description": "Beskrivelse (valgfritt)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Definer utfordring",
-        "description": "Skriv inn detaljer for hver utfordring.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Skriv inn detaljer for hver utfordring.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Utfordringsnavn",
           "description": "Beskrivelse (valgfritt)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Rediger bruker",
-        "description": "Endre detaljene for den valgte brukerprofilen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Endre detaljene for den valgte brukerprofilen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identitet og profil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Rediger gjøremål",
-        "description": "Endre detaljene for den valgte gjøremålet.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Endre detaljene for den valgte gjøremålet.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definisjon",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Rediger forfallsdatoer per bruker: {chore_name}",
-        "description": "Angi individuelle forfallsdatoer for hver tildelte bruker. Datofeltet på hovedredigeringsskjemaet fungerer som en **mal** for enkelhets skyld – bruk det til å raskt bruke samme dato for alle brukere via avmerkingsboksen nedenfor, eller la det stå tomt og angi datoer individuelt her.\n\nFelt vises for: {assignee_names}. La stå tomt hvis det ikke er noen frist.{template_date}\n\n📖 [Avansert veiledning]({documentation_url})",
+        "description": "Angi individuelle forfallsdatoer for hver tildelte bruker. Datofeltet på hovedredigeringsskjemaet fungerer som en **mal** for enkelhets skyld – bruk det til å raskt bruke samme dato for alle brukere via avmerkingsboksen nedenfor, eller la det stå tomt og angi datoer individuelt her.\n\nFelt vises for: {assignee_names}. La stå tomt hvis det ikke er noen frist.{template_date}\n\n ℹ️ [Avansert veiledning]({documentation_url})",
         "data": {
           "apply_template_to_all": "Bruk maldato for alle brukere"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Plan per tildeler: {chore_name}",
-        "description": "Konfigurer individuelle planinnstillinger for hver tilordnet person som er tildelt denne oppgaven. Hovedskjemaverdiene fungerer som **maler** – bruk avmerkingsboksene for å bruke dem på alle tilordnede, eller tilpass hver tilordnets innstillinger individuelt.\n\n**Merk:** Ikke alle feltene nedenfor gjelder for alle oppgaver. Skjemaet viser dynamisk relevante alternativer basert på fullføringsmodus, hyppighet og om forfallsdatoer er angitt.\n\n**Daglig (flere) tidspunktformat:** Hvis vist, skriv inn 2–6 tidspunkter i 24-timersformat atskilt med | (linje). Eksempel: 08:00|17:00\n\nTilordnede: {assignee_names}{template_info}\n\n📖 [Avansert veiledning]({documentation_url})",
+        "description": "Konfigurer individuelle planinnstillinger for hver tilordnet person som er tildelt denne gjøremålet. Hovedskjemaverdiene fungerer som **maler** – bruk avmerkingsboksene for å bruke dem på alle tilordnede, eller tilpass hver tilordnets innstillinger individuelt.\n\n**Merk:** Ikke alle feltene nedenfor gjelder for alle gjøremål. Skjemaet viser dynamisk relevante alternativer basert på fullføringsmodus, hyppighet og om forfallsdatoer er angitt.\n\n**Daglig (flere) tidspunktformat:** Hvis vist, skriv inn 2–6 tidspunkter i 24-timersformat atskilt med | (linje). Eksempel: 08:00|17:00\n\nTilordnede: {assignee_names}{template_info}\n\n ℹ️ [Avansert veiledning]({documentation_url})",
         "data": {
           "apply_days_to_all": "Bruk maldager for alle tildelte",
           "apply_times_to_all": "Bruk maltider for alle tildelte",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Rediger kumulativt merke",
-        "description": "Konfigurer detaljene for et kumulativt merke. Disse merkene belønner tildelere for å nå livstidspoengterskler og støtter vedlikeholdssykluser for å oppmuntre til kontinuerlig ytelse.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Konfigurer detaljene for et kumulativt merke. Disse merkene belønner tildelere for å nå livstidspoengterskler og støtter vedlikeholdssykluser for å oppmuntre til kontinuerlig ytelse.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Rediger daglig merke",
-        "description": "Konfigurer detaljene for et daglig merke. Disse merkene belønner tildelere for å fullføre daglige oppgaver eller nå daglige terskler.\n\n📖 [Oversikt over merker]({documentation_url})",
+        "description": "Konfigurer detaljene for et daglig merke. Disse merkene belønner tilordnede for å fullføre daglige oppgaver eller nå daglige terskler.\n\n ℹ️ [Oversikt over merker]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Rediger periodisk merke",
-        "description": "Konfigurer detaljene for et periodisk merke. Disse merkene belønner tildelere for å oppfylle terskler innenfor en definert tidsperiode og støtter tilbakestillingssykluser for kontinuerlig ytelse.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Konfigurer detaljene for et periodisk merke. Disse merkene belønner tildelere for å oppfylle terskler innenfor en definert tidsperiode og støtter tilbakestillingssykluser for kontinuerlig ytelse.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Rediger merke knyttet til prestasjoner",
-        "description": "Konfigurer detaljene for et merke knyttet til en prestasjon. Disse merkene belønner tildelte for å ha fullført spesifikke prestasjoner.\n\n📖 [Oversikt over merker]({documentation_url})",
+        "description": "Konfigurer detaljene for et merke knyttet til en prestasjon. Disse merkene belønner tildelte for å ha fullført spesifikke prestasjoner.\n\n ℹ️ [Oversikt over merker]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Rediger merke for spesielle anledninger",
-        "description": "Konfigurer detaljene for et merke som er opprettet for spesielle anledninger. Disse merkene belønner tildelere for arrangementer som bursdager eller høytider.\n\n📖 [Oversikt over merker]({documentation_url})",
+        "description": "Konfigurer detaljene for et merke som er opprettet for spesielle anledninger. Disse merkene belønner tildelere for arrangementer som bursdager eller høytider.\n\n ℹ️ [Oversikt over merker]({documentation_url})",
         "data": {
           "badge_name": "Merkenavn",
           "badge_description": "Beskrivelse av merke (valgfritt)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Rediger belønning",
-        "description": "Endre detaljene for den valgte belønningen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Endre detaljene for den valgte belønningen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Belønningsnavn",
           "internal_id": "Intern ID",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Rediger straff",
-        "description": "Endre detaljene for den valgte straffen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Endre detaljene for den valgte straffen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Navn på straff",
           "penalty_description": "Beskrivelse (valgfritt)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Rediger bonus",
-        "description": "Endre detaljene for den valgte bonusen.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Endre detaljene for den valgte bonusen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Bonusnavn",
           "bonus_description": "Beskrivelse (valgfritt)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definer prestasjon",
-        "description": "Skriv inn detaljer for hver prestasjon.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Skriv inn detaljer for hver prestasjon.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Navn på prestasjon",
           "description": "Beskrivelse (valgfritt)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Definer utfordring",
-        "description": "Skriv inn detaljer for hver utfordring.\n\n📖 [Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Skriv inn detaljer for hver utfordring.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "name": "Utfordringsnavn",
           "description": "Beskrivelse (valgfritt)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Handlinger på dashbordet",
-        "description": "Opprett, oppdater eller slett ChoreOps Lovelace-dashbord.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Opprett, oppdater eller slett ChoreOps Lovelace-dashbord.\n\n ℹ️ [Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Handling",
           "dashboard_release_selection": "Utgivelsesversjon av dashbordet"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Se gjennom endringer i dashbordet",
-        "description": "Se gjennom avhengighetsstatus og malpreferanser for de valgte malene før du bruker endringer i dashbordet.\n\n[Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n**Tilgjengelige tilpasninger**\n{dashboard_template_preferences}\n\n**Mangler nødvendige avhengigheter**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalte avhengigheter**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Se gjennom avhengighetsstatus og malpreferanser for de valgte malene før du bruker endringer i dashbordet.\n\n ℹ️ [Konfigurasjonsveiledning for dashbord]({documentation_url})\n\n**Tilgjengelige tilpasninger**\n{dashboard_template_preferences}\n\n**Mangler nødvendige avhengigheter**\n{dashboard_missing_required_dependencies}\n\n**Mangler anbefalte avhengigheter**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Fortsett likevel (krav mangler)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Opprett dashbord",
-        "description": "Skriv inn et navn for dashbordet, og fortsett deretter til konfigurasjonen.\n\n[Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Skriv inn et navn for dashbordet, og fortsett deretter til konfigurasjonen.\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "data": {
           "dashboard_name": "Navn på dashbord"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Konfigurer dashbord",
-        "description": "Konfigurer dashbordseksjoner for **{dashboard}** (modus: {mode}).\n\n[Konfigurasjonsveiledning]({documentation_url})",
+        "description": "Konfigurer dashbordseksjoner for **{dashboard}** (modus: {mode}).\n\n ℹ️ [Konfigurasjonsveiledning]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Brukervisninger",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Generelle alternativer",
-        "description": "Administrer generelle innstillinger for ChoreOps-integrasjonen.\n\n[📖 Lær mer om generelle alternativer]({documentation_url})",
+        "description": "Administrer generelle innstillinger for ChoreOps-integrasjonen.\n\n ℹ️ [Finn ut mer om generelle alternativer]({documentation_url})",
         "data": {
           "default_chore_points": "Standardpoeng per gjøremål",
           "points_adjust_values": "Verdier for manuell punktjusteringsknapp",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Administrer brukergrensesnittkontroll",
-      "description": "Opprett, oppdater eller fjern en brukergrensesnittkontrollverdi som er lagret i brukerens vedvarende ui_preferences-bøtte. Bruk en tom nøkkel med fjern-handlingen for å fjerne alle lagrede brukergrensesnittpreferanser for den aktuelle brukeren.",
+      "description": "Opprett, oppdater eller fjern en vedvarende UI-kontrollverdi. Som standard er dette rettet mot én brukers ui_preferences-bøtte. Bruk ui_control_target: shared_admin til å skrive til den delte administrator-UI-kontrollbøtten under data/meta. Bruk en tom nøkkel med fjern-handlingen for å fjerne alle lagrede verdier for det valgte målet.",
       "fields": {
         "config_entry_id": {
           "name": "Konfigurasjonsoppførings-ID (valgfritt)",
@@ -2902,6 +2902,11 @@
           "description": "Valgfritt brukernavnmål. Obligatorisk når bruker-ID ikke er oppgitt.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "UI-kontrollmål",
+          "description": "Velg om du vil målrette mot én bruker eller den delte kontrollbøtten for administratorgrensesnittet. Når shared_admin er valgt, må du ikke oppgi bruker-id eller brukernavn.",
+          "example": "bruker"
+        },
         "ui_control_action": {
           "name": "UI-kontrollhandling",
           "description": "Velg om du vil opprette, oppdatere eller fjerne en lagret UI-kontrollverdi.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Nøkkelsti",
-          "description": "Skråstrekeavgrenset UI-kontrollbane, for eksempel gamification/rewards/header_collapse. La bare feltet stå tomt med fjern-handlingen for å fjerne alle lagrede UI-preferanser for brukeren.",
+          "description": "Skråstrekeavgrenset UI-kontrollbane, for eksempel gamification/rewards/header_collapse. La bare feltet stå tomt med fjern-handlingen for å fjerne alle lagrede verdier for det valgte målet.",
           "example": "gamification/rewards/header_collapse"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Dashbordhjelper",
+        "state_attributes": {
+          "purpose": {
+            "name": "Hensikt",
+            "state": {
+              "purpose_system_dashboard_helper": "Samler status for delt administrator-dashbord for delte administratorkort"
+            }
+          },
+          "ui_control": {
+            "name": "UI-kontroll"
+          },
+          "integration_entry_id": {
+            "name": "Integrasjonsoppførings-ID"
+          },
+          "dashboard_lookup_key": {
+            "name": "Oppslagsnøkkel for dashbord"
+          },
+          "user_dashboard_helpers": {
+            "name": "Hjelpeverktøy for brukerdashbord"
+          },
+          "language": {
+            "name": "Språk"
+          },
+          "translation_sensor_eid": {
+            "name": "Enhets-ID for oversettelsessensor"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Hjelpemiddel for brukergrensesnitt-dashbord",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Oppgi bruker-ID eller brukernavn for å målrette én bruker."
+    },
+    "ui_control_invalid_target": {
+      "message": "Ugyldig ui_control_target {target}. Tillatte mål: bruker, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Ikke oppgi bruker-id eller brukernavn når ui_control_target er shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Ugyldig UI-kontrollhandling {action}. Tillatte handlinger: opprett, oppdater, fjern."
