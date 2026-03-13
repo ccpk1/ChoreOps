@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Bienvenue chez ChoreOps",
-        "description": "Cet assistant vous guidera tout au long de la configuration de ChoreOps.\n\n[📖 Guide de démarrage rapide]({documentation_url})"
+        "description": "Cet assistant vous guidera tout au long de la configuration de ChoreOps.\n\n ℹ️ [Guide de démarrage rapide]({documentation_url})"
       },
       "data_recovery": {
         "title": "Options de récupération de données",
-        "description": "Données ChoreOps existantes trouvées dans :\n{storage_path}\n\nFichiers de sauvegarde trouvés : {backup_count} .\n\nQue souhaitez-vous faire ?\n\n[📖 En savoir plus sur la sauvegarde et la restauration]({documentation_url})",
+        "description": "Données ChoreOps existantes trouvées dans :\n{storage_path}\n\nFichiers de sauvegarde trouvés : {backup_count}\n\nQue souhaitez-vous faire ?\n\n ℹ️ [En savoir plus sur la sauvegarde et la restauration]({documentation_url})",
         "data": {
           "backup_selection": "Sélectionnez une option"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Ajouter un badge cumulatif",
-        "description": "Configurez les détails d'un badge cumulatif. Ces badges récompensent les personnes qui atteignent les seuils de points cumulés et soutiennent les cycles de maintenance pour encourager une performance continue.\n\n[📖 Guide de configuration]({documentation_url})",
+        "description": "Configurez les détails d'un badge cumulatif. Ces badges récompensent les personnes qui atteignent les seuils de points cumulés et soutiennent les cycles de maintenance pour encourager une performance continue.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "Options ChoreOps",
-        "description": "Gérez les utilisateurs, les tâches, les badges, les récompenses, les pénalités, les bonus ou terminez.\n\n[📖 Voir la documentation]({documentation_url})",
+        "description": "Gérez les opérations de votre foyer, le moteur de gamification et les préférences système.\n\n ℹ️ [Voir la documentation]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Soutenir ChoreOps]({sponsor_url})_",
         "data": {
           "menu_selection": "Sélectionnez une option"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Des défis arrivent bientôt",
-        "description": "Les défis seront disponibles dans une prochaine mise à jour.\n\nLors de la migration, les enregistrements de défis existants sont convertis en un système de suivi des badges périodiques équivalent afin de préserver, dans la mesure du possible, l'intention et le comportement de progression. Les badges liés aux défis sont supprimés dans cette version.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Les défis seront disponibles dans une prochaine mise à jour.\n\nLors de la migration, les enregistrements de défis existants sont convertis en un système de suivi des badges périodiques équivalent afin de préserver, dans la mesure du possible, l'intention et le comportement de progression. Les badges liés aux défis sont supprimés dans cette version.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Paramètres des points de modification",
-        "description": "Modifiez l'étiquette, l'icône et le nombre de points par défaut pour chaque tâche dans ChoreOps.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Modifiez l'étiquette, l'icône et le nombre de points par défaut pour chaque tâche dans ChoreOps.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "points_label": "Étiquette des points",
           "points_icon": "Icône des points",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Ajouter un utilisateur",
-        "description": "Veuillez fournir les informations nécessaires au nouveau profil utilisateur.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Veuillez fournir les informations nécessaires au nouveau profil utilisateur.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identité et profil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Ajouter une tâche",
-        "description": "Créez une nouvelle tâche avec des points, des affectations et une planification récurrente.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Créez une nouvelle tâche avec des points, des affectations et une planification récurrente.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Définition",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Ajouter un badge cumulatif",
-        "description": "Configurez les détails d'un badge cumulatif. Ces badges récompensent les personnes qui atteignent des seuils de points cumulés et soutiennent les cycles de maintenance pour encourager une performance continue.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Configurez les détails d'un badge cumulatif. Ces badges récompensent les personnes qui atteignent les seuils de points cumulés et soutiennent les cycles de maintenance pour encourager une performance continue.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Ajouter un badge quotidien",
-        "description": "Configurez les détails d'un badge quotidien. Ces badges récompensent les personnes assignées pour l'accomplissement de leurs tâches quotidiennes ou l'atteinte des objectifs quotidiens.\n\n📖 [Aperçu des badges]({documentation_url})",
+        "description": "Configurez les détails d'un badge quotidien. Ces badges récompensent les personnes assignées pour l'accomplissement de leurs tâches quotidiennes ou l'atteinte des seuils journaliers.\n\n ℹ️ [Aperçu des badges]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Ajouter un badge périodique",
-        "description": "Configurez les détails d'un badge périodique. Ces badges récompensent les personnes assignées pour avoir atteint des seuils dans un délai défini et permettent des cycles de réinitialisation pour le suivi des performances.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Configurez les détails d'un badge périodique. Ces badges récompensent les personnes assignées pour avoir atteint des seuils dans un délai défini et permettent des cycles de réinitialisation pour le suivi des performances.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Ajouter un badge lié à une réussite",
-        "description": "Configurez les détails d'un badge associé à une réalisation. Ces badges récompensent les personnes désignées pour la réalisation de réalisations spécifiques.\n\n[📖 Aperçu des badges]({documentation_url})",
+        "description": "Configurez les détails d'un badge associé à une réalisation. Ces badges récompensent les personnes désignées pour la réalisation de réalisations spécifiques.\n\n ℹ️ [Aperçu des badges]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Ajouter un badge pour occasion spéciale",
-        "description": "Configurez les détails d'un badge créé pour les occasions spéciales. Ces badges récompensent les personnes qui en sont dotées pour des événements comme les anniversaires ou les fêtes.\n\n📖 [Aperçu des badges]({documentation_url})",
+        "description": "Configurez les détails d'un badge créé pour les occasions spéciales. Ces badges récompensent les personnes qui en sont dotées pour des événements comme les anniversaires ou les fêtes.\n\n ℹ️ [Aperçu des badges]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Ajouter une récompense",
-        "description": "Veuillez fournir les détails de la nouvelle récompense.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Veuillez fournir les détails de la nouvelle récompense.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom de la récompense",
           "internal_id": "ID interne",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Ajouter une pénalité",
-        "description": "Veuillez fournir les détails de la nouvelle pénalité.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Veuillez fournir les détails de la nouvelle pénalité.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom de la pénalité",
           "penalty_description": "Description (facultatif)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Ajouter un bonus",
-        "description": "Fournissez les détails du nouveau bonus.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Fournissez les détails du nouveau bonus.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom du bonus",
           "bonus_description": "Description (facultatif)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Définir la réussite",
-        "description": "Saisissez les détails de chaque succès.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Saisissez les détails de chaque succès.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom du succès",
           "description": "Description (facultatif)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Définir le défi",
-        "description": "Saisissez les détails de chaque défi.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Saisissez les détails de chaque défi.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom du défi",
           "description": "Description (facultatif)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Modifier l'utilisateur",
-        "description": "Modifier les détails du profil utilisateur sélectionné.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Modifier les détails du profil utilisateur sélectionné.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identité et profil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Modifier la tâche",
-        "description": "Modifier les détails de la tâche sélectionnée.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Modifier les détails de la tâche sélectionnée.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Définition",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Modifier les dates d'échéance par utilisateur : {chore_name}",
-        "description": "Définissez des dates d'échéance individuelles pour chaque utilisateur. Le champ Date du formulaire de modification principal sert de **modèle** pour plus de simplicité : utilisez-le pour appliquer rapidement la même date à tous les utilisateurs via la case à cocher ci-dessous, ou laissez-le vide et définissez les dates individuellement ici.\n\nLes champs sont affichés pour : {assignee_names}. Laissez vide pour aucune date limite.{template_date}\n\n📖 [Guide avancé]({documentation_url})",
+        "description": "Définissez des dates d'échéance individuelles pour chaque utilisateur. Le champ Date du formulaire de modification principal sert de **modèle** pour plus de simplicité : utilisez-le pour appliquer rapidement la même date à tous les utilisateurs via la case à cocher ci-dessous, ou laissez-le vide et définissez les dates individuellement ici.\n\nLes champs sont affichés pour : {assignee_names}. Laissez vide pour aucune date limite.{template_date}\n\n ℹ️ [Guide avancé]({documentation_url})",
         "data": {
           "apply_template_to_all": "Appliquer la date du modèle à tous les utilisateurs"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Calendrier par personne affectée : {chore_name}",
-        "description": "Configurez les paramètres de planification individuels pour chaque personne affectée à cette tâche. Les valeurs principales du formulaire servent de **modèles** : cochez les cases pour les appliquer à toutes les personnes affectées ou personnalisez les paramètres de chaque personne individuellement.\n\n**Remarque :** Tous les champs ci-dessous ne s’appliquent pas à toutes les tâches. Le formulaire affiche dynamiquement les options pertinentes en fonction du mode d’exécution, de la fréquence et de la présence ou non de dates d’échéance.\n\n**Format Quotidien (Plusieurs) :** Si cette option est affichée, saisissez 2 à 6 fois au format 24 heures, séparées par une barre verticale (|). Exemple : 08:00|17:00\n\nPersonnes affectées : {assignee_names}{template_info}\n\n📖 [Guide avancé]({documentation_url})",
+        "description": "Configurez les paramètres de planification individuels pour chaque personne affectée à cette tâche. Les valeurs principales du formulaire servent de **modèles** : cochez les cases pour les appliquer à toutes les personnes affectées ou personnalisez les paramètres de chaque personne individuellement.\n\n**Remarque :** Tous les champs ci-dessous ne s’appliquent pas à toutes les tâches. Le formulaire affiche dynamiquement les options pertinentes en fonction du mode d’exécution, de la fréquence et de la présence ou non de dates d’échéance.\n\n**Format Quotidien (Plusieurs fois) :** Si cette option est affichée, saisissez 2 à 6 fois au format 24 heures, séparées par une barre verticale (|). Exemple : 08:00|17:00\n\nPersonnes affectées : {assignee_names}{template_info}\n\n ℹ️ [Guide avancé]({documentation_url})",
         "data": {
           "apply_days_to_all": "Appliquer le modèle de jours à tous les employés affectés",
           "apply_times_to_all": "Appliquer les horaires types à tous les collaborateurs.",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Modifier le badge cumulatif",
-        "description": "Configurez les détails d'un badge cumulatif. Ces badges récompensent les personnes qui atteignent des seuils de points cumulés et soutiennent les cycles de maintenance pour encourager une performance continue.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Configurez les détails d'un badge cumulatif. Ces badges récompensent les personnes qui atteignent les seuils de points cumulés et soutiennent les cycles de maintenance pour encourager une performance continue.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Modifier le badge quotidien",
-        "description": "Configurez les détails d'un badge quotidien. Ces badges récompensent les personnes assignées pour l'accomplissement de leurs tâches quotidiennes ou l'atteinte des objectifs quotidiens.\n\n📖 [Aperçu des badges]({documentation_url})",
+        "description": "Configurez les détails d'un badge quotidien. Ces badges récompensent les personnes assignées pour l'accomplissement de leurs tâches quotidiennes ou l'atteinte des seuils journaliers.\n\n ℹ️ [Aperçu des badges]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Modifier le badge périodique",
-        "description": "Configurez les détails d'un badge périodique. Ces badges récompensent les personnes assignées pour avoir atteint des seuils dans un délai défini et permettent des cycles de réinitialisation pour le suivi des performances.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Configurez les détails d'un badge périodique. Ces badges récompensent les personnes assignées pour avoir atteint des seuils dans un délai défini et permettent de réinitialiser les cycles de performance.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Modifier le badge lié à un succès",
-        "description": "Configurez les détails d'un badge associé à une réussite. Ces badges récompensent les personnes désignées pour la réalisation de réussites spécifiques.\n\n📖 [Aperçu des badges]({documentation_url})",
+        "description": "Configurez les détails d'un badge associé à une réalisation. Ces badges récompensent les personnes désignées pour la réalisation de réalisations spécifiques.\n\n ℹ️ [Aperçu des badges]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Modifier le badge pour occasion spéciale",
-        "description": "Configurez les détails d'un badge créé pour les occasions spéciales. Ces badges récompensent les personnes qui en sont dotées pour des événements comme les anniversaires ou les fêtes.\n\n📖 [Aperçu des badges]({documentation_url})",
+        "description": "Configurez les détails d'un badge créé pour les occasions spéciales. Ces badges récompensent les personnes qui en sont dotées pour des événements comme les anniversaires ou les fêtes.\n\n ℹ️ [Aperçu des badges]({documentation_url})",
         "data": {
           "badge_name": "Nom du badge",
           "badge_description": "Description du badge (facultatif)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Modifier la récompense",
-        "description": "Modifiez les détails de la récompense sélectionnée.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Modifiez les détails de la récompense sélectionnée.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom de la récompense",
           "internal_id": "ID interne",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Pénalité de modification",
-        "description": "Modifier les détails de la pénalité sélectionnée.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Modifier les détails de la pénalité sélectionnée.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom de la pénalité",
           "penalty_description": "Description (facultatif)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Bonus de modification",
-        "description": "Modifiez les détails du bonus sélectionné.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Modifiez les détails du bonus sélectionné.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom du bonus",
           "bonus_description": "Description (facultatif)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Définir la réussite",
-        "description": "Saisissez les détails de chaque succès.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Saisissez les détails de chaque succès.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom du succès",
           "description": "Description (facultatif)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Définir le défi",
-        "description": "Saisissez les détails de chaque défi.\n\n📖 [Guide de configuration]({documentation_url})",
+        "description": "Saisissez les détails de chaque défi.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "name": "Nom du défi",
           "description": "Description (facultatif)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Actions du tableau de bord",
-        "description": "Créez, mettez à jour ou supprimez des tableaux de bord ChoreOps Lovelace.\n\n[Guide de configuration des tableaux de bord]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Créez, mettez à jour ou supprimez des tableaux de bord ChoreOps Lovelace.\n\n ℹ️ [Guide de configuration des tableaux de bord]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Action",
           "dashboard_release_selection": "Version de publication du tableau de bord"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Consulter les modifications du tableau de bord",
-        "description": "Vérifiez l'état des dépendances et les préférences des modèles sélectionnés avant d'appliquer les modifications au tableau de bord.\n\n[Guide de configuration du tableau de bord]({documentation_url})\n\n**Personnalisations disponibles**\n{dashboard_template_preferences}\n\n**Dépendances requises manquantes**\n{dashboard_missing_required_dependencies}\n\n**Dépendances recommandées manquantes**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Vérifiez l'état des dépendances et les préférences des modèles sélectionnés avant d'appliquer les modifications au tableau de bord.\n\n ℹ️ [Guide de configuration du tableau de bord]({documentation_url})\n\n**Personnalisations disponibles**\n{dashboard_template_preferences}\n\n**Dépendances requises manquantes**\n{dashboard_missing_required_dependencies}\n\n**Dépendances recommandées manquantes**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Continuez quand même (conditions requises manquantes)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Créer un tableau de bord",
-        "description": "Saisissez un nom pour le tableau de bord, puis poursuivez la configuration.\n\n[Guide de configuration]({documentation_url})",
+        "description": "Saisissez un nom pour le tableau de bord, puis poursuivez la configuration.\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "data": {
           "dashboard_name": "Nom du tableau de bord"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Configurer le tableau de bord",
-        "description": "Configurer les sections du tableau de bord pour **{dashboard}** (mode : {mode}).\n\n[Guide de configuration]({documentation_url})",
+        "description": "Configurer les sections du tableau de bord pour **{dashboard}** (mode : {mode}).\n\n ℹ️ [Guide de configuration]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Vues des utilisateurs",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Options générales",
-        "description": "Gérez les paramètres généraux de l'intégration ChoreOps.\n\n[📖 En savoir plus sur les options générales]({documentation_url})",
+        "description": "Gérez les paramètres généraux de l'intégration ChoreOps.\n\n ℹ️ [En savoir plus sur les options générales]({documentation_url})",
         "data": {
           "default_chore_points": "Points par défaut par tâche",
           "points_adjust_values": "Valeurs du bouton de réglage manuel des points",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Gérer le contrôle de l'interface utilisateur",
-      "description": "Créez, mettez à jour ou supprimez une valeur de contrôle d'interface utilisateur spécifique à un utilisateur, stockée dans le compartiment ui_preferences persistant de l'utilisateur. Utilisez une clé vide avec l'action de suppression pour effacer toutes les préférences d'interface utilisateur stockées pour l'utilisateur ciblé.",
+      "description": "Créez, mettez à jour ou supprimez la valeur d'un contrôle d'interface utilisateur persistant. Par défaut, cette action cible le compartiment ui_preferences d'un utilisateur. Utilisez ui_control_target: shared_admin pour écrire dans le compartiment de contrôle d'interface utilisateur d'administration partagé, sous data/meta. Utilisez une clé vide avec l'action remove pour effacer toutes les valeurs stockées pour la cible sélectionnée.",
       "fields": {
         "config_entry_id": {
           "name": "ID de l'entrée de configuration (facultatif)",
@@ -2902,6 +2902,11 @@
           "description": "Nom d'utilisateur cible facultatif. Requis si l'identifiant utilisateur n'est pas fourni.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "Cible de contrôle d'interface utilisateur",
+          "description": "Choisissez si vous souhaitez cibler un utilisateur spécifique ou le compartiment de contrôle d'interface utilisateur d'administration partagée. Si vous sélectionnez « shared_admin », ne fournissez pas l'identifiant ni le nom d'utilisateur.",
+          "example": "utilisateur"
+        },
         "ui_control_action": {
           "name": "Action de contrôle d'interface utilisateur",
           "description": "Choisissez si vous souhaitez créer, mettre à jour ou supprimer une valeur de contrôle d'interface utilisateur enregistrée.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Chemin clé",
-          "description": "Chemin d'accès aux paramètres d'interface utilisateur délimité par des barres obliques, par exemple : gamification/rewards/header_collapse. Ne laissez ce champ vide que pour l'action de suppression, qui efface toutes les préférences d'interface utilisateur enregistrées.",
+          "description": "Chemin d'accès aux contrôles d'interface utilisateur délimité par des barres obliques, par exemple : gamification/rewards/header_collapse. Laissez ce champ vide uniquement pour l'action de suppression, qui efface toutes les valeurs enregistrées pour la cible sélectionnée.",
           "example": "gamification/récompenses/réduire_l'en-tête"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Assistant de tableau de bord",
+        "state_attributes": {
+          "purpose": {
+            "name": "But",
+            "state": {
+              "purpose_system_dashboard_helper": "Agrège l'état du tableau de bord d'administration partagé pour les cartes d'administration partagées"
+            }
+          },
+          "ui_control": {
+            "name": "Contrôle de l'interface utilisateur"
+          },
+          "integration_entry_id": {
+            "name": "ID d'entrée d'intégration"
+          },
+          "dashboard_lookup_key": {
+            "name": "Clé de recherche du tableau de bord"
+          },
+          "user_dashboard_helpers": {
+            "name": "Assistants du tableau de bord utilisateur"
+          },
+          "language": {
+            "name": "Langue"
+          },
+          "translation_sensor_eid": {
+            "name": "ID d'entité du capteur de traduction"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Assistant de tableau de bord d'interface utilisateur",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Fournissez l'identifiant ou le nom d'utilisateur pour cibler un utilisateur."
+    },
+    "ui_control_invalid_target": {
+      "message": "ui_control_target invalide {target}. Cibles autorisées : user, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Ne fournissez pas user_id ni user_name lorsque ui_control_target est shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Action de contrôle d'interface utilisateur invalide {action}. Actions autorisées : créer, mettre à jour, supprimer."

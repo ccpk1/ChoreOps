@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Tervetuloa ChoreOpsiin",
-        "description": "Tämä ohjattu toiminto opastaa sinua ChoreOpsin määrittämisessä.\n\n[📖 Pikaopas]({documentation_url})"
+        "description": "Tämä ohjattu toiminto opastaa sinua ChoreOpsin määrittämisessä.\n\n ℹ️ [Pika-aloitusopas]({documentation_url})"
       },
       "data_recovery": {
         "title": "Tietojen palautusvaihtoehdot",
-        "description": "Olemassa olevaa ChoreOps-dataa löytyi:\n{storage_path}\n\nLöytyi {backup_count} varmuuskopiotiedostoa.\n\nMitä haluaisit tehdä?\n\n[📖 Lue lisää varmuuskopioinnista ja palautuksesta]({documentation_url})",
+        "description": "Olemassa olevaa ChoreOps-dataa löytyi:\n{storage_path}\n\nLöytyi {backup_count} varmuuskopiotiedostoa.\n\nMitä haluaisit tehdä?\n\n ℹ️ [Lisätietoja varmuuskopioinnista ja palautuksesta]({documentation_url})",
         "data": {
           "backup_selection": "Valitse vaihtoehto"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Lisää kumulatiivinen merkki",
-        "description": "Määritä kumulatiivisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansioluettelon saajia elinikäisten pisteiden kynnysarvojen saavuttamisesta ja tukevat ylläpitosyklejä jatkuvan suorituskyvyn kannustamiseksi.\n\n[📖 Määritysopas]({documentation_url})",
+        "description": "Määritä kumulatiivisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansioluettelon saajia elinikäisten pisteiden kynnysarvojen saavuttamisesta ja tukevat ylläpitosyklejä jatkuvan suorituskyvyn kannustamiseksi.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "ChoreOps-asetukset",
-        "description": "Hallitse käyttäjiä, askareita, ansiomerkkejä, palkintoja, rangaistuksia, bonuksia tai viimeistelyä.\n\n[📖 Katso dokumentaatio]({documentation_url})",
+        "description": "Hallitse kotitaloutesi toimintoja, pelillistämismoottoria ja järjestelmäasetuksia.\n\n ℹ️ [Näytä dokumentaatio]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Tue ChoreOpsia]({sponsor_url})_",
         "data": {
           "menu_selection": "Valitse vaihtoehto"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Haasteita tulossa pian",
-        "description": "Haasteet tulevat saataville tulevassa päivityksessä.\n\nSiirron aikana olemassa olevat haastetietueet muunnetaan vastaaviksi säännöllisten merkkien seurantatiedoksi, jotta aikomus ja edistymiskäyttäytyminen säilyvät mahdollisuuksien mukaan. Haasteisiin liittyvät merkit poistetaan tässä julkaisussa.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Haasteet tulevat saataville tulevassa päivityksessä.\n\nSiirron aikana olemassa olevat haastetietueet muunnetaan vastaaviksi säännöllisten merkkien seurantaan, jotta aikomus ja edistymiskäyttäytyminen säilyvät mahdollisuuksien mukaan. Haasteisiin linkitetyt merkit poistetaan tässä julkaisussa.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Muokkaa pisteasetuksia",
-        "description": "Muuta ChoreOpsissa käytettyä työtehtävän otsikkoa, kuvaketta ja oletuspisteitä.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Muuta ChoreOpsissa käytettyä työtehtävän otsikkoa, kuvaketta ja oletuspisteitä.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "points_label": "Pistemerkintä",
           "points_icon": "Pistekuvake",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Lisää käyttäjä",
-        "description": "Anna uuden käyttäjäprofiilin tiedot.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna uuden käyttäjäprofiilin tiedot.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identiteetti ja profiili",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Lisää kotitehtävä",
-        "description": "Luo uusi tehtävä, joka sisältää pisteet, tehtävät ja toistuvan aikataulun.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Luo uusi tehtävä pisteillä, tehtävillä ja toistuvalla aikataululla.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Määritelmä",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Lisää kumulatiivinen merkki",
-        "description": "Määritä kumulatiivisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansioluettelon saajia elinikäisten pisteiden kynnysarvojen saavuttamisesta ja tukevat ylläpitosyklejä jatkuvan suorituskyvyn kannustamiseksi.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Määritä kumulatiivisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansioluettelon saajia elinikäisten pisteiden kynnysarvojen saavuttamisesta ja tukevat ylläpitosyklejä jatkuvan suorituskyvyn kannustamiseksi.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Lisää päivittäinen merkki",
-        "description": "Määritä päivittäisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat henkilöitä päivittäisten tehtävien suorittamisesta tai päivittäisten kynnysarvojen saavuttamisesta.\n\n📖 [Ansiomerkkien yleiskatsaus]({documentation_url})",
+        "description": "Määritä päivittäisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat henkilöitä päivittäisten tehtävien suorittamisesta tai päivittäisten kynnysarvojen saavuttamisesta.\n\n ℹ️ [Ansiomerkkien yleiskatsaus]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Lisää kausiluonteinen merkki",
-        "description": "Määritä säännöllisen kunniamerkin tiedot. Nämä kunniamerkit palkitsevat käyttäjiä kynnysarvojen saavuttamisesta määritetyn ajanjakson sisällä ja tukevat jatkuvan suorituskyvyn nollausjaksoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Määritä säännöllisen kunniamerkin tiedot. Nämä kunniamerkit palkitsevat käyttäjiä kynnysarvojen saavuttamisesta määritetyn ajanjakson sisällä ja tukevat jatkuvan suorituskyvyn nollausjaksoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Lisää saavutuksiin liittyvä merkki",
-        "description": "Määritä saavutukseen linkitetyn ansiomerkin tiedot. Nämä ansiomerkit palkitsevat tiettyjen saavutusten suorittamisesta.\n\n[📖 Ansiomerkkien yleiskatsaus]({documentation_url})",
+        "description": "Määritä saavutukseen linkitetyn ansiomerkin tiedot. Nämä ansiomerkit palkitsevat tiettyjen saavutusten suorittamisesta ansainneita.\n\n ℹ️ [Ansiomerkkien yleiskatsaus]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Lisää erityistilaisuusmerkki",
-        "description": "Määritä erityistilaisuuksiin luodun ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansiomerkin saajia esimerkiksi syntymäpäivien tai juhlapyhien yhteydessä.\n\n📖 [Ansiomerkkien yleiskatsaus]({documentation_url})",
+        "description": "Määritä erityistilaisuuksiin luodun ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansiomerkin saajia esimerkiksi syntymäpäivien tai juhlapyhien yhteydessä.\n\n ℹ️ [Ansiomerkkien yleiskatsaus]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Lisää palkinto",
-        "description": "Anna uuden palkinnon tiedot.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna uuden palkinnon tiedot.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Palkinnon nimi",
           "internal_id": "Sisäinen tunnus",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Lisää rangaistus",
-        "description": "Anna uuden rangaistuksen tiedot.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna uuden rangaistuksen tiedot.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Rangaistuksen nimi",
           "penalty_description": "Kuvaus (valinnainen)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Lisää bonus",
-        "description": "Anna uuden bonuksen tiedot.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna uuden bonuksen tiedot.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Bonusnimi",
           "bonus_description": "Kuvaus (valinnainen)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Määrittele saavutus",
-        "description": "Anna tiedot jokaisesta saavutuksesta.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna tiedot jokaisesta saavutuksesta.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Saavutuksen nimi",
           "description": "Kuvaus (valinnainen)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Määrittele haaste",
-        "description": "Anna tiedot jokaiselle haasteelle.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna tiedot jokaiselle haasteelle.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Haasteen nimi",
           "description": "Kuvaus (valinnainen)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Muokkaa käyttäjää",
-        "description": "Muokkaa valitun käyttäjäprofiilin tietoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Muokkaa valitun käyttäjäprofiilin tietoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identiteetti ja profiili",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Muokkaa tehtävää",
-        "description": "Muokkaa valitun työn tietoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Muokkaa valitun työn tietoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Määritelmä",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Muokkaa käyttäjäkohtaisia määräpäiviä: {chore_name}",
-        "description": "Aseta kullekin käyttäjälle erilliset määräajat. Päämuokkauslomakkeen päivämääräkenttä toimii **mallina** kätevästi – käytä sitä asettaaksesi saman päivämäärän nopeasti kaikille käyttäjille alla olevan valintaruudun avulla tai jätä se tyhjäksi ja aseta päivämäärät erikseen tähän.\n\nKentät näytetään seuraaville: {assignee_names}. Jätä tyhjäksi, jos määräaikaa ei ole.{template_date}\n\n📖 [Lisäopas]({documentation_url})",
+        "description": "Aseta kullekin käyttäjälle erilliset määräajat. Päämuokkauslomakkeen päivämääräkenttä toimii **mallina** kätevästi – käytä sitä asettaaksesi saman päivämäärän nopeasti kaikille käyttäjille alla olevan valintaruudun avulla tai jätä se tyhjäksi ja aseta päivämäärät erikseen tähän.\n\nKentät näytetään seuraaville: {assignee_names}. Jätä tyhjäksi, jos määräaikaa ei ole.{template_date}\n\n ℹ️ [Lisäopas]({documentation_url})",
         "data": {
           "apply_template_to_all": "Käytä mallipäivämäärää kaikille käyttäjille"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Määrättyjen vastuiden aikataulu: {chore_name}",
-        "description": "Määritä yksilölliset aikatauluasetukset jokaiselle tähän tehtävään määritetylle henkilölle. Päälomakkeen arvot toimivat **malleina** – käytä valintaruutuja ottaaksesi ne käyttöön kaikille tehtäville tai mukauta kunkin tehtävän asetuksia erikseen.\n\n**Huomautus:** Kaikki alla olevat kentät eivät koske kaikkia tehtäviä. Lomake näyttää dynaamisesti asiaankuuluvat vaihtoehdot suoritustavan, tiheyden ja sen perusteella, onko määräpäiviä asetettu.\n\n**Päivittäinen (useita) kellonaikoja:** Jos näytetään, anna 2–6 kellonaikaa 24 tunnin muodossa erotettuna pystyviivalla |. Esimerkki: 08:00|17:00\n\nTehtävät: {assignee_names}{template_info}\n\n📖 [Lisäopas]({documentation_url})",
+        "description": "Määritä yksilölliset aikatauluasetukset jokaiselle tähän tehtävään määritetylle henkilölle. Päälomakkeen arvot toimivat **malleina** – käytä valintaruutuja ottaaksesi ne käyttöön kaikille tehtäville tai mukauta kunkin tehtäväntekijän asetuksia erikseen.\n\n**Huomautus:** Kaikki alla olevat kentät eivät koske kaikkia tehtäviä. Lomake näyttää dynaamisesti asiaankuuluvat vaihtoehdot suoritustavan, tiheyden ja sen perusteella, onko määräpäiviä asetettu.\n\n**Päivittäinen (useita) kellonaikoja -muoto:** Jos se näkyy, anna 2–6 kellonaikaa 24 tunnin muodossa erotettuna pystyviivalla |. Esimerkki: 08:00|17:00\n\nTehtävät: {assignee_names}{template_info}\n\n ℹ️ [Lisäopas]({documentation_url})",
         "data": {
           "apply_days_to_all": "Käytä mallipäiviä kaikille vastuuhenkilöille",
           "apply_times_to_all": "Käytä mallipohjia kaikille vastuuhenkilöille",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Muokkaa kumulatiivista arvomerkkiä",
-        "description": "Määritä kumulatiivisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansioluettelon saajia elinikäisten pisteiden kynnysarvojen saavuttamisesta ja tukevat ylläpitosyklejä jatkuvan suorituskyvyn kannustamiseksi.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Määritä kumulatiivisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansioluettelon saajia elinikäisten pisteiden kynnysarvojen saavuttamisesta ja tukevat ylläpitosyklejä jatkuvan suorituskyvyn kannustamiseksi.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Muokkaa päivittäistä merkkiä",
-        "description": "Määritä päivittäisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat henkilöitä päivittäisten tehtävien suorittamisesta tai päivittäisten kynnysarvojen saavuttamisesta.\n\n📖 [Ansiomerkkien yleiskatsaus]({documentation_url})",
+        "description": "Määritä päivittäisen ansiomerkin tiedot. Nämä ansiomerkit palkitsevat henkilöitä päivittäisten tehtävien suorittamisesta tai päivittäisten kynnysarvojen saavuttamisesta.\n\n ℹ️ [Ansiomerkkien yleiskatsaus]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Muokkaa kausiluonteista arvomerkkiä",
-        "description": "Määritä säännöllisen kunniamerkin tiedot. Nämä kunniamerkit palkitsevat käyttäjiä kynnysarvojen saavuttamisesta määritetyn ajanjakson sisällä ja tukevat jatkuvan suorituskyvyn nollausjaksoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Määritä säännöllisen kunniamerkin tiedot. Nämä kunniamerkit palkitsevat käyttäjiä kynnysarvojen saavuttamisesta määritetyn ajanjakson sisällä ja tukevat jatkuvan suorituskyvyn nollausjaksoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Muokkaa saavutukseen liittyvää merkkiä",
-        "description": "Määritä saavutukseen linkitetyn ansiomerkin tiedot. Nämä ansiomerkit palkitsevat tiettyjen saavutusten suorittamisesta ansaitsevia henkilöitä.\n\n📖 [Ansiomerkkien yleiskatsaus]({documentation_url})",
+        "description": "Määritä saavutukseen linkitetyn ansiomerkin tiedot. Nämä ansiomerkit palkitsevat tiettyjen saavutusten suorittamisesta ansainneita.\n\n ℹ️ [Ansiomerkkien yleiskatsaus]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Muokkaa erityistilaisuusmerkkiä",
-        "description": "Määritä erityistilaisuuksiin luodun ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansiomerkin saajia esimerkiksi syntymäpäivien tai juhlapyhien yhteydessä.\n\n📖 [Ansiomerkkien yleiskatsaus]({documentation_url})",
+        "description": "Määritä erityistilaisuuksiin luodun ansiomerkin tiedot. Nämä ansiomerkit palkitsevat ansiomerkin saajia esimerkiksi syntymäpäivien tai juhlapyhien yhteydessä.\n\n ℹ️ [Ansiomerkkien yleiskatsaus]({documentation_url})",
         "data": {
           "badge_name": "Merkin nimi",
           "badge_description": "Merkin kuvaus (valinnainen)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Muokkaa palkintoa",
-        "description": "Muokkaa valitun palkinnon tietoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Muokkaa valitun palkinnon tietoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Palkinnon nimi",
           "internal_id": "Sisäinen tunnus",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Muokkaa rangaistusta",
-        "description": "Muokkaa valitun rangaistuksen tietoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Muokkaa valitun rangaistuksen tietoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Rangaistuksen nimi",
           "penalty_description": "Kuvaus (valinnainen)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Muokkaa bonusta",
-        "description": "Muokkaa valitun bonuksen tietoja.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Muokkaa valitun bonuksen tietoja.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Bonusnimi",
           "bonus_description": "Kuvaus (valinnainen)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Määrittele saavutus",
-        "description": "Anna tiedot jokaisesta saavutuksesta.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna tiedot jokaisesta saavutuksesta.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Saavutuksen nimi",
           "description": "Kuvaus (valinnainen)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Määrittele haaste",
-        "description": "Anna tiedot jokaiselle haasteelle.\n\n📖 [Määritysopas]({documentation_url})",
+        "description": "Anna tiedot jokaiselle haasteelle.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "name": "Haasteen nimi",
           "description": "Kuvaus (valinnainen)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Kojelaudan toiminnot",
-        "description": "Luo, päivitä tai poista ChoreOps Lovelace -koontinäyttöjä.\n\n[Koontinäytön määritysopas]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Luo, päivitä tai poista ChoreOps Lovelace -koontinäyttöjä.\n\n ℹ️ [Koontinäytön määritysopas]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Toiminta",
           "dashboard_release_selection": "Kojelaudan julkaisuversio"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Tarkista kojelaudan muutokset",
-        "description": "Tarkista valittujen mallien riippuvuustila ja mallien asetukset ennen kuin otat kojelaudan muutokset käyttöön.\n\n[Kojelaudan määritysopas]({documentation_url})\n\n**Käytettävissä olevat mukautukset**\n{dashboard_template_preferences}\n\n**Puuttuvat pakolliset riippuvuudet**\n{dashboard_missing_required_dependencies}\n\n**Puuttuvat suositellut riippuvuudet**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Tarkista valittujen mallien riippuvuustila ja mallien asetukset ennen kuin otat koontinäytön muutokset käyttöön.\n\n ℹ️ [Kontrollinäytön määritysopas]({documentation_url})\n\n**Käytettävissä olevat mukautukset**\n{dashboard_template_preferences}\n\n**Puuttuvat pakolliset riippuvuudet**\n{dashboard_missing_required_dependencies}\n\n**Puuttuvat suositellut riippuvuudet**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Jatka joka tapauksessa (vaatimukset puuttuvat)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Luo kojelauta",
-        "description": "Anna kojelaudan nimi ja jatka sitten määritykseen.\n\n[Määritysopas]({documentation_url})",
+        "description": "Anna kojelaudan nimi ja jatka sitten määritykseen.\n\n ℹ️ [Määritysopas]({documentation_url})",
         "data": {
           "dashboard_name": "Kojelaudan nimi"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Määritä kojelauta",
-        "description": "Määritä kojelaudan osiot kohteelle **{dashboard}** (tila: {mode}).\n\n[Määritysopas]({documentation_url})",
+        "description": "Määritä kojelaudan osiot kohteelle **{dashboard}** (tila: {mode}).\n\n ℹ️ [Määritysopas]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Käyttäjien katselukerrat",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Yleiset asetukset",
-        "description": "Hallitse ChoreOps-integraation yleisiä asetuksia.\n\n[📖 Lue lisää yleisistä asetuksista]({documentation_url})",
+        "description": "Hallitse ChoreOps-integraation yleisiä asetuksia.\n\n ℹ️ [Lisätietoja yleisistä asetuksista]({documentation_url})",
         "data": {
           "default_chore_points": "Oletuspisteet per työtehtävä",
           "points_adjust_values": "Manuaalisten pisteiden säätöpainikkeiden arvot",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Käyttöliittymän hallinta",
-      "description": "Luo, päivitä tai poista käyttäjäkohtainen käyttöliittymän ohjausarvo, joka on tallennettu käyttäjän pysyvään ui_preferences-säilöön. Käytä tyhjää avainta poistotoiminnon kanssa tyhjentääksesi kaikki tallennetut käyttöliittymän asetukset kohdekäyttäjältä.",
+      "description": "Luo, päivitä tai poista pysyvä käyttöliittymän ohjausobjektin arvo. Oletusarvoisesti tämä kohdistuu yhden käyttäjän ui_preferences-säilöön. Käytä ui_control_target: shared_admin kirjoittaaksesi jaettuun järjestelmänvalvojan käyttöliittymän ohjausobjektiin data/meta-kansiossa. Käytä tyhjää avainta remove-toiminnon kanssa tyhjentääksesi kaikki tallennetut arvot valitulle kohteelle.",
       "fields": {
         "config_entry_id": {
           "name": "Konfiguraatiomerkinnän tunnus (valinnainen)",
@@ -2902,6 +2902,11 @@
           "description": "Valinnainen käyttäjätunnuskohde. Pakollinen, kun käyttäjätunnusta ei ole annettu.",
           "example": "Alice"
         },
+        "ui_control_target": {
+          "name": "Käyttöliittymän ohjausobjekti",
+          "description": "Valitse, kohdistatko yhden käyttäjän vai jaetun järjestelmänvalvojan käyttöliittymän ohjausryhmän. Kun shared_admin on valittu, älä anna käyttäjätunnusta tai käyttäjänimeä.",
+          "example": "käyttäjä"
+        },
         "ui_control_action": {
           "name": "Käyttöliittymän ohjaustoiminto",
           "description": "Valitse, haluatko luoda, päivittää vai poistaa tallennetun käyttöliittymän ohjausobjektin arvon.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Avainpolku",
-          "description": "Viivalla eroteltu käyttöliittymän ohjauspolku, kuten gamification/rewards/header_collapse. Jätä tyhjäksi vain poistotoiminnon kanssa, jos haluat tyhjentää kaikki käyttäjän tallennetut käyttöliittymäasetukset.",
+          "description": "Viivalla eroteltu käyttöliittymän ohjauspolku, kuten gamification/rewards/header_collapse. Jätä tyhjäksi vain, jos valitset poistotoiminnon, jos haluat tyhjentää kaikki valitun kohteen tallennetut arvot.",
           "example": "pelillistäminen/palkinnot/otsikon_kutistus"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Kojelaudan apulainen",
+        "state_attributes": {
+          "purpose": {
+            "name": "Tarkoitus",
+            "state": {
+              "purpose_system_dashboard_helper": "Kokoaa yhteen jaetun järjestelmänvalvojan koontinäytön tilan jaetuille järjestelmänvalvojan korteille"
+            }
+          },
+          "ui_control": {
+            "name": "Käyttöliittymän hallinta"
+          },
+          "integration_entry_id": {
+            "name": "Integrointimerkinnän tunnus"
+          },
+          "dashboard_lookup_key": {
+            "name": "Kojelaudan hakuavain"
+          },
+          "user_dashboard_helpers": {
+            "name": "Käyttäjähallintapaneelin apuohjelmat"
+          },
+          "language": {
+            "name": "Kieli"
+          },
+          "translation_sensor_eid": {
+            "name": "Käännösanturin yksikön tunnus"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Käyttöliittymän kojelaudan apuohjelma",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Anna käyttäjätunnus tai käyttäjänimi kohdistaaksesi yhden käyttäjän."
+    },
+    "ui_control_invalid_target": {
+      "message": "Virheellinen ui_control_target {target}. Sallitut kohteet: käyttäjä, jaettu_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Älä anna käyttäjätunnusta tai käyttäjänimeä, kun ui_control_target on shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Virheellinen käyttöliittymän ohjaustoiminto {action}. Sallitut toiminnot: luonti, päivitys, poistaminen."

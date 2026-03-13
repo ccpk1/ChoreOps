@@ -4,11 +4,11 @@
     "step": {
       "intro": {
         "title": "Vitajte v ChoreOps",
-        "description": "Tento sprievodca vás prevedie nastavením ChoreOps.\n\n[📖 Stručný návod]({documentation_url})"
+        "description": "Tento sprievodca vás prevedie nastavením ChoreOps.\n\n ℹ️ [Stručný návod]({documentation_url})"
       },
       "data_recovery": {
         "title": "Možnosti obnovy dát",
-        "description": "Existujúce údaje ChoreOps nájdené v:\n{storage_path}\n\nNájdených {backup_count} záložných súborov.\n\nČo chcete urobiť?\n\n[📖 Získajte viac informácií o zálohovaní a obnovení]({documentation_url})",
+        "description": "Existujúce údaje ChoreOps nájdené v:\n{storage_path}\n\nNájdených {backup_count} záložných súborov.\n\nČo chcete urobiť?\n\n ℹ️ [Získajte viac informácií o zálohovaní a obnovení]({documentation_url})",
         "data": {
           "backup_selection": "Vyberte možnosť"
         }
@@ -256,7 +256,7 @@
       },
       "badges": {
         "title": "Pridať kumulatívny odznak",
-        "description": "Nakonfigurujte podrobnosti pre kumulatívny odznak. Tieto odznaky odmeňujú pridelených používateľov za dosiahnutie prahových hodnôt bodov za celý život a podporujú cykly údržby s cieľom povzbudiť k neustálemu výkonu.\n\n[📖 Konfiguračná príručka]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre kumulatívny odznak. Tieto odznaky odmeňujú pridelených používateľov za dosiahnutie prahových hodnôt bodov za celý život a podporujú cykly údržby s cieľom povzbudiť k neustálemu výkonu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -517,7 +517,7 @@
     "step": {
       "init": {
         "title": "Možnosti údržby",
-        "description": "Spravujte používateľov, úlohy, odznaky, odmeny, penalizácie, bonusy alebo dokončenie.\n\n[📖 Zobraziť dokumentáciu]({documentation_url})",
+        "description": "Spravujte svoje domáce operácie, gamifikačný engine a systémové nastavenia.\n\n ℹ️ [Zobraziť dokumentáciu]({documentation_url}) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ❤️ _[Podpora upratovania]({sponsor_url})_",
         "data": {
           "menu_selection": "Vyberte možnosť"
         }
@@ -531,7 +531,7 @@
       },
       "challenge_coming_soon": {
         "title": "Výzvy čoskoro",
-        "description": "Výzvy budú sprístupnené v budúcej aktualizácii.\n\nPočas migrácie sa existujúce záznamy o výzvach prevedú na ekvivalentné sledovanie periodických odznakov, aby sa zachoval zámer a správanie pri postupe, kde je to možné. Odznaky prepojené s výzvami sú v tejto verzii odstránené.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Výzvy budú sprístupnené v budúcej aktualizácii.\n\nPočas migrácie sa existujúce záznamy o výzvach prevedú na ekvivalentné sledovanie periodických odznakov, aby sa zachoval zámer a správanie pri napredovaní, kde je to možné. Odznaky prepojené s výzvami sú v tejto verzii odstránené.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {}
       },
       "select_entity": {
@@ -543,7 +543,7 @@
       },
       "manage_points": {
         "title": "Upraviť nastavenia bodov",
-        "description": "Zmeňte označenie, ikonu a predvolené body pre každú úlohu používanú v rámci ChoreOps.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Zmeňte označenie, ikonu a predvolené body pre každú úlohu používanú v rámci ChoreOps.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "points_label": "Označenie bodov",
           "points_icon": "Ikona bodov",
@@ -555,7 +555,7 @@
       },
       "add_user": {
         "title": "Pridať používateľa",
-        "description": "Poskytnite podrobnosti o novom používateľskom profile.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Poskytnite podrobnosti o novom používateľskom profile.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identita a profil",
@@ -605,7 +605,7 @@
       },
       "add_chore": {
         "title": "Pridať domácu úlohu",
-        "description": "Vytvorte novú úlohu s bodmi, zadaniami a opakujúcim sa harmonogramom.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Vytvorte novú úlohu s bodmi, priradeniami a opakujúcim sa harmonogramom.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definícia",
@@ -734,7 +734,7 @@
       },
       "add_badge_cumulative": {
         "title": "Pridať kumulatívny odznak",
-        "description": "Nakonfigurujte podrobnosti pre kumulatívny odznak. Tieto odznaky odmeňujú pridelených používateľov za dosiahnutie prahových hodnôt bodov za celú dobu ich existencie a podporujú cykly údržby s cieľom povzbudiť k neustálemu výkonu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre kumulatívny odznak. Tieto odznaky odmeňujú pridelených používateľov za dosiahnutie prahových hodnôt bodov za celý život a podporujú cykly údržby s cieľom povzbudiť k neustálemu výkonu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -782,7 +782,7 @@
       },
       "add_badge_daily": {
         "title": "Pridať denný odznak",
-        "description": "Nakonfigurujte podrobnosti denného odznaku. Tieto odznaky odmeňujú priradených používateľov za splnenie denných úloh alebo dosiahnutie denných limitov.\n\n📖 [Prehľad odznakov]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti denného odznaku. Tieto odznaky odmeňujú priradených používateľov za splnenie denných úloh alebo dosiahnutie denných prahových hodnôt.\n\n ℹ️ [Prehľad odznakov]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -810,7 +810,7 @@
       },
       "add_badge_periodic": {
         "title": "Pridať pravidelný odznak",
-        "description": "Nakonfigurujte podrobnosti pre pravidelný odznak. Tieto odznaky odmeňujú pridelených používateľov za splnenie prahových hodnôt v rámci definovaného časového obdobia a podporujú cykly resetovania pre priebežný výkon.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre pravidelný odznak. Tieto odznaky odmeňujú pridelených používateľov za splnenie prahových hodnôt v rámci definovaného časového obdobia a podporujú cykly resetovania pre priebežný výkon.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -854,7 +854,7 @@
       },
       "add_badge_achievement": {
         "title": "Pridať odznak prepojený s úspechom",
-        "description": "Nakonfigurujte podrobnosti pre odznak prepojený s úspechom. Tieto odznaky odmeňujú priradených používateľov za splnenie konkrétnych úspechov.\n\n[📖 Prehľad odznakov]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre odznak prepojený s úspechom. Tieto odznaky odmeňujú priradených používateľov za splnenie konkrétnych úspechov.\n\n ℹ️ [Prehľad odznakov]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -878,7 +878,7 @@
       },
       "add_badge_special": {
         "title": "Pridať odznak pre špeciálnu príležitosť",
-        "description": "Nakonfigurujte podrobnosti pre odznak vytvorený pre špeciálne príležitosti. Tieto odznaky odmeňujú osoby, ktorým boli pridelené, za udalosti, ako sú narodeniny alebo sviatky.\n\n📖 [Prehľad odznakov]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre odznak vytvorený pre špeciálne príležitosti. Tieto odznaky odmeňujú osoby, ktorým boli pridelené, za udalosti, ako sú narodeniny alebo sviatky.\n\n ℹ️ [Prehľad odznakov]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -914,7 +914,7 @@
       },
       "add_reward": {
         "title": "Pridať odmenu",
-        "description": "Uveďte podrobnosti o novej odmene.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Uveďte podrobnosti o novej odmene.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov odmeny",
           "internal_id": "Interné ID",
@@ -926,7 +926,7 @@
       },
       "add_penalty": {
         "title": "Pridať trest",
-        "description": "Uveďte podrobnosti o novom treste.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Uveďte podrobnosti o novom treste.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov trestu",
           "penalty_description": "Popis (voliteľné)",
@@ -938,7 +938,7 @@
       },
       "add_bonus": {
         "title": "Pridať bonus",
-        "description": "Uveďte podrobnosti o novom bonuse.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Uveďte podrobnosti o novom bonuse.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov bonusu",
           "bonus_description": "Popis (voliteľné)",
@@ -950,7 +950,7 @@
       },
       "add_achievement": {
         "title": "Definujte úspech",
-        "description": "Zadajte podrobnosti pre každé ocenenie.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Zadajte podrobnosti pre každé ocenenie.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov úspechu",
           "description": "Popis (voliteľné)",
@@ -967,7 +967,7 @@
       },
       "add_challenge": {
         "title": "Definovať výzvu",
-        "description": "Zadajte podrobnosti pre každú výzvu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Zadajte podrobnosti pre každú výzvu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov výzvy",
           "description": "Popis (voliteľné)",
@@ -986,7 +986,7 @@
       },
       "edit_user": {
         "title": "Upraviť používateľa",
-        "description": "Upravte podrobnosti vybraného používateľského profilu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Upravte podrobnosti vybraného používateľského profilu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "sections": {
           "section_identity_profile": {
             "name": "Identita a profil",
@@ -1036,7 +1036,7 @@
       },
       "edit_chore": {
         "title": "Upraviť úlohu",
-        "description": "Upravte podrobnosti vybranej úlohy.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Upravte podrobnosti vybranej úlohy.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "sections": {
           "section_root_form": {
             "name": "Definícia",
@@ -1159,7 +1159,7 @@
       },
       "edit_chore_per_user_dates": {
         "title": "Upraviť termíny pre jednotlivých používateľov: {chore_name}",
-        "description": "Nastavte individuálne termíny pre každého priradeného používateľa. Pole s dátumom v hlavnom formulári na úpravu slúži ako **šablóna** pre pohodlie – použite ho na rýchle použitie rovnakého dátumu pre všetkých používateľov pomocou začiarkavacieho políčka nižšie alebo ho nechajte prázdne a nastavte dátumy jednotlivo tu.\n\nPolia sa zobrazujú pre: {assignee_names}. Nechajte prázdne, ak termín nie je stanovený.{template_date}\n\n📖 [Pokročilý sprievodca]({documentation_url})",
+        "description": "Nastavte individuálne termíny pre každého priradeného používateľa. Pole s dátumom v hlavnom formulári na úpravu slúži ako **šablóna** pre pohodlie – použite ho na rýchle použitie rovnakého dátumu pre všetkých používateľov pomocou začiarkavacieho políčka nižšie alebo ho nechajte prázdne a nastavte dátumy jednotlivo tu.\n\nPolia sa zobrazujú pre: {assignee_names}. Nechajte prázdne, ak termín nie je stanovený.{template_date}\n\n ℹ️ [Pokročilý sprievodca]({documentation_url})",
         "data": {
           "apply_template_to_all": "Použiť dátum šablóny na všetkých používateľov"
         },
@@ -1179,7 +1179,7 @@
       },
       "edit_chore_per_user_details": {
         "title": "Harmonogram pre jednotlivých poverených osôb: {chore_name}",
-        "description": "Nakonfigurujte individuálne nastavenia plánu pre každého priradeného k tejto úlohe. Hlavné hodnoty formulára fungujú ako **šablóny** – použite začiarkavacie políčka na ich použitie pre všetkých priradených osôb alebo prispôsobte nastavenia každej priradenej osoby individuálne.\n\n**Poznámka:** Nie všetky polia nižšie sa vzťahujú na každú úlohu. Formulár dynamicky zobrazuje relevantné možnosti na základe režimu dokončenia, frekvencie a toho, či sú nastavené dátumy dokončenia.\n\n**Formát denných (viaceroch) časov:** Ak sa zobrazuje, zadajte 2 – 6 časov v 24-hodinovom formáte oddelené znakom | (zvislá čiara). Príklad: 08:00|17:00\n\nPriradené osoby: {assignee_names}{template_info}\n\n📖 [Pokročilý sprievodca]({documentation_url})",
+        "description": "Nakonfigurujte individuálne nastavenia plánu pre každého priradeného k tejto úlohe. Hlavné hodnoty formulára fungujú ako **šablóny** – pomocou začiarkavacích políčok ich použite na všetkých priradených osôb alebo prispôsobte nastavenia každej priradenej osoby individuálne.\n\n**Poznámka:** Nie všetky polia nižšie sa vzťahujú na každú úlohu. Formulár dynamicky zobrazuje relevantné možnosti na základe režimu dokončenia, frekvencie a toho, či sú nastavené dátumy dokončenia.\n\n**Formát denných (viaceroch) časov:** Ak sa zobrazuje, zadajte 2 – 6 časov v 24-hodinovom formáte oddelené znakom | (zvislá čiara). Príklad: 08:00|17:00\n\nPriradené osoby: {assignee_names}{template_info}\n\n ℹ️ [Pokročilý sprievodca]({documentation_url})",
         "data": {
           "apply_days_to_all": "Použiť šablónu dní na všetkých priradených osôb",
           "apply_times_to_all": "Použiť šablónové časy na všetkých priradených osôb",
@@ -1193,7 +1193,7 @@
       },
       "edit_badge_cumulative": {
         "title": "Upraviť kumulatívny odznak",
-        "description": "Nakonfigurujte podrobnosti pre kumulatívny odznak. Tieto odznaky odmeňujú pridelených používateľov za dosiahnutie prahových hodnôt bodov za celú dobu ich existencie a podporujú cykly údržby s cieľom povzbudiť k neustálemu výkonu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre kumulatívny odznak. Tieto odznaky odmeňujú pridelených používateľov za dosiahnutie prahových hodnôt bodov za celý život a podporujú cykly údržby s cieľom povzbudiť k neustálemu výkonu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -1241,7 +1241,7 @@
       },
       "edit_badge_daily": {
         "title": "Upraviť denný odznak",
-        "description": "Nakonfigurujte podrobnosti denného odznaku. Tieto odznaky odmeňujú priradených používateľov za splnenie denných úloh alebo dosiahnutie denných limitov.\n\n📖 [Prehľad odznakov]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti denného odznaku. Tieto odznaky odmeňujú priradených používateľov za splnenie denných úloh alebo dosiahnutie denných prahových hodnôt.\n\n ℹ️ [Prehľad odznakov]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -1269,7 +1269,7 @@
       },
       "edit_badge_periodic": {
         "title": "Upraviť pravidelný odznak",
-        "description": "Nakonfigurujte podrobnosti pre pravidelný odznak. Tieto odznaky odmeňujú pridelených používateľov za splnenie prahových hodnôt v rámci definovaného časového obdobia a podporujú cykly resetovania pre priebežný výkon.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre pravidelný odznak. Tieto odznaky odmeňujú pridelených používateľov za splnenie prahových hodnôt v rámci definovaného časového obdobia a podporujú cykly resetovania pre priebežný výkon.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -1313,7 +1313,7 @@
       },
       "edit_badge_achievement": {
         "title": "Upraviť odznak prepojený s úspechom",
-        "description": "Nakonfigurujte podrobnosti pre odznak prepojený s úspechom. Tieto odznaky odmeňujú priradených používateľov za splnenie konkrétnych úspechov.\n\n📖 [Prehľad odznakov]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre odznak prepojený s úspechom. Tieto odznaky odmeňujú priradených používateľov za splnenie konkrétnych úspechov.\n\n ℹ️ [Prehľad odznakov]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -1337,7 +1337,7 @@
       },
       "edit_badge_special": {
         "title": "Upraviť odznak pre špeciálnu príležitosť",
-        "description": "Nakonfigurujte podrobnosti pre odznak vytvorený pre špeciálne príležitosti. Tieto odznaky odmeňujú osoby, ktorým boli pridelené, za udalosti, ako sú narodeniny alebo sviatky.\n\n📖 [Prehľad odznakov]({documentation_url})",
+        "description": "Nakonfigurujte podrobnosti pre odznak vytvorený pre špeciálne príležitosti. Tieto odznaky odmeňujú osoby, ktorým boli pridelené, za udalosti, ako sú narodeniny alebo sviatky.\n\n ℹ️ [Prehľad odznakov]({documentation_url})",
         "data": {
           "badge_name": "Názov odznaku",
           "badge_description": "Popis odznaku (voliteľné)",
@@ -1373,7 +1373,7 @@
       },
       "edit_reward": {
         "title": "Upraviť odmenu",
-        "description": "Upravte podrobnosti vybranej odmeny.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Upravte podrobnosti vybranej odmeny.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov odmeny",
           "internal_id": "Interné ID",
@@ -1385,7 +1385,7 @@
       },
       "edit_penalty": {
         "title": "Upraviť trest",
-        "description": "Upravte podrobnosti vybraného trestu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Upravte podrobnosti o vybranom treste.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov trestu",
           "penalty_description": "Popis (voliteľné)",
@@ -1397,7 +1397,7 @@
       },
       "edit_bonus": {
         "title": "Bonus za úpravu",
-        "description": "Upravte podrobnosti vybraného bonusu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Upravte podrobnosti vybraného bonusu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov bonusu",
           "bonus_description": "Popis (voliteľné)",
@@ -1409,7 +1409,7 @@
       },
       "edit_achievement": {
         "title": "Definujte úspech",
-        "description": "Zadajte podrobnosti pre každé ocenenie.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Zadajte podrobnosti pre každé ocenenie.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov úspechu",
           "description": "Popis (voliteľné)",
@@ -1426,7 +1426,7 @@
       },
       "edit_challenge": {
         "title": "Definovať výzvu",
-        "description": "Zadajte podrobnosti pre každú výzvu.\n\n📖 [Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Zadajte podrobnosti pre každú výzvu.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "name": "Názov výzvy",
           "description": "Popis (voliteľné)",
@@ -1485,7 +1485,7 @@
       },
       "dashboard_generator": {
         "title": "Akcie na ovládacom paneli",
-        "description": "Vytvorenie, aktualizácia alebo odstránenie dashboardov ChoreOps Lovelace.\n\n[Sprievodca konfiguráciou dashboardu]({documentation_url})\n\n{dashboard_status_message}",
+        "description": "Vytvorte, aktualizujte alebo odstráňte dashboardy ChoreOps Lovelace.\n\n ℹ️ [Sprievodca konfiguráciou dashboardu]({documentation_url})\n\n{dashboard_status_message}",
         "data": {
           "dashboard_action": "Akcia",
           "dashboard_release_selection": "Verzia vydania dashboardu"
@@ -1497,7 +1497,7 @@
       },
       "dashboard_missing_dependencies": {
         "title": "Skontrolujte zmeny na hlavnom paneli",
-        "description": "Pred použitím zmien na ovládacom paneli si skontrolujte stav závislostí a preferencie šablón pre vybraté šablóny.\n\n[Sprievodca konfiguráciou ovládacieho panela]({documentation_url})\n\n**Dostupné prispôsobenia**\n{dashboard_template_preferences}\n\n**Chýbajúce požadované závislosti**\n{dashboard_missing_required_dependencies}\n\n**Chýbajúce odporúčané závislosti**\n{dashboard_missing_recommended_dependencies}",
+        "description": "Pred použitím zmien na ovládacom paneli si skontrolujte stav závislostí a preferencie šablón pre vybraté šablóny.\n\n ℹ️ [Sprievodca konfiguráciou ovládacieho panela]({documentation_url})\n\n**Dostupné prispôsobenia**\n{dashboard_template_preferences}\n\n**Chýbajúce požadované závislosti**\n{dashboard_missing_required_dependencies}\n\n**Chýbajúce odporúčané závislosti**\n{dashboard_missing_recommended_dependencies}",
         "data": {
           "dashboard_dependency_bypass": "🚫 Pokračovať aj tak (chýbajú požiadavky)"
         },
@@ -1507,7 +1507,7 @@
       },
       "dashboard_create": {
         "title": "Vytvoriť dashboard",
-        "description": "Zadajte názov ovládacieho panela a potom pokračujte v konfigurácii.\n\n[Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Zadajte názov ovládacieho panela a potom pokračujte v konfigurácii.\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "data": {
           "dashboard_name": "Názov panela s nástrojmi"
         },
@@ -1527,7 +1527,7 @@
       },
       "dashboard_configure": {
         "title": "Konfigurovať ovládací panel",
-        "description": "Nakonfigurujte sekcie ovládacieho panela pre **{dashboard}** (režim: {mode}).\n\n[Sprievodca konfiguráciou]({documentation_url})",
+        "description": "Nakonfigurujte sekcie ovládacieho panela pre **{dashboard}** (režim: {mode}).\n\n ℹ️ [Sprievodca konfiguráciou]({documentation_url})",
         "sections": {
           "section_assignee_views": {
             "name": "Zobrazenia používateľov",
@@ -1624,7 +1624,7 @@
       },
       "manage_general_options": {
         "title": "Všeobecné možnosti",
-        "description": "Spravujte všeobecné nastavenia pre integráciu ChoreOps.\n\n[📖 Získajte viac informácií o všeobecných možnostiach]({documentation_url})",
+        "description": "Spravujte všeobecné nastavenia pre integráciu ChoreOps.\n\n ℹ️ [Získajte viac informácií o všeobecných možnostiach]({documentation_url})",
         "data": {
           "default_chore_points": "Predvolené body za domácu úlohu",
           "points_adjust_values": "Hodnoty tlačidla manuálneho nastavenia bodov",
@@ -2880,7 +2880,7 @@
     },
     "manage_ui_control": {
       "name": "Správa ovládania používateľského rozhrania",
-      "description": "Vytvorte, aktualizujte alebo odstráňte hodnotu ovládacieho prvku používateľského rozhrania pre daného používateľa uloženú v trvalom kontajneri ui_preferences používateľa. Na vymazanie všetkých uložených preferencií používateľského rozhrania pre cieľového používateľa použite prázdny kľúč s akciou odstránenia.",
+      "description": "Vytvorte, aktualizujte alebo odstráňte trvalú hodnotu ovládacieho prvku používateľského rozhrania. Predvolene sa toto nastaví na kontajner ui_preferences jedného používateľa. Na zápis do zdieľaného kontajnera ovládacieho prvku používateľského rozhrania správcu v priečinku data/meta použite ui_control_target:shared_admin. Na vymazanie všetkých uložených hodnôt pre vybraný cieľ použite prázdny kľúč s akciou odstránenia.",
       "fields": {
         "config_entry_id": {
           "name": "ID konfiguračnej položky (voliteľné)",
@@ -2902,6 +2902,11 @@
           "description": "Voliteľné cieľové meno používateľa. Povinné, ak nie je zadané user_id.",
           "example": "Alica"
         },
+        "ui_control_target": {
+          "name": "Cieľ ovládania používateľského rozhrania",
+          "description": "Vyberte, či chcete zacieliť na jedného používateľa alebo na zdieľaný ovládací prvok rozhrania administrátora. Ak je vybratá možnosť shared_admin, nezadávajte user_id ani user_name.",
+          "example": "používateľ"
+        },
         "ui_control_action": {
           "name": "Akcia ovládania používateľského rozhrania",
           "description": "Vyberte, či chcete vytvoriť, aktualizovať alebo odstrániť uloženú hodnotu ovládacieho prvku používateľského rozhrania.",
@@ -2909,7 +2914,7 @@
         },
         "key": {
           "name": "Kľúčová cesta",
-          "description": "Cesta k ovládacím prvkom používateľského rozhrania oddelená lomkou, napríklad gamification/rewards/header_collapse. Ponechajte prázdne iba pri akcii odstránenia, ktorá vymaže všetky uložené nastavenia používateľského rozhrania pre používateľa.",
+          "description": "Cesta k ovládaciemu prvku používateľského rozhrania oddelenému lomítkom, napríklad gamification/rewards/header_collapse. Ponechajte prázdne iba pri akcii odstránenia, ktorá vymaže všetky uložené hodnoty pre vybraný cieľ.",
           "example": "gamifikácia/odmeny/zbalenie_hlavičky"
         },
         "value": {
@@ -4604,6 +4609,35 @@
           }
         }
       },
+      "system_dashboard_helper_sensor": {
+        "name": "Pomocník pre dashboard",
+        "state_attributes": {
+          "purpose": {
+            "name": "Účel",
+            "state": {
+              "purpose_system_dashboard_helper": "Agreguje stav zdieľaného administrátorského panela pre zdieľané administrátorské karty"
+            }
+          },
+          "ui_control": {
+            "name": "Ovládanie používateľského rozhrania"
+          },
+          "integration_entry_id": {
+            "name": "ID vstupu integrácie"
+          },
+          "dashboard_lookup_key": {
+            "name": "Vyhľadávací kľúč na dashboarde"
+          },
+          "user_dashboard_helpers": {
+            "name": "Pomocníci pre používateľský panel"
+          },
+          "language": {
+            "name": "Jazyk"
+          },
+          "translation_sensor_eid": {
+            "name": "ID entity senzora prekladu"
+          }
+        }
+      },
       "assignee_dashboard_helper_sensor": {
         "name": "Pomocník pre dashboard UI",
         "state_attributes": {
@@ -4980,6 +5014,12 @@
     },
     "ui_control_target_required": {
       "message": "Zadajte user_id alebo user_name pre zacielenie na jedného používateľa."
+    },
+    "ui_control_invalid_target": {
+      "message": "Neplatný ui_control_target {target}. Povolené ciele: user, shared_admin."
+    },
+    "ui_control_shared_admin_context_invalid": {
+      "message": "Neuvádzajte user_id ani user_name, keď je ui_control_target nastavené na shared_admin."
     },
     "ui_control_invalid_action": {
       "message": "Neplatná akcia ovládacieho prvku používateľského rozhrania {action}. Povolené akcie: vytvoriť, aktualizovať, odstrániť."
