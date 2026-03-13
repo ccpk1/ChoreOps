@@ -12,6 +12,12 @@
 - Management: a separate profile-selection section sits after the Approval Center and is intended for downstream admin-action cards, not approval filtering.
 - This document covers the supported template-level `pref_*` surface only.
 
+## Color policy note
+
+- This template follows the dashboard theme-first color policy.
+- Home Assistant theme variables remain the default source for colors.
+- The accent preference below is an intentional product-specific exception for approval and claimed-state emphasis and is declared as a template variable for easier long-term maintenance.
+
 ## Card: Approval Center
 
 - `pref_ui_control_key_root` (default: `admin-shared/approval-center`)
@@ -41,6 +47,10 @@
   - Controls whether the collapsed Approval Center header shows the thin full border treatment.
   - Expanded state continues to use the template's admin-specific surfaced styling.
   - Allowed: `true`, `false`.
+
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used by the Approval Center's product-specific approval emphasis.
+  - Applies to summary icon emphasis, lane header accents, approval row chips, and expanded-state border treatments that intentionally use the ChoreOps claim/request accent.
 
 ## Card: Management
 
@@ -104,6 +114,10 @@
 - `pref_chore_management_show_header_thin_border` (default: `true`)
   - Controls whether the collapsed header shows the thin full border treatment.
   - Allowed: `true`, `false`.
+
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used by Chore Management claimed and pending-claim status emphasis.
+  - Applies to the chore-management status color map for claim-related states.
 
 - `pref_chore_selector_column_count` (default: `3`)
   - Reserved for future expanded chore-management layouts.

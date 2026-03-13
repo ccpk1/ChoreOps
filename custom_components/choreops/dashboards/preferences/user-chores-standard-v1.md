@@ -10,6 +10,12 @@
 - Friendly for drag-and-drop workflows: keep defaults for a simple setup, then tune behavior with `pref_*` values.
 - Supports practical organization controls (time buckets, labels, sorting, and state filtering).
 
+## Color policy note
+
+- This template follows the dashboard theme-first color policy.
+- Home Assistant theme variables remain the default source for colors.
+- The accent preferences below are intentional product-specific exceptions for chore-state semantics and are declared as template variables for easier long-term maintenance.
+
 - `pref_chore_row_variant` (default: `standard`)
   - Selects which shared chore row template the Chores card uses.
   - `standard` uses `chore_row_v1`.
@@ -105,6 +111,23 @@
   - When `false`, the description row is always hidden.
   - The kids row variant keeps the simplified tile layout and may ignore description content even when enabled.
   - Allowed: `true`, `false`.
+
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used for claimed and in-progress chore-state treatments.
+  - Applies to shared chore-row variants that opt into the shared accent contract.
+  - Intended as a product-specific accent exception rather than a general theme replacement.
+
+- `pref_due_accent` (default: `#ff9800`)
+  - Accent color used for due-state highlights.
+  - Applies to shared chore-row border, icon, and supporting state treatments.
+
+- `pref_overdue_accent` (default: `#ff4444`)
+  - Accent color used for overdue and missed-state highlights.
+  - Applies to shared chore-row border, icon, and overdue action affordances.
+
+- `pref_steal_accent` (default: `#F2C94C`)
+  - Accent color used for `steal_available` treatments.
+  - Applies to shared chore-row supporting text and action-affordance emphasis.
 
 - `pref_ui_control_key_root` (default: `chores`)
   - Sets the `ui_control` branch used by this chores card.

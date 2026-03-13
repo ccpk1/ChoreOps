@@ -1,6 +1,6 @@
 # Dashboard UI Design Guideline
 
-**Version**: 1.0.0 | **Last Updated**: 2026-03-11
+**Version**: 1.0.1 | **Last Updated**: 2026-03-12
 
 This guide defines the visual system for standard ChoreOps dashboards. Use it with `docs/DASHBOARD_TEMPLATE_GUIDE.md`: the template guide defines build/runtime contracts, while this document defines consistent presentation.
 
@@ -103,6 +103,38 @@ Use these emoji for inline text contexts (for example markdown summaries, compac
 
 ## Card state styling rules
 
+## Color sourcing policy (required)
+
+Dashboard templates must use Home Assistant theme variables as the default color
+source for all presentation work.
+
+Required rules:
+
+- Use Lovelace/Home Assistant theme variables first for text, borders,
+  surfaces, icons, emphasis, and state styling.
+- Do not introduce new hardcoded hex or rgba colors directly inside card
+  rendering logic when an existing theme variable communicates the same meaning.
+- If a non-theme color is intentionally required for product-specific semantics,
+  declare it as a named template variable first and reference that variable from
+  rendering logic.
+- Do not scatter repeated literal color values across multiple cards, style
+  blocks, or inline HTML strings.
+
+Allowed exception class:
+
+- Product-specific accent colors that are intentionally not delegated to the
+  active Home Assistant theme, such as ChoreOps chore-state and reward-state
+  accents, may use non-theme colors.
+- These colors must still be declared as explicit template variables such as
+  `pref_claim_accent`, `pref_due_accent`, `pref_overdue_accent`, or other
+  semantically named variables.
+
+Authoring rule:
+
+- If the color has long-term product meaning, it must have a semantic variable
+  name and a single declaration point in the template or shared template
+  contract.
+
 For blocked or exception states (`waiting`, `missed`, `not_my_turn`, `completed_by_other`):
 
 - Set card opacity to `0.6`
@@ -161,7 +193,10 @@ Placement and visual rules:
 | `completed` | Done          | `#4CAF50`    | `var(--success-color)`      | `mdi:check`         | Green check icon + neutral outline; action disabled |
 | `overdue`   | Overdue       | `#F44336`    | `var(--error-color)`        | `mdi:alert-octagon` | Error-colored action icon + outline                 |
 
-\* Optional theme override for claimed purple:
+\* Claimed state is a product-specific accent exception. Prefer a declared
+template variable such as `pref_claim_accent` in dashboard templates. A Home
+Assistant theme override remains optional when a deployment wants to align that
+accent globally:
 
 ```yaml
 choreops-claimed-color: "#A957FA"
@@ -181,7 +216,7 @@ choreops-claimed-color: "#A957FA"
 - Use `var(--primary-text-color)` as the default action icon color when no state-specific override applies
 - Use a `2px` actionable outline for default claimable states (commonly `var(--primary-color)`)
 - For `completed`, keep action button background transparent, icon `var(--success-color)`, and a neutral outline (`1px` disabled-text)
-- For `steal_available`, use gold emphasis (`#F2C94C`) for the button treatment and keep icon color theme-adaptive (`var(--primary-text-color)`)
+- For `steal_available`, use the declared steal accent variable for the button treatment and keep icon color theme-adaptive (`var(--primary-text-color)`)
 
 ## Collaborative mode behaviors
 
@@ -226,7 +261,9 @@ Steal color application rule:
 
 - Keep primary chore icon visible in all states
 - Map each state to text + icon + color (minimum two channels)
-- Use Lovelace variables first; avoid hardcoding colors where possible
+- Use Lovelace theme variables by default for all colors
+- Declare every intentional non-theme product color as a semantic template variable before use
+- Limit non-theme colors to specific product-purpose accents such as chore and reward state semantics
 - Add sibling context text for `not_my_turn` and `completed_by_other`
 - Keep badge semantics consistent across user/admin templates
 

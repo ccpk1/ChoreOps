@@ -46,6 +46,7 @@ from ..utils.dt_utils import (
     dt_parse,
     dt_parse_duration,
     dt_to_utc,
+    dt_today_iso,
 )
 from .base_manager import BaseManager
 
@@ -3930,6 +3931,66 @@ class ChoreManager(BaseManager):
                 chore_id, assignee_id
             ),
         }
+
+    def chore_counts_toward_due_today_summary(
+        self,
+        assignee_id: str,
+        chore_id: str,
+        *,
+        status_context: dict[str, Any] | None = None,
+        local_today_iso: str | None = None,
+    ) -> bool:
+        """Return if a chore belongs in the assignee's due-today summary.
+
+        This summary is intentionally assignee-actionable, not a group/global view.
+        Chores count when they are relevant for the assignee to act on today:
+        due today by date or already in the assignee-facing due state. Claimed,
+        completed, overdue, missed, and blocked-by-other variants do not count.
+        A waiting-window chore may still count when it is otherwise due today.
+        """
+        context = status_context or self.get_chore_status_context(assignee_id, chore_id)
+        display_state = cast("str | None", context.get(const.CHORE_CTX_STATE))
+        claim_mode = cast("str | None", context.get(const.CHORE_CTX_CLAIM_MODE))
+
+        if display_state in (
+            const.CHORE_STATE_CLAIMED,
+            const.CHORE_STATE_COMPLETED,
+            const.CHORE_STATE_COMPLETED_BY_OTHER,
+            const.CHORE_STATE_NOT_MY_TURN,
+            const.CHORE_STATE_OVERDUE,
+            const.CHORE_STATE_MISSED,
+        ):
+            return False
+
+        if claim_mode in (
+            const.CHORE_CLAIM_MODE_BLOCKED_COMPLETED_BY_OTHER,
+            const.CHORE_CLAIM_MODE_BLOCKED_ALREADY_APPROVED,
+            const.CHORE_CLAIM_MODE_BLOCKED_PENDING_CLAIM,
+            const.CHORE_CLAIM_MODE_BLOCKED_NOT_MY_TURN,
+            const.CHORE_CLAIM_MODE_BLOCKED_MISSED_LOCKED,
+        ):
+            return False
+
+        is_due = context.get(const.CHORE_CTX_IS_DUE) is True
+        due_today = False
+        due_datetime_iso = context.get(const.CHORE_CTX_DUE_DATE)
+        if isinstance(due_datetime_iso, str):
+            due_dt = dt_parse(due_datetime_iso)
+            if isinstance(due_dt, datetime):
+                comparison_local_today_iso = local_today_iso or dt_today_iso()
+                due_today = (
+                    dt_util.as_local(due_dt).date().isoformat()
+                    == comparison_local_today_iso
+                )
+
+        if not due_today and not is_due:
+            return False
+
+        return display_state in (
+            const.CHORE_STATE_PENDING,
+            const.CHORE_STATE_DUE,
+            const.CHORE_STATE_WAITING,
+        )
 
     def get_chore_data_for_assignee(
         self, assignee_id: str, chore_id: str

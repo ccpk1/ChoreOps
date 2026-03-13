@@ -241,6 +241,14 @@ views:
 
                   {%- set pref_show_chore_description = false -%}
 
+                  {%- set pref_claim_accent = '#a957fa' -%}
+
+                  {%- set pref_due_accent = '#ff9800' -%}
+
+                  {%- set pref_overdue_accent = '#ff4444' -%}
+
+                  {%- set pref_steal_accent = '#F2C94C' -%}
+
                   {%- set pref_default_header_collapsed = false -%}
 
                   {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Chores header background when fill is enabled. Allowed: 0-100. --#}

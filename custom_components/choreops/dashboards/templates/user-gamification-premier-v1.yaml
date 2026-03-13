@@ -211,7 +211,7 @@ views:
 
                   {%- set pref_column_count_standard = 1 -%}
 
-                  {%- set pref_column_count_kids = 2 -%}
+                  {%- set pref_column_count_kids = 3 -%}
 
                   {%- set pref_use_overdue_grouping = true -%}
 
@@ -240,6 +240,14 @@ views:
                   {%- set pref_show_chore_description = false -%}
 
                   {%- set pref_default_header_collapsed = false -%}
+
+                  {%- set pref_claim_accent = '#a957fa' -%}  {#-- Accent color for claimed state highlights. --#}
+
+                  {%- set pref_due_accent = '#ff9800' -%}  {#-- Accent color for due state highlights. --#}
+
+                  {%- set pref_overdue_accent = '#ff4444' -%}  {#-- Accent color for overdue and missed state highlights. --#}
+
+                  {%- set pref_steal_accent = '#F2C94C' -%}  {#-- Accent color for steal-available state highlights. --#}
 
                   {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Chores header background when fill is enabled. Allowed: 0-100. --#}
 
@@ -357,9 +365,6 @@ views:
 
                     {%- set points = (states(points_sensor) | int(default=0)) if points_sensor else 0 -%}
                     {%- set points_earned_all_time = (state_attr(points_sensor, 'point_stat_points_earned_all_time') | int(default=0)) if points_sensor else 0 -%}
-                    {%- set points_by_source_all_time = (state_attr(points_sensor, 'point_stat_points_by_source_all_time') if points_sensor else {}) or {} -%}
-                    {%- set bonus_points_all_time = (points_by_source_all_time.get('bonuses', 0) | round(0) | int) if points_by_source_all_time is mapping else 0 -%}
-                    {%- set penalty_points_all_time = (points_by_source_all_time.get('penalties', 0) | round(0) | int) if points_by_source_all_time is mapping else 0 -%}
                     {%- set points_label = (state_attr(points_sensor, 'unit_of_measurement') if points_sensor else None) or 'Points' -%}
                     {%- set points_icon = (state_attr(points_sensor, 'icon') if points_sensor else None) or 'mdi:star-circle' -%}
                     {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if points_sensor else 1 -%}
@@ -380,7 +385,7 @@ views:
                     {%- set maintenance_rank_eid = highest_earned_rank_eid if rank_status == 'demoted' and highest_earned_rank_eid not in ['', 'None', 'unknown', 'unavailable', none] else current_rank_eid -%}
                     {%- set has_any_rank = current_rank_eid not in ['', 'None', 'unknown', 'unavailable', none] -%}
 
-                    {%- set ns = namespace(earned_badges_html='', earned_badges_count=0, total_badge_awards=0) -%}
+                    {%- set ns = namespace(earned_badges_html='', earned_badges_count=0) -%}
                     {%- for badge in badge_list -%}
                       {%- if badge is mapping -%}
                         {%- set badge_earned_raw = badge.get('earned', false) -%}
@@ -392,16 +397,14 @@ views:
                           {%- set badge_name_safe = badge_name | replace('&', '&amp;') | replace('<', '&lt;') | replace('>', '&gt;') -%}
                           {%- set badge_icon = state_attr(badge_entity, 'icon') | default('mdi:medal-outline', true) -%}
                           {%- set badge_earned_count = badge.get('earned_count', 0) | int(default=0) -%}
-                          {%- set badge_count_badge = "<div style='position:absolute;right:-7px;bottom:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--card-background-color);border:1px solid var(--divider-color);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--primary-text-color);line-height:1;'>x" ~ badge_earned_count|string ~ "</div>" if badge_earned_count > 0 else "<div style='position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:999px;background:var(--primary-color);border:2px solid var(--card-background-color);display:flex;align-items:center;justify-content:center;'><ha-icon icon='mdi:check-bold' style='width:11px;height:11px;color:var(--text-primary-color,#fff);'></ha-icon></div>" -%}
+                          {%- set badge_count_badge = "<div style='position:absolute;right:-7px;bottom:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--card-background-color);border:1px solid var(--divider-color);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--primary-text-color);line-height:1;'>x" ~ badge_earned_count|string ~ "</div>" if badge_earned_count > 0 else "<div style='position:absolute;right:-3px;bottom:-3px;width:18px;height:18px;border-radius:999px;background:var(--primary-color);border:2px solid var(--card-background-color);display:flex;align-items:center;justify-content:center;'><ha-icon icon='mdi:check-bold' style='width:11px;height:11px;color:var(--text-primary-color);'></ha-icon></div>" -%}
                           {%- set ns.earned_badges_count = ns.earned_badges_count + 1 -%}
-                          {%- set ns.total_badge_awards = ns.total_badge_awards + badge_earned_count -%}
                           {%- set ns.earned_badges_html = ns.earned_badges_html ~ "<div style='display:flex;flex-direction:column;align-items:center;gap:4px;width:58px;min-width:58px;flex:0 0 auto;'><div style='position:relative;width:42px;height:42px;border-radius:50%;background:color-mix(in srgb, var(--primary-color) 12%, var(--card-background-color));border:1px solid color-mix(in srgb, var(--primary-color) 42%, var(--divider-color));display:flex;align-items:center;justify-content:center;'><ha-icon icon='" ~ badge_icon ~ "' style='width:22px;height:22px;color:var(--primary-color);transform:translateY(-1px);'></ha-icon>" ~ badge_count_badge ~ "</div><div style='width:100%;font-size:9px;line-height:1.15;text-align:center;color:var(--secondary-text-color);white-space:normal;overflow-wrap:anywhere;'>" ~ badge_name_safe ~ "</div></div>" -%}
                         {%- endif -%}
                       {%- endif -%}
                     {%- endfor -%}
 
-                    {%- set badge_summary_text = ns.earned_badges_count|string ~ " • " ~ ns.total_badge_awards|string ~ " " ~ ui.get('times', 'err-times') if ns.total_badge_awards > 0 else ns.earned_badges_count|string -%}
-                    {%- set earned_badges_section = "<div style='margin-top:12px;padding-top:10px;border-top:1px solid var(--divider-color);'><div style='display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;'><div style='display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.35px;text-transform:uppercase;color:var(--secondary-text-color);'><ha-icon icon='mdi:medal' style='width:13px;height:13px;color:var(--primary-color);transform:translateY(-2px);'></ha-icon><span>" ~ ui.get('all_earned_badges', 'err-all_earned_badges') ~ "</span></div><div style='font-size:10px;font-weight:700;color:var(--secondary-text-color);white-space:nowrap;'>" ~ badge_summary_text ~ "</div></div><div style='display:flex;gap:10px;justify-content:flex-start;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;'>" ~ ns.earned_badges_html ~ "</div></div>" if ns.earned_badges_count > 0 else '' -%}
+                    {%- set earned_badges_section = "<div style='margin-top:12px;padding-top:10px;border-top:1px solid var(--divider-color);'><div style='display:inline-flex;align-items:center;justify-content:flex-start;gap:6px;width:auto;max-width:100%;margin-bottom:8px;font-size:11px;font-weight:700;letter-spacing:0.35px;text-transform:uppercase;color:var(--secondary-text-color);'><ha-icon icon='mdi:medal' style='width:13px;height:13px;color:var(--primary-color);transform:translateY(-2px);'></ha-icon><span>" ~ ui.get('all_earned_badges', 'err-all_earned_badges') ~ "</span></div><div style='display:flex;gap:10px;justify-content:flex-start;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;'>" ~ ns.earned_badges_html ~ "</div></div>" if ns.earned_badges_count > 0 else '' -%}
 
                     {%- set compact_row_base = "display:grid;grid-template-columns:18px minmax(0,max-content) minmax(0,1fr);align-items:center;column-gap:8px;padding:5px 0;" -%}
                     {%- set compact_section_base = "margin-top:12px;padding-top:10px;border-top:1px solid var(--divider-color);" -%}
@@ -550,8 +553,8 @@ views:
                       {%- endif -%}
                     {%- endfor -%}
 
-                    {%- set bonus_total_html = "<div style='margin-top:5px;padding-top:5px;padding-bottom:2px;border-top:1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color));display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--secondary-text-color);'><span>" ~ ui.get('total_bonus', 'err-total_bonus') ~ "</span><span style='color:var(--success-color);'>+" ~ bonus_points_all_time|string ~ "</span></div>" -%}
-                    {%- set penalty_total_html = "<div style='margin-top:5px;padding-top:5px;padding-bottom:2px;border-top:1px solid color-mix(in srgb, var(--error-color) 18%, var(--divider-color));display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--secondary-text-color);'><span>" ~ ui.get('total_penalty', 'err-total_penalty') ~ "</span><span style='color:var(--error-color);'>" ~ penalty_points_all_time|string ~ "</span></div>" -%}
+                    {%- set bonus_total_html = "<div style='margin-top:5px;padding-top:5px;padding-bottom:2px;border-top:1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color));display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--secondary-text-color);'><span>" ~ ui.get('total_bonus', 'err-total_bonus') ~ "</span><span style='color:var(--success-color);'>+" ~ ((bonus_ns.total_points | abs | round(0) | int) | string) ~ "</span></div>" -%}
+                    {%- set penalty_total_html = "<div style='margin-top:5px;padding-top:5px;padding-bottom:2px;border-top:1px solid color-mix(in srgb, var(--error-color) 18%, var(--divider-color));display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:700;color:var(--secondary-text-color);'><span>" ~ ui.get('total_penalty', 'err-total_penalty') ~ "</span><span style='color:var(--error-color);'>-" ~ ((penalty_ns.total_points | abs | round(0) | int) | string) ~ "</span></div>" -%}
                     {%- set bonus_card_html = "<div style='padding:8px 10px 12px;border-radius:14px;background:color-mix(in srgb, var(--success-color) 7%, var(--card-background-color));border:1px solid color-mix(in srgb, var(--success-color) 18%, var(--divider-color));display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;'><div style='display:flex;align-items:center;justify-content:flex-start;font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--secondary-text-color);'><span>✨ " ~ ui.get('bonus', 'err-bonus') ~ "</span></div><div style='display:flex;flex-direction:column;justify-content:flex-end;gap:0;min-height:0;padding-top:4px;'>" ~ (bonus_ns.rows_html if bonus_ns.rows_html | length > 0 else "<div style='font-size:12px;color:var(--secondary-text-color);opacity:0.8;'>" ~ ui.get('none', 'err-none') ~ "</div>") ~ bonus_total_html ~ "</div></div>" -%}
                     {%- set penalty_card_html = "<div style='padding:8px 10px 12px;border-radius:14px;background:color-mix(in srgb, var(--error-color) 6%, var(--card-background-color));border:1px solid color-mix(in srgb, var(--error-color) 18%, var(--divider-color));display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;'><div style='display:flex;align-items:center;justify-content:flex-start;font-size:12px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--secondary-text-color);'><span>💥 " ~ ui.get('penalty', 'err-penalty') ~ "</span></div><div style='display:flex;flex-direction:column;justify-content:flex-end;gap:0;min-height:0;padding-top:4px;'>" ~ (penalty_ns.rows_html if penalty_ns.rows_html | length > 0 else "<div style='font-size:12px;color:var(--secondary-text-color);opacity:0.8;'>" ~ ui.get('none', 'err-none') ~ "</div>") ~ penalty_total_html ~ "</div></div>" -%}
                     {%- set adjustment_section = "<div style='" ~ compact_section_base ~ "'><div style='display:grid;grid-template-columns:" ~ ('minmax(0,1fr)' if effective_hide_penalties else 'repeat(2,minmax(0,1fr))') ~ ";gap:10px;align-items:stretch;'>" ~ bonus_card_html ~ ('' if effective_hide_penalties else penalty_card_html) ~ "</div></div>" -%}
@@ -845,6 +848,8 @@ views:
 
                   {%- set pref_default_header_collapsed = false -%}
 
+                  {%- set pref_claim_accent = '#a957fa' -%}  {#-- Accent color for requested reward state and actions. --#}
+
                   {%- set pref_primary_tint_mix_pct = 14 -%}  {#-- Percent of var(--primary-color) mixed into the main Rewards header background when fill is enabled. Allowed: 0-100. --#}
 
                   {%- set pref_show_header_background = true -%}  {#-- Set to false to remove the main Rewards header background fill and leave it transparent. Allowed: true, false. --#}
@@ -859,6 +864,7 @@ views:
                   {%- set pref_label_display_order = pref_label_display_order if pref_label_display_order is iterable and pref_label_display_order is not string else [] -%}
                   {%- set pref_show_reward_description = (pref_show_reward_description | default('true') | string | lower) == 'true' -%}
                   {%- set pref_default_header_collapsed = (pref_default_header_collapsed | default('false') | string | lower) == 'true' -%}
+                  {%- set pref_claim_accent = pref_claim_accent | default('#a957fa', true) | string -%}
                   {%- set pref_primary_tint_mix_pct = pref_primary_tint_mix_pct | int(default=14) -%}
                   {%- set pref_show_header_background = (pref_show_header_background | default('true') | string | lower) == 'true' -%}
                   {%- set pref_show_header_thin_border = (pref_show_header_thin_border | default('true') | string | lower) == 'true' -%}
@@ -1213,19 +1219,19 @@ views:
                               {%- endif -%}
 
                               {%- set row_icon_color = (
-                                '#a957fa' if reward_state == 'requested' else
+                                pref_claim_accent if reward_state == 'requested' else
                                 'var(--primary-color)' if reward_state == 'available' else
                                 'var(--success-color)' if reward_state == 'approved' else
                                   'var(--secondary-text-color)'
                               ) -%}
                               {%- set row_border_color = (
-                                '#a957fa' if reward_state == 'requested' else
+                                pref_claim_accent if reward_state == 'requested' else
                                 'var(--divider-color)' if reward_state == 'available' else
                                 'var(--success-color)' if reward_state == 'approved' else
                                   'var(--divider-color)'
                               ) -%}
                               {%- set row_background = (
-                                'color-mix(in srgb, #a957fa 10%, var(--card-background-color))' if reward_state == 'requested' else
+                                'color-mix(in srgb, ' ~ pref_claim_accent ~ ' 10%, var(--card-background-color))' if reward_state == 'requested' else
                                 'var(--card-background-color)' if reward_state in ['available', 'approved'] else
                                   'var(--secondary-background-color)'
                               ) -%}
@@ -1257,12 +1263,12 @@ views:
                                           {'height': '30px'},
                                           {'border-radius': '50%'},
                                           {'background-color': 'transparent'},
-                                          {'border': '1px solid #a957fa'},
+                                          {'border': '1px solid ' ~ pref_claim_accent},
                                           {'box-shadow': 'none'}
                                         ],
                                         'icon': [
                                           {'width': '17px'},
-                                          {'color': '#a957fa'}
+                                          {'color': pref_claim_accent}
                                         ]
                                       },
                                       'tap_action': ({ 'action': 'call-service', 'service': 'button.press', 'target': {'entity_id': secondary_button_eid } } if secondary_button_eid else { 'action': 'none' })
@@ -1279,8 +1285,8 @@ views:
                                           {'width': '30px'},
                                           {'height': '30px'},
                                           {'border-radius': '50%'},
-                                          {'background-color': 'transparent' if primary_button_is_locked else ('color-mix(in srgb, #a957fa 14%, var(--card-background-color))' if reward_state == 'requested' else 'transparent')},
-                                          {'border': '1px solid var(--disabled-text-color)' if primary_button_is_locked else ('2px solid #a957fa' if reward_state == 'requested' else '2px solid var(--primary-color)')},
+                                          {'background-color': 'transparent' if primary_button_is_locked else ('color-mix(in srgb, ' ~ pref_claim_accent ~ ' 14%, var(--card-background-color))' if reward_state == 'requested' else 'transparent')},
+                                          {'border': '1px solid var(--disabled-text-color)' if primary_button_is_locked else ('2px solid ' ~ pref_claim_accent if reward_state == 'requested' else '2px solid var(--primary-color)')},
                                           {'box-shadow': 'none'}
                                         ],
                                         'icon': [

@@ -6,9 +6,7 @@
 [![Latest DL](https://img.shields.io/github/downloads-pre/ccpk1/choreops/latest/total?label=Latest%20DL&color=1E88E5)](https://github.com/ccpk1/choreops/releases)
 [![Total DL](https://img.shields.io/github/downloads-pre/ccpk1/choreops/total?label=Total%20DL&color=1E88E5)](https://github.com/ccpk1/choreops/releases)<br>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/ccpk1/choreops/main/custom_components/choreops/brand/logo.png" alt="ChoreOps - Level Up your Household Tasks" width="500">
-</p>
+![ChoreOps - Level Up Your Household Tasks](https://raw.githubusercontent.com/ccpk1/choreops/main/docs/assets/hero-choreops.png)
 
 ---
 
@@ -28,7 +26,6 @@ If ChoreOps helps keep your household running smoothly, consider fueling its dev
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/ccpk1)
 
 ---
-
 ### Run It Your Way
 
 **Whether you need a full XP/Reward economy for the kids, or a silent "Operations Center" for housemates, ChoreOps adapts to you.**

@@ -48,6 +48,8 @@ views:
 
               {%- set pref_show_header_thin_border = true -%}
 
+              {%- set pref_claim_accent = '#a957fa' -%}
+
               {#-- 2. Dynamic Lookups & Validations --#}
 
               << template_snippets.admin_setup_peruser >>
@@ -157,7 +159,7 @@ views:
                     'show_state': False,
                     'show_icon': True,
                     'icon': 'mdi:account-circle',
-                    'icon_color': '#A957FA',
+                    'icon_color': pref_claim_accent,
                     'name': helper_name,
                     'tap_action': {'action': 'none'},
                     'hold_action': {'action': 'more-info'},
@@ -236,9 +238,9 @@ views:
                             {'padding': '9px 12px'},
                             {'border-radius': '14px'},
                             {'box-shadow': 'none'},
-                            {'border': '1px solid color-mix(in srgb, #A957FA 14%, var(--divider-color))'},
+                            {'border': '1px solid color-mix(in srgb, ' ~ pref_claim_accent ~ ' 14%, var(--divider-color))'},
                             {'background-color': 'var(--card-background-color)'},
-                            {'border-left': '3px solid #A957FA'}
+                            {'border-left': '3px solid ' ~ pref_claim_accent}
                           ],
                           'grid': [
                             {'grid-template-areas': '"kind title btn_return btn_approve" "kind meta btn_return btn_approve"'},
@@ -288,7 +290,7 @@ views:
                           }
                         },
                         'custom_fields': {
-                          'kind': "<div style='width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(169,87,250,0.08);border:1px solid rgba(169,87,250,0.24);'><ha-icon icon='" ~ item_icon ~ "' style='width:18px;height:18px;color:#A957FA;transform:translateY(-3px);'></ha-icon></div>",
+                          'kind': "<div style='width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, " ~ pref_claim_accent ~ " 8%, transparent);border:1px solid color-mix(in srgb, " ~ pref_claim_accent ~ " 24%, transparent);'><ha-icon icon='" ~ item_icon ~ "' style='width:18px;height:18px;color:" ~ pref_claim_accent ~ ";transform:translateY(-3px);'></ha-icon></div>",
                           'title': entry.chore_name | default('', true),
                           'meta': meta_text,
                           'btn_return': {
@@ -388,9 +390,9 @@ views:
                             {'padding': '9px 12px'},
                             {'border-radius': '14px'},
                             {'box-shadow': 'none'},
-                            {'border': '1px solid color-mix(in srgb, #A957FA 14%, var(--divider-color))'},
+                            {'border': '1px solid color-mix(in srgb, ' ~ pref_claim_accent ~ ' 14%, var(--divider-color))'},
                             {'background-color': 'var(--card-background-color)'},
-                            {'border-left': '3px solid #A957FA'}
+                            {'border-left': '3px solid ' ~ pref_claim_accent}
                           ],
                           'grid': [
                             {'grid-template-areas': '"kind title btn_return btn_approve" "kind meta btn_return btn_approve"'},
@@ -440,7 +442,7 @@ views:
                           }
                         },
                         'custom_fields': {
-                          'kind': "<div style='width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(169,87,250,0.08);border:1px solid rgba(169,87,250,0.24);'><ha-icon icon='" ~ item_icon ~ "' style='width:18px;height:18px;color:#A957FA;transform:translateY(-3px);'></ha-icon></div>",
+                          'kind': "<div style='width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, " ~ pref_claim_accent ~ " 8%, transparent);border:1px solid color-mix(in srgb, " ~ pref_claim_accent ~ " 24%, transparent);'><ha-icon icon='" ~ item_icon ~ "' style='width:18px;height:18px;color:" ~ pref_claim_accent ~ ";transform:translateY(-3px);'></ha-icon></div>",
                           'title': entry.reward_name | default('', true),
                           'meta': meta_text,
                           'btn_return': {
@@ -542,7 +544,7 @@ views:
                 'show_state': False,
                 'show_icon': True,
                 'icon': 'mdi:clipboard-check-multiple-outline',
-                'icon_color': '#A957FA',
+                'icon_color': pref_claim_accent,
                 'name': ui.get('approval_center', 'err-approval_center'),
                 'label': ui.get('review_chores_and_rewards_waiting_for_approval', 'err-review_chores_and_rewards_waiting_for_approval'),
                 'tap_action': ({
@@ -579,7 +581,7 @@ views:
                     {'padding': '14px 16px'},
                     {'border-radius': '16px'},
                     {'box-shadow': 'none'},
-                    {'border': ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_show_header_thin_border else 'none' if header_collapsed else '1px solid color-mix(in srgb, #A957FA 18%, var(--divider-color))'},
+                    {'border': ('1px solid color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--divider-color))') if header_collapsed and pref_show_header_thin_border else 'none' if header_collapsed else '1px solid color-mix(in srgb, ' ~ pref_claim_accent ~ ' 18%, var(--divider-color))'},
                     {'background-color': ('color-mix(in srgb, var(--primary-color) ' ~ pref_primary_tint_mix_pct|string ~ '%, var(--card-background-color))') if header_collapsed and pref_show_header_background else 'transparent' if header_collapsed else 'color-mix(in srgb, var(--secondary-background-color) 72%, var(--card-background-color))'}
                   ],
                   'grid': [
@@ -924,6 +926,8 @@ views:
               {%- set pref_chore_management_show_header_background = true -%}
 
               {%- set pref_chore_management_show_header_thin_border = true -%}
+
+              {%- set pref_claim_accent = '#a957fa' -%}
 
               {%- set pref_chore_selector_column_count = 3 -%}
 
@@ -1322,10 +1326,10 @@ views:
                 {%- set status_color_map = {
                   'pending': 'var(--primary-text-color)',
                   'due': 'var(--warning-color)',
-                  'claimed': '#a957fa',
-                  'claimed_in_part': '#a957fa',
-                  'pending_claim': '#a957fa',
-                  'blocked_pending_claim': '#a957fa',
+                  'claimed': pref_claim_accent,
+                  'claimed_in_part': pref_claim_accent,
+                  'pending_claim': pref_claim_accent,
+                  'blocked_pending_claim': pref_claim_accent,
                   'completed': 'var(--success-color)',
                   'completed_in_part': 'var(--success-color)',
                   'overdue': 'var(--error-color)',
@@ -1487,7 +1491,7 @@ views:
                   {%- set show_selected_overdue_reset = raw_chore_state in ['overdue', 'missed'] and selected_user_name not in ['', 'None', 'none', 'unknown', 'unavailable'] and integration_entry_id not in ['', None, 'None'] -%}
                   {%- set status_pills = "<div style='display:flex;flex-direction:column;align-items:flex-end;gap:6px;'>" -%}
                   {%- set status_pills = status_pills ~ "<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid color-mix(in srgb, " ~ current_status_color ~ " 18%, var(--divider-color));background:color-mix(in srgb, " ~ current_status_color ~ " 8%, var(--card-background-color));font-size:11px;font-weight:600;line-height:1;color:" ~ current_status_color ~ ";'>" ~ current_status_display ~ "</span>" -%}
-                  {%- if global_status_display != current_status_display -%}
+                  {%- if global_status_display != current_status_display and completion_type_key != 'independent' -%}
                     {%- set status_pills = status_pills ~ "<span style='display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid color-mix(in srgb, " ~ global_status_color ~ " 18%, var(--divider-color));background:color-mix(in srgb, " ~ global_status_color ~ " 8%, var(--card-background-color));font-size:11px;font-weight:600;line-height:1;color:" ~ global_status_color ~ ";'>" ~ global_status_display ~ "</span>" -%}
                   {%- endif -%}
                   {%- set status_pills = status_pills ~ "</div>" -%}
@@ -2330,8 +2334,12 @@ views:
                 {%- set points_total_display = states(points_sensor) if has_points_sensor and states(points_sensor) not in ['unknown', 'unavailable', 'None', ''] else '0' -%}
                 {%- set header_collapsed = selected_user_ui_root.current['header-collapse'] if has_header_collapsed_override else pref_economy_management_default_header_collapsed -%}
                 {%- set header_collapsed = (header_collapsed | string | lower) == 'true' -%}
-                {%- set economy_label = ui.get('manage_manual_adjustments', 'err-manage_manual_adjustments') if has_selected_user else ui.get('select_user_first', 'err-select_user_first') -%}
-                {%- set economy_label_html = economy_label -%}
+                {%- set economy_label = ui.get('manage_for', 'Manage for') if has_selected_user else ui.get('select_user_first', 'err-select_user_first') -%}
+                {%- set economy_label_html = (
+                  "<span style='color:var(--secondary-text-color);'>" ~ ui.get('manage_for', 'Manage for') ~ ":</span> <span style='font-weight:700;color:var(--primary-text-color);'>" ~ (selected_user_name | e) ~ "</span>"
+                  if has_selected_user
+                  else economy_label
+                ) -%}
                 {%- set points_total_numeric = points_total_display | float(default=0) -%}
                 {%- set points_total_compact = points_total_numeric | round(0) | int | string -%}
                 {%- set points_multiplier = (state_attr(points_sensor, 'points_multiplier') | float(default=1)) if has_points_sensor else 1 -%}
@@ -2340,6 +2348,9 @@ views:
                 {%- set points_week_earned_text = (points_week_earned | round(0) | int) | string -%}
                 {%- set points_avg_per_day_week = (state_attr(points_sensor, 'point_stat_avg_points_per_day_week') | float(default=0)) if has_points_sensor else 0 -%}
                 {%- set points_avg_per_day_text = (points_avg_per_day_week | round(0) | int) | string -%}
+                  {%- set points_by_source_all_time = (state_attr(points_sensor, 'point_stat_points_by_source_all_time') if has_points_sensor else {}) or {} -%}
+                  {%- set bonus_points_all_time = (points_by_source_all_time.get('bonuses', 0) | round(0) | int) if points_by_source_all_time is mapping else 0 -%}
+                  {%- set penalty_points_all_time = (points_by_source_all_time.get('penalties', 0) | round(0) | int) if points_by_source_all_time is mapping else 0 -%}
                 {%- set button_grid_columns = 6 -%}
                 {%- set bonus_ns = namespace(rows_html='', top_count=0, total_points=0, total_applied=0) -%}
                 {%- for bonus in bonus_list | sort(attribute='applied', reverse=true) -%}
@@ -2390,8 +2401,14 @@ views:
                   'show_label': False,
                   'show_state': False,
                   'show_icon': False,
-                  'tap_action': {'action': 'none'},
-                  'hold_action': {'action': 'more-info'} if has_points_sensor else {'action': 'none'},
+                  'tap_action': ({
+                    'action': 'more-info',
+                    'entity': points_sensor
+                  } if has_points_sensor else {'action': 'none'}),
+                  'hold_action': ({
+                    'action': 'more-info',
+                    'entity': points_sensor
+                  } if has_points_sensor else {'action': 'none'}),
                   'custom_fields': {
                     'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='display:flex;align-items:flex-start;justify-content:space-between;gap:14px;'><div style='min-width:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>" ~ ui.get('available', 'err-available') ~ "</div><div style='margin-top:6px;font-size:30px;font-weight:800;line-height:1;color:var(--primary-text-color);'>" ~ points_total_compact ~ "</div><div style='margin-top:5px;font-size:13px;font-weight:600;color:var(--secondary-text-color);'>" ~ points_label ~ "</div>" ~ hero_metrics_html ~ "</div><div style='display:flex;align-items:center;justify-content:center;flex:0 0 auto;'><ha-icon icon='" ~ points_icon ~ "' style='width:30px;height:30px;color:var(--primary-color);'></ha-icon></div></div></div>"
                   },
@@ -2765,62 +2782,223 @@ views:
                   'square': False,
                   'cards': penalty_action_cards.items
                 } -%}
+                  {%- set show_bonus_history_action = has_points_sensor -%}
+                  {%- set show_penalty_history_action = has_points_sensor -%}
+                  {%- set show_bonus_clear_action = bonus_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] -%}
+                  {%- set show_penalty_clear_action = penalty_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] -%}
+                  {%- set bonus_all_time_html = ("<span style='display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--success-color) 10%, var(--divider-color));background:color-mix(in srgb, var(--success-color) 3%, var(--card-background-color));font-size:10px;font-weight:600;line-height:1.2;color:var(--secondary-text-color);transform:translateY(-3px);'>" ~ ui.get('all_time', 'All time') ~ ": " ~ (((bonus_points_all_time | abs) | round(0) | int) | string) ~ "</span>") if show_bonus_history_action else '' -%}
+                  {%- set penalty_all_time_html = ("<span style='display:inline-flex;align-items:center;margin-left:8px;padding:3px 10px;border-radius:999px;border:1px solid color-mix(in srgb, var(--error-color) 10%, var(--divider-color));background:color-mix(in srgb, var(--error-color) 3%, var(--card-background-color));font-size:10px;font-weight:600;line-height:1.2;color:var(--secondary-text-color);transform:translateY(-3px);'>" ~ ui.get('all_time', 'All time') ~ ": -" ~ (((penalty_points_all_time | abs) | round(0) | int) | string) ~ "</span>") if show_penalty_history_action else '' -%}
+                  {%- set bonus_history_action_card = {
+                    'type': 'custom:button-card',
+                    'entity': points_sensor,
+                    'name': ui.get('all_time', 'All time') ~ ': ' ~ (((bonus_points_all_time | abs) | round(0) | int) | string),
+                    'show_icon': False,
+                    'show_name': True,
+                    'tap_action': {
+                      'action': 'more-info',
+                      'entity': points_sensor
+                    },
+                    'hold_action': {
+                      'action': 'more-info',
+                      'entity': points_sensor
+                    },
+                    'styles': {
+                      'card': [
+                        {'width': 'auto'},
+                        {'min-width': '108px'},
+                        {'height': '36px'},
+                        {'padding': '0 10px'},
+                        {'border-radius': '999px'},
+                        {'box-shadow': 'none'},
+                        {'border': '1px solid color-mix(in srgb, var(--success-color) 10%, var(--divider-color))'},
+                        {'background': 'color-mix(in srgb, var(--success-color) 3%, var(--card-background-color))'}
+                      ],
+                      'grid': [
+                        {'grid-template-areas': '"n"'},
+                        {'grid-template-columns': '1fr'},
+                        {'align-items': 'center'},
+                        {'justify-content': 'center'}
+                      ],
+                      'name': [
+                        {'font-size': '10px'},
+                        {'font-weight': '600'},
+                        {'line-height': '1'},
+                        {'color': 'var(--secondary-text-color)'}
+                      ]
+                    }
+                  } -%}
+                  {%- set penalty_history_action_card = {
+                    'type': 'custom:button-card',
+                    'entity': points_sensor,
+                    'name': ui.get('all_time', 'All time') ~ ': ' ~ (((penalty_points_all_time | abs) | round(0) | int) | string),
+                    'show_icon': False,
+                    'show_name': True,
+                    'tap_action': {
+                      'action': 'more-info',
+                      'entity': points_sensor
+                    },
+                    'hold_action': {
+                      'action': 'more-info',
+                      'entity': points_sensor
+                    },
+                    'styles': {
+                      'card': [
+                        {'width': 'auto'},
+                        {'min-width': '108px'},
+                        {'height': '36px'},
+                        {'padding': '0 10px'},
+                        {'border-radius': '999px'},
+                        {'box-shadow': 'none'},
+                        {'border': '1px solid color-mix(in srgb, var(--error-color) 10%, var(--divider-color))'},
+                        {'background': 'color-mix(in srgb, var(--error-color) 3%, var(--card-background-color))'}
+                      ],
+                      'grid': [
+                        {'grid-template-areas': '"n"'},
+                        {'grid-template-columns': '1fr'},
+                        {'align-items': 'center'},
+                        {'justify-content': 'center'}
+                      ],
+                      'name': [
+                        {'font-size': '10px'},
+                        {'font-weight': '600'},
+                        {'line-height': '1'},
+                        {'color': 'var(--secondary-text-color)'}
+                      ]
+                    }
+                  } -%}
+                  {%- set bonus_clear_action_card = {
+                    'type': 'custom:button-card',
+                    'icon': 'mdi:eraser',
+                    'name': ui.get('clear_applied', 'Clear applied'),
+                    'show_icon': True,
+                    'show_name': True,
+                    'tap_action': {
+                      'action': 'call-service',
+                      'service': 'choreops.reset_transactional_data',
+                      'data': {
+                        'config_entry_id': integration_entry_id,
+                        'confirm_destructive': True,
+                        'scope': 'user',
+                        'user_name': selected_user_name,
+                        'item_type': 'bonuses'
+                      }
+                    },
+                    'hold_action': {'action': 'none'},
+                    'styles': {
+                      'card': [
+                        {'width': 'auto'},
+                        {'min-width': '108px'},
+                        {'height': '36px'},
+                        {'padding': '0 10px'},
+                        {'border-radius': '999px'},
+                        {'box-shadow': 'none'},
+                        {'border': '1px solid color-mix(in srgb, var(--success-color) 22%, var(--divider-color))'},
+                        {'background': 'color-mix(in srgb, var(--success-color) 9%, var(--card-background-color))'}
+                      ],
+                      'grid': [
+                        {'grid-template-areas': '"i n"'},
+                        {'grid-template-columns': 'min-content min-content'},
+                        {'column-gap': '6px'},
+                        {'align-items': 'center'}
+                      ],
+                      'img_cell': [
+                        {'width': '14px'},
+                        {'height': '14px'},
+                        {'justify-self': 'center'},
+                        {'align-self': 'center'}
+                      ],
+                      'icon': [
+                        {'width': '14px'},
+                        {'color': 'var(--success-color)'}
+                      ],
+                      'name': [
+                        {'font-size': '10px'},
+                        {'font-weight': '700'},
+                        {'line-height': '1'},
+                        {'color': 'var(--primary-text-color)'}
+                      ]
+                    }
+                  } -%}
+                  {%- set penalty_clear_action_card = {
+                    'type': 'custom:button-card',
+                    'icon': 'mdi:eraser',
+                    'name': ui.get('clear_applied', 'Clear applied'),
+                    'show_icon': True,
+                    'show_name': True,
+                    'tap_action': {
+                      'action': 'call-service',
+                      'service': 'choreops.reset_transactional_data',
+                      'data': {
+                        'config_entry_id': integration_entry_id,
+                        'confirm_destructive': True,
+                        'scope': 'user',
+                        'user_name': selected_user_name,
+                        'item_type': 'penalties'
+                      }
+                    },
+                    'hold_action': {'action': 'none'},
+                    'styles': {
+                      'card': [
+                        {'width': 'auto'},
+                        {'min-width': '108px'},
+                        {'height': '36px'},
+                        {'padding': '0 10px'},
+                        {'border-radius': '999px'},
+                        {'box-shadow': 'none'},
+                        {'border': '1px solid color-mix(in srgb, var(--error-color) 22%, var(--divider-color))'},
+                        {'background': 'color-mix(in srgb, var(--error-color) 8%, var(--card-background-color))'}
+                      ],
+                      'grid': [
+                        {'grid-template-areas': '"i n"'},
+                        {'grid-template-columns': 'min-content min-content'},
+                        {'column-gap': '6px'},
+                        {'align-items': 'center'}
+                      ],
+                      'img_cell': [
+                        {'width': '14px'},
+                        {'height': '14px'},
+                        {'justify-self': 'center'},
+                        {'align-self': 'center'}
+                      ],
+                      'icon': [
+                        {'width': '14px'},
+                        {'color': 'var(--error-color)'}
+                      ],
+                      'name': [
+                        {'font-size': '10px'},
+                        {'font-weight': '700'},
+                        {'line-height': '1'},
+                        {'color': 'var(--primary-text-color)'}
+                      ]
+                    }
+                  } -%}
+                  {%- set bonus_action_cards_row = [bonus_clear_action_card] if show_bonus_clear_action else [] -%}
+                  {%- set penalty_action_cards_row = [penalty_clear_action_card] if show_penalty_clear_action else [] -%}
                 {%- set bonus_showcase_card = {
                   'type': 'custom:button-card',
-                  'entity': selected_dashboard_helper,
+                  'entity': points_sensor if has_points_sensor else selected_dashboard_helper,
                   'show_icon': False,
                   'show_name': False,
                   'show_state': False,
                   'show_label': False,
-                  'tap_action': {'action': 'none'},
-                  'hold_action': {'action': 'none'},
+                  'tap_action': ({
+                    'action': 'more-info',
+                    'entity': points_sensor
+                  } if has_points_sensor else {'action': 'none'}),
+                  'hold_action': ({
+                    'action': 'more-info',
+                    'entity': points_sensor
+                  } if has_points_sensor else {'action': 'none'}),
                   'custom_fields': {
-                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>✨ " ~ ui.get('bonus', 'err-bonus') ~ "</div><div style='margin-top:8px;font-size:24px;font-weight:800;line-height:1;color:var(--success-color);'>+" ~ ((bonus_ns.total_points | abs | round(0) | int) | string) ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ bonus_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>✨ " ~ ui.get('bonus', 'err-bonus') ~ "</div><div style='margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;'><span style='font-size:24px;font-weight:800;line-height:1;color:var(--success-color);'>+" ~ ((bonus_ns.total_points | abs | round(0) | int) | string) ~ "</span>" ~ bonus_all_time_html ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ bonus_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
                     'action': ({
                       'card': {
-                        'type': 'custom:button-card',
-                            'icon': 'mdi:eraser',
-                        'name': ui.get('clear_applied', 'Clear applied'),
-                        'show_icon': True,
-                        'show_name': True,
-                        'tap_action': {
-                          'action': 'call-service',
-                          'service': 'choreops.reset_transactional_data',
-                          'data': {
-                            'config_entry_id': integration_entry_id,
-                            'confirm_destructive': True,
-                            'scope': 'user',
-                            'user_name': selected_user_name,
-                            'item_type': 'bonuses'
-                          }
-                        },
-                        'hold_action': {'action': 'none'},
-                        'styles': {
-                          'card': [
-                            {'padding': '6px 10px'},
-                            {'border-radius': '999px'},
-                            {'box-shadow': 'none'},
-                            {'border': '1px solid color-mix(in srgb, var(--success-color) 22%, var(--divider-color))'},
-                            {'background': 'color-mix(in srgb, var(--success-color) 9%, var(--card-background-color))'}
-                          ],
-                          'grid': [
-                            {'grid-template-areas': '"i n"'},
-                            {'grid-template-columns': 'min-content min-content'},
-                            {'column-gap': '6px'},
-                            {'align-items': 'center'}
-                          ],
-                          'icon': [
-                            {'width': '13px'},
-                            {'color': 'var(--success-color)'}
-                          ],
-                          'name': [
-                            {'font-size': '10px'},
-                            {'font-weight': '700'},
-                            {'color': 'var(--primary-text-color)'}
-                          ]
-                        }
+                        'type': 'grid',
+                        'columns': 1,
+                        'square': False,
+                        'cards': bonus_action_cards_row
                       }
-                    } if bonus_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] else ''),
+                    } if bonus_action_cards_row | length > 0 else ''),
                     'items': ({
                       'card': bonus_actions_grid_card
                     } if bonus_action_cards.items | length > 0 else '')
@@ -2850,7 +3028,9 @@ views:
                       ],
                       'action': [
                         {'justify-self': 'end'},
-                        {'align-self': 'start'}
+                        {'align-self': 'start'},
+                        {'display': 'block'},
+                        {'min-width': '108px'}
                       ],
                       'items': [
                         {'justify-self': 'stretch'},
@@ -2862,60 +3042,29 @@ views:
                 } -%}
                 {%- set penalty_showcase_card = {
                   'type': 'custom:button-card',
-                  'entity': selected_dashboard_helper,
+                  'entity': points_sensor if has_points_sensor else selected_dashboard_helper,
                   'show_icon': False,
                   'show_name': False,
                   'show_state': False,
                   'show_label': False,
-                  'tap_action': {'action': 'none'},
-                  'hold_action': {'action': 'none'},
+                  'tap_action': ({
+                    'action': 'more-info',
+                    'entity': points_sensor
+                  } if has_points_sensor else {'action': 'none'}),
+                  'hold_action': ({
+                    'action': 'more-info',
+                    'entity': points_sensor
+                  } if has_points_sensor else {'action': 'none'}),
                   'custom_fields': {
-                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>💥 " ~ ui.get('penalty', 'err-penalty') ~ "</div><div style='margin-top:8px;font-size:24px;font-weight:800;line-height:1;color:var(--error-color);'>-" ~ ((penalty_ns.total_points | abs | round(0) | int) | string) ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ penalty_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
+                    'content': "<div style='display:flex;flex-direction:column;gap:0;'><div style='font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--secondary-text-color);'>💥 " ~ ui.get('penalty', 'err-penalty') ~ "</div><div style='margin-top:8px;display:flex;align-items:center;flex-wrap:wrap;'><span style='font-size:24px;font-weight:800;line-height:1;color:var(--error-color);'>-" ~ ((penalty_ns.total_points | abs | round(0) | int) | string) ~ "</span>" ~ penalty_all_time_html ~ "</div><div style='margin-top:6px;font-size:12px;font-weight:600;color:var(--secondary-text-color);'>" ~ penalty_ns.total_applied|string ~ " " ~ ui.get('applied', 'err-applied') ~ "</div></div>",
                     'action': ({
                       'card': {
-                        'type': 'custom:button-card',
-                            'icon': 'mdi:eraser',
-                        'name': ui.get('clear_applied', 'Clear applied'),
-                        'show_icon': True,
-                        'show_name': True,
-                        'tap_action': {
-                          'action': 'call-service',
-                          'service': 'choreops.reset_transactional_data',
-                          'data': {
-                            'config_entry_id': integration_entry_id,
-                            'confirm_destructive': True,
-                            'scope': 'user',
-                            'user_name': selected_user_name,
-                            'item_type': 'penalties'
-                          }
-                        },
-                        'hold_action': {'action': 'none'},
-                        'styles': {
-                          'card': [
-                            {'padding': '6px 10px'},
-                            {'border-radius': '999px'},
-                            {'box-shadow': 'none'},
-                            {'border': '1px solid color-mix(in srgb, var(--error-color) 22%, var(--divider-color))'},
-                            {'background': 'color-mix(in srgb, var(--error-color) 8%, var(--card-background-color))'}
-                          ],
-                          'grid': [
-                            {'grid-template-areas': '"i n"'},
-                            {'grid-template-columns': 'min-content min-content'},
-                            {'column-gap': '6px'},
-                            {'align-items': 'center'}
-                          ],
-                          'icon': [
-                            {'width': '13px'},
-                            {'color': 'var(--error-color)'}
-                          ],
-                          'name': [
-                            {'font-size': '10px'},
-                            {'font-weight': '700'},
-                            {'color': 'var(--primary-text-color)'}
-                          ]
-                        }
+                        'type': 'grid',
+                        'columns': 1,
+                        'square': False,
+                        'cards': penalty_action_cards_row
                       }
-                    } if penalty_ns.total_applied > 0 and selected_user_name not in ['', none] and integration_entry_id not in ['', none] else ''),
+                    } if penalty_action_cards_row | length > 0 else ''),
                     'items': ({
                       'card': penalty_actions_grid_card
                     } if penalty_action_cards.items | length > 0 else '')
@@ -2945,7 +3094,9 @@ views:
                       ],
                       'action': [
                         {'justify-self': 'end'},
-                        {'align-self': 'start'}
+                        {'align-self': 'start'},
+                        {'display': 'block'},
+                        {'min-width': '108px'}
                       ],
                       'items': [
                         {'justify-self': 'stretch'},

@@ -26,10 +26,10 @@ chore_row_kids_v1:
               "opacity": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; return (!canClaim && state !== 'claimed') ? '0.65' : '1.0'; ]]]",
             },
             {
-              "border": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(state)) return '4px solid #ff4444'; if (state === 'due') return '4px solid #ff9800'; if (state === 'claimed' || state === 'claimed_in_part') return '4px solid #a957fa'; if (['completed', 'completed_in_part'].includes(state)) return '4px solid var(--success-color)'; return '4px solid transparent'; ]]]",
+              "border": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const canClaim = entity.attributes.can_claim === true; const claimAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_claim_accent === 'string' && variables.pref_claim_accent.trim().length > 0) ? variables.pref_claim_accent.trim() : '#a957fa'; const dueAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_due_accent === 'string' && variables.pref_due_accent.trim().length > 0) ? variables.pref_due_accent.trim() : '#ff9800'; const overdueAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_overdue_accent === 'string' && variables.pref_overdue_accent.trim().length > 0) ? variables.pref_overdue_accent.trim() : '#ff4444'; if (!canClaim && state !== 'claimed' && state !== 'claimed_in_part') return '4px solid var(--disabled-text-color)'; if (['overdue', 'missed'].includes(state)) return `4px solid ${overdueAccent}`; if (state === 'due') return `4px solid ${dueAccent}`; if (state === 'claimed' || state === 'claimed_in_part') return `4px solid ${claimAccent}`; if (['completed', 'completed_in_part'].includes(state)) return '4px solid var(--success-color)'; return '4px solid var(--primary-color)'; ]]]",
             },
             {
-              "background-color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'claimed' || state === 'claimed_in_part') return 'color-mix(in srgb, #a957fa 10%, var(--card-background-color))'; if (['completed', 'completed_in_part'].includes(state)) return 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'; return 'var(--card-background-color)'; ]]]",
+              "background-color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_claim_accent === 'string' && variables.pref_claim_accent.trim().length > 0) ? variables.pref_claim_accent.trim() : '#a957fa'; if (state === 'claimed' || state === 'claimed_in_part') return `color-mix(in srgb, ${claimAccent} 10%, var(--card-background-color))`; if (['completed', 'completed_in_part'].includes(state)) return 'color-mix(in srgb, var(--success-color) 8%, var(--card-background-color))'; return 'var(--card-background-color)'; ]]]",
             },
           ],
         "grid":
@@ -62,7 +62,7 @@ chore_row_kids_v1:
             { "align-self": "end" },
             { "margin-top": "-2px" },
             {
-              "color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(state)) return '#ff4444'; if (state === 'due') return '#ff9800'; if (state === 'claimed' || state === 'claimed_in_part') return '#a957fa'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; return 'var(--primary-color)'; ]]]",
+              "color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_claim_accent === 'string' && variables.pref_claim_accent.trim().length > 0) ? variables.pref_claim_accent.trim() : '#a957fa'; const dueAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_due_accent === 'string' && variables.pref_due_accent.trim().length > 0) ? variables.pref_due_accent.trim() : '#ff9800'; const overdueAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_overdue_accent === 'string' && variables.pref_overdue_accent.trim().length > 0) ? variables.pref_overdue_accent.trim() : '#ff4444'; if (['overdue', 'missed'].includes(state)) return overdueAccent; if (state === 'due') return dueAccent; if (state === 'claimed' || state === 'claimed_in_part') return claimAccent; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; return 'var(--primary-color)'; ]]]",
             },
           ],
         "custom_fields":
@@ -79,15 +79,15 @@ chore_row_kids_v1:
                 { "align-items": "center" },
                 { "justify-content": "center" },
                 {
-                  "background-color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'claimed' || state === 'claimed_in_part') return '#a957fa'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (['missed', 'not_my_turn', 'completed_by_other', 'waiting'].includes(state)) return 'var(--disabled-text-color)'; return 'transparent'; ]]]",
+                  "background-color": "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimAccent = (typeof variables !== 'undefined' && variables && typeof variables.pref_claim_accent === 'string' && variables.pref_claim_accent.trim().length > 0) ? variables.pref_claim_accent.trim() : '#a957fa'; if (state === 'claimed' || state === 'claimed_in_part') return claimAccent; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (['missed', 'not_my_turn', 'completed_by_other', 'waiting'].includes(state)) return 'var(--disabled-text-color)'; return 'transparent'; ]]]",
                 },
-                { "color": "#ffffff" },
+                { "color": "var(--primary-text-color)" },
               ],
             "badge_type":
               [
                 { "justify-self": "start" },
                 { "align-self": "start" },
-                { "margin-top": "-6px" },
+                { "margin-top": "-2px" },
                 { "width": "28px" },
                 { "height": "28px" },
                 { "border-radius": "50%" },
@@ -144,7 +144,7 @@ chore_row_kids_v1:
     "custom_fields":
       {
         "badge_state": '[[[ const rawState = entity.state; const state = (rawState === ''approved'' || rawState === ''already_approved'') ? ''completed'' : (rawState === ''approved_in_part'' ? ''completed_in_part'' : rawState); let icon = ''''; if (state === ''claimed'' || state === ''claimed_in_part'') icon = ''mdi:check''; else if ([''completed'', ''completed_in_part''].includes(state)) icon = ''mdi:check-all''; else if (state === ''waiting'') icon = ''mdi:clock-outline''; else if ([''missed'', ''not_my_turn''].includes(state)) icon = ''mdi:lock-outline''; else if (state === ''completed_by_other'') icon = ''mdi:account-check-outline''; if (!icon) return ''''; return `<ha-icon icon="${icon}" style="width:16px;height:16px;transform:translateY(-4px);"></ha-icon>`; ]]]',
-        "badge_type": '[[[ const type = entity.attributes.completion_criteria || ''independent''; let icon = ''''; if (type === ''shared_all'') icon = ''mdi:account-group''; else if (type === ''shared_first'') icon = ''mdi:flag-checkered''; else if (type.includes(''rotation'')) icon = ''mdi:account-sync''; if (!icon) return ''''; return `<ha-icon icon="${icon}" style="width:18px;height:18px;transform:translateY(-2px);"></ha-icon>`; ]]]',
+        "badge_type": '[[[ const type = entity.attributes.completion_criteria || ''independent''; let icon = ''''; if (type === ''shared_all'') icon = ''mdi:account-group''; else if (type === ''shared_first'') icon = ''mdi:flag-checkered''; else if (type.includes(''rotation'')) icon = ''mdi:account-sync''; if (!icon) return ''''; return `<ha-icon icon="${icon}" style="width:18px;height:18px;transform:translateY(-4px);"></ha-icon>`; ]]]',
         "reward": '[[[ const pointsEnabled = (typeof variables !== ''undefined'' && variables && (variables.gamification_enabled === true || variables.points_enabled === true)); if (!pointsEnabled) return ''''; const rawPoints = entity.attributes.default_points; const points = (rawPoints === undefined || rawPoints === null || rawPoints === '''') ? ''--'' : `${rawPoints}`; const pIcon = (typeof variables !== ''undefined'' && variables && typeof variables.points_icon === ''string'' && variables.points_icon.trim().length > 0) ? variables.points_icon : ''mdi:star''; const pLabel = (typeof variables !== ''undefined'' && variables && typeof variables.points_label === ''string'' && variables.points_label.trim().length > 0) ? variables.points_label : ''Points''; return `<ha-icon icon="${pIcon}" style="width:18px;height:18px;margin-right:4px;transform:translateY(-1px);"></ha-icon>${points} ${pLabel}`; ]]]',
         "description": "[[[ const prefEnabled = (typeof variables !== 'undefined' && variables && variables.pref_show_chore_description === false) ? false : true; const value = typeof entity.attributes.description === 'string' ? entity.attributes.description.trim() : ''; if (!prefEnabled || value.length === 0) return ''; const escaped = value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); return `<span>${escaped}</span>`; ]]]",
         "btn_undo":
@@ -163,11 +163,15 @@ chore_row_kids_v1:
                         { "width": "26px" },
                         { "height": "26px" },
                         { "border-radius": "50%" },
-                        { "background-color": "rgba(0, 0, 0, 0.72)" },
-                        { "border": "1px solid rgba(255, 255, 255, 0.28)" },
-                        { "box-shadow": "0 1px 2px rgba(0, 0, 0, 0.35)" },
+                        { "background-color": "transparent" },
+                        { "border": "1px solid var(--divider-color)" },
+                        { "box-shadow": "none" },
                       ],
-                    "icon": [{ "width": "15px" }, { "color": "#ffffff" }],
+                    "icon":
+                      [
+                        { "width": "15px" },
+                        { "color": "var(--secondary-text-color)" },
+                      ],
                   },
                 "tap_action":
                   {

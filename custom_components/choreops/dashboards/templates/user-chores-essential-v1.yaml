@@ -195,6 +195,14 @@ views:
 
                   {%- set pref_show_chore_description = true -%}
 
+                  {%- set pref_claim_accent = '#a957fa' -%}
+
+                  {%- set pref_due_accent = '#ff9800' -%}
+
+                  {%- set pref_overdue_accent = '#ff4444' -%}
+
+                  {%- set pref_steal_accent = '#F2C94C' -%}
+
 
                   {#-- Type coercion for preferences --#}
                   {%- set pref_column_count = pref_column_count | int(default=2) -%}
@@ -554,7 +562,7 @@ views:
                                   {'padding': '6px 8px'},
                                   {'border-radius': '10px'},
                                   {'opacity': "[[[ const canClaim = entity.attributes.can_claim === true; const rawState = entity.state; const normalizedState = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return (!canClaim && normalizedState !== 'claimed') ? '0.6' : '1.0'; ]]]"},
-                                  {'border-left': "[[[ if (['overdue', 'missed'].includes(entity.state)) return '4px solid #ff4444'; if (entity.state === 'due') return '4px solid #ff9800'; return '4px solid transparent'; ]]]"}
+                                  {'border-left': "[[[ if (['overdue', 'missed'].includes(entity.state)) return '4px solid " ~ pref_overdue_accent ~ "'; if (entity.state === 'due') return '4px solid " ~ pref_due_accent ~ "'; return '4px solid transparent'; ]]]"}
                                 ],
                                 'grid': [
                                   {'grid-template-areas': '"i n btn_action" "i due btn_action" "i description btn_action" "i history btn_action"'},
@@ -572,14 +580,14 @@ views:
                                 ],
                                 'icon': [
                                   {'width': '28px'},
-                                  {'color': "[[[ const rawState = entity.state; const normalizedState = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(normalizedState)) return '#ff4444'; if (normalizedState === 'due') return '#ff9800'; if (normalizedState === 'claimed') return '#a957fa'; if (['completed', 'completed_in_part'].includes(normalizedState)) return 'var(--success-color)'; return 'var(--primary-text-color)'; ]]]"}
+                                  {'color': "[[[ const rawState = entity.state; const normalizedState = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (['overdue', 'missed'].includes(normalizedState)) return '" ~ pref_overdue_accent ~ "'; if (normalizedState === 'due') return '" ~ pref_due_accent ~ "'; if (normalizedState === 'claimed') return '" ~ pref_claim_accent ~ "'; if (['completed', 'completed_in_part'].includes(normalizedState)) return 'var(--success-color)'; return 'var(--primary-text-color)'; ]]]"}
                                 ],
                                 'custom_fields': {
                                   'due': [
                                     {'justify-self': 'start'},
                                     {'font-size': '11px'},
                                     {'line-height': '1.2'},
-                                    {'color': "[[[ const claimMode = entity.attributes.claim_mode || null; if (claimMode === 'steal_available') return '#F2C94C'; if (['overdue', 'missed'].includes(entity.state)) return '#ff4444'; if (entity.state === 'due') return '#ff9800'; return 'var(--primary-text-color)'; ]]]"}
+                                    {'color': "[[[ const claimMode = entity.attributes.claim_mode || null; if (claimMode === 'steal_available') return '" ~ pref_steal_accent ~ "'; if (['overdue', 'missed'].includes(entity.state)) return '" ~ pref_overdue_accent ~ "'; if (entity.state === 'due') return '" ~ pref_due_accent ~ "'; return 'var(--primary-text-color)'; ]]]"}
                                   ],
                                   'description': [
                                     {'justify-self': 'start'},
@@ -638,13 +646,13 @@ views:
                                         {'width': '34px'},
                                         {'height': '34px'},
                                         {'border-radius': '50%'},
-                                        {'background-color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return state === 'claimed' ? '#a957fa' : 'transparent'; ]]]"},
-                                        {'border': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); if (state === 'overdue') return '2px solid var(--error-color)'; if (['completed', 'completed_in_part'].includes(state)) return '1px solid var(--disabled-text-color)'; return entity.attributes.can_claim === true ? '2px solid var(--primary-color)' : '1px solid var(--disabled-text-color)'; ]]]"},
+                                        {'background-color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return state === 'claimed' ? '" ~ pref_claim_accent ~ "' : 'transparent'; ]]]"},
+                                        {'border': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (state === 'overdue' || state === 'missed') return '2px solid " ~ pref_overdue_accent ~ "'; if (claimMode === 'steal_available') return '2px solid " ~ pref_steal_accent ~ "'; if (['completed', 'completed_in_part'].includes(state)) return '1px solid var(--disabled-text-color)'; return entity.attributes.can_claim === true ? '2px solid var(--primary-color)' : '1px solid var(--disabled-text-color)'; ]]]"},
                                         {'box-shadow': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); return (entity.attributes.can_claim === true && !['completed', 'completed_in_part'].includes(state)) ? '0px 2px 4px rgba(0,0,0,0.1)' : 'none'; ]]]"}
                                       ],
                                       'icon': [
                                         {'width': '20px'},
-                                        {'color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (state === 'claimed') return '#ffffff'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (state === 'overdue') return 'var(--error-color)'; if (claimMode === 'steal_available') return 'var(--primary-text-color)'; if (entity.attributes.can_claim !== true) return 'var(--disabled-text-color)'; return 'var(--primary-text-color)'; ]]]"}
+                                        {'color': "[[[ const rawState = entity.state; const state = (rawState === 'approved' || rawState === 'already_approved') ? 'completed' : (rawState === 'approved_in_part' ? 'completed_in_part' : rawState); const claimMode = entity.attributes.claim_mode || null; if (state === 'claimed') return 'var(--primary-text-color)'; if (['completed', 'completed_in_part'].includes(state)) return 'var(--success-color)'; if (state === 'overdue' || state === 'missed') return '" ~ pref_overdue_accent ~ "'; if (claimMode === 'steal_available') return '" ~ pref_steal_accent ~ "'; if (entity.attributes.can_claim !== true) return 'var(--disabled-text-color)'; return 'var(--primary-text-color)'; ]]]"}
                                       ]
                                     },
                                     'tap_action': {

@@ -11,6 +11,12 @@
 - This document covers the supported user-tunable `pref_*` surface for the template. Internal shared-fragment contract keys are intentionally left out.
 - Supports practical organization controls (time buckets, labels, sorting, and state filtering).
 
+## Color policy note
+
+- This template follows the dashboard theme-first color policy.
+- Home Assistant theme variables remain the default source for colors.
+- The accent preferences below are intentional product-specific exceptions for chore and reward state semantics and are declared as template variables for easier long-term maintenance.
+
 ## Header tint preference
 
 - `pref_primary_tint_mix_pct` (default: `14`)
@@ -124,6 +130,22 @@ Recommended ranges:
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
 
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used for claimed and in-progress chore-state treatments.
+  - Applies to shared chore-row variants that opt into the shared accent contract.
+
+- `pref_due_accent` (default: `#ff9800`)
+  - Accent color used for due-state highlights.
+  - Applies to shared chore-row border, icon, and supporting state treatments.
+
+- `pref_overdue_accent` (default: `#ff4444`)
+  - Accent color used for overdue and missed-state highlights.
+  - Applies to shared chore-row border, icon, and overdue action affordances.
+
+- `pref_steal_accent` (default: `#F2C94C`)
+  - Accent color used for `steal_available` treatments.
+  - Applies to shared chore-row supporting text and action-affordance emphasis.
+
 - `pref_ui_control_key_root` (default: `gamification/chores`)
   - Sets the `ui_control` branch used by this chores card inside the Gamification Premier template.
   - Override this when you want multiple chore-card instances for the same user to keep different saved settings.
@@ -220,6 +242,11 @@ Recommended ranges:
   - Shows reward description as a dedicated row when description text exists.
   - When `false`, description row is hidden even if reward has description.
   - Allowed: `true`, `false`.
+
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used for requested reward-state treatments.
+  - Applies to requested reward row icon, border, background, and primary action emphasis.
+  - This is a product-specific reward accent exception and should be managed through this variable rather than repeated inline literals.
 
 - `pref_primary_tint_mix_pct` (default: `14`)
   - Sets the tint strength used by the main Rewards section header when that header is collapsed.

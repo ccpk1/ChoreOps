@@ -10,6 +10,12 @@
 - Friendly for drag-and-drop workflows: keep defaults for a simple setup, then tune behavior with `pref_*` values.
 - Supports practical organization controls (time buckets, labels, sorting, and state filtering).
 
+## Color policy note
+
+- This template follows the dashboard theme-first color policy.
+- Home Assistant theme variables remain the default source for colors.
+- The accent preferences below are intentional product-specific exceptions for chore-state semantics and are declared as template variables for easier long-term maintenance.
+
 ## Card: Chores
 
 - `pref_column_count` (default: `3`)
@@ -70,6 +76,22 @@
   - Shows the optional description row when a chore has non-empty description text.
   - When `false`, the description row is always hidden.
   - Allowed: `true`, `false`.
+
+- `pref_claim_accent` (default: `#a957fa`)
+  - Accent color used for claimed and in-progress chore-state treatments.
+  - Applies to the inline compact chore row in this template.
+
+- `pref_due_accent` (default: `#ff9800`)
+  - Accent color used for due-state highlights.
+  - Applies to inline compact row border, icon, and due-text styling.
+
+- `pref_overdue_accent` (default: `#ff4444`)
+  - Accent color used for overdue and missed-state highlights.
+  - Applies to inline compact row border, icon, and overdue action affordances.
+
+- `pref_steal_accent` (default: `#F2C94C`)
+  - Accent color used for `steal_available` treatments.
+  - Applies to inline compact row due-text and action-affordance emphasis.
 
 ## Practical tuning examples
 

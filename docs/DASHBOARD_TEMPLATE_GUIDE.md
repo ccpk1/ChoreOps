@@ -1,6 +1,6 @@
 # Dashboard Template Guide
 
-**Version**: 1.0.0 | **Last Updated**: 2026-03-11
+**Version**: 1.0.1 | **Last Updated**: 2026-03-12
 
 This guide documents the rules and patterns for creating, modifying, and managing ChoreOps dashboard templates.
 
@@ -163,6 +163,46 @@ Field rules:
 - When any shared contract field is present, `shared_contract_version` must be `1`.
 - Fragment ids must match the same marker id namespace as `template_shared.<id>`.
 - Duplicate ids and overlap between required/optional sets are invalid.
+
+### Color authoring contract (required)
+
+Dashboard template color usage is governed by a strict default/exception model:
+
+- Default requirement: use Home Assistant theme variables for color sourcing.
+- Exception requirement: if a product-specific non-theme color is intentionally
+  needed, declare it as a named template variable before use.
+
+Authoring rules:
+
+- Prefer existing Lovelace/Home Assistant variables such as
+  `var(--primary-color)`, `var(--warning-color)`, `var(--error-color)`,
+  `var(--success-color)`, `var(--primary-text-color)`,
+  `var(--secondary-text-color)`, `var(--divider-color)`, and
+  `var(--card-background-color)`.
+- Do not scatter direct hex, rgb, rgba, or `color-mix(...)` literals based on
+  raw hex values throughout templates when a theme variable already expresses
+  the intended semantic meaning.
+- If a non-theme accent is required for ChoreOps-specific semantics, it must be
+  declared once near the template's user-configuration block or in a shared
+  template variable contract, then referenced by semantic name everywhere else.
+- Semantic variable names are required. Use names such as `pref_claim_accent`,
+  `pref_due_accent`, `pref_overdue_accent`, `pref_steal_accent`, or another
+  clearly scoped product-purpose name.
+- Repeated non-theme colors must never be duplicated as inline literals across
+  multiple style blocks, card definitions, or HTML fragments.
+
+Allowed exception examples:
+
+- Chore state accents
+- Reward request/claim accents
+- Other explicitly product-owned accent semantics that should remain stable
+  independent of the active HA theme
+
+Maintenance rule:
+
+- If a color might need coordinated future updates across multiple dashboards or
+  shared fragments, it must be managed through a declared variable rather than
+  a direct literal.
 
 ### Optional local preload loop (UX iteration)
 

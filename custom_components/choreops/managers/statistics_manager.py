@@ -153,6 +153,10 @@ class StatisticsManager(BaseManager):
         # Clears 'today' cache keys at midnight so sensors show 0 immediately
         self.listen(const.SIGNAL_SUFFIX_MIDNIGHT_ROLLOVER, self._on_midnight_rollover)
 
+        # Periodic pulse - refresh current chore snapshot counts that can change
+        # based on time passage without a storage write (for example, due_today).
+        self.listen(const.SIGNAL_SUFFIX_PERIODIC_UPDATE, self._on_periodic_update)
+
         # Data reset completion signals - invalidate caches when data is reset
         # Each domain manager emits completion signal after reset; we listen to all
         self.listen(
@@ -210,6 +214,25 @@ class StatisticsManager(BaseManager):
         """
         const.LOGGER.info("StatisticsManager: Midnight rollover - clearing cache")
         self.invalidate_cache()
+
+    @callback
+    def _on_periodic_update(self, payload: dict[str, Any]) -> None:
+        """Refresh time-sensitive chore snapshot stats on coordinator pulse.
+
+        Some current chore presentation values are derived from the current time
+        rather than from explicit state-change events. For example, a chore can
+        become due today as time advances even when no storage write occurs.
+        Refreshing the chore cache on the periodic pulse keeps sensor-backed
+        dashboard summaries aligned with the chore rows.
+
+        Args:
+            payload: Event data (unused)
+        """
+        del payload
+
+        for assignee_id in self._coordinator.assignees_data:
+            self._refresh_chore_cache(assignee_id)
+            self._mark_cache_updated(assignee_id)
 
     async def _on_points_changed(self, payload: dict[str, Any]) -> None:
         """Handle POINTS_CHANGED event - update point statistics.
@@ -2650,43 +2673,30 @@ class StatisticsManager(BaseManager):
         for chore_id, chore_info in chore_data.items():
             periods = chore_info.get(const.DATA_USER_CHORE_DATA_PERIODS, {})
 
-            # === Snapshot counts based on current state ===
-            state = chore_info.get(const.DATA_USER_CHORE_DATA_STATE)
-            if state == const.CHORE_STATE_OVERDUE:
+            # === Snapshot counts based on derived assignee-facing state ===
+            status_context = self.coordinator.chore_manager.get_chore_status_context(
+                assignee_id,
+                chore_id,
+            )
+            display_state = status_context.get(
+                const.CHORE_CTX_STATE,
+                chore_info.get(const.DATA_USER_CHORE_DATA_STATE),
+            )
+
+            if display_state == const.CHORE_STATE_OVERDUE:
                 current_overdue += 1
-            elif state == const.CHORE_STATE_CLAIMED:
+            elif display_state == const.CHORE_STATE_CLAIMED:
                 current_claimed += 1
-            elif state in (
-                const.CHORE_STATE_APPROVED,
-                const.CHORE_STATE_APPROVED_IN_PART,
-            ):
+            elif display_state == const.CHORE_STATE_COMPLETED:
                 current_approved += 1
 
-            # Check if due today (need to look up chore definition)
-            chore_def: ChoreData | dict[str, Any] = self.coordinator.chores_data.get(
-                chore_id, {}
-            )
-            completion_criteria = chore_def.get(
-                const.DATA_CHORE_COMPLETION_CRITERIA,
-                const.COMPLETION_CRITERIA_INDEPENDENT,
-            )
-            if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
-                per_assignee_due_dates = chore_def.get(
-                    const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}
-                )
-                due_datetime_iso = per_assignee_due_dates.get(assignee_id)
-            else:
-                due_datetime_iso = chore_def.get(const.DATA_CHORE_DUE_DATE)
-
-            if due_datetime_iso:
-                try:
-                    from datetime import datetime
-
-                    due_dt = datetime.fromisoformat(due_datetime_iso)
-                    if due_dt.date() == today_local:
-                        current_due_today += 1
-                except (ValueError, AttributeError):
-                    pass
+            if self.coordinator.chore_manager.chore_counts_toward_due_today_summary(
+                assignee_id,
+                chore_id,
+                status_context=status_context,
+                local_today_iso=today_local_iso,
+            ):
+                current_due_today += 1
 
             # Daily
             daily_periods = periods.get(const.DATA_USER_CHORE_DATA_PERIODS_DAILY, {})
