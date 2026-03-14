@@ -35,24 +35,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Resolve target branch
+        id: sync_branch
+        run: |
+          echo "value=${{ inputs.branch || github.ref_name }}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout Code
         uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.branch || github.ref_name }}
+          ref: ${{ steps.sync_branch.outputs.value }}
+          fetch-depth: 0
 
       - name: Validate Crowdin configuration
         id: crowdin_preflight
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+          TRANSLATION_PR_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
         run: |
-          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ]; then
+          if [ -z "$CROWDIN_PROJECT_ID" ] || [ -z "$CROWDIN_PERSONAL_TOKEN" ] || [ -z "$TRANSLATION_PR_TOKEN" ]; then
             echo "run_crowdin=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Crowdin secrets are not configured. Skipping translation sync."
-            echo "::notice::Set CROWDIN_PROJECT_ID and CROWDIN_PERSONAL_TOKEN repository secrets to enable this workflow."
+            echo "::warning::Translation sync secrets are not fully configured. Skipping translation sync."
+            echo "::notice::Set CROWDIN_PROJECT_ID, CROWDIN_PERSONAL_TOKEN, and TRANSLATION_PR_TOKEN repository secrets to enable this workflow."
           else
             echo "run_crowdin=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Crowdin secrets detected. Translation sync will run."
+            echo "::notice::Crowdin and PR automation secrets detected. Translation sync will run."
           fi
 
       # STEP 1: Upload Sources
@@ -65,7 +72,7 @@ jobs:
           download_translations: false
           create_pull_request: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
@@ -83,7 +90,7 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
 
-      # STEP 3: Download & Create PR
+      # STEP 3: Download translations locally
       - name: Download Translations
         if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
         uses: crowdin/github-action@v2
@@ -91,20 +98,63 @@ jobs:
           upload_sources: false
           upload_translations: false
           download_translations: true
-          create_pull_request: true
-          pull_request_title: "chore(l10n): sync translations from Crowdin"
-          commit_message: "chore(l10n): sync translations from Crowdin"
-          pull_request_base_branch_name: ${{ inputs.branch || github.ref_name }}
+          create_pull_request: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+      - name: Create or update translation PR
+        if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
+          TARGET_BRANCH: ${{ steps.sync_branch.outputs.value }}
+          L10N_BRANCH: l10n_crowdin_action
+          PR_TITLE: "chore(l10n): sync translations from Crowdin"
+        run: |
+          git config user.name "Crowdin Bot"
+          git config user.email "support+bot@crowdin.com"
+
+          git fetch origin "$TARGET_BRANCH"
+          if git ls-remote --exit-code --heads origin "$L10N_BRANCH" >/dev/null 2>&1; then
+            git fetch origin "$L10N_BRANCH"
+          fi
+
+          git checkout -B "$L10N_BRANCH" "origin/$TARGET_BRANCH"
+          git add custom_components/choreops/translations custom_components/choreops/translations_custom
+
+          if git diff --cached --quiet; then
+            echo "No translation changes to commit"
+            exit 0
+          fi
+
+          git commit -m "$PR_TITLE"
+          git push --force-with-lease "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:$L10N_BRANCH"
+
+          pr_number="$(gh pr list \
+            --head "$L10N_BRANCH" \
+            --base "$TARGET_BRANCH" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -z "$pr_number" ]; then
+            gh pr create \
+              --base "$TARGET_BRANCH" \
+              --head "$L10N_BRANCH" \
+              --title "$PR_TITLE" \
+              --body "Automated Crowdin translation sync for $TARGET_BRANCH"
+          else
+            gh pr edit "$pr_number" \
+              --title "$PR_TITLE" \
+              --body "Automated Crowdin translation sync for $TARGET_BRANCH"
+          fi
 
       - name: Ensure translation PR labels
         if: steps.crowdin_preflight.outputs.run_crowdin == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
+          GH_TOKEN: ${{ secrets.TRANSLATION_PR_TOKEN }}
+          BASE_BRANCH: ${{ steps.sync_branch.outputs.value }}
           L10N_BRANCH: l10n_crowdin_action
         run: |
           pr_number="$(gh pr list \
