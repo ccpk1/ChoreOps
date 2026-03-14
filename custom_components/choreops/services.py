@@ -1421,6 +1421,8 @@ def async_setup_services(hass: HomeAssistant):
             return
 
         coordinator = _get_coordinator_by_entry_id(hass, entry_id)
+        from . import data_builders as db
+
         chore_name = call.data[const.SERVICE_FIELD_CHORE_NAME]
         due_date_input = call.data.get(const.SERVICE_FIELD_CHORE_DUE_DATE)
         assignee_name = call.data.get(const.SERVICE_FIELD_USER_NAME)
@@ -1527,6 +1529,24 @@ def async_setup_services(hass: HomeAssistant):
                 due_date_input,
             )
         else:
+            existing_chore_info: ChoreData = cast(
+                "ChoreData", coordinator.chores_data.get(chore_id, {})
+            )
+            validation_data = dict(existing_chore_info)
+            validation_data[const.DATA_CHORE_DUE_DATE] = None
+            validation_errors = db.validate_chore_data(
+                validation_data,
+                coordinator.chores_data,
+                is_update=True,
+                current_chore_id=chore_id,
+            )
+            if validation_errors:
+                _, error_key = next(iter(validation_errors.items()))
+                raise HomeAssistantError(
+                    translation_domain=const.DOMAIN,
+                    translation_key=error_key,
+                )
+
             # Clear the due date by setting it to None
             await coordinator.chore_manager.set_due_date(chore_id, None, assignee_id)
             const.LOGGER.info(

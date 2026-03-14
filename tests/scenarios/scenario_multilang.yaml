@@ -53,6 +53,7 @@ chores:
     completion_criteria: "independent"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d17:00"
 
   # Test: Auto-approve chore
   - name: "Brush teeth"
@@ -80,6 +81,7 @@ chores:
     completion_criteria: "independent"
     recurring_frequency: "monthly"
     auto_approve: false
+    due_date: "+30d17:00"
 # =============================================================================
 # SUMMARY
 # =============================================================================

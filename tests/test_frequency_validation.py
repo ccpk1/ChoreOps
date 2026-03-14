@@ -87,7 +87,6 @@ class TestDailyMultiValidation:
     async def test_v01_daily_multi_upon_completion_valid(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-01: DAILY_MULTI + UPON_COMPLETION is valid."""
         errors = flow_helpers.validate_chore_frequency_reset_combination(
@@ -100,7 +99,6 @@ class TestDailyMultiValidation:
     async def test_v02_daily_multi_at_due_date_once_valid(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-02: DAILY_MULTI + AT_DUE_DATE_ONCE is valid."""
         errors = flow_helpers.validate_chore_frequency_reset_combination(
@@ -113,7 +111,6 @@ class TestDailyMultiValidation:
     async def test_v03_daily_multi_at_due_date_multi_valid(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-03: DAILY_MULTI + AT_DUE_DATE_MULTI is valid."""
         errors = flow_helpers.validate_chore_frequency_reset_combination(
@@ -126,7 +123,6 @@ class TestDailyMultiValidation:
     async def test_v04_daily_multi_at_midnight_once_rejected(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-04: DAILY_MULTI + AT_MIDNIGHT_ONCE is rejected."""
         errors = flow_helpers.validate_chore_frequency_reset_combination(
@@ -143,7 +139,6 @@ class TestDailyMultiValidation:
     async def test_v05_daily_multi_at_midnight_multi_rejected(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-05: DAILY_MULTI + AT_MIDNIGHT_MULTI is rejected."""
         errors = flow_helpers.validate_chore_frequency_reset_combination(
@@ -160,7 +155,6 @@ class TestDailyMultiValidation:
     async def test_v06_daily_multi_independent_single_assignee_ok(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-06: DAILY_MULTI + INDEPENDENT + 1 assignee is valid."""
         errors = flow_helpers.validate_daily_multi_assignees(
@@ -174,7 +168,6 @@ class TestDailyMultiValidation:
     async def test_v07_daily_multi_independent_multi_assignees_rejected(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-07: DAILY_MULTI + INDEPENDENT + multiple assignees is rejected."""
         errors = flow_helpers.validate_daily_multi_assignees(
@@ -192,7 +185,6 @@ class TestDailyMultiValidation:
     async def test_v08_daily_multi_shared_multi_assignees_ok(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """V-08: DAILY_MULTI + SHARED + multiple assignees is valid."""
         errors = flow_helpers.validate_daily_multi_assignees(
@@ -473,18 +465,15 @@ class TestAtDueDateResetRequiresDueDate:
     Test Scenarios:
     - Shared chores: Must have due date (no exception)
     - Independent 1-assignee: Must have due date (no exception)
-    - Independent 2+ assignees: May skip due date (per-assignee dates set in helper/Configure)
+    - Independent 2+ assignees: Must also have due date
     """
 
     @pytest.mark.asyncio
     async def test_shared_at_due_date_once_requires_due_date(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """SHARED + AT_DUE_DATE_ONCE without due date → error."""
-        zoe_id = scenario_minimal.assignee_ids["Zoë"]
-
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
             const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
@@ -495,7 +484,7 @@ class TestAtDueDateResetRequiresDueDate:
             # No due_date provided
         }
 
-        assignees_dict = {"Zoë": zoe_id}
+        assignees_dict = {"Zoë": "zoe-id"}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
             user_input, assignees_dict, {}
         )
@@ -506,11 +495,8 @@ class TestAtDueDateResetRequiresDueDate:
     async def test_independent_single_assignee_at_due_date_multi_requires_due_date(
         self,
         hass: HomeAssistant,
-        scenario_minimal: SetupResult,
     ) -> None:
         """INDEPENDENT (1 assignee) + AT_DUE_DATE_MULTI without due date → error."""
-        zoe_id = scenario_minimal.assignee_ids["Zoë"]
-
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
             const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
@@ -521,7 +507,7 @@ class TestAtDueDateResetRequiresDueDate:
             # No due_date provided
         }
 
-        assignees_dict = {"Zoë": zoe_id}
+        assignees_dict = {"Zoë": "zoe-id"}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
             user_input, assignees_dict, {}
         )
@@ -529,19 +515,11 @@ class TestAtDueDateResetRequiresDueDate:
         assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE in errors
 
     @pytest.mark.asyncio
-    async def test_independent_multiassignee_at_due_date_once_allows_missing_due_date(
+    async def test_independent_multiassignee_at_due_date_once_requires_due_date(
         self,
         hass: HomeAssistant,
-        scenario_shared: SetupResult,
     ) -> None:
-        """INDEPENDENT (2+ assignees) + AT_DUE_DATE_ONCE without due date → allowed.
-
-        Exception: Per-assignee due dates will be set in helper step or via Configure.
-        """
-        assignee_ids = scenario_shared.assignee_ids
-        zoe_id = assignee_ids["Zoë"]
-        max_id = assignee_ids["Max!"]
-
+        """INDEPENDENT (2+ assignees) + AT_DUE_DATE_ONCE without due date → error."""
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
             const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë", "Max!"],
@@ -549,29 +527,22 @@ class TestAtDueDateResetRequiresDueDate:
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
             const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
-            # No due_date provided - should be allowed for Independent multi-assignee
+            # No due_date provided
         }
 
-        assignees_dict = {"Zoë": zoe_id, "Max!": max_id}
+        assignees_dict = {"Zoë": "zoe-id", "Max!": "max-id"}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
             user_input, assignees_dict, {}
         )
 
-        # Should NOT have validation error
-        assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE not in errors
+        assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE in errors
 
     @pytest.mark.asyncio
-    async def test_independent_multiassignee_at_due_date_multi_allows_missing_due_date(
+    async def test_independent_multiassignee_at_due_date_multi_requires_due_date(
         self,
         hass: HomeAssistant,
-        scenario_shared: SetupResult,
     ) -> None:
-        """INDEPENDENT (2+ assignees) + AT_DUE_DATE_MULTI without due date → allowed."""
-
-        assignee_ids = scenario_shared.assignee_ids
-        zoe_id = assignee_ids["Zoë"]
-        max_id = assignee_ids["Max!"]
-
+        """INDEPENDENT (2+ assignees) + AT_DUE_DATE_MULTI without due date → error."""
         user_input = {
             CFOF_CHORES_INPUT_NAME: "Test Chore",
             const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë", "Max!"],
@@ -579,13 +550,62 @@ class TestAtDueDateResetRequiresDueDate:
             const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
             const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
             const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
-            # No due_date provided - should be allowed for Independent multi-assignee
+            # No due_date provided
         }
 
-        assignees_dict = {"Zoë": zoe_id, "Max!": max_id}
+        assignees_dict = {"Zoë": "zoe-id", "Max!": "max-id"}
         errors, _due_date_str = flow_helpers.validate_chores_inputs(
             user_input, assignees_dict, {}
         )
 
-        # Should NOT have validation error
-        assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE not in errors
+        assert const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE in errors
+
+
+class TestRecurringFrequencyRequiresDueDate:
+    """Test generic due-date requirement for recurring frequencies."""
+
+    @pytest.mark.asyncio
+    async def test_weekly_without_due_date_returns_frequency_error(
+        self,
+        hass: HomeAssistant,
+    ) -> None:
+        """WEEKLY without due date is rejected even with compatible reset types."""
+        user_input = {
+            CFOF_CHORES_INPUT_NAME: "Test Chore",
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
+            const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
+            const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
+            const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
+        }
+
+        assignees_dict = {"Zoë": "zoe-id"}
+        errors, _due_date_str = flow_helpers.validate_chores_inputs(
+            user_input, assignees_dict, {}
+        )
+
+        assert errors[const.CFOP_ERROR_DUE_DATE] == (
+            const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY
+        )
+
+    @pytest.mark.asyncio
+    async def test_daily_without_due_date_remains_valid(
+        self,
+        hass: HomeAssistant,
+    ) -> None:
+        """DAILY without due date remains valid."""
+        user_input = {
+            CFOF_CHORES_INPUT_NAME: "Daily Chore",
+            const.CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: ["Zoë"],
+            const.CFOF_CHORES_INPUT_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+            const.CFOF_CHORES_INPUT_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+            const.CFOF_CHORES_INPUT_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_UPON_COMPLETION,
+            const.CFOF_CHORES_INPUT_OVERDUE_HANDLING_TYPE: const.OVERDUE_HANDLING_AT_DUE_DATE,
+        }
+
+        assignees_dict = {"Zoë": "zoe-id"}
+        errors, _due_date_str = flow_helpers.validate_chores_inputs(
+            user_input, assignees_dict, {}
+        )
+
+        assert const.CFOP_ERROR_DUE_DATE not in errors

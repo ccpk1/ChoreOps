@@ -437,18 +437,24 @@ class AssigneeScheduleCalendar(CalendarEntity):
         summary: str,
         description: str,
         due_dt: datetime.datetime,
+        applicable_days: list[int],
         window_start: datetime.datetime,
         window_end: datetime.datetime,
     ) -> None:
-        """Generate event for daily recurring chore with due date."""
-        event_start, event_end = self._get_timed_event_bounds(chore_id, due_dt)
-        e = CalendarEvent(
-            summary=summary,
-            start=event_start,
-            end=event_end,
-            description=description,
+        """Generate daily recurring timed events via the recurrence engine."""
+        self._generate_recurring_with_due_date(
+            events,
+            chore_id,
+            summary,
+            description,
+            due_dt,
+            const.FREQUENCY_DAILY,
+            1,
+            const.TIME_UNIT_DAYS,
+            window_start,
+            window_end,
+            applicable_days=applicable_days,
         )
-        self._add_event_if_overlaps(events, e, window_start, window_end)
 
     def _generate_recurring_with_due_date(
         self,
@@ -761,10 +767,8 @@ class AssigneeScheduleCalendar(CalendarEntity):
     ) -> list[CalendarEvent]:
         """Generate calendar events for a chore within the given time window.
 
-        This method dispatches to specialized helper methods based on chore type:
-        - Non-recurring: with/without due_date
-        - Recurring with due_date: daily/weekly/biweekly/monthly/custom
-        - Recurring without due_date: daily/weekly/biweekly/monthly/custom
+        ChoreOps calendars only surface chores with anchored due dates. Date-less
+        chores are intentionally excluded from calendar output.
 
         Args:
             chore: Chore dictionary with configuration data
@@ -806,150 +810,71 @@ class AssigneeScheduleCalendar(CalendarEntity):
             if isinstance(parsed, datetime.datetime):
                 due_dt = parsed
 
+        if not due_dt:
+            return events
+
         # --- Non-recurring chores ---
         if recurring == const.FREQUENCY_NONE:
-            if due_dt:
-                self._generate_non_recurring_with_due_date(
-                    events,
-                    chore_id,
-                    summary,
-                    description,
-                    due_dt,
-                    window_start,
-                    window_end,
-                )
-            else:
-                self._generate_non_recurring_without_due_date(
-                    events,
-                    summary,
-                    description,
-                    applicable_days,
-                    window_start,
-                    window_end,
-                )
+            self._generate_non_recurring_with_due_date(
+                events,
+                chore_id,
+                summary,
+                description,
+                due_dt,
+                window_start,
+                window_end,
+            )
             return events
 
         # --- Recurring chores with a due_date ---
-        if due_dt:
-            cutoff = min(due_dt, window_end)
-            if cutoff < window_start:
-                return events
-
-            if recurring == const.FREQUENCY_DAILY:
-                self._generate_recurring_daily_with_due_date(
-                    events,
-                    chore_id,
-                    summary,
-                    description,
-                    due_dt,
-                    window_start,
-                    window_end,
-                )
-            elif recurring in (
-                const.FREQUENCY_WEEKLY,
-                const.FREQUENCY_BIWEEKLY,
-                const.FREQUENCY_MONTHLY,
-                const.FREQUENCY_CUSTOM,
-                const.FREQUENCY_CUSTOM_FROM_COMPLETE,
-            ):
-                # All intervals > 1 day with due_date create recurring 1-hour timed events
-                interval = chore.get(const.DATA_CHORE_CUSTOM_INTERVAL, 1)
-                unit = chore.get(
-                    const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
-                )
-                self._generate_recurring_with_due_date(
-                    events,
-                    chore_id,
-                    summary,
-                    description,
-                    due_dt,
-                    recurring,
-                    interval,
-                    unit,
-                    window_start,
-                    window_end,
-                    applicable_days=applicable_days,
-                )
-            elif recurring == const.FREQUENCY_DAILY_MULTI:
-                # CFE-2026-001 Feature 2: Multiple times per day
-                daily_window_end = self._daily_window_end(window_start, window_end)
-                self._generate_recurring_daily_multi_with_due_date(
-                    events,
-                    summary,
-                    description,
-                    chore,
-                    window_start,
-                    daily_window_end,
-                )
+        cutoff = min(due_dt, window_end)
+        if cutoff < window_start:
             return events
 
-        # --- Recurring chores without a due_date => next 3 months
-        gen_start = window_start
-        future_limit = dt_util.as_local(
-            datetime.datetime.now() + self._calendar_duration
-        )
-        cutoff = min(window_end, future_limit)
-        daily_window_end = self._daily_window_end(window_start, window_end)
-
         if recurring == const.FREQUENCY_DAILY:
-            self._generate_recurring_daily_without_due_date(
+            self._generate_recurring_daily_with_due_date(
                 events,
+                chore_id,
                 summary,
                 description,
+                due_dt,
                 applicable_days,
-                gen_start,
-                min(cutoff, daily_window_end),
                 window_start,
-                window_end,
+                self._daily_window_end(window_start, window_end),
             )
-        elif recurring in (const.FREQUENCY_WEEKLY, const.FREQUENCY_BIWEEKLY):
-            self._generate_recurring_weekly_biweekly_without_due_date(
-                events,
-                summary,
-                description,
-                recurring,
-                gen_start,
-                cutoff,
-                window_start,
-                window_end,
-            )
-        elif recurring == const.FREQUENCY_MONTHLY:
-            self._generate_recurring_monthly_without_due_date(
-                events,
-                summary,
-                description,
-                gen_start,
-                cutoff,
-                window_start,
-                window_end,
-            )
-        elif recurring == const.FREQUENCY_CUSTOM:
+        elif recurring in (
+            const.FREQUENCY_WEEKLY,
+            const.FREQUENCY_BIWEEKLY,
+            const.FREQUENCY_MONTHLY,
+            const.FREQUENCY_CUSTOM,
+            const.FREQUENCY_CUSTOM_FROM_COMPLETE,
+        ):
             interval = chore.get(const.DATA_CHORE_CUSTOM_INTERVAL, 1)
             unit = chore.get(
                 const.DATA_CHORE_CUSTOM_INTERVAL_UNIT, const.TIME_UNIT_DAYS
             )
-            self._generate_recurring_custom_without_due_date(
+            self._generate_recurring_with_due_date(
                 events,
+                chore_id,
                 summary,
                 description,
-                applicable_days,
+                due_dt,
+                recurring,
                 interval,
                 unit,
-                gen_start,
-                cutoff,
                 window_start,
                 window_end,
+                applicable_days,
             )
         elif recurring == const.FREQUENCY_DAILY_MULTI:
-            # CFE-2026-001 Feature 2: Multiple times per day (without due_date)
-            # Use the same handler - it generates events for each day in window
+            # CFE-2026-001 Feature 2: Multiple times per day
             self._generate_recurring_daily_multi_with_due_date(
                 events,
                 summary,
                 description,
                 chore,
                 window_start,
-                daily_window_end,
+                self._daily_window_end(window_start, window_end),
             )
 
         return events

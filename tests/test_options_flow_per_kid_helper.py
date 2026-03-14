@@ -706,6 +706,7 @@ class TestPerAssigneeHelperEdit:
                 CFOF_CHORES_INPUT_ASSIGNED_USER_IDS: assigned_assignees,
                 CFOF_CHORES_INPUT_RECURRING_FREQUENCY: "weekly",
                 CFOF_CHORES_INPUT_COMPLETION_CRITERIA: COMPLETION_CRITERIA_INDEPENDENT,
+                CFOF_CHORES_INPUT_DUE_DATE: datetime.now(UTC) + timedelta(days=7),
             },
         )
 

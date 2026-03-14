@@ -322,6 +322,7 @@ class TestCreateChoreEndToEnd:
                     "labels": ["test", "e2e"],
                     "completion_criteria": "shared_first",
                     "frequency": "weekly",
+                    "due_date": "2099-01-01T09:00:00",
                 },
                 blocking=True,
             )
