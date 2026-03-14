@@ -1084,7 +1084,7 @@ def test_admin_economy_management_shows_detail_stack_when_expanded() -> None:
     assert (
         parsed[1]["custom_fields"]["ledger"]["card"]["cards"][1]["custom_fields"][
             "action"
-        ]["card"]["icon"]
+        ]["card"]["cards"][0]["icon"]
         == "mdi:eraser"
     )
     assert (

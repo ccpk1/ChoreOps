@@ -1402,18 +1402,8 @@ def validate_chore_data(
             )
             return errors
 
-    # === Check if INDEPENDENT multi-assignee (special case for due date requirements) ===
-    is_independent_multiassignee = (
-        completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT
-        and len(assigned_assignees) >= 2
-    )
-
     # === 8. DAILY_MULTI requires due_date ===
-    if (
-        recurring_frequency == const.FREQUENCY_DAILY_MULTI
-        and not due_date_raw
-        and not is_independent_multiassignee
-    ):
+    if recurring_frequency == const.FREQUENCY_DAILY_MULTI and not due_date_raw:
         errors[const.CFOP_ERROR_DAILY_MULTI_DUE_DATE] = (
             const.TRANS_KEY_CFOF_ERROR_DAILY_MULTI_DUE_DATE_REQUIRED
         )
@@ -1424,13 +1414,23 @@ def validate_chore_data(
         const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
         const.APPROVAL_RESET_AT_DUE_DATE_MULTI,
     ):
-        if not due_date_raw and not is_independent_multiassignee:
+        if not due_date_raw:
             errors[const.CFOP_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE] = (
                 const.TRANS_KEY_CFOF_ERROR_AT_DUE_DATE_RESET_REQUIRES_DUE_DATE
             )
             return errors
 
-    # === V-03: Rotation requires ≥ 2 assigned assignees ===
+    # === 10. Only NONE and DAILY may omit due_date ===
+    if not due_date_raw and recurring_frequency not in (
+        const.FREQUENCY_NONE,
+        const.FREQUENCY_DAILY,
+    ):
+        errors[const.CFOP_ERROR_DUE_DATE] = (
+            const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY
+        )
+        return errors
+
+    # === 11. Rotation requires ≥ 2 assigned assignees ===
     rotation_criteria = {
         const.COMPLETION_CRITERIA_ROTATION_SIMPLE,
         const.COMPLETION_CRITERIA_ROTATION_SMART,
@@ -1442,7 +1442,7 @@ def validate_chore_data(
             )
             return errors
 
-    # === V-05: at_due_date_allow_steal compatibility ===
+    # === 12. at_due_date_allow_steal compatibility ===
     if overdue_handling == const.OVERDUE_HANDLING_AT_DUE_DATE_ALLOW_STEAL:
         # Must be a rotation chore
         if (

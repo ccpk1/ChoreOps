@@ -4299,8 +4299,18 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
 
         # Calculate primary_group for dashboard grouping
         recurring_frequency = chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY) or ""
+        shows_today_without_due_date = (
+            self.coordinator.chore_manager.no_due_date_daily_matches_today(
+                chore_info,
+                self._assignee_id,
+            )
+        )
         primary_group = self._calculate_primary_group(
-            state, is_due, due_date_local_dt, recurring_frequency
+            state,
+            is_due,
+            due_date_local_dt,
+            recurring_frequency,
+            shows_today_without_due_date,
         )
 
         # Return the minimal fields needed for dashboard rendering
@@ -4314,7 +4324,12 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
         }
 
     def _calculate_primary_group(
-        self, status: str, is_due: bool, due_date_local, recurring_frequency: str
+        self,
+        status: str,
+        is_due: bool,
+        due_date_local,
+        recurring_frequency: str,
+        shows_today_without_due_date: bool,
     ) -> str:
         """Calculate the primary group for a chore.
 
@@ -4358,11 +4373,12 @@ class AssigneeDashboardHelperSensor(ChoreOpsCoordinatorEntity, SensorEntity):
             # Due later -> other group
             return const.PRIMARY_GROUP_OTHER
 
-        # No due date - check recurring frequency
-        if recurring_frequency == const.FREQUENCY_DAILY:
+        # No due date - only weekday-matching daily chores belong in today
+        if (
+            recurring_frequency == const.FREQUENCY_DAILY
+            and shows_today_without_due_date
+        ):
             return const.PRIMARY_GROUP_TODAY
-        if recurring_frequency == const.FREQUENCY_WEEKLY:
-            return const.PRIMARY_GROUP_THIS_WEEK
 
         return const.PRIMARY_GROUP_OTHER
 

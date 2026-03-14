@@ -2347,7 +2347,7 @@ class StatisticsManager(BaseManager):
         assignee_id: str,
         today_iso: str,
     ) -> bool:
-        """Return True if chore due date for this assignee matches today."""
+        """Return True if this chore is assignee-actionable today."""
         per_assignee_due_dates = cast(
             "dict[str, str | None]",
             chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES, {}),
@@ -2355,9 +2355,13 @@ class StatisticsManager(BaseManager):
         due_date = per_assignee_due_dates.get(assignee_id) or chore_info.get(
             const.DATA_CHORE_DUE_DATE
         )
-        if not isinstance(due_date, str):
-            return False
-        return due_date[:10] == today_iso
+        if isinstance(due_date, str):
+            return due_date[:10] == today_iso
+
+        return self.coordinator.chore_manager.no_due_date_daily_matches_today(
+            chore_info,
+            assignee_id,
+        )
 
     # =========================================================================
     # Presentation Cache Methods

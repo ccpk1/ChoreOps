@@ -1,10 +1,10 @@
 [![Quality Scale: Platinum](https://img.shields.io/badge/Quality%20Scale-platinum-platinum.svg)](https://github.com/ccpk1/choreops)
 [![Quality Gates](https://img.shields.io/github/actions/workflow/status/ccpk1/choreops/lint-validation.yaml?branch=main&label=Quality%20Gates)](https://github.com/ccpk1/choreops/actions/workflows/lint-validation.yaml)
 [![Crowdin](https://badges.crowdin.net/choreops-translations/localized.svg)](https://crowdin.com/project/choreops-translations)
-[![License](https://img.shields.io/static/v1?label=License&message=GPL-3.0&color=1E88E5&labelColor=555)](https://github.com/ccpk1/choreops/blob/main/LICENSE) [![HACS Custom](https://img.shields.io/static/v1?label=HACS&message=custom&color=1E88E5&labelColor=555)](https://github.com/custom-components/hacs) <br>
+[![License](https://img.shields.io/static/v1?label=License&message=GPL-3.0&color=1E88E5&labelColor=555)](https://github.com/ccpk1/choreops/blob/main/LICENSE) 
+[![HACS Custom](https://img.shields.io/static/v1?label=HACS&message=custom&color=1E88E5&labelColor=555)](https://github.com/custom-components/hacs) <br>
 [![Version](https://img.shields.io/github/v/release/ccpk1/choreops?include_prereleases&label=Version&color=1E88E5)](https://github.com/ccpk1/choreops/releases)
-[![Latest DL](https://img.shields.io/github/downloads-pre/ccpk1/choreops/latest/total?label=Latest%20DL&color=1E88E5)](https://github.com/ccpk1/choreops/releases)
-[![Total DL](https://img.shields.io/github/downloads-pre/ccpk1/choreops/total?label=Total%20DL&color=1E88E5)](https://github.com/ccpk1/choreops/releases)<br>
+[![Stars](https://img.shields.io/github/stars/ccpk1/choreops)](https://github.com/ccpk1/choreops/stargazers)
 
 ![ChoreOps - Level Up Your Household Tasks](https://raw.githubusercontent.com/ccpk1/choreops/main/docs/assets/hero-choreops.png)
 
@@ -20,12 +20,16 @@ Born from the popular _KidsChores_ integration, ChoreOps evolves that foundation
 
 ### ❤️ Support the Project
 
-If ChoreOps helps keep your household running smoothly, consider fueling its development! Your support is a token of appreciation that keeps the fire burning and prevents open-source burnout.
+If ChoreOps helps keep your household running smoothly, there are a few ways you can fuel its development and prevent open-source burnout!
+
+⭐ **Star this repository!**
+If you like this integration, the best (and free!) thing you can do is click the Star button at the top of this page. It helps other users discover the project and builds trust as we grow.
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?style=for-the-badge&logo=github)](https://github.com/sponsors/ccpk1)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/ccpk1)
 
 ---
+
 ### Run It Your Way
 
 **Whether you need a full XP/Reward economy for the kids, or a silent "Operations Center" for housemates, ChoreOps adapts to you.**
@@ -99,6 +103,22 @@ ChoreOps ships with a functional dashboard starter experience, but it is designe
 
 ---
 
+### 📸 See ChoreOps in Action
+
+#### **Task Management & Shared Chores**
+*Smart rotations, shared/competitive chores, and precise due-time windows with actionable notifications.*
+![Task Management](https://raw.githubusercontent.com/ccpk1/choreops/main/docs/assets/release-chores.png)
+
+#### **First-Class Gamification**
+*Earn tickets, track XP, unlock Bronze/Silver/Gold ranks, and spend points on custom household rewards.*
+![Gamification Engine](https://raw.githubusercontent.com/ccpk1/choreops/main/docs/assets/release-gamification.png)
+
+#### **The OpsCenter Admin View**
+*A unified management dashboard to quickly approve claims, manage due dates, and adjust points on the fly.*
+![OpsCenter View](https://raw.githubusercontent.com/ccpk1/choreops/main/docs/assets/release-opscenter.png)
+
+---
+
 ### Reference Documentation
 
 - 📚 Wiki Home: [ChoreOps Wiki](https://github.com/ccpk1/choreops/wiki)
@@ -130,6 +150,7 @@ Prefer the guided steps? See the full [Wiki installation guide](https://github.c
 
 ### Community and contribution
 
+- 🏠 Home Assistant Forum: [ChoreOps Topic](https://community.home-assistant.io/t/choreops-level-up-your-household-tasks/995326)
 - 💬 Community discussion: [GitHub Discussions](https://github.com/ccpk1/choreops/discussions)
 - 🛠️ Issues and feature requests: [GitHub Issues](https://github.com/ccpk1/choreops/issues)
 - 🔀 Contribute: [Pull requests](https://github.com/ccpk1/choreops/pulls)

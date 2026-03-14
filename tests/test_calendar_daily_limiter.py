@@ -212,27 +212,11 @@ def test_calendar_data_changed_handler_clears_caches() -> None:
 
 
 @freeze_time("2025-01-01 00:00:00")
-def test_daily_without_due_date_is_capped_to_daily_horizon() -> None:
-    """DAILY no-due generation receives capped cutoff instead of full window."""
+def test_daily_without_due_date_does_not_generate_calendar_events() -> None:
+    """Date-less daily chores are intentionally excluded from the calendar."""
     calendar = _build_calendar(90)
     window_start = datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC)
     window_end = window_start + datetime.timedelta(days=90)
-
-    captured: dict[str, datetime.datetime] = {}
-
-    def _capture_daily(
-        events: list,
-        summary: str,
-        description: str,
-        applicable_days: list[int],
-        gen_start: datetime.datetime,
-        cutoff: datetime.datetime,
-        start: datetime.datetime,
-        end: datetime.datetime,
-    ) -> None:
-        captured["cutoff"] = cutoff
-
-    calendar._generate_recurring_daily_without_due_date = _capture_daily  # type: ignore[method-assign]
 
     chore = {
         const.DATA_CHORE_NAME: "Daily chore",
@@ -242,20 +226,18 @@ def test_daily_without_due_date_is_capped_to_daily_horizon() -> None:
         const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
     }
 
-    calendar._generate_events_for_chore(chore, window_start, window_end)
-
-    assert captured["cutoff"] == window_start + datetime.timedelta(days=30)
+    assert calendar._generate_events_for_chore(chore, window_start, window_end) == []
 
 
 @freeze_time("2025-01-01 00:00:00")
-def test_daily_multi_is_capped_but_weekly_is_not() -> None:
-    """DAILY_MULTI uses 1/3 window cap while WEEKLY keeps full window."""
+def test_daily_multi_is_capped_but_weekly_uses_full_window() -> None:
+    """DAILY_MULTI uses 1/3 window cap while WEEKLY uses the full window."""
     calendar = _build_calendar(90)
     window_start = datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC)
     window_end = window_start + datetime.timedelta(days=90)
 
     captured_multi: dict[str, datetime.datetime] = {}
-    captured_weekly: dict[str, datetime.datetime] = {}
+    captured_weekly: dict[str, datetime.datetime | list[int]] = {}
 
     def _capture_multi(
         events: list,
@@ -269,18 +251,22 @@ def test_daily_multi_is_capped_but_weekly_is_not() -> None:
 
     def _capture_weekly(
         events: list,
+        chore_id: str,
         summary: str,
         description: str,
+        due_dt: datetime.datetime,
         recurring: str,
-        gen_start: datetime.datetime,
-        cutoff: datetime.datetime,
+        interval: int,
+        unit: str,
         start: datetime.datetime,
         end: datetime.datetime,
+        applicable_days: list[int] | None = None,
     ) -> None:
-        captured_weekly["cutoff"] = cutoff
+        captured_weekly["window_end"] = end
+        captured_weekly["applicable_days"] = applicable_days or []
 
     calendar._generate_recurring_daily_multi_with_due_date = _capture_multi  # type: ignore[method-assign]
-    calendar._generate_recurring_weekly_biweekly_without_due_date = _capture_weekly  # type: ignore[method-assign]
+    calendar._generate_recurring_with_due_date = _capture_weekly  # type: ignore[method-assign]
 
     multi_chore = {
         const.DATA_CHORE_NAME: "Daily multi",
@@ -296,13 +282,80 @@ def test_daily_multi_is_capped_but_weekly_is_not() -> None:
         const.DATA_CHORE_DESCRIPTION: "",
         const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_WEEKLY,
         const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+        const.DATA_CHORE_DUE_DATE: "2025-01-10T08:00:00+00:00",
+        const.DATA_CHORE_APPLICABLE_DAYS: [0, 2, 4],
     }
 
     calendar._generate_events_for_chore(multi_chore, window_start, window_end)
     calendar._generate_events_for_chore(weekly_chore, window_start, window_end)
 
     assert captured_multi["window_end"] == window_start + datetime.timedelta(days=30)
-    assert captured_weekly["cutoff"] == window_end
+    assert captured_weekly["window_end"] == window_end
+    assert captured_weekly["applicable_days"] == [0, 2, 4]
+
+
+def test_daily_with_due_date_uses_recurrence_engine_and_applicable_days() -> None:
+    """Daily chores with due dates use the recurrence engine with weekday filters."""
+    calendar = _build_calendar(90)
+    window_start = datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC)
+    window_end = window_start + datetime.timedelta(days=90)
+    captured: dict[str, object] = {}
+
+    def _capture_daily(
+        events: list,
+        chore_id: str,
+        summary: str,
+        description: str,
+        due_dt: datetime.datetime,
+        recurring: str,
+        interval: int,
+        unit: str,
+        start: datetime.datetime,
+        end: datetime.datetime,
+        applicable_days: list[int] | None = None,
+    ) -> None:
+        captured["recurring"] = recurring
+        captured["interval"] = interval
+        captured["unit"] = unit
+        captured["window_end"] = end
+        captured["applicable_days"] = applicable_days or []
+
+    calendar._generate_recurring_with_due_date = _capture_daily  # type: ignore[method-assign]
+
+    chore = {
+        const.DATA_CHORE_INTERNAL_ID: "chore-1",
+        const.DATA_CHORE_NAME: "Daily chore",
+        const.DATA_CHORE_DESCRIPTION: "",
+        const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_DAILY,
+        const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+        const.DATA_CHORE_DUE_DATE: "2025-01-07T19:00:00+00:00",
+        const.DATA_CHORE_APPLICABLE_DAYS: [0, 2, 4],
+    }
+
+    calendar._generate_events_for_chore(chore, window_start, window_end)
+
+    assert captured["recurring"] == const.FREQUENCY_DAILY
+    assert captured["interval"] == 1
+    assert captured["unit"] == const.TIME_UNIT_DAYS
+    assert captured["window_end"] == window_start + datetime.timedelta(days=30)
+    assert captured["applicable_days"] == [0, 2, 4]
+
+
+def test_non_recurring_without_due_date_is_excluded_from_calendar() -> None:
+    """Date-less one-off chores do not render on the calendar."""
+    calendar = _build_calendar(30)
+    window_start = datetime.datetime(2025, 1, 1, tzinfo=datetime.UTC)
+    window_end = window_start + datetime.timedelta(days=30)
+
+    chore = {
+        const.DATA_CHORE_NAME: "One-off chore",
+        const.DATA_CHORE_DESCRIPTION: "",
+        const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_NONE,
+        const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+        const.DATA_CHORE_APPLICABLE_DAYS: [0, 2, 4],
+    }
+
+    assert calendar._generate_events_for_chore(chore, window_start, window_end) == []
 
 
 def test_non_recurring_due_event_uses_manager_start_and_due_end() -> None:
