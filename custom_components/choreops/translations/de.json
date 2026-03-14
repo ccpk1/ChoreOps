@@ -4,58 +4,58 @@
     "step": {
       "intro": {
         "title": "Willkommen bei ChoreOps",
-        "description": "Dieser Assistent führt Sie durch die Einrichtung von ChoreOps.\n\n ℹ️ [Schnellstartanleitung]({documentation_url})"
+        "description": "Dieser Assistent führt dich durch die Einrichtung von ChoreOps.\n\n ℹ️ [Schnellstartanleitung]({documentation_url})"
       },
       "data_recovery": {
         "title": "Optionen zur Datenwiederherstellung",
-        "description": "Vorhandene ChoreOps-Daten gefunden in:\n{storage_path}\n\n {backup_count} Sicherungsdateien gefunden.\n\nWas möchten Sie tun?\n\n ℹ️ [Mehr über Sicherung & Wiederherstellung erfahren]({documentation_url})",
+        "description": "Vorhandene ChoreOps-Daten gefunden in:\n{storage_path}\n\n {backup_count} Sicherungsdateien gefunden.\n\nWas möchtest du tun?\n\n ℹ️ [Mehr über Sicherung & Wiederherstellung erfahren]({documentation_url})",
         "data": {
           "backup_selection": "Option auswählen"
         }
       },
       "paste_json_input": {
         "title": "JSON-Daten importieren",
-        "description": "Fügen Sie den vollständigen JSON-Inhalt aus einer der folgenden Quellen ein:\n\n• ChoreOps-Datendatei (choreops_data)\n• Diagnose-Download\n\nDas System erkennt das Format automatisch und entpackt es bei Bedarf. Sowohl Rohdaten aus dem Speicher als auch Diagnose-Exportformate werden unterstützt.",
+        "description": "Füge den vollständigen JSON-Inhalt aus einer der folgenden Quellen ein:\n\n• ChoreOps-Datendatei (choreops_data)\n• Diagnose-Download\n\nDas System erkennt das Format automatisch und entpackt es bei Bedarf. Sowohl Rohdaten aus dem Speicher als auch Diagnose-Exportformate werden unterstützt.",
         "data": {
           "json_data": "JSON-Daten"
         },
         "data_description": {
-          "json_data": "Fügen Sie hier den vollständigen JSON-Inhalt ein. Akzeptiert Daten aus der Datei choreops_data oder aus dem Diagnoseexport (zusätzliche Strukturen werden automatisch entpackt)."
+          "json_data": "Füge hier den vollständigen JSON-Inhalt ein. Akzeptiert Daten aus der Datei choreops_data oder aus dem Diagnoseexport (zusätzliche Strukturen werden automatisch entpackt)."
         }
       },
       "points_label": {
-        "title": "Punkte-Etikett",
-        "description": "Wählen Sie eine Bezeichnung und ein Symbol für die Punkte.",
+        "title": "Punkte-Label",
+        "description": "Wähle eine Bezeichnung und ein Symbol für die Punkte.",
         "data": {
-          "points_label": "Punkte-Etikett",
+          "points_label": "Punkte-Label",
           "points_icon": "Punkte-Symbol",
           "default_chore_points": "Standardpunkte pro Aufgabe"
         },
         "data_description": {
-          "default_chore_points": "Standardmäßig wird beim Erstellen einer Aufgabe der Punktewert verwendet, es sei denn, Sie legen für diese Aufgabe benutzerdefinierte Punkte fest."
+          "default_chore_points": "Standardmäßiger Punktewert verwendet, wenn eine Aufgabe erstellt wird, es sei denn, du legst für diese Aufgabe benutzerdefinierte Punkte fest."
         }
       },
       "reconfigure": {
         "title": "Systemeinstellungen neu konfigurieren",
-        "description": "Aktualisieren Sie die Systemeinstellungen wie Punktebezeichnung und Symbol.",
+        "description": "Aktualisiere die Systemeinstellungen wie Punkte-Label und Symbol.",
         "data": {
-          "points_label": "Punkte-Etikett",
+          "points_label": "Punkte-Label",
           "points_icon": "Punkte-Symbol",
           "default_chore_points": "Standardpunkte pro Aufgabe",
           "update_interval": "Aktualisierungsintervall (Minuten)",
           "calendar_show_period": "Kalenderanzeigezeitraum (Tage)",
-          "retention_daily": "Tägliche Retention (Tage)",
-          "retention_weekly": "Wöchentliche Kundenbindung (Wochen)",
-          "retention_monthly": "Monatliche Kundenbindung (Monate)",
-          "retention_yearly": "Jährliche Kundenbindung (Jahre)",
-          "points_adjust_values": "Punktkorrekturwerte (durch Rohrleitungen getrennt)"
+          "retention_daily": "Tägliche Aufbewahrung (Tage)",
+          "retention_weekly": "Wöchentliche Aufbewahrung (Wochen)",
+          "retention_monthly": "Monatliche Aufbewahrung (Monate)",
+          "retention_yearly": "Jährliche Aufbewahrung (Jahre)",
+          "points_adjust_values": "Punktkorrekturwerte (durch ein Pipe-Zeichen getrennt)"
         },
         "data_description": {
-          "points_label": "Angezeigte Bezeichnung für Punkte (z. B. „Punkte“, „Sterne“, „Münzen“)",
+          "points_label": "Angezeigtes Label für Punkte (z. B. „Punkte“, „Sterne“, „Münzen“)",
           "points_icon": "MDI-Symbol für Punkte (z. B. 'mdi:star', 'mdi:coin', 'mdi:trophy')",
-          "default_chore_points": "Standard-Punktewert, der beim Erstellen einer Aufgabe verwendet wird, sofern keine benutzerdefinierten Punkte festgelegt sind.",
+          "default_chore_points": "Standardmäßiger Punktewert verwendet, wenn eine Aufgabe erstellt wird, es sei denn, du legst für diese Aufgabe benutzerdefinierte Punkte fest.",
           "update_interval": "Wie oft sollen die Daten aktualisiert werden (Minimum: 1 Minute)",
-          "calendar_show_period": "Historische Tage, die im Kalender angezeigt werden sollen (mindestens 1)",
+          "calendar_show_period": "Tage des Verlaufs, die im Kalender angezeigt werden sollen (mindestens 1)",
           "retention_daily": "Tage, um die täglichen Aggregate zu erfassen",
           "retention_weekly": "Wochen, um wöchentliche Aggregate zu erfassen",
           "retention_monthly": "Monate, um monatliche Aggregate zu erfassen",
@@ -464,7 +464,7 @@
       "invalid_points": "Die Punktzahl muss null oder größer sein.",
       "invalid_overdue_reset_combination": "Die Funktion „Zum Fälligkeitsdatum zurücksetzen“ funktioniert nur bei Zurücksetzungstypen um Mitternacht. Bitte wählen Sie für den Genehmigungs-Zurücksetzungstyp „Um Mitternacht (einmalig)“ oder „Um Mitternacht (wiederkehrend)“.",
       "invalid_due_date": "Ungültiges Fälligkeitsdatum",
-      "date_required_for_frequency": "Für diese wiederkehrende Häufigkeit ist ein Fälligkeitsdatum erforderlich. Die Option „Datum löschen“ funktioniert nur bei den Häufigkeiten „Keine“, „Täglich“ oder „Wöchentlich“.",
+      "date_required_for_frequency": "Für diese wiederkehrende Häufigkeit ist ein Fälligkeitsdatum erforderlich. Die Option „Datum löschen“ funktioniert nur bei den Häufigkeiten „Keine“ oder „Täglich“.",
       "invalid_end_date": "Ungültiges Enddatum.",
       "invalid_assignee_count": "Anzahl ungültiger Bearbeiter",
       "invalid_assignee_name": "Ungültiger Bearbeitername",
@@ -1788,7 +1788,7 @@
       "invalid_points": "Die Punktzahl muss null oder größer sein.",
       "invalid_overdue_reset_combination": "Die Funktion „Zum Fälligkeitsdatum zurücksetzen“ funktioniert nur bei Zurücksetzungstypen um Mitternacht. Bitte wählen Sie für den Genehmigungs-Zurücksetzungstyp „Um Mitternacht (einmalig)“ oder „Um Mitternacht (wiederkehrend)“.",
       "invalid_due_date": "Ungültiges Fälligkeitsdatum",
-      "date_required_for_frequency": "Für diese wiederkehrende Häufigkeit ist ein Fälligkeitsdatum erforderlich. Die Option „Datum löschen“ funktioniert nur bei den Häufigkeiten „Keine“, „Täglich“ oder „Wöchentlich“.",
+      "date_required_for_frequency": "Für diese wiederkehrende Häufigkeit ist ein Fälligkeitsdatum erforderlich. Die Option „Datum löschen“ funktioniert nur bei den Häufigkeiten „Keine“ oder „Täglich“.",
       "invalid_end_date": "Ungültiges Enddatum.",
       "invalid_assignee_count": "Anzahl ungültiger Bearbeiter",
       "invalid_assignee_name": "Ungültiger Bearbeitername",
