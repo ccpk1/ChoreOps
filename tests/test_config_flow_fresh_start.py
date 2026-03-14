@@ -1920,6 +1920,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:lego",
             "completion_criteria": "independent",
             "auto_approve": False,
+            "due_date": "2099-01-08T17:00:00+00:00",
         },
         {
             "name": "Charge Røbot",
@@ -1938,6 +1939,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:palette",
             "completion_criteria": "independent",
             "auto_approve": False,
+            "due_date": "2099-01-08T17:00:00+00:00",
         },
         {
             "name": "Sweep the p@tio",
@@ -1966,6 +1968,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:bookshelf",
             "completion_criteria": "independent",
             "auto_approve": False,
+            "due_date": "2099-01-08T17:00:00+00:00",
         },
         {
             "name": "Deep Clean Tøy Chest",
@@ -1975,6 +1978,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:treasure-chest",
             "completion_criteria": "independent",
             "auto_approve": False,
+            "due_date": "2099-01-30T17:00:00+00:00",
         },
         # === SHARED_ALL CHORES ===
         {
@@ -1994,6 +1998,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:tree",
             "completion_criteria": "shared_all",
             "auto_approve": False,
+            "due_date": "2099-01-08T14:00:00+00:00",
         },
         {
             "name": "Sibling Rööm Cleanup",
@@ -2003,6 +2008,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:broom-clean",
             "completion_criteria": "shared_all",
             "auto_approve": False,
+            "due_date": "2099-01-08T14:00:00+00:00",
         },
         # === SHARED_FIRST CHORES ===
         {
@@ -2013,6 +2019,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:garage",
             "completion_criteria": "shared_first",
             "auto_approve": False,
+            "due_date": "2099-01-08T14:00:00+00:00",
         },
         {
             "name": "Täke Öut Trash",
@@ -2031,6 +2038,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "icon": "mdi:car-wash",
             "completion_criteria": "shared_first",
             "auto_approve": False,
+            "due_date": "2099-01-08T14:00:00+00:00",
         },
         {
             "name": "Måil Pickup Race",
@@ -2051,6 +2059,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "completion_criteria": "independent",
             "auto_approve": False,
             "custom_interval_days": 3,
+            "due_date": "2099-01-03T10:00:00+00:00",
         },
         {
             "name": "Clëan Pool Fïlter",
@@ -2061,6 +2070,7 @@ async def test_fresh_start_with_all_scenario_chores(
             "completion_criteria": "shared_first",
             "auto_approve": False,
             "custom_interval_days": 5,
+            "due_date": "2099-01-05T10:00:00+00:00",
         },
     ]
 

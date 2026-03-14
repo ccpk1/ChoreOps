@@ -71,6 +71,7 @@ chores:
     completion_criteria: "shared_all"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d17:00"
 
   # Test: 2-assignee shared_all weekly (different pair)
   - name: "Clean bathroom"
@@ -80,6 +81,7 @@ chores:
     completion_criteria: "shared_all"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d17:00"
 
   # ==========================================================================
   # SHARED_FIRST CHORES (first to complete wins)
@@ -111,6 +113,7 @@ chores:
     completion_criteria: "shared_first"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d17:00"
 
   # Test: 2-assignee shared_first weekly (different pair)
   - name: "Organize garage"
@@ -120,6 +123,7 @@ chores:
     completion_criteria: "shared_first"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d17:00"
 
   # ==========================================================================
   # SHARED_ALL WITH AUTO-APPROVE AND PENDING CLAIM ACTIONS
@@ -248,6 +252,7 @@ chores:
     completion_criteria: "rotation_simple"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d14:00"
 
   # Test: 3-assignee rotation_simple with auto_approve
   - name: "Feed Pet Fish"
@@ -288,6 +293,7 @@ chores:
     completion_criteria: "rotation_smart"
     recurring_frequency: "weekly"
     auto_approve: false
+    due_date: "+7d14:00"
 
   # Test: 3-assignee rotation_smart with overdue handling
   - name: "Organize Bookshelf"

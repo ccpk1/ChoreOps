@@ -2648,7 +2648,6 @@ class ChoreManager(BaseManager):
             if chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY) not in (
                 const.FREQUENCY_NONE,
                 const.FREQUENCY_DAILY,
-                const.FREQUENCY_WEEKLY,
             ):
                 chore_info[const.DATA_CHORE_RECURRING_FREQUENCY] = const.FREQUENCY_NONE
                 chore_info.pop(const.DATA_CHORE_CUSTOM_INTERVAL, None)
@@ -3417,6 +3416,54 @@ class ChoreManager(BaseManager):
         due_str = ChoreEngine.get_due_date_for_assignee(chore_info, assignee_id)
         return self._parse_due_datetime_cached(due_str)
 
+    def get_applicable_days_for_assignee(
+        self,
+        chore_info: ChoreData | dict[str, Any],
+        assignee_id: str,
+    ) -> list[int]:
+        """Return weekday gating for a chore from an assignee's perspective."""
+        completion_criteria = chore_info.get(
+            const.DATA_CHORE_COMPLETION_CRITERIA,
+            const.COMPLETION_CRITERIA_INDEPENDENT,
+        )
+        if completion_criteria == const.COMPLETION_CRITERIA_INDEPENDENT:
+            per_assignee_days = cast(
+                "dict[str, list[int]]",
+                chore_info.get(const.DATA_CHORE_PER_ASSIGNEE_APPLICABLE_DAYS, {}),
+            )
+            if assignee_id in per_assignee_days:
+                return per_assignee_days[assignee_id]
+
+        return cast("list[int]", chore_info.get(const.DATA_CHORE_APPLICABLE_DAYS, []))
+
+    def no_due_date_daily_matches_today(
+        self,
+        chore_info: ChoreData | dict[str, Any],
+        assignee_id: str,
+        *,
+        local_weekday: int | None = None,
+    ) -> bool:
+        """Return True when a no-due-date daily chore is applicable today."""
+        if (
+            chore_info.get(const.DATA_CHORE_RECURRING_FREQUENCY)
+            != const.FREQUENCY_DAILY
+        ):
+            return False
+
+        if ChoreEngine.get_due_date_for_assignee(chore_info, assignee_id):
+            return False
+
+        applicable_days = self.get_applicable_days_for_assignee(chore_info, assignee_id)
+        if not applicable_days:
+            return True
+
+        weekday = (
+            local_weekday
+            if local_weekday is not None
+            else dt_util.as_local(dt_util.now()).weekday()
+        )
+        return weekday in applicable_days
+
     def get_due_window_start(
         self, chore_id: str, assignee_id: str | None = None
     ) -> datetime | None:
@@ -3984,7 +4031,11 @@ class ChoreManager(BaseManager):
                 )
 
         if not due_today and not is_due:
-            return False
+            chore_info: ChoreData | dict[str, Any] = self._coordinator.chores_data.get(
+                chore_id, {}
+            )
+            if not self.no_due_date_daily_matches_today(chore_info, assignee_id):
+                return False
 
         return display_state in (
             const.CHORE_STATE_PENDING,

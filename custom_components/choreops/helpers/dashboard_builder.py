@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+import inspect
 from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any
@@ -62,6 +63,40 @@ if TYPE_CHECKING:
 
 # Template fetch timeout in seconds
 TEMPLATE_FETCH_TIMEOUT = 10
+
+
+def _register_dashboard_panel(
+    hass: HomeAssistant,
+    panel_kwargs: dict[str, Any],
+) -> None:
+    """Register a dashboard panel across frontend API variants.
+
+    Home Assistant 2026.3 added the ``show_in_sidebar`` keyword to
+    ``async_register_built_in_panel``. Older versions still expose the older
+    ``sidebar_default_visible`` keyword instead. Detect the supported keyword at
+    runtime so dashboard generation remains compatible without explicit HA
+    version checks.
+    """
+    register_kwargs = dict(panel_kwargs)
+
+    try:
+        supports_show_in_sidebar = (
+            "show_in_sidebar"
+            in inspect.signature(async_register_built_in_panel).parameters
+        )
+    except (TypeError, ValueError):
+        supports_show_in_sidebar = True
+
+    if not supports_show_in_sidebar and "show_in_sidebar" in register_kwargs:
+        register_kwargs["sidebar_default_visible"] = register_kwargs.pop(
+            "show_in_sidebar"
+        )
+        const.LOGGER.debug(
+            "Using legacy frontend panel sidebar visibility argument for %s",
+            register_kwargs.get("frontend_url_path"),
+        )
+
+    async_register_built_in_panel(hass, LOVELACE_DOMAIN, **register_kwargs)
 
 
 def _compose_inline_template_shared_markers(template_str: str) -> str:
@@ -1737,7 +1772,7 @@ async def _update_dashboard_metadata(
         "update": panel_exists,
     }
 
-    async_register_built_in_panel(hass, LOVELACE_DOMAIN, **panel_kwargs)
+    _register_dashboard_panel(hass, panel_kwargs)
 
 
 async def _delete_dashboard(hass: HomeAssistant, url_path: str) -> None:
@@ -1948,7 +1983,7 @@ async def _create_dashboard_entry(
         "update": panel_exists,
     }
 
-    async_register_built_in_panel(hass, LOVELACE_DOMAIN, **panel_kwargs)
+    _register_dashboard_panel(hass, panel_kwargs)
 
     const.LOGGER.debug("Dashboard panel registered: %s", url_path)
 

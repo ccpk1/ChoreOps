@@ -105,6 +105,7 @@ chores:
     icon: "mdi:lego"
     completion_criteria: "independent"
     recurring_frequency: "weekly"
+    due_date: "+7d17:00"
 
   # Test: Daily independent with custom recurring
   - name: "Charge Røbot"
@@ -121,6 +122,7 @@ chores:
     icon: "mdi:palette"
     completion_criteria: "independent"
     recurring_frequency: "weekly"
+    due_date: "+7d17:00"
 
   # Test: Daily independent chore
   - name: "Sweep the p@tio"
@@ -149,6 +151,7 @@ chores:
     icon: "mdi:bookshelf"
     completion_criteria: "independent"
     recurring_frequency: "weekly"
+    due_date: "+7d17:00"
 
   # Test: Monthly independent (less frequent)
   - name: "Deep Clean Tøy Chest"
@@ -157,6 +160,7 @@ chores:
     icon: "mdi:treasure-chest"
     completion_criteria: "independent"
     recurring_frequency: "monthly"
+    due_date: "+30d17:00"
 
   # ==========================================================================
   # SHARED_ALL CHORES
@@ -177,6 +181,7 @@ chores:
     icon: "mdi:tree"
     completion_criteria: "shared_all"
     recurring_frequency: "weekly"
+    due_date: "+7d14:00"
 
   # Test: Two-assignee shared_all
   - name: "Sibling Rööm Cleanup"
@@ -185,6 +190,7 @@ chores:
     icon: "mdi:broom-clean"
     completion_criteria: "shared_all"
     recurring_frequency: "weekly"
+    due_date: "+7d14:00"
 
   # ==========================================================================
   # SHARED_FIRST CHORES
@@ -197,6 +203,7 @@ chores:
     icon: "mdi:garage"
     completion_criteria: "shared_first"
     recurring_frequency: "weekly"
+    due_date: "+7d14:00"
 
   # Test: Daily shared_first
   - name: "Täke Öut Trash"
@@ -213,6 +220,7 @@ chores:
     icon: "mdi:car-wash"
     completion_criteria: "shared_first"
     recurring_frequency: "weekly"
+    due_date: "+7d14:00"
 
   # Test: Three-assignee shared_first for isolated 3-assignee test
   - name: "Måil Pickup Race"
@@ -235,6 +243,7 @@ chores:
     recurring_frequency: "custom"
     custom_interval: 3
     custom_interval_unit: "days"
+    due_date: "+3d10:00"
 
   # Test: Custom interval shared_first (every 5 days)
   - name: "Clëan Pool Fïlter"
@@ -245,6 +254,7 @@ chores:
     recurring_frequency: "custom"
     custom_interval: 5
     custom_interval_unit: "days"
+    due_date: "+5d10:00"
 
 # Badges (maps to BADGE_COUNT + BADGES steps)
 # Keys map to _configure_badge_step() parameters (via FlowTestHelper.build_badge_form_data):

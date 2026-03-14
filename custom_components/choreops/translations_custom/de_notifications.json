@@ -3,35 +3,35 @@
   "_comment_assignee_desc": "BENACHRICHTIGUNGEN AN DEN AUFTRAGNEHMER: Spielerisch gestaltet, in der Du-Form, mit motivierendem Ton und Emojis. Ohne das Präfix „ChoreOps:“.",
   "_comment_assignee_footer": "══════════════════════════════════════════════════════════════════",
   "chore_approved_assignee": {
-    "title": "🎉 Erledigte Aufgabe!",
-    "message": "{chore_name} genehmigt! Sie haben {points} Punkte verdient"
+    "title": "🎉 Aufgabe genehmigt!",
+    "message": "{chore_name} genehmigt! Du hast {points} Punkte verdient"
   },
   "chore_disapproved_assignee": {
     "title": "↩️ Aufgabe zurückgegeben",
     "message": "{chore_name} benötigt noch etwas Arbeit."
   },
   "chore_overdue_assignee": {
-    "title": "⏰ Überfällige Aufgabe",
-    "message": "{chore_name} ist überfällig! Schließe es jetzt ab, um {points} Punkte zu erhalten."
+    "title": "⏰ Aufgabe überfällig",
+    "message": "{chore_name} ist überfällig! Schließe sie jetzt ab, um {points} Punkte zu erhalten"
   },
   "chore_overdue_steal_available": {
     "title": "⚡ Aufgabenalarm",
-    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe es zuerst ab, um {points} Punkte zu erhalten."
+    "message": "{chore_name} ist überfällig und kann gestohlen werden! Schließe sie als Erste* ab, um {points} Punkte zu erhalten"
   },
   "chore_missed_assignee": {
     "title": "😔 Aufgabe abgelaufen",
     "message": "{chore_name} ist ohne Abschluss abgelaufen."
   },
   "chore_due_reminder_assignee": {
-    "title": "⏰ Erinnerung an die Hausarbeit",
+    "title": "⏰ Erinnerung an die Aufgabe",
     "message": "{chore_name} ist in {minutes} Minuten fällig! Wert: {points} Punkte"
   },
   "chore_due_window_assignee": {
     "title": "🎯 Aufgabe jetzt fällig",
-    "message": "{chore_name} ist jetzt fällig! Schließe es innerhalb von {hours} Stunden ab, um {points} Punkte zu erhalten."
+    "message": "{chore_name} ist jetzt fällig! Schließe sie innerhalb von {hours} Stunde(n) ab, um {points} Punkte zu erhalten"
   },
   "reward_approved_assignee": {
-    "title": "🎉 Prämie genehmigt!",
+    "title": "🎉 Belohnung genehmigt!",
     "message": "{reward_name} genehmigt!"
   },
   "reward_disapproved_assignee": {
@@ -40,30 +40,30 @@
   },
   "badge_earned_assignee": {
     "title": "🥇 Abzeichen erhalten!",
-    "message": "Du hast dir das {badge_name} -Abzeichen verdient!"
+    "message": "Du hast dir das {badge_name}-Abzeichen verdient!"
   },
   "achievement_earned_assignee": {
     "title": "🏆 Erfolg erzielt!",
-    "message": "Du hast {achievement_name}verdient! Weiter so!"
+    "message": "Du hast {achievement_name} verdient! Weiter so"
   },
   "challenge_completed_assignee": {
     "title": "🏁 Herausforderung abgeschlossen!",
-    "message": "Du hast {challenge_name}abgeschlossen! Weiter so!"
+    "message": "Du hast {challenge_name} abgeschlossen! Weiter so"
   },
   "penalty_applied_assignee": {
     "title": "⚠️ Strafe verhängt",
-    "message": "{penalty_name}: {points} Punkte abgezogen. Zurück zur Sache!"
+    "message": "{penalty_name}: {points} Punkte abgezogen. Lass uns wieder auf Kurs kommen!"
   },
   "bonus_applied_assignee": {
     "title": "⭐ Bonus angewendet!",
-    "message": "{bonus_name}: Du hast {points} Bonuspunkte verdient! Super gemacht!"
+    "message": "{bonus_name}: Du hast {points} Bonuspunkte verdient! Super gemacht"
   },
   "multiplier_changed_assignee": {
     "title": "⚖️ Multiplikator aktualisiert",
-    "message": "Ihr Punktemultiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert."
+    "message": "Dein Punktemultiplikator hat sich von {old_multiplier}x auf {new_multiplier}x geändert"
   },
   "_comment_approver_section": "══════════════════════════════════════════════════════════════════",
-  "_comment_approver_desc": "BENACHRICHTIGUNGEN FÜR GENEHMIGUNGSSTELLEN: Informativ, in der dritten Person, handlungsauffordernd. Format: '{assignee_name}: Aktion'. Ohne das Präfix 'ChoreOps:'.",
+  "_comment_approver_desc": "BENACHRICHTIGUNGEN FÜR GENEHMIGER: Informativ, in der dritten Person, handlungsauffordernd. Format: '{assignee_name}: Aktion'. Ohne das Präfix 'ChoreOps:'.",
   "_comment_approver_footer": "══════════════════════════════════════════════════════════════════",
   "chore_claimed_approver": {
     "title": "✋ {assignee_name}: Aufgabe übernommen",
@@ -71,7 +71,7 @@
   },
   "chore_reminder_approver": {
     "title": "⏰ {assignee_name}: Genehmigung erforderlich",
-    "message": "Zur Erinnerung: {chore_name} , beansprucht von {assignee_name} , wartet auf Ihre Bewertung."
+    "message": "Erinnerung: {chore_name}, beansprucht von {assignee_name}, wartet auf deine Prüfung"
   },
   "chore_overdue_approver": {
     "title": "⚠️ {assignee_name}: Überfällige Aufgabe",
@@ -87,45 +87,45 @@
   },
   "reward_reminder_approver": {
     "title": "⏰ {assignee_name}: Belohnung ausstehend",
-    "message": "Hinweis: Die von {assignee_name} angeforderte {reward_name} wartet auf Ihre Zustimmung."
+    "message": "Erinnerung: Die von {assignee_name} angeforderte {reward_name} wartet auf deine Genehmigung"
   },
   "badge_earned_approver": {
     "title": "🥇 {assignee_name}: Abzeichen erhalten",
-    "message": "{assignee_name} hat das {badge_name} -Abzeichen erhalten!"
+    "message": "{assignee_name} hat das {badge_name}-Abzeichen erhalten!"
   },
   "achievement_earned_approver": {
     "title": "🏆 {assignee_name}: Erfolg",
-    "message": "{assignee_name} verdient {achievement_name}"
+    "message": "{assignee_name} verdiente {achievement_name}"
   },
   "challenge_completed_approver": {
     "title": "🏁 {assignee_name}: Herausforderung abgeschlossen",
-    "message": "{assignee_name} abgeschlossen {challenge_name}"
+    "message": "{assignee_name} schloss {challenge_name} ab"
   },
   "multiplier_changed_approver": {
     "title": "⚖️ {assignee_name}: Multiplikator aktualisiert",
-    "message": "Der Punktemultiplikator von {assignee_name}wurde von {old_multiplier}x auf {new_multiplier}x geändert."
+    "message": "Der Punktemultiplikator von {assignee_name} wurde von {old_multiplier}x auf {new_multiplier}x geändert"
   },
   "_comment_system_section": "══════════════════════════════════════════════════════════════════",
   "_comment_system_desc": "SYSTEM-/ADMINISTRATOR-BENACHRICHTIGUNGEN: Datenverwaltungsvorgänge",
   "_comment_system_footer": "══════════════════════════════════════════════════════════════════",
   "data_reset": {
-    "title": "🔄 ChoreOps: Daten zurücksetzen",
+    "title": "🔄 ChoreOps: Daten zurückgesetzt",
     "message": "Systemdaten wurden zurückgesetzt"
   },
   "data_reset_global": {
     "title": "🔄 ChoreOps: Kompletter Reset",
-    "message": "Alle Systemdaten wurden auf die Standardeinstellungen zurückgesetzt."
+    "message": "Alle Systemdaten wurden auf die Standardeinstellungen zurückgesetzt"
   },
   "data_reset_assignee": {
-    "title": "🔄 ChoreOps: Zuweisung zurücksetzen",
+    "title": "🔄 ChoreOps: Zuweisung zurückgesetzt",
     "message": "Daten für {assignee_name} zurückgesetzt"
   },
   "data_reset_item_type": {
-    "title": "🔄 ChoreOps: {item_type} Zurücksetzen",
+    "title": "🔄 ChoreOps: {item_type} zurückgesetzt",
     "message": "Alle {item_type} Daten wurden zurückgesetzt"
   },
   "data_reset_item": {
-    "title": "🔄 ChoreOps: Gegenstände zurücksetzen",
+    "title": "🔄 ChoreOps: Gegenstand zurückgesetzt",
     "message": "{item_type} '{item_name}' wurde zurückgesetzt"
   },
   "_comment_actions_section": "══════════════════════════════════════════════════════════════════",

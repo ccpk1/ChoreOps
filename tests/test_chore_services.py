@@ -995,6 +995,42 @@ class TestServiceHandlerValidation:
     """Test service handler validation logic."""
 
     @pytest.mark.asyncio
+    async def test_set_due_date_service_rejects_clearing_weekly_due_date(
+        self,
+        hass: HomeAssistant,
+        setup_chore_services_scenario: SetupResult,
+    ) -> None:
+        """Test that the service rejects clearing due date for weekly chores."""
+        coordinator = setup_chore_services_scenario.coordinator
+        assignee_id = setup_chore_services_scenario.assignee_ids["Zoë"]
+        chore_id = setup_chore_services_scenario.chore_ids["Independent Weekly Task"]
+
+        original_due = get_assignee_due_date_for_chore(
+            coordinator, chore_id, assignee_id
+        )
+        assert original_due is not None
+
+        with pytest.raises(HomeAssistantError):
+            await hass.services.async_call(
+                const.DOMAIN,
+                const.SERVICE_SET_CHORE_DUE_DATE,
+                {
+                    const.SERVICE_FIELD_CHORE_NAME: "Independent Weekly Task",
+                    const.SERVICE_FIELD_USER_NAME: "Zoë",
+                },
+                blocking=True,
+            )
+
+        assert (
+            coordinator.chores_data[chore_id][const.DATA_CHORE_RECURRING_FREQUENCY]
+            == const.FREQUENCY_WEEKLY
+        )
+        assert (
+            get_assignee_due_date_for_chore(coordinator, chore_id, assignee_id)
+            == original_due
+        )
+
+    @pytest.mark.asyncio
     async def test_set_due_date_service_rejects_assignee_for_shared_chore(
         self,
         hass: HomeAssistant,

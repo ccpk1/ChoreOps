@@ -1865,8 +1865,7 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                                 const.TRANS_KEY_CFOF_INVALID_DUE_DATE
                             )
 
-            # Validate: If ALL dates are cleared, check recurring frequency compatibility
-            # Only none, daily, weekly frequencies work without due dates
+            # Validate: If ALL dates are cleared, only none/daily may remain date-less
             if not errors and not per_assignee_due_dates:
                 stored_chore = coordinator.chores_data.get(internal_id, {})
                 recurring_frequency = stored_chore.get(
@@ -1875,7 +1874,6 @@ class ChoreOpsOptionsFlowHandler(config_entries.OptionsFlow):
                 if recurring_frequency not in (
                     const.FREQUENCY_NONE,
                     const.FREQUENCY_DAILY,
-                    const.FREQUENCY_WEEKLY,
                 ):
                     errors[const.CFOP_ERROR_BASE] = (
                         const.TRANS_KEY_CFOF_DATE_REQUIRED_FOR_FREQUENCY
