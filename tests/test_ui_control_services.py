@@ -294,6 +294,44 @@ class TestManageUiControlService:
         assert _get_helper_ui_control(hass, "zoe") == {}
 
     @pytest.mark.asyncio
+    async def test_remove_missing_key_is_noop(
+        self,
+        hass: HomeAssistant,
+        scenario_full: SetupResult,
+    ) -> None:
+        """Remove should treat a missing key as a no-op for dashboard resets."""
+        user_id = scenario_full.assignee_ids["Zoë"]
+
+        response = await hass.services.async_call(
+            const.DOMAIN,
+            const.SERVICE_MANAGE_UI_CONTROL,
+            {
+                const.SERVICE_FIELD_USER_ID: user_id,
+                const.SERVICE_FIELD_UI_CONTROL_ACTION: const.UI_CONTROL_ACTION_REMOVE,
+                const.SERVICE_FIELD_UI_CONTROL_KEY: REWARDS_HEADER_COLLAPSE_KEY,
+            },
+            blocking=True,
+            return_response=True,
+        )
+
+        await hass.async_block_till_done()
+
+        assert response["cleared_all"] is False
+        assert response[const.SERVICE_FIELD_UI_CONTROL_TARGET] == (
+            const.UI_CONTROL_TARGET_USER
+        )
+        assert response[const.SERVICE_FIELD_UI_CONTROL_KEY] == (
+            REWARDS_HEADER_COLLAPSE_KEY
+        )
+        assert (
+            scenario_full.coordinator.assignees_data[user_id][
+                const.DATA_USER_UI_PREFERENCES
+            ]
+            == {}
+        )
+        assert _get_helper_ui_control(hass, "zoe") == {}
+
+    @pytest.mark.asyncio
     async def test_requires_user_target(
         self,
         hass: HomeAssistant,
