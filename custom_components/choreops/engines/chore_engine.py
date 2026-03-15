@@ -1440,10 +1440,12 @@ class ChoreEngine:
         Returns:
             Action string:
             - "reset_and_reschedule": Reset state + calculate next due date
-            - "reset_only": Reset state without rescheduling (no due date)
+            - "reset_only": Reset state without rescheduling
             - "hold": Skip processing, preserve current state
             - "skip": No action needed (already PENDING or non-recurring approved)
         """
+        should_reschedule = has_due_date and recurring_frequency != const.FREQUENCY_NONE
+
         # PENDING state = nothing to do
         if current_state == const.CHORE_STATE_PENDING:
             return "skip"
@@ -1452,7 +1454,7 @@ class ChoreEngine:
         # Note: Non-recurring chores with AT_MIDNIGHT_* still reset at midnight.
         # The approval_reset_type determines WHEN resets happen, not frequency.
         if current_state == const.CHORE_STATE_APPROVED:
-            return "reset_and_reschedule" if has_due_date else "reset_only"
+            return "reset_and_reschedule" if should_reschedule else "reset_only"
 
         # CLAIMED state = check pending_claims_handling
         if current_state == const.CHORE_STATE_CLAIMED:
@@ -1460,7 +1462,7 @@ class ChoreEngine:
                 return "hold"
             # CLEAR and AUTO_APPROVE both proceed with reset
             # (AUTO_APPROVE approval is handled by the manager, not engine)
-            return "reset_and_reschedule" if has_due_date else "reset_only"
+            return "reset_and_reschedule" if should_reschedule else "reset_only"
 
         # OVERDUE state = check overdue_handling
         if current_state == const.CHORE_STATE_OVERDUE:
@@ -1472,13 +1474,13 @@ class ChoreEngine:
                 overdue_handling
                 == const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET
             ):
-                return "reset_and_reschedule" if has_due_date else "reset_only"
+                return "reset_and_reschedule" if should_reschedule else "reset_only"
             # CLEAR_AND_MARK_MISSED = record miss then reset
             if (
                 overdue_handling
                 == const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AND_MARK_MISSED
             ):
-                return "reset_and_reschedule" if has_due_date else "reset_only"
+                return "reset_and_reschedule" if should_reschedule else "reset_only"
             # CLEAR_IMMEDIATE_ON_LATE = already handled when due passed, skip
             if (
                 overdue_handling
@@ -1497,7 +1499,7 @@ class ChoreEngine:
                 overdue_handling
                 == const.OVERDUE_HANDLING_AT_DUE_DATE_MARK_MISSED_AND_LOCK
             ):
-                return "reset_and_reschedule" if has_due_date else "reset_only"
+                return "reset_and_reschedule" if should_reschedule else "reset_only"
             return "skip"
 
         # Default: skip unknown states

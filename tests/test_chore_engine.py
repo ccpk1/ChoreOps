@@ -1112,13 +1112,8 @@ class TestCalculateBoundaryAction:
         )
         assert result == "reset_only"
 
-    def test_approved_non_recurring_with_due_date_resets_and_reschedules(self) -> None:
-        """Non-recurring APPROVED chore resets based on approval_reset_type.
-
-        Even for non-recurring chores, APPROVED state resets at the boundary.
-        The approval_reset_type (AT_MIDNIGHT_*, AT_DUE_DATE_*) determines
-        WHEN resets happen, not recurring_frequency.
-        """
+    def test_approved_non_recurring_with_due_date_resets_only(self) -> None:
+        """Non-recurring APPROVED chore resets without rescheduling."""
         result = ChoreEngine.calculate_boundary_action(
             current_state=const.CHORE_STATE_APPROVED,
             overdue_handling=const.OVERDUE_HANDLING_AT_DUE_DATE,
@@ -1126,7 +1121,18 @@ class TestCalculateBoundaryAction:
             recurring_frequency=const.FREQUENCY_NONE,
             has_due_date=True,
         )
-        assert result == "reset_and_reschedule"
+        assert result == "reset_only"
+
+    def test_claimed_non_recurring_with_due_date_resets_only(self) -> None:
+        """Non-recurring CLAIMED chore resets without rescheduling."""
+        result = ChoreEngine.calculate_boundary_action(
+            current_state=const.CHORE_STATE_CLAIMED,
+            overdue_handling=const.OVERDUE_HANDLING_AT_DUE_DATE,
+            pending_claims_handling=const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
+            recurring_frequency=const.FREQUENCY_NONE,
+            has_due_date=True,
+        )
+        assert result == "reset_only"
 
     def test_approved_non_recurring_without_due_date_resets_only(self) -> None:
         """Non-recurring APPROVED chore without due date → reset_only."""
@@ -1221,6 +1227,19 @@ class TestCalculateBoundaryAction:
             pending_claims_handling=const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
             recurring_frequency=const.FREQUENCY_DAILY,
             has_due_date=False,
+        )
+        assert result == "reset_only"
+
+    def test_overdue_non_recurring_clear_at_reset_with_due_date_resets_only(
+        self,
+    ) -> None:
+        """Non-recurring OVERDUE chore clears at boundary without rescheduling."""
+        result = ChoreEngine.calculate_boundary_action(
+            current_state=const.CHORE_STATE_OVERDUE,
+            overdue_handling=const.OVERDUE_HANDLING_AT_DUE_DATE_CLEAR_AT_APPROVAL_RESET,
+            pending_claims_handling=const.APPROVAL_RESET_PENDING_CLAIM_CLEAR,
+            recurring_frequency=const.FREQUENCY_NONE,
+            has_due_date=True,
         )
         assert result == "reset_only"
 
@@ -1380,6 +1399,34 @@ class TestGetBoundaryCategory:
             chore_data, const.CHORE_STATE_APPROVED, "midnight"
         )
         assert result == "reset_and_reschedule"
+
+    def test_non_recurring_shared_due_date_returns_reset_only(self) -> None:
+        """Non-recurring shared chore with due date resets without rescheduling."""
+        chore_data = {
+            const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
+            const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_NONE,
+            const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+            const.DATA_CHORE_DUE_DATE: "2025-01-31T10:00:00",
+        }
+        result = ChoreEngine.get_boundary_category(
+            chore_data, const.CHORE_STATE_APPROVED, "midnight"
+        )
+        assert result == "reset_only"
+
+    def test_non_recurring_independent_due_date_returns_reset_only(self) -> None:
+        """Non-recurring independent chore with due date resets without rescheduling."""
+        chore_data = {
+            const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_MIDNIGHT_ONCE,
+            const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_NONE,
+            const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_INDEPENDENT,
+            const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES: {
+                "assignee-1": "2025-01-31T10:00:00"
+            },
+        }
+        result = ChoreEngine.get_boundary_category(
+            chore_data, const.CHORE_STATE_APPROVED, "midnight"
+        )
+        assert result == "reset_only"
 
     def test_shared_chore_without_due_date_resets_only(self) -> None:
         """SHARED chore without due_date → reset_only."""

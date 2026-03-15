@@ -275,6 +275,76 @@ class TestTimeScanCache:
         assert len(scan[const.CHORE_SCAN_RESULT_APPROVAL_RESET_SHARED]) == 1
         assert len(scan[const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT]) == 0
 
+    @pytest.mark.asyncio
+    async def test_midnight_rollover_resets_daily_shared_without_due_date(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Daily shared chores without due dates should reset at midnight."""
+        chore = mock_coordinator.chores_data["chore-1"]
+        chore[const.DATA_CHORE_COMPLETION_CRITERIA] = const.COMPLETION_CRITERIA_SHARED
+        chore[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+        )
+        chore[const.DATA_CHORE_RECURRING_FREQUENCY] = const.FREQUENCY_DAILY
+        chore.pop(const.DATA_CHORE_DUE_DATE, None)
+        mock_coordinator._data[const.DATA_CHORES]["chore-1"] = chore
+
+        for assignee_id in ("assignee-1", "assignee-2"):
+            mock_coordinator.assignees_data[assignee_id][const.DATA_USER_CHORE_DATA][
+                "chore-1"
+            ] = {const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED}
+
+        reset_count = await chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+
+        assert reset_count == 2
+        for assignee_id in ("assignee-1", "assignee-2"):
+            assignee_chore_data = mock_coordinator.assignees_data[assignee_id][
+                const.DATA_USER_CHORE_DATA
+            ]["chore-1"]
+            assert (
+                assignee_chore_data[const.DATA_USER_CHORE_DATA_STATE]
+                == const.CHORE_STATE_PENDING
+            )
+
+    @pytest.mark.asyncio
+    async def test_midnight_rollover_resets_daily_independent_without_due_date(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Daily independent chores without due dates should reset at midnight."""
+        chore = mock_coordinator.chores_data["chore-1"]
+        chore[const.DATA_CHORE_COMPLETION_CRITERIA] = (
+            const.COMPLETION_CRITERIA_INDEPENDENT
+        )
+        chore[const.DATA_CHORE_APPROVAL_RESET_TYPE] = (
+            const.APPROVAL_RESET_AT_MIDNIGHT_ONCE
+        )
+        chore[const.DATA_CHORE_RECURRING_FREQUENCY] = const.FREQUENCY_DAILY
+        chore.pop(const.DATA_CHORE_DUE_DATE, None)
+        chore[const.DATA_CHORE_PER_ASSIGNEE_DUE_DATES] = {}
+        mock_coordinator._data[const.DATA_CHORES]["chore-1"] = chore
+
+        mock_coordinator.assignees_data["assignee-1"][const.DATA_USER_CHORE_DATA][
+            "chore-1"
+        ] = {const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED}
+        mock_coordinator.assignees_data["assignee-2"][const.DATA_USER_CHORE_DATA][
+            "chore-1"
+        ] = {const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_PENDING}
+
+        reset_count = await chore_manager._on_midnight_rollover(now_utc=dt_now_utc())
+
+        assert reset_count == 1
+        assignee_one_chore_data = mock_coordinator.assignees_data["assignee-1"][
+            const.DATA_USER_CHORE_DATA
+        ]["chore-1"]
+        assert (
+            assignee_one_chore_data[const.DATA_USER_CHORE_DATA_STATE]
+            == const.CHORE_STATE_PENDING
+        )
+
 
 class TestResetPolicyDecision:
     """Table-driven tests for reset policy decision helper."""
@@ -538,6 +608,35 @@ class TestResetExecutor:
         chore_manager._transition_chore_state.assert_called_once()
         chore_manager._reschedule_chore_due.assert_not_called()
 
+    def test_apply_reset_action_clears_due_date_for_non_recurring_reset(
+        self,
+        chore_manager: ChoreManager,
+    ) -> None:
+        """Executor clears stale due date instead of rescheduling non-recurring chore."""
+        chore_info = chore_manager._coordinator.chores_data["chore-1"]
+        chore_info[const.DATA_CHORE_COMPLETION_CRITERIA] = (
+            const.COMPLETION_CRITERIA_SHARED
+        )
+        chore_info[const.DATA_CHORE_RECURRING_FREQUENCY] = const.FREQUENCY_NONE
+        chore_info[const.DATA_CHORE_DUE_DATE] = "2025-01-31T10:00:00+00:00"
+
+        chore_manager._transition_chore_state = MagicMock()
+        chore_manager._reschedule_chore_due = MagicMock()
+
+        chore_manager._apply_reset_action(
+            {
+                "assignee_id": "assignee-1",
+                "chore_id": "chore-1",
+                "decision": const.CHORE_RESET_DECISION_RESET_ONLY,
+                "reschedule_assignee_id": None,
+                "allow_reschedule": False,
+                "clear_due_date": True,
+            }
+        )
+
+        assert const.DATA_CHORE_DUE_DATE not in chore_info
+        chore_manager._reschedule_chore_due.assert_not_called()
+
     def test_finalize_reset_batch_persist_then_emit(
         self,
         chore_manager: ChoreManager,
@@ -743,8 +842,72 @@ class TestResetExecutor:
                 "decision": const.CHORE_RESET_DECISION_RESET_AND_RESCHEDULE,
                 "reschedule_assignee_id": "assignee-1",
                 "allow_reschedule": True,
+                "clear_due_date": False,
             }
         )
+
+    @pytest.mark.asyncio
+    async def test_process_approval_reset_entries_non_recurring_shared_clears_due_date(
+        self,
+        chore_manager: ChoreManager,
+        mock_coordinator: MagicMock,
+    ) -> None:
+        """Boundary reset clears stale due date for non-recurring shared chore."""
+        chore_info = {
+            const.DATA_CHORE_ASSIGNED_USER_IDS: ["assignee-1", "assignee-2"],
+            const.DATA_CHORE_STATE: const.CHORE_STATE_APPROVED,
+            const.DATA_CHORE_APPROVAL_RESET_PENDING_CLAIM_ACTION: (
+                const.APPROVAL_RESET_PENDING_CLAIM_CLEAR
+            ),
+            const.DATA_CHORE_APPROVAL_RESET_TYPE: const.APPROVAL_RESET_AT_DUE_DATE_ONCE,
+            const.DATA_CHORE_OVERDUE_HANDLING_TYPE: const.DEFAULT_OVERDUE_HANDLING_TYPE,
+            const.DATA_CHORE_COMPLETION_CRITERIA: const.COMPLETION_CRITERIA_SHARED,
+            const.DATA_CHORE_RECURRING_FREQUENCY: const.FREQUENCY_NONE,
+            const.DATA_CHORE_DUE_DATE: "2025-01-31T10:00:00+00:00",
+        }
+        mock_coordinator.chores_data["chore-1"] = chore_info
+        mock_coordinator._data[const.DATA_CHORES]["chore-1"] = chore_info
+
+        for assignee_id in ("assignee-1", "assignee-2"):
+            mock_coordinator.assignees_data[assignee_id][const.DATA_USER_CHORE_DATA][
+                "chore-1"
+            ] = {const.DATA_USER_CHORE_DATA_STATE: const.CHORE_STATE_APPROVED}
+
+        chore_manager._reschedule_chore_due = MagicMock()
+        chore_manager._coordinator._persist = MagicMock()
+        chore_manager._coordinator.async_set_updated_data = MagicMock()
+
+        scan: dict[str, list[dict[str, Any]]] = {
+            const.CHORE_SCAN_RESULT_APPROVAL_RESET_SHARED: [
+                {
+                    const.CHORE_SCAN_ENTRY_CHORE_ID: "chore-1",
+                    const.CHORE_SCAN_ENTRY_CHORE_INFO: chore_info,
+                }
+            ],
+            const.CHORE_SCAN_RESULT_APPROVAL_RESET_INDEPENDENT: [],
+        }
+
+        with pytest.MonkeyPatch.context() as monkeypatch:
+            monkeypatch.setattr(
+                "custom_components.choreops.managers.chore_manager.ChoreEngine.get_boundary_category",
+                lambda **_kwargs: const.CHORE_RESET_BOUNDARY_CATEGORY_CLEAR_ONLY,
+            )
+
+            (
+                reset_count,
+                reset_pairs,
+            ) = await chore_manager._process_approval_reset_entries(
+                scan,
+                dt_now_utc(),
+                trigger=const.CHORE_SCAN_TRIGGER_DUE_DATE,
+                persist=True,
+            )
+
+        assert reset_count == 2
+        assert ("assignee-1", "chore-1") in reset_pairs
+        assert ("assignee-2", "chore-1") in reset_pairs
+        assert const.DATA_CHORE_DUE_DATE not in chore_info
+        chore_manager._reschedule_chore_due.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_rotation_boundary_advances_once_for_missed_turn_holder(
@@ -1055,6 +1218,8 @@ class TestApprovalResetExecutorLane:
         periodic_payload = chore_manager._apply_reset_action.call_args.args[0]
         periodic_payload.setdefault("allow_reschedule", True)
         approval_payload.setdefault("allow_reschedule", True)
+        periodic_payload.setdefault("clear_due_date", False)
+        approval_payload.setdefault("clear_due_date", False)
         assert periodic_payload == approval_payload
 
     @pytest.mark.asyncio
@@ -1130,6 +1295,12 @@ class TestApprovalResetExecutorLane:
         periodic_payloads = [
             call.args[0] for call in chore_manager._apply_reset_action.call_args_list
         ]
+        for periodic_payload in periodic_payloads:
+            periodic_payload.setdefault("allow_reschedule", False)
+            periodic_payload.setdefault("clear_due_date", False)
+        for approval_payload in approval_payloads:
+            approval_payload.setdefault("allow_reschedule", False)
+            approval_payload.setdefault("clear_due_date", False)
         assert periodic_payloads == approval_payloads
 
 
